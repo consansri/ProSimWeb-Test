@@ -36,8 +36,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 +data.getArch().name
             }
         }
-
-
     }
 
     div {
