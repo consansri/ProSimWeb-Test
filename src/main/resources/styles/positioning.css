@@ -1,0 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+    z-index: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    max-width: 100vw;
+}
+
+main div {
+    display: flex;
+    align-items: flex-start;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+#lcontainer {
+    max-width: 40vw;
+    min-height: 50vh;
+}
+
+#rcontainer {
+    flex-grow: 1;
+    max-width: 60vw;
+    min-height: 100vh;
+}

@@ -27,7 +27,6 @@ class AppData {
         } else {
             return archList[0]
         }
-
     }
 
 }

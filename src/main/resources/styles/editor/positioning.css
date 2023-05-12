@@ -1,0 +1,65 @@
+
+
+.editor {
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    flex-basis: 100%;
+}
+
+.editor-controls {
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-container {
+    display: block;
+    height: 200px;
+    width: 100%;
+    overflow: auto;
+}
+
+.editor-scroll-container {
+    display: flex;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.editor-line-numbers {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.editor-input-div {
+    position: relative;
+    display: flex;
+    width: 400px;
+    overflow: auto;
+    flex-grow: 1;
+}
+.editor-area {
+    position: absolute;
+    display: block;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100%;
+    z-index: 2;
+    resize: vertical;
+}
+.editor-highlighting {
+    position: absolute;
+    display: block;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100%;
+    z-index: 1;
+}
+.editor-highlighting-content{
+    display: block;
+    width: 100%;
+    height: 100%;
+}

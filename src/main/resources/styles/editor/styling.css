@@ -1,0 +1,136 @@
+.editor {
+    gap: 5px;
+    padding: 5px;
+    border-radius: 2px;
+}
+
+/* -- EDITOR CONTROLS -- */
+
+.editor-controls {
+    gap: 5px;
+}
+
+.editor-control {
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    background-color: var(--editor-controls-bg-color);
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transition: 0.1s;
+}
+.editor-control img {
+    width: 32px;
+    height: 32px;
+    filter: invert(100%);
+    transition: 0.1s;
+}
+
+.editor-control:hover {
+    background-color: var(--editor-controls-bg-hover-color);
+}
+
+.editor-control:hover img {
+    filter: invert(100%) sepia(46%) saturate(3319%) hue-rotate(170deg) brightness(82%) contrast(81%);
+}
+
+/* -- EDITOR CONTAINER -- */
+
+.editor-container {
+    gap: 10px;
+    font-family: monospace;
+    line-height: 21px;
+    background: var(--editor-bg-color);
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    padding: 2% 1%;
+}
+
+/* EDITOR Line Numbers */
+.editor-line-numbers {
+    min-width: 30px;
+    padding-right: 5px;
+    border-right: 1px solid var(--editor-linenumbers-border-color);
+    text-align: right;
+}
+
+.editor-line-numbers span {
+    counter-increment: linenumber;
+}
+
+.editor-line-numbers span::before {
+    content: counter(linenumber);
+    display: block;
+    color: var(--editor-linenumbers-color);
+}
+
+/* EDITOR Input Field */
+.editor-input-div {
+
+}
+.editor-area, .editor-highlighting-content {
+    font-family: monospace;
+    font-size: 16px;
+    line-height: 21px;
+    tab-size: 6;
+    white-space: pre;
+    overflow-x: hidden;
+    overflow-wrap: normal;
+    padding-left: 5px;
+    border: 0;
+    background: transparent;
+    color: var(--editor-code-color);
+    outline: none;
+    resize: none;
+}
+
+.editor-highlighting {
+    white-space: pre-wrap;
+}
+
+.editor-highlighting-content {
+    color: red;
+}
+
+.editor-area {
+    caret-color: var(--editor-code-color);
+    columns: calc(400/16);
+    color: transparent;
+}
+
+/* HIGHLIGHTING COLORS */
+.red, .green, .blue, .yellow, .decimal, .hex {
+    font-family: monospace;
+    font-size: 16px;
+}
+
+.red {
+
+    background-color: transparent;
+    color: var(--editor-hl-red);
+}
+
+.green {
+    background-color: transparent;
+    color: var(--editor-hl-green);
+}
+
+.blue {
+    background-color: transparent;
+    color: var(--editor-hl-blue);
+}
+
+.yellow {
+    background-color: transparent;
+    color: var(--editor-hl-yellow);
+}
+
+.decimal {
+    background-color: transparent;
+    color: var(--editor-hl-decimal);
+}
+
+.hex {
+    background-color: transparent;
+    color: var(--editor-hl-hex);
+}
+

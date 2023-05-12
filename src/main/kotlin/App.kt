@@ -119,19 +119,17 @@ val App = FC<Props> { props ->
 
         div {
             id = "rcontainer"
-            ProcessorView {
+            /*ProcessorView {
                 appData = data
                 update = reloadUI
                 updateParent = ::update
-            }
+            }*/
         }
     }
 
     footer {
 
     }
-
-
 
     useEffect(reloadUI){
         console.log("Reload")
