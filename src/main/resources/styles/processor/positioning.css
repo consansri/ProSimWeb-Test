@@ -1,0 +1,35 @@
+
+
+.exeControlDiv {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 10vh;
+}
+.exeControlDiv div {
+    display: block;
+    width: 100%;
+
+}
+.exeControlDiv div a {
+
+}
+.exeControlDiv a {
+
+}
+
+.processorDiv {
+    position: relative;
+    display: block;
+    width: 100%;
+
+}
+
+.memoryDiv {
+    position: relative;
+    display: block;
+    width: 100%;
+
+
+}
+

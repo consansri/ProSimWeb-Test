@@ -6,46 +6,50 @@ class DataMemory {
     val addressLength: Int // in Bit
     val globalSize: Int // in Byte
     val wordLength: Int // in Byte
-    val initNumber: Byte = 0
 
-    lateinit var memArray: Array<Array<Byte>>
+    private var memList: List<DMemInstance>
 
     constructor() {
         this.addressLength = 4
         this.wordLength = 4
         this.globalSize = 2.0.pow(addressLength.toDouble()).toInt()
-        setup()
+        this.memList = emptyList<DMemInstance>()
     }
 
     constructor(addressLength: Int, wordLength: Int) {
         this.addressLength = addressLength
         this.wordLength = wordLength
         this.globalSize = 2.0.pow(addressLength.toDouble()).toInt()
-        setup()
+        this.memList = emptyList<DMemInstance>()
     }
 
-    private fun setup() {
-        //memArray = Array(globalSize / wordLength) { Array(wordLength) { initNumber } } // !! TO BIG
+    fun save(address: Int, value: Int): Boolean {
+        for (instance in memList) {
+            if (instance.address == address) {
+                instance.value = value
+                return true
+            }
+        }
+        memList += DMemInstance(address, value)
+        return false
     }
 
-    public fun getAddressMax(): Int {
+    fun load(address: Int): Int? {
+        for (instance in memList) {
+            if (instance.address == address) {
+                return instance.value
+            }
+        }
+        return null
+    }
+
+    fun getAddressMax(): Int {
         return globalSize - 1
     }
 
-    public fun getAddressMin(): Int {
-        return 0
+    private class DMemInstance(val address: Int, var value: Int) {
+
     }
 
-    public fun save(address: Int, value: Byte) {
-        memArray[address / wordLength][address % wordLength] = value
-    }
-
-    public fun loadByte(address: Int): Byte {
-        return memArray[address / wordLength][address % wordLength]
-    }
-
-    public fun loadWord(address: Int): Array<Byte> {
-        return memArray[address / wordLength]
-    }
 
 }

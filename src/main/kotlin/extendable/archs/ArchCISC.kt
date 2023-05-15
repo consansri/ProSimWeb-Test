@@ -6,7 +6,7 @@ import extendable.components.ProgramMemory
 
 class ArchCISC : Architecture {
 
-    constructor():  super("IKR CISC", ProgramMemory(32,32), DataMemory(32,4)) {
+    constructor():  super("IKR CISC", ProgramMemory(4,32,32), DataMemory(32,4)) {
 
     }
 }

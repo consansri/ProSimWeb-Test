@@ -1,0 +1,38 @@
+
+
+.exeControlDiv {
+    margin-top: 5px;
+    padding: 5px;
+    border-radius: 2px;
+    background: var(--proc-con-bg-color);
+}
+
+.exeControlDiv div {
+    text-align: center;
+    color: var(--proc-logo-color);
+}
+
+.exeControlDiv div a {
+    font-family: monospace;
+    font-size: 25px;
+}
+
+.exeControlDiv a {
+
+}
+
+.processorDiv {
+    padding: 5px;
+    margin-top: 5px;
+    border-radius: 2px;
+    background: var(--proc-main-bg-color);
+}
+
+.memoryDiv {
+    padding: 5px;
+    margin-top: 5px;
+    border-radius: 2px;
+    background: var(--proc-mem-bg-color);
+
+}
+

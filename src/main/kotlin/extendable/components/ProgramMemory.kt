@@ -4,30 +4,55 @@ import kotlin.math.pow
 
 class ProgramMemory {
 
+    val addressLength: Int // in Bit
     val instructionLength: Int // in Bit
     val extensionLength: Int // in Bit
-    val initNumber: Byte = 0
+    val globalSize: Int // Amount of Values in Program Memory
 
-    lateinit var memArray: Array<Array<Byte>>
+    private var memList: List<PMemInstance>
 
     constructor() {
+        this.addressLength = 16 // Bit
         this.instructionLength = 32 // Bit
         this.extensionLength = 32 // Bit
-
-        setup()
+        this.globalSize = 2.0.pow(addressLength.toDouble()).toInt()
+        this.memList = emptyList<PMemInstance>()
     }
 
-    constructor(instructionLength: Int, extensionLength: Int) {
+    constructor(addressLength: Int, instructionLength: Int, extensionLength: Int) {
+        this.addressLength = addressLength
         this.instructionLength = instructionLength
         this.extensionLength = extensionLength
-
-        setup()
+        this.globalSize = 2.0.pow(addressLength.toDouble()).toInt()
+        this.memList = emptyList<PMemInstance>()
     }
 
-    private fun setup() {
-        
+    fun load(address: Int): Int? {
+        for (data in memList) {
+            if (data.address == address) {
+                return data.value
+            }
+        }
+        return null
     }
 
+    fun save(address: Int, value: Int) {
+        for (data in memList) {
+            if (data.address == address){
+                data.value = value
+                return
+            }
+        }
+        memList += PMemInstance(address, value)
+    }
+
+    fun getMaxAddress(): Int {
+        return 2.0.pow(addressLength).toInt() - 1
+    }
+
+    private class PMemInstance(val address: Int, var value: Int) {
+
+    }
 
 
 }

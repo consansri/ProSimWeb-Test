@@ -30,7 +30,9 @@ main div {
 }
 
 #rcontainer {
-    flex-grow: 1;
-    max-width: 60vw;
-    min-height: 100vh;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    overflow-inline: visible;
+    width: 60vw;
 }

@@ -16,6 +16,10 @@ external interface ProcessorViewProps : Props {
     var update: Boolean
 }
 
+// CSS CLASSES
+val CLASS_PROC_MAIN_CONTAINER = "processor"
+
+
 val ProcessorView = FC<ProcessorViewProps> { props ->
 
     val data by useState(props.appData)
@@ -26,6 +30,8 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     useEffect(change) {
         console.log("processorView updated")
     }
+
+
 
     div {
         className = ClassName("exeControlDiv")
@@ -42,17 +48,17 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         className = ClassName("processorDiv")
 
         /*
-        ReactHTML.button {
-            +"refreshParentExample"
+    ReactHTML.button {
+        +"refreshParentExample"
 
-            onClick = {
-                data.testBoolean = !data.testBoolean
-                props.updateParent(data)
-                setChange(!change)
-            }
+        onClick = {
+            data.testBoolean = !data.testBoolean
+            props.updateParent(data)
+            setChange(!change)
         }
+    }
 
-         */
+     */
 
     }
 

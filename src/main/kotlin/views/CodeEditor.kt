@@ -46,6 +46,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val lineNumbersRef = useRef<HTMLDivElement>(null)
     val btnClearRef = useRef<HTMLAnchorElement>(null)
     val btnUndoRef = useRef<HTMLAnchorElement>(null)
+    val inputDivRef = useRef<HTMLDivElement>(null)
     val codeAreaRef = useRef<HTMLElement>(null)
 
     // State für aktuellen Text
@@ -72,14 +73,22 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         val spanStr = buildString {
             repeat(numberOfLines) { append("<span></span>") }
         }
-
         lineNumbers.innerHTML = spanStr
     }
 
     fun updateTAResize() {
+        var scrollHeight = 0
+
         textareaRef.current?.let {
             it.style.height = "auto"
             it.style.height = "${it.scrollHeight}px"
+            scrollHeight = it.scrollHeight
+        }
+        inputDivRef.current?.let {
+            it.style.height = "auto"
+            if(scrollHeight != 0){
+                it.style.height="${scrollHeight}px"
+            }
         }
     }
 
@@ -137,6 +146,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             updateTAResize()
             updateClearButton(it)
         }
+
     }
 
     div {
@@ -159,7 +169,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         props.updateParent
                     }
                 }
-
             }
 
             a {
@@ -168,7 +177,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 img {
                     src = "icons/exclamation-mark2.svg"
                 }
-
             }
 
             a {
@@ -203,11 +211,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     span {
 
                     }
-
                 }
-                div {
 
+                div {
                     className = ClassName(CLASS_EDITOR_INPUT_DIV)
+                    ref = inputDivRef
 
                     textarea {
                         className = ClassName(CLASS_EDITOR_AREA)
@@ -284,7 +292,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                             }
                         }
-
                     }
 
                     pre {
@@ -296,15 +303,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             className = ClassName(CLASS_EDITOR_HIGHLIGHTING_CONTENT)
                             ref = codeAreaRef
 
-
                         }
-
                     }
                 }
-
             }
         }
-
     }
-
 }
