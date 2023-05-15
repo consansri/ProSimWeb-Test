@@ -29,7 +29,4 @@ object HTMLTools {
         return builder.toString()
     }
 
-
-
-
 }

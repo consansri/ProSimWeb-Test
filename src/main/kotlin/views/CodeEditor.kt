@@ -222,7 +222,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         ref = textareaRef
                         spellCheck = false
 
-                        placeholder = "Enter Assembler Code"
+                        placeholder = "Enter ${data.getArch().name} Assembly ..."
 
                         onInput = { event ->
                             // Resize Textarea
