@@ -28,7 +28,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     val titleRef = useRef<HTMLAnchorElement>()
 
     useEffect(change) {
-        console.log("processorView updated")
+        console.log("ProcessorView updated")
     }
 
 
@@ -47,18 +47,15 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     div {
         className = ClassName("processorDiv")
 
-        /*
-    ReactHTML.button {
-        +"refreshParentExample"
-
-        onClick = {
-            data.testBoolean = !data.testBoolean
-            props.updateParent(data)
-            setChange(!change)
-        }
-    }
-
-     */
+//    ReactHTML.button {
+//        +"refreshParentExample"
+//
+//        onClick = {
+//            data.testBoolean = !data.testBoolean
+//            props.updateParent(data)
+//            setChange(!change)
+//        }
+//    }
 
     }
 

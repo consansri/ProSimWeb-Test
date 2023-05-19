@@ -1,3 +1,20 @@
+:root {
+    --editor-controls-bg-color: #36454f;
+    --editor-controls-bg-hover-color: #EEEEEE;
+    --editor-bg-color: #EEEEEE;
+    --editor-code-color: #222222;
+    --editor-linenumbers-border-color: #959595;
+    --editor-linenumbers-color: #2222EE;
+
+    --editor-hl-red: red;
+    --editor-hl-blue: #536878;
+    --editor-hl-green: green;
+    --editor-hl-yellow: yellow;
+    --editor-hl-decimal: hotpink;
+    --editor-hl-hex: darkcyan;
+}
+
+
 .editor {
     gap: 5px;
     padding: 5px;
@@ -20,6 +37,7 @@
     box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
     transition: 0.1s;
 }
+
 .editor-control img {
     width: 32px;
     height: 32px;
@@ -40,22 +58,21 @@
 .editor-container {
     gap: 10px;
     font-family: monospace;
-    line-height: 21px;
     background: var(--editor-bg-color);
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-    padding: 2% 1%;
+    padding: 1% 1%;
 }
 
 /* EDITOR Line Numbers */
 .editor-line-numbers {
     min-width: 30px;
-    padding-right: 5px;
-    border-right: 1px solid var(--editor-linenumbers-border-color);
     text-align: right;
 }
 
 .editor-line-numbers span {
+    padding-right: 5px;
+    border-right: 1px solid var(--editor-linenumbers-border-color);
     counter-increment: linenumber;
 }
 
@@ -69,11 +86,12 @@
 .editor-input-div {
 
 }
+
 .editor-area, .editor-highlighting-content {
     font-family: monospace;
     font-size: 16px;
-    line-height: 21px;
     tab-size: 6;
+    line-height: 21px;
     white-space: pre;
     overflow-x: hidden;
     overflow-wrap: normal;
@@ -95,7 +113,7 @@
 
 .editor-area {
     caret-color: var(--editor-code-color);
-    columns: calc(400/16);
+    columns: calc(400 / 16);
     color: transparent;
 }
 

@@ -3,6 +3,7 @@ package extendable
 import extendable.components.DataMemory
 import extendable.components.FlagsConditions
 import extendable.components.ProgramMemory
+import extendable.components.Register
 import tools.HTMLTools
 
 open class Architecture {
@@ -10,12 +11,14 @@ open class Architecture {
     var name: String
     var programMemory: ProgramMemory
     var dataMemory: DataMemory
+    val register: Array<Register>
     open var flagsConditions: FlagsConditions? = null
 
-    constructor(name: String, programMemory: ProgramMemory, dataMemory: DataMemory) {
+    constructor(name: String, programMemory: ProgramMemory, dataMemory: DataMemory, register: Array<Register>) {
         this.name = name
         this.programMemory = programMemory
         this.dataMemory = dataMemory
+        this.register = register
     }
 
     fun getName(): String {

@@ -1,7 +1,8 @@
 package views
 
 import AppData
-import csstype.ClassName
+import csstype.*
+import emotion.react.css
 import kotlinx.browser.localStorage
 import org.w3c.dom.*
 import react.*
@@ -13,6 +14,15 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+
+object CodeEditorTheme {
+    val editorHeight = 400.px
+
+    val mainBgColor = Color("#EEEEEEFF")
+
+    val controlBgColor = Color("#36454f")
+    val controlBgHoverColor = Color("#EEEEEE")
+}
 
 external interface CodeEditorProps : Props {
     var appData: AppData
@@ -54,9 +64,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     var data by useState(props.appData)
     val (change, setChange) = useState(props.update)
+    val (lineHeight, setLineHeight) = useState(21)
 
     useEffect(change) {
-        console.log("processorView updated")
+        console.log("CodeEditor updated")
     }
 
     fun updateHLText(value: String) {
@@ -77,19 +88,24 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun updateTAResize() {
-        var scrollHeight = 0
+        var height = 0
 
         textareaRef.current?.let {
+            var lineCount = it.value.split("\n").size + 1
+            console.log(lineHeight)
+            height = lineCount * lineHeight
+            console.log("EditorAreaResize: $lineCount lines * ${lineHeight} px (lineHeight) = ${height}px ")
             it.style.height = "auto"
-            it.style.height = "${it.scrollHeight}px"
-            scrollHeight = it.scrollHeight
+            it.style.height = "${height}px"
         }
         inputDivRef.current?.let {
             it.style.height = "auto"
-            if(scrollHeight != 0){
-                it.style.height="${scrollHeight}px"
+            if(height != 0){
+                it.style.height="${height}px"
             }
         }
+
+
     }
 
     fun updateClearButton(textarea: HTMLTextAreaElement) {
@@ -152,13 +168,32 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     div {
         className = ClassName(CLASS_EDITOR)
 
+        css {
+            display = Display.flex
+            flexDirection = FlexDirection.row
+            height = CodeEditorTheme.editorHeight
+
+            gap = 5.px
+            padding = 5.px
+            borderRadius = 2.px
+        }
+
         div {
             className = ClassName(CLASS_EDITOR_CONTROLS)
+
+            css {
+                display = Display.flex
+                flexDirection = FlexDirection.column
+
+                gap = 5.px
+                minWidth = 32.px
+            }
 
             a {
                 id = "undo"
                 className = ClassName(CLASS_EDITOR_CONTROL)
                 ref = btnUndoRef
+
                 img {
                     src = "icons/undo.svg"
                 }
@@ -202,6 +237,21 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         div {
             className = ClassName(CLASS_EDITOR_CONTAINER)
 
+            css {
+                this.display = Display.block
+                this.maxHeight = 50.vh
+                this.width = 100.pct
+                this.lineHeight = lineHeight.px
+
+                gap = 10.px
+                fontFamily = FontFamily.monospace
+                background = rgb(240,240,240)
+                borderRadius = 2.px
+                padding = Padding(1.pct, 1.pct)
+
+                console.log("AspectRatio: $aspectRatio")
+            }
+
             div {
                 className = ClassName(CLASS_EDITOR_SCROLL_CONTAINER)
 
@@ -221,26 +271,19 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         className = ClassName(CLASS_EDITOR_AREA)
                         ref = textareaRef
                         spellCheck = false
-
                         placeholder = "Enter ${data.getArch().name} Assembly ..."
 
                         onInput = { event ->
-                            // Resize Textarea
-                            textareaRef.current?.let {
-                                it.style.height = "auto"
-                                it.style.height = "${it.scrollHeight}px"
-                            }
+                            val area = textareaRef.current
+
                             // Update Save State (For Undo)
                             addUndoSaveState(event.currentTarget.value)
                             // Save the text in localStorage
                             localStorage.setItem(STR_EDITOR_SAVE, event.currentTarget.value)
 
-                            // Update HL Text
-                            textareaRef.current?.let {
-                                updateHLText(it.value)
+                            area?.let {
+                                updateEditor()
                             }
-
-                            updateEditor()
 
                             // Update Parent State (App)
                             props.updateParent
@@ -301,6 +344,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         code {
                             className = ClassName(CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
                             className = ClassName(CLASS_EDITOR_HIGHLIGHTING_CONTENT)
+
+
                             ref = codeAreaRef
 
                         }
