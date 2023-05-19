@@ -1,0 +1,117 @@
+/*"nav-btn nav-close-btn"*/
+
+:root {
+    --nav-mainColor: #29335c;
+    --nav-mainColorLight: #5767aa;
+    --nav-secondaryColor: #DB2B39;
+    --nav-textColor: #eee;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    padding: 0 2rem;
+    background-color: var(--nav-mainColor);
+    color: var(--nav-textColor);
+}
+
+nav a {
+    margin: 0 2rem;
+    color: var(--nav-textColor);
+    text-decoration: none;
+    transition: 0.2s;
+    z-index: inherit;
+}
+
+nav a:hover {
+    color: var(--nav-secondaryColor);
+}
+
+header .nav-btn {
+    padding: 5px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--nav-textColor);
+    visibility: hidden;
+    opacity: 0;
+}
+
+header .nav-img {
+    filter: invert(100%) sepia(2%) saturate(1278%) hue-rotate(202deg) brightness(120%) contrast(87%);
+    width: 1.8rem;
+    height: 1.8rem;
+}
+
+@media only screen and (max-width: 1024px) {
+    header .nav-btn {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    header nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        background-color: var(--nav-mainColor);
+        transition: 1s;
+        transform: translateY(-100vh);
+        z-index: 2;
+    }
+
+    header .responsive_nav {
+        transform: none;
+    }
+
+    nav .nav-close-btn {
+
+    }
+}
+
+header .nav-dropdown {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background-color: var(--nav-mainColorLight);
+    transition: 1s;
+    transform: translateY(-100vh);
+    z-index: 3;
+}
+
+header .nav-dropdown-open {
+    transform: none;
+}
+
+header .nav-dropdown a {
+    margin: 0 2rem;
+    color: var(--nav-textColor);
+    text-decoration: none;
+    background-color: transparent;
+    transition: 0.2s;
+}
+header .nav-dropdown a:hover {
+    color: var(--nav-secondaryColor);
+}
+
+.nav-arch-active {
+    background-color: var(--nav-mainColor);
+    color: var(--nav-secondaryColor);
+}
+

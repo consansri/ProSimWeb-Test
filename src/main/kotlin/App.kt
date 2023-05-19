@@ -1,14 +1,9 @@
-import csstype.ClassName
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
-import react.dom.html.ReactHTML.header
-import react.dom.html.ReactHTML.img
 import views.CodeEditor
 import views.Menu
 import views.ProcessorView
@@ -23,7 +18,9 @@ val App = FC<Props> { props ->
 
     var (reloadUI, setReloadUI) = useState(false)
 
-    val nav = useRef<HTMLDivElement>()
+    val navRef = useRef<HTMLDivElement>()
+    val mainRef = useRef<HTMLElement>()
+    val footerRef = useRef<HTMLElement>()
     val codeEditorRef = useRef("")
     val processorViewRef = useRef<ProcessorViewProps>()
 
@@ -34,7 +31,7 @@ val App = FC<Props> { props ->
     }
 
     fun resizeNav() {
-        nav.current?.let {
+        navRef.current?.let {
             if (it.className == "navbar") {
                 it.className = "responsive"
             } else {
@@ -47,92 +44,96 @@ val App = FC<Props> { props ->
         appData = data
         update = reloadUI
         updateParent = ::update
+        this.mainRef = mainRef
+        this.footerRef = footerRef
+
     }
 
-/*    header {
-
-        div {
-            className = ClassName("topnav")
-            id = "myTopnav"
-            ref = nav
-
-            a {
-                href = "#home"
-                className = ClassName(CLASS_NAV_ACTIVE)
-                img {
-                    className = ClassName(CLASS_NAV_IMG)
-                    src = "icons/home.svg"
-                }
-            }
+    /*    header {
 
             div {
-                className = ClassName("dropdown")
+                className = ClassName("topnav")
+                id = "myTopnav"
+                ref = nav
 
-                button {
-                    className = ClassName("dropbtn")
-
+                a {
+                    href = "#home"
+                    className = ClassName(CLASS_NAV_ACTIVE)
                     img {
                         className = ClassName(CLASS_NAV_IMG)
-                        alt = "Architecture"
-                        src = "icons/cpu.svg"
+                        src = "icons/home.svg"
                     }
                 }
 
                 div {
-                    className = ClassName("dropdown-content")
-                    id = "arch-container"
+                    className = ClassName("dropdown")
 
-                    for (id in data.getArchList().indices) {
-                        a {
-                            href = "#${data.getArchList()[id].name}"
-                            onClick = {
-                                data.selID = id
-                                setData { data }
-                                setReloadUI { !reloadUI }
-                                console.log("Load " + data.getArch().name)
+                    button {
+                        className = ClassName("dropbtn")
+
+                        img {
+                            className = ClassName(CLASS_NAV_IMG)
+                            alt = "Architecture"
+                            src = "icons/cpu.svg"
+                        }
+                    }
+
+                    div {
+                        className = ClassName("dropdown-content")
+                        id = "arch-container"
+
+                        for (id in data.getArchList().indices) {
+                            a {
+                                href = "#${data.getArchList()[id].name}"
+                                onClick = {
+                                    data.selID = id
+                                    setData { data }
+                                    setReloadUI { !reloadUI }
+                                    console.log("Load " + data.getArch().name)
+                                }
+                                +data.getArchList()[id].name
                             }
-                            +data.getArchList()[id].name
                         }
                     }
                 }
-            }
 
-            a {
-                href = "#"
-                img {
-                    className = ClassName(CLASS_NAV_IMG)
-                    alt = "Upload"
-                    src = "icons/upload.svg"
+                a {
+                    href = "#"
+                    img {
+                        className = ClassName(CLASS_NAV_IMG)
+                        alt = "Upload"
+                        src = "icons/upload.svg"
+                    }
+                }
+
+                a {
+                    href = "#"
+                    img {
+                        className = ClassName(CLASS_NAV_IMG)
+                        alt = "Download"
+                        src = "icons/download.svg"
+                    }
+                }
+
+                a {
+                    href = "#"
+                    id = "logo"
+
+                    img {
+                        className = ClassName(CLASS_NAV_IMG)
+                        alt = "ProSim Web"
+                        src = "icons/logo.svg"
+                    }
+                }
+
+                a {
+
                 }
             }
+        }*/
 
-            a {
-                href = "#"
-                img {
-                    className = ClassName(CLASS_NAV_IMG)
-                    alt = "Download"
-                    src = "icons/download.svg"
-                }
-            }
-
-            a {
-                href = "#"
-                id = "logo"
-
-                img {
-                    className = ClassName(CLASS_NAV_IMG)
-                    alt = "ProSim Web"
-                    src = "icons/logo.svg"
-                }
-            }
-
-            a {
-
-            }
-        }
-    }*/
-
-    /*ReactHTML.main {
+    ReactHTML.main {
+        ref = mainRef
         div {
             id = "lcontainer"
             CodeEditor {
@@ -150,10 +151,10 @@ val App = FC<Props> { props ->
                 updateParent = ::update
             }
         }
-    }*/
+    }
 
     footer {
-
+        ref = footerRef
     }
 
     useEffect(reloadUI) {

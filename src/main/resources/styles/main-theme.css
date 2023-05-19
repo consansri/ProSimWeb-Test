@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;700&display=swap');
+
 :root {
 
     --main-accent-color: #002B5B;
@@ -24,7 +26,7 @@
 * {
     margin: 0;
     padding: 0;
-    font-family: "Verdana", sans-serif;
+    font-family: 'Titillium Web', sans-serif;
     font-size: 1rem;
     box-sizing: border-box;
 }
@@ -32,4 +34,9 @@
 body {
     background: var(--main-bg-color);
     color: var(--main-fg-color);
+}
+
+body .hide {
+    visibility: hidden;
+    opacity: 0;
 }
