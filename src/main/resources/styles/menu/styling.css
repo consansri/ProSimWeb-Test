@@ -67,10 +67,12 @@ header .nav-img {
         transition: 1s;
         transform: translateY(-100vh);
         z-index: 2;
+        visibility: hidden;
     }
 
     header .responsive_nav {
         transform: none;
+        visibility: visible;
     }
 
     nav .nav-close-btn {
@@ -93,10 +95,12 @@ header .nav-dropdown {
     transition: 1s;
     transform: translateY(-100vh);
     z-index: 3;
+    visibility: hidden;
 }
 
 header .nav-dropdown-open {
     transform: none;
+    visibility: visible;
 }
 
 header .nav-dropdown a {

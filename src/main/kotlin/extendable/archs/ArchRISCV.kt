@@ -44,7 +44,6 @@ class ArchRISCV : Architecture {
             Register(30, "t5",0,"temporary register 5"),
             Register(31, "t6",0,"temporary register 6")
 
-
         )) {
 
     }

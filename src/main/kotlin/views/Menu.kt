@@ -81,6 +81,7 @@ val Menu = FC<MenuProps>() { props ->
             }
 
             a{
+                href = "#"
                 onClick = {
                     showArchs(true)
                 }
@@ -184,9 +185,8 @@ val Menu = FC<MenuProps>() { props ->
                         data.selID = id
                         props.updateParent(data)
                         console.log("Load " + data.getArch().name)
-                        event.currentTarget?.let {
-                            it.classList.toggle("nav-arch-active")
-                        }
+                        event.currentTarget.classList.toggle("nav-arch-active")
+
                     }
 
                     +data.getArchList()[id].name
