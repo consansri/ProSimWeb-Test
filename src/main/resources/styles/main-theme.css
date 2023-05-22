@@ -4,23 +4,15 @@
 
     --main-accent-color: #002B5B;
     --main-accent-color-sec: #EA5455;
-    --main-bg-color: #536878;
+    --main-bg-color: #EEEEEE;
     --main-bg-color-sec: #E4DCCF;
     --main-fg-color: #454545;
     --main-fg-color-sec: #A9A9A9;
 
-    --nav-fg-color: #454545;
-    --nav-bg-color: #F9F5EB;
-    --nav-bg-sel-color: #C9C5BB;
-    --nav-fg-hover-color: #F5F5F5;
-    --nav-bg-hover-color: #49453B;
+    --padding-size: 5px;
+    --border-radius: 2px;
 
-    --proc-bg-color: #aec6cf;
-    --proc-logo-color: #121212;
-    --proc-con-bg-color: #FFFFFF;
-    --proc-con-bg-hover-color: #FFFFFF;
-    --proc-main-bg-color: #121212;
-    --proc-mem-bg-color: #FFFFFF;
+    --icon-size: 32px;
 }
 
 * {
@@ -34,9 +26,4 @@
 body {
     background: var(--main-bg-color);
     color: var(--main-fg-color);
-}
-
-body .hide {
-    visibility: hidden;
-    opacity: 0;
 }

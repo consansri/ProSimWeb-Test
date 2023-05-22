@@ -2,23 +2,35 @@
 
 .editor {
     display: flex;
+    position: absolute;
     flex-direction: row;
-    flex-shrink: 0;
-    flex-basis: 100%;
-    height: 400px;
+    height: 100%;
+    width: 100%;
+    border-radius: var(--border-radius);
+    gap: var(--padding-size);
 
 }
 
 .editor-controls {
     display: flex;
     flex-direction: column;
+    justify-content: start;
+    align-content: start;
+    gap: var(--padding-size);
+    min-width: 32px;
 }
 
 .editor-container {
     display: block;
-    max-height: 400px;
-    width: 100%;
-    overflow: auto;
+    max-height: 100%;
+    width: calc(100% - var(--padding-size));
+    line-height: var(--editor-lineHeight);
+
+    font-family: monospace;
+    background: var(--editor-bg-color);
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    padding: 1% 1%;
 }
 
 .editor-scroll-container {
@@ -48,7 +60,7 @@
     left: 0;
     width: 100%;
     min-height: 100%;
-    z-index: 2;
+    z-index: 1;
     resize: vertical;
 }
 .editor-highlighting {
@@ -59,11 +71,10 @@
     left: 0;
     width: 100%;
     min-height: 100%;
-    z-index: 1;
+    z-index: 0;
 }
 .editor-highlighting-content{
     display: block;
     width: 100%;
     height: 100%;
 }
-

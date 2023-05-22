@@ -168,26 +168,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     div {
         className = ClassName(CLASS_EDITOR)
 
-        css {
-            display = Display.flex
-            flexDirection = FlexDirection.row
-            height = CodeEditorTheme.editorHeight
-
-            gap = 5.px
-            padding = 5.px
-            borderRadius = 2.px
-        }
-
         div {
             className = ClassName(CLASS_EDITOR_CONTROLS)
-
-            css {
-                display = Display.flex
-                flexDirection = FlexDirection.column
-
-                gap = 5.px
-                minWidth = 32.px
-            }
 
             a {
                 id = "undo"
@@ -237,20 +219,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         div {
             className = ClassName(CLASS_EDITOR_CONTAINER)
 
-            css {
-                this.display = Display.block
-                this.maxHeight = 50.vh
-                this.width = 100.pct
-                this.lineHeight = lineHeight.px
-
-                gap = 10.px
-                fontFamily = FontFamily.monospace
-                background = rgb(240,240,240)
-                borderRadius = 2.px
-                padding = Padding(1.pct, 1.pct)
-
-                console.log("AspectRatio: $aspectRatio")
-            }
 
             div {
                 className = ClassName(CLASS_EDITOR_SCROLL_CONTAINER)

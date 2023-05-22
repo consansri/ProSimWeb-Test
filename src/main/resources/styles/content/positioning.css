@@ -1,0 +1,42 @@
+body main {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    gap: var(--padding-size);
+
+    padding: var(--padding-size);
+}
+
+#lcontainer {
+    flex: 40%;
+    position: relative;
+    height: 80vh;
+}
+
+#rcontainer {
+    flex: 60%;
+    position: relative;
+
+}
+
+
+/*Responsive Layout*/
+@media (max-width: 1270px) {
+    body main {
+        flex-direction: column;
+        justify-content: stretch;
+        min-height: 100vh;
+        align-content: flex-start;
+
+    }
+
+    #lcontainer {
+        flex: 100%;
+        position: relative;
+    }
+
+    #rcontainer {
+        flex: 100%;
+        position: relative;
+    }
+}

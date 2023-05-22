@@ -1,0 +1,28 @@
+:root {
+
+    --exec-textColor: #EEEEEE;
+
+    --exec-bgColor: #313131;
+    --exec-iconSize: 15px;
+    --exec-placeholderFgColor: #EEEEEE;
+    --exec-sstepBgColor: #98d8aa;
+    --exec-sstepFgColor: white;
+    --exec-continuousBgColor: #58cc79;
+    --exec-continuousFgColor: white;
+    --exec-resetBgColor: #FF6D60;
+    --exec-resetFgColor: white;
+    --exec-soverBgColor: #549fd8;
+    --exec-soverFgColor: white;
+    --exec-esubBgColor: #549fd8;
+    --exec-esubFgColor: white;
+    /*--exec-mstepBgColor: #F7D060; */
+    --exec-mstepBgColor: #e2b124;
+    --exec-mstepFgColor: white;
+
+    --proc-bg-color: #aec6cf;
+    --proc-logo-color: #121212;
+    --proc-con-bg-color: #FFFFFF;
+    --proc-con-bg-hover-color: #FFFFFF;
+    --proc-main-bg-color: #121212;
+    --proc-mem-bg-color: #FFFFFF;
+}

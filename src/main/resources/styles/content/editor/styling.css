@@ -6,6 +6,8 @@
     --editor-linenumbers-border-color: #959595;
     --editor-linenumbers-color: #2222EE;
 
+    --editor-lineHeight: 21px;
+
     --editor-hl-red: red;
     --editor-hl-blue: #536878;
     --editor-hl-green: green;
@@ -14,24 +16,11 @@
     --editor-hl-hex: darkcyan;
 }
 
-
-.editor {
-    gap: 5px;
-    padding: 5px;
-    border-radius: 2px;
-}
-
 /* -- EDITOR CONTROLS -- */
 
-.editor-controls {
-    gap: 5px;
-    min-width: 32px;
-
-}
-
 .editor-control {
-    width: 32px;
-    height: 32px;
+    width: var(--icon-size);
+    height: var(--icon-size);
     border-radius: 2px;
     background-color: var(--editor-controls-bg-color);
     box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
@@ -39,8 +28,8 @@
 }
 
 .editor-control img {
-    width: 32px;
-    height: 32px;
+    width: var(--icon-size);
+    height: var(--icon-size);
     filter: invert(100%);
     transition: 0.1s;
 }
@@ -54,15 +43,6 @@
 }
 
 /* -- EDITOR CONTAINER -- */
-
-.editor-container {
-    gap: 10px;
-    font-family: monospace;
-    background: var(--editor-bg-color);
-    border-radius: 2px;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-    padding: 1% 1%;
-}
 
 /* EDITOR Line Numbers */
 .editor-line-numbers {
@@ -95,7 +75,7 @@
     white-space: pre;
     overflow-x: hidden;
     overflow-wrap: normal;
-    padding-left: 5px;
+    padding-left: var(--padding-size);
     border: 0;
     background: transparent;
     color: var(--editor-code-color);

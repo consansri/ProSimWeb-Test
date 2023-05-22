@@ -7,7 +7,7 @@ import extendable.components.Register
 
 class ArchRISCV : Architecture {
 
-    constructor() : super("IKR RISC-V",
+    constructor() : super("RISC-V",
         ProgramMemory(4, 32, 32),
         DataMemory(32, 4),
         arrayOf(
