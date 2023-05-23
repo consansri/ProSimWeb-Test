@@ -48,5 +48,23 @@ class ArchRISCV : Architecture {
 
     }
 
+    override fun exeContinuous() {
+        super.exeContinuous()
+        for(i in 0..200){
+            getDataMemory().save(i.toDouble(), i)
+        }
+        getRegister().get(1).value = getDataMemory().load(100.0) ?: 0
+    }
+
+    override fun exeMultiStep(steps: Int) {
+        super.exeMultiStep(steps)
+        getDataMemory().save(0.0, steps)
+    }
+
+    override fun exeClear() {
+        super.exeClear()
+
+    }
+
 
 }

@@ -8,10 +8,10 @@ import tools.HTMLTools
 
 open class Architecture {
 
-    var name: String
-    var programMemory: ProgramMemory
-    var dataMemory: DataMemory
-    val register: Array<Register>
+    private var name: String
+    private var programMemory: ProgramMemory
+    private var dataMemory: DataMemory
+    private val register: Array<Register>
     open var flagsConditions: FlagsConditions? = null
 
     constructor(name: String, programMemory: ProgramMemory, dataMemory: DataMemory, register: Array<Register>) {
@@ -33,6 +33,10 @@ open class Architecture {
         return dataMemory
     }
 
+    fun getRegister(): Array<Register> {
+        return register
+    }
+
     fun getFlagsConditions(): FlagsConditions? {
         return flagsConditions
     }
@@ -46,14 +50,39 @@ open class Architecture {
         }
     }
 
+    /*Execution Events*/
+    open fun exeContinuous() {
+
+    }
+
+    open fun exeSingleStep() {
+
+    }
+
+    open fun exeMultiStep(steps: Int) {
+
+    }
+
+    open fun exeSkipSubroutines() {
+
+    }
+
+    open fun exeSubroutine() {
+
+    }
+
+    open fun exeClear() {
+        dataMemory.clear()
+    }
+
     private fun highlightNumbers(input: String): String {
         val tag = "mark"
         val decimalRegex = Regex("""#\d+""")
         val hexRegex = Regex("""&[0-9a-fA-F]+""")
-        var output = input.replace(decimalRegex) {matchResult ->
+        var output = input.replace(decimalRegex) { matchResult ->
             "<$tag class='decimal' >${matchResult.value}</$tag>"
         }
-        output = output.replace(hexRegex) {matchResult ->
+        output = output.replace(hexRegex) { matchResult ->
             "<$tag class='hex' >${matchResult.value}</$tag>"
         }
         return output
@@ -67,6 +96,4 @@ open class Architecture {
 
         return hlNumbersEncoded
     }
-
-
 }

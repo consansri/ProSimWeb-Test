@@ -47,7 +47,7 @@ header .nav-img {
     height: 1.8rem;
 }
 
-@media (max-width: 1270px) {
+@media (max-aspect-ratio: 3/4) {
     header .nav-btn {
         visibility: visible;
         opacity: 1;

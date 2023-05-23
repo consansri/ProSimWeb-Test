@@ -3,6 +3,7 @@ package views
 import AppData
 import csstype.ClassName
 import csstype.px
+import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.*
@@ -20,7 +21,7 @@ const val CLASS_NAV_ACTIVE = "active"
 
 external interface MenuProps : Props {
     var appData: AppData
-    var update: Boolean
+    var update: StateInstance<Boolean>
     var updateParent: (newData: AppData) -> Unit
     var mainRef: MutableRefObject<HTMLElement>
     var footerRef: MutableRefObject<HTMLElement>
@@ -29,7 +30,7 @@ external interface MenuProps : Props {
 val Menu = FC<MenuProps>() { props ->
 
     val data by useState(props.appData)
-    val (change, setChange) = useState(props.update)
+    val update = props.update
     val (navHidden, setNavHidden) = useState(true)
     val (archsHidden, setArchsHidden) = useState(true)
 
@@ -91,36 +92,6 @@ val Menu = FC<MenuProps>() { props ->
                 }
             }
 
-
-            /*div {
-
-                button {
-
-                    img {
-                        alt = "Architecture"
-                        src = "icons/cpu.svg"
-                        width = 24.0
-                        height = 24.0
-                    }
-                }
-
-                div {
-                    id = "arch-container"
-
-                    for (id in data.getArchList().indices) {
-                        a {
-                            href = "#${data.getArchList()[id].name}"
-                            onClick = {
-                                data.selID = id
-                                props.updateParent(data)
-                                console.log("Load " + data.getArch().name)
-                            }
-                            +data.getArchList()[id].name
-                        }
-                    }
-                }
-            }*/
-
             a {
                 href = "#"
                 img {
@@ -178,18 +149,19 @@ val Menu = FC<MenuProps>() { props ->
 
             for (id in data.getArchList().indices) {
                 a {
-                    href = "#${data.getArchList()[id].name}"
+                    href = "#${data.getArchList()[id].getName()}"
 
                     onClick = { event ->
                         showArchs(false)
                         data.selID = id
+                        localStorage.setItem(Consts.ARCH_TYPE, "$id")
                         props.updateParent(data)
-                        console.log("Load " + data.getArch().name)
+                        console.log("Load " + data.getArch().getName())
                         event.currentTarget.classList.toggle("nav-arch-active")
 
                     }
 
-                    +data.getArchList()[id].name
+                    +data.getArchList()[id].getName()
                 }
             }
 
@@ -204,10 +176,11 @@ val Menu = FC<MenuProps>() { props ->
 
                 }
             }
-
         }
-
     }
 
+    useEffect(update){
+        console.log("(update) Menu")
+    }
 
 }

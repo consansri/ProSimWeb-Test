@@ -2,9 +2,14 @@
 
     --exec-textColor: #EEEEEE;
 
-    --exec-bgColor: #313131;
+    --exec-bgColor: #36454f;
     --exec-iconSize: 15px;
+
+    --exec-inputBgColor: rgba(20%, 20%, 20%, 30%);
+    --exec-inputFgColor: #FFFFFF;
     --exec-placeholderFgColor: #EEEEEE;
+
+
     --exec-sstepBgColor: #98d8aa;
     --exec-sstepFgColor: white;
     --exec-continuousBgColor: #58cc79;
@@ -19,10 +24,34 @@
     --exec-mstepBgColor: #e2b124;
     --exec-mstepFgColor: white;
 
+    --proc-reg-bgColor: #F8F8FF;
+    --proc-mem-bgColor: #6D8AF5;
+
     --proc-bg-color: #aec6cf;
     --proc-logo-color: #121212;
     --proc-con-bg-color: #FFFFFF;
     --proc-con-bg-hover-color: #FFFFFF;
     --proc-main-bg-color: #121212;
     --proc-mem-bg-color: #FFFFFF;
+}
+
+.exeControlDiv{
+    border-radius: var(--border-radius);
+    padding: var(--padding-size);
+    background-color: var(--main-accent-color);
+    /*box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;*/
+}
+
+.processorDiv{
+    border-radius: var(--border-radius);
+    margin-top: var(--padding-size);
+    background-color: var(--proc-reg-bgColor);
+    box-shadow: rgb(204, 219, 232) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.5) -3px -3px 6px 1px inset;
+}
+
+.memoryDiv{
+    border-radius: var(--border-radius);
+    margin-top: var(--padding-size);
+    background-color: var(--proc-mem-bg-color);
+    box-shadow: rgb(204, 219, 232) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.5) -3px -3px 6px 1px inset;
 }

@@ -26,7 +26,7 @@ object CodeEditorTheme {
 
 external interface CodeEditorProps : Props {
     var appData: AppData
-    var update: Boolean
+    var update: StateInstance<Boolean>
     var updateParent: (newData: AppData) -> Unit
 }
 
@@ -63,12 +63,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val saveState: MutableList<String> = mutableListOf()
 
     var data by useState(props.appData)
-    val (change, setChange) = useState(props.update)
+    val change = props.update
     val (lineHeight, setLineHeight) = useState(21)
-
-    useEffect(change) {
-        console.log("CodeEditor updated")
-    }
 
     fun updateHLText(value: String) {
         codeAreaRef.current?.let {
@@ -92,9 +88,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         textareaRef.current?.let {
             var lineCount = it.value.split("\n").size + 1
-            console.log(lineHeight)
             height = lineCount * lineHeight
-            console.log("EditorAreaResize: $lineCount lines * ${lineHeight} px (lineHeight) = ${height}px ")
             it.style.height = "auto"
             it.style.height = "${height}px"
         }
@@ -172,6 +166,15 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             className = ClassName(CLASS_EDITOR_CONTROLS)
 
             a {
+                id = "build"
+                className = ClassName(CLASS_EDITOR_CONTROL)
+                img {
+                    src = "icons/cpu-charge.svg"
+                }
+
+            }
+
+            a {
                 id = "undo"
                 className = ClassName(CLASS_EDITOR_CONTROL)
                 ref = btnUndoRef
@@ -239,7 +242,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         className = ClassName(CLASS_EDITOR_AREA)
                         ref = textareaRef
                         spellCheck = false
-                        placeholder = "Enter ${data.getArch().name} Assembly ..."
+                        placeholder = "Enter ${data.getArch().getName()} Assembly ..."
 
                         onInput = { event ->
                             val area = textareaRef.current
@@ -321,5 +324,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
             }
         }
+    }
+
+    useEffect(change){
+        console.log("(update) CodeEditor")
     }
 }

@@ -3,27 +3,34 @@ package extendable.components
 import kotlin.math.pow
 
 class DataMemory {
-    val addressLength: Int // in Bit
-    val globalSize: Int // in Byte
-    val wordLength: Int // in Byte
+    private val addressLength: Int // in Bit
+    private val globalSize: Double // in Byte
+    private val wordLength: Int // in Byte
 
-    private var memList: List<DMemInstance>
+    private var memList: MutableList<DMemInstance>
 
     constructor() {
         this.addressLength = 4
         this.wordLength = 4
-        this.globalSize = 2.0.pow(addressLength.toDouble()).toInt()
-        this.memList = emptyList<DMemInstance>()
+        this.globalSize = 2.0.pow(addressLength.toDouble())
+        this.memList = mutableListOf<DMemInstance>()
+        setup()
     }
 
     constructor(addressLength: Int, wordLength: Int) {
         this.addressLength = addressLength
         this.wordLength = wordLength
-        this.globalSize = 2.0.pow(addressLength.toDouble()).toInt()
-        this.memList = emptyList<DMemInstance>()
+        this.globalSize = 2.0.pow(addressLength.toDouble())
+        this.memList = mutableListOf<DMemInstance>()
+        setup()
     }
 
-    fun save(address: Int, value: Int): Boolean {
+    private fun setup(){
+        save(0.0, 0)
+        save(getAddressMax(), 0)
+    }
+
+    fun save(address: Double, value: Int): Boolean {
         for (instance in memList) {
             if (instance.address == address) {
                 instance.value = value
@@ -34,7 +41,7 @@ class DataMemory {
         return false
     }
 
-    fun load(address: Int): Int? {
+    fun load(address: Double): Int? {
         for (instance in memList) {
             if (instance.address == address) {
                 return instance.value
@@ -43,11 +50,24 @@ class DataMemory {
         return null
     }
 
-    fun getAddressMax(): Int {
+    fun clear(){
+        this.memList = mutableListOf<DMemInstance>()
+        setup()
+    }
+
+    fun getMemList(): List<DMemInstance>{
+        return memList
+    }
+
+    fun getAddressMax(): Double {
         return globalSize - 1
     }
 
-    private class DMemInstance(val address: Int, var value: Int) {
+    fun getWordLength(): Int {
+        return wordLength
+    }
+
+    class DMemInstance(val address: Double, var value: Int) {
 
     }
 

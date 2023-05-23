@@ -16,16 +16,20 @@ body main {
 #rcontainer {
     flex: 60%;
     position: relative;
+    background-color: var(--main-accent-color-sec);
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    border-radius: var(--border-radius);
+    padding: var(--padding-size);
 
 }
 
 
 /*Responsive Layout*/
-@media (max-width: 1270px) {
+@media (max-aspect-ratio: 3/4) {
     body main {
         flex-direction: column;
         justify-content: stretch;
-        min-height: 100vh;
+        height: auto;
         align-content: flex-start;
 
     }
@@ -33,10 +37,14 @@ body main {
     #lcontainer {
         flex: 100%;
         position: relative;
+        display: block;
+        min-height: 50vh;
     }
 
     #rcontainer {
         flex: 100%;
         position: relative;
+        display: block;
+        min-height: 100vh;
     }
 }

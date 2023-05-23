@@ -1,3 +1,4 @@
+import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.*
@@ -15,6 +16,13 @@ const val CLASS_NAV_ACTIVE = "active"
 val App = FC<Props> { props ->
 
     var (data, setData) = useState(AppData())
+
+    localStorage.getItem(Consts.ARCH_TYPE)?.let{
+        val loaded = it.toInt()
+        if(loaded in 0 until data.getArchList().size){
+            data.selID = loaded
+        }
+    }
 
     var (reloadUI, setReloadUI) = useState(false)
 
@@ -42,7 +50,7 @@ val App = FC<Props> { props ->
 
     Menu {
         appData = data
-        update = reloadUI
+        update = useState(reloadUI)
         updateParent = ::update
         this.mainRef = mainRef
         this.footerRef = footerRef
@@ -55,7 +63,7 @@ val App = FC<Props> { props ->
             id = "lcontainer"
             CodeEditor {
                 appData = data
-                update = reloadUI
+                update = useState(reloadUI)
                 updateParent = ::update
             }
         }
@@ -64,7 +72,7 @@ val App = FC<Props> { props ->
             id = "rcontainer"
             ProcessorView {
                 appData = data
-                update = reloadUI
+                update = useState(reloadUI)
                 updateParent = ::update
             }
         }
@@ -75,7 +83,7 @@ val App = FC<Props> { props ->
     }
 
     useEffect(reloadUI) {
-        console.log("Reload")
+        console.log("(update) App")
     }
 
 }

@@ -2,10 +2,11 @@
 
 :root {
 
-    --main-accent-color: #002B5B;
+    --main-accent-color: #29335C;
     --main-accent-color-sec: #EA5455;
-    --main-bg-color: #EEEEEE;
-    --main-bg-color-sec: #E4DCCF;
+    --main-accent-color-third: #6D8AF5;
+    --main-bg-color: #F1F1E6;
+    --main-bg-color-sec: #F8F8FF;
     --main-fg-color: #454545;
     --main-fg-color-sec: #A9A9A9;
 
