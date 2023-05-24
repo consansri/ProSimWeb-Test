@@ -1,54 +1,60 @@
 package extendable
 
-import extendable.components.DataMemory
-import extendable.components.FlagsConditions
-import extendable.components.ProgramMemory
-import extendable.components.Register
+import extendable.archs.riscv.RISCVFlags
+import extendable.components.*
 import tools.HTMLTools
 
 open class Architecture {
 
     private var name: String
-    private var programMemory: ProgramMemory
-    private var dataMemory: DataMemory
     private val register: Array<Register>
+    private val instructions: List<Instruction>
+    private val dataMemory: DataMemory
+    private var transcript: Transcript
+
+
     open var flagsConditions: FlagsConditions? = null
 
-    constructor(name: String, programMemory: ProgramMemory, dataMemory: DataMemory, register: Array<Register>) {
+    constructor(
+        name: String,
+        register: Array<Register>,
+        instructions: List<Instruction>,
+        dataMemory: DataMemory,
+        transcript: Transcript
+    ) {
         this.name = name
-        this.programMemory = programMemory
-        this.dataMemory = dataMemory
         this.register = register
+        this.instructions = instructions
+        this.dataMemory = dataMemory
+        this.transcript = transcript
+
     }
 
     fun getName(): String {
         return name
     }
 
-    fun getProgramMemory(): ProgramMemory {
-        return programMemory
+    fun getRegister(): Array<Register> {
+        return register
+    }
+
+    fun getInstructions(): List<Instruction> {
+        return instructions
+    }
+
+    fun getProgramMemory(): Transcript {
+        return transcript
     }
 
     fun getDataMemory(): DataMemory {
         return dataMemory
     }
 
-    fun getRegister(): Array<Register> {
-        return register
-    }
 
     fun getFlagsConditions(): FlagsConditions? {
         return flagsConditions
     }
 
-    private fun highlightKeyWords(input: String, keywords: Array<String>, className: String): String {
-        val tag = "mark"
-        val regex = Regex("\\b(${keywords.joinToString("|")})\\b", RegexOption.IGNORE_CASE)
-
-        return input.replace(regex) { matchResult ->
-            "<$tag class='$className' >${matchResult.value}</$tag>"
-        }
-    }
 
     /*Execution Events*/
     open fun exeContinuous() {
@@ -88,12 +94,40 @@ open class Architecture {
         return output
     }
 
-    fun getHighlightedInput(input: String): String {
-        val inputEncoded = HTMLTools.encodeBeforeHTML(input)
-        val hlWords = highlightKeyWords(inputEncoded, arrayOf<String>("load", "add"), "blue")
-        val hlNumbers = highlightNumbers(hlWords)
-        val hlNumbersEncoded = HTMLTools.encodeAfterHTML(hlNumbers)
+    protected fun highlightKeyWords(input: String, keywords: Array<String>, flag: String): String {
+        val tag = "mark"
+        val regex = Regex("\\b(${keywords.joinToString("|")})\\b", RegexOption.IGNORE_CASE)
 
-        return hlNumbersEncoded
+        return input.replace(regex) { matchResult ->
+            "<$tag class='$flag' >${matchResult.value}</$tag>"
+        }
+    }
+
+    protected fun highlightBeginTag(flag: String): String {
+        val tag = "mark"
+        return "<$tag class='$flag'>"
+    }
+
+    protected fun highlightEndTag(): String {
+        val tag = "mark"
+        return  "</$tag>"
+    }
+
+    protected fun highlight(input: String, flag: String): String {
+        val tag = "mark"
+        return "<$tag class='$flag'>$input</$tag>"
+    }
+
+    open fun highlightArchSyntax(code: String): String {
+
+
+        return code
+    }
+
+    fun getHighlightedInput(input: String): String {
+        var output = HTMLTools.encodeBeforeHTML(input)
+        output = highlightArchSyntax(output)
+
+        return output
     }
 }

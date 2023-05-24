@@ -2,7 +2,7 @@ package extendable.components
 
 import kotlin.math.pow
 
-class ProgramMemory {
+class Transcript {
 
     val addressLength: Int // in Bit
     val instructionLength: Int // in Bit
@@ -27,30 +27,7 @@ class ProgramMemory {
         this.memList = emptyList<PMemInstance>()
     }
 
-    fun load(address: Int): Int? {
-        for (data in memList) {
-            if (data.address == address) {
-                return data.value
-            }
-        }
-        return null
-    }
-
-    fun save(address: Int, value: Int) {
-        for (data in memList) {
-            if (data.address == address){
-                data.value = value
-                return
-            }
-        }
-        memList += PMemInstance(address, value)
-    }
-
-    fun getMaxAddress(): Int {
-        return 2.0.pow(addressLength).toInt() - 1
-    }
-
-    private class PMemInstance(val address: Int, var value: Int) {
+    private class PMemInstance(val address: Int, var value: Int, var flag: String) {
 
     }
 

@@ -65,6 +65,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     var data by useState(props.appData)
     val change = props.update
     val (lineHeight, setLineHeight) = useState(21)
+    var (lineCount, setLineCount) = useState<Int>(1)
+    var (codeLines, setCodeLines) = useState<List<String>>()
+
+    var (editedLine, setEditedLine) = useState<Int>(1)
 
     fun updateHLText(value: String) {
         codeAreaRef.current?.let {
@@ -94,8 +98,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
         inputDivRef.current?.let {
             it.style.height = "auto"
-            if(height != 0){
-                it.style.height="${height}px"
+            if (height != 0) {
+                it.style.height = "${height}px"
             }
         }
 
@@ -156,7 +160,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             updateTAResize()
             updateClearButton(it)
         }
-
     }
 
     div {
@@ -305,6 +308,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     it.style.display = "none"
                                 }
                             }
+                            console.log("(update) CodeEditor")
                         }
                     }
 
@@ -315,18 +319,18 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         code {
                             className = ClassName(CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
                             className = ClassName(CLASS_EDITOR_HIGHLIGHTING_CONTENT)
-
-
                             ref = codeAreaRef
 
                         }
                     }
+
                 }
             }
         }
     }
 
-    useEffect(change){
+    useEffect(change) {
         console.log("(update) CodeEditor")
     }
 }
+

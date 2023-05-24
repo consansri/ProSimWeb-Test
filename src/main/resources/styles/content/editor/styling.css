@@ -11,7 +11,8 @@
     --editor-hl-red: red;
     --editor-hl-blue: #536878;
     --editor-hl-green: green;
-    --editor-hl-yellow: yellow;
+    --editor-hl-cyan: cyan;
+    --editor-hl-orange: orange;
     --editor-hl-decimal: green;
     --editor-hl-hex: darkcyan;
 }
@@ -88,7 +89,11 @@
 }
 
 .editor-highlighting-content {
-    color: red;
+    color: grey;
+}
+
+.editor-highlighting-content mark{
+    font-family: monospace;
 }
 
 .editor-area {
@@ -119,9 +124,14 @@
     color: var(--editor-hl-blue);
 }
 
-.yellow {
+.cyan {
     background-color: transparent;
-    color: var(--editor-hl-yellow);
+    color: var(--editor-hl-cyan);
+}
+
+.orange {
+    background-color: transparent;
+    color: var(--editor-hl-orange);
 }
 
 .decimal {

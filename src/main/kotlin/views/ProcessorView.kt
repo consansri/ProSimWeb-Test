@@ -116,7 +116,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                         } catch (e: NumberFormatException) {
                             console.log("(info) steps input value isn't valid!")
                         }
-
                     }
                     setUpdate(!change)
                 }

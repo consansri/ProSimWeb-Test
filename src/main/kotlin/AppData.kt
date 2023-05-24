@@ -1,8 +1,8 @@
 import extendable.Architecture
-import extendable.archs.ArchCISC
-import extendable.archs.ArchMinimalprozessor
-import extendable.archs.ArchRISCII
-import extendable.archs.ArchRISCV
+import extendable.cisc.ArchCISC
+import extendable.cisc.ArchMinimalprozessor
+import extendable.cisc.ArchRISCII
+import extendable.cisc.ArchRISCV
 
 class AppData {
 

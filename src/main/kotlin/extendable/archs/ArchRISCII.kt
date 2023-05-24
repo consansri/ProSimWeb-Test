@@ -1,16 +1,19 @@
-package extendable.archs
+package extendable.cisc
 
 import extendable.Architecture
 import extendable.components.DataMemory
-import extendable.components.ProgramMemory
+import extendable.components.Instruction
+import extendable.components.Transcript
 import extendable.components.Register
 
 class ArchRISCII : Architecture {
 
     constructor() : super("IKR RISC-II",
-        ProgramMemory(4, 32, 32),
+        arrayOf(Register(0,"r0",0, "")),
+        listOf(Instruction("name", 2)),
         DataMemory(32, 4),
-        arrayOf(Register(0,"r0",0, ""))) {
+        Transcript(4, 32, 32)
+        ) {
 
     }
 
