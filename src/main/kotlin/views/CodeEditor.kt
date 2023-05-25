@@ -1,8 +1,7 @@
 package views
 
-import AppData
+import AppLogic
 import csstype.*
-import emotion.react.css
 import kotlinx.browser.localStorage
 import org.w3c.dom.*
 import react.*
@@ -25,9 +24,9 @@ object CodeEditorTheme {
 }
 
 external interface CodeEditorProps : Props {
-    var appData: AppData
+    var appLogic: AppLogic
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppData) -> Unit
+    var updateParent: (newData: AppLogic) -> Unit
 }
 
 // CSS CLASSES
@@ -62,7 +61,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     // State für aktuellen Text
     val saveState: MutableList<String> = mutableListOf()
 
-    var data by useState(props.appData)
+    var data by useState(props.appLogic)
     val change = props.update
     val (lineHeight, setLineHeight) = useState(21)
     var (lineCount, setLineCount) = useState<Int>(1)

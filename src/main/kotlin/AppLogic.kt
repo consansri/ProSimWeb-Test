@@ -1,10 +1,10 @@
 import extendable.Architecture
 import extendable.cisc.ArchCISC
-import extendable.cisc.ArchMinimalprozessor
+import extendable.cisc.ArchMini
 import extendable.cisc.ArchRISCII
 import extendable.cisc.ArchRISCV
 
-class AppData {
+class AppLogic {
 
     var selID = -1
 
@@ -13,9 +13,9 @@ class AppData {
     val archCISC: ArchCISC = ArchCISC()
     val archRISCII: ArchRISCII = ArchRISCII()
     val archRISCV: ArchRISCV = ArchRISCV()
-    val archMinimalprozessor: ArchMinimalprozessor = ArchMinimalprozessor()
+    val archMini: ArchMini = ArchMini()
 
-    private val archList = listOf<Architecture>(archMinimalprozessor, archCISC, archRISCII, archRISCV)
+    private val archList = listOf<Architecture>(archMini, archCISC, archRISCII, archRISCV)
 
     fun getArchList(): List<Architecture> {
         return archList

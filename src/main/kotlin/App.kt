@@ -15,9 +15,9 @@ const val CLASS_NAV_ACTIVE = "active"
 
 val App = FC<Props> { props ->
 
-    var (data, setData) = useState(AppData())
+    var (data, setData) = useState(AppLogic())
 
-    localStorage.getItem(Consts.ARCH_TYPE)?.let{
+    localStorage.getItem(StorageKey.ARCH_TYPE)?.let{
         val loaded = it.toInt()
         if(loaded in 0 until data.getArchList().size){
             data.selID = loaded
@@ -32,7 +32,7 @@ val App = FC<Props> { props ->
     val codeEditorRef = useRef("")
     val processorViewRef = useRef<ProcessorViewProps>()
 
-    fun update(newData: AppData) {
+    fun update(newData: AppLogic) {
         console.log("update App from Child Component")
         setData(newData)
         setReloadUI(!reloadUI)
@@ -49,7 +49,7 @@ val App = FC<Props> { props ->
     }
 
     Menu {
-        appData = data
+        appLogic = data
         update = useState(reloadUI)
         updateParent = ::update
         this.mainRef = mainRef
@@ -62,7 +62,7 @@ val App = FC<Props> { props ->
         div {
             id = "lcontainer"
             CodeEditor {
-                appData = data
+                appLogic = data
                 update = useState(reloadUI)
                 updateParent = ::update
             }
@@ -71,7 +71,7 @@ val App = FC<Props> { props ->
         div {
             id = "rcontainer"
             ProcessorView {
-                appData = data
+                appLogic = data
                 update = useState(reloadUI)
                 updateParent = ::update
             }

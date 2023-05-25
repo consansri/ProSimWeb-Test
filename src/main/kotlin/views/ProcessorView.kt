@@ -1,6 +1,6 @@
 package views
 
-import AppData
+import AppLogic
 import csstype.ClassName
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLAnchorElement
@@ -18,8 +18,8 @@ import views.components.MemoryView
 import views.components.RegisterView
 
 external interface ProcessorViewProps : Props {
-    var appData: AppData
-    var updateParent: (newData: AppData) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var appLogic: AppLogic
+    var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
     var update: StateInstance<Boolean>
 }
 
@@ -31,7 +31,7 @@ val CLASS_PROC_MAIN_CONTAINER = "processor"
 
 val ProcessorView = FC<ProcessorViewProps> { props ->
 
-    val data by useState(props.appData)
+    val data by useState(props.appLogic)
     val (change, setUpdate) = props.update
     val (mStepValue, setMStepValue) = useState<Double>()
 
@@ -104,7 +104,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                         step = 1.0
 
                         onChange = {
-                            localStorage.setItem(Consts.MSTEP_VALUE, it.currentTarget.value)
+                            localStorage.setItem(StorageKey.MSTEP_VALUE, it.currentTarget.value)
                         }
 
                     }
@@ -173,7 +173,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         RegisterView {
             name = "Register"
-            appData = data
+            appLogic = data
             update = useState(change)
             this.updateParent = props.updateParent
         }
@@ -184,9 +184,9 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         MemoryView {
             name = "Memory"
-            appData = data
+            appLogic = data
             update = useState(change)
-            length = localStorage.getItem(Consts.MEM_LENGTH)?.toInt() ?: 4
+            length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
             this.updateParent = props.updateParent
         }
 
@@ -194,7 +194,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     useEffect(change) {
         console.log("(update) ProcessorView")
         mStepInputRef.current?.let {
-            val value = localStorage.getItem(Consts.MSTEP_VALUE) ?: ""
+            val value = localStorage.getItem(StorageKey.MSTEP_VALUE) ?: ""
             it.value = value
         }
     }

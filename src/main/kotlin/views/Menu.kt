@@ -1,13 +1,11 @@
 package views
 
-import AppData
+import AppLogic
 import csstype.ClassName
-import csstype.px
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -20,16 +18,16 @@ const val CLASS_NAV_IMG = "nav-img"
 const val CLASS_NAV_ACTIVE = "active"
 
 external interface MenuProps : Props {
-    var appData: AppData
+    var appLogic: AppLogic
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppData) -> Unit
+    var updateParent: (newData: AppLogic) -> Unit
     var mainRef: MutableRefObject<HTMLElement>
     var footerRef: MutableRefObject<HTMLElement>
 }
 
 val Menu = FC<MenuProps>() { props ->
 
-    val data by useState(props.appData)
+    val data by useState(props.appLogic)
     val update = props.update
     val (navHidden, setNavHidden) = useState(true)
     val (archsHidden, setArchsHidden) = useState(true)
@@ -154,7 +152,7 @@ val Menu = FC<MenuProps>() { props ->
                     onClick = { event ->
                         showArchs(false)
                         data.selID = id
-                        localStorage.setItem(Consts.ARCH_TYPE, "$id")
+                        localStorage.setItem(StorageKey.ARCH_TYPE, "$id")
                         props.updateParent(data)
                         console.log("Load " + data.getArch().getName())
                         event.currentTarget.classList.toggle("nav-arch-active")

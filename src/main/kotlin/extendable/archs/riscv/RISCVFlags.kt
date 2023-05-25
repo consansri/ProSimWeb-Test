@@ -1,13 +1,13 @@
 package extendable.archs.riscv
 
-import extendable.archs.Flags
+import StyleConst
 
-object RISCVFlags: Flags() {
+object RISCVFlags {
 
-    val prefixFlag = getOrangeFlag()
-    val instrFlag = getOrangeFlag()
-    val addressFlag = getGreenFlag()
-    val valueFlag = getCyanFlag()
-    val errorFlag = getErrorFlag()
+    val prefixFlag = StyleConst.HLCLASS_blue
+    val instrFlag = StyleConst.HLCLASS_orange
+    val addressFlag = StyleConst.HLCLASS_green
+    val valueFlag = StyleConst.HLCLASS_cyan
+    val errorFlag = StyleConst.HLCLASS_error
 
 }

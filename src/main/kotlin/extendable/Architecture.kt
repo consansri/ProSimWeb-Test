@@ -11,23 +11,19 @@ open class Architecture {
     private val instructions: List<Instruction>
     private val dataMemory: DataMemory
     private var transcript: Transcript
-
-
-    open var flagsConditions: FlagsConditions? = null
+    private var flagsConditions: FlagsConditions?
+    private var cache: Cache?
 
     constructor(
-        name: String,
-        register: Array<Register>,
-        instructions: List<Instruction>,
-        dataMemory: DataMemory,
-        transcript: Transcript
+        config: Config
     ) {
-        this.name = name
-        this.register = register
-        this.instructions = instructions
-        this.dataMemory = dataMemory
-        this.transcript = transcript
-
+        this.name = config.name
+        this.register = config.register
+        this.instructions = config.instructions
+        this.dataMemory = config.dataMemory
+        this.transcript = config.transcript
+        this.flagsConditions = config.flagsConditions
+        this.cache = config.cache
     }
 
     fun getName(): String {

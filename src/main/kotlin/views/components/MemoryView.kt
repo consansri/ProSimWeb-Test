@@ -1,16 +1,13 @@
 package views.components
 
-import AppData
+import AppLogic
 import csstype.*
 import emotion.react.css
-import extendable.components.DataMemory
 import kotlinx.browser.localStorage
-import org.w3c.dom.BinaryType
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
 import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.div
@@ -25,17 +22,17 @@ import kotlin.math.floor
 
 external interface MemViewProps : Props {
     var name: String
-    var appData: AppData
+    var appLogic: AppLogic
     var length: Int
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppData) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
 class MemRow(val id: Double, val address: Double)
 
 val MemoryView = FC<MemViewProps> { props ->
 
-    val data by useState(props.appData)
+    val data by useState(props.appLogic)
     val name by useState(props.name)
     val update = props.update
     val (memLength, setMemLength) = useState<Int>(props.length)
@@ -112,7 +109,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         onInput = {
                             setMemLength(it.currentTarget.valueAsNumber.toInt())
-                            localStorage.setItem(Consts.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
+                            localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
                         }
                     }
                 }

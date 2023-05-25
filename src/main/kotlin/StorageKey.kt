@@ -1,4 +1,4 @@
-object Consts {
+object StorageKey {
 
     val ARCH_TYPE = "arch-type"
 

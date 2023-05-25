@@ -1,6 +1,6 @@
 package views.components
 
-import AppData
+import AppLogic
 import csstype.ClassName
 import csstype.Display
 import csstype.Overflow
@@ -8,9 +8,7 @@ import csstype.vh
 import emotion.react.css
 import react.*
 import react.dom.html.ReactHTML.caption
-import react.dom.html.ReactHTML.col
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -20,14 +18,14 @@ import react.dom.html.ReactHTML.tr
 
 external interface RegisterViewProps : Props {
     var name: String
-    var appData: AppData
+    var appLogic: AppLogic
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppData) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
 val RegisterView = FC<RegisterViewProps> { props ->
 
-    val data by useState(props.appData)
+    val data by useState(props.appLogic)
     val name by useState(props.name)
     val update = props.update
     val theaders = arrayOf("Address", "Name", "Data", "Description")
