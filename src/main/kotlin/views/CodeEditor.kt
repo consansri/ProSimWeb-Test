@@ -13,15 +13,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
-
-object CodeEditorTheme {
-    val editorHeight = 400.px
-
-    val mainBgColor = Color("#EEEEEEFF")
-
-    val controlBgColor = Color("#36454f")
-    val controlBgHoverColor = Color("#EEEEEE")
-}
+import kotlin.math.abs
 
 external interface CodeEditorProps : Props {
     var appLogic: AppLogic
@@ -63,11 +55,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     var data by useState(props.appLogic)
     val change = props.update
-    val (lineHeight, setLineHeight) = useState(21)
-    var (lineCount, setLineCount) = useState<Int>(1)
-    var (codeLines, setCodeLines) = useState<List<String>>()
-
-    var (editedLine, setEditedLine) = useState<Int>(1)
+    val lineHeight by useState(21)
 
     fun updateHLText(value: String) {
         codeAreaRef.current?.let {
@@ -101,8 +89,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 it.style.height = "${height}px"
             }
         }
-
-
     }
 
     fun updateClearButton(textarea: HTMLTextAreaElement) {
@@ -133,7 +119,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun addUndoSaveState(value: String) {
-        if (saveState.size >= 20) {
+        if (saveState.size >= 30) {
             saveState.removeFirst()
         }
         saveState += value
@@ -148,6 +134,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 it.style.display = "none"
             }
         }
+
     }
 
     fun updateEditor() {
@@ -211,6 +198,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                 onClick = {
                     textareaRef.current?.let {
+                        addUndoSaveState(it.value)
                         it.value = ""
                         addUndoSaveState(it.value)
                         localStorage.setItem(STR_EDITOR_SAVE, it.value)
@@ -250,7 +238,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             val area = textareaRef.current
 
                             // Update Save State (For Undo)
-                            addUndoSaveState(event.currentTarget.value)
+                            if (abs(saveState.last().length - event.currentTarget.value.length) > 5 || saveState.last()
+                                    .split("\n").size != event.currentTarget.value.split("\n").size
+                            ) {
+                                addUndoSaveState(event.currentTarget.value)
+                            }
                             // Save the text in localStorage
                             localStorage.setItem(STR_EDITOR_SAVE, event.currentTarget.value)
 
@@ -275,10 +267,20 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     it.selectionEnd = end + 1
 
                                     event.preventDefault()
+                                    addUndoSaveState(it.value)
                                     updateEditor()
                                     props.updateParent
                                 }
+                            } else if (event.key == "Backspace") {
+                                textareaRef.current?.let {
+                                    addUndoSaveState(it.value)
+                                }
+                            } else if (event.ctrlKey && event.key == "z") {
+                                handleUndo()
+                                props.updateParent
                             }
+
+
                         }
 
                         // Load the saved text from localStorage
@@ -297,6 +299,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             if (savedText != null && savedText != "") {
                                 area.value = savedText
                                 updateEditor()
+                                updateLineNumbers()
                             } else {
                                 btnClearRef.current?.style?.display = "none"
                             }
