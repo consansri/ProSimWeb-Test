@@ -5,10 +5,7 @@ import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
-import views.CodeEditor
-import views.Menu
-import views.ProcessorView
-import views.ProcessorViewProps
+import views.*
 
 const val CLASS_NAV_IMG = "nav-img"
 const val CLASS_NAV_ACTIVE = "active"
@@ -61,7 +58,7 @@ val App = FC<Props> { props ->
         ref = mainRef
         div {
             id = "lcontainer"
-            CodeEditor {
+            CodeEditorNew {
                 appLogic = data
                 update = useState(reloadUI)
                 updateParent = ::update
