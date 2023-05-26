@@ -38,7 +38,7 @@ open class Architecture {
         return instructions
     }
 
-    fun getProgramMemory(): Transcript {
+    fun getTranscript(): Transcript {
         return transcript
     }
 
