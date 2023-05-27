@@ -126,4 +126,18 @@ open class Architecture {
 
         return output
     }
+
+    fun getPreHighlighting(line: String): String{
+        val encodedLine = HTMLTools.encodeBeforeHTML(line)
+
+        return encodedLine
+    }
+
+    fun getPostHighlighting(input: String): String{
+        var output = HTMLTools.encodeBeforeHTML(input)
+        output = highlightArchSyntax(output)
+
+        return output
+    }
+
 }

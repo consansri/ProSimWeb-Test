@@ -3,12 +3,17 @@ package views
 import AppLogic
 import StorageKey
 import csstype.ClassName
+import kotlinx.browser.document
 import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import org.w3c.dom.*
 import react.*
+import react.dom.DangerouslySetInnerHTML
 import react.dom.aria.ariaHidden
+import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML
-import kotlin.math.abs
+import kotlin.js.Date
+import kotlin.time.Duration.Companion.milliseconds
 
 external interface CodeEditorNewProps : Props {
     var appLogic: AppLogic
@@ -22,6 +27,10 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
     /* ----------------- STATIC VARIABLES ----------------- */
 
     val lineHeight = 21
+
+    /* ----------------- TIMER VARIABLES ----------------- */
+
+    var timer: Int = 0
 
     /* ----------------- REACT REFERENCES ----------------- */
 
@@ -37,6 +46,9 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
     var data by useState(props.appLogic)
     var update = props.update
 
+    /* ----------------- PERFORMANCE STATES ----------------- */
+
+    var (visibleItems, setVisibleItems) = useState<MutableList<Element>>()
 
     /* ----------------- localStorage Sync Objects ----------------- */
 
@@ -77,7 +89,7 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
     }
 
     fun updateClearButton() {
-        textareaRef.current?.let{
+        textareaRef.current?.let {
             if (it.value != "") {
                 btnClearRef.current?.style?.display = "block"
             } else {
@@ -94,6 +106,9 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
         /* -- LOAD from localStorage -- */
         /* ta_val */
         setta_val(localStorage.getItem(StorageKey.TA_VALUE))
+        textareaRef.current?.let {
+            it.value = ta_val ?: ""
+        }
 
         /* vc_rows */
         val vc_rows_length = localStorage.getItem(StorageKey.VC_ROW_Length)?.toInt() ?: 0
@@ -117,10 +132,10 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
             setta_val_ss(tempTaValSS)
         }
 
-
     }
 
     useEffect(vc_rows) {
+        console.log("useEffect ${timer}: vc_rows START ${Date().getTime().milliseconds}")
         /* SAVE vc_rows change */
         if (vc_rows != null) {
             for (vcRowID in vc_rows.indices) {
@@ -128,16 +143,22 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
             }
             localStorage.setItem(StorageKey.VC_ROW_Length, vc_rows.size.toString())
         }
+        console.log("useEffect ${timer}: vc_rows END ${Date().getTime().milliseconds}")
     }
 
     useEffect(ta_val) {
+        console.log("useEffect ${timer}: ta_val START ${Date().getTime().milliseconds}")
         /* SAVE ta_val change */
         ta_val?.let {
             localStorage.setItem(StorageKey.TA_VALUE, it)
         }
+        textareaRef.current?.let {
+            it.value = ta_val ?: ""
+        }
         updateTAResize()
         updateClearButton()
         updateLineNumbers()
+        console.log("useEffect ${timer}: ta_val END ${Date().getTime().milliseconds}")
     }
 
     useEffect(ta_val_ss) {
@@ -153,24 +174,35 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
     /* ----------------- EVENTS ----------------- */
 
     fun onContentChange(tachangedRows: Map<Int, String>) {
-
+        console.log("onContentChange START ${Date().getTime().milliseconds}")
+        val prevLines = vc_rows?.toMutableList()
+        prevLines?.let {
+            for (line in tachangedRows) {
+                prevLines[line.key] = data.getArch().getPreHighlighting(line.value)
+            }
+        }
+        setvc_rows(prevLines)
+        console.log("onContentChange END ${Date().getTime().milliseconds}")
     }
 
     fun onLengthChange(taValue: String) {
-
+        console.log("onLengthChange START ${Date().getTime().milliseconds}")
+        val hlTaList = data.getArch().getPostHighlighting(taValue).split("\n")
+        setvc_rows(hlTaList)
+        console.log("onLengthChange END ${Date().getTime().milliseconds}")
     }
 
     /* ----------------- DOM ----------------- */
 
     ReactHTML.div {
-        className = ClassName(CLASS_EDITOR)
+        className = ClassName(StyleConst.CLASS_EDITOR)
 
         ReactHTML.div {
-            className = ClassName(CLASS_EDITOR_CONTROLS)
+            className = ClassName(StyleConst.CLASS_EDITOR_CONTROLS)
 
             ReactHTML.a {
                 id = "build"
-                className = ClassName(CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
                 ReactHTML.img {
                     src = "icons/cpu-charge.svg"
                 }
@@ -179,7 +211,7 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
 
             ReactHTML.a {
                 id = "undo"
-                className = ClassName(CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
                 ref = btnUndoRef
 
                 ReactHTML.img {
@@ -192,8 +224,8 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
             }
 
             ReactHTML.a {
-                className = ClassName(CLASS_EDITOR_CONTROL)
-                id = STR_EDITOR_CONTROL_CHECK
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
+                id = StyleConst.STR_EDITOR_CONTROL_CHECK
                 ReactHTML.img {
                     src = "icons/exclamation-mark2.svg"
                 }
@@ -201,7 +233,7 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
 
             ReactHTML.a {
                 id = "editor-clear"
-                className = ClassName(CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
                 ref = btnClearRef
                 ReactHTML.img {
                     src = "icons/clear.svg"
@@ -209,7 +241,8 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
 
                 onClick = {
                     textareaRef.current?.let {
-
+                        setta_val("")
+                        setvc_rows(listOf(""))
 
                     }
                 }
@@ -217,14 +250,32 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
         }
 
         ReactHTML.div {
-            className = ClassName(CLASS_EDITOR_CONTAINER)
+            className = ClassName(StyleConst.CLASS_EDITOR_CONTAINER)
 
 
             ReactHTML.div {
-                className = ClassName(CLASS_EDITOR_SCROLL_CONTAINER)
+                className = ClassName(StyleConst.CLASS_EDITOR_SCROLL_CONTAINER)
+
+                /*onScroll = { event ->
+                    val containerRect = event.currentTarget.getBoundingClientRect()
+                    val children = event.currentTarget.children
+                    val tempVisibleItems: MutableList<Element> = mutableListOf()
+
+                    for (childID in 0 until children.length) {
+                            val childRect = children.get(childID)?.getBoundingClientRect()
+                            childRect?.let {
+                                if (it.top >= containerRect.top && it.bottom <= containerRect.bottom) {
+                                    if (children[childID] != null) {
+                                        children[childID]?.let { it1 -> tempVisibleItems.add(it1) }
+                                    }
+                                }
+                            }
+                    }
+                    setVisibleItems(tempVisibleItems)
+                }*/
 
                 ReactHTML.div {
-                    className = ClassName(CLASS_EDITOR_LINE_NUMBERS)
+                    className = ClassName(StyleConst.CLASS_EDITOR_LINE_NUMBERS)
                     ref = lineNumbersRef
                     ReactHTML.span {
 
@@ -232,24 +283,53 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
                 }
 
                 ReactHTML.div {
-                    className = ClassName(CLASS_EDITOR_INPUT_DIV)
+                    className = ClassName(StyleConst.CLASS_EDITOR_INPUT_DIV)
                     ref = inputDivRef
 
                     ReactHTML.textarea {
-                        className = ClassName(CLASS_EDITOR_AREA)
+                        className = ClassName(StyleConst.CLASS_EDITOR_AREA)
                         ref = textareaRef
+                        autoComplete = AutoComplete.off
+                        autoCorrect = "off"
+                        autoCapitalize = "off"
                         spellCheck = false
                         placeholder = "Enter ${data.getArch().getName()} Assembly ..."
-                        value = ta_val
 
-                        onInput = { event ->
+
+                        onChange = { event ->
+                            console.log("Change Event ${timer}: START ${Date().getTime().milliseconds}")
+                            timer += 1
+
                             setta_val(event.currentTarget.value)
 
-                            // TEST
-                            val lines = event.currentTarget.value.split("\n")
-                            setvc_rows(lines)
+                            console.log("Change Event ${timer}: setta_val ${Date().getTime().milliseconds}")
 
+                            // Fire Change Events
+                            val lines = event.currentTarget.value.split("\n")
+                            if (vc_rows != null) {
+                                if (lines.size != vc_rows.size) {
+                                    onLengthChange(event.currentTarget.value)
+                                } else {
+                                    val selStart = event.currentTarget.selectionStart ?: 0
+                                    val selEnd =
+                                        event.currentTarget.selectionEnd ?: (event.currentTarget.value.length - 1)
+                                    val lineIDStart =
+                                        event.currentTarget.value.substring(0, selStart).split("\n").size - 1
+                                    val lineIDEnd = event.currentTarget.value.substring(0, selEnd).split("\n").size - 1
+                                    val editedLines: MutableMap<Int, String> = mutableMapOf()
+                                    for (lineID in lineIDStart..lineIDEnd) {
+                                        editedLines.put(lineID, lines[lineID])
+                                    }
+                                    onContentChange(editedLines)
+                                }
+                            } else {
+                                onLengthChange(event.currentTarget.value)
+                            }
                             //
+
+                            console.log("Change Event ${timer}: END ${Date().getTime().milliseconds}}")
+
+
                         }
 
                         onKeyDown = { event ->
@@ -279,18 +359,24 @@ val CodeEditorNew = FC<CodeEditorNewProps> { props ->
                     }
 
                     ReactHTML.pre {
-                        className = ClassName(CLASS_EDITOR_HIGHLIGHTING)
+                        className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING)
                         ariaHidden = true
 
                         ReactHTML.code {
-                            className = ClassName(CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
-                            className = ClassName(CLASS_EDITOR_HIGHLIGHTING_CONTENT)
+                            className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
+                            className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_CONTENT)
                             ref = codeAreaRef
 
-                            vc_rows?.let{
-                                for(i in it.indices){
-                                    +"${it[i]}\n"
+                            vc_rows?.let {
+                                console.log("VC Rerender START ${Date().getTime().milliseconds}")
+                                var contentString = ""
+                                for (i in it.indices) {
+                                    contentString += "${it[i]}\n"
                                 }
+                                codeAreaRef.current?.let {
+                                    it.innerHTML = contentString
+                                }
+                                console.log("VC Rerender END ${Date().getTime().milliseconds}")
                             }
 
 

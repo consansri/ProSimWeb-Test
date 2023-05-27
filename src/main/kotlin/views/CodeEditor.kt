@@ -1,6 +1,7 @@
 package views
 
 import AppLogic
+import StyleConst.STR_EDITOR_SAVE
 import csstype.*
 import kotlinx.browser.localStorage
 import org.w3c.dom.*
@@ -21,24 +22,7 @@ external interface CodeEditorProps : Props {
     var updateParent: (newData: AppLogic) -> Unit
 }
 
-// CSS CLASSES
-var CLASS_EDITOR = "editor"
-var CLASS_EDITOR_CONTROL = "editor-control"
-var CLASS_EDITOR_CONTROLS = "editor-controls"
-var CLASS_EDITOR_HIGHLIGHTING_LANGUAGE = "highlighting-html"
-var CLASS_EDITOR_CONTAINER = "editor-container"
-var CLASS_EDITOR_SCROLL_CONTAINER = "editor-scroll-container"
-var CLASS_EDITOR_LINE_NUMBERS = "editor-line-numbers"
-var CLASS_EDITOR_INPUT_DIV = "editor-input-div"
-var CLASS_EDITOR_AREA = "editor-area"
-var CLASS_EDITOR_HIGHLIGHTING = "editor-highlighting"
-var CLASS_EDITOR_HIGHLIGHTING_CONTENT = "editor-highlighting-content"
 
-// CSS IDS
-var STR_EDITOR_CONTROL_CHECK = "editor-check"
-var STR_EDITOR_SAVE = "savedText"
-var STR_EDITOR_SAVESTATE = "saveState"
-var STR_EDITOR_SAVESTATELENGTH = "saveStateLength"
 
 
 val CodeEditor = FC<CodeEditorProps> { props ->
@@ -124,9 +108,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
         saveState += value
         for (i in saveState.indices) {
-            localStorage.setItem(STR_EDITOR_SAVESTATE + "$i", saveState[i])
+            localStorage.setItem(StyleConst.STR_EDITOR_SAVESTATE + "$i", saveState[i])
         }
-        localStorage.setItem(STR_EDITOR_SAVESTATELENGTH, saveState.size.toString())
+        localStorage.setItem(StyleConst.STR_EDITOR_SAVESTATELENGTH, saveState.size.toString())
         btnUndoRef.current?.let {
             if (saveState.size > 1) {
                 it.style.display = "block"
@@ -149,14 +133,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     div {
-        className = ClassName(CLASS_EDITOR)
+        className = ClassName(StyleConst.CLASS_EDITOR)
 
         div {
-            className = ClassName(CLASS_EDITOR_CONTROLS)
+            className = ClassName(StyleConst.CLASS_EDITOR_CONTROLS)
 
             a {
                 id = "build"
-                className = ClassName(CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
                 img {
                     src = "icons/cpu-charge.svg"
                 }
@@ -165,7 +149,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 id = "undo"
-                className = ClassName(CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
                 ref = btnUndoRef
 
                 img {
@@ -181,8 +165,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
-                className = ClassName(CLASS_EDITOR_CONTROL)
-                id = STR_EDITOR_CONTROL_CHECK
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
+                id = StyleConst.STR_EDITOR_CONTROL_CHECK
                 img {
                     src = "icons/exclamation-mark2.svg"
                 }
@@ -190,7 +174,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 id = "editor-clear"
-                className = ClassName(CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
                 ref = btnClearRef
                 img {
                     src = "icons/clear.svg"
@@ -210,14 +194,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         div {
-            className = ClassName(CLASS_EDITOR_CONTAINER)
+            className = ClassName(StyleConst.CLASS_EDITOR_CONTAINER)
 
 
             div {
-                className = ClassName(CLASS_EDITOR_SCROLL_CONTAINER)
+                className = ClassName(StyleConst.CLASS_EDITOR_SCROLL_CONTAINER)
 
                 div {
-                    className = ClassName(CLASS_EDITOR_LINE_NUMBERS)
+                    className = ClassName(StyleConst.CLASS_EDITOR_LINE_NUMBERS)
                     ref = lineNumbersRef
                     span {
 
@@ -225,11 +209,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
 
                 div {
-                    className = ClassName(CLASS_EDITOR_INPUT_DIV)
+                    className = ClassName(StyleConst.CLASS_EDITOR_INPUT_DIV)
                     ref = inputDivRef
 
                     textarea {
-                        className = ClassName(CLASS_EDITOR_AREA)
+                        className = ClassName(StyleConst.CLASS_EDITOR_AREA)
                         ref = textareaRef
                         spellCheck = false
                         placeholder = "Enter ${data.getArch().getName()} Assembly ..."
@@ -287,10 +271,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         useEffect {
                             val area = textareaRef.current ?: return@useEffect
                             val savedText = localStorage.getItem(STR_EDITOR_SAVE)
-                            val saveStateLength = localStorage.getItem(STR_EDITOR_SAVESTATELENGTH)?.toInt()
+                            val saveStateLength = localStorage.getItem(StyleConst.STR_EDITOR_SAVESTATELENGTH)?.toInt()
                             saveStateLength?.let {
                                 for (i in 0..saveStateLength) {
-                                    localStorage.getItem(STR_EDITOR_SAVESTATE + "$i")?.let {
+                                    localStorage.getItem(StyleConst.STR_EDITOR_SAVESTATE + "$i")?.let {
                                         saveState.add(i, it)
                                     }
                                 }
@@ -315,12 +299,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     }
 
                     pre {
-                        className = ClassName(CLASS_EDITOR_HIGHLIGHTING)
+                        className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING)
                         ariaHidden = true
 
                         code {
-                            className = ClassName(CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
-                            className = ClassName(CLASS_EDITOR_HIGHLIGHTING_CONTENT)
+                            className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
+                            className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_CONTENT)
                             ref = codeAreaRef
 
                         }
