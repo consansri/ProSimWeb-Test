@@ -3,7 +3,7 @@
     --editor-controls-bg-hover-color: #EEEEEE;
     --editor-bg-color: #EEEEEE;
     --editor-code-color: #222222;
-    --editor-linenumbers-border-color: #959595;
+    --editor-linenumbers-border-color: #B5B5B5;
     --editor-linenumbers-color: #2222EE;
 
     --editor-lineHeight: 21px;
@@ -17,7 +17,27 @@
     --editor-hl-hex: darkcyan;
 }
 
+.editor {
+    display: flex;
+    position: absolute;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+    border-radius: var(--border-radius);
+    gap: var(--padding-size);
+}
+
+
 /* -- EDITOR CONTROLS -- */
+.editor-controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-content: start;
+    gap: var(--padding-size);
+    min-width: 32px;
+}
+
 
 .editor-control {
     width: var(--icon-size);
@@ -35,6 +55,10 @@
     transition: 0.1s;
 }
 
+.editor-control-active img {
+    filter: invert(71%) sepia(54%) saturate(429%) hue-rotate(83deg) brightness(89%) contrast(87%)!important;
+}
+
 .editor-control:hover {
     background-color: var(--editor-controls-bg-hover-color);
 }
@@ -43,10 +67,36 @@
     filter: invert(100%) sepia(46%) saturate(3319%) hue-rotate(170deg) brightness(82%) contrast(81%);
 }
 
+
+
 /* -- EDITOR CONTAINER -- */
+
+.editor-container {
+    display: block;
+    max-height: 100%;
+    width: calc(100% - var(--padding-size));
+    line-height: var(--editor-lineHeight);
+
+    font-family: monospace;
+    background: var(--editor-bg-color);
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    padding: 1% 1%;
+}
+
+.editor-scroll-container {
+    display: flex;
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: 100%;
+}
 
 /* EDITOR Line Numbers */
 .editor-line-numbers {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
     min-width: 30px;
     text-align: right;
 }
@@ -65,7 +115,11 @@
 
 /* EDITOR Input Field */
 .editor-input-div {
-
+    position: relative;
+    display: flex;
+    width: 400px;
+    height: auto;
+    flex-grow: 1;
 }
 
 .editor-area, .editor-highlighting-content {
@@ -85,18 +139,41 @@
 }
 
 .editor-highlighting {
+    position: absolute;
+    display: block;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100%;
+    z-index: 0;
+
     white-space: pre-wrap;
 }
 
 .editor-highlighting-content {
+    display: block;
+    width: 100%;
+    height: 100%;
+
     color: grey;
 }
 
-.editor-highlighting-content mark{
+.editor-highlighting-content mark {
     font-family: monospace;
 }
 
 .editor-area {
+    position: absolute;
+    display: block;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100%;
+    z-index: 1;
+    resize: none;
+
     caret-color: var(--editor-code-color);
     columns: calc(400 / 16);
     color: transparent;

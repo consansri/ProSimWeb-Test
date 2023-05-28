@@ -13,9 +13,10 @@ object StyleConst {
 
     /* CODE EDITOR */
 
-    // OLD
+    // MAIN
     val CLASS_EDITOR = "editor"
     val CLASS_EDITOR_CONTROL = "editor-control"
+    val CLASS_EDITOR_CONTROL_ACTIVE = "editor-control-active"
     val CLASS_EDITOR_CONTROLS = "editor-controls"
     val CLASS_EDITOR_HIGHLIGHTING_LANGUAGE = "highlighting-html"
     val CLASS_EDITOR_CONTAINER = "editor-container"
@@ -26,10 +27,11 @@ object StyleConst {
     val CLASS_EDITOR_HIGHLIGHTING = "editor-highlighting"
     val CLASS_EDITOR_HIGHLIGHTING_CONTENT = "editor-highlighting-content"
 
-    val STR_EDITOR_CONTROL_CHECK = "editor-check"
-    val STR_EDITOR_SAVE = "savedText"
-    val STR_EDITOR_SAVESTATE = "saveState"
-    val STR_EDITOR_SAVESTATELENGTH = "saveStateLength"
+    const val CLASS_TRANSCRIPT = "transcript"
+    const val CLASS_TRANSCRIPT_TABLE = "ts-table"
+    const val CLASS_TRANSCRIPT_TITLE = "ts-title"
+
+
 
     // Prototype
     val CLASS_CE_CODESCROLLDIV = "ce-codescrolldiv"

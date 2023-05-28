@@ -58,7 +58,7 @@ val App = FC<Props> { props ->
         ref = mainRef
         div {
             id = "lcontainer"
-            CodeEditorNew {
+            CodeEditor {
                 appLogic = data
                 update = useState(reloadUI)
                 updateParent = ::update
