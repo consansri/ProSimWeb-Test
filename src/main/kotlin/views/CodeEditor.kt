@@ -2,7 +2,9 @@ package views
 
 import AppLogic
 import StorageKey
+import StyleConst
 import csstype.ClassName
+import extendable.ArchConsts
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearTimeout
@@ -13,7 +15,12 @@ import react.dom.aria.ariaHidden
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.code
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.pre
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.textarea
 import views.components.TranscriptView
 
 external interface CodeEditorProps : Props {
@@ -39,38 +46,38 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val inputDivRef = useRef<HTMLDivElement>(null)
     val codeAreaRef = useRef<HTMLElement>(null)
 
-    val timeoutRef = useRef<Timeout>(null)
+    val undoTimeoutRef = useRef<Timeout>(null)
+    val preHLTimeoutRef = useRef<Timeout>(null)
+    val checkTimeOutRef = useRef<Timeout>(null)
 
     /* ----------------- REACT STATES ----------------- */
 
-    var data by useState(props.appLogic)
-    var update = props.update
+    val appLogic by useState(props.appLogic)
+    val update = props.update
+    val (checkState, setCheckState) = useState(appLogic.getArch().state.getState())
+    val (exeStartLine, setExeStartLine) = useState(0)
+    val (lineNumbers, setLineNumbers) = useState<Int>(1)
 
     /* ----------------- localStorage Sync Objects ----------------- */
 
-    var (vc_rows, setvc_rows) = useState<List<String>>()
-    var (ta_val, setta_val) = useState<String>()
-    var (ta_val_ss, setta_val_ss) = useState<List<String>>()
-    var (transcriptView, setTranscriptView) = useState(false)
+    val (vc_rows, setvc_rows) = useState<List<String>>()
+    val (ta_val, setta_val) = useState<String>()
+    val (ta_val_ss, setta_val_ss) = useState<List<String>>()
+    val (transcriptView, setTranscriptView) = useState(false)
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
 
     fun updateLineNumbers() {
         val textarea = textareaRef.current ?: return
-        val lineNumbers = lineNumbersRef.current ?: return
         val numberOfLines = textarea.value.split("\n").size
-
-        val spanStr = buildString {
-            repeat(numberOfLines) { append("<span></span>") }
-        }
-        lineNumbers.innerHTML = spanStr
+        setLineNumbers(numberOfLines)
     }
 
     fun updateTAResize() {
         var height = 0
 
         textareaRef.current?.let {
-            var lineCount = it.value.split("\n").size + 1
+            val lineCount = it.value.split("\n").size + 1
             height = lineCount * lineHeight
             it.style.height = "auto"
             it.style.height = "${height}px"
@@ -86,26 +93,22 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     fun updateClearButton() {
         textareaRef.current?.let {
             if (it.value != "") {
-                btnClearRef.current?.style?.display = "block"
+                btnClearRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
             } else {
-                btnClearRef.current?.style?.display = "none"
+                btnClearRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
             }
         }
     }
 
     fun updateUndoButton() {
         if (ta_val_ss != null && ta_val_ss.size > 1) {
-            btnUndoRef.current?.let {
-                it.style.display = "block"
-            }
+            btnUndoRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
         } else {
-            btnUndoRef.current?.let {
-                it.style.display = "none"
-            }
+            btnUndoRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
         }
     }
 
-    /* ----------------- ASYNC ----------------- */
+    /* ----------------- ASYNC Events ----------------- */
 
     fun addUndoState(taValue: String, immediate: Boolean) {
         if (immediate) {
@@ -116,10 +119,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             tempTaValSS += taValue
             setta_val_ss(tempTaValSS)
         } else {
-            timeoutRef.current?.let {
+            undoTimeoutRef.current?.let {
                 clearTimeout(it)
             }
-            timeoutRef.current = setTimeout({
+            undoTimeoutRef.current = setTimeout({
                 val tempTaValSS = ta_val_ss?.toMutableList() ?: mutableListOf<String>()
                 if (tempTaValSS.size > 30) {
                     tempTaValSS.removeFirst()
@@ -130,44 +133,74 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 
-    /* ----------------- EVENTS ----------------- */
-
-    fun onContentChange(tachangedRows: Map<Int, String>) {
-        val prevLines = vc_rows?.toMutableList()
-        prevLines?.let {
-            for (line in tachangedRows) {
-                prevLines[line.key] = data.getArch().getPreHighlighting(line.value)
+    fun checkCode(taValue: String, immediate: Boolean) {
+        if (immediate) {
+            setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
+            setCheckState(appLogic.getArch().state.getState())
+        } else {
+            checkTimeOutRef.current?.let {
+                clearTimeout(it)
             }
+            checkTimeOutRef.current = setTimeout({
+                setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
+                setCheckState(appLogic.getArch().state.getState())
+            }, 3000)
         }
-        setvc_rows(prevLines)
     }
 
-    fun onLengthChange(taValue: String) {
-        val hlTaList = data.getArch().getPostHighlighting(taValue).split("\n")
-        setvc_rows(hlTaList)
+    fun preHighlight(taValue: String) {
+        preHLTimeoutRef.current?.let {
+            clearTimeout(it)
+        }
+        setvc_rows(taValue.split("\n"))
+        preHLTimeoutRef.current = setTimeout({
+            val hlTaList = appLogic.getArch().getPreHighlighting(taValue).split("\n")
+            setvc_rows(hlTaList)
+        }, 300)
     }
+
+    fun preHighlight(taChangedRows: Map<Int, String>) {
+        preHLTimeoutRef.current?.let {
+            clearTimeout(it)
+        }
+        preHLTimeoutRef.current = setTimeout({
+            val prevLines = vc_rows?.toMutableList()
+            prevLines?.let {
+                for (line in taChangedRows) {
+                    prevLines[line.key] = appLogic.getArch().getPreHighlighting(line.value)
+                }
+            }
+            setvc_rows(prevLines)
+        }, 0)
+
+    }
+
+    /* ----------------- SYNC EVENTS ----------------- */
 
     fun undo() {
+        appLogic.getArch().state.edit()
+        setCheckState(appLogic.getArch().state.getState())
         val tempTaValSS = ta_val_ss?.toMutableList()
         tempTaValSS?.let {
             if (it.last() == ta_val) {
                 it.removeLast()
             }
             setta_val(it.last())
-            onLengthChange(it.last())
+            checkCode(it.last(), true)
             setta_val_ss(tempTaValSS)
         }
+
     }
 
     /* ----------------- DOM ----------------- */
 
-    ReactHTML.div {
+    div {
         className = ClassName(StyleConst.CLASS_EDITOR)
 
-        ReactHTML.div {
+        div {
             className = ClassName(StyleConst.CLASS_EDITOR_CONTROLS)
 
-            ReactHTML.a {
+            a {
                 id = "switch"
                 className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
                 ref = btnSwitchRef
@@ -177,27 +210,77 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     src = "icons/cpu-charge.svg"
                 }
 
+
                 onClick = {
-                    setTranscriptView(!transcriptView)
+                    if (transcriptView) {
+                        setTranscriptView(!transcriptView)
+                    } else {
+                        if (appLogic.getArch().state.getState() == ArchConsts.STATE_BUILDABLE) {
+                            textareaRef.current?.let {
+                                checkCode(it.value, true)
+                                setTranscriptView(!transcriptView)
+                            }
+                        }
+                    }
                 }
             }
 
-            ReactHTML.a {
+            a {
                 className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
-                title = "Status"
 
-                ReactHTML.img {
-                    src = "icons/exclamation-mark2.svg"
+                onClick = {
+                    if (ta_val != null) {
+                        checkCode(ta_val, true)
+                    }
+                }
+
+                when (checkState) {
+                    ArchConsts.STATE_UNCHECKED -> {
+                        title = "Status: loading..."
+                        img {
+                            className = ClassName(StyleConst.CLASS_ANIM_ROTATION)
+                            src = "icons/loading.svg"
+                        }
+                    }
+
+                    ArchConsts.STATE_BUILDABLE -> {
+                        title = "Status: ready to build"
+                        img {
+                            src = "icons/check.svg"
+                        }
+                    }
+
+                    ArchConsts.STATE_HASERRORS -> {
+                        title = "Status: fix errors!"
+                        img {
+                            src = "icons/error.svg"
+                        }
+                    }
+
+                    ArchConsts.STATE_EXECUTION -> {
+                        title = "Status: executing..."
+                        img {
+                            src = "icons/check.svg"
+                        }
+                    }
+
+                    else -> {
+                        title = "Status: loading..."
+                        img {
+                            className = ClassName(StyleConst.CLASS_ANIM_ROTATION)
+                            src = "icons/loading.svg"
+                        }
+                    }
                 }
             }
 
-            ReactHTML.a {
+            a {
                 id = "undo"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
                 ref = btnUndoRef
                 title = "Undo"
 
-                ReactHTML.img {
+                img {
                     src = "icons/undo.svg"
                 }
 
@@ -206,9 +289,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
             }
 
-            a{
+            a {
                 id = "info"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
 
                 title = """
                     Code Editor Info
@@ -226,23 +309,24 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         - Clear Button
                         - Code Highlighting
                         - Transcript Switch
+                        - Start of Program (click on linenumber)
                         
                     
                 """.trimIndent()
 
-                img{
+                img {
                     src = "icons/info.svg"
                 }
 
             }
 
-            ReactHTML.a {
+            a {
                 id = "editor-clear"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
                 ref = btnClearRef
                 title = "Clear"
 
-                ReactHTML.img {
+                img {
                     src = "icons/clear.svg"
                 }
 
@@ -256,31 +340,50 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
         }
 
-        ReactHTML.div {
+        div {
             className = ClassName(StyleConst.CLASS_EDITOR_CONTAINER)
 
             if (transcriptView) {
                 TranscriptView {
                     this.ta_val = ta_val ?: ""
+                    this.transcript = appLogic.getArch().getTranscript()
                 }
             } else {
 
-                ReactHTML.div {
+                div {
                     className = ClassName(StyleConst.CLASS_EDITOR_SCROLL_CONTAINER)
 
-                    ReactHTML.div {
+                    div {
                         className = ClassName(StyleConst.CLASS_EDITOR_LINE_NUMBERS)
                         ref = lineNumbersRef
-                        ReactHTML.span {
 
+                        for (lineNumber in 1..lineNumbers) {
+                            span {
+
+                                if (lineNumber == exeStartLine) {
+                                    className = ClassName(StyleConst.CLASS_EDITOR_LINE_ACTIVE)
+
+                                    +"► $lineNumber"
+                                    onClick = {
+                                        setExeStartLine(ArchConsts.LINE_NOLINE)
+                                    }
+                                } else {
+                                    onClick = {
+                                        setExeStartLine(lineNumber)
+                                    }
+                                    +"$lineNumber"
+                                }
+
+
+                            }
                         }
                     }
 
-                    ReactHTML.div {
+                    div {
                         className = ClassName(StyleConst.CLASS_EDITOR_INPUT_DIV)
                         ref = inputDivRef
 
-                        ReactHTML.textarea {
+                        textarea {
                             className = ClassName(StyleConst.CLASS_EDITOR_AREA)
                             ref = textareaRef
                             autoComplete = AutoComplete.off
@@ -288,7 +391,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             cols = 50
                             autoCapitalize = "off"
                             spellCheck = false
-                            placeholder = "Enter ${data.getArch().getName()} Assembly ..."
+                            placeholder = "Enter ${appLogic.getArch().getName()} Assembly ..."
 
                             onChange = { event ->
                                 setta_val(event.currentTarget.value)
@@ -299,7 +402,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 val lines = event.currentTarget.value.split("\n")
                                 if (vc_rows != null) {
                                     if (lines.size != vc_rows.size) {
-                                        onLengthChange(event.currentTarget.value)
+                                        preHighlight(event.currentTarget.value)
                                     } else {
                                         val selStart = event.currentTarget.selectionStart ?: 0
                                         val selEnd =
@@ -312,13 +415,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         for (lineID in lineIDStart..lineIDEnd) {
                                             editedLines.put(lineID, lines[lineID])
                                         }
-                                        onContentChange(editedLines)
+                                        preHighlight(editedLines)
                                     }
                                 } else {
-                                    onLengthChange(event.currentTarget.value)
+                                    preHighlight(event.currentTarget.value)
                                 }
                                 //
 
+                                appLogic.getArch().state.edit()
+                                setCheckState(appLogic.getArch().state.getState())
+                                checkCode(event.currentTarget.value, false)
 
                             }
 
@@ -344,11 +450,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                         }
 
-                        ReactHTML.pre {
+                        pre {
                             className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING)
                             ariaHidden = true
 
-                            ReactHTML.code {
+                            code {
                                 className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
                                 className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_CONTENT)
                                 ref = codeAreaRef
@@ -406,11 +512,33 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 
-    useEffect(transcriptView){
-        btnSwitchRef.current?.let{
-            if(transcriptView) {
+    useEffect(checkState) {
+        when (checkState) {
+            ArchConsts.STATE_BUILDABLE -> {
+                btnSwitchRef.current?.let {
+                    it.classList.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
+                }
+            }
+
+            else -> {
+                btnSwitchRef.current?.let {
+                    it.classList.add(StyleConst.CLASS_ANIM_DEACTIVATED)
+                }
+            }
+        }
+    }
+
+    useEffect(exeStartLine) {
+        textareaRef.current?.let {
+            appLogic.getArch().check(it.value, exeStartLine)
+        }
+    }
+
+    useEffect(transcriptView) {
+        btnSwitchRef.current?.let {
+            if (transcriptView) {
                 it.classList.add(StyleConst.CLASS_EDITOR_CONTROL_ACTIVE)
-            }else{
+            } else {
                 it.classList.remove(StyleConst.CLASS_EDITOR_CONTROL_ACTIVE)
             }
         }

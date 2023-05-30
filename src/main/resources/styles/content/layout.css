@@ -38,8 +38,9 @@ body main {
         flex: 100%;
         position: relative;
         display: block;
-        min-height: 50vh;
+        min-height: max(50vh, calc(42px * 5));
     }
+
 
     #rcontainer {
         flex: 100%;
@@ -48,3 +49,5 @@ body main {
         min-height: 100vh;
     }
 }
+
+

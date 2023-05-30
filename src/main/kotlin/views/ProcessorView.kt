@@ -31,7 +31,7 @@ val CLASS_PROC_MAIN_CONTAINER = "processor"
 
 val ProcessorView = FC<ProcessorViewProps> { props ->
 
-    val data by useState(props.appLogic)
+    val appLogic by useState(props.appLogic)
     val (change, setUpdate) = props.update
     val (mStepValue, setMStepValue) = useState<Double>()
 
@@ -45,7 +45,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         div {
             a {
                 ref = titleRef
-                +data.getArch().getName()
+                +appLogic.getArch().getName()
             }
         }
 
@@ -63,7 +63,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 }
 
                 onClick = {
-                    data.getArch().exeContinuous()
+                    appLogic.getArch().exeContinuous()
                     setUpdate(!change)
                 }
             }
@@ -78,7 +78,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     }
                 }
                 onClick = {
-                    data.getArch().exeSingleStep()
+                    appLogic.getArch().exeSingleStep()
                     setUpdate(!change)
                 }
             }
@@ -112,7 +112,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 onClick = {
                     mStepInputRef.current?.let {
                         try {
-                            data.getArch().exeMultiStep(it.value.toInt())
+                            appLogic.getArch().exeMultiStep(it.value.toInt())
                         } catch (e: NumberFormatException) {
                             console.log("(info) steps input value isn't valid!")
                         }
@@ -132,7 +132,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     }
                 }
                 onClick = {
-                    data.getArch().exeSkipSubroutines()
+                    appLogic.getArch().exeSkipSubroutines()
                     setUpdate(!change)
                 }
             }
@@ -146,7 +146,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     }
                 }
                 onClick = {
-                    data.getArch().exeSubroutine()
+                    appLogic.getArch().exeSubroutine()
                     setUpdate(!change)
                 }
             }
@@ -161,7 +161,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     }
                 }
                 onClick = {
-                    data.getArch().exeClear()
+                    appLogic.getArch().exeClear()
                     setUpdate(!change)
                 }
             }
@@ -172,9 +172,9 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         className = ClassName("processorDiv")
 
         RegisterView {
-            name = "Register"
-            appLogic = data
-            update = useState(change)
+            this.name = "Register"
+            this.registers = appLogic.getArch().getRegister()
+            this.update = useState(change)
             this.updateParent = props.updateParent
         }
     }
@@ -183,10 +183,10 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         className = ClassName("memoryDiv")
 
         MemoryView {
-            name = "Memory"
-            appLogic = data
-            update = useState(change)
-            length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
+            this.name = "Memory"
+            this.dataMemory = appLogic.getArch().getDataMemory()
+            this.update = useState(change)
+            this.length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
             this.updateParent = props.updateParent
         }
 

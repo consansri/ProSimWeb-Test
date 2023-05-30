@@ -18,6 +18,7 @@ object StyleConst {
     val CLASS_EDITOR_CONTROL = "editor-control"
     val CLASS_EDITOR_CONTROL_ACTIVE = "editor-control-active"
     val CLASS_EDITOR_CONTROLS = "editor-controls"
+    val CLASS_EDITOR_LINE_ACTIVE = "line-active"
     val CLASS_EDITOR_HIGHLIGHTING_LANGUAGE = "highlighting-html"
     val CLASS_EDITOR_CONTAINER = "editor-container"
     val CLASS_EDITOR_SCROLL_CONTAINER = "editor-scroll-container"
@@ -31,6 +32,9 @@ object StyleConst {
     const val CLASS_TRANSCRIPT_TABLE = "ts-table"
     const val CLASS_TRANSCRIPT_TITLE = "ts-title"
 
+    const val CLASS_ANIM_ROTATION = "anim-rotation"
+    const val CLASS_ANIM_HOVER = "anim-hover"
+    const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
 
 
     // Prototype

@@ -1,5 +1,6 @@
 package extendable.archs.riscv
 
+import extendable.ArchConsts
 import extendable.components.*
 
 object RISCV {
@@ -7,6 +8,7 @@ object RISCV {
     val config = Config("RISC-V",
         arrayOf(
             Register(0, "zero", 0, "hardwired zero"),
+            Register(ArchConsts.REGISTER_NOVALUE,"novalue",0,"(test Register)"),
             Register(1, "ra", 0, "return address"),
             Register(2, "sp", 0, "stack pointer"),
             Register(3, "gp", 0, "global pointer"),
@@ -52,7 +54,7 @@ object RISCV {
             Instruction("AUIP", 2)
         ),
         DataMemory(32, 4),
-        Transcript(4, 32, 32)
+        Transcript(arrayOf("Address", "Line", "Code", "Labels", "Instruction"))
     )
 
 

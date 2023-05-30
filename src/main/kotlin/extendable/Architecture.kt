@@ -1,10 +1,12 @@
 package extendable
 
-import extendable.archs.riscv.RISCVFlags
 import extendable.components.*
 import tools.HTMLTools
 
-open class Architecture {
+open class Architecture(config: Config) {
+
+    val state = State()
+    val executionStartAddress = 0
 
     private var name: String
     private val register: Array<Register>
@@ -14,9 +16,7 @@ open class Architecture {
     private var flagsConditions: FlagsConditions?
     private var cache: Cache?
 
-    constructor(
-        config: Config
-    ) {
+    init {
         this.name = config.name
         this.register = config.register
         this.instructions = config.instructions
@@ -106,7 +106,7 @@ open class Architecture {
 
     protected fun highlightEndTag(): String {
         val tag = "mark"
-        return  "</$tag>"
+        return "</$tag>"
     }
 
     protected fun highlight(input: String, flag: String): String {
@@ -114,30 +114,29 @@ open class Architecture {
         return "<$tag class='$flag'>$input</$tag>"
     }
 
-    open fun highlightArchSyntax(code: String): String {
 
+    open fun hlAndCompile(code: String, startAtLine: Int): Pair<String, Boolean> {
+        val returnValue = Pair<String, Boolean>(code, true)
 
-        return code
+        return returnValue
     }
 
-    fun getHighlightedInput(input: String): String {
-        var output = HTMLTools.encodeBeforeHTML(input)
-        output = highlightArchSyntax(output)
-
-        return output
-    }
-
-    fun getPreHighlighting(line: String): String{
+    open fun getPreHighlighting(line: String): String {
         val encodedLine = HTMLTools.encodeBeforeHTML(line)
 
         return encodedLine
     }
 
-    fun getPostHighlighting(input: String): String{
-        var output = HTMLTools.encodeBeforeHTML(input)
-        output = highlightArchSyntax(output)
+    fun check(input: String, startAtLine: Int): String {
+        var startAt = startAtLine
+        if(startAtLine < 1 || startAtLine >= input.split("\n").size){
+            startAt = 1
+        }
+        var encode = HTMLTools.encodeBeforeHTML(input)
+        val code = hlAndCompile(encode,startAt)
+        state.check(code.second)
 
-        return output
+        return code.first
     }
 
 }

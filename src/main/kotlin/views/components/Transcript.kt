@@ -1,7 +1,9 @@
 package views.components
 
+import AppLogic
 import StyleConst
 import csstype.ClassName
+import extendable.components.Transcript
 import react.FC
 import react.Props
 import react.StateInstance
@@ -13,10 +15,12 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import react.useState
 
 external interface TranscriptProps : Props {
 
     var ta_val: String
+    var transcript: Transcript
 
 }
 
@@ -24,6 +28,8 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
 
     val ta_val = props.ta_val
+
+    val transcript by useState(props.transcript)
 
 
 
@@ -74,420 +80,30 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
                 thead {
                     tr {
-                        th {
-                            className = ClassName("dcf-txt-center")
-                            scope = "col"
-                            +"Address"
-
-                        }
-                        th {
-                            className = ClassName("dcf-txt-center")
-                            scope = "col"
-                            +"Code"
-
-                        }
-                        th {
-                            className = ClassName("dcf-txt-center")
-                            scope = "col"
-                            +"Labels"
-
-                        }
-                        th {
-                            className = ClassName("dcf-txt-center")
-                            scope = "col"
-                            +"Instruction"
-
+                        for (header in transcript.getHeaders()) {
+                            th {
+                                className = ClassName("dcf-txt-center")
+                                scope = "col"
+                                +header
+                            }
                         }
                     }
                 }
                 tbody {
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
-                        }
-                    }
-                    tr {
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Addresse"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Code"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Labels"
-                        }
-                        td {
-                            className = ClassName("dcf-txt-left")
-                            +"Instruction"
+                    for (row in transcript.getContent()) {
+                        tr {
+                            for (field in row) {
+                                td {
+                                    className = ClassName("dcf-txt-left")
+                                    +field
+                                }
+                            }
                         }
                     }
                 }
-
-
             }
-
         }
 
 
     }
-
-
 }

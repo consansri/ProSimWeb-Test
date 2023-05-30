@@ -5,6 +5,7 @@
     --editor-code-color: #222222;
     --editor-linenumbers-border-color: #B5B5B5;
     --editor-linenumbers-color: #2222EE;
+    --editor-lineactive-color: green;
 
     --editor-lineHeight: 21px;
 
@@ -56,17 +57,8 @@
 }
 
 .editor-control-active img {
-    filter: invert(71%) sepia(54%) saturate(429%) hue-rotate(83deg) brightness(89%) contrast(87%)!important;
+    filter: invert(71%) sepia(54%) saturate(429%) hue-rotate(83deg) brightness(89%) contrast(87%) !important;
 }
-
-.editor-control:hover {
-    background-color: var(--editor-controls-bg-hover-color);
-}
-
-.editor-control:hover img {
-    filter: invert(100%) sepia(46%) saturate(3319%) hue-rotate(170deg) brightness(82%) contrast(81%);
-}
-
 
 
 /* -- EDITOR CONTAINER -- */
@@ -102,15 +94,13 @@
 }
 
 .editor-line-numbers span {
+    cursor: pointer;
     padding-right: 5px;
     border-right: 1px solid var(--editor-linenumbers-border-color);
-    counter-increment: linenumber;
 }
 
-.editor-line-numbers span::before {
-    content: counter(linenumber);
-    display: block;
-    color: var(--editor-linenumbers-color);
+.line-active {
+    color: var(--editor-lineactive-color);
 }
 
 /* EDITOR Input Field */
@@ -177,6 +167,29 @@
     caret-color: var(--editor-code-color);
     columns: calc(400 / 16);
     color: transparent;
+}
+
+/* ANIMATION CLASSES */
+.anim-rotation {
+    animation: rotation 2s infinite linear;
+}
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-359deg);
+    }
+}
+
+.anim-hover:hover {
+    /*background-color: var(--editor-controls-bg-hover-color);*/
+    filter: brightness(150%);
+}
+
+.anim-deactivated {
+    opacity: 50%!important;
 }
 
 /* HIGHLIGHTING COLORS */

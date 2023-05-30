@@ -74,7 +74,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 img {
                     className = ClassName("nav-img")
-                    src = "icons/home.svg"
+                    src = "benicons/home.svg"
 
                 }
             }
@@ -86,7 +86,7 @@ val Menu = FC<MenuProps>() { props ->
                 }
                 img {
                     className = ClassName("nav-img")
-                    src = "icons/cpu.svg"
+                    src = "benicons/processor.svg"
                 }
             }
 

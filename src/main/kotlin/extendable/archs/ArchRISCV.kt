@@ -3,7 +3,6 @@ package extendable.cisc
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVFlags
-import extendable.components.*
 
 class ArchRISCV : Architecture {
 
@@ -29,7 +28,7 @@ class ArchRISCV : Architecture {
 
     }
 
-    override fun highlightArchSyntax(code: String): String {
+    override fun hlAndCompile(code: String, startAtLine: Int): Pair<String, Boolean> {
         val absoluteValuesRegex = Regex("#(-?\\d+)")
         val addressesRegex = Regex("(&[0-9a-fA-F]+)")
         val lineRegex = Regex("\\b([a-zA-Z]+)\\b")
@@ -95,7 +94,7 @@ class ArchRISCV : Architecture {
             highlightedCode.append("\n")
         }
 
-        return highlightedCode.toString()
+        return Pair(highlightedCode.toString(), true)
     }
 
 
