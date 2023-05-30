@@ -116,24 +116,17 @@ open class Architecture(config: Config) {
 
 
     open fun hlAndCompile(code: String, startAtLine: Int): Pair<String, Boolean> {
-        val returnValue = Pair<String, Boolean>(code, true)
-
-        return returnValue
+        return Pair(code, true)
     }
 
     open fun getPreHighlighting(line: String): String {
         val encodedLine = HTMLTools.encodeBeforeHTML(line)
-
         return encodedLine
     }
 
     fun check(input: String, startAtLine: Int): String {
-        var startAt = startAtLine
-        if(startAtLine < 1 || startAtLine >= input.split("\n").size){
-            startAt = 1
-        }
         var encode = HTMLTools.encodeBeforeHTML(input)
-        val code = hlAndCompile(encode,startAt)
+        val code = hlAndCompile(encode,startAtLine)
         state.check(code.second)
 
         return code.first

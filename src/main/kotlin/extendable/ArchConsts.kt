@@ -21,9 +21,6 @@ object ArchConsts {
     const val STATE_BUILDABLE = "buildable"
     const val STATE_EXECUTION = "execution"
 
-    // EXECUTION START LINE
-    const val LINE_NOLINE = -1
-
 
 
 }

@@ -55,7 +55,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val appLogic by useState(props.appLogic)
     val update = props.update
     val (checkState, setCheckState) = useState(appLogic.getArch().state.getState())
-    val (exeStartLine, setExeStartLine) = useState(0)
+    val (exeStartLine, setExeStartLine) = useState(1)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
 
     /* ----------------- localStorage Sync Objects ----------------- */
@@ -365,7 +365,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                     +"► $lineNumber"
                                     onClick = {
-                                        setExeStartLine(ArchConsts.LINE_NOLINE)
+                                        setExeStartLine(1)
                                     }
                                 } else {
                                     onClick = {

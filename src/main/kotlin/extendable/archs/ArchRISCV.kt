@@ -94,7 +94,7 @@ class ArchRISCV : Architecture {
             highlightedCode.append("\n")
         }
 
-        return Pair(highlightedCode.toString(), true)
+        return Pair(highlightedCode.toString(), false)
     }
 
 
