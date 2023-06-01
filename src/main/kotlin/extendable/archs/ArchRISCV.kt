@@ -4,11 +4,7 @@ import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVFlags
 
-class ArchRISCV : Architecture {
-
-    constructor() : super(RISCV.config) {
-
-    }
+class ArchRISCV() : Architecture(RISCV.config) {
 
     override fun exeContinuous() {
         super.exeContinuous()
@@ -96,6 +92,4 @@ class ArchRISCV : Architecture {
 
         return Pair(highlightedCode.toString(), false)
     }
-
-
 }

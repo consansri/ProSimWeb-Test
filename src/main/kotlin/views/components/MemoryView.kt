@@ -3,7 +3,6 @@ package views.components
 import AppLogic
 import csstype.*
 import emotion.react.css
-import extendable.components.DataMemory
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
@@ -23,7 +22,7 @@ import kotlin.math.floor
 
 external interface MemViewProps : Props {
     var name: String
-    var dataMemory: DataMemory
+    var appLogic: AppLogic
     var length: Int
     var update: StateInstance<Boolean>
     var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
@@ -33,7 +32,7 @@ class MemRow(val id: Double, val address: Double)
 
 val MemoryView = FC<MemViewProps> { props ->
 
-    val dataMemory by useState(props.dataMemory)
+    val appLogic by useState(props.appLogic)
     val name by useState(props.name)
     val update = props.update
     val (memLength, setMemLength) = useState<Int>(props.length)
@@ -53,7 +52,7 @@ val MemoryView = FC<MemViewProps> { props ->
     }
 
     fun dataForAddress(address: Double): Int? {
-        val memList = dataMemory.getMemList()
+        val memList = appLogic.getArch().getDataMemory().getMemList()
         for (memInstance in memList) {
             if (memInstance.address == address) {
                 return memInstance.value
@@ -64,7 +63,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
     fun calcMemTable() {
         val memRowsList: MutableList<MemRow> = mutableListOf()
-        for (memInstance in dataMemory.getMemList()) {
+        for (memInstance in  appLogic.getArch().getDataMemory().getMemList()) {
             val rowID = calcRowID(memInstance.address)
             var found = false
             for (memRow in memRowsList) {

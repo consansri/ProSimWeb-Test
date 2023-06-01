@@ -1,12 +1,10 @@
 package views.components
 
-import AppLogic
 import StyleConst
 import csstype.ClassName
-import extendable.components.Transcript
+import extendable.components.connected.Transcript
 import react.FC
 import react.Props
-import react.StateInstance
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.table

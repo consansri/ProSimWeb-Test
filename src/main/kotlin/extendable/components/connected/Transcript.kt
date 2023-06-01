@@ -1,14 +1,14 @@
-package extendable.components
+package extendable.components.connected
 
-import extendable.ArchConsts
+import extendable.ArchConst
 
 class Transcript {
 
     private val headers: Array<String>
-    private var content: List<Array<String>> = mutableListOf()
+    private var content: List<Array<String>> = listOf()
 
     constructor() {
-        this.headers = ArchConsts.TRANSCRIPT_HEADERS
+        this.headers = ArchConst.TRANSCRIPT_HEADERS
 
     }
 

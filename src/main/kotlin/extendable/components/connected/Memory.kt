@@ -1,26 +1,26 @@
-package extendable.components
+package extendable.components.connected
 
 import kotlin.math.pow
 
-class DataMemory {
-    private val addressLength: Int // in Bit
+class Memory {
+    private val addressWidthBit: Int // in Bit
     private val globalSize: Double // in Byte
-    private val wordLength: Int // in Byte
+    private val wordWidthBit: Int // in Bit
 
     private var memList: MutableList<DMemInstance>
 
     constructor() {
-        this.addressLength = 4
-        this.wordLength = 4
-        this.globalSize = 2.0.pow(addressLength.toDouble())
+        this.addressWidthBit = 4
+        this.wordWidthBit = 4
+        this.globalSize = 2.0.pow(addressWidthBit.toDouble())
         this.memList = mutableListOf<DMemInstance>()
         setup()
     }
 
-    constructor(addressLength: Int, wordLength: Int) {
-        this.addressLength = addressLength
-        this.wordLength = wordLength
-        this.globalSize = 2.0.pow(addressLength.toDouble())
+    constructor(addressWidthBit: Int, wordWidthBit: Int) {
+        this.addressWidthBit = addressWidthBit
+        this.wordWidthBit = wordWidthBit
+        this.globalSize = 2.0.pow(addressWidthBit.toDouble())
         this.memList = mutableListOf<DMemInstance>()
         setup()
     }
@@ -63,8 +63,8 @@ class DataMemory {
         return globalSize - 1
     }
 
-    fun getWordLength(): Int {
-        return wordLength
+    fun getWordWithBit(): Int {
+        return wordWidthBit
     }
 
     class DMemInstance(val address: Double, var value: Int) {

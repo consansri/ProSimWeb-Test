@@ -4,7 +4,7 @@ import AppLogic
 import StorageKey
 import StyleConst
 import csstype.ClassName
-import extendable.ArchConsts
+import extendable.ArchConst
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearTimeout
@@ -54,7 +54,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val update = props.update
-    val (checkState, setCheckState) = useState(appLogic.getArch().state.getState())
+    val (checkState, setCheckState) = useState(appLogic.getArch().archState.getState())
     val (exeStartLine, setExeStartLine) = useState(1)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
 
@@ -136,14 +136,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     fun checkCode(taValue: String, immediate: Boolean) {
         if (immediate) {
             setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
-            setCheckState(appLogic.getArch().state.getState())
+            setCheckState(appLogic.getArch().archState.getState())
         } else {
             checkTimeOutRef.current?.let {
                 clearTimeout(it)
             }
             checkTimeOutRef.current = setTimeout({
                 setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
-                setCheckState(appLogic.getArch().state.getState())
+                setCheckState(appLogic.getArch().archState.getState())
             }, 3000)
         }
     }
@@ -178,8 +178,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- SYNC EVENTS ----------------- */
 
     fun undo() {
-        appLogic.getArch().state.edit()
-        setCheckState(appLogic.getArch().state.getState())
+        appLogic.getArch().archState.edit()
+        setCheckState(appLogic.getArch().archState.getState())
         val tempTaValSS = ta_val_ss?.toMutableList()
         tempTaValSS?.let {
             if (it.last() == ta_val) {
@@ -215,7 +215,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     if (transcriptView) {
                         setTranscriptView(!transcriptView)
                     } else {
-                        if (appLogic.getArch().state.getState() == ArchConsts.STATE_BUILDABLE) {
+                        if (appLogic.getArch().archState.getState() == ArchConst.STATE_BUILDABLE) {
                             textareaRef.current?.let {
                                 checkCode(it.value, true)
                                 setTranscriptView(!transcriptView)
@@ -235,7 +235,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
 
                 when (checkState) {
-                    ArchConsts.STATE_UNCHECKED -> {
+                    ArchConst.STATE_UNCHECKED -> {
                         title = "Status: loading..."
                         img {
                             className = ClassName(StyleConst.CLASS_ANIM_ROTATION)
@@ -243,21 +243,21 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
                     }
 
-                    ArchConsts.STATE_BUILDABLE -> {
+                    ArchConst.STATE_BUILDABLE -> {
                         title = "Status: ready to build"
                         img {
                             src = "icons/check.svg"
                         }
                     }
 
-                    ArchConsts.STATE_HASERRORS -> {
+                    ArchConst.STATE_HASERRORS -> {
                         title = "Status: fix errors!"
                         img {
                             src = "icons/error.svg"
                         }
                     }
 
-                    ArchConsts.STATE_EXECUTION -> {
+                    ArchConst.STATE_EXECUTION -> {
                         title = "Status: executing..."
                         img {
                             src = "icons/check.svg"
@@ -422,8 +422,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                                 //
 
-                                appLogic.getArch().state.edit()
-                                setCheckState(appLogic.getArch().state.getState())
+                                appLogic.getArch().archState.edit()
+                                setCheckState(appLogic.getArch().archState.getState())
                                 checkCode(event.currentTarget.value, false)
 
                             }
@@ -514,7 +514,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     useEffect(checkState) {
         when (checkState) {
-            ArchConsts.STATE_BUILDABLE -> {
+            ArchConst.STATE_BUILDABLE -> {
                 btnSwitchRef.current?.let {
                     it.classList.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
                 }

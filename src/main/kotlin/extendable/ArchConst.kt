@@ -1,6 +1,6 @@
 package extendable
 
-object ArchConsts {
+object ArchConst {
     /*
      *    !! use this Object only in Development Phase to test instances even if other Instances are not integrated yet !!
      */
@@ -13,7 +13,17 @@ object ArchConsts {
 
     // REGISTER
     val REGISTER_HEADERS = arrayOf("Address", "Name", "Data", "Description")
-    val REGISTER_NOVALUE = -1
+    const val REGISTER_NOVALUE = -1
+
+    // INSTRUCTION
+    const val INSTYPE_INS = "[ins]"
+    const val INSTYPE_REGSRC = "[rs]"
+    const val INSTYPE_REGDEST = "[rd]"
+    const val INSTYPE_ADDRESS = "[address]"
+    const val INSTYPE_OFFSETABS = "[absoff]"
+    const val INSTYPE_OFFSETREL = "[reloff]"
+    const val INSTYPE_IMM = "[const]"
+    const val INSTYPE_FLAG = "[flag]"
 
     // STATES
     const val STATE_UNCHECKED = "unchecked"

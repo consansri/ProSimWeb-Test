@@ -1,10 +1,12 @@
 package extendable.components
 
+import extendable.components.connected.*
+
 data class Config(
     val name: String,
     val register: Array<Register>,
     val instructions: List<Instruction>,
-    val dataMemory: DataMemory,
+    val memory: Memory,
     val transcript: Transcript,
     val flagsConditions: FlagsConditions?,
     val cache: Cache?
@@ -13,16 +15,16 @@ data class Config(
         name: String,
         register: Array<Register>,
         instructions: List<Instruction>,
-        dataMemory: DataMemory,
+        memory: Memory,
         transcript: Transcript
-    ) : this(name, register, instructions, dataMemory, transcript, null, null)
+    ) : this(name, register, instructions, memory, transcript, null, null)
 
     constructor(
         name: String,
         register: Array<Register>,
         instructions: List<Instruction>,
-        dataMemory: DataMemory,
+        memory: Memory,
         transcript: Transcript,
         flagsConditions: FlagsConditions?
-    ) : this(name, register, instructions, dataMemory, transcript, flagsConditions, null)
+    ) : this(name, register, instructions, memory, transcript, flagsConditions, null)
 }

@@ -1,4 +1,4 @@
-package extendable.components
+package extendable.components.connected
 
 class FlagsConditions {
 

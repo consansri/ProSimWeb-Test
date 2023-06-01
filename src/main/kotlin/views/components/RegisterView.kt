@@ -6,8 +6,7 @@ import csstype.Display
 import csstype.Overflow
 import csstype.vh
 import emotion.react.css
-import extendable.ArchConsts
-import extendable.components.Register
+import extendable.ArchConst
 import react.*
 import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.div
@@ -20,17 +19,17 @@ import react.dom.html.ReactHTML.tr
 
 external interface RegisterViewProps : Props {
     var name: String
-    var registers: Array<Register>
+    var appLogic: AppLogic
     var update: StateInstance<Boolean>
     var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
 val RegisterView = FC<RegisterViewProps> { props ->
 
-    val registers by useState(props.registers)
+    val appLogic by useState(props.appLogic)
     val name by useState(props.name)
     val update = props.update
-    val theaders = ArchConsts.REGISTER_HEADERS
+    val theaders = ArchConst.REGISTER_HEADERS
 
     div {
 
@@ -63,12 +62,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
 
                 tbody {
-                    for(register in registers){
+                    for(register in appLogic.getArch().getRegister()){
                         tr{
                             th{
                                 className = ClassName("dcf-txt-center")
                                 scope = "row"
-                                if(register.address == ArchConsts.REGISTER_NOVALUE){
+                                if(register.address == ArchConst.REGISTER_NOVALUE){
                                     +"-"
                                 }else{
                                     +"${register.address}"

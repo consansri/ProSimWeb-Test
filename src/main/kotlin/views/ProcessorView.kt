@@ -173,7 +173,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         RegisterView {
             this.name = "Register"
-            this.registers = appLogic.getArch().getRegister()
+            this.appLogic = appLogic
             this.update = useState(change)
             this.updateParent = props.updateParent
         }
@@ -184,7 +184,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         MemoryView {
             this.name = "Memory"
-            this.dataMemory = appLogic.getArch().getDataMemory()
+            this.appLogic = appLogic
             this.update = useState(change)
             this.length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
             this.updateParent = props.updateParent

@@ -1,17 +1,18 @@
 package extendable
 
 import extendable.components.*
+import extendable.components.connected.*
 import tools.HTMLTools
 
 open class Architecture(config: Config) {
 
-    val state = State()
+    val archState = ArchState()
     val executionStartAddress = 0
 
     private var name: String
     private val register: Array<Register>
     private val instructions: List<Instruction>
-    private val dataMemory: DataMemory
+    private val memory: Memory
     private var transcript: Transcript
     private var flagsConditions: FlagsConditions?
     private var cache: Cache?
@@ -20,7 +21,7 @@ open class Architecture(config: Config) {
         this.name = config.name
         this.register = config.register
         this.instructions = config.instructions
-        this.dataMemory = config.dataMemory
+        this.memory = config.memory
         this.transcript = config.transcript
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
@@ -42,8 +43,8 @@ open class Architecture(config: Config) {
         return transcript
     }
 
-    fun getDataMemory(): DataMemory {
-        return dataMemory
+    fun getDataMemory(): Memory {
+        return memory
     }
 
 
@@ -74,7 +75,7 @@ open class Architecture(config: Config) {
     }
 
     open fun exeClear() {
-        dataMemory.clear()
+        memory.clear()
     }
 
     private fun highlightNumbers(input: String): String {
@@ -115,7 +116,7 @@ open class Architecture(config: Config) {
     }
 
 
-    open fun hlAndCompile(code: String, startAtLine: Int): Pair<String, Boolean> {
+    protected open fun hlAndCompile(code: String, startAtLine: Int): Pair<String, Boolean> {
         return Pair(code, true)
     }
 
@@ -127,7 +128,7 @@ open class Architecture(config: Config) {
     fun check(input: String, startAtLine: Int): String {
         var encode = HTMLTools.encodeBeforeHTML(input)
         val code = hlAndCompile(encode,startAtLine)
-        state.check(code.second)
+        archState.check(code.second)
 
         return code.first
     }
