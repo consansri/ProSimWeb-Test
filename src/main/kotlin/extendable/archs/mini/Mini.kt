@@ -1,10 +1,7 @@
 package extendable.archs.mini
 
 import extendable.components.*
-import extendable.components.connected.Instruction
-import extendable.components.connected.Memory
-import extendable.components.connected.Register
-import extendable.components.connected.Transcript
+import extendable.components.connected.*
 import extendable.components.types.OpCode
 
 object Mini {
@@ -20,7 +17,7 @@ object Mini {
         Transcript()
     )
 
-    fun add(extensionList: List<String>, memory: Memory, registers: Array<Register>): Boolean {
+    fun add(extensionList: List<String>, memory: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 

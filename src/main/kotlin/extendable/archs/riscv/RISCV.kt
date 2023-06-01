@@ -2,10 +2,7 @@ package extendable.archs.riscv
 
 import extendable.ArchConst
 import extendable.components.*
-import extendable.components.connected.Instruction
-import extendable.components.connected.Memory
-import extendable.components.connected.Register
-import extendable.components.connected.Transcript
+import extendable.components.connected.*
 import extendable.components.types.OpCode
 
 object RISCV {
@@ -418,159 +415,165 @@ object RISCV {
 
     // INSTRUCTION LOGIC
 
-    fun lui(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun lui(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun auipc(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun auipc(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun jal(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun jal(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun jalr(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun jalr(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun beq(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun beq(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bne(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun bne(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun blt(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun blt(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bge(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun bge(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bltu(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun bltu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bgeu(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun bgeu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lb(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun lb(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lh(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun lh(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lw(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun lw(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lbu(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun lbu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lhu(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun lhu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sb(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun sb(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sh(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun sh(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sw(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun sw(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun addi(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun addi(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun slti(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun slti(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sltiu(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun sltiu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun xori(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun xori(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun ori(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun ori(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun andi(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun andi(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun slli(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun slli(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun srli(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun srli(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun srai(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun srai(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun add(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun add(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+        for(reg in registers){
+            if(reg.name == "ra"){
+                reg.value += 1
+            }
+
+        }
+        return true
+    }
+
+    fun sub(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sub(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun sll(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sll(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun slt(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun slt(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun sltu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sltu(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun xor(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun xor(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun srl(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun srl(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun sra(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sra(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun or(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun or(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun and(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun and(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun fence(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun fence(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
-        return false
-    }
-
-    fun fencei(extensions: List<String>, mem: Memory, registers: Array<Register>): Boolean {
+    fun fencei(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 

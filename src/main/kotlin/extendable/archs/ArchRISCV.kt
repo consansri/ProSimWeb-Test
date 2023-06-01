@@ -11,7 +11,11 @@ class ArchRISCV() : Architecture(RISCV.config) {
         for (i in 0..200) {
             getDataMemory().save(i.toDouble(), i)
         }
-        getRegister().get(1).value = getDataMemory().load(100.0) ?: 0
+        for(ins in getInstructions()){
+            if(ins.name == "ADD"){
+                ins.execute(listOf(""), getDataMemory(), getRegister(), getFlagsConditions())
+            }
+        }
     }
 
     override fun exeMultiStep(steps: Int) {
