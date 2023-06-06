@@ -42,6 +42,7 @@ header .nav-btn {
 }
 
 header .nav-img {
+    cursor: pointer;
     filter: invert(100%) sepia(2%) saturate(1278%) hue-rotate(202deg) brightness(120%) contrast(87%);
     width: 1.8rem;
     height: 1.8rem;

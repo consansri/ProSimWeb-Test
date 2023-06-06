@@ -2,6 +2,7 @@ package views
 
 import AppLogic
 import csstype.ClassName
+import emotion.css.css
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
@@ -14,6 +15,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
+import views.components.FlagsCondsView
 import views.components.MemoryView
 import views.components.RegisterView
 
@@ -177,6 +179,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.update = useState(change)
             this.updateParent = props.updateParent
         }
+
+        FlagsCondsView{
+            this.name = "Flags and Conditions"
+            this.appLogic = appLogic
+            this.update = useState(change)
+            this.updateParent = props.updateParent
+        }
+
     }
 
     div {

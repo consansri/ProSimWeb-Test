@@ -3,7 +3,7 @@ package extendable.archs.riscv
 import extendable.ArchConst
 import extendable.components.*
 import extendable.components.connected.*
-import extendable.components.types.OpCode
+import extendable.components.types.*
 
 object RISCV {
 
@@ -57,8 +57,7 @@ object RISCV {
         listOf(
             Instruction(
                 "LUI",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("0000001001"),
                 "rd ← imm",
                 "Load Upper Immediate",
@@ -66,8 +65,7 @@ object RISCV {
             ),
             Instruction(
                 "AUIPC",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("0000001001"),
                 "rd ← pc + offset",
                 "Add Upper Immediate to PC",
@@ -75,8 +73,7 @@ object RISCV {
             ),
             Instruction(
                 "JAL",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("0000001001"),
                 "rd ← pc + length(inst), pc ← pc + offset",
                 "Jump and Link",
@@ -84,8 +81,7 @@ object RISCV {
             ),
             Instruction(
                 "JALR",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("0000001001"),
                 "rd ← pc + length(inst), pc ← (rs1 + offset) ∧ -2",
                 "Jump and Link Register",
@@ -93,8 +89,7 @@ object RISCV {
             ),
             Instruction(
                 "BEQ",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("00101001"),
                 "if rs1 = rs2 then pc ← pc + offset",
                 "Branch Equal",
@@ -102,8 +97,7 @@ object RISCV {
             ),
             Instruction(
                 "BNE",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("01001001"),
                 "if rs1 ≠ rs2 then pc ← pc + offset",
                 "Branch Not Equal",
@@ -111,8 +105,7 @@ object RISCV {
             ),
             Instruction(
                 "BLT",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("01001001"),
                 "if rs1 < rs2 then pc ← pc + offset",
                 "Branch Less Than",
@@ -120,8 +113,7 @@ object RISCV {
             ),
             Instruction(
                 "BGE",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("01001001"),
                 "if rs1 ≥ rs2 then pc ← pc + offset",
                 "Branch Greater than Equal",
@@ -129,8 +121,7 @@ object RISCV {
             ),
             Instruction(
                 "BLTU",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("01001001"),
                 "if rs1 < rs2 then pc ← pc + offset",
                 "Branch Less Than Unsigned",
@@ -138,8 +129,7 @@ object RISCV {
             ),
             Instruction(
                 "BGEU",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_OFFSETABS}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("01001001"),
                 "if rs1 ≥ rs2 then pc ← pc + offset",
                 "Branch Greater than Equal Unsigned",
@@ -147,8 +137,7 @@ object RISCV {
             ),
             Instruction(
                 "LB",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← s8[rs1 + offset]",
                 "Load Byte",
@@ -156,8 +145,7 @@ object RISCV {
             ),
             Instruction(
                 "LH",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← s16[rs1 + offset]",
                 "Load Half",
@@ -165,8 +153,7 @@ object RISCV {
             ),
             Instruction(
                 "LW",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← s32[rs1 + offset]",
                 "Load Word",
@@ -174,8 +161,7 @@ object RISCV {
             ),
             Instruction(
                 "LBU",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← u8[rs1 + offset]",
                 "Load Byte Unsigned",
@@ -183,8 +169,7 @@ object RISCV {
             ),
             Instruction(
                 "LHU",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← u16[rs1 + offset]",
                 "Load Half Unsigned",
@@ -192,8 +177,7 @@ object RISCV {
             ),
             Instruction(
                 "SB",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "u8[rs1 + offset] ← rs2",
                 "Store Byte",
@@ -201,8 +185,7 @@ object RISCV {
             ),
             Instruction(
                 "SH",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "u16[rs1 + offset] ← rs2",
                 "Store Half",
@@ -210,8 +193,7 @@ object RISCV {
             ),
             Instruction(
                 "SW",
-                2,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_OFFSETREL}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "u32[rs1 + offset] ← rs2",
                 "Store Word",
@@ -219,8 +201,7 @@ object RISCV {
             ),
             Instruction(
                 "ADDI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← rs1 + sx(imm)",
                 "Add Immediate",
@@ -228,8 +209,7 @@ object RISCV {
             ),
             Instruction(
                 "SLTI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← sx(rs1) < sx(imm)",
                 "Set Less Than Immediate",
@@ -237,8 +217,7 @@ object RISCV {
             ),
             Instruction(
                 "SLTIU",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← ux(rs1) < ux(imm)",
                 "Set Less Than Immediate Unsigned",
@@ -246,8 +225,7 @@ object RISCV {
             ),
             Instruction(
                 "XORI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← ux(rs1) ⊕ ux(imm)",
                 "Xor Immediate",
@@ -255,8 +233,7 @@ object RISCV {
             ),
             Instruction(
                 "ORI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← ux(rs1) ∨ ux(imm)",
                 "Or Immediate",
@@ -264,8 +241,7 @@ object RISCV {
             ),
             Instruction(
                 "ANDI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("010100100"),
                 "rd ← ux(rs1) ∧ ux(imm)",
                 "And Immediate",
@@ -273,8 +249,7 @@ object RISCV {
             ),
             Instruction(
                 "SLLI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
                 OpCode("010100100"),
                 "rd ← ux(rs1) « ux(imm)",
                 "Shift Left Logical Immediate",
@@ -282,8 +257,7 @@ object RISCV {
             ),
             Instruction(
                 "SRLI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
                 OpCode("010100100"),
                 "rd ← ux(rs1) » ux(imm)",
                 "Shift Right Logical Immediate",
@@ -291,8 +265,7 @@ object RISCV {
             ),
             Instruction(
                 "SRAI",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_IMM}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
                 OpCode("010100100"),
                 "rd ← sx(rs1) » ux(imm)",
                 "Shift Right Arithmetic Immediate",
@@ -300,8 +273,7 @@ object RISCV {
             ),
             Instruction(
                 "ADD",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← sx(rs1) + sx(rs2)",
                 "Add",
@@ -309,8 +281,7 @@ object RISCV {
             ),
             Instruction(
                 "SUB",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← sx(rs1) - sx(rs2)",
                 "Substract",
@@ -318,8 +289,7 @@ object RISCV {
             ),
             Instruction(
                 "SLL",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← ux(rs1) « rs2",
                 "Shift Left Logical",
@@ -327,8 +297,7 @@ object RISCV {
             ),
             Instruction(
                 "SLT",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← sx(rs1) < sx(rs2)",
                 "Set Less Than",
@@ -336,8 +305,7 @@ object RISCV {
             ),
             Instruction(
                 "SLTU",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← ux(rs1) < ux(rs2)",
                 "Set Less Than Unsigned",
@@ -345,8 +313,7 @@ object RISCV {
             ),
             Instruction(
                 "XOR",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← ux(rs1) ⊕ ux(rs2)",
                 "Xor",
@@ -354,8 +321,7 @@ object RISCV {
             ),
             Instruction(
                 "SRL",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← ux(rs1) » rs2",
                 "Shift Right Logical",
@@ -363,8 +329,7 @@ object RISCV {
             ),
             Instruction(
                 "SRA",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← sx(rs1) » rs2",
                 "Shift Right Arithmetic",
@@ -372,8 +337,7 @@ object RISCV {
             ),
             Instruction(
                 "OR",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← ux(rs1) ∨ ux(rs2)",
                 "Or",
@@ -381,8 +345,7 @@ object RISCV {
             ),
             Instruction(
                 "AND",
-                3,
-                "${ArchConst.INSTYPE_INS} ${ArchConst.INSTYPE_REGDEST}, ${ArchConst.INSTYPE_REGSRC}, ${ArchConst.INSTYPE_REGSRC}",
+                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
                 OpCode("010100100"),
                 "rd ← ux(rs1) ∧ ux(rs2)",
                 "And",
@@ -390,8 +353,7 @@ object RISCV {
             ),
             Instruction(
                 "FENCE",
-                3,
-                "${ArchConst.INSTYPE_INS} [pred], [succ]",
+                listOf(ArchConst.EXTYPE_IMMEDIATE),
                 OpCode("00101010"),
                 "",
                 "Fence",
@@ -399,8 +361,7 @@ object RISCV {
             ),
             Instruction(
                 "FENCE.I",
-                3,
-                "${ArchConst.INSTYPE_INS} ",
+                listOf(),
                 OpCode("00101010"),
                 "",
                 "Fence Instruction",
@@ -415,117 +376,146 @@ object RISCV {
 
     // INSTRUCTION LOGIC
 
-    fun lui(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun lui(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun auipc(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun auipc(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun jal(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun jal(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun jalr(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun jalr(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun beq(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun beq(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bne(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun bne(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun blt(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun blt(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bge(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun bge(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bltu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun bltu(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun bgeu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun bgeu(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lb(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun lb(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lh(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun lh(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lw(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun lw(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lbu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun lbu(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun lhu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun lhu(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sb(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sb(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sh(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sh(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sw(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sw(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun addi(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun addi(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun slti(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun slti(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sltiu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sltiu(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun xori(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun xori(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun ori(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun ori(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun andi(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun andi(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun slli(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun slli(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun srli(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun srli(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun srai(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun srai(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun add(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
-        for(reg in registers){
-            if(reg.name == "ra"){
+    fun add(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+
+        for (ex in extensions) {
+            when (ex) {
+                is TypeAddr -> {
+
+                }
+
+                is TypeCSR -> {
+
+                }
+
+                is TypeImm -> {
+
+                }
+
+                is TypeJAddr -> {
+
+                }
+
+                is TypeReg -> {
+
+                }
+
+                is TypeShift -> {
+
+                }
+            }
+        }
+
+        for (reg in registers) {
+            if (reg.name == "ra") {
                 reg.value += 1
             }
 
@@ -533,47 +523,47 @@ object RISCV {
         return true
     }
 
-    fun sub(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sub(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sll(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sll(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun slt(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun slt(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sltu(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sltu(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun xor(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun xor(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun srl(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun srl(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun sra(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun sra(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun or(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun or(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun and(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun and(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun fence(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun fence(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
-    fun fencei(extensions: List<String>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun fencei(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 

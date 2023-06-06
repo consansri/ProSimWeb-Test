@@ -1,7 +1,9 @@
 package extendable.archs.riscii
 
+import extendable.ArchConst
 import extendable.components.*
 import extendable.components.connected.*
+import extendable.components.types.ExtensionType
 import extendable.components.types.OpCode
 
 object RISCII {
@@ -12,13 +14,13 @@ object RISCII {
             Register(0, "r0", 0, "", 32),
         ),
         listOf(
-            Instruction("name",3, "[name] , , ", OpCode("0101010"), "", "", ::add),
+            Instruction("name", listOf(ArchConst.EXTYPE_REGISTER), OpCode("0101010"), "", "", ::add),
         ),
         Memory(32, 4),
         Transcript()
     )
 
-    fun add(extensionList: List<String>, memory: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+    fun add(extensionList: List<ExtensionType>, memory: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 

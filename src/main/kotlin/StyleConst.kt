@@ -37,10 +37,21 @@ object StyleConst {
     const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
 
 
+
     // Prototype
     val CLASS_CE_CODESCROLLDIV = "ce-codescrolldiv"
     val CLASS_CE_CODEDIV = "ce-codediv"
     val CLASS_CE_CODELINE = "ce-codeline"
+
+    // INFO
+    val CLASS_INFOVIEW = "info-container"
+    val CLASS_INFOLABEL = "info-label"
+    val CLASS_INFOBTNDIV = "info-btndiv"
+    val CLASS_INFOSCREEN = "info-screen"
+    val CLASS_INFOACTIVE = "info-active"
+
+
+    // FOOTER
 
 
     /*  */

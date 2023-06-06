@@ -3,6 +3,8 @@ package extendable.cisc
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVFlags
+import extendable.components.types.TypeAddr
+import extendable.components.types.TypeReg
 
 class ArchRISCV() : Architecture(RISCV.config) {
 
@@ -13,7 +15,7 @@ class ArchRISCV() : Architecture(RISCV.config) {
         }
         for(ins in getInstructions()){
             if(ins.name == "ADD"){
-                ins.execute(listOf(""), getDataMemory(), getRegister(), getFlagsConditions())
+                ins.execute(listOf(TypeAddr(2.0), TypeReg("s1")), getDataMemory(), getRegister(), getFlagsConditions())
             }
         }
     }
@@ -37,7 +39,7 @@ class ArchRISCV() : Architecture(RISCV.config) {
 
         val insMap: MutableMap<String, Int> = mutableMapOf()
         for (ins in getInstructions()) {
-            insMap[ins.name] = ins.extensionCount
+            insMap[ins.name] = ins.exFormats.size
         }
 
 

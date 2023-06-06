@@ -35,21 +35,29 @@
     --proc-mem-bg-color: #FFFFFF;
 }
 
-.exeControlDiv{
+.exeControlDiv {
     border-radius: var(--border-radius);
     padding: var(--padding-size);
     background-color: var(--main-accent-color);
     /*box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;*/
 }
 
-.processorDiv{
+.processorDiv {
     border-radius: var(--border-radius);
     margin-top: var(--padding-size);
     background-color: var(--proc-reg-bgColor);
     box-shadow: rgb(204, 219, 232) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.5) -3px -3px 6px 1px inset;
 }
 
-.memoryDiv{
+.processorDiv:first-child {
+    flex: 100%;
+}
+
+.processorDiv:last-child {
+    flex: 20%;
+}
+
+.memoryDiv {
     border-radius: var(--border-radius);
     margin-top: var(--padding-size);
     background-color: var(--proc-mem-bg-color);

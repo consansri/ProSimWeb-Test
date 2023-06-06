@@ -41,6 +41,7 @@
 
 
 .editor-control {
+    cursor: pointer;
     width: var(--icon-size);
     height: var(--icon-size);
     border-radius: 2px;

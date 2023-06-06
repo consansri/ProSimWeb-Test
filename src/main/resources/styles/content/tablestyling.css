@@ -42,6 +42,7 @@ th {
 }
 
 .dcf-table caption input {
+    cursor: pointer;
     border: none;
     height: calc(100% - 2 * .56rem);
     width: calc(100% - 2 * .56rem);

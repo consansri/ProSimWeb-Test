@@ -74,6 +74,14 @@ val App = FC<Props> { props ->
             }
         }
     }
+    div {
+        id = "bcontainer"
+        InfoView{
+            appLogic = data
+            update = useState(reloadUI)
+            updateParent = ::update
+        }
+    }
 
     footer {
         ref = footerRef

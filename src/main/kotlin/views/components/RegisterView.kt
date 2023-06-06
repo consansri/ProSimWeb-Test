@@ -1,10 +1,7 @@
 package views.components
 
 import AppLogic
-import csstype.ClassName
-import csstype.Display
-import csstype.Overflow
-import csstype.vh
+import csstype.*
 import emotion.react.css
 import extendable.ArchConst
 import react.*

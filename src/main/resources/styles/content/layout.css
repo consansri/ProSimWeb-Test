@@ -3,6 +3,7 @@ body main {
     flex-direction: row;
     position: relative;
     gap: var(--padding-size);
+    flex-wrap: nowrap;
 
     padding: var(--padding-size);
 }
@@ -20,7 +21,17 @@ body main {
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     border-radius: var(--border-radius);
     padding: var(--padding-size);
+}
 
+#bcontainer {
+    flex: 100%;
+    display: flex;
+    margin: var(--padding-size);
+    position: relative;
+    background-color: var(--main-bg-color-third);
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    border-radius: var(--border-radius);
+    min-height: 10vh;
 }
 
 
