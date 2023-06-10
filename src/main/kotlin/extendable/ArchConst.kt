@@ -26,7 +26,7 @@ object ArchConst {
     const val EXTYPE_SHIFT = "[shift]"
 
     // TYPE IDENTIFICATION
-    const val PRESTRING_HEX = "0x"
+    const val PRESTRING_HEX = "&"
     const val PRESTRING_BINARY = "0b"
     const val PRESTRING_DECIMAL = "#"
 

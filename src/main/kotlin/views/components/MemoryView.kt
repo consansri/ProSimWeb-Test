@@ -84,7 +84,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
     div {
         css {
-            display = Display.block
             overflowY = Overflow.scroll
             maxHeight = 50.vh
         }

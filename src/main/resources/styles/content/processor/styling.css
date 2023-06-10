@@ -61,6 +61,8 @@
 }
 
 .memoryDiv {
+    display: block;
+    position: relative;
     overflow: hidden;
     border-radius: var(--border-radius);
     margin-top: var(--padding-size);

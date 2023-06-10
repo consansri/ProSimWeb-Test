@@ -34,6 +34,7 @@ body main {
 #rcontainer {
     flex: 60%;
     max-width: 60vw;
+    min-width: 60vw;
     position: relative;
     background-color: var(--main-accent-color-sec);
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
