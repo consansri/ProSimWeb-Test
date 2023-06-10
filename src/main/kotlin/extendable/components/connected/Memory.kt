@@ -1,5 +1,9 @@
 package extendable.components.connected
 
+import extendable.ArchConst
+import extendable.components.types.Address
+import tools.HTMLTools
+import tools.TypeTools
 import kotlin.math.pow
 
 class Memory {
@@ -10,8 +14,8 @@ class Memory {
     private var memList: MutableList<DMemInstance>
 
     constructor() {
-        this.addressWidthBit = 4
-        this.wordWidthBit = 4
+        this.addressWidthBit = 16
+        this.wordWidthBit = 8
         this.globalSize = 2.0.pow(addressWidthBit.toDouble())
         this.memList = mutableListOf<DMemInstance>()
         setup()
@@ -25,7 +29,7 @@ class Memory {
         setup()
     }
 
-    private fun setup(){
+    private fun setup() {
         save(0.0, 0)
         save(getAddressMax(), 0)
     }
@@ -33,29 +37,29 @@ class Memory {
     fun save(address: Double, value: Int): Boolean {
         for (instance in memList) {
             if (instance.address == address) {
-                instance.value = value
+                instance.setValue(value)
                 return true
             }
         }
-        memList += DMemInstance(address, value)
+        memList += DMemInstance(address, value, wordWidthBit)
         return false
     }
 
     fun load(address: Double): Int? {
         for (instance in memList) {
             if (instance.address == address) {
-                return instance.value
+                return instance.getValue()
             }
         }
         return null
     }
 
-    fun clear(){
+    fun clear() {
         this.memList = mutableListOf<DMemInstance>()
         setup()
     }
 
-    fun getMemList(): List<DMemInstance>{
+    fun getMemList(): List<DMemInstance> {
         return memList
     }
 
@@ -63,11 +67,23 @@ class Memory {
         return globalSize - 1
     }
 
-    fun getWordWithBit(): Int {
-        return wordWidthBit
+    fun getWordHexString(value: Int): String {
+        return TypeTools.getHexString(value.toLong(), wordWidthBit / 4)
     }
 
-    class DMemInstance(val address: Double, var value: Int) {
+    fun getAddressHexString(address: Double): String {
+        return TypeTools.getHexString(address.toLong(), addressWidthBit / 4)
+    }
+
+    class DMemInstance(val address: Double, private var value: Int, val bitWidth: Int) {
+
+        fun setValue(newValue: Int) {
+            value = newValue
+        }
+
+        fun getValue(): Int {
+            return value
+        }
 
     }
 

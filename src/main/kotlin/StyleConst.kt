@@ -37,18 +37,28 @@ object StyleConst {
     const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
 
 
-
     // Prototype
     val CLASS_CE_CODESCROLLDIV = "ce-codescrolldiv"
     val CLASS_CE_CODEDIV = "ce-codediv"
     val CLASS_CE_CODELINE = "ce-codeline"
 
+    // PROCESSOR
+    val CLASS_EXEC_PROGRESS = "exec-progress"
+    val CLASS_EXEC_PROGRESS_BAR = "exec-progress-bar"
+    val CLASS_TABLE_INPUT = "dcf-input"
+
+
+    // PROCESSOR.FLAGSCONDSVIEW
+    val CLASS_PROC_FC_CONTAINER= "proc-fc-container"
+    val CLASS_PROC_FC_COND_CONTAINER= "proc-fc-cond-container"
+    val CLASS_PROC_FC_FLAG_CONTAINER= "proc-fc-flag-container"
+    val CLASS_PROC_FC_COND = "proc-fc-cond"
+    val CLASS_PROC_FC_FLAG = "proc-fc-flag"
+    val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
+    val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
+
     // INFO
-    val CLASS_INFOVIEW = "info-container"
-    val CLASS_INFOLABEL = "info-label"
-    val CLASS_INFOBTNDIV = "info-btndiv"
-    val CLASS_INFOSCREEN = "info-screen"
-    val CLASS_INFOACTIVE = "info-active"
+
 
 
     // FOOTER

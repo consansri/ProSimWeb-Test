@@ -2,11 +2,19 @@ package views
 
 import AppLogic
 import csstype.ClassName
+import csstype.HtmlAttributes
+import csstype.pc
 import emotion.css.css
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLAnchorElement
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLParagraphElement
 import react.*
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaValueMax
+import react.dom.aria.ariaValueMin
+import react.dom.aria.ariaValueNow
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -25,29 +33,50 @@ external interface ProcessorViewProps : Props {
     var update: StateInstance<Boolean>
 }
 
-// CSS CLASSES
-val CLASS_PROC_MAIN_CONTAINER = "processor"
-
-// Local Storage Keys
-
 
 val ProcessorView = FC<ProcessorViewProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val (change, setUpdate) = props.update
     val (mStepValue, setMStepValue) = useState<Double>()
+    val (progress, setProgress) = useState<Double>(0.0)
 
     val titleRef = useRef<HTMLAnchorElement>()
     val mStepInputRef = useRef<HTMLInputElement>()
+    val progressBarRef = useRef<HTMLDivElement>()
+    val progressPCRef = useRef<HTMLParagraphElement>()
+
 
     div {
         className = ClassName("exeControlDiv")
 
-
         div {
             a {
                 ref = titleRef
+                id = "arch-title"
                 +appLogic.getArch().getName()
+            }
+        }
+
+        div {
+            p {
+                ref = progressPCRef
+            }
+        }
+
+        div {
+            div {
+                className = ClassName(StyleConst.CLASS_EXEC_PROGRESS)
+                div {
+                    ref = progressBarRef
+
+                    className = ClassName(StyleConst.CLASS_EXEC_PROGRESS_BAR)
+                    role = AriaRole.progressbar
+                    ariaValueNow = 10.0
+                    ariaValueMin = 0.0
+                    ariaValueMax = 100.0
+
+                }
             }
         }
 
@@ -82,6 +111,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 onClick = {
                     appLogic.getArch().exeSingleStep()
                     setUpdate(!change)
+                    setProgress(progress + 21.23)
                 }
             }
             span {
@@ -168,10 +198,16 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 }
             }
         }
+
+
+
+
     }
 
     div {
         className = ClassName("processorDiv")
+
+
 
         RegisterView {
             this.name = "Register"
@@ -180,12 +216,13 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.updateParent = props.updateParent
         }
 
-        FlagsCondsView{
-            this.name = "Flags and Conditions"
+        FlagsCondsView {
+            this.name = "Flags & Conditions"
             this.appLogic = appLogic
             this.update = useState(change)
             this.updateParent = props.updateParent
         }
+
 
     }
 
@@ -201,6 +238,24 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         }
 
     }
+
+    useEffect(progress) {
+        if (progress in 0.0..100.0) {
+            progressPCRef.current?.let {
+                it.innerText = "${progress}%"
+            }
+            progressBarRef.current?.let {
+                it.style.width = "${progress}%"
+            }
+        } else {
+            if (progress > 100.0) {
+                setProgress(100.0)
+            } else {
+                setProgress(0.0)
+            }
+        }
+    }
+
     useEffect(change) {
         console.log("(update) ProcessorView")
         mStepInputRef.current?.let {

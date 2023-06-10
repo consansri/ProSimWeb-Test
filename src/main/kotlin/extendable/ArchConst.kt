@@ -12,8 +12,10 @@ object ArchConst {
      */
 
     // REGISTER
-    val REGISTER_HEADERS = arrayOf("Address", "Name", "Data", "Description")
-    const val REGISTER_NOVALUE = -1
+    val REGISTER_HEADERS = arrayOf("Address", "Name", "Decimal" ,"Hex", "Description")
+
+    // ADDRESS
+    const val ADDRESS_NOVALUE = -1L
 
     // EXTENSION TYPES
     const val EXTYPE_REGISTER = "[reg]"
@@ -22,6 +24,11 @@ object ArchConst {
     const val EXTYPE_JUMPADDRESS = "[jaddr]"
     const val EXTYPE_CSR = "[csr]" // CONTROL AND STATUS REGISTER
     const val EXTYPE_SHIFT = "[shift]"
+
+    // TYPE IDENTIFICATION
+    const val PRESTRING_HEX = "0x"
+    const val PRESTRING_BINARY = "0b"
+    const val PRESTRING_DECIMAL = "#"
 
     // STATES
     const val STATE_UNCHECKED = "unchecked"

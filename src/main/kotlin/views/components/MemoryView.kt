@@ -3,6 +3,8 @@ package views.components
 import AppLogic
 import csstype.*
 import emotion.react.css
+import extendable.ArchConst
+import extendable.components.connected.Memory
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
@@ -18,6 +20,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import tools.TypeTools
 import kotlin.math.floor
 
 external interface MemViewProps : Props {
@@ -55,7 +58,7 @@ val MemoryView = FC<MemViewProps> { props ->
         val memList = appLogic.getArch().getDataMemory().getMemList()
         for (memInstance in memList) {
             if (memInstance.address == address) {
-                return memInstance.value
+                return memInstance.getValue()
             }
         }
         return null
@@ -63,7 +66,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
     fun calcMemTable() {
         val memRowsList: MutableList<MemRow> = mutableListOf()
-        for (memInstance in  appLogic.getArch().getDataMemory().getMemList()) {
+        for (memInstance in appLogic.getArch().getDataMemory().getMemList()) {
             val rowID = calcRowID(memInstance.address)
             var found = false
             for (memRow in memRowsList) {
@@ -89,6 +92,8 @@ val MemoryView = FC<MemViewProps> { props ->
         div {
             className = ClassName("dcf-overflow-x-auto")
             tabIndex = 0
+
+
 
             table {
                 className = ClassName("dcf-table dcf-table-bordered dcf-table-striped dcf-w-100%")
@@ -129,6 +134,11 @@ val MemoryView = FC<MemViewProps> { props ->
                                 +"$columnID"
                             }
                         }
+                        th {
+                            className = ClassName("dcf-txt-center")
+                            scope = "col"
+                            +"ASCII"
+                        }
 
                     }
                 }
@@ -140,9 +150,9 @@ val MemoryView = FC<MemViewProps> { props ->
 
                     for (memRow in memRows) {
                         prevID?.let {
-                            if(it < memRow.id - 1){
-                                tr{
-                                    th{
+                            if (it < memRow.id - 1) {
+                                tr {
+                                    th {
                                         className = ClassName("dcf-txt-center")
                                         scope = "row"
                                         title = "only zeros in addresses between"
@@ -157,19 +167,30 @@ val MemoryView = FC<MemViewProps> { props ->
                                 className = ClassName("dcf-txt-center")
                                 scope = "row"
                                 title = "Decimal: ${memRow.id.toLong()}"
-                                +memRow.id.toLong().toString(16).uppercase()
+                                +appLogic.getArch().getDataMemory().getAddressHexString(memRow.id)
                             }
 
                             for (column in 0 until memLength) {
                                 val address = memRow.address + column
-                                val hexAddress = address.toLong().toString(16).uppercase()
+                                val hexAddress = appLogic.getArch().getDataMemory().getAddressHexString(address)
                                 val value = dataForAddress(address) ?: 0
-                                val hexValue = value.toString(16).uppercase()
+                                val hexValue = appLogic.getArch().getDataMemory().getWordHexString(value)
                                 td {
                                     className = ClassName("dcf-txt-center")
                                     title = "Address: $hexAddress, Value: $value"
                                     +hexValue
                                 }
+                            }
+
+                            td {
+                                className = ClassName("dcf-txt-left" + " " + "dcf-monospace")
+                                var asciiString = ""
+                                for (column in 0 until memLength) {
+                                    val address = memRow.address + column
+                                    val hexValue = appLogic.getArch().getDataMemory().getWordHexString(dataForAddress(address) ?: 0)
+                                    asciiString += "${TypeTools.getASCIIFromHexString(hexValue)}"
+                                }
+                                +asciiString
                             }
                         }
                         prevID = memRow.id

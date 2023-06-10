@@ -14,21 +14,18 @@ import react.dom.html.ReactHTML.header
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.nav
 
-const val CLASS_NAV_IMG = "nav-img"
-const val CLASS_NAV_ACTIVE = "active"
 
 external interface MenuProps : Props {
     var appLogic: AppLogic
     var update: StateInstance<Boolean>
     var updateParent: (newData: AppLogic) -> Unit
-    var mainRef: MutableRefObject<HTMLElement>
-    var footerRef: MutableRefObject<HTMLElement>
 }
 
 val Menu = FC<MenuProps>() { props ->
 
     val data by useState(props.appLogic)
-    val update = props.update
+    val (update, setUpdate) = props.update
+    val updateParent = props.updateParent
     val (navHidden, setNavHidden) = useState(true)
     val (archsHidden, setArchsHidden) = useState(true)
 
@@ -151,12 +148,12 @@ val Menu = FC<MenuProps>() { props ->
 
                     onClick = { event ->
                         showArchs(false)
-                        data.selID = id
+                        val newData = data
+                        newData.selID = id
                         localStorage.setItem(StorageKey.ARCH_TYPE, "$id")
-                        props.updateParent(data)
                         console.log("Load " + data.getArch().getName())
                         event.currentTarget.classList.toggle("nav-arch-active")
-
+                        updateParent(newData)
                     }
 
                     +data.getArchList()[id].getName()

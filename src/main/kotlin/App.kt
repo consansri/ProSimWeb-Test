@@ -49,42 +49,48 @@ val App = FC<Props> { props ->
         appLogic = data
         update = useState(reloadUI)
         updateParent = ::update
-        this.mainRef = mainRef
-        this.footerRef = footerRef
 
     }
 
     ReactHTML.main {
         ref = mainRef
         div {
-            id = "lcontainer"
-            CodeEditor {
-                appLogic = data
-                update = useState(reloadUI)
-                updateParent = ::update
+            id = "tcontainer"
+            div {
+                id = "lcontainer"
+                CodeEditor {
+                    appLogic = data
+                    update = useState(reloadUI)
+                    updateParent = ::update
+                }
             }
-        }
 
+            div {
+                id = "rcontainer"
+                ProcessorView {
+                    appLogic = data
+                    update = useState(reloadUI)
+                    updateParent = ::update
+                }
+            }
+        }
         div {
-            id = "rcontainer"
-            ProcessorView {
+            id = "bcontainer"
+            InfoView{
                 appLogic = data
                 update = useState(reloadUI)
                 updateParent = ::update
             }
         }
     }
-    div {
-        id = "bcontainer"
-        InfoView{
-            appLogic = data
-            update = useState(reloadUI)
-            updateParent = ::update
-        }
-    }
+
 
     footer {
         ref = footerRef
+        FooterView{
+            
+        }
+
     }
 
     useEffect(reloadUI) {

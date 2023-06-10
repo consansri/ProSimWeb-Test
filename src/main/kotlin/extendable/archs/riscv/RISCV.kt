@@ -4,6 +4,7 @@ import extendable.ArchConst
 import extendable.components.*
 import extendable.components.connected.*
 import extendable.components.types.*
+import kotlin.math.pow
 
 object RISCV {
 
@@ -20,39 +21,40 @@ object RISCV {
     val config = Config(
         "RISC-V",
         arrayOf(
-            Register(0, "zero", 0, "hardwired zero", REGISTER_WIDTH),
-            Register(1, "ra", 0, "return address", REGISTER_WIDTH),
-            Register(2, "sp", 0, "stack pointer", REGISTER_WIDTH),
-            Register(3, "gp", 0, "global pointer", REGISTER_WIDTH),
-            Register(4, "tp", 0, "thread pointer", REGISTER_WIDTH),
-            Register(5, "t0", 0, "temporary register 0", REGISTER_WIDTH),
-            Register(6, "t1", 0, "temporary register 1", REGISTER_WIDTH),
-            Register(7, "t2", 0, "temporary register 2", REGISTER_WIDTH),
-            Register(8, "s0 / fp", 0, "saved register 0 / frame pointer", REGISTER_WIDTH),
-            Register(9, "s1", 0, "saved register 1", REGISTER_WIDTH),
-            Register(10, "a0", 0, "function argument 0 / return value 0", REGISTER_WIDTH),
-            Register(11, "a1", 0, "function argument 1 / return value 1", REGISTER_WIDTH),
-            Register(12, "a2", 0, "function argument 2", REGISTER_WIDTH),
-            Register(13, "a3", 0, "function argument 3", REGISTER_WIDTH),
-            Register(14, "a4", 0, "function argument 4", REGISTER_WIDTH),
-            Register(15, "a5", 0, "function argument 5", REGISTER_WIDTH),
-            Register(16, "a6", 0, "function argument 6", REGISTER_WIDTH),
-            Register(17, "a7", 0, "function argument 7", REGISTER_WIDTH),
-            Register(18, "s2", 0, "saved register 2", REGISTER_WIDTH),
-            Register(19, "s3", 0, "saved register 3", REGISTER_WIDTH),
-            Register(20, "s4", 0, "saved register 4", REGISTER_WIDTH),
-            Register(21, "s5", 0, "saved register 5", REGISTER_WIDTH),
-            Register(22, "s6", 0, "saved register 6", REGISTER_WIDTH),
-            Register(23, "s7", 0, "saved register 7", REGISTER_WIDTH),
-            Register(24, "s8", 0, "saved register 8", REGISTER_WIDTH),
-            Register(25, "s9", 0, "saved register 9", REGISTER_WIDTH),
-            Register(26, "s10", 0, "saved register 10", REGISTER_WIDTH),
-            Register(27, "s11", 0, "saved register 11", REGISTER_WIDTH),
-            Register(28, "t3", 0, "temporary register 3", REGISTER_WIDTH),
-            Register(29, "t4", 0, "temporary register 4", REGISTER_WIDTH),
-            Register(30, "t5", 0, "temporary register 5", REGISTER_WIDTH),
-            Register(31, "t6", 0, "temporary register 6", REGISTER_WIDTH),
-            Register(ArchConst.REGISTER_NOVALUE, "pc", 0, "program counter", REGISTER_PC_WIDTH)
+            Register(Address(0, 32), "zero", 0, "hardwired zero", REGISTER_WIDTH),
+            Register(Address(ArchConst.ADDRESS_NOVALUE, 32), "pc", 0, "program counter", REGISTER_PC_WIDTH),
+            Register(Address(1, 32), "ra", 2.0.pow(32).toLong() -1, "return address", REGISTER_WIDTH),
+            Register(Address(2, 32), "sp", 0, "stack pointer", REGISTER_WIDTH),
+            Register(Address(3, 32), "gp", 0, "global pointer", REGISTER_WIDTH),
+            Register(Address(4, 32), "tp", 0, "thread pointer", REGISTER_WIDTH),
+            Register(Address(5, 32), "t0", 0, "temporary register 0", REGISTER_WIDTH),
+            Register(Address(6, 32), "t1", 0, "temporary register 1", REGISTER_WIDTH),
+            Register(Address(7, 32), "t2", 0, "temporary register 2", REGISTER_WIDTH),
+            Register(Address(8, 32), "s0 / fp", 0, "saved register 0 / frame pointer", REGISTER_WIDTH),
+            Register(Address(9, 32), "s1", 0, "saved register 1", REGISTER_WIDTH),
+            Register(Address(10, 32), "a0", 0, "function argument 0 / return value 0", REGISTER_WIDTH),
+            Register(Address(11, 32), "a1", 0, "function argument 1 / return value 1", REGISTER_WIDTH),
+            Register(Address(12, 32), "a2", 0, "function argument 2", REGISTER_WIDTH),
+            Register(Address(13, 32), "a3", 0, "function argument 3", REGISTER_WIDTH),
+            Register(Address(14, 32), "a4", 0, "function argument 4", REGISTER_WIDTH),
+            Register(Address(15, 32), "a5", 0, "function argument 5", REGISTER_WIDTH),
+            Register(Address(16, 32), "a6", 0, "function argument 6", REGISTER_WIDTH),
+            Register(Address(17, 32), "a7", 0, "function argument 7", REGISTER_WIDTH),
+            Register(Address(18, 32), "s2", 0, "saved register 2", REGISTER_WIDTH),
+            Register(Address(19, 32), "s3", 0, "saved register 3", REGISTER_WIDTH),
+            Register(Address(20, 32), "s4", 0, "saved register 4", REGISTER_WIDTH),
+            Register(Address(21, 32), "s5", 0, "saved register 5", REGISTER_WIDTH),
+            Register(Address(22, 32), "s6", 0, "saved register 6", REGISTER_WIDTH),
+            Register(Address(23, 32), "s7", 0, "saved register 7", REGISTER_WIDTH),
+            Register(Address(24, 32), "s8", 0, "saved register 8", REGISTER_WIDTH),
+            Register(Address(25, 32), "s9", 0, "saved register 9", REGISTER_WIDTH),
+            Register(Address(26, 32), "s10", 0, "saved register 10", REGISTER_WIDTH),
+            Register(Address(27, 32), "s11", 0, "saved register 11", REGISTER_WIDTH),
+            Register(Address(28, 32), "t3", 0, "temporary register 3", REGISTER_WIDTH),
+            Register(Address(29, 32), "t4", 0, "temporary register 4", REGISTER_WIDTH),
+            Register(Address(30, 32), "t5", 0, "temporary register 5", REGISTER_WIDTH),
+            Register(Address(31, 32), "t6", 0, "temporary register 6", REGISTER_WIDTH)
+
         ),
         listOf(
             Instruction(
@@ -370,7 +372,7 @@ object RISCV {
 
 
         ),
-        Memory(MEMORY_ADDRESS_WIDTH, 4),
+        Memory(MEMORY_ADDRESS_WIDTH, 16),
         Transcript(arrayOf("Address", "Line", "Code", "Labels", "Instruction"))
     )
 
@@ -516,7 +518,7 @@ object RISCV {
 
         for (reg in registers) {
             if (reg.name == "ra") {
-                reg.value += 1
+                reg.incValue()
             }
 
         }

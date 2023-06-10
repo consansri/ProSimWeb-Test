@@ -1,8 +1,18 @@
+#arch-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-style: italic;
+    color: white;
+    text-shadow: 0 13.36px 8.896px #c4b59d,0 -2px 1px #fff;
+    letter-spacing: -1px;
+
+
+}
+
 .exeControlDiv {
     width: 100%;
     display: flex;
     flex-direction: column;
-
 }
 
 .exeControlDiv div {
@@ -18,9 +28,14 @@
 .exeControlDiv div a {
     flex-grow: 1;
     text-align: center;
-
+    font-size: 1rem;
     padding: var(--padding-size);
+    color: var(--exec-textColor);
+}
 
+.exeControlDiv div p {
+    flex-grow: 1;
+    text-align: center;
     color: var(--exec-textColor);
 }
 
@@ -38,7 +53,7 @@
     cursor: pointer;
     border-radius: var(--border-radius);
     border-width: 0;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.09), 0 6px 15px 0 rgba(0, 0, 0, 0.09);
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
     padding: var(--padding-size);
     color: black;
     overflow: hidden;
@@ -56,7 +71,7 @@
     background-color: var(--exec-inputBgColor);
     color: var(--exec-inputFgColor);
     text-align: center;
-    font-size: 1em;
+    font-size: 1em !important;
     border-radius: var(--border-radius);
 
 }
@@ -70,7 +85,7 @@
     margin: 0;
 }
 
-.input-button input[type=number]{
+.input-button input[type=number] {
     -moz-appearance: textfield;
 }
 
@@ -78,6 +93,7 @@
     width: 100%;
     height: 100%;
     display: flex;
+
     gap: var(--padding-size);
     flex-direction: row;
     align-content: center;
@@ -99,14 +115,13 @@
 }
 
 
-
 .button {
     cursor: pointer;
     flex-grow: 1;
     border-radius: var(--border-radius);
-    border-width: 0;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.09), 0 6px 15px 0 rgba(0, 0, 0, 0.09);
     padding: var(--padding-size);
+    border-width: 0;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
     overflow: hidden;
     min-width: var(--exec-iconSize);
     font: var(--exec-iconSize) Verdana;
@@ -154,5 +169,33 @@
     background-color: var(--exec-mstepBgColor);
     color: var(--exec-mstepFgColor);
 }
+
+
+.exec-progress {
+    margin-bottom: var(--padding-size);
+    display: block !important;
+    position: relative !important;
+    text-align: center;
+    color: white;
+    height: 1rem;
+    overflow: hidden;
+    line-height: 0;
+    background-color: #e9ecef;
+    border-radius: var(--border-radius);
+}
+
+
+.exec-progress-bar {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    height: 1rem;
+    border-radius: var(--border-radius);
+    background-color: var(--exec-progressBarColor);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+    transition: all 0.3s linear;
+}
+
 
 

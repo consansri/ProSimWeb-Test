@@ -2,7 +2,7 @@
 
     --exec-textColor: #EEEEEE;
 
-    --exec-bgColor: #36454f;
+    --exec-bgColor: #0F1E44;
     --exec-iconSize: 15px;
 
     --exec-inputBgColor: rgba(20%, 20%, 20%, 30%);
@@ -23,6 +23,7 @@
     /*--exec-mstepBgColor: #F7D060; */
     --exec-mstepBgColor: #e2b124;
     --exec-mstepFgColor: white;
+    --exec-progressBarColor: #007bff;
 
     --proc-reg-bgColor: #F8F8FF;
     --proc-mem-bgColor: #6D8AF5;
@@ -38,12 +39,14 @@
 .exeControlDiv {
     border-radius: var(--border-radius);
     padding: var(--padding-size);
-    background-color: var(--main-accent-color);
+    background-color: var(--exec-bgColor);
+    overflow: hidden;
     /*box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;*/
 }
 
 .processorDiv {
     border-radius: var(--border-radius);
+    overflow: hidden;
     margin-top: var(--padding-size);
     background-color: var(--proc-reg-bgColor);
     box-shadow: rgb(204, 219, 232) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.5) -3px -3px 6px 1px inset;
@@ -58,6 +61,7 @@
 }
 
 .memoryDiv {
+    overflow: hidden;
     border-radius: var(--border-radius);
     margin-top: var(--padding-size);
     background-color: var(--proc-mem-bg-color);

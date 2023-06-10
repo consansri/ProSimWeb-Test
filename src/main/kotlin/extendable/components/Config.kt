@@ -11,6 +11,11 @@ data class Config(
     val flagsConditions: FlagsConditions?,
     val cache: Cache?
 ) {
+
+    init {
+
+    }
+
     constructor(
         name: String,
         register: Array<Register>,
