@@ -40,6 +40,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             display = Display.block
             overflowY = Overflow.scroll
             maxHeight = 40.vh
+            backgroundColor = Color("#EEEEEE")
         }
 
         div {
@@ -47,7 +48,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             tabIndex = 0
 
             table {
-                className = ClassName("dcf-table dcf-table-bordered dcf-table-striped dcf-w-100%")
+                className = ClassName("dcf-table dcf-table-striped dcf-w-100%")
                 caption {
                     +name
                 }

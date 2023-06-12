@@ -2,7 +2,7 @@
 
     --exec-textColor: #EEEEEE;
 
-    --exec-bgColor: #0F1E44;
+    --exec-bgColor: transparent;
     --exec-iconSize: 15px;
 
     --exec-inputBgColor: rgba(20%, 20%, 20%, 30%);
@@ -25,8 +25,8 @@
     --exec-mstepFgColor: white;
     --exec-progressBarColor: #007bff;
 
-    --proc-reg-bgColor: #F8F8FF;
-    --proc-mem-bgColor: #6D8AF5;
+    --proc-reg-bgColor: #EEEEEE;
+    --proc-mem-bgColor: #AAAAAA;
 
     --proc-bg-color: #aec6cf;
     --proc-logo-color: #121212;

@@ -71,6 +71,7 @@ val ConsoleView = FC<ConsoleViewProps>() { props ->
 
 
             } else {
+                borderRadius = 0.3.rem
                 position = Position.relative
 
             }
@@ -141,7 +142,7 @@ val ConsoleView = FC<ConsoleViewProps>() { props ->
                 setScrollDown(!scrollDown)
             }
 
-            +"Scroll Down"
+            +"auto scroll"
         }
 
 

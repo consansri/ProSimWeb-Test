@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;700&display=swap');
 
 :root {
-
     --main-accent-color: #29335C;
     --main-accent-color-sec: #EA5455;
     --main-accent-color-third: #6D8AF5;
@@ -11,12 +10,12 @@
     --main-fg-color: #454545;
     --main-fg-color-sec: #A9A9A9;
 
+    --rcontainer-bg-color: #212121;
+
     --padding-size: 0.4rem;
-    --border-radius: 0.2rem;
+    --border-radius: 0.3rem;
 
     --icon-size: 32px;
-
-
 }
 
 * {

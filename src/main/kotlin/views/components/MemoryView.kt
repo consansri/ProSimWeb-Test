@@ -85,7 +85,9 @@ val MemoryView = FC<MemViewProps> { props ->
     div {
         css {
             overflowY = Overflow.scroll
-            maxHeight = 50.vh
+            maxHeight = 40.vh
+            display = Display.block
+            backgroundColor = Color("#EEEEEE")
         }
 
         div {
@@ -95,7 +97,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
 
             table {
-                className = ClassName("dcf-table dcf-table-bordered dcf-table-striped dcf-w-100%")
+                className = ClassName("dcf-table dcf-table-striped dcf-w-100%")
                 caption {
                     a {
                         +name
@@ -156,6 +158,12 @@ val MemoryView = FC<MemViewProps> { props ->
                                         scope = "row"
                                         title = "only zeros in addresses between"
                                         +"..."
+                                    }
+                                    for(column in 0 .. memLength){
+                                        td{
+                                            className = ClassName("dcf-txt-center")
+                                            title = "only zeros in addresses between"
+                                        }
                                     }
                                 }
                             }
