@@ -36,7 +36,7 @@ body main {
     max-width: 60vw;
     min-width: 60vw;
     position: relative;
-    background-color: var(--main-accent-color-sec);
+    background-color: #000000;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     border-radius: var(--border-radius);
     padding: var(--padding-size);

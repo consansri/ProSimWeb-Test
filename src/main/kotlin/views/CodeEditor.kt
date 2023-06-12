@@ -430,6 +430,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                             onKeyDown = { event ->
                                 if (event.key == "Tab") {
+
                                     textareaRef.current?.let {
                                         val start =
                                             it.selectionStart
@@ -442,6 +443,20 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         it.selectionEnd = end + 1
 
                                         event.preventDefault()
+                                        setta_val(event.currentTarget.value)
+
+                                        val lines = event.currentTarget.value.split("\n")
+                                        val lineIDStart =
+                                            event.currentTarget.value.substring(0, start).split("\n").size - 1
+                                        val lineIDEnd =
+                                            event.currentTarget.value.substring(0, end).split("\n").size - 1
+                                        val editedLines: MutableMap<Int, String> = mutableMapOf()
+                                        for (lineID in lineIDStart..lineIDEnd) {
+                                            editedLines.put(lineID, lines[lineID])
+                                        }
+                                        preHighlight(editedLines)
+
+                                        checkCode(event.currentTarget.value, false)
                                     }
                                 } else if (event.ctrlKey && event.key == "z") {
                                     undo()
