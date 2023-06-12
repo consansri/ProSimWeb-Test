@@ -1,14 +1,15 @@
 package extendable.components.types
 
-class OpCode(val opString: String) {
+class OpCode(private var opMask: String, private var opLabels: List<String>, private var splitSymbol: String) {
 
     private val binaryString: String
     private val decimal: Int
 
 
     init {
+        opMask = opMask.removePrefix("0b")
         val regex = Regex("[01]+")
-        val matches = regex.findAll(opString)
+        val matches = regex.findAll(opMask)
         val stringBuilder = StringBuilder()
         for (match in matches) {
             stringBuilder.append(match.value)

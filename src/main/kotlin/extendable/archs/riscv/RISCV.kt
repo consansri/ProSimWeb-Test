@@ -18,12 +18,24 @@ object RISCV {
     val MEMORY_WIDTH = 8
     val MEMORY_ADDRESS_WIDTH = 32
 
+    // OpMnemonic Labels
+    const val OPLBL_SPLIT = "_"
+    const val OPLBL_NOVAL = "[noval]"
+    const val OPLBL_FUNCT7 = "[funct7]"
+    const val OPLBL_OPCODE = "[opcode]"
+    const val OPLBL_FUNCT3 = "[funct3]"
+    const val OPLBL_IMM = "[imm]"
+    const val OPLBL_RS1 = "[rs1]"
+    const val OPLBL_RS2 = "[rs2]"
+    const val OPLBL_RD = "[rd]"
+
+    // CONFIG
     val config = Config(
         "RISC-V",
         arrayOf(
             Register(Address(0, 32), "zero", 0, "hardwired zero", REGISTER_WIDTH),
             Register(Address(ArchConst.ADDRESS_NOVALUE, 32), "pc", 0, "program counter", REGISTER_PC_WIDTH),
-            Register(Address(1, 32), "ra", 2.0.pow(32).toLong() -1, "return address", REGISTER_WIDTH),
+            Register(Address(1, 32), "ra", 2.0.pow(32).toLong() - 1, "return address", REGISTER_WIDTH),
             Register(Address(2, 32), "sp", 0, "stack pointer", REGISTER_WIDTH),
             Register(Address(3, 32), "gp", 0, "global pointer", REGISTER_WIDTH),
             Register(Address(4, 32), "tp", 0, "thread pointer", REGISTER_WIDTH),
@@ -60,7 +72,7 @@ object RISCV {
             Instruction(
                 "LUI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("0000001001"),
+                OpCode("0b0110111", listOf(OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← imm",
                 "Load Upper Immediate",
                 ::lui
@@ -68,7 +80,7 @@ object RISCV {
             Instruction(
                 "AUIPC",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("0000001001"),
+                OpCode("0b0010111", listOf(OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← pc + offset",
                 "Add Upper Immediate to PC",
                 ::auipc
@@ -76,7 +88,7 @@ object RISCV {
             Instruction(
                 "JAL",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("0000001001"),
+                OpCode("0b1101111", listOf(OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← pc + length(inst), pc ← pc + offset",
                 "Jump and Link",
                 ::jal
@@ -84,15 +96,32 @@ object RISCV {
             Instruction(
                 "JALR",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("0000001001"),
+                OpCode("0b000_00000_1100111", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← pc + length(inst), pc ← (rs1 + offset) ∧ -2",
                 "Jump and Link Register",
                 ::jalr
             ),
             Instruction(
+                "ECALL",
+                listOf(),
+                OpCode("0b0000000_00000_00000_000_00000_1110011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
+                "rd ← pc + length(inst), pc ← (rs1 + offset) ∧ -2",
+                "Systemaufruf verarbeiten",
+                ::ecall
+            ),
+            Instruction(
+                "EBREAK",
+                listOf(),
+                OpCode("0b0000000_00001_00000_000_00000_1110011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
+                "rd ← pc + length(inst), pc ← (rs1 + offset) ∧ -2",
+                "Unterbrechung verarbeiten",
+                ::ebreak
+            ),
+
+            Instruction(
                 "BEQ",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("00101001"),
+                OpCode("0b000_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "if rs1 = rs2 then pc ← pc + offset",
                 "Branch Equal",
                 ::beq
@@ -100,7 +129,7 @@ object RISCV {
             Instruction(
                 "BNE",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("01001001"),
+                OpCode("0b001_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "if rs1 ≠ rs2 then pc ← pc + offset",
                 "Branch Not Equal",
                 ::bne
@@ -108,7 +137,7 @@ object RISCV {
             Instruction(
                 "BLT",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("01001001"),
+                OpCode("0b100_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "if rs1 < rs2 then pc ← pc + offset",
                 "Branch Less Than",
                 ::blt
@@ -116,7 +145,7 @@ object RISCV {
             Instruction(
                 "BGE",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("01001001"),
+                OpCode("0b101_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "if rs1 ≥ rs2 then pc ← pc + offset",
                 "Branch Greater than Equal",
                 ::bge
@@ -124,7 +153,7 @@ object RISCV {
             Instruction(
                 "BLTU",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("01001001"),
+                OpCode("0b110_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "if rs1 < rs2 then pc ← pc + offset",
                 "Branch Less Than Unsigned",
                 ::bltu
@@ -132,7 +161,7 @@ object RISCV {
             Instruction(
                 "BGEU",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("01001001"),
+                OpCode("0b111_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "if rs1 ≥ rs2 then pc ← pc + offset",
                 "Branch Greater than Equal Unsigned",
                 ::bgeu
@@ -140,7 +169,7 @@ object RISCV {
             Instruction(
                 "LB",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b000_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← s8[rs1 + offset]",
                 "Load Byte",
                 ::lb
@@ -148,7 +177,7 @@ object RISCV {
             Instruction(
                 "LH",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b001_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← s16[rs1 + offset]",
                 "Load Half",
                 ::lh
@@ -156,7 +185,7 @@ object RISCV {
             Instruction(
                 "LW",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b010_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← s32[rs1 + offset]",
                 "Load Word",
                 ::lw
@@ -164,7 +193,7 @@ object RISCV {
             Instruction(
                 "LBU",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b100_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← u8[rs1 + offset]",
                 "Load Byte Unsigned",
                 ::lbu
@@ -172,7 +201,7 @@ object RISCV {
             Instruction(
                 "LHU",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b101_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← u16[rs1 + offset]",
                 "Load Half Unsigned",
                 ::lhu
@@ -180,7 +209,7 @@ object RISCV {
             Instruction(
                 "SB",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b000_00000_0100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "u8[rs1 + offset] ← rs2",
                 "Store Byte",
                 ::sb
@@ -188,7 +217,7 @@ object RISCV {
             Instruction(
                 "SH",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b001_00000_0100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "u16[rs1 + offset] ← rs2",
                 "Store Half",
                 ::sh
@@ -196,7 +225,7 @@ object RISCV {
             Instruction(
                 "SW",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b010_00000_0100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPLBL_SPLIT),
                 "u32[rs1 + offset] ← rs2",
                 "Store Word",
                 ::sw
@@ -204,7 +233,7 @@ object RISCV {
             Instruction(
                 "ADDI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b000_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← rs1 + sx(imm)",
                 "Add Immediate",
                 ::addi
@@ -212,7 +241,7 @@ object RISCV {
             Instruction(
                 "SLTI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b010_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← sx(rs1) < sx(imm)",
                 "Set Less Than Immediate",
                 ::slti
@@ -220,7 +249,7 @@ object RISCV {
             Instruction(
                 "SLTIU",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b011_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) < ux(imm)",
                 "Set Less Than Immediate Unsigned",
                 ::sltiu
@@ -228,7 +257,7 @@ object RISCV {
             Instruction(
                 "XORI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b100_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) ⊕ ux(imm)",
                 "Xor Immediate",
                 ::xori
@@ -236,7 +265,7 @@ object RISCV {
             Instruction(
                 "ORI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b110_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) ∨ ux(imm)",
                 "Or Immediate",
                 ::ori
@@ -244,7 +273,7 @@ object RISCV {
             Instruction(
                 "ANDI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("010100100"),
+                OpCode("0b111_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) ∧ ux(imm)",
                 "And Immediate",
                 ::andi
@@ -252,7 +281,7 @@ object RISCV {
             Instruction(
                 "SLLI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_001_00000_0010011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) « ux(imm)",
                 "Shift Left Logical Immediate",
                 ::slli
@@ -260,7 +289,7 @@ object RISCV {
             Instruction(
                 "SRLI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_101_00000_0010011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) » ux(imm)",
                 "Shift Right Logical Immediate",
                 ::srli
@@ -268,7 +297,7 @@ object RISCV {
             Instruction(
                 "SRAI",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
-                OpCode("010100100"),
+                OpCode("0b0100000_00000_00000_101_00000_0010011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← sx(rs1) » ux(imm)",
                 "Shift Right Arithmetic Immediate",
                 ::srai
@@ -276,7 +305,7 @@ object RISCV {
             Instruction(
                 "ADD",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_000_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← sx(rs1) + sx(rs2)",
                 "Add",
                 ::add
@@ -284,7 +313,7 @@ object RISCV {
             Instruction(
                 "SUB",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0100000_00000_00000_000_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← sx(rs1) - sx(rs2)",
                 "Substract",
                 ::sub
@@ -292,7 +321,7 @@ object RISCV {
             Instruction(
                 "SLL",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_001_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) « rs2",
                 "Shift Left Logical",
                 ::sll
@@ -300,7 +329,7 @@ object RISCV {
             Instruction(
                 "SLT",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_010_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← sx(rs1) < sx(rs2)",
                 "Set Less Than",
                 ::slt
@@ -308,7 +337,7 @@ object RISCV {
             Instruction(
                 "SLTU",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_011_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) < ux(rs2)",
                 "Set Less Than Unsigned",
                 ::sltu
@@ -316,7 +345,7 @@ object RISCV {
             Instruction(
                 "XOR",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_100_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) ⊕ ux(rs2)",
                 "Xor",
                 ::xor
@@ -324,7 +353,7 @@ object RISCV {
             Instruction(
                 "SRL",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_101_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) » rs2",
                 "Shift Right Logical",
                 ::srl
@@ -332,7 +361,7 @@ object RISCV {
             Instruction(
                 "SRA",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0100000_00000_00000_101_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← sx(rs1) » rs2",
                 "Shift Right Arithmetic",
                 ::sra
@@ -340,7 +369,7 @@ object RISCV {
             Instruction(
                 "OR",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_110_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) ∨ ux(rs2)",
                 "Or",
                 ::or
@@ -348,29 +377,11 @@ object RISCV {
             Instruction(
                 "AND",
                 listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
-                OpCode("010100100"),
+                OpCode("0b0000000_00000_00000_111_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPLBL_SPLIT),
                 "rd ← ux(rs1) ∧ ux(rs2)",
                 "And",
                 ::and
-            ),
-            Instruction(
-                "FENCE",
-                listOf(ArchConst.EXTYPE_IMMEDIATE),
-                OpCode("00101010"),
-                "",
-                "Fence",
-                ::fence
-            ),
-            Instruction(
-                "FENCE.I",
-                listOf(),
-                OpCode("00101010"),
-                "",
-                "Fence Instruction",
-                ::fencei
             )
-
-
         ),
         Memory(MEMORY_ADDRESS_WIDTH, 16),
         Transcript(arrayOf("Address", "Line", "Code", "Labels", "Instruction"))
@@ -391,6 +402,14 @@ object RISCV {
     }
 
     fun jalr(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+        return false
+    }
+
+    fun ecall(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
+        return false
+    }
+
+    fun ebreak(extensions: List<ExtensionType>, mem: Memory, registers: Array<Register>, flagsConditions: FlagsConditions?): Boolean {
         return false
     }
 
@@ -490,29 +509,10 @@ object RISCV {
 
         for (ex in extensions) {
             when (ex) {
-                is TypeAddr -> {
-
-                }
-
-                is TypeCSR -> {
-
-                }
-
-                is TypeImm -> {
-
-                }
-
-                is TypeJAddr -> {
-
-                }
-
-                is TypeReg -> {
-
-                }
-
-                is TypeShift -> {
-
-                }
+                is TypeBIN -> TODO()
+                is TypeDEC -> TODO()
+                is TypeHEX -> TODO()
+                is TypeLABEL -> TODO()
             }
         }
 

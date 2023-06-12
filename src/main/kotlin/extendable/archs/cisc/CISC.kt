@@ -9,13 +9,17 @@ import extendable.components.types.OpCode
 
 object CISC {
 
+    // OpMnemonic Labels
+    const val OPLBL_SPLIT = "_"
+    const val OPLBL_OPCODE = "[opcode]"
+
     val config = Config(
         "IKR CISC",
         arrayOf(
             Register(Address(0, 32), "r0", 0, "", 32),
         ),
         listOf(
-            Instruction("name",listOf(ArchConst.EXTYPE_REGISTER), OpCode("0101010"), "", "", ::add),
+            Instruction("name",listOf(ArchConst.EXTYPE_REGISTER), OpCode("0101010", listOf(OPLBL_OPCODE), OPLBL_SPLIT), "", "", ::add),
         ),
         Memory(32, 4),
         Transcript()

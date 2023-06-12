@@ -3,8 +3,8 @@ package extendable.cisc
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVFlags
-import extendable.components.types.TypeAddr
-import extendable.components.types.TypeReg
+import extendable.components.types.TypeDEC
+import extendable.components.types.TypeLABEL
 
 class ArchRISCV() : Architecture(RISCV.config) {
 
@@ -15,7 +15,7 @@ class ArchRISCV() : Architecture(RISCV.config) {
         }
         for(ins in getInstructions()){
             if(ins.name == "ADD"){
-                ins.execute(listOf(TypeAddr(2.0), TypeReg("s1")), getDataMemory(), getRegister(), getFlagsConditions())
+                ins.execute(listOf(TypeDEC(2), TypeLABEL("s1")), getDataMemory(), getRegister(), getFlagsConditions())
             }
         }
     }

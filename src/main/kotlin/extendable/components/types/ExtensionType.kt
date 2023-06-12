@@ -2,9 +2,7 @@ package extendable.components.types
 
 sealed class ExtensionType
 
-data class TypeAddr(val addr: Double) : ExtensionType()
-data class TypeCSR(val csr: String) : ExtensionType()
-data class TypeReg(val name: String) : ExtensionType()
-data class TypeImm(val value: Int) : ExtensionType()
-data class TypeJAddr(val jumpAddr: Double) : ExtensionType()
-data class TypeShift(val shift: Int) : ExtensionType()
+data class TypeBIN(val binary: String) : ExtensionType()
+data class TypeHEX(val hex: String) : ExtensionType()
+data class TypeDEC(val long: Long) : ExtensionType()
+data class TypeLABEL(val label: String) : ExtensionType()
