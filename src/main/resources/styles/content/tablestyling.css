@@ -51,7 +51,7 @@ th {
     margin-left: var(--padding-size);
     margin-right: var(--padding-size);
     vertical-align: middle;
-
+    accent-color: var(--main-accent-color);
 }
 
 .dcf-table thead {

@@ -29,40 +29,29 @@ val FooterView = FC<FooterViewProps>{
 
         }
 
-        ul{
-            css {
-                listStyle = null
-            }
+        p{
+            img{
+                css {
+                    width = 4.rem
+                    height = 4.rem
+                    cursor = Cursor.pointer
+                }
 
-            li{
+                onClick = {event ->
 
-            }
-            li{
 
-            }
-            li{
+                }
 
-            }
-        }
-        ul{
-            css {
-                listStyleType = null
-            }
-            li{
-
-            }
-            li{
-
-            }
-            li{
-
+                src = "icons/system-outline-21-bug.gif"
             }
         }
         h3{
+            className = ClassName("logo")
+
             +"ProSimWeb"
         }
         p{
-            +"Copyright &copy; 2023 Universität Stuttgart IKR"
+            +"Copyright © 2023 Universität Stuttgart IKR"
         }
 
 

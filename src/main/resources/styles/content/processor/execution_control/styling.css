@@ -180,7 +180,7 @@
     height: 1rem;
     overflow: hidden;
     line-height: 0;
-    background-color: #e9ecef;
+    background-color: var(--rcontainer-bg-color);
     border-radius: var(--border-radius);
 }
 
