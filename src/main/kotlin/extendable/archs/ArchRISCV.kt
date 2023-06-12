@@ -10,6 +10,7 @@ class ArchRISCV() : Architecture(RISCV.config) {
 
     override fun exeContinuous() {
         super.exeContinuous()
+        getRegister().get(1).incValue()
         for (i in 0..200) {
             getDataMemory().save(i.toDouble(), i)
         }

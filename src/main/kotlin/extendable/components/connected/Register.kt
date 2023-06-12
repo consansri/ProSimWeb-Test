@@ -46,6 +46,10 @@ class Register(val address: Address, val name: String, private var value: Long, 
         setValue(value + 1)
     }
 
+    fun clear(){
+        setValue(0)
+    }
+
     fun getValue(): Long {
         return value
     }

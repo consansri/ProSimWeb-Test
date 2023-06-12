@@ -10,7 +10,7 @@ open class Architecture(config: Config) {
     val executionStartAddress = 0
 
     private var name: String
-    private val register: Array<Register>
+    private val registers: Array<Register>
     private val instructions: List<Instruction>
     private val memory: Memory
     private var transcript: Transcript
@@ -19,7 +19,7 @@ open class Architecture(config: Config) {
 
     init {
         this.name = config.name
-        this.register = config.register
+        this.registers = config.register
         this.instructions = config.instructions
         this.memory = config.memory
         this.transcript = config.transcript
@@ -32,7 +32,7 @@ open class Architecture(config: Config) {
     }
 
     fun getRegister(): Array<Register> {
-        return register
+        return registers
     }
 
     fun getInstructions(): List<Instruction> {
@@ -76,6 +76,9 @@ open class Architecture(config: Config) {
 
     open fun exeClear() {
         memory.clear()
+        for(reg in registers){
+            reg.clear()
+        }
     }
 
     private fun highlightNumbers(input: String): String {

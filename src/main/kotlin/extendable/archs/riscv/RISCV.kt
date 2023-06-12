@@ -35,7 +35,7 @@ object RISCV {
         arrayOf(
             Register(Address(0, 32), "zero", 0, "hardwired zero", REGISTER_WIDTH),
             Register(Address(ArchConst.ADDRESS_NOVALUE, 32), "pc", 0, "program counter", REGISTER_PC_WIDTH),
-            Register(Address(1, 32), "ra", 2.0.pow(32).toLong() - 1, "return address", REGISTER_WIDTH),
+            Register(Address(1, 32), "ra", 0, "return address", REGISTER_WIDTH),
             Register(Address(2, 32), "sp", 0, "stack pointer", REGISTER_WIDTH),
             Register(Address(3, 32), "gp", 0, "global pointer", REGISTER_WIDTH),
             Register(Address(4, 32), "tp", 0, "thread pointer", REGISTER_WIDTH),
@@ -509,10 +509,10 @@ object RISCV {
 
         for (ex in extensions) {
             when (ex) {
-                is TypeBIN -> TODO()
-                is TypeDEC -> TODO()
-                is TypeHEX -> TODO()
-                is TypeLABEL -> TODO()
+                is TypeBIN -> {}
+                is TypeDEC -> {}
+                is TypeHEX -> {}
+                is TypeLABEL -> {}
             }
         }
 

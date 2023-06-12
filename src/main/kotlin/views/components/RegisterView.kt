@@ -30,7 +30,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
-    val (update, setUpdate) = props.update
+    val (update, setUpdate) = useState(false)
+    val change = props.update
     val theaders = ArchConst.REGISTER_HEADERS
 
     div {
@@ -149,8 +150,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                                     onBlur = { event ->
                                         event.currentTarget.value = registers[registerID].getHexValue()
-                                        val reghex = document.getElementById("regdec$registerID") as HTMLInputElement
-                                        reghex.value = registers[registerID].getValue().toString()
+                                        val regdec = document.getElementById("regdec$registerID") as HTMLInputElement
+                                        regdec.value = registers[registerID].getValue().toString()
                                     }
 
                                     onKeyDown = { event ->
@@ -176,8 +177,18 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
-    useEffect(update) {
+    useEffect(change) {
         console.log("(update) RegisterView")
+        val registers = appLogic.getArch().getRegister()
+        for (registerID in registers.indices) {
+            val regdec = document.getElementById("regdec$registerID") as HTMLInputElement
+            regdec.value = registers[registerID].getValue().toString()
+            val reghex = document.getElementById("reghex$registerID") as HTMLInputElement
+            reghex.value = registers[registerID].getHexValue()
+        }
+    }
+    useEffect(update){
+        console.log("(part-update) RegisterView")
     }
 
 }
