@@ -68,7 +68,7 @@ header .nav-img {
         background-color: var(--nav-mainColor);
         transition: 1s;
         transform: translateY(-100vh);
-        z-index: 2;
+        z-index: 20;
         visibility: hidden;
     }
 
@@ -96,7 +96,7 @@ header .nav-dropdown {
     background-color: var(--nav-mainColorLight);
     transition: 1s;
     transform: translateY(-100vh);
-    z-index: 3;
+    z-index: 21;
     visibility: hidden;
 }
 
