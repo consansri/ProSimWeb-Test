@@ -2,9 +2,6 @@ package views
 
 import AppLogic
 import csstype.ClassName
-import csstype.HtmlAttributes
-import csstype.pc
-import emotion.css.css
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -29,7 +26,7 @@ import views.components.RegisterView
 
 external interface ProcessorViewProps : Props {
     var appLogic: AppLogic
-    var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var updateAppLogic: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
     var update: StateInstance<Boolean>
 }
 
@@ -200,8 +197,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         }
 
 
-
-
     }
 
     div {
@@ -213,14 +208,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.name = "Register"
             this.appLogic = appLogic
             this.update = useState(change)
-            this.updateParent = props.updateParent
+            this.updateParent = props.updateAppLogic
         }
 
         FlagsCondsView {
             this.name = "Flags & Conditions"
             this.appLogic = appLogic
             this.update = useState(change)
-            this.updateParent = props.updateParent
+            this.updateParent = props.updateAppLogic
         }
 
 
@@ -234,7 +229,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.appLogic = appLogic
             this.update = useState(change)
             this.length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
-            this.updateParent = props.updateParent
+            this.updateParent = props.updateAppLogic
         }
 
     }

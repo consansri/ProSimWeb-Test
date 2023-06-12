@@ -60,6 +60,13 @@ object StyleConst {
     // INFO
 
 
+    // CONSOLE
+    val MESSAGE_TYPE_INFO = 0
+    val MESSAGE_TYPE_LOG = 1
+    val MESSAGE_TYPE_WARN = 2
+    val MESSAGE_TYPE_ERROR = 3
+
+
 
     // FOOTER
 

@@ -15,12 +15,9 @@ object StorageKey {
     val VC_ROW = "vc-row"
     val VC_ROW_Length = "vc-rowlength"
 
-    // PROTOTYPE
-    val CODE_LINE = "code-line"
-    val CODE_LINE_LENGTH = "code-line-length"
-
-    val CURSOR_POS_ROW = "cursor-pos-row"
-    val CURSOR_POS_COLUMN = "cursor-pos-column"
+     /* Console */
+    val CONSOLE_SDOWN = "console-sdown"
+    val CONSOLE_PIN = "console-pin"
 
 
 }

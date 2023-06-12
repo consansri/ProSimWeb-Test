@@ -16,6 +16,7 @@ open class Architecture(config: Config) {
     private var transcript: Transcript
     private var flagsConditions: FlagsConditions?
     private var cache: Cache?
+    private val console: Console
 
     init {
         this.name = config.name
@@ -25,6 +26,7 @@ open class Architecture(config: Config) {
         this.transcript = config.transcript
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
+        this.console = Console("${config.name} Console")
     }
 
     fun getName(): String {
@@ -52,6 +54,10 @@ open class Architecture(config: Config) {
         return flagsConditions
     }
 
+    fun getConsole(): Console {
+        return console
+    }
+
 
     /*Execution Events*/
     open fun exeContinuous() {
@@ -76,7 +82,7 @@ open class Architecture(config: Config) {
 
     open fun exeClear() {
         memory.clear()
-        for(reg in registers){
+        for (reg in registers) {
             reg.clear()
         }
     }
@@ -130,7 +136,7 @@ open class Architecture(config: Config) {
 
     fun check(input: String, startAtLine: Int): String {
         var encode = HTMLTools.encodeBeforeHTML(input)
-        val code = hlAndCompile(encode,startAtLine)
+        val code = hlAndCompile(encode, startAtLine)
         archState.check(code.second)
 
         return code.first

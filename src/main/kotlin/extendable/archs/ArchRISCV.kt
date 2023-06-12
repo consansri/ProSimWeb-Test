@@ -16,6 +16,7 @@ class ArchRISCV() : Architecture(RISCV.config) {
         }
         for(ins in getInstructions()){
             if(ins.name == "ADD"){
+                getConsole().log("execute ADD")
                 ins.execute(listOf(TypeDEC(2), TypeLABEL("s1")), getDataMemory(), getRegister(), getFlagsConditions())
             }
         }

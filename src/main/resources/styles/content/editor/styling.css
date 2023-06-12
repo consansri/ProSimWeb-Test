@@ -79,6 +79,7 @@
 }
 
 .editor-scroll-container {
+    scroll-behavior: smooth;
     display: flex;
     overflow-y: auto;
     overflow-x: auto;

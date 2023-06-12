@@ -479,6 +479,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
+    useEffect(update){
+        textareaRef.current?.let {
+            checkCode(it.value, true)
+        }
+    }
+
+
     useEffect(update, transcriptView) {
         /* Component RELOAD */
 

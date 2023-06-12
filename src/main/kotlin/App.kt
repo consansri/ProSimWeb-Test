@@ -14,9 +14,9 @@ val App = FC<Props> { props ->
 
     var (data, setData) = useState(AppLogic())
 
-    localStorage.getItem(StorageKey.ARCH_TYPE)?.let{
+    localStorage.getItem(StorageKey.ARCH_TYPE)?.let {
         val loaded = it.toInt()
-        if(loaded in 0 until data.getArchList().size){
+        if (loaded in 0 until data.getArchList().size) {
             data.selID = loaded
         }
     }
@@ -29,9 +29,13 @@ val App = FC<Props> { props ->
     val codeEditorRef = useRef("")
     val processorViewRef = useRef<ProcessorViewProps>()
 
-    fun update(newData: AppLogic) {
+    fun updateAppLogic(newData: AppLogic) {
         console.log("update App from Child Component")
         setData(newData)
+        setReloadUI(!reloadUI)
+    }
+
+    fun updateApp(){
         setReloadUI(!reloadUI)
     }
 
@@ -48,7 +52,7 @@ val App = FC<Props> { props ->
     Menu {
         appLogic = data
         update = useState(reloadUI)
-        updateParent = ::update
+        updateParent = ::updateAppLogic
 
     }
 
@@ -61,7 +65,7 @@ val App = FC<Props> { props ->
                 CodeEditor {
                     appLogic = data
                     update = useState(reloadUI)
-                    updateParent = ::update
+                    updateParent = ::updateAppLogic
                 }
             }
 
@@ -70,27 +74,31 @@ val App = FC<Props> { props ->
                 ProcessorView {
                     appLogic = data
                     update = useState(reloadUI)
-                    updateParent = ::update
+                    updateAppLogic = ::updateAppLogic
                 }
             }
+
         }
         div {
             id = "bcontainer"
-            InfoView{
-                appLogic = data
-                update = useState(reloadUI)
-                updateParent = ::update
+            InfoView {
+                this.appLogic = data
+                this.update = useState(reloadUI)
+                this.updateParent = ::updateAppLogic
+                this.footerRef = footerRef
             }
         }
+
+
+
     }
 
 
     footer {
         ref = footerRef
-        FooterView{
-            
-        }
+        FooterView {
 
+        }
     }
 
     useEffect(reloadUI) {
