@@ -29,14 +29,15 @@ external interface RegisterViewProps : Props {
     var update: StateInstance<Boolean>
     var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
     var currentRegFileIndex: Int
+    var currentRegTypeIndex: Int
 }
 
 val RegisterView = FC<RegisterViewProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
-    val (currentRegFileIndex, setCurrentRegFileIndex) = useState<Int>(props.currentRegFileIndex)
-    val (currentRegTypeIndex, setCurrentRegType) = useState(0)
+    val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(props.currentRegFileIndex)
+    val (currRegTypeIndex, setCurrRegTypeIndex) = useState<Int>(props.currentRegTypeIndex)
     val (update, setUpdate) = useState(false)
     val change = props.update
     val theaders = ArchConst.REGISTER_HEADERS
@@ -99,7 +100,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 borderTop = Border(2.px, LineStyle.solid, Color("#000"))
                                 borderRight = Border(2.px, LineStyle.solid, Color("#000"))
 
-                                backgroundColor = if (currentRegFileIndex == regFileList.indexOf(regFile)) {
+                                backgroundColor = if (currRegFileIndex == regFileList.indexOf(regFile)) {
                                     Color("#EEEEEE")
                                 } else {
                                     Color("#999999")
@@ -108,7 +109,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             title = "Show RegFile ${regFile.name}"
                             +regFile.name
                             onClick = {
-                                setCurrentRegFileIndex(regFileList.indexOf(regFile))
+                                setCurrRegFileIndex(regFileList.indexOf(regFile))
                             }
                         }
                     }
@@ -127,7 +128,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 borderBottomRightRadius = 0.rem
                                 borderTop = Border(2.px, LineStyle.solid, Color("#000"))
                                 borderRight = Border(2.px, LineStyle.solid, Color("#000"))
-                                backgroundColor = if (currentRegFileIndex == regFileList.indexOf(regFile)) {
+                                backgroundColor = if (currRegFileIndex == regFileList.indexOf(regFile)) {
                                     Color("#EEEEEE")
                                 } else {
                                     Color("#999999")
@@ -137,7 +138,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             +regFile.name
 
                             onClick = {
-                                setCurrentRegFileIndex(regFileList.indexOf(regFile))
+                                setCurrRegFileIndex(regFileList.indexOf(regFile))
                             }
                         }
                     }
@@ -156,7 +157,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 borderBottomRightRadius = 0.rem
                                 borderTop = Border(2.px, LineStyle.solid, Color("#000"))
                                 borderRight = Border(2.px, LineStyle.solid, Color("#000"))
-                                backgroundColor = if (currentRegFileIndex == regFileList.indexOf(regFile)) {
+                                backgroundColor = if (currRegFileIndex == regFileList.indexOf(regFile)) {
                                     Color("#EEEEEE")
                                 } else {
                                     Color("#999999")
@@ -167,7 +168,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             +regFile.name
 
                             onClick = {
-                                setCurrentRegFileIndex(regFileList.indexOf(regFile))
+                                setCurrRegFileIndex(regFileList.indexOf(regFile))
                             }
                         }
                     }
@@ -185,6 +186,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             table {
                 className = ClassName("dcf-table dcf-table-striped dcf-w-100%")
 
+                val registerArray = registerContainer.getRegisterFileList()[currRegFileIndex]
+
                 thead {
                     tr {
                         for (header in theaders) {
@@ -199,38 +202,24 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                     className = ClassName("dcf-txt-center")
                                     scope = "col"
 
-                                    +ArchConst.REGISTER_VALUETYPES[currentRegTypeIndex].toString()
+                                    +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
 
                                     onClick = { event ->
-                                        if (currentRegTypeIndex < ArchConst.REGISTER_VALUETYPES.size - 1) {
-                                            setCurrentRegType(currentRegTypeIndex + 1)
+                                        if (currRegTypeIndex < ArchConst.REGISTER_VALUETYPES.size - 1) {
+                                            setCurrRegTypeIndex(currRegTypeIndex + 1)
                                         } else {
-                                            setCurrentRegType(0)
+                                            setCurrRegTypeIndex(0)
                                         }
-
-                                        bodyRef.current?.blur()
-
-                                        val valueCollection = document.getElementsByClassName("value-col")
-                                        for(valueID in 0 until valueCollection.length){
-                                            val valueTD = valueCollection[valueID]
-                                            (valueTD?.firstChild as HTMLInputElement).blur()
-
-                                        }
-
-
                                     }
-
 
                                 }
                             }
-
-
                         }
                     }
                 }
 
 
-                val registerArray = registerContainer.getRegisterFileList()[currentRegFileIndex]
+
 
                 tbody {
                     ref = bodyRef
@@ -240,7 +229,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             val regID = it.registers.indexOf(reg)
 
                             tr {
-
                                 th {
                                     className = ClassName("dcf-txt-center")
                                     scope = "row"
@@ -257,194 +245,99 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 td {
                                     className = ClassName("value-col dcf-txt-center")
 
-                                    val column = 0
+                                    input {
+                                        id = "reg0${it.name}${regID}"
+                                        className = ClassName(StyleConst.CLASS_TABLE_INPUT)
+                                        readOnly = false
 
-                                    when (ArchConst.REGISTER_VALUETYPES[currentRegTypeIndex]) {
-                                        HEX -> {
-                                            input {
-
-                                                id = "reg${column}${it.name}$regID"
-
-                                                className = ClassName(StyleConst.CLASS_TABLE_INPUT)
-
-                                                readOnly = false
+                                        when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                                            HEX -> {
                                                 type = InputType.text
                                                 pattern = "[0-9a-fA-F]+"
                                                 placeholder = ArchConst.PRESTRING_HEX
                                                 maxLength = reg.byteValue.size.byteCount * 2
-
                                                 defaultValue = reg.byteValue.get().toHex().getRawHexStr()
-
-                                                onChange = { event ->
-                                                    try {
-                                                        val newValue = event.currentTarget.value
-                                                        reg.byteValue.setHex(newValue)
-                                                        setUpdate(!update)
-                                                        appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBinary().getBinaryStr()}]")
-
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView reghex onChange: NumberFormatException")
-                                                    }
-                                                }
-
-                                                onBlur = { event ->
-                                                    try {
-                                                        event.currentTarget.value = reg.byteValue.get().toHex().getRawHexStr()
-                                                        /*val regdec = document.getElementById("regdec${it.name}$regID") as HTMLInputElement
-                                                        regdec.value = reg.byteValue.get().toDec().getRawDecStr()*/
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView reghex onBlur: NumberFormatException")
-                                                    }
-                                                }
-
-                                                onKeyDown = { event ->
-                                                    if (event.key == "Enter") {
-                                                        event.currentTarget.blur()
-                                                    }
-                                                }
-
-
                                             }
-                                        }
 
-                                        BIN -> {
-                                            input {
-
-                                                id = "reg${column}${it.name}$regID"
-
-                                                className = ClassName(StyleConst.CLASS_TABLE_INPUT)
-
-                                                readOnly = false
+                                            BIN -> {
                                                 type = InputType.text
                                                 pattern = "[01]+"
                                                 placeholder = ArchConst.PRESTRING_BINARY
                                                 maxLength = reg.byteValue.size.bitWidth
-
                                                 defaultValue = reg.byteValue.get().toBinary().getRawBinaryStr()
-
-                                                onChange = { event ->
-                                                    try {
-                                                        val newValue = event.currentTarget.value
-                                                        reg.byteValue.setBin(newValue)
-                                                        setUpdate(!update)
-                                                        appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBinary().getBinaryStr()}]")
-
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView reghex onChange: NumberFormatException")
-                                                    }
-                                                }
-
-                                                onBlur = { event ->
-                                                    try {
-                                                        event.currentTarget.value = reg.byteValue.get().toBinary().getRawBinaryStr()
-                                                        /*val regdec = document.getElementById("regdec${it.name}$regID") as HTMLInputElement
-                                                        regdec.value = reg.byteValue.get().toDec().getRawDecStr()*/
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView reghex onBlur: NumberFormatException")
-                                                    }
-                                                }
-
-                                                onKeyDown = { event ->
-                                                    if (event.key == "Enter") {
-                                                        event.currentTarget.blur()
-                                                    }
-                                                }
                                             }
-                                        }
 
-                                        DEC -> {
-                                            input {
-                                                id = "reg${column}${it.name}$regID"
-
-                                                className = ClassName(StyleConst.CLASS_TABLE_INPUT)
-
-                                                readOnly = false
+                                            DEC -> {
                                                 type = InputType.number
-                                                placeholder = ArchConst.PRESTRING_DECIMAL
                                                 pattern = "-?\\d+"
-
+                                                placeholder = ArchConst.PRESTRING_DECIMAL
                                                 defaultValue = reg.byteValue.get().toDec().getRawDecStr()
+                                            }
 
-                                                onChange = { event ->
-                                                    try {
-                                                        val newValue = event.currentTarget.value
-                                                        reg.byteValue.setDec(newValue)
-                                                        setUpdate(!update)
-
-                                                        appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBinary().getBinaryStr()}]")
-
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView regdec onChange: NumberFormatException")
-                                                    }
-
-                                                }
-
-                                                onBlur = { event ->
-                                                    try {
-                                                        event.currentTarget.value = reg.byteValue.get().toDec().getRawDecStr()
-                                                        /*val reghex = document.getElementById("reghex${it.name}$regID") as HTMLInputElement
-                                                        reghex.value = reg.byteValue.get().toHex().getRawHexStr()*/
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView regdec onBlur: NumberFormatException")
-                                                    }
-                                                }
-
-                                                onKeyDown = { event ->
-                                                    if (event.key == "Enter") {
-                                                        event.currentTarget.blur()
-                                                    }
-                                                }
-
+                                            UDEC -> {
+                                                type = InputType.number
+                                                placeholder = ArchConst.PRESTRING_DECIMAL
+                                                defaultValue = reg.byteValue.get().toUDec().getRawUDecStr()
                                             }
                                         }
 
-                                        UDEC -> {
-                                            input {
-                                                id = "reg${column}${it.name}$regID"
+                                        onChange = { event ->
+                                            try {
+                                                val newValue = event.currentTarget.value
+                                                when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                                                    HEX -> {
+                                                        reg.byteValue.setHex(newValue)
+                                                    }
 
-                                                className = ClassName(StyleConst.CLASS_TABLE_INPUT)
+                                                    BIN -> {
+                                                        reg.byteValue.setBin(newValue)
+                                                    }
 
-                                                readOnly = false
-                                                type = InputType.number
-                                                placeholder = ArchConst.PRESTRING_DECIMAL
+                                                    DEC -> {
+                                                        reg.byteValue.setDec(newValue)
+                                                    }
 
-                                                defaultValue = reg.byteValue.get().toUDec().getRawUDecStr()
-
-                                                onChange = { event ->
-                                                    try {
-                                                        val newValue = event.currentTarget.value
+                                                    UDEC -> {
                                                         reg.byteValue.setUDec(newValue)
-                                                        setUpdate(!update)
+                                                    }
+                                                }
+                                                setUpdate(!update)
+                                                appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBinary().getBinaryStr()}]")
 
-                                                        appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBinary().getBinaryStr()}]")
+                                            } catch (e: NumberFormatException) {
+                                                console.warn("RegisterView reg onChange: NumberFormatException")
+                                            }
+                                        }
 
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView regdec onChange: NumberFormatException")
+                                        onBlur = { event ->
+                                            try {
+                                                when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                                                    HEX -> {
+                                                        event.currentTarget.value = reg.byteValue.get().toHex().getRawHexStr()
                                                     }
 
-                                                }
+                                                    BIN -> {
+                                                        event.currentTarget.value = reg.byteValue.get().toBinary().getRawBinaryStr()
+                                                    }
 
-                                                onBlur = { event ->
-                                                    try {
+                                                    DEC -> {
                                                         event.currentTarget.value = reg.byteValue.get().toDec().getRawDecStr()
-                                                        /*val reghex = document.getElementById("reghex${it.name}$regID") as HTMLInputElement
-                                                        reghex.value = reg.byteValue.get().toHex().getRawHexStr()*/
-                                                    } catch (e: NumberFormatException) {
-                                                        console.warn("RegisterView regdec onBlur: NumberFormatException")
+                                                    }
+
+                                                    UDEC -> {
+                                                        event.currentTarget.value = reg.byteValue.get().toDec().getRawDecStr()
                                                     }
                                                 }
-
-                                                onKeyDown = { event ->
-                                                    if (event.key == "Enter") {
-                                                        event.currentTarget.blur()
-                                                    }
-                                                }
-
+                                            } catch (e: NumberFormatException) {
+                                                console.warn("RegisterView reghex onBlur: NumberFormatException")
+                                            }
+                                        }
+                                        onKeyDown = { event ->
+                                            if (event.key == "Enter") {
+                                                event.currentTarget.blur()
                                             }
                                         }
                                     }
-
-
                                 }
                                 td {
                                     className = ClassName("dcf-txt-left")
@@ -458,17 +351,70 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
-    useEffect(currentRegTypeIndex) {
+    useEffect(currRegTypeIndex) {
+        console.log("(update) RegisterView")
+        val registerContainer = appLogic.getArch().getRegisterContainer()
+        val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
+            registerContainer.getRegisterFileList()[currRegFileIndex]
+        } else {
+            setCurrRegFileIndex(0)
+            registerContainer.getRegisterFileList()[0]
+        }
+        registers.let {
+            for (reg in it.registers) {
+                val regID = it.registers.indexOf(reg)
+                try {
+                    val regRef = document.getElementById("reg0${it.name}$regID") as HTMLInputElement
+                    regRef.value = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                        HEX -> {
+                            reg.byteValue.get().toHex().getRawHexStr()
+                        }
+
+                        BIN -> {
+                            reg.byteValue.get().toBinary().getRawBinaryStr()
+                        }
+
+                        DEC -> {
+                            reg.byteValue.get().toDec().getRawDecStr()
+                        }
+
+                        UDEC -> {
+                            reg.byteValue.get().toUDec().getRawUDecStr()
+                        }
+                    }
+                    regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                        HEX -> {
+                            "${reg.byteValue.size.byteCount * 2}ch;"
+                        }
+
+                        BIN -> {
+                            "${reg.byteValue.size.bitWidth}ch;"
+                        }
+
+                        DEC -> {
+                            "auto;"
+                        }
+
+                        UDEC -> {
+                            "auto;"
+                        }
+                    }
+
+                } catch (e: NumberFormatException) {
+                    console.warn("RegisterView useEffect(currRegTypeIndex): NumberFormatException")
+                }
+            }
+        }
 
     }
 
     useEffect(change) {
         console.log("(update) RegisterView")
         val registerContainer = appLogic.getArch().getRegisterContainer()
-        val registers = if (currentRegFileIndex < registerContainer.getRegisterFileList().size) {
-            registerContainer.getRegisterFileList()[currentRegFileIndex]
+        val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
+            registerContainer.getRegisterFileList()[currRegFileIndex]
         } else {
-            setCurrentRegFileIndex(0)
+            setCurrRegFileIndex(0)
             registerContainer.getRegisterFileList()[0]
         }
         registers.let {

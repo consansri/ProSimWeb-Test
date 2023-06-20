@@ -33,6 +33,7 @@ external interface ProcessorViewProps : Props {
     var updateAppLogic: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
     var update: StateInstance<Boolean>
     var currRegFileIndex: Int
+    var currRegTypeIndex: Int
 }
 
 
@@ -213,6 +214,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.update = useState(change)
             this.updateParent = props.updateAppLogic
             this.currentRegFileIndex = props.currRegFileIndex
+            this.currentRegTypeIndex = props.currRegTypeIndex
         }
 
         FlagsCondsView {

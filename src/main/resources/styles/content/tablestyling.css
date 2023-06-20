@@ -121,6 +121,7 @@ th {
 
 .dcf-input {
     font-family: monospace;
+    width: 100%;
     border: none;
     border-radius: var(--border-radius);
     background-color: transparent;

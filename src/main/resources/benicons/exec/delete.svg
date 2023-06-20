@@ -1,6 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71">
     <defs>
-        <style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:6px;}</style>
+        <style>
+            .cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:6px;}
+        </style>
+        <style>
+            #Ebene_1 {
+                transition: all 1s ease;
+            }
+        </style>
     </defs>
     <g id="Ebene_2">
         <g id="Ebene_1">
@@ -9,7 +16,7 @@
             <line class="cls-2" x1="34.65" y1="35.24" x2="34.65" y2="64.99"/>
             <line class="cls-2" x1="45.35" y1="35.24" x2="45.35" y2="64.99"/>
             <line class="cls-2" x1="56.06" y1="35.24" x2="56.06" y2="64.99"/>
-            <line class="cls-2" x1="29.72" y1="16.55" x2="60.99" y2="16.55"/>
+            <line id="bin" class="cls-2" x1="29.72" y1="16.55" x2="60.99" y2="16.55"/>
         </g>
     </g>
 </svg>

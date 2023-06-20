@@ -11,6 +11,7 @@ val App = FC<Props> { props ->
 
     val (appLogic, setAppLogic) = useState<AppLogic>(AppLogic())
     val (currRegFileIndex, setCurrRegFileIndex) = useState(1)
+    val (currRegTypeIndex, setCurrRegTypeIndex) = useState(0)
 
     localStorage.getItem(StorageKey.ARCH_TYPE)?.let {
         val loaded = it.toInt()
@@ -73,6 +74,7 @@ val App = FC<Props> { props ->
                     update = useState(reloadUI)
                     updateAppLogic = ::updateAppLogic
                     this.currRegFileIndex = currRegFileIndex
+                    this.currRegTypeIndex = currRegTypeIndex
                 }
             }
 
