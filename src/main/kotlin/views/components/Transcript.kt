@@ -90,7 +90,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 tbody {
                     for (row in transcript.getContent()) {
                         tr {
-                            for (field in row) {
+                            for (field in row.content) {
                                 td {
                                     className = ClassName("dcf-txt-left")
                                     +field

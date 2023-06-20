@@ -10,31 +10,31 @@ open class Architecture(config: Config) {
     val executionStartAddress = 0
 
     private var name: String
-    private val registers: Array<Register>
+    private val registerContainer: RegisterContainer
     private val instructions: List<Instruction>
     private val memory: Memory
     private var transcript: Transcript
     private var flagsConditions: FlagsConditions?
     private var cache: Cache?
-    private val console: Console
+    private val IConsole: IConsole
 
     init {
         this.name = config.name
-        this.registers = config.register
+        this.registerContainer = config.registerContainer
         this.instructions = config.instructions
         this.memory = config.memory
         this.transcript = config.transcript
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
-        this.console = Console("${config.name} Console")
+        this.IConsole = IConsole("${config.name} Console")
     }
 
     fun getName(): String {
         return name
     }
 
-    fun getRegister(): Array<Register> {
-        return registers
+    fun getRegisterContainer(): RegisterContainer {
+        return registerContainer
     }
 
     fun getInstructions(): List<Instruction> {
@@ -45,7 +45,7 @@ open class Architecture(config: Config) {
         return transcript
     }
 
-    fun getDataMemory(): Memory {
+    fun getMemory(): Memory {
         return memory
     }
 
@@ -54,8 +54,8 @@ open class Architecture(config: Config) {
         return flagsConditions
     }
 
-    fun getConsole(): Console {
-        return console
+    fun getConsole(): IConsole {
+        return IConsole
     }
 
 
@@ -82,9 +82,7 @@ open class Architecture(config: Config) {
 
     open fun exeClear() {
         memory.clear()
-        for (reg in registers) {
-            reg.clear()
-        }
+        registerContainer.clear()
     }
 
     private fun highlightNumbers(input: String): String {
@@ -100,8 +98,17 @@ open class Architecture(config: Config) {
         return output
     }
 
+    protected fun removeComment(line: String): String {
+        val commentIndex = line.indexOf(ArchConst.PRESTRING_COMMENT)
+        return if (commentIndex != -1) {
+            line.substring(0, commentIndex)
+        } else {
+            line
+        }
+    }
+
     protected fun highlightKeyWords(input: String, keywords: Array<String>, flag: String): String {
-        val tag = "mark"
+        val tag = "span"
         val regex = Regex("\\b(${keywords.joinToString("|")})\\b", RegexOption.IGNORE_CASE)
 
         return input.replace(regex) { matchResult ->
@@ -120,7 +127,7 @@ open class Architecture(config: Config) {
     }
 
     protected fun highlight(input: String, flag: String): String {
-        val tag = "mark"
+        val tag = "span"
         return "<$tag class='$flag'>$input</$tag>"
     }
 

@@ -7,31 +7,28 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
 import views.*
 
-const val CLASS_NAV_IMG = "nav-img"
-const val CLASS_NAV_ACTIVE = "active"
-
 val App = FC<Props> { props ->
 
-    var (data, setData) = useState(AppLogic())
+    val (appLogic, setAppLogic) = useState<AppLogic>(AppLogic())
+    val (currRegFileIndex, setCurrRegFileIndex) = useState(1)
 
     localStorage.getItem(StorageKey.ARCH_TYPE)?.let {
         val loaded = it.toInt()
-        if (loaded in 0 until data.getArchList().size) {
-            data.selID = loaded
+        if (loaded in 0 until appLogic.getArchList().size) {
+            appLogic.selID = loaded
         }
     }
 
-    var (reloadUI, setReloadUI) = useState(false)
+    val (reloadUI, setReloadUI) = useState(false)
 
     val navRef = useRef<HTMLDivElement>()
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
-    val codeEditorRef = useRef("")
-    val processorViewRef = useRef<ProcessorViewProps>()
 
     fun updateAppLogic(newData: AppLogic) {
         console.log("update App from Child Component")
-        setData(newData)
+
+        setAppLogic(newData)
         setReloadUI(!reloadUI)
     }
 
@@ -50,7 +47,7 @@ val App = FC<Props> { props ->
     }
 
     Menu {
-        appLogic = data
+        this.appLogic = appLogic
         update = useState(reloadUI)
         updateParent = ::updateAppLogic
 
@@ -63,7 +60,7 @@ val App = FC<Props> { props ->
             div {
                 id = "lcontainer"
                 CodeEditor {
-                    appLogic = data
+                    this.appLogic = appLogic
                     update = useState(reloadUI)
                     updateParent = ::updateAppLogic
                 }
@@ -72,9 +69,10 @@ val App = FC<Props> { props ->
             div {
                 id = "rcontainer"
                 ProcessorView {
-                    appLogic = data
+                    this.appLogic = appLogic
                     update = useState(reloadUI)
                     updateAppLogic = ::updateAppLogic
+                    this.currRegFileIndex = currRegFileIndex
                 }
             }
 
@@ -82,7 +80,7 @@ val App = FC<Props> { props ->
         div {
             id = "bcontainer"
             InfoView {
-                this.appLogic = data
+                this.appLogic = appLogic
                 this.update = useState(reloadUI)
                 this.updateParent = ::updateAppLogic
                 this.footerRef = footerRef
@@ -103,6 +101,7 @@ val App = FC<Props> { props ->
 
     useEffect(reloadUI) {
         console.log("(update) App")
+        setCurrRegFileIndex(1)
     }
 
 }

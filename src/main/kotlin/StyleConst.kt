@@ -2,14 +2,23 @@ object StyleConst {
 
     /* HIGHLIGHTING */
 
-    val HLCLASS_error = "red"
-    val HLCLASS_green = "green"
-    val HLCLASS_blue = "blue"
-    val HLCLASS_cyan = "cyan"
-    val HLCLASS_orange = "orange"
-    val HLCLASS_hex = "hex"
-    val HLCLASS_dec = "decimal"
+    val HLCLASS_B00 = "base00"
+    val HLCLASS_B01 = "base01"
+    val HLCLASS_B02 = "base02"
+    val HLCLASS_B03 = "base03"
+    val HLCLASS_B04 = "base04"
+    val HLCLASS_B05 = "base05"
+    val HLCLASS_B06 = "base06"
+    val HLCLASS_B07 = "base07"
 
+    val HLCLASS_red = "red"
+    val HLCLASS_orange = "orange"
+    val HLCLASS_yellow = "yellow"
+    val HLCLASS_green = "green"
+    val HLCLASS_cyan = "cyan"
+    val HLCLASS_blue = "blue"
+    val HLCLASS_violet = "violet"
+    val HLCLASS_magenta = "magenta"
 
     /* CODE EDITOR */
 

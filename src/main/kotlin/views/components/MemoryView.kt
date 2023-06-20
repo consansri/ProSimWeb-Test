@@ -3,8 +3,7 @@ package views.components
 import AppLogic
 import csstype.*
 import emotion.react.css
-import extendable.ArchConst
-import extendable.components.connected.Memory
+import extendable.components.types.ByteValue
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
@@ -54,11 +53,11 @@ val MemoryView = FC<MemViewProps> { props ->
         return floor(address / memLength)
     }
 
-    fun dataForAddress(address: Double): Int? {
-        val memList = appLogic.getArch().getDataMemory().getMemList()
+    fun dataForAddress(address: Double): ByteValue? {
+        val memList = appLogic.getArch().getMemory().getMemList()
         for (memInstance in memList) {
             if (memInstance.address == address) {
-                return memInstance.getValue()
+                return memInstance.byteValue
             }
         }
         return null
@@ -66,7 +65,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
     fun calcMemTable() {
         val memRowsList: MutableList<MemRow> = mutableListOf()
-        for (memInstance in appLogic.getArch().getDataMemory().getMemList()) {
+        for (memInstance in appLogic.getArch().getMemory().getMemList()) {
             val rowID = calcRowID(memInstance.address)
             var found = false
             for (memRow in memRowsList) {
@@ -159,8 +158,8 @@ val MemoryView = FC<MemViewProps> { props ->
                                         title = "only zeros in addresses between"
                                         +"..."
                                     }
-                                    for(column in 0 .. memLength){
-                                        td{
+                                    for (column in 0..memLength) {
+                                        td {
                                             className = ClassName("dcf-txt-center")
                                             title = "only zeros in addresses between"
                                         }
@@ -174,14 +173,14 @@ val MemoryView = FC<MemViewProps> { props ->
                                 className = ClassName("dcf-txt-center")
                                 scope = "row"
                                 title = "Decimal: ${memRow.id.toLong()}"
-                                +appLogic.getArch().getDataMemory().getAddressHexString(memRow.id)
+                                +memRow.id.toLong().toString(16).uppercase()
                             }
 
                             for (column in 0 until memLength) {
                                 val address = memRow.address + column
-                                val hexAddress = appLogic.getArch().getDataMemory().getAddressHexString(address)
-                                val value = dataForAddress(address) ?: 0
-                                val hexValue = appLogic.getArch().getDataMemory().getWordHexString(value)
+                                val hexAddress = appLogic.getArch().getMemory().getAddressHexString(address)
+                                val value = dataForAddress(address) ?: appLogic.getArch().getMemory().getInitialBinary()
+                                val hexValue = value.get().toHex().getRawHexStr()
                                 td {
                                     className = ClassName("dcf-txt-center")
                                     title = "Address: $hexAddress, Value: $value"
@@ -194,8 +193,8 @@ val MemoryView = FC<MemViewProps> { props ->
                                 var asciiString = ""
                                 for (column in 0 until memLength) {
                                     val address = memRow.address + column
-                                    val hexValue = appLogic.getArch().getDataMemory().getWordHexString(dataForAddress(address) ?: 0)
-                                    asciiString += "${TypeTools.getASCIIFromHexString(hexValue)}"
+                                    val ascii = (dataForAddress(address) ?: appLogic.getArch().getMemory().getInitialBinary()).get().toASCII()
+                                    asciiString += ascii
                                 }
                                 +asciiString
                             }

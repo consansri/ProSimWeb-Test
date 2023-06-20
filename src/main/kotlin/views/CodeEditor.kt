@@ -53,7 +53,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- REACT STATES ----------------- */
 
     val appLogic by useState(props.appLogic)
-    val update = props.update
+    val (update, setUpdate) = useState(props.update)
     val (checkState, setCheckState) = useState(appLogic.getArch().archState.getState())
     val (exeStartLine, setExeStartLine) = useState(1)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
@@ -494,7 +494,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
-    useEffect(update){
+    useEffect(update) {
         textareaRef.current?.let {
             checkCode(it.value, true)
         }

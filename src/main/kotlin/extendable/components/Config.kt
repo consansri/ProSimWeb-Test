@@ -4,7 +4,7 @@ import extendable.components.connected.*
 
 data class Config(
     val name: String,
-    val register: Array<Register>,
+    val registerContainer: RegisterContainer,
     val instructions: List<Instruction>,
     val memory: Memory,
     val transcript: Transcript,
@@ -12,24 +12,20 @@ data class Config(
     val cache: Cache?
 ) {
 
-    init {
-
-    }
-
     constructor(
         name: String,
-        register: Array<Register>,
+        registerContainer: RegisterContainer,
         instructions: List<Instruction>,
         memory: Memory,
         transcript: Transcript
-    ) : this(name, register, instructions, memory, transcript, null, null)
+    ) : this(name, registerContainer, instructions, memory, transcript, null, null)
 
     constructor(
         name: String,
-        register: Array<Register>,
+        registerContainer: RegisterContainer,
         instructions: List<Instruction>,
         memory: Memory,
         transcript: Transcript,
         flagsConditions: FlagsConditions?
-    ) : this(name, register, instructions, memory, transcript, flagsConditions, null)
+    ) : this(name, registerContainer, instructions, memory, transcript, flagsConditions, null)
 }

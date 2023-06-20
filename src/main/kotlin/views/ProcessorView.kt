@@ -2,6 +2,9 @@ package views
 
 import AppLogic
 import csstype.ClassName
+import csstype.Color
+import emotion.react.css
+import extendable.components.connected.RegisterContainer
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -12,6 +15,7 @@ import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
 import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
+import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -28,6 +32,7 @@ external interface ProcessorViewProps : Props {
     var appLogic: AppLogic
     var updateAppLogic: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
     var update: StateInstance<Boolean>
+    var currRegFileIndex: Int
 }
 
 
@@ -43,6 +48,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     val progressBarRef = useRef<HTMLDivElement>()
     val progressPCRef = useRef<HTMLParagraphElement>()
 
+    val (currRegIndex, setCurrRegIndex) = useState(1)
 
     div {
         className = ClassName("exeControlDiv")
@@ -85,7 +91,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 title = "Continuous Execution"
                 p {
                     img {
-                        src = "icons/exec/play.svg"
+                        src = "benicons/exec/continuous-exe.svg"
                     }
 
                 }
@@ -102,7 +108,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 title = "Single Step"
                 p {
                     img {
-                        src = "icons/exec/singlestep.svg"
+                        src = "benicons/exec/single_exe.svg"
                     }
                 }
                 onClick = {
@@ -120,7 +126,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
                     p {
                         img {
-                            src = "icons/exec/play.svg"
+                            src = "benicons/exec/step_multiple.svg"
                         }
                     }
 
@@ -151,13 +157,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
 
 
+
             button {
                 className = ClassName("button")
                 id = "sover"
                 title = "Skip Subroutines"
                 p {
                     img {
-                        src = "icons/exec/skip.svg"
+                        src = "benicons/exec/step_over.svg"
                     }
                 }
                 onClick = {
@@ -171,7 +178,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 title = "Execute Subroutine"
                 p {
                     img {
-                        src = "icons/exec/align-vertical-center.svg"
+                        src = "benicons/exec/step_into.svg"
                     }
                 }
                 onClick = {
@@ -186,7 +193,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 title = "Reset"
                 p {
                     img {
-                        src = "icons/exec/clear.svg"
+                        src = "benicons/exec/delete.svg"
                     }
                 }
                 onClick = {
@@ -195,20 +202,17 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 }
             }
         }
-
-
     }
 
     div {
         className = ClassName("processorDiv")
-
-
 
         RegisterView {
             this.name = "Register"
             this.appLogic = appLogic
             this.update = useState(change)
             this.updateParent = props.updateAppLogic
+            this.currentRegFileIndex = props.currRegFileIndex
         }
 
         FlagsCondsView {

@@ -1,54 +1,66 @@
 package extendable.components.connected
 
-import extendable.ArchConst
-import extendable.components.types.Address
-import tools.HTMLTools
+import extendable.components.types.ByteValue
 import tools.TypeTools
 import kotlin.math.pow
 
-class Memory {
-    private val addressWidthBit: Int // in Bit
+class Memory(private val addressBitWidth: Int, private val initialValue: String, private val wordByteCount: Int) {
     private val globalSize: Double // in Byte
-    private val wordWidthBit: Int // in Bit
 
     private var memList: MutableList<DMemInstance>
 
-    constructor() {
-        this.addressWidthBit = 16
-        this.wordWidthBit = 8
-        this.globalSize = 2.0.pow(addressWidthBit.toDouble())
-        this.memList = mutableListOf<DMemInstance>()
-        setup()
-    }
-
-    constructor(addressWidthBit: Int, wordWidthBit: Int) {
-        this.addressWidthBit = addressWidthBit
-        this.wordWidthBit = wordWidthBit
-        this.globalSize = 2.0.pow(addressWidthBit.toDouble())
+    init {
+        require(addressBitWidth % 4 == 0 && addressBitWidth > 0) { "Memory: Address Bit width must be a positive multiple of 4." }
+        this.globalSize = 2.0.pow(addressBitWidth.toDouble())
         this.memList = mutableListOf<DMemInstance>()
         setup()
     }
 
     private fun setup() {
-        save(0.0, 0)
-        save(getAddressMax(), 0)
+        saveDec(0.0, initialValue)
+        saveDec(getAddressMax(), initialValue)
     }
 
-    fun save(address: Double, value: Int): Boolean {
+    fun saveBin(address: Double, binString: String): Boolean {
         for (instance in memList) {
             if (instance.address == address) {
-                instance.setValue(value)
+                instance.byteValue.setBin(binString)
                 return true
             }
         }
-        memList += DMemInstance(address, value, wordWidthBit)
+        memList += DMemInstance(address, ByteValue(initialValue, wordByteCount))
+        saveDec(address, binString)
         return false
     }
 
-    fun load(address: Double): Int? {
+    fun saveHex(address: Double, hexString: String): Boolean {
         for (instance in memList) {
             if (instance.address == address) {
-                return instance.getValue()
+                instance.byteValue.setHex(hexString)
+                return true
+            }
+        }
+        memList += DMemInstance(address, ByteValue(initialValue, wordByteCount))
+        saveDec(address, hexString)
+        return false
+    }
+
+    fun saveDec(address: Double, decString: String): Boolean {
+        for (instance in memList) {
+            if (instance.address == address) {
+                instance.byteValue.setDec(decString)
+                return true
+            }
+        }
+        memList += DMemInstance(address, ByteValue(initialValue, wordByteCount))
+        saveDec(address, decString)
+        return false
+    }
+
+    fun load(address: Double): ByteValue? {
+        for (instance in memList) {
+            if (instance.address == address) {
+                return instance.byteValue
             }
         }
         return null
@@ -67,25 +79,15 @@ class Memory {
         return globalSize - 1
     }
 
-    fun getWordHexString(value: Int): String {
-        return TypeTools.getHexString(value.toLong(), wordWidthBit / 4)
+    fun getInitialBinary(): ByteValue {
+        return ByteValue(initialValue, wordByteCount)
     }
 
     fun getAddressHexString(address: Double): String {
-        return TypeTools.getHexString(address.toLong(), addressWidthBit / 4)
+        return TypeTools.getHexString(address.toLong(), addressBitWidth / 4)
     }
 
-    class DMemInstance(val address: Double, private var value: Int, val bitWidth: Int) {
-
-        fun setValue(newValue: Int) {
-            value = newValue
-        }
-
-        fun getValue(): Int {
-            return value
-        }
-
-    }
+    data class DMemInstance(val address: Double, var byteValue: ByteValue)
 
 
 }

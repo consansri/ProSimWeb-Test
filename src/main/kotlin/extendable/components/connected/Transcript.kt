@@ -5,7 +5,7 @@ import extendable.ArchConst
 class Transcript {
 
     private val headers: Array<String>
-    private var content: List<Array<String>> = listOf()
+    private var content: List<TranscriptEntry> = listOf()
 
     constructor() {
         this.headers = ArchConst.TRANSCRIPT_HEADERS
@@ -17,18 +17,22 @@ class Transcript {
 
     }
 
-    fun getHeaders(): Array<String>{
-        return headers
+    fun setContent(transcriptEntrys: List<TranscriptEntry>) {
+        this.content = transcriptEntrys
     }
 
-    fun setContent(content: List<Array<String>>){
-        this.content = content
+    fun addContent(transcriptEntry: TranscriptEntry) {
+        this.content += transcriptEntry
     }
 
-    fun getContent(): List<Array<String>>{
+    fun getContent(): List<TranscriptEntry> {
         return content
     }
 
+    fun getHeaders(): Array<String> {
+        return headers
+    }
 
+    class TranscriptEntry(val content: Array<String>, val map: Map<LongRange, IntRange>)
 
 }
