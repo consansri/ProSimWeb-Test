@@ -566,7 +566,7 @@ object RISCV {
 
         val reg = registerContainer.getRegister("a1")?.byteValue
         reg?.let {
-            reg.setBin(BinaryTools.add(reg.get().toBinary().getRawBinaryStr(), "1"))
+            reg.setBin(BinaryTools.add(reg.get().toBin().getRawBinaryStr(), "1"))
         }
 
         return true

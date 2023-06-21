@@ -48,7 +48,15 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>) {
         return registerFileList
     }
 
-    data class Register(val address: Address, val name: String, val byteValue: ByteValue, val description: String)
+    data class Register(val address: Address, val name: String, val byteValue: ByteValue, val description: String){
+        fun get(): ByteValue.Type {
+            return byteValue.get()
+        }
+
+        fun set(value: ByteValue.Type){
+            byteValue.set(value)
+        }
+    }
 
     data class RegisterFile(val label: RegLabel, val name: String, val registers: Array<Register>)
 

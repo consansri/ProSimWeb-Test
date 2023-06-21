@@ -128,6 +128,81 @@ th {
     text-align: right;
 }
 
+.dcf-button {
+    cursor: pointer;
+    background-color: var(--main-accent-color);
+    box-shadow: inset 0px 2rem 50px -30px var(--rcontainer-bg-color);
+    color: var(--main-bg-color);
+    padding: 0.2rem 0.5rem;
+    transition: all 0.1s ease-in-out;
+    border-bottom-left-radius: calc(var(--border-radius) * 2);
+    border-bottom-right-radius: calc(var(--border-radius) * 2);
+}
+
+.dcf-button span {
+    margin: 0 0.5rem;
+}
+
+.dcf-button:hover {
+    filter: brightness(120%);
+}
+
+.dcf-button:hover > span {
+    margin: 0 4rem;
+}
+
+.dcf-button:hover > span:before {
+    content: "[  ";
+    /*transform: translateY(-0.1rem);*/
+}
+
+.dcf-button:hover > span:after {
+    content: "  ]";
+    /*transform: translateY(-0.1rem);*/
+}
+
+.dcf-tabs button {
+    padding-top: 0.5rem;
+}
+
+.dcf-tabs {
+    background-color: var(--rcontainer-bg-color);
+    position: relative;
+    display: block;
+    align-content: center;
+
+    border-top: 1px solid var(--main-bg-color);
+    border-left: 1px solid var(--main-bg-color);
+    border-top-left-radius: var(--border-radius);
+}
+
+
+.dcf-tabs a {
+    display: inline-block;
+    color: var(--main-bg-color);
+    cursor: pointer;
+    background-color: var(--main-accent-color-sec);
+    padding: 0.1rem 0.5rem;
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    margin-right: 0.5rem;
+    box-shadow: 0px 0.1rem 0.1rem 0px var(--main-accent-color-sec);
+    transition: all 0.05s ease;
+}
+
+.dcf-tab-active {
+    background-color: var(--main-bg-color) !important;
+    color: var(--main-fg-color) !important;
+    box-shadow: 0px 0rem 0.1rem 0px var(--main-bg-color) !important;;
+    padding: 0.2rem 0.5rem !important;
+}
+
+.dcf-tabs a:hover {
+    /*transform: translateY(0.05rem);*/
+    padding: 0.2rem 0.5rem;
+    border: none;
+}
+
 .dcf-monospace {
     font-family: monospace;
 }
@@ -191,7 +266,8 @@ th {
 
 .dcf-overflow-x-auto {
     overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius);
 }
 
 .dcf-w-100\% {

@@ -501,7 +501,7 @@ object DecTools {
         return result.trimStart('0')
     }
 
-    private fun checkEmpty(a: String): String{
+    fun checkEmpty(a: String): String{
         return if(a.equals("")){
             "0"
         }else{
@@ -509,7 +509,7 @@ object DecTools {
         }
     }
 
-    private fun checkEmpty(divResult: DivisionResult): DivisionResult{
+    fun checkEmpty(divResult: DivisionResult): DivisionResult{
         return if(divResult.result.equals("")){
             DivisionResult("0",divResult.rest)
         }else{

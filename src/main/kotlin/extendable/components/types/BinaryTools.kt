@@ -16,11 +16,11 @@ object BinaryTools {
             result = add(inv(a), "1")
         }
 
-        if(DebugTools.showBinaryToolsCalculations){
+        if (DebugTools.showBinaryToolsCalculations) {
             console.info("BinaryTools: negotiate($aBin) -> $result")
         }
 
-        return result
+        return checkEmpty(result)
     }
 
     fun add(aBin: String, bBin: String): String {
@@ -28,6 +28,7 @@ object BinaryTools {
     }
 
     fun addWithCarry(aBin: String, bBin: String): AdditionResult {
+
         /*
          * (checked)
          */
@@ -59,11 +60,50 @@ object BinaryTools {
             carryChar = '0'
         }
 
-        if(DebugTools.showBinaryToolsCalculations){
+        if (DebugTools.showBinaryToolsCalculations) {
             console.info("BinaryTools: addWithCarry($aBin, $bBin) -> result: ${result.trimStart('0')}, carry: $carryChar")
         }
 
-        return AdditionResult(result.trimStart('0'), carryChar)
+        return AdditionResult(checkEmpty(result.trimStart('0')), carryChar)
+    }
+
+    fun sub(aBin: String, bBin: String): String {
+
+        /*
+         * (checked)
+         */
+
+        val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+
+        val maxLength = maxOf(a.length, b.length)
+        val paddedA = a.padStart(maxLength, '0')
+        val paddedB = b.padStart(maxLength, '0')
+
+        var carry = 0
+
+        val result = StringBuilder()
+
+        for (i in maxLength - 1 downTo 0) {
+            val digitA = paddedA[i].digitToInt() - '0'.digitToInt()
+            val digitB = paddedB[i].digitToInt() - '0'.digitToInt()
+
+            val diff = digitA - digitB - carry
+
+            if (diff >= 0) {
+                result.append(diff)
+                carry = 0
+            } else {
+                result.append(diff + 2)
+                carry = 1
+            }
+        }
+
+        if (DebugTools.showBinaryToolsCalculations) {
+            console.info("BinaryTools: sub($aBin, $bBin) -> result: ${result.trimStart('0')}")
+        }
+
+        return checkEmpty(result.reverse().toString().trimStart('0'))
     }
 
     fun multiply(aBin: String, bBin: String): String {
@@ -82,9 +122,9 @@ object BinaryTools {
             try {
                 if (digit == '1') {
                     val additionResult = addWithCarry(result, aPuffer)
-                    if(additionResult.carry == '1'){
+                    if (additionResult.carry == '1') {
                         result = additionResult.carry + additionResult.result
-                    }else{
+                    } else {
                         result = additionResult.result
                     }
                 }
@@ -95,14 +135,46 @@ object BinaryTools {
             }
         }
 
-        if(DebugTools.showBinaryToolsCalculations){
+        if (DebugTools.showBinaryToolsCalculations) {
             console.info("BinaryTools: multiply($aBin, $bBin) -> ${result.trimStart('0')}")
         }
 
-        return result.trimStart('0')
+        return checkEmpty(result.trimStart('0'))
+    }
+
+    fun divide(dividend: String, divisor: String): DivisionResult {
+        val dend = dividend.trim().removePrefix(ArchConst.PRESTRING_BINARY).trimStart('0')
+        val sor = divisor.trim().removePrefix(ArchConst.PRESTRING_BINARY).trimStart('0')
+
+        if (isEqual(sor, "0")) {
+            console.warn("BinaryTools.divide(): No Division Possible! divisor is zero! returning 0b0")
+            return DivisionResult("0", "")
+        }
+
+        var comparison = ""
+        var result = ""
+        var remainingDividend = dend
+
+        while (remainingDividend.isNotEmpty()) {
+            comparison += remainingDividend[0]
+            remainingDividend = remainingDividend.substring(1)
+
+            if (isGreaterEqualThan(comparison, sor)) {
+                result += "1"
+                comparison = sub(comparison, sor).trimStart('0')
+            } else {
+                result += "0"
+            }
+        }
+        if (DebugTools.showBinaryToolsCalculations) {
+            console.log("BinaryTools: , divide($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${comparison + remainingDividend}")
+        }
+
+        return DivisionResult(checkEmpty(result.trimStart('0')), (comparison + remainingDividend).trimStart('0'))
     }
 
     fun inv(aBin: String): String {
+
         /*
          * (checked)
          */
@@ -119,13 +191,82 @@ object BinaryTools {
             }
         }
 
-        if(DebugTools.showBinaryToolsCalculations){
+        if (DebugTools.showBinaryToolsCalculations) {
             console.info("BinaryTools: inv($aBin) -> $result")
         }
-        return result
+        return checkEmpty(result)
+    }
+
+    fun isGreaterThan(aBin: String, bBin: String): Boolean {
+        val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val maxLength = maxOf(a.length, b.length)
+        val paddedA = a.padStart(maxLength, '0')
+        val paddedB = b.padStart(maxLength, '0')
+        for (i in paddedA.indices) {
+
+            val aDigit = paddedA[i]
+            val bDigit = paddedB[i]
+
+            if (aDigit != bDigit) {
+                if (aDigit == '1') {
+                    return true
+                } else {
+                    return false
+                }
+            }
+        }
+        return false
+    }
+
+    fun isEqual(aBin: String, bBin: String): Boolean {
+
+        val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val maxLength = maxOf(a.length, b.length)
+        val paddedA = a.padStart(maxLength, '0')
+        val paddedB = b.padStart(maxLength, '0')
+
+        for (i in paddedA.indices) {
+            if (paddedA[i] != paddedB[i]) {
+                return false
+            }
+        }
+        return true
+    }
+
+    fun isGreaterEqualThan(aBin: String, bBin: String): Boolean {
+        val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val maxLength = maxOf(a.length, b.length)
+        val paddedA = a.padStart(maxLength, '0')
+        val paddedB = b.padStart(maxLength, '0')
+        for (i in paddedA.indices) {
+
+            val aDigit = paddedA[i]
+            val bDigit = paddedB[i]
+
+            if (aDigit != bDigit) {
+                if (aDigit == '1') {
+                    return true
+                } else {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    fun checkEmpty(aBin: String): String {
+        return if (aBin == "") {
+            "0"
+        } else {
+            aBin
+        }
     }
 
     data class AdditionResult(val result: String, val carry: Char)
+    data class DivisionResult(val result: String, val rest: String)
 
 
 }

@@ -2,9 +2,6 @@ package extendable.components.types
 
 import extendable.ArchConst
 import tools.DebugTools
-import kotlin.math.abs
-import kotlin.math.absoluteValue
-import kotlin.math.pow
 
 class ByteValue {
 
@@ -42,7 +39,7 @@ class ByteValue {
     constructor(type: Type) {
         this.value = type
         this.size = type.size
-        this.initialBinary = type.toBinary().getBinaryStr()
+        this.initialBinary = type.toBin().getBinaryStr()
     }
 
 
@@ -53,6 +50,10 @@ class ByteValue {
 
     fun getBounds(): Bounds {
         return Bounds(size)
+    }
+
+    fun set(value: Type) {
+        this.value = value
     }
 
     fun setHex(hexString: String) {
@@ -75,22 +76,59 @@ class ByteValue {
         value = Type.Binary(initialBinary, size)
     }
 
-    enum class Interpretation {
-        BINARY,
-        HEX,
-        SIGNEDDEC,
-        UNSIGNEDDEC,
-        ASCII
+    /* operator */
+    operator fun plus(operand: ByteValue): ByteValue {
+        return ByteValue(value + operand.get())
+    }
+
+    operator fun minus(operand: ByteValue): ByteValue {
+        return ByteValue(value - operand.get())
+    }
+
+    operator fun times(operand: ByteValue): ByteValue {
+        return ByteValue(value * operand.get())
+    }
+
+    operator fun div(operand: ByteValue): ByteValue {
+        return ByteValue(value / operand.get())
+    }
+
+    operator fun rem(operand: ByteValue): ByteValue {
+        return ByteValue(value % operand.get())
+    }
+
+    operator fun unaryMinus(): ByteValue {
+        return ByteValue(-value)
+    }
+
+    operator fun inc(): ByteValue {
+        this.value = this.value++
+        return ByteValue(++value)
+    }
+
+    operator fun dec(): ByteValue {
+        this.value = this.value--
+        return ByteValue(--value)
     }
 
     sealed class Type(val size: Size) {
 
         abstract fun check(string: String, size: Size): CheckResult
-        abstract fun toBinary(): Binary
+        abstract fun toBin(): Binary
         abstract fun toHex(): Hex
         abstract fun toDec(): Dec
         abstract fun toUDec(): UDec
         abstract fun toASCII(): String
+
+        abstract operator fun plus(operand: Type): Type
+        abstract operator fun minus(operand: Type): Type
+        abstract operator fun times(operand: Type): Type
+        abstract operator fun div(operand: Type): Type
+        abstract operator fun rem(operand: Type): Type
+        abstract operator fun unaryMinus(): Type
+        abstract operator fun inc(): Type
+        abstract operator fun dec(): Type
+
 
         class Binary(binString: String, size: Size) : Type(size) {
             private val binString: String
@@ -154,7 +192,7 @@ class ByteValue {
             }
 
 
-            override fun toBinary(): Binary {
+            override fun toBin(): Binary {
                 return this
             }
 
@@ -170,7 +208,47 @@ class ByteValue {
                 return Conversion.getASCII(this)
             }
 
+            override fun plus(operand: Type): Type {
+                val result = BinaryTools.add(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(result, biggerSize)
+            }
 
+            override fun minus(operand: Type): Type {
+                val result = BinaryTools.sub(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(result, biggerSize)
+            }
+
+            override fun times(operand: Type): Type {
+                val result = BinaryTools.multiply(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(result, biggerSize)
+            }
+
+            override fun div(operand: Type): Type {
+                val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(divResult.result, biggerSize)
+            }
+
+            override fun rem(operand: Type): Type {
+                val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(BinaryTools.checkEmpty(divResult.rest), biggerSize)
+            }
+
+            override fun unaryMinus(): Type {
+                return Binary(BinaryTools.negotiate(this.getRawBinaryStr()), size)
+            }
+
+            override fun inc(): Type {
+                return Binary(BinaryTools.add(this.getRawBinaryStr(), "1"), size)
+            }
+
+            override fun dec(): Type {
+                return Binary(BinaryTools.sub(this.getRawBinaryStr(), "1"), size)
+            }
         }
 
         class Hex(hexString: String, size: Size) : Type(size) {
@@ -209,20 +287,62 @@ class ByteValue {
                 }
             }
 
-            override fun toBinary(): Binary {
+            override fun toBin(): Binary {
                 return Conversion.getBinary(this)
             }
 
             override fun toDec(): Dec {
-                return Conversion.getDec(this.toBinary())
+                return Conversion.getDec(this.toBin())
             }
 
             override fun toUDec(): UDec {
-                return Conversion.getUDec(this.toBinary())
+                return Conversion.getUDec(this.toBin())
             }
 
             override fun toASCII(): String {
                 return Conversion.getASCII(this)
+            }
+
+            override fun plus(operand: Type): Type {
+                val result = BinaryTools.add(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(result, biggerSize).toHex()
+            }
+
+            override fun minus(operand: Type): Type {
+                val result = BinaryTools.sub(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(result, biggerSize).toHex()
+            }
+
+            override fun times(operand: Type): Type {
+                val result = BinaryTools.multiply(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(result, biggerSize).toHex()
+            }
+
+            override fun div(operand: Type): Type {
+                val divResult = BinaryTools.divide(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(divResult.result, biggerSize).toHex()
+            }
+
+            override fun rem(operand: Type): Type {
+                val divResult = BinaryTools.divide(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Binary(BinaryTools.checkEmpty(divResult.rest), biggerSize).toHex()
+            }
+
+            override fun unaryMinus(): Type {
+                return Binary(BinaryTools.negotiate(this.toBin().getRawBinaryStr()), size).toHex()
+            }
+
+            override fun inc(): Type {
+                return Binary(BinaryTools.add(this.toBin().getRawBinaryStr(), "1"), size).toHex()
+            }
+
+            override fun dec(): Type {
+                return Binary(BinaryTools.sub(this.toBin().getRawBinaryStr(), "1"), size).toHex()
             }
 
             override fun toHex(): Hex {
@@ -273,7 +393,7 @@ class ByteValue {
                 }
             }
 
-            override fun toBinary(): Binary {
+            override fun toBin(): Binary {
                 return Conversion.getBinary(this)
             }
 
@@ -286,11 +406,53 @@ class ByteValue {
             }
 
             override fun toUDec(): UDec {
-                return Conversion.getUDec(this.toBinary())
+                return Conversion.getUDec(this.toBin())
             }
 
             override fun toASCII(): String {
                 return Conversion.getBinary(this).toASCII()
+            }
+
+            override fun plus(operand: Type): Type {
+                val result = DecTools.add(this.getRawDecStr(), operand.toDec().getRawDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Dec(result, biggerSize)
+            }
+
+            override fun minus(operand: Type): Type {
+                val result = DecTools.sub(this.getRawDecStr(), operand.toDec().getRawDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Dec(result, biggerSize)
+            }
+
+            override fun times(operand: Type): Type {
+                val result = DecTools.multiply(this.getRawDecStr(), operand.toDec().getRawDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Dec(result, biggerSize)
+            }
+
+            override fun div(operand: Type): Type {
+                val divResult = DecTools.divide(this.getRawDecStr(), operand.toDec().getRawDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Dec(divResult.result, biggerSize)
+            }
+
+            override fun rem(operand: Type): Type {
+                val divResult = DecTools.divide(this.getRawDecStr(), operand.toDec().getRawDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return Dec(DecTools.checkEmpty(divResult.rest), biggerSize)
+            }
+
+            override fun unaryMinus(): Type {
+                return Dec(DecTools.negotiate(this.getRawDecStr()), size)
+            }
+
+            override fun inc(): Type {
+                return Dec(DecTools.add(this.getRawDecStr(), "1"), size)
+            }
+
+            override fun dec(): Type {
+                return Dec(DecTools.sub(this.getRawDecStr(), "1"), size)
             }
 
         }
@@ -314,8 +476,13 @@ class ByteValue {
                 val formatted = string.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
 
                 val posRegex = Regex("[0-9]+")
+                val negRegex = Regex("-[0-9]+")
 
-                if (!posRegex.matches(formatted)) {
+                if (negRegex.matches(formatted)) {
+                    val posValue = DecTools.abs(formatted)
+                    console.warn("ByteValue.Type.UDec.check(): ${formatted} is negative! returning absolute Value instead: ${posValue}")
+                    return CheckResult(false, ArchConst.PRESTRING_DECIMAL + posValue)
+                } else if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
                     console.warn("ByteValue.Type.UDec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_DECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
                     return CheckResult(false, ArchConst.PRESTRING_DECIMAL + zeroString)
@@ -332,7 +499,7 @@ class ByteValue {
                 }
             }
 
-            override fun toBinary(): Binary {
+            override fun toBin(): Binary {
                 return Conversion.getBinary(this)
             }
 
@@ -350,6 +517,49 @@ class ByteValue {
 
             override fun toASCII(): String {
                 return Conversion.getASCII(this)
+            }
+
+            override fun plus(operand: Type): Type {
+                val result = DecTools.add(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return UDec(result, biggerSize)
+            }
+
+            override fun minus(operand: Type): Type {
+                val result = DecTools.sub(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return UDec(result, biggerSize)
+            }
+
+            override fun times(operand: Type): Type {
+                val result = DecTools.multiply(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return UDec(result, biggerSize)
+            }
+
+            override fun div(operand: Type): Type {
+                val divResult = DecTools.divide(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return UDec(divResult.result, biggerSize)
+            }
+
+            override fun rem(operand: Type): Type {
+                val divResult = DecTools.divide(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
+                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                return UDec(DecTools.checkEmpty(divResult.rest), biggerSize)
+            }
+
+            override fun unaryMinus(): Type {
+                console.warn("ByteValue.Type.UDec: Executing unaryMinus on unsigned decimal! -> no affect!")
+                return UDec(this.getRawUDecStr(), size)
+            }
+
+            override fun inc(): Type {
+                return Dec(DecTools.add(this.getRawUDecStr(), "1"), size)
+            }
+
+            override fun dec(): Type {
+                return Dec(DecTools.sub(this.getRawUDecStr(), "1"), size)
             }
         }
 

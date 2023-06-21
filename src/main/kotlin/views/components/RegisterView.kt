@@ -9,13 +9,13 @@ import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
-import org.w3c.dom.get
 import react.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -57,17 +57,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
         div {
 
-            css {
-                backgroundColor = Color("#333333")
-                position = Position.relative
-                display = Display.block
-                alignContent = AlignContent.center
-                paddingTop = 0.2.rem
-            }
+            className = ClassName("dcf-tabs")
 
             button {
                 css {
-                    color = Color("#AAAAAA")
+                    color = Color("#FFFFFF")
                     backgroundColor = Color("#AAAAAA00")
                     paddingLeft = 1.rem
                     paddingRight = 1.rem
@@ -87,26 +81,14 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     RegisterContainer.RegLabel.MAIN -> {
                         a {
-                            css {
-                                cursor = Cursor.pointer
-                                color = Color("#000000")
-                                appearance = Appearance.menulistButton
-                                paddingLeft = 0.5.rem
-                                paddingRight = 0.5.rem
-                                borderTopLeftRadius = 0.2.rem
-                                borderTopRightRadius = 0.2.rem
-                                borderBottomLeftRadius = 0.rem
-                                borderBottomRightRadius = 0.rem
-                                borderTop = Border(2.px, LineStyle.solid, Color("#000"))
-                                borderRight = Border(2.px, LineStyle.solid, Color("#000"))
-
-                                backgroundColor = if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                    Color("#EEEEEE")
-                                } else {
-                                    Color("#999999")
-                                }
+                            if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                                className = ClassName("dcf-tab-active")
+                            }else{
+                                className = ClassName("")
                             }
+
                             title = "Show RegFile ${regFile.name}"
+
                             +regFile.name
                             onClick = {
                                 setCurrRegFileIndex(regFileList.indexOf(regFile))
@@ -116,23 +98,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     RegisterContainer.RegLabel.SYSTEM -> {
                         a {
-                            css {
-                                cursor = Cursor.pointer
-                                color = Color("#000000")
-                                appearance = Appearance.menulistButton
-                                paddingLeft = 0.5.rem
-                                paddingRight = 0.5.rem
-                                borderTopLeftRadius = 0.2.rem
-                                borderTopRightRadius = 0.2.rem
-                                borderBottomLeftRadius = 0.rem
-                                borderBottomRightRadius = 0.rem
-                                borderTop = Border(2.px, LineStyle.solid, Color("#000"))
-                                borderRight = Border(2.px, LineStyle.solid, Color("#000"))
-                                backgroundColor = if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                    Color("#EEEEEE")
-                                } else {
-                                    Color("#999999")
-                                }
+                            if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                                className = ClassName("dcf-tab-active")
+                            }else{
+                                className = ClassName("")
                             }
                             title = "Show RegFile ${regFile.name}"
                             +regFile.name
@@ -145,23 +114,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     RegisterContainer.RegLabel.CUSTOM -> {
                         a {
-                            css {
-                                cursor = Cursor.pointer
-                                color = Color("#000000")
-                                appearance = Appearance.menulistButton
-                                paddingLeft = 0.5.rem
-                                paddingRight = 0.5.rem
-                                borderTopLeftRadius = 0.2.rem
-                                borderTopRightRadius = 0.2.rem
-                                borderBottomLeftRadius = 0.rem
-                                borderBottomRightRadius = 0.rem
-                                borderTop = Border(2.px, LineStyle.solid, Color("#000"))
-                                borderRight = Border(2.px, LineStyle.solid, Color("#000"))
-                                backgroundColor = if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                    Color("#EEEEEE")
-                                } else {
-                                    Color("#999999")
-                                }
+                            if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                                className = ClassName("dcf-tab-active")
+                            }else{
+                                className = ClassName("")
                             }
                             title = "Show RegFile ${regFile.name}"
 
@@ -199,10 +155,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 }
                             } else {
                                 th {
-                                    className = ClassName("dcf-txt-center")
+                                    className = ClassName("dcf-txt-center dcf-button")
                                     scope = "col"
 
-                                    +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
+                                    span{
+                                        +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
+                                    }
 
                                     onClick = { event ->
                                         if (currRegTypeIndex < ArchConst.REGISTER_VALUETYPES.size - 1) {
@@ -264,7 +222,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                 pattern = "[01]+"
                                                 placeholder = ArchConst.PRESTRING_BINARY
                                                 maxLength = reg.byteValue.size.bitWidth
-                                                defaultValue = reg.byteValue.get().toBinary().getRawBinaryStr()
+                                                defaultValue = reg.byteValue.get().toBin().getRawBinaryStr()
                                             }
 
                                             DEC -> {
@@ -302,7 +260,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                     }
                                                 }
                                                 setUpdate(!update)
-                                                appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBinary().getBinaryStr()}]")
+                                                appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBin().getBinaryStr()}]")
 
                                             } catch (e: NumberFormatException) {
                                                 console.warn("RegisterView reg onChange: NumberFormatException")
@@ -317,7 +275,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                     }
 
                                                     BIN -> {
-                                                        event.currentTarget.value = reg.byteValue.get().toBinary().getRawBinaryStr()
+                                                        event.currentTarget.value = reg.byteValue.get().toBin().getRawBinaryStr()
                                                     }
 
                                                     DEC -> {
@@ -371,7 +329,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         }
 
                         BIN -> {
-                            reg.byteValue.get().toBinary().getRawBinaryStr()
+                            reg.byteValue.get().toBin().getRawBinaryStr()
                         }
 
                         DEC -> {
