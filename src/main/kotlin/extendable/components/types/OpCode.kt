@@ -1,6 +1,7 @@
 package extendable.components.types
 
 import extendable.ArchConst
+import extendable.components.connected.Instruction
 
 class OpCode(private var opMask: String, private var opLabels: List<OpLabel>, private var splitSymbol: String) {
 
@@ -78,7 +79,7 @@ class OpCode(private var opMask: String, private var opLabels: List<OpLabel>, pr
         return decimal.toString(16).uppercase()
     }
 
-    class OpLabel(val name: String, val type: String?, val static: Boolean)
+    class OpLabel(val name: String, val type: Instruction.EXT?, val static: Boolean)
 
 
 }

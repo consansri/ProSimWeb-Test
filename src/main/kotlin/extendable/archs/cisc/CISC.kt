@@ -18,20 +18,24 @@ object CISC {
         RegisterContainer(
             listOf(
                 RegisterContainer.RegisterFile(RegisterContainer.RegLabel.PC, "PC", arrayOf(RegisterContainer.Register(Address(0, 32), "r0", ByteValue("0", 4), ""))),
-                        RegisterContainer.RegisterFile(RegisterContainer.RegLabel.MAIN, "MAIN", arrayOf(RegisterContainer.Register(Address(0, 32), "r0", ByteValue("0", 4), ""))),
+                RegisterContainer.RegisterFile(RegisterContainer.RegLabel.MAIN, "MAIN", arrayOf(RegisterContainer.Register(Address(0, 32), "r0", ByteValue("0", 4), ""))),
                 RegisterContainer.RegisterFile(RegisterContainer.RegLabel.SYSTEM, "SYSTEM", arrayOf(RegisterContainer.Register(Address(0, 32), "r0", ByteValue("0", 4), ""))),
                 RegisterContainer.RegisterFile(RegisterContainer.RegLabel.CUSTOM, "CUSTOM", arrayOf(RegisterContainer.Register(Address(0, 32), "r0", ByteValue("0", 4), ""))),
             )
         ),
         listOf(
-            Instruction("name", listOf(ArchConst.EXTYPE_REGISTER), OpCode("0101010", listOf(OPLBL_OPCODE), OPLBL_SPLIT), "", "", ",", ::add),
+            Instruction("name", listOf(Instruction.EXT.REG), OpCode("0101010", listOf(OPLBL_OPCODE), OPLBL_SPLIT), "", "", ",", ::add),
         ),
         Memory(32, "0", 4),
         Transcript()
     )
 
-    fun add(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, memory: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun add(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, memory: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
 }

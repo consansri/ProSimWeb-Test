@@ -1,5 +1,7 @@
 package extendable
 
+import extendable.components.connected.Instruction
+
 object ArchConst {
     /*
      *    !! use this Object only in Development Phase to test instances even if other Instances are not integrated yet !!
@@ -35,7 +37,6 @@ object ArchConst {
     const val POSTSTRING_JLABEL = ":"
 
     // REGEX SPLITTER
-    val SPACINGS = listOf("\t", " ")
     val LINEBREAKS = listOf("\n", "\r", "\r\n")
 
     // STATES
@@ -57,6 +58,16 @@ object ArchConst {
         DEC,
         UDEC
     }
+
+    // Assembler
+    /* REGULAR EXPRESSIONS */
+    val extMap = mapOf<Instruction.EXT, Regex>(
+        Instruction.EXT.REG to Regex("""\s*(?<reg>[a-zA-Z][a-zA-Z0-9]*)\s*""", RegexOption.IGNORE_CASE),
+        Instruction.EXT.IMM to Regex("""\s*(?<imm>((?<hex>0x[0-9a-fA-F]+)|(?<bin>0b[0-1]+)|(?<dec>(-)?[0-9]+)))\s*""", RegexOption.IGNORE_CASE),
+        Instruction.EXT.LABEL to Regex("""\s*(?<lbl>[a-zA-Z0-9]+)\s*""", RegexOption.IGNORE_CASE),
+        Instruction.EXT.SHIFT to Regex("""\s*(?<shift>(-)?[0-9]+)\s*"""),
+        Instruction.EXT.ADDRESS to Regex("""\s*(?<shift>(-)?[0-9]+)\s*""")
+    )
 
 
 }

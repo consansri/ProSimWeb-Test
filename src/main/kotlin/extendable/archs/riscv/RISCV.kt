@@ -21,11 +21,7 @@ object RISCV {
 
     // REGEX
     const val PARAM_SPLITTER = ","
-    val REGEX_LABEL = Regex("""(.*?):""")
-    val REGEX_COMMENT = Regex("#.*$")
-    val REGEX_DIRECTIVE = Regex("""\.(.*?)\s""")
-    val REGEX_MACRO = Regex("""@(\w+)""")
-    val REGEX_INCLUDE = Regex("""#include\s+(.*)""")
+
 
     // INS REGEX
 
@@ -35,10 +31,10 @@ object RISCV {
     val OPLBL_FUNCT7 = OpCode.OpLabel("[funct7]", null, true)
     val OPLBL_OPCODE = OpCode.OpLabel("[opcode]", null, true)
     val OPLBL_FUNCT3 = OpCode.OpLabel("[funct3]", null, true)
-    val OPLBL_IMM = OpCode.OpLabel("[imm]", ArchConst.EXTYPE_IMMEDIATE, false)
-    val OPLBL_RS1 = OpCode.OpLabel("[rs1]", ArchConst.EXTYPE_REGISTER, false)
-    val OPLBL_RS2 = OpCode.OpLabel("[rs2]", ArchConst.EXTYPE_REGISTER, false)
-    val OPLBL_RD = OpCode.OpLabel("[rd]", ArchConst.EXTYPE_REGISTER, false)
+    val OPLBL_IMM = OpCode.OpLabel("[imm]", Instruction.EXT.IMM, false)
+    val OPLBL_RS1 = OpCode.OpLabel("[rs1]", Instruction.EXT.REG, false)
+    val OPLBL_RS2 = OpCode.OpLabel("[rs2]", Instruction.EXT.REG, false)
+    val OPLBL_RD = OpCode.OpLabel("[rd]", Instruction.EXT.REG, false)
 
     // CONFIG
     val config = Config(
@@ -90,7 +86,7 @@ object RISCV {
         listOf(
             Instruction(
                 "LUI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b0110111", listOf(OPLBL_OPCODE), OPSPLIT),
                 "rd ← imm",
                 "Load Upper Immediate",
@@ -99,7 +95,7 @@ object RISCV {
             ),
             Instruction(
                 "AUIPC",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b0010111", listOf(OPLBL_OPCODE), OPSPLIT),
                 "rd ← pc + offset",
                 "Add Upper Immediate to PC",
@@ -108,7 +104,7 @@ object RISCV {
             ),
             Instruction(
                 "JAL",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b1101111", listOf(OPLBL_OPCODE), OPSPLIT),
                 "rd ← pc + length(inst), pc ← pc + offset",
                 "Jump and Link",
@@ -117,7 +113,7 @@ object RISCV {
             ),
             Instruction(
                 "JALR",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b000_00000_1100111", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← pc + length(inst), pc ← (rs1 + offset) ∧ -2",
                 "Jump and Link Register",
@@ -145,7 +141,7 @@ object RISCV {
 
             Instruction(
                 "BEQ",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b000_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "if rs1 = rs2 then pc ← pc + offset",
                 "Branch Equal",
@@ -154,7 +150,7 @@ object RISCV {
             ),
             Instruction(
                 "BNE",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b001_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "if rs1 ≠ rs2 then pc ← pc + offset",
                 "Branch Not Equal",
@@ -163,7 +159,7 @@ object RISCV {
             ),
             Instruction(
                 "BLT",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b100_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "if rs1 < rs2 then pc ← pc + offset",
                 "Branch Less Than",
@@ -172,7 +168,7 @@ object RISCV {
             ),
             Instruction(
                 "BGE",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b101_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "if rs1 ≥ rs2 then pc ← pc + offset",
                 "Branch Greater than Equal",
@@ -181,7 +177,7 @@ object RISCV {
             ),
             Instruction(
                 "BLTU",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b110_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "if rs1 < rs2 then pc ← pc + offset",
                 "Branch Less Than Unsigned",
@@ -190,7 +186,7 @@ object RISCV {
             ),
             Instruction(
                 "BGEU",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b111_00000_1100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "if rs1 ≥ rs2 then pc ← pc + offset",
                 "Branch Greater than Equal Unsigned",
@@ -199,7 +195,7 @@ object RISCV {
             ),
             Instruction(
                 "LB",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b000_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← s8[rs1 + offset]",
                 "Load Byte",
@@ -208,7 +204,7 @@ object RISCV {
             ),
             Instruction(
                 "LH",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b001_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← s16[rs1 + offset]",
                 "Load Half",
@@ -217,7 +213,7 @@ object RISCV {
             ),
             Instruction(
                 "LW",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b010_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← s32[rs1 + offset]",
                 "Load Word",
@@ -226,7 +222,7 @@ object RISCV {
             ),
             Instruction(
                 "LBU",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b100_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← u8[rs1 + offset]",
                 "Load Byte Unsigned",
@@ -235,7 +231,7 @@ object RISCV {
             ),
             Instruction(
                 "LHU",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b101_00000_0000011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← u16[rs1 + offset]",
                 "Load Half Unsigned",
@@ -244,7 +240,7 @@ object RISCV {
             ),
             Instruction(
                 "SB",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b000_00000_0100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "u8[rs1 + offset] ← rs2",
                 "Store Byte",
@@ -253,7 +249,7 @@ object RISCV {
             ),
             Instruction(
                 "SH",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b001_00000_0100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "u16[rs1 + offset] ← rs2",
                 "Store Half",
@@ -262,7 +258,7 @@ object RISCV {
             ),
             Instruction(
                 "SW",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b010_00000_0100011", listOf(OPLBL_FUNCT3, OPLBL_IMM, OPLBL_OPCODE), OPSPLIT),
                 "u32[rs1 + offset] ← rs2",
                 "Store Word",
@@ -271,7 +267,7 @@ object RISCV {
             ),
             Instruction(
                 "ADDI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b000_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← rs1 + sx(imm)",
                 "Add Immediate",
@@ -280,7 +276,7 @@ object RISCV {
             ),
             Instruction(
                 "SLTI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b010_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← sx(rs1) < sx(imm)",
                 "Set Less Than Immediate",
@@ -289,7 +285,7 @@ object RISCV {
             ),
             Instruction(
                 "SLTIU",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b011_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) < ux(imm)",
                 "Set Less Than Immediate Unsigned",
@@ -298,7 +294,7 @@ object RISCV {
             ),
             Instruction(
                 "XORI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b100_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) ⊕ ux(imm)",
                 "Xor Immediate",
@@ -307,7 +303,7 @@ object RISCV {
             ),
             Instruction(
                 "ORI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b110_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) ∨ ux(imm)",
                 "Or Immediate",
@@ -316,7 +312,7 @@ object RISCV {
             ),
             Instruction(
                 "ANDI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_IMMEDIATE),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.IMM),
                 OpCode("0b111_00000_0010011", listOf(OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) ∧ ux(imm)",
                 "And Immediate",
@@ -325,7 +321,7 @@ object RISCV {
             ),
             Instruction(
                 "SLLI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.SHIFT),
                 OpCode("0b0000000_00000_00000_001_00000_0010011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) « ux(imm)",
                 "Shift Left Logical Immediate",
@@ -334,7 +330,7 @@ object RISCV {
             ),
             Instruction(
                 "SRLI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.SHIFT),
                 OpCode("0b0000000_00000_00000_101_00000_0010011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) » ux(imm)",
                 "Shift Right Logical Immediate",
@@ -343,7 +339,7 @@ object RISCV {
             ),
             Instruction(
                 "SRAI",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_SHIFT),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.SHIFT),
                 OpCode("0b0100000_00000_00000_101_00000_0010011", listOf(OPLBL_IMM, OPLBL_NOVAL, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← sx(rs1) » ux(imm)",
                 "Shift Right Arithmetic Immediate",
@@ -352,7 +348,7 @@ object RISCV {
             ),
             Instruction(
                 "ADD",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_000_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← sx(rs1) + sx(rs2)",
                 "Add",
@@ -361,7 +357,7 @@ object RISCV {
             ),
             Instruction(
                 "SUB",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0100000_00000_00000_000_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← sx(rs1) - sx(rs2)",
                 "Substract",
@@ -370,7 +366,7 @@ object RISCV {
             ),
             Instruction(
                 "SLL",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_001_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) « rs2",
                 "Shift Left Logical",
@@ -379,7 +375,7 @@ object RISCV {
             ),
             Instruction(
                 "SLT",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_010_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← sx(rs1) < sx(rs2)",
                 "Set Less Than",
@@ -388,7 +384,7 @@ object RISCV {
             ),
             Instruction(
                 "SLTU",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_011_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) < ux(rs2)",
                 "Set Less Than Unsigned",
@@ -397,7 +393,7 @@ object RISCV {
             ),
             Instruction(
                 "XOR",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_100_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) ⊕ ux(rs2)",
                 "Xor",
@@ -406,7 +402,7 @@ object RISCV {
             ),
             Instruction(
                 "SRL",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_101_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) » rs2",
                 "Shift Right Logical",
@@ -415,7 +411,7 @@ object RISCV {
             ),
             Instruction(
                 "SRA",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0100000_00000_00000_101_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← sx(rs1) » rs2",
                 "Shift Right Arithmetic",
@@ -424,7 +420,7 @@ object RISCV {
             ),
             Instruction(
                 "OR",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_110_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) ∨ ux(rs2)",
                 "Or",
@@ -433,7 +429,7 @@ object RISCV {
             ),
             Instruction(
                 "AND",
-                listOf(ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER, ArchConst.EXTYPE_REGISTER),
+                listOf(Instruction.EXT.REG, Instruction.EXT.REG, Instruction.EXT.REG),
                 OpCode("0b0000000_00000_00000_111_00000_0110011", listOf(OPLBL_FUNCT7, OPLBL_RS2, OPLBL_RS1, OPLBL_FUNCT3, OPLBL_RD, OPLBL_OPCODE), OPSPLIT),
                 "rd ← ux(rs1) ∧ ux(rs2)",
                 "And",
@@ -448,174 +444,338 @@ object RISCV {
 
     // INSTRUCTION LOGIC
 
-    fun lui(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun lui(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun auipc(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun auipc(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun jal(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun jal(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun jalr(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun jalr(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun ecall(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun ecall(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun ebreak(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun ebreak(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun beq(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun beq(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun bne(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun bne(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun blt(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun blt(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun bge(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun bge(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun bltu(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun bltu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun bgeu(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun bgeu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun lb(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun lb(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun lh(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun lh(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun lw(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun lw(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun lbu(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun lbu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun lhu(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun lhu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sb(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sb(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sh(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sh(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sw(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sw(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun addi(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun addi(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun slti(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun slti(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sltiu(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sltiu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun xori(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun xori(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun ori(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun ori(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun andi(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun andi(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun slli(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun slli(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun srli(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun srli(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun srai(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun srai(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun add(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
+    fun add(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
 
         val reg = registerContainer.getRegister("a1")?.byteValue
         reg?.let {
             reg.setBin(BinaryTools.add(reg.get().toBin().getRawBinaryStr(), "1"))
         }
 
-        return true
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sub(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sub(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sll(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sll(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun slt(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun slt(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sltu(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sltu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun xor(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun xor(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun srl(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun srl(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun sra(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun sra(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun or(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun or(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun and(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun and(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun fence(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun fence(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
-    fun fencei(opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Boolean {
-        return false
+    fun fencei(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+        if (execute) {
+            return Instruction.ReturnType.ExecutionSuccess(false)
+        } else {
+            return Instruction.ReturnType.BinaryRep(emptyList())
+        }
     }
 
 
