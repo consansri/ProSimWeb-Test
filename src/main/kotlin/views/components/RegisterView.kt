@@ -7,6 +7,7 @@ import extendable.ArchConst
 import extendable.ArchConst.RegTypes.*
 import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
@@ -204,7 +205,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                     className = ClassName("value-col dcf-txt-center")
 
                                     input {
-                                        id = "reg0${it.name}${regID}"
+                                        id = "reg0${regID}"
                                         className = ClassName(StyleConst.CLASS_TABLE_INPUT)
                                         readOnly = false
 
@@ -309,9 +310,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
-    useEffect(currRegTypeIndex) {
-        console.log("(update) RegisterView")
-        val registerContainer = appLogic.getArch().getRegisterContainer()
+    useEffect(currRegTypeIndex, change) {
+        console.log("(part-update) RegisterView")
         val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
             registerContainer.getRegisterFileList()[currRegFileIndex]
         } else {
@@ -322,7 +322,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             for (reg in it.registers) {
                 val regID = it.registers.indexOf(reg)
                 try {
-                    val regRef = document.getElementById("reg0${it.name}$regID") as HTMLInputElement
+                    val regRef = document.getElementById("reg0$regID") as HTMLInputElement
                     regRef.value = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                         HEX -> {
                             reg.byteValue.get().toHex().getRawHexStr()

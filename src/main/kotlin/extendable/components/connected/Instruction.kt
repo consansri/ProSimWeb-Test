@@ -13,28 +13,33 @@ class Instruction(
     val logic: (opCodeBinary: String?, extensionWords: List<Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?) -> Boolean
 ) {
 
-    val regex: Regex
+    val nameRegex: Regex
+    val paramRegexList: Map<String, Regex>
 
     init {
 
-        val paramRegexTemplate = exFormats.joinToString(paramSplit) {
-            when (it) {
-                ArchConst.EXTYPE_REGISTER -> "\\s*[a-fA-F0-9]+\\s*"
-                ArchConst.EXTYPE_IMMEDIATE -> "\\s*((0x[0-9a-fA-F]+)|((-)?[0-9]+)|(0b[0-1]+))\\s*"
-                ArchConst.EXTYPE_LABEL -> "\\s*[a-fA-F0-9]+\\s*"
-                ArchConst.EXTYPE_SHIFT -> "\\s*(-)?[0-9]+\\s*"
-                else -> "\\s*"
+        val tempParamRegs = mutableMapOf<String, Regex>()
+
+        for (format in exFormats) {
+            when (format) {
+                ArchConst.EXTYPE_REGISTER -> tempParamRegs.put(ArchConst.EXTYPE_REGISTER, Regex("""\s*(?<reg>[a-zA-Z][a-zA-Z0-9]*)\s*""", RegexOption.IGNORE_CASE))
+                ArchConst.EXTYPE_IMMEDIATE -> tempParamRegs.put(ArchConst.EXTYPE_IMMEDIATE, Regex("""\s*(?<imm>((?<hex>0x[0-9a-fA-F]+)|(?<bin>0b[0-1]+)|(?<dec>(-)?[0-9]+)))\s*""", RegexOption.IGNORE_CASE))
+                ArchConst.EXTYPE_LABEL -> tempParamRegs.put(ArchConst.EXTYPE_LABEL, Regex("""\s*(?<lbl>[a-zA-Z0-9]+)\s*""", RegexOption.IGNORE_CASE))
+                ArchConst.EXTYPE_SHIFT -> tempParamRegs.put(ArchConst.EXTYPE_SHIFT, Regex("""\s*(?<shift>(-)?[0-9]+)\s*"""))
+                else -> tempParamRegs.put("", Regex("""\s*"""))
             }
         }
-        val insTemplate = "\\s+$name\\s+[params]\\s+"
-        val combinedTemplate = insTemplate.replace("[params]", paramRegexTemplate)
+        paramRegexList = tempParamRegs
 
-        this.regex = Regex(combinedTemplate)
 
+        //regex = insTemplate.replace("[params]", paramRegexTemplate).toRegex(RegexOption.IGNORE_CASE)
+        nameRegex = Regex("""(^|\s+)($name)(\s+|$)""", RegexOption.IGNORE_CASE)
+
+        console.log(paramRegexList)
     }
 
     fun check(line: String, registerContainer: RegisterContainer, mem: Memory): Boolean {
-        val matchResult = regex.find(line)
+        val matchResult = nameRegex.find(line)
 
         if (matchResult != null) {
             for (paramID in exFormats.indices) {
@@ -56,9 +61,20 @@ class Instruction(
         return logic(opCodeBinary, extensionWords, mem, registerContainer, flagsConditions)
     }
 
-    sealed class Ext{
+    sealed class Ext {
         data class Reg(val name: String) : Ext()
         data class Imm(val imm: Number) : Ext()
+    }
+
+    data class InsCheckResult(val success: Boolean)
+
+    enum class EXT{
+        REG,
+        IMM,
+        ADDRESS,
+
+
+
     }
 
 }

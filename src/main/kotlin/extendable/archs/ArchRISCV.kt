@@ -5,10 +5,7 @@ import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVFlags
 import extendable.components.connected.Instruction
-import extendable.components.types.BinaryTools
 import extendable.components.types.ByteValue
-import extendable.components.types.DecTools
-import tools.DebugTools
 
 class ArchRISCV() : Architecture(RISCV.config) {
 
@@ -20,7 +17,7 @@ class ArchRISCV() : Architecture(RISCV.config) {
             reg.set(reg.get() + ByteValue.Type.Dec("1", reg.byteValue.size))
         }
 
-        for (i in 0..200) {
+        for (i in 0..100) {
             getMemory().saveDec(i.toDouble(), i.toString(10))
         }
         for (ins in getInstructions()) {
@@ -105,17 +102,36 @@ class ArchRISCV() : Architecture(RISCV.config) {
                     getConsole().info(
                         "Line $lineNumber: found Instruction ${ins.name}\n " +
                                 "Example: ${ins.example()}" +
-                                "RegexTemplate: ${ins.regex.pattern}"
+                                "RegexTemplate: ${ins.nameRegex.pattern}"
 
                     )
+
+
                 }
 
-                ins.regex.findAll(remainingLine).forEach { match ->
+                ins.nameRegex.findAll(remainingLine).forEach { match ->
                     val wrappedComment = highlight(match.value, RISCVFlags.instr)
                     wrappedLine = wrappedLine.replace(match.value, wrappedComment)
                     remainingLine = remainingLine.replace(match.value, "")
-                    getConsole().log("found instruction: ${ins.name}")
+
+                    var foundParams = ""
+
+                    for(extension in ins.exFormats){
+                        val paramResult = ins.paramRegexList.get(extension)?.find(remainingLine)
+                        paramResult?.let {
+                            foundParams += " ${it.value} ${it.groups}"
+
+                            val wrappedParam = highlight(it.value, RISCVFlags.name)
+
+                            wrappedLine = wrappedLine.replace(it.value, wrappedParam)
+                            remainingLine = remainingLine.replace(it.value, "")
+
+                        }
+                    }
+                    getConsole().log("found instruction: ${ins.name}$foundParams")
                 }
+
+
             }
 
             /* Variables */

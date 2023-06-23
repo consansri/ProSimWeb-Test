@@ -27,6 +27,8 @@ object RISCV {
     val REGEX_MACRO = Regex("""@(\w+)""")
     val REGEX_INCLUDE = Regex("""#include\s+(.*)""")
 
+    // INS REGEX
+
     // OpMnemonic Labels
     const val OPSPLIT = "_"
     val OPLBL_NOVAL = OpCode.OpLabel("[noval]", null, true)

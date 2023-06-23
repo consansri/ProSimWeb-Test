@@ -3,6 +3,7 @@ package extendable.components.types
 import extendable.ArchConst
 import kotlin.math.pow
 
+@Deprecated("Not skalable with maximum addresses of 64bit caused by Long")
 class Address(private val value: Long, private val width: Int) {
 
     init {

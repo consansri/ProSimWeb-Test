@@ -101,6 +101,21 @@ class ByteValue {
         return ByteValue(-value)
     }
 
+    override fun equals(other: Any?): Boolean {
+        when (other) {
+            is ByteValue -> {
+                return (this.size == other.size && this.value == other.value)
+            }
+
+            is Type -> {
+                return (this.value == other)
+            }
+        }
+
+
+        return super.equals(other)
+    }
+
     operator fun inc(): ByteValue {
         this.value = this.value++
         return ByteValue(++value)
@@ -128,7 +143,14 @@ class ByteValue {
         abstract operator fun unaryMinus(): Type
         abstract operator fun inc(): Type
         abstract operator fun dec(): Type
-
+        override fun equals(other: Any?): Boolean {
+            when (other) {
+                is Type -> {
+                    return BinaryTools.isEqual(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())
+                }
+            }
+            return super.equals(other)
+        }
 
         class Binary(binString: String, size: Size) : Type(size) {
             private val binString: String
@@ -249,6 +271,9 @@ class ByteValue {
             override fun dec(): Type {
                 return Binary(BinaryTools.sub(this.getRawBinaryStr(), "1"), size)
             }
+
+
+
         }
 
         class Hex(hexString: String, size: Size) : Type(size) {
@@ -754,6 +779,16 @@ class ByteValue {
     }
 
     sealed class Size(val bitWidth: kotlin.Int, val byteCount: kotlin.Int) {
+
+        override fun equals(other: Any?): Boolean {
+            when (other) {
+                is Size -> {
+                    return this.byteCount == other.byteCount
+                }
+            }
+            return super.equals(other)
+        }
+
         class Byte : Size(8, 1)
         class Short : Size(16, 2)
         class Int : Size(32, 4)
