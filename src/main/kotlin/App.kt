@@ -10,8 +10,6 @@ import views.*
 val App = FC<Props> { props ->
 
     val (appLogic, setAppLogic) = useState<AppLogic>(AppLogic())
-    val (currRegFileIndex, setCurrRegFileIndex) = useState(1)
-    val (currRegTypeIndex, setCurrRegTypeIndex) = useState(0)
 
     localStorage.getItem(StorageKey.ARCH_TYPE)?.let {
         val loaded = it.toInt()
@@ -21,6 +19,7 @@ val App = FC<Props> { props ->
     }
 
     val (reloadUI, setReloadUI) = useState(false)
+    val (resetUI, setResetUI) = useState(false)
 
     val navRef = useRef<HTMLDivElement>()
     val mainRef = useRef<HTMLElement>()
@@ -73,8 +72,6 @@ val App = FC<Props> { props ->
                     this.appLogic = appLogic
                     update = useState(reloadUI)
                     updateAppLogic = ::updateAppLogic
-                    this.currRegFileIndex = currRegFileIndex
-                    this.currRegTypeIndex = currRegTypeIndex
                 }
             }
 
@@ -103,7 +100,6 @@ val App = FC<Props> { props ->
 
     useEffect(reloadUI) {
         console.log("(update) App")
-        setCurrRegFileIndex(1)
     }
 
 }

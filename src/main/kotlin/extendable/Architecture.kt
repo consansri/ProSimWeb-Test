@@ -1,6 +1,7 @@
 package extendable
 
 import extendable.components.*
+import extendable.components.assembly.Assembly
 import extendable.components.connected.*
 import tools.HTMLTools
 
@@ -39,6 +40,15 @@ open class Architecture(config: Config) {
 
     fun getInstructions(): List<Instruction> {
         return instructions
+    }
+
+    fun findInstruction(name: String): Instruction? {
+        for (ins in instructions) {
+            if (ins.name.matches(Regex("""$name""", RegexOption.IGNORE_CASE))) {
+                return ins
+            }
+        }
+        return null
     }
 
     fun getTranscript(): Transcript {
@@ -126,14 +136,14 @@ open class Architecture(config: Config) {
         return "</$tag>"
     }
 
-    protected fun highlight(input: String, flag: String): String {
+    fun highlight(input: String, flag: String): String {
         val tag = "span"
         return "<$tag class='$flag'>$input</$tag>"
     }
 
 
-    protected open fun hlAndCompile(code: String, startAtLine: Int): Pair<String, Boolean> {
-        return Pair(code, true)
+    protected open fun hlAndCompile(code: String, startAtLine: Int): Assembly.CompilationResult {
+        return Assembly.CompilationResult(code, true)
     }
 
     open fun getPreHighlighting(line: String): String {
@@ -144,9 +154,9 @@ open class Architecture(config: Config) {
     fun check(input: String, startAtLine: Int): String {
         var encode = HTMLTools.encodeBeforeHTML(input)
         val code = hlAndCompile(encode, startAtLine)
-        archState.check(code.second)
+        archState.check(code.buildable)
 
-        return code.first
+        return code.highlightedContent
     }
 
 }

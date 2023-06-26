@@ -1,6 +1,6 @@
 package extendable.archs.mini
 
-import extendable.ArchConst
+import extendable.Architecture
 import extendable.archs.cisc.CISC
 import extendable.components.*
 import extendable.components.connected.*
@@ -80,11 +80,14 @@ object Mini {
         )
     )
 
-    fun add(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, memory: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun add(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 

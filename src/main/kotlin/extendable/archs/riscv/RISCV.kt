@@ -1,6 +1,7 @@
 package extendable.archs.riscv
 
 import extendable.ArchConst
+import extendable.Architecture
 import extendable.components.*
 import extendable.components.connected.*
 import extendable.components.types.*
@@ -444,337 +445,460 @@ object RISCV {
 
     // INSTRUCTION LOGIC
 
-    fun lui(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun lui(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun auipc(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun auipc(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun jal(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun jal(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun jalr(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun jalr(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun ecall(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun ecall(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun ebreak(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun ebreak(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun beq(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun beq(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun bne(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun bne(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun blt(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun blt(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun bge(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun bge(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun bltu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun bltu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun bgeu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun bgeu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun lb(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun lb(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun lh(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun lh(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun lw(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun lw(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun lbu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun lbu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun lhu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun lhu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sb(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sb(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sh(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sh(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sw(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sw(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun addi(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun addi(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun slti(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun slti(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sltiu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sltiu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun xori(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun xori(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun ori(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun ori(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun andi(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun andi(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun slli(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun slli(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun srli(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun srli(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun srai(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun srai(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun add(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
+    fun add(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
 
-        val reg = registerContainer.getRegister("a1")?.byteValue
+        val reg = architecture.getRegisterContainer().getRegister("a1")?.byteValue
         reg?.let {
             reg.setBin(BinaryTools.add(reg.get().toBin().getRawBinaryStr(), "1"))
         }
 
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sub(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sub(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sll(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sll(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun slt(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun slt(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sltu(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sltu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun xor(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun xor(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun srl(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun srl(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun sra(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun sra(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun or(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun or(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun and(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun and(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun fence(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun fence(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 
-    fun fencei(execute: Boolean, opCodeBinary: String?, extensionWords: List<Instruction.Ext>?, mem: Memory, registerContainer: RegisterContainer, flagsConditions: FlagsConditions?): Instruction.ReturnType {
-        if (execute) {
-            return Instruction.ReturnType.ExecutionSuccess(false)
-        } else {
-            return Instruction.ReturnType.BinaryRep(emptyList())
+    fun fencei(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
+        when(mode){
+            is Instruction.ExecutionMode.EXECUTION -> {
+                return Instruction.ReturnType.ExecutionSuccess(false)
+            }
+            is Instruction.ExecutionMode.BYTEGENERATION -> {
+                return Instruction.ReturnType.BinaryRep(emptyList())
+            }
         }
     }
 

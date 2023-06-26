@@ -16,6 +16,7 @@ import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.code
+import react.dom.html.ReactHTML.del
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.pre
@@ -134,6 +135,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun checkCode(taValue: String, immediate: Boolean) {
+        val delay: Int
+        val size = taValue.split("\n").size
+        delay = when {
+            size < 500 -> 500
+            size > 3000 -> 3000
+            else -> size
+        }
+
         if (immediate) {
             setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
             setCheckState(appLogic.getArch().archState.getState())
@@ -144,7 +153,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             checkTimeOutRef.current = setTimeout({
                 setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
                 setCheckState(appLogic.getArch().archState.getState())
-            }, 3000)
+            }, delay)
         }
     }
 
@@ -403,6 +412,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 if (vc_rows != null) {
                                     if (lines.size != vc_rows.size) {
                                         preHighlight(event.currentTarget.value)
+
                                     } else {
                                         val selStart = event.currentTarget.selectionStart ?: 0
                                         val selEnd =
@@ -415,7 +425,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         for (lineID in lineIDStart..lineIDEnd) {
                                             editedLines.put(lineID, lines[lineID])
                                         }
+
                                         preHighlight(editedLines)
+
                                     }
                                 } else {
                                     preHighlight(event.currentTarget.value)
@@ -460,6 +472,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     }
                                 } else if (event.ctrlKey && event.key == "z") {
                                     undo()
+                                } else if (event.key == "Enter") {
+                                    preHighlight(event.currentTarget.value)
                                 }
                             }
 

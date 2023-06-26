@@ -59,15 +59,4 @@ object ArchConst {
         UDEC
     }
 
-    // Assembler
-    /* REGULAR EXPRESSIONS */
-    val extMap = mapOf<Instruction.EXT, Regex>(
-        Instruction.EXT.REG to Regex("""\s*(?<reg>[a-zA-Z][a-zA-Z0-9]*)\s*""", RegexOption.IGNORE_CASE),
-        Instruction.EXT.IMM to Regex("""\s*(?<imm>((?<hex>0x[0-9a-fA-F]+)|(?<bin>0b[0-1]+)|(?<dec>(-)?[0-9]+)))\s*""", RegexOption.IGNORE_CASE),
-        Instruction.EXT.LABEL to Regex("""\s*(?<lbl>[a-zA-Z0-9]+)\s*""", RegexOption.IGNORE_CASE),
-        Instruction.EXT.SHIFT to Regex("""\s*(?<shift>(-)?[0-9]+)\s*"""),
-        Instruction.EXT.ADDRESS to Regex("""\s*(?<shift>(-)?[0-9]+)\s*""")
-    )
-
-
 }

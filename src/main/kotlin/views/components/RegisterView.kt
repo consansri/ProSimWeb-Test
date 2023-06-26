@@ -29,16 +29,15 @@ external interface RegisterViewProps : Props {
     var appLogic: AppLogic
     var update: StateInstance<Boolean>
     var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
-    var currentRegFileIndex: Int
-    var currentRegTypeIndex: Int
 }
 
 val RegisterView = FC<RegisterViewProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
-    val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(props.currentRegFileIndex)
-    val (currRegTypeIndex, setCurrRegTypeIndex) = useState<Int>(props.currentRegTypeIndex)
+    val regFileList = appLogic.getArch().getRegisterContainer().getRegisterFileList()
+    val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(regFileList.size - 1)
+    val (currRegTypeIndex, setCurrRegTypeIndex) = useState<Int>(1)
     val (update, setUpdate) = useState(false)
     val change = props.update
     val theaders = ArchConst.REGISTER_HEADERS
@@ -72,8 +71,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 +"Register"
             }
 
-            val regFileList = appLogic.getArch().getRegisterContainer().getRegisterFileList()
-
             for (regFile in regFileList) {
                 when (regFile.label) {
                     RegisterContainer.RegLabel.PC -> {
@@ -84,7 +81,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         a {
                             if (currRegFileIndex == regFileList.indexOf(regFile)) {
                                 className = ClassName("dcf-tab-active")
-                            }else{
+                            } else {
                                 className = ClassName("")
                             }
 
@@ -101,7 +98,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         a {
                             if (currRegFileIndex == regFileList.indexOf(regFile)) {
                                 className = ClassName("dcf-tab-active")
-                            }else{
+                            } else {
                                 className = ClassName("")
                             }
                             title = "Show RegFile ${regFile.name}"
@@ -117,7 +114,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         a {
                             if (currRegFileIndex == regFileList.indexOf(regFile)) {
                                 className = ClassName("dcf-tab-active")
-                            }else{
+                            } else {
                                 className = ClassName("")
                             }
                             title = "Show RegFile ${regFile.name}"
@@ -159,7 +156,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                     className = ClassName("dcf-txt-center dcf-button")
                                     scope = "col"
 
-                                    span{
+                                    span {
                                         +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
                                     }
 

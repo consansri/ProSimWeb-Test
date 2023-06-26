@@ -46,11 +46,6 @@ object StyleConst {
     const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
 
 
-    // Prototype
-    val CLASS_CE_CODESCROLLDIV = "ce-codescrolldiv"
-    val CLASS_CE_CODEDIV = "ce-codediv"
-    val CLASS_CE_CODELINE = "ce-codeline"
-
     // PROCESSOR
     val CLASS_EXEC_PROGRESS = "exec-progress"
     val CLASS_EXEC_PROGRESS_BAR = "exec-progress-bar"

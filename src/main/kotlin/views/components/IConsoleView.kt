@@ -103,6 +103,30 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 paddingLeft = 5.px
                 paddingRight = 5.px
 
+                color = Color("#EEEEEE")
+                borderRadius = 5.px
+
+                backgroundColor = Color("#EE2222")
+
+            }
+
+            type = ButtonType.button
+
+            onClick = {
+                iConsole.clear()
+            }
+
+            +"clear"
+        }
+
+        button {
+
+            css {
+                display = Display.inlineBlock
+                float = Float.right
+                paddingLeft = 5.px
+                paddingRight = 5.px
+
                 color = Color("#313131")
                 borderRadius = 5.px
 

@@ -2,6 +2,7 @@ package views
 
 import AppLogic
 import csstype.ClassName
+import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
@@ -31,7 +32,6 @@ val Menu = FC<MenuProps>() { props ->
 
     val navRef = useRef<HTMLElement>()
     val archsRef = useRef<HTMLDivElement>()
-
 
     fun showNavbar(state: Boolean) {
         navRef.current?.let {
@@ -153,7 +153,8 @@ val Menu = FC<MenuProps>() { props ->
                         localStorage.setItem(StorageKey.ARCH_TYPE, "$id")
                         console.log("Load " + data.getArch().getName())
                         event.currentTarget.classList.toggle("nav-arch-active")
-                        updateParent(newData)
+                        //updateParent(newData)
+                        document.location?.reload()
                     }
 
                     +data.getArchList()[id].getName()

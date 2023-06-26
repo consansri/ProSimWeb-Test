@@ -127,7 +127,6 @@ class ByteValue {
     }
 
     sealed class Type(val size: Size) {
-
         abstract fun check(string: String, size: Size): CheckResult
         abstract fun toBin(): Binary
         abstract fun toHex(): Hex
@@ -271,7 +270,6 @@ class ByteValue {
             override fun dec(): Type {
                 return Binary(BinaryTools.sub(this.getRawBinaryStr(), "1"), size)
             }
-
 
 
         }
@@ -589,6 +587,19 @@ class ByteValue {
         }
 
         object Conversion {
+
+            fun getType(string: String): Type {
+                var removedPrefString = string.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+                if (removedPrefString.length < string.trim().length - 1){
+                    return Binary("0",Size.Byte())
+                }
+                removedPrefString = string.trim().removePrefix(ArchConst.PRESTRING_HEX)
+                if (removedPrefString.length < string.trim().length - 1){
+                    return Hex("0",Size.Byte())
+                }
+                return Dec("0",Size.Byte())
+            }
+
             fun getHex(binary: Binary): Hex {
                 val stringBuilder = StringBuilder()
 
@@ -776,6 +787,12 @@ class ByteValue {
 
         }
 
+    }
+
+    enum class Types{
+        HEX,
+        BIN,
+        DEC
     }
 
     sealed class Size(val bitWidth: kotlin.Int, val byteCount: kotlin.Int) {
