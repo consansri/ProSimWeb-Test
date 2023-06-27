@@ -2,13 +2,11 @@ package extendable
 
 import extendable.components.*
 import extendable.components.assembly.Assembly
+import extendable.components.assembly.Grammar
 import extendable.components.connected.*
 import tools.HTMLTools
 
-open class Architecture(config: Config) {
-
-    val archState = ArchState()
-    val executionStartAddress = 0
+abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     private var name: String
     private val registerContainer: RegisterContainer
@@ -18,6 +16,12 @@ open class Architecture(config: Config) {
     private var flagsConditions: FlagsConditions?
     private var cache: Cache?
     private val IConsole: IConsole
+    private val grammar: Grammar
+
+    private val archState = ArchState()
+    private val assembly: Assembly
+    private val executionStartAddress = 0
+
 
     init {
         this.name = config.name
@@ -28,6 +32,35 @@ open class Architecture(config: Config) {
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
         this.IConsole = IConsole("${config.name} Console")
+        this.grammar = asmConfig.grammar
+
+        this.assembly = Assembly(
+            this,
+            grammar,
+            Assembly.RegexCollection(
+                Regex("""^\s+"""),
+                Regex("""^[^0-9A-Za-z]"""),
+                Regex("""^${ArchConst.PRESTRING_BINARY}[01]+"""),
+                Regex("""^${ArchConst.PRESTRING_HEX}[0-9a-f]+""", RegexOption.IGNORE_CASE),
+                Regex("""^${ArchConst.PRESTRING_DECIMAL}-[0-9]+"""),
+                Regex("""^${ArchConst.PRESTRING_DECIMAL}[0-9]+"""),
+                Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
+                Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
+            ),
+            Assembly.HLFlagCollection(
+                ArchConst.StandardHL.keyword,
+                ArchConst.StandardHL.identifier,
+                ArchConst.StandardHL.hex,
+                ArchConst.StandardHL.bin,
+                ArchConst.StandardHL.dec,
+                ArchConst.StandardHL.udec,
+                ArchConst.StandardHL.register,
+                ArchConst.StandardHL.symbol,
+                ArchConst.StandardHL.instruction,
+                ArchConst.StandardHL.comment,
+                ArchConst.StandardHL.whiteSpace
+            )
+        )
     }
 
     fun getName(): String {
@@ -68,6 +101,14 @@ open class Architecture(config: Config) {
         return IConsole
     }
 
+    fun getState(): ArchState {
+        return archState
+    }
+
+    fun getAssembly(): Assembly {
+        return assembly
+    }
+
 
     /*Execution Events*/
     open fun exeContinuous() {
@@ -95,56 +136,13 @@ open class Architecture(config: Config) {
         registerContainer.clear()
     }
 
-    private fun highlightNumbers(input: String): String {
-        val tag = "mark"
-        val decimalRegex = Regex("""#\d+""")
-        val hexRegex = Regex("""&[0-9a-fA-F]+""")
-        var output = input.replace(decimalRegex) { matchResult ->
-            "<$tag class='decimal' >${matchResult.value}</$tag>"
-        }
-        output = output.replace(hexRegex) { matchResult ->
-            "<$tag class='hex' >${matchResult.value}</$tag>"
-        }
-        return output
-    }
-
-    protected fun removeComment(line: String): String {
-        val commentIndex = line.indexOf(ArchConst.PRESTRING_COMMENT)
-        return if (commentIndex != -1) {
-            line.substring(0, commentIndex)
-        } else {
-            line
-        }
-    }
-
-    protected fun highlightKeyWords(input: String, keywords: Array<String>, flag: String): String {
-        val tag = "span"
-        val regex = Regex("\\b(${keywords.joinToString("|")})\\b", RegexOption.IGNORE_CASE)
-
-        return input.replace(regex) { matchResult ->
-            "<$tag class='$flag' >${matchResult.value}</$tag>"
-        }
-    }
-
-    protected fun highlightBeginTag(flag: String): String {
-        val tag = "mark"
-        return "<$tag class='$flag'>"
-    }
-
-    protected fun highlightEndTag(): String {
-        val tag = "mark"
-        return "</$tag>"
-    }
-
     fun highlight(input: String, flag: String): String {
         val tag = "span"
         return "<$tag class='$flag'>$input</$tag>"
     }
 
 
-    protected open fun hlAndCompile(code: String, startAtLine: Int): Assembly.CompilationResult {
-        return Assembly.CompilationResult(code, true)
-    }
+    abstract fun hlAndCompile(code: String, startAtLine: Int): Assembly.CompilationResult
 
     open fun getPreHighlighting(line: String): String {
         val encodedLine = HTMLTools.encodeBeforeHTML(line)
@@ -152,6 +150,7 @@ open class Architecture(config: Config) {
     }
 
     fun check(input: String, startAtLine: Int): String {
+        assembly.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
         var encode = HTMLTools.encodeBeforeHTML(input)
         val code = hlAndCompile(encode, startAtLine)
         archState.check(code.buildable)

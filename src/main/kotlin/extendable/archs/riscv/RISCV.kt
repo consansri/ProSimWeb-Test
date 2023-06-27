@@ -3,6 +3,8 @@ package extendable.archs.riscv
 import extendable.ArchConst
 import extendable.Architecture
 import extendable.components.*
+import extendable.components.assembly.Assembly
+import extendable.components.assembly.Grammar
 import extendable.components.connected.*
 import extendable.components.types.*
 
@@ -13,7 +15,7 @@ object RISCV {
 
     val INSTRUCTION_WIDTH = 32
 
-    val MEMORY_WORD_BYTES = 4
+    val MEMORY_WORD_BYTES = 1
     val MEMORY_ADDRESS_WIDTH = 32
     val MEM_INIT: String = "0"
 
@@ -37,7 +39,13 @@ object RISCV {
     val OPLBL_RS2 = OpCode.OpLabel("[rs2]", Instruction.EXT.REG, false)
     val OPLBL_RD = OpCode.OpLabel("[rd]", Instruction.EXT.REG, false)
 
-    // CONFIG
+    // Assembler CONFIG
+    val asmConfig = AsmConfig(
+        RISCVGrammar()
+    )
+
+
+    // PROCESSOR CONFIG
     val config = Config(
         """RISC-V""",
         RegisterContainer(
@@ -446,10 +454,11 @@ object RISCV {
     // INSTRUCTION LOGIC
 
     fun lui(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -457,10 +466,11 @@ object RISCV {
     }
 
     fun auipc(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -468,10 +478,11 @@ object RISCV {
     }
 
     fun jal(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -479,10 +490,11 @@ object RISCV {
     }
 
     fun jalr(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -490,10 +502,11 @@ object RISCV {
     }
 
     fun ecall(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -501,10 +514,11 @@ object RISCV {
     }
 
     fun ebreak(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -512,10 +526,11 @@ object RISCV {
     }
 
     fun beq(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -523,10 +538,11 @@ object RISCV {
     }
 
     fun bne(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -534,10 +550,11 @@ object RISCV {
     }
 
     fun blt(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -545,10 +562,11 @@ object RISCV {
     }
 
     fun bge(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -556,10 +574,11 @@ object RISCV {
     }
 
     fun bltu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -567,10 +586,11 @@ object RISCV {
     }
 
     fun bgeu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -578,10 +598,11 @@ object RISCV {
     }
 
     fun lb(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -589,10 +610,11 @@ object RISCV {
     }
 
     fun lh(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -600,10 +622,11 @@ object RISCV {
     }
 
     fun lw(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -611,10 +634,11 @@ object RISCV {
     }
 
     fun lbu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -622,10 +646,11 @@ object RISCV {
     }
 
     fun lhu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -633,10 +658,11 @@ object RISCV {
     }
 
     fun sb(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -644,10 +670,11 @@ object RISCV {
     }
 
     fun sh(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -655,10 +682,11 @@ object RISCV {
     }
 
     fun sw(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -666,10 +694,11 @@ object RISCV {
     }
 
     fun addi(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -677,10 +706,11 @@ object RISCV {
     }
 
     fun slti(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -688,10 +718,11 @@ object RISCV {
     }
 
     fun sltiu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -699,10 +730,11 @@ object RISCV {
     }
 
     fun xori(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -710,10 +742,11 @@ object RISCV {
     }
 
     fun ori(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -721,10 +754,11 @@ object RISCV {
     }
 
     fun andi(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -732,10 +766,11 @@ object RISCV {
     }
 
     fun slli(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -743,10 +778,11 @@ object RISCV {
     }
 
     fun srli(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -754,10 +790,11 @@ object RISCV {
     }
 
     fun srai(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -771,10 +808,11 @@ object RISCV {
             reg.setBin(BinaryTools.add(reg.get().toBin().getRawBinaryStr(), "1"))
         }
 
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -782,10 +820,11 @@ object RISCV {
     }
 
     fun sub(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -793,10 +832,11 @@ object RISCV {
     }
 
     fun sll(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -804,10 +844,11 @@ object RISCV {
     }
 
     fun slt(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -815,10 +856,11 @@ object RISCV {
     }
 
     fun sltu(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -826,10 +868,11 @@ object RISCV {
     }
 
     fun xor(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -837,10 +880,11 @@ object RISCV {
     }
 
     fun srl(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -848,10 +892,11 @@ object RISCV {
     }
 
     fun sra(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -859,10 +904,11 @@ object RISCV {
     }
 
     fun or(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -870,10 +916,11 @@ object RISCV {
     }
 
     fun and(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -881,10 +928,11 @@ object RISCV {
     }
 
     fun fence(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }
@@ -892,10 +940,11 @@ object RISCV {
     }
 
     fun fencei(architecture: Architecture, mode: Instruction.ExecutionMode): Instruction.ReturnType {
-        when(mode){
+        when (mode) {
             is Instruction.ExecutionMode.EXECUTION -> {
                 return Instruction.ReturnType.ExecutionSuccess(false)
             }
+
             is Instruction.ExecutionMode.BYTEGENERATION -> {
                 return Instruction.ReturnType.BinaryRep(emptyList())
             }

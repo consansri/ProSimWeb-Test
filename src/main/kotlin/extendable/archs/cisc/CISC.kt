@@ -2,6 +2,7 @@ package extendable.archs.cisc
 
 import extendable.Architecture
 import extendable.components.*
+import extendable.components.assembly.Grammar
 import extendable.components.connected.*
 import extendable.components.types.Address
 import extendable.components.types.OpCode
@@ -12,6 +13,8 @@ object CISC {
     // OpMnemonic Labels
     const val OPLBL_SPLIT = "_"
     val OPLBL_OPCODE = OpCode.OpLabel("[opcode]", null, true)
+
+    val asmConfig = AsmConfig(CISCGrammar())
 
     val config = Config(
         "IKR CISC",

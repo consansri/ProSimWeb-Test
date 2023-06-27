@@ -211,6 +211,11 @@
     font-size: 16px;
 }
 
+.whitespace {
+    background-color: lightsteelblue;
+    border-radius: var(--border-radius);
+}
+
 .base00 {
     background-color: transparent;
     color: var(--hl-base00) !important;

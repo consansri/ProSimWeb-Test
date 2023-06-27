@@ -55,7 +55,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val (update, setUpdate) = useState(props.update)
-    val (checkState, setCheckState) = useState(appLogic.getArch().archState.getState())
+    val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
     val (exeStartLine, setExeStartLine) = useState(1)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
 
@@ -145,14 +145,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         if (immediate) {
             setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
-            setCheckState(appLogic.getArch().archState.getState())
+            setCheckState(appLogic.getArch().getState().getState())
         } else {
             checkTimeOutRef.current?.let {
                 clearTimeout(it)
             }
             checkTimeOutRef.current = setTimeout({
                 setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
-                setCheckState(appLogic.getArch().archState.getState())
+                setCheckState(appLogic.getArch().getState().getState())
             }, delay)
         }
     }
@@ -187,8 +187,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- SYNC EVENTS ----------------- */
 
     fun undo() {
-        appLogic.getArch().archState.edit()
-        setCheckState(appLogic.getArch().archState.getState())
+        appLogic.getArch().getState().edit()
+        setCheckState(appLogic.getArch().getState().getState())
         val tempTaValSS = ta_val_ss?.toMutableList()
         tempTaValSS?.let {
             if (it.last() == ta_val) {
@@ -224,7 +224,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     if (transcriptView) {
                         setTranscriptView(!transcriptView)
                     } else {
-                        if (appLogic.getArch().archState.getState() == ArchConst.STATE_BUILDABLE) {
+                        if (appLogic.getArch().getState().getState() == ArchConst.STATE_BUILDABLE) {
                             textareaRef.current?.let {
                                 checkCode(it.value, true)
                                 setTranscriptView(!transcriptView)
@@ -434,8 +434,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                                 //
 
-                                appLogic.getArch().archState.edit()
-                                setCheckState(appLogic.getArch().archState.getState())
+                                appLogic.getArch().getState().edit()
+                                setCheckState(appLogic.getArch().getState().getState())
                                 checkCode(event.currentTarget.value, false)
 
                             }

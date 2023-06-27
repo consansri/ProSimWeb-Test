@@ -238,6 +238,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         }
 
                                         onChange = { event ->
+
+                                        }
+
+                                        onBlur = { event ->
+
+                                            // Set Value
                                             try {
                                                 val newValue = event.currentTarget.value
                                                 when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
@@ -261,11 +267,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                 appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBin().getBinaryStr()}]")
 
                                             } catch (e: NumberFormatException) {
-                                                console.warn("RegisterView reg onChange: NumberFormatException")
+                                                console.warn("RegisterView reg onBlur: NumberFormatException")
                                             }
-                                        }
 
-                                        onBlur = { event ->
+                                            // Get Actual Interpretation (for example padded binary number)
                                             try {
                                                 when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                                                     HEX -> {
@@ -285,7 +290,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                     }
                                                 }
                                             } catch (e: NumberFormatException) {
-                                                console.warn("RegisterView reghex onBlur: NumberFormatException")
+                                                console.warn("RegisterView reg onBlur: NumberFormatException")
                                             }
                                         }
                                         onKeyDown = { event ->

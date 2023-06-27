@@ -2,6 +2,8 @@ object StyleConst {
 
     /* HIGHLIGHTING */
 
+    val HLCLASS_WHITESPACE = "whitespace"
+
     val HLCLASS_B00 = "base00"
     val HLCLASS_B01 = "base01"
     val HLCLASS_B02 = "base02"

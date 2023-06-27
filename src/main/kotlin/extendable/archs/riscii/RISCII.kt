@@ -3,6 +3,7 @@ package extendable.archs.riscii
 import extendable.Architecture
 import extendable.archs.cisc.CISC
 import extendable.components.*
+import extendable.components.assembly.Grammar
 import extendable.components.connected.*
 import extendable.components.types.Address
 import extendable.components.types.OpCode
@@ -13,6 +14,9 @@ object RISCII {
     // OpMnemonic Labels
     const val OPLBL_SPLIT = "_"
     val OPLBL_OPCODE = OpCode.OpLabel("[opcode]", null, true)
+
+    val asmConfig = AsmConfig(RISCIIGrammar())
+
 
     val config = Config(
         "IKR RISC-II",
