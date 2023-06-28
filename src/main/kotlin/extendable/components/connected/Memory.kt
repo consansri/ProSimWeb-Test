@@ -4,7 +4,7 @@ import extendable.components.types.ByteValue
 import tools.TypeTools
 import kotlin.math.pow
 
-class Memory(private val addressBitWidth: Int, private val initialValue: String, private val wordByteCount: Int) {
+class Memory(private val addressBitWidth: Int, private val initialValue: String, private val wordByteCount: Int, private val endianess: Endianess) {
     private val globalSize: Double // in Byte
 
     private var memList: MutableList<DMemInstance>
@@ -89,5 +89,9 @@ class Memory(private val addressBitWidth: Int, private val initialValue: String,
 
     data class DMemInstance(val address: Double, var byteValue: ByteValue)
 
+    enum class Endianess{
+        LittleEndian,
+        BigEndian
+    }
 
 }

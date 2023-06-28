@@ -446,7 +446,7 @@ object RISCV {
                 ::and
             )
         ),
-        Memory(MEMORY_ADDRESS_WIDTH, MEM_INIT, MEMORY_WORD_BYTES),
+        Memory(MEMORY_ADDRESS_WIDTH, MEM_INIT, MEMORY_WORD_BYTES, Memory.Endianess.LittleEndian),
         Transcript(arrayOf("Address", "Line", "Code", "Labels", "Instruction"))
     )
 

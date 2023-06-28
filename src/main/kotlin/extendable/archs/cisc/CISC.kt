@@ -29,7 +29,7 @@ object CISC {
         listOf(
             Instruction("name", listOf(Instruction.EXT.REG), OpCode("0101010", listOf(OPLBL_OPCODE), OPLBL_SPLIT), "", "", ",", ::add),
         ),
-        Memory(32, "0", 4),
+        Memory(32, "0", 4, Memory.Endianess.LittleEndian),
         Transcript()
     )
 

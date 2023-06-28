@@ -27,7 +27,7 @@ object Mini {
         listOf(
             Instruction("name", listOf(Instruction.EXT.REG), OpCode("0101010", listOf(CISC.OPLBL_OPCODE), CISC.OPLBL_SPLIT), "", "", ",", ::add)
         ),
-        Memory(32, "0",4),
+        Memory(32, "0",4, Memory.Endianess.LittleEndian),
         Transcript(),
         FlagsConditions(
             listOf(

@@ -1,7 +1,6 @@
 package extendable
 
 import StyleConst
-import extendable.components.connected.Instruction
 
 object ArchConst {
     /*
@@ -18,15 +17,16 @@ object ArchConst {
     object StandardHL {
         val comment = StyleConst.HLCLASS_B05
         val register = StyleConst.HLCLASS_magenta
-        val identifier = StyleConst.HLCLASS_green
-        val keyword = StyleConst.HLCLASS_orange
+        val word = StyleConst.HLCLASS_violet
+        val alphaNum = StyleConst.HLCLASS_orange
         val instruction = StyleConst.HLCLASS_blue
         val symbol = StyleConst.HLCLASS_cyan
 
-        val bin = StyleConst.HLCLASS_B02
-        val hex = StyleConst.HLCLASS_B01
-        val dec = StyleConst.HLCLASS_B00
-        val udec = StyleConst.HLCLASS_violet
+        val bin = StyleConst.HLCLASS_cyan
+        val hex = StyleConst.HLCLASS_magenta
+        val dec = StyleConst.HLCLASS_blue
+        val udec = StyleConst.HLCLASS_blue
+        val ascii = StyleConst.HLCLASS_green
 
         val error = StyleConst.HLCLASS_red
 

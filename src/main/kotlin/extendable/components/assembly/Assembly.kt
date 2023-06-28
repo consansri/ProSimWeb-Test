@@ -85,6 +85,15 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                         continue
                     }
 
+                    val ascii = regexCollection.ascii.find(remainingLine)
+                    if(ascii != null){
+                        tokenList += Token.Constant.Ascii(LineLoc(lineID, startIndex, startIndex + ascii.value.length), ascii.value)
+                        tempTokenList += Token.Constant.Ascii(LineLoc(lineID, startIndex, startIndex + ascii.value.length), ascii.value)
+                        startIndex += ascii.value.length
+                        remainingLine = line.substring(startIndex)
+                        continue
+                    }
+
                     val symbol = regexCollection.symbol.find(remainingLine)
                     if (symbol != null) {
                         tokenList += Token.Symbol(LineLoc(lineID, startIndex, startIndex + symbol.value.length), symbol.value)
@@ -211,6 +220,12 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                         }
                     }
 
+                    is Token.Constant.Ascii -> {
+                        hlFlagCollection.const_ascii?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
                     is Token.Instruction -> {
                         hlFlagCollection.instruction?.let {
                             token.hl(architecture, it)
@@ -298,6 +313,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
         sealed class Constant(lineLoc: LineLoc, content: String) : Token(lineLoc, content) {
             override val type = TokenType.CONSTANT
 
+            class Ascii(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
             class Binary(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
             class Hex(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
             class Dec(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
@@ -340,6 +356,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
         val const_bin: String? = null,
         val const_dec: String? = null,
         val const_udec: String? = null,
+        val const_ascii: String? = null,
         val register: String? = null,
         val symbol: String? = null,
         val instruction: String? = null,
@@ -354,6 +371,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
         val hex: Regex,
         val dec: Regex,
         val udec: Regex,
+        val ascii: Regex,
         val alphaNumeric: Regex,
         val word: Regex,
     )

@@ -44,21 +44,23 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
                 Regex("""^${ArchConst.PRESTRING_HEX}[0-9a-f]+""", RegexOption.IGNORE_CASE),
                 Regex("""^${ArchConst.PRESTRING_DECIMAL}-[0-9]+"""),
                 Regex("""^${ArchConst.PRESTRING_DECIMAL}[0-9]+"""),
+                Regex("""^'.+'"""),
                 Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
                 Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
             ),
             Assembly.HLFlagCollection(
-                ArchConst.StandardHL.keyword,
-                ArchConst.StandardHL.identifier,
-                ArchConst.StandardHL.hex,
-                ArchConst.StandardHL.bin,
-                ArchConst.StandardHL.dec,
-                ArchConst.StandardHL.udec,
-                ArchConst.StandardHL.register,
-                ArchConst.StandardHL.symbol,
-                ArchConst.StandardHL.instruction,
-                ArchConst.StandardHL.comment,
-                ArchConst.StandardHL.whiteSpace
+                alphaNum = ArchConst.StandardHL.alphaNum,
+                word = ArchConst.StandardHL.word,
+                const_hex = ArchConst.StandardHL.hex,
+                const_bin = ArchConst.StandardHL.bin,
+                const_dec = ArchConst.StandardHL.dec,
+                const_udec = ArchConst.StandardHL.udec,
+                const_ascii = ArchConst.StandardHL.ascii,
+                register = ArchConst.StandardHL.register,
+                symbol = ArchConst.StandardHL.symbol,
+                instruction = ArchConst.StandardHL.instruction,
+                comment = ArchConst.StandardHL.comment,
+                whitespace = null//ArchConst.StandardHL.whiteSpace
             )
         )
     }
