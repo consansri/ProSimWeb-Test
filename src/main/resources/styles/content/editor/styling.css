@@ -9,6 +9,8 @@
 
     --editor-lineHeight: 21px;
 
+    --editor-sel-bg-color: #36454f50;
+
     --hl-base00: #202746;
     --hl-base01: #293256;
     --hl-base02: #5e6687;
@@ -86,6 +88,11 @@
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     padding: 1% 1%;
+}
+
+::selection {
+    background: var(--editor-sel-bg-color) !important;
+    color: #FFFFFF00;
 }
 
 .editor-scroll-container {
@@ -294,5 +301,9 @@
 .magenta {
     background-color: transparent;
     color: var(--hl-magenta) !important;
+}
+
+.editor-dark {
+    filter: invert(90%) !important;
 }
 

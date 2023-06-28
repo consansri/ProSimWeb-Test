@@ -38,6 +38,7 @@ object StyleConst {
     val CLASS_EDITOR_AREA = "editor-area"
     val CLASS_EDITOR_HIGHLIGHTING = "editor-highlighting"
     val CLASS_EDITOR_HIGHLIGHTING_CONTENT = "editor-highlighting-content"
+    val CLASS_EDITOR_DARKMODE = "editor-dark"
 
     const val CLASS_TRANSCRIPT = "transcript"
     const val CLASS_TRANSCRIPT_TABLE = "ts-table"

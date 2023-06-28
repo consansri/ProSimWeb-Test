@@ -42,8 +42,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val textareaRef = useRef<HTMLTextAreaElement>(null)
     val lineNumbersRef = useRef<HTMLDivElement>(null)
     val btnSwitchRef = useRef<HTMLAnchorElement>(null)
+    val btnDarkModeRef = useRef<HTMLAnchorElement>(null)
     val btnClearRef = useRef<HTMLAnchorElement>(null)
     val btnUndoRef = useRef<HTMLAnchorElement>(null)
+    val editorContainerRef = useRef<HTMLDivElement>(null)
     val inputDivRef = useRef<HTMLDivElement>(null)
     val codeAreaRef = useRef<HTMLElement>(null)
 
@@ -58,6 +60,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
     val (exeStartLine, setExeStartLine) = useState(1)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
+    val (darkMode, setDarkMode) = useState(false)
 
     /* ----------------- localStorage Sync Objects ----------------- */
 
@@ -284,6 +287,26 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
+                id = "darkmode"
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
+                ref = btnDarkModeRef
+                title = "Editor Mode"
+
+                img {
+                    if (darkMode) {
+                        src = "icons/editor/mode-dark.svg"
+                    } else {
+                        src = "icons/editor/mode-light.svg"
+                    }
+                }
+
+                onClick = { event ->
+                    setDarkMode(!darkMode)
+                }
+
+            }
+
+            a {
                 id = "undo"
                 className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
                 ref = btnUndoRef
@@ -351,6 +374,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         div {
             className = ClassName(StyleConst.CLASS_EDITOR_CONTAINER)
+            ref = editorContainerRef
 
             if (transcriptView) {
                 TranscriptView {
@@ -615,6 +639,18 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             localStorage.setItem(StorageKey.TA_VALUE_SaveState_Length, ta_val_ss.size.toString())
         }
         updateUndoButton()
+    }
+
+    useEffect(darkMode) {
+        val div = editorContainerRef.current
+        div?.let {
+            if (darkMode) {
+                div.classList.add(StyleConst.CLASS_EDITOR_DARKMODE)
+            } else {
+                div.classList.remove(StyleConst.CLASS_EDITOR_DARKMODE)
+            }
+
+        }
     }
 
 

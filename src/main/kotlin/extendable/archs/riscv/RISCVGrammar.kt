@@ -284,7 +284,7 @@ class RISCVGrammar : Grammar() {
 
         }
 
-        class SplitSymbol(val splitSymbol: Assembly.Token.Symbol) : Param("", splitSymbol) {
+        class SplitSymbol(val splitSymbol: Assembly.Token.Symbol) : Param(RISCVFlags.instruction, splitSymbol) {
 
         }
     }

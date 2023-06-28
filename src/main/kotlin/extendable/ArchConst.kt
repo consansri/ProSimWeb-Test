@@ -16,14 +16,14 @@ object ArchConst {
     // Architecture Assembly Constructor
     object StandardHL {
         val comment = StyleConst.HLCLASS_B05
-        val register = StyleConst.HLCLASS_magenta
-        val word = StyleConst.HLCLASS_violet
-        val alphaNum = StyleConst.HLCLASS_orange
+        val register = StyleConst.HLCLASS_orange
+        val word = StyleConst.HLCLASS_magenta
+        val alphaNum = StyleConst.HLCLASS_violet
         val instruction = StyleConst.HLCLASS_blue
         val symbol = StyleConst.HLCLASS_cyan
 
-        val bin = StyleConst.HLCLASS_cyan
-        val hex = StyleConst.HLCLASS_magenta
+        val bin = StyleConst.HLCLASS_blue
+        val hex = StyleConst.HLCLASS_blue
         val dec = StyleConst.HLCLASS_blue
         val udec = StyleConst.HLCLASS_blue
         val ascii = StyleConst.HLCLASS_green
@@ -41,6 +41,7 @@ object ArchConst {
 
     // ADDRESS
     const val ADDRESS_NOVALUE = -1L
+    const val hex = 0b10111001
 
     // EXTENSION, OPLABE and REGEX TYPES
     const val EXTYPE_LABEL = "[label]"
