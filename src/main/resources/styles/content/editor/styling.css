@@ -304,6 +304,6 @@
 }
 
 .editor-dark {
-    filter: invert(90%) !important;
+    filter: invert(100%) !important;
 }
 
