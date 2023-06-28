@@ -37,8 +37,6 @@ class RISCVGrammar : Grammar() {
         for (lineID in tokenLines.indices) {
             var remainingTokens = tokenLines[lineID].toMutableList()
 
-            console.log("line ${lineID + 1} ---------")
-
             // search Label
             for (token in remainingTokens) {
                 when (token) {
