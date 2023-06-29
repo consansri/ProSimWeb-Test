@@ -74,7 +74,6 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
             /* ----------------------- Write Binary to Memory -------------------------- */
 
-
         }
 
         return Assembly.CompilationResult(getAssembly().getHLContent(), true)

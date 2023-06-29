@@ -25,7 +25,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
         initCode(code)
         analyze()
         parse()
-        if(shouldHighlight){
+        if (shouldHighlight) {
             highlight()
         }
     }
@@ -42,8 +42,8 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                 while (remainingLine.isNotEmpty()) {
                     val space = regexCollection.space.find(remainingLine)
                     if (space != null) {
-                        tokenList += Token.Space(LineLoc(lineID, startIndex, startIndex + space.value.length), space.value)
-                        tempTokenList += Token.Space(LineLoc(lineID, startIndex, startIndex + space.value.length), space.value)
+                        tokenList += Token.Space(LineLoc(lineID, startIndex, startIndex + space.value.length), space.value, tokenList.size)
+                        tempTokenList += Token.Space(LineLoc(lineID, startIndex, startIndex + space.value.length), space.value, tokenList.size)
                         startIndex += space.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -51,8 +51,8 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
                     val binary = regexCollection.binary.find(remainingLine)
                     if (binary != null) {
-                        tokenList += Token.Constant.Binary(LineLoc(lineID, startIndex, startIndex + binary.value.length), binary.value)
-                        tempTokenList += Token.Constant.Binary(LineLoc(lineID, startIndex, startIndex + binary.value.length), binary.value)
+                        tokenList += Token.Constant.Binary(LineLoc(lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
+                        tempTokenList += Token.Constant.Binary(LineLoc(lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
                         startIndex += binary.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -60,8 +60,8 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
                     val hex = regexCollection.hex.find(remainingLine)
                     if (hex != null) {
-                        tokenList += Token.Constant.Hex(LineLoc(lineID, startIndex, startIndex + hex.value.length), hex.value)
-                        tempTokenList += Token.Constant.Hex(LineLoc(lineID, startIndex, startIndex + hex.value.length), hex.value)
+                        tokenList += Token.Constant.Hex(LineLoc(lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
+                        tempTokenList += Token.Constant.Hex(LineLoc(lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
                         startIndex += hex.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -69,8 +69,8 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
                     val dec = regexCollection.dec.find(remainingLine)
                     if (dec != null) {
-                        tokenList += Token.Constant.Dec(LineLoc(lineID, startIndex, startIndex + dec.value.length), dec.value)
-                        tempTokenList += Token.Constant.Dec(LineLoc(lineID, startIndex, startIndex + dec.value.length), dec.value)
+                        tokenList += Token.Constant.Dec(LineLoc(lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
+                        tempTokenList += Token.Constant.Dec(LineLoc(lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
                         startIndex += dec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -78,17 +78,17 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
                     val udec = regexCollection.udec.find(remainingLine)
                     if (udec != null) {
-                        tokenList += Token.Constant.UDec(LineLoc(lineID, startIndex, startIndex + udec.value.length), udec.value)
-                        tempTokenList += Token.Constant.UDec(LineLoc(lineID, startIndex, startIndex + udec.value.length), udec.value)
+                        tokenList += Token.Constant.UDec(LineLoc(lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
+                        tempTokenList += Token.Constant.UDec(LineLoc(lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
                         startIndex += udec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
                     }
 
                     val ascii = regexCollection.ascii.find(remainingLine)
-                    if(ascii != null){
-                        tokenList += Token.Constant.Ascii(LineLoc(lineID, startIndex, startIndex + ascii.value.length), ascii.value)
-                        tempTokenList += Token.Constant.Ascii(LineLoc(lineID, startIndex, startIndex + ascii.value.length), ascii.value)
+                    if (ascii != null) {
+                        tokenList += Token.Constant.Ascii(LineLoc(lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
+                        tempTokenList += Token.Constant.Ascii(LineLoc(lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
                         startIndex += ascii.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -96,8 +96,8 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
                     val symbol = regexCollection.symbol.find(remainingLine)
                     if (symbol != null) {
-                        tokenList += Token.Symbol(LineLoc(lineID, startIndex, startIndex + symbol.value.length), symbol.value)
-                        tempTokenList += Token.Symbol(LineLoc(lineID, startIndex, startIndex + symbol.value.length), symbol.value)
+                        tokenList += Token.Symbol(LineLoc(lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
+                        tempTokenList += Token.Symbol(LineLoc(lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
                         startIndex += symbol.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -107,8 +107,8 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                     if (regRes != null) {
                         val reg = architecture.getRegisterContainer().getRegister(regRes.value)
                         if (reg != null) {
-                            tokenList += Token.Register(LineLoc(lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg)
-                            tempTokenList += Token.Register(LineLoc(lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg)
+                            tokenList += Token.Register(LineLoc(lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
+                            tempTokenList += Token.Register(LineLoc(lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
                             startIndex += regRes.value.length
                             remainingLine = line.substring(startIndex)
                             continue
@@ -120,8 +120,8 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                     if (insRes != null) {
                         val ins = architecture.findInstruction(insRes.value)
                         if (ins != null) {
-                            tokenList += Token.Instruction(LineLoc(lineID, startIndex, startIndex + insRes.value.length), insRes.value, ins)
-                            tempTokenList += Token.Instruction(LineLoc(lineID, startIndex, startIndex + insRes.value.length), insRes.value, ins)
+                            tokenList += Token.Instruction(LineLoc(lineID, startIndex, startIndex + insRes.value.length), insRes.value, ins, tokenList.size)
+                            tempTokenList += Token.Instruction(LineLoc(lineID, startIndex, startIndex + insRes.value.length), insRes.value, ins, tokenList.size)
                             startIndex += insRes.value.length
                             remainingLine = line.substring(startIndex)
                             continue
@@ -134,22 +134,22 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
                     if (alphaNumeric != null && word != null) {
                         if (alphaNumeric.value.length == word.value.length) {
-                            tokenList += Token.Word(LineLoc(lineID, startIndex, startIndex + word.value.length), word.value)
-                            tempTokenList += Token.Word(LineLoc(lineID, startIndex, startIndex + word.value.length), word.value)
+                            tokenList += Token.Word(LineLoc(lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
+                            tempTokenList += Token.Word(LineLoc(lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
                             startIndex += word.value.length
                             remainingLine = line.substring(startIndex)
                             continue
                         } else {
-                            tokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value)
-                            tempTokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value)
+                            tokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
+                            tempTokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
                             startIndex += alphaNumeric.value.length
                             remainingLine = line.substring(startIndex)
                             continue
                         }
                     } else {
                         if (alphaNumeric != null) {
-                            tokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value)
-                            tempTokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value)
+                            tokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
+                            tempTokenList += Token.AlphaNum(LineLoc(lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
                             startIndex += alphaNumeric.value.length
                             remainingLine = line.substring(startIndex)
                             continue
@@ -160,7 +160,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                     break;
                 }
                 tokenLines.add(lineID, tempTokenList)
-                tokenList += Token.NewLine(LineLoc(lineID, line.length, line.length + 2), "\n")
+                tokenList += Token.NewLine(LineLoc(lineID, line.length, line.length + 2), "\n", tokenList.size)
             }
         }
 
@@ -178,11 +178,11 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
             var hlLine = ""
 
             for (token in tokenLine) {
-                if(grammarTree?.nodes != null){
+                if (grammarTree?.nodes != null) {
                     val node = grammarTree?.contains(token)
                     if (node != null) {
-                        if(node.hlFlag.isNotEmpty()){
-                            token.hl(architecture, node.hlFlag)
+                        if (node.hlFlag.isNotEmpty()) {
+                            token.hl(architecture, node.hlFlag, node.name)
                             hlLine += token.hlContent
                             continue
                         }
@@ -285,54 +285,58 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
         }
     }
 
-    sealed class Token(val lineLoc: LineLoc, val content: String) {
+    fun getGrammarTree(): Grammar.GrammarTree? {
+        return grammarTree
+    }
+
+    sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 
         var hlContent = content
         abstract val type: TokenType
 
-        fun hl(architecture: Architecture, hlFlag: String) {
-            hlContent = architecture.highlight(content, hlFlag)
+        fun hl(architecture: Architecture, hlFlag: String, title: String = "") {
+            hlContent = architecture.highlight(content, id, title, hlFlag, "token")
         }
 
         override fun toString(): String {
             return content
         }
 
-        class NewLine(lineLoc: LineLoc, content: String) : Token(lineLoc, content) {
+        class NewLine(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.NEWLINE
         }
 
-        class Space(lineLoc: LineLoc, content: String) : Token(lineLoc, content) {
+        class Space(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.SPACE
         }
 
-        class Symbol(lineLoc: LineLoc, content: String) : Token(lineLoc, content) {
+        class Symbol(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.SYMBOL
         }
 
-        sealed class Constant(lineLoc: LineLoc, content: String) : Token(lineLoc, content) {
+        sealed class Constant(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.CONSTANT
 
-            class Ascii(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
-            class Binary(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
-            class Hex(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
-            class Dec(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
-            class UDec(lineLoc: LineLoc, content: String) : Constant(lineLoc, content)
+            class Ascii(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id)
+            class Binary(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id)
+            class Hex(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id)
+            class Dec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id)
+            class UDec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id)
         }
 
-        class Register(lineLoc: LineLoc, content: String, reg: RegisterContainer.Register) : Token(lineLoc, content) {
+        class Register(lineLoc: LineLoc, content: String, reg: RegisterContainer.Register, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.REGISTER
         }
 
-        class Instruction(lineLoc: LineLoc, content: String, ins: extendable.components.connected.Instruction) : Token(lineLoc, content) {
+        class Instruction(lineLoc: LineLoc, content: String, ins: extendable.components.connected.Instruction, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.INSTRUCTION
         }
 
-        class AlphaNum(lineLoc: LineLoc, content: String) : Token(lineLoc, content) {
+        class AlphaNum(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.ALPHANUM
         }
 
-        class Word(lineLoc: LineLoc, content: String) : Token(lineLoc, content) {
+        class Word(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.WORD
         }
     }

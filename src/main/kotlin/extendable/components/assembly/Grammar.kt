@@ -7,10 +7,6 @@ abstract class Grammar {
 
     abstract fun check(tokenLines: List<List<Assembly.Token>>): GrammarTree
 
-    fun checkSequence() {
-
-    }
-
     class GrammarTree(val nodes: MutableList<TreeNode>? = null) {
         fun contains(token: Assembly.Token): TreeNode.TokenNode? {
             nodes?.let {
@@ -43,8 +39,30 @@ abstract class Grammar {
             return sequenceComponents.size
         }
 
-        fun match(vararg tokens: Assembly.Token): SeqMatchResult {
-            val sequenceResult = mutableListOf<SeqMap>()
+        fun exactlyMatches(vararg tokens: Assembly.Token): SeqMatchResult {
+            var trimmedTokens = tokens.toMutableList()
+            if (ignoreSpaces) {
+                for (token in trimmedTokens) {
+                    if (token is Assembly.Token.Space) {
+                        trimmedTokens.remove(token)
+                    }
+                }
+            }
+
+            if (sequenceComponents.size != trimmedTokens.size) {
+                return SeqMatchResult(false, emptyList())
+            } else {
+                val sequenceResult = match(*trimmedTokens.toTypedArray())
+
+                if (sequenceResult.size == sequenceComponents.size) {
+                    return SeqMatchResult(true, sequenceResult)
+                } else {
+                    return SeqMatchResult(false, sequenceResult)
+                }
+            }
+        }
+
+        fun matches(vararg tokens: Assembly.Token): SeqMatchResult {
             var trimmedTokens = tokens.toMutableList()
             if (ignoreSpaces) {
                 for (token in trimmedTokens) {
@@ -55,13 +73,27 @@ abstract class Grammar {
             }
 
             if (trimmedTokens.size < sequenceComponents.size) {
+                return SeqMatchResult(false, emptyList())
+            }
+
+            val sequenceResult = match(*trimmedTokens.toTypedArray())
+
+            if (sequenceResult.size == sequenceComponents.size) {
+                console.log(
+                    "Grammar.Sequence.match(): found ${sequenceResult.joinToString("") { it.token.content }}"
+                )
+                return SeqMatchResult(true, sequenceResult)
+            } else {
                 return SeqMatchResult(false, sequenceResult)
             }
-            val tokenList = trimmedTokens.toList()
 
+        }
+
+        private fun match(vararg tokens: Assembly.Token): List<SeqMap> {
+            val sequenceResult = mutableListOf<SeqMap>()
             for (component in sequenceComponents) {
                 val index = sequenceComponents.indexOf(component)
-                val token = tokenList[index]
+                val token = tokens[index]
 
 
                 when (component) {
@@ -118,16 +150,7 @@ abstract class Grammar {
                     }
                 }
             }
-
-            if (sequenceResult.size == sequenceComponents.size) {
-                console.log(
-                    "Grammar.Sequence.match(): found ${sequenceResult.joinToString("") { it.token.content }}"
-                )
-                return SeqMatchResult(true, sequenceResult)
-            } else {
-                return SeqMatchResult(false, sequenceResult)
-            }
-
+            return sequenceResult
         }
 
         data class SeqMap(val component: SequenceComponent, val token: Assembly.Token)
@@ -135,20 +158,7 @@ abstract class Grammar {
         data class SeqMatchResult(val matches: Boolean, val sequenceMap: List<SeqMap>)
 
         sealed class SequenceComponent {
-            open class Specific(val content: String) : SequenceComponent() {
-                class Symbol(content: String) : Specific(content)
-
-                class Word(content: String) : Specific(content)
-
-                class AlphaNum(content: String) : Specific(content)
-
-                class Constant(content: String) : Specific(content)
-
-                class Register(content: String) : Specific(content)
-
-                class Instruction(content: String) : Specific(content)
-
-                class Space(content: String) : Specific(content)
+            class Specific(val content: String) : SequenceComponent() {
 
             }
 
@@ -174,8 +184,8 @@ abstract class Grammar {
 
 
     sealed class TreeNode() {
-        open class TokenNode(val hlFlag: String, vararg val tokens: Assembly.Token) : TreeNode()
-        open class CollectionNode(vararg val tokenNodes: TokenNode) : TreeNode()
+        open class TokenNode(val hlFlag: String, val name: String, vararg val tokens: Assembly.Token) : TreeNode()
+        open class CollectionNode(val name: String, vararg val tokenNodes: TokenNode) : TreeNode()
     }
 
 

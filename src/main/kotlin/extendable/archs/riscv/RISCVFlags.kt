@@ -10,11 +10,7 @@ object RISCVFlags {
     val label = StyleConst.HLCLASS_magenta
     val directive = StyleConst.HLCLASS_orange
 
-    val pseudoInstruction = StyleConst.HLCLASS_B03
-    val instruction = StyleConst.HLCLASS_B04
-
-
-
-
+    val pseudoInstruction = StyleConst.HLCLASS_B04
+    val instruction = StyleConst.HLCLASS_B03
 
 }

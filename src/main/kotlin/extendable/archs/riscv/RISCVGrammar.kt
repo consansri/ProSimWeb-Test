@@ -34,8 +34,12 @@ class RISCVGrammar : Grammar() {
 
         var node = mutableListOf<TreeNode>()
 
-        for (lineID in tokenLines.indices) {
-            var remainingTokens = tokenLines[lineID].toMutableList()
+        var remainingLines = tokenLines.toMutableList()
+
+        // PRE Elements (Labels)
+
+        for (lineID in remainingLines.indices) {
+            var remainingTokens = remainingLines[lineID].toMutableList()
 
             // search Label
             for (token in remainingTokens) {
@@ -84,6 +88,14 @@ class RISCVGrammar : Grammar() {
                 }
             }
 
+            remainingLines[lineID] = remainingTokens
+        }
+
+        // MAIN Scan
+
+        for (lineID in remainingLines.indices) {
+            var remainingTokens = remainingLines[lineID].toMutableList()
+
             // search directive
             var directiveName = mutableListOf<Assembly.Token.Word>()
             var dot: Assembly.Token.Symbol? = null
@@ -120,7 +132,6 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             }
-
 
             if (dot != null && directiveName.isNotEmpty()) {
                 val name = directiveName.joinToString { it.content }
@@ -183,6 +194,7 @@ class RISCVGrammar : Grammar() {
             var labelBuilder = mutableListOf<Assembly.Token>()
 
             while (remainingTokens.isNotEmpty()) {
+                console.log("line ${lineID + 1}: remaining Tokens: ${remainingTokens.joinToString("") { it.content }}")
                 var firstToken = remainingTokens.first()
 
                 if (firstToken is Assembly.Token.Space) {
@@ -192,7 +204,7 @@ class RISCVGrammar : Grammar() {
 
                 if (parameterList.isEmpty() || parameterList.last() is Param.SplitSymbol) {
                     // Parameters
-                    val offsetResult = Param.Offset.Syntax.sequence.match(*remainingTokens.toTypedArray())
+                    val offsetResult = Param.Offset.Syntax.sequence.matches(*remainingTokens.toTypedArray())
                     if (offsetResult.matches) {
                         val constant = offsetResult.sequenceMap.get(0)
                         val lParan = offsetResult.sequenceMap.get(1)
@@ -215,6 +227,35 @@ class RISCVGrammar : Grammar() {
                         remainingTokens.remove(firstToken)
                         continue
                     }
+
+                    var labelLink: Param.LabelLink? = null
+                    var tokensForLabelToCheck = mutableListOf<Assembly.Token>()
+                    for (possibleLabelToken in remainingTokens.dropWhile { firstToken != it }) {
+                        if (possibleLabelToken is Assembly.Token.Space || (possibleLabelToken.content == ",")) {
+                            break
+                        } else {
+                            tokensForLabelToCheck.add(possibleLabelToken)
+                        }
+                    }
+                    if (tokensForLabelToCheck.isNotEmpty()) {
+                        for (label in labels) {
+                            val labelResult = label.sequence.exactlyMatches(*tokensForLabelToCheck.toTypedArray())
+                            if (labelResult.matches) {
+                                val labelNameTokens = mutableListOf<Assembly.Token>()
+                                for (entry in labelResult.sequenceMap) {
+                                    labelNameTokens.add(entry.token)
+                                }
+                                labelLink = Param.LabelLink(label, *labelNameTokens.toTypedArray())
+                                break
+                            }
+                        }
+                        if (labelLink != null) {
+                            parameterList.add(labelLink)
+                            remainingTokens.removeAll(labelLink.labelName)
+                            continue
+                        }
+                    }
+
                 } else {
                     // SplitSymbols
                     if (firstToken is Assembly.Token.Symbol && firstToken.content == ",") {
@@ -255,64 +296,72 @@ class RISCVGrammar : Grammar() {
                 }
             }
 
+            remainingLines[lineID] = remainingTokens
         }
 
         return GrammarTree(node)
     }
 
 
-    sealed class Param(hlFlag: String, vararg val paramTokens: Assembly.Token) : TreeNode.TokenNode(hlFlag, *paramTokens) {
+    sealed class Param(hlFlag: String, val type: String, vararg val paramTokens: Assembly.Token) : TreeNode.TokenNode(hlFlag, type, *paramTokens) {
 
-        class Offset(val offset: Assembly.Token, val openParan: Assembly.Token, val register: Assembly.Token, val closeParan: Assembly.Token) : Param(RISCVFlags.offset, offset, openParan, register, closeParan) {
+        class Offset(val offset: Assembly.Token, val openParan: Assembly.Token, val register: Assembly.Token, val closeParan: Assembly.Token) : Param(RISCVFlags.offset, "Offset", offset, openParan, register, closeParan) {
 
 
             object Syntax {
-                val sequence = Sequence(Sequence.SequenceComponent.InSpecific.Constant(), Sequence.SequenceComponent.Specific.Symbol("("), Sequence.SequenceComponent.InSpecific.Register(), Sequence.SequenceComponent.Specific.Symbol(")"), ignoreSpaces = true)
+                val sequence = Sequence(Sequence.SequenceComponent.InSpecific.Constant(), Sequence.SequenceComponent.Specific("("), Sequence.SequenceComponent.InSpecific.Register(), Sequence.SequenceComponent.Specific(")"), ignoreSpaces = true)
             }
 
         }
 
-        class Variable(val word: Assembly.Token.Word) : Param(RISCVFlags.label, word) {
+        class Constant(val constant: Assembly.Token.Constant) : Param("", "Constant", constant) {
 
         }
 
-        class Constant(val constant: Assembly.Token.Constant) : Param("", constant) {
+        class Register(val register: Assembly.Token.Register) : Param("", "Register", register) {
 
         }
 
-        class Register(val register: Assembly.Token.Register) : Param("", register) {
+        class SplitSymbol(val splitSymbol: Assembly.Token.Symbol) : Param(RISCVFlags.instruction, "SplitSymbol", splitSymbol) {
 
         }
 
-        class SplitSymbol(val splitSymbol: Assembly.Token.Symbol) : Param(RISCVFlags.instruction, splitSymbol) {
+        class LabelLink(val linkedLabel: Label, vararg val labelName: Assembly.Token) : Param(RISCVFlags.label, "LabelLink", *labelName) {
 
         }
+
     }
 
-    class ParamCollection(vararg val params: Param) : TreeNode.CollectionNode(*params) {
+    class ParamCollection(vararg val params: Param) : TreeNode.CollectionNode("ParameterCollection", *params) {
 
         init {
             var parameterList = mutableListOf<String>()
             for (param in params) {
                 if (param !is Param.SplitSymbol) {
-                    parameterList += param.paramTokens.joinToString { it.content }
+                    parameterList += param.paramTokens.joinToString("") { it.content }
                 }
             }
             console.log("line ${params[0].tokens[0].lineLoc.lineID + 1}: Grammar RiscV ParameterCollection <${parameterList.joinToString(",") { it }}>")
         }
     }
 
-    class Label(vararg val name: Assembly.Token, colon: Assembly.Token.Symbol) : TreeNode.TokenNode(RISCVFlags.label, *name, colon) {
+    class Label(vararg val labelName: Assembly.Token, colon: Assembly.Token.Symbol) : TreeNode.TokenNode(RISCVFlags.label, "Label", *labelName, colon) {
 
         val wholeName: String
+        val sequence: Sequence
 
         init {
-            wholeName = name.joinToString("") { it.content }
+            wholeName = labelName.joinToString("") { it.content }
+            val sequenceComponents = mutableListOf<Sequence.SequenceComponent>()
+            for (token in labelName) {
+                sequenceComponents.add(Sequence.SequenceComponent.Specific(token.content))
+            }
+            sequence = Sequence(*sequenceComponents.toTypedArray(), ignoreSpaces = false)
             console.log("line ${colon.lineLoc.lineID + 1}: Grammar RiscV Label <$wholeName>")
         }
     }
 
-    class Directive(val dot: Assembly.Token.Symbol, val type: Directive.Type, vararg tokens: Assembly.Token) : TreeNode.TokenNode(RISCVFlags.directive, dot, *tokens) {
+    class Directive(val dot: Assembly.Token.Symbol, val type: Directive.Type, vararg tokens: Assembly.Token) : TreeNode.TokenNode(RISCVFlags.directive, "Directive", dot, *tokens) {
         init {
             console.log("line ${dot.lineLoc.lineID + 1}: Grammar RiscV Directive <${type.name}>")
         }
@@ -324,18 +373,18 @@ class RISCVGrammar : Grammar() {
 
     }
 
-    class Instruction(val insToken: Assembly.Token.Instruction) : TreeNode.TokenNode(RISCVFlags.instruction, insToken) {
+    class Instruction(val insToken: Assembly.Token.Instruction) : TreeNode.TokenNode(RISCVFlags.instruction, "Instruction", insToken) {
 
         init {
             console.log("line ${insToken.lineLoc.lineID + 1}: Grammar RiscV Instruction <${insToken.content}>")
         }
     }
 
-    class PseudoInstruction(val name: Assembly.Token.Word, val type: Type) : TreeNode.TokenNode(RISCVFlags.pseudoInstruction, name) {
+    class PseudoInstruction(val insName: Assembly.Token.Word, val type: Type) : TreeNode.TokenNode(RISCVFlags.pseudoInstruction, "PseudoInstruction", insName) {
 
         init {
 
-            console.log("line ${name.lineLoc.lineID + 1}: Grammar RiscV Instruction <${name.content}>")
+            console.log("line ${insName.lineLoc.lineID + 1}: Grammar RiscV Instruction <${insName.content}>")
         }
 
         enum class Type {
@@ -352,7 +401,7 @@ class RISCVGrammar : Grammar() {
         }
     }
 
-    class Comment(val prefix: Assembly.Token.Symbol, vararg val content: Assembly.Token) : TreeNode.TokenNode(RISCVFlags.comment, prefix, *content) {
+    class Comment(val prefix: Assembly.Token.Symbol, vararg val content: Assembly.Token) : TreeNode.TokenNode(RISCVFlags.comment, "Comment", prefix, *content) {
 
         val wholeContent: String
 

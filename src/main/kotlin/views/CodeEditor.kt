@@ -5,6 +5,7 @@ import StorageKey
 import StyleConst
 import csstype.ClassName
 import extendable.ArchConst
+import extendable.components.assembly.Grammar
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearTimeout
@@ -16,7 +17,6 @@ import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.code
-import react.dom.html.ReactHTML.del
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.pre
@@ -45,6 +45,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val btnDarkModeRef = useRef<HTMLAnchorElement>(null)
     val btnClearRef = useRef<HTMLAnchorElement>(null)
     val btnUndoRef = useRef<HTMLAnchorElement>(null)
+    val infoPanelRef = useRef<HTMLAnchorElement>(null)
     val editorContainerRef = useRef<HTMLDivElement>(null)
     val inputDivRef = useRef<HTMLDivElement>(null)
     val codeAreaRef = useRef<HTMLElement>(null)
@@ -218,10 +219,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 ref = btnSwitchRef
                 title = "Transcript Switch"
                 ReactHTML.img {
-
                     src = "icons/cpu-charge.svg"
                 }
-
 
                 onClick = {
                     if (transcriptView) {
@@ -370,6 +369,15 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     setvc_rows(listOf(""))
                 }
             }
+
+            a {
+                id = "editor-info-panel"
+                ref = infoPanelRef
+
+                +"Info Panel"
+
+            }
+
         }
 
         div {
@@ -406,8 +414,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     }
                                     +"$lineNumber"
                                 }
-
-
                             }
                         }
                     }
@@ -425,6 +431,59 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             autoCapitalize = "off"
                             spellCheck = false
                             placeholder = "Enter ${appLogic.getArch().getName()} Assembly ..."
+
+                            onSelect = { event ->
+                                infoPanelRef.current?.let { infoPanel ->
+                                    val cursorPosition = event.currentTarget.selectionStart
+                                    cursorPosition?.let { cursorPos ->
+
+                                        val lines = event.currentTarget.value.substring(0, cursorPos).split("\n")
+                                        val lineID = lines.size - 1
+                                        val startIndex = lines[lineID].length
+
+                                        val grammarTree = appLogic.getArch().getAssembly().getGrammarTree()
+                                        grammarTree?.nodes?.let { nodes ->
+                                            console.log("CursorPosition: $lineID $startIndex")
+                                            for (node in nodes) {
+                                                when (node) {
+                                                    is Grammar.TreeNode.CollectionNode -> {
+                                                        val firstTokenLineID = node.tokenNodes[0].tokens.first().lineLoc.lineID
+                                                        val firstTokenStart = node.tokenNodes[0].tokens.first().lineLoc.startIndex
+                                                        val lastTokenEnd = node.tokenNodes[node.tokenNodes.lastIndex].tokens.last().lineLoc.endIndex
+                                                        var text = ""
+                                                        if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
+                                                            text += node.name + " -> "
+                                                            val childs = mutableListOf<String>()
+                                                            for (tokenNode in node.tokenNodes) {
+                                                                val firstChildLineLoc = tokenNode.tokens.first().lineLoc
+                                                                val childLineID = firstChildLineLoc.lineID
+                                                                val firstChildStart = firstChildLineLoc.startIndex
+                                                                val lastChildEnd = tokenNode.tokens.last().lineLoc.endIndex
+                                                                if (startIndex in firstChildStart..lastChildEnd) {
+                                                                    childs += tokenNode.name
+                                                                }
+                                                            }
+                                                            infoPanel.text = text + childs.joinToString(" , ") { it }
+                                                            break
+                                                        }
+                                                    }
+
+                                                    is Grammar.TreeNode.TokenNode -> {
+                                                        val firstTokenLineID = node.tokens.first().lineLoc.lineID
+                                                        val firstTokenStart = node.tokens.first().lineLoc.startIndex
+                                                        val lastTokenEnd = node.tokens.last().lineLoc.endIndex
+                                                        if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
+                                                            infoPanel.text = node.name
+                                                            break
+                                                        }
+                                                    }
+                                                }
+                                                infoPanel.text = "-"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
                             onChange = { event ->
                                 setta_val(event.currentTarget.value)
@@ -500,7 +559,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     preHighlight(event.currentTarget.value)
                                 }
                             }
-
                         }
 
                         pre {
@@ -652,6 +710,4 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         }
     }
-
-
 }
