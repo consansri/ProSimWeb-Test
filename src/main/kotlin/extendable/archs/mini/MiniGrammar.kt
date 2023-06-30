@@ -4,6 +4,9 @@ import extendable.components.assembly.Assembly
 import extendable.components.assembly.Grammar
 
 class MiniGrammar: Grammar() {
+
+    override val applyStandardHLForRest: Boolean = true
+
     override fun clear() {
     }
 

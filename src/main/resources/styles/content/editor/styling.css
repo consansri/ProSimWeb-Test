@@ -90,11 +90,6 @@
     padding: 1% 1%;
 }
 
-::selection {
-    background: var(--editor-sel-bg-color) !important;
-    color: #FFFFFF00;
-}
-
 .editor-scroll-container {
     scroll-behavior: smooth;
     display: flex;
@@ -321,7 +316,17 @@
     border-radius: var(--border-radius);
     box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
     height: auto;
-    padding: 0.5rem 0.2rem;
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+    padding-top: 0.5rem;
     width: var(--icon-size);
     transition: all 0.3s ease-in-out;
+}
+
+#editor-info-panel img {
+    position: relative;
+    width: calc(100% );
+    height: var(--icon-size);
+    filter: invert(100%);
+    transition: 0.1s;
 }

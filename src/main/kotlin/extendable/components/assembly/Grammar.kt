@@ -2,6 +2,7 @@ package extendable.components.assembly
 
 abstract class Grammar {
 
+    abstract val applyStandardHLForRest: Boolean
 
     abstract fun clear()
 
@@ -25,6 +26,16 @@ abstract class Grammar {
                                 return node
                             }
                         }
+
+                        is TreeNode.SectionNode -> {
+                            for (collNode in node.collNodes) {
+                                for (tokenNode in collNode.tokenNodes) {
+                                    if (tokenNode.tokens.contains(token)) {
+                                        return tokenNode
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -33,7 +44,7 @@ abstract class Grammar {
         }
     }
 
-    class Sequence(vararg val sequenceComponents: SequenceComponent, val ignoreSpaces: Boolean = false) {
+    class TokenSequence(vararg val sequenceComponents: SequenceComponent, val ignoreSpaces: Boolean = false) {
 
         fun getLength(): Int {
             return sequenceComponents.size
@@ -129,12 +140,6 @@ abstract class Grammar {
                                 }
                             }
 
-                            is SequenceComponent.InSpecific.Instruction -> {
-                                if (token is Assembly.Token.Instruction) {
-                                    sequenceResult.add(SeqMap(component, token))
-                                }
-                            }
-
                             is SequenceComponent.InSpecific.Space -> {
                                 if (token is Assembly.Token.Space) {
                                     sequenceResult.add(SeqMap(component, token))
@@ -174,8 +179,6 @@ abstract class Grammar {
 
                 class Register : InSpecific()
 
-                class Instruction : InSpecific()
-
                 class Space : InSpecific()
 
             }
@@ -183,9 +186,107 @@ abstract class Grammar {
     }
 
 
-    sealed class TreeNode() {
-        open class TokenNode(val hlFlag: String, val name: String, vararg val tokens: Assembly.Token) : TreeNode()
-        open class CollectionNode(val name: String, vararg val tokenNodes: TokenNode) : TreeNode()
+    sealed class TreeNode(val name: String) {
+        open class TokenNode(val hlFlag: String, name: String, vararg val tokens: Assembly.Token) : TreeNode(name)
+        open class CollectionNode(name: String, vararg val tokenNodes: TokenNode) : TreeNode(name)
+        open class SectionNode(name: String, vararg val collNodes: CollectionNode) : TreeNode(name)
+    }
+
+    data class Error(val treeNode: TreeNode, val message: String)
+
+    class SyntaxSequence(vararg val components: Component) {
+
+        fun exacltyMatches(vararg treeNodes: TreeNode): SyntaxSeqMatchResult {
+            var syntaxIndex = 0
+            val matchingTreeNodes = mutableListOf<TreeNode>()
+            var valid = true
+            var error: Error? = null
+
+            var remainingTreeNodes = treeNodes.toMutableList()
+
+            for (treeNode in treeNodes) {
+                val treeNodeIndex = treeNodes.indexOf(treeNode)
+                val component = components[syntaxIndex]
+                if (component.treeNodeName == treeNode.name) {
+                    matchingTreeNodes.add(treeNode)
+                    remainingTreeNodes.remove(treeNode)
+                } else {
+                    valid = false
+                    error = Grammar.Error(treeNode, "expecting ${component.treeNodeName} but found ${treeNode.name}")
+                    break
+                }
+
+                // increase Syntax Index if next treeNode doesn't equal this sequence component type
+                if (component.repeatable) {
+                    if (treeNodeIndex + 1 < treeNodes.size) {
+                        val nextTreeNode = treeNodes[treeNodeIndex + 1]
+                        if (nextTreeNode.name != component.treeNodeName) {
+                            if (syntaxIndex + 1 < components.size) {
+                                syntaxIndex++
+                            }
+                        }
+                    }
+                } else {
+                    if (syntaxIndex + 1 < components.size) {
+                        syntaxIndex++
+                    } else {
+                        break
+                    }
+                }
+            }
+            if (remainingTreeNodes.isNotEmpty()) {
+                valid = false
+                error = Error(remainingTreeNodes.first(), "to many arguments for Sequence {${components.joinToString(" , ") { "${it.treeNodeName} repeatable: ${it.repeatable}" }}}!")
+            }
+            return SyntaxSeqMatchResult(valid, matchingTreeNodes, error, remainingTreeNodes)
+        }
+
+        fun matches(vararg treeNodes: TreeNode): SyntaxSeqMatchResult {
+            var syntaxIndex = 0
+            val matchingTreeNodes = mutableListOf<TreeNode>()
+            var valid = true
+            var error: Error? = null
+
+            var remainingTreeNodes = treeNodes.toMutableList()
+
+            for (treeNode in treeNodes) {
+                val treeNodeIndex = treeNodes.indexOf(treeNode)
+                val component = components[syntaxIndex]
+                if (component.treeNodeName == treeNode.name) {
+                    matchingTreeNodes.add(treeNode)
+                    remainingTreeNodes.remove(treeNode)
+                } else {
+                    valid = false
+                    error = Grammar.Error(treeNode, "expecting ${component.treeNodeName} but found ${treeNode.name}")
+                    break
+                }
+
+                // increase Syntax Index if next treeNode doesn't equal this sequence component type
+                if (component.repeatable) {
+                    if (treeNodeIndex + 1 < treeNodes.size) {
+                        val nextTreeNode = treeNodes[treeNodeIndex + 1]
+                        if (nextTreeNode.name != component.treeNodeName) {
+                            if (syntaxIndex + 1 < components.size) {
+                                syntaxIndex++
+                            } else {
+                                break
+                            }
+                        }
+                    }
+                } else {
+                    if (syntaxIndex + 1 < components.size) {
+                        syntaxIndex++
+                    } else {
+                        break
+                    }
+                }
+            }
+            return SyntaxSeqMatchResult(valid, matchingTreeNodes, error, remainingTreeNodes)
+        }
+
+        data class Component(val treeNodeName: String, val repeatable: Boolean = false)
+
+        data class SyntaxSeqMatchResult(val matches: Boolean, val matchingTreeNodes: List<TreeNode>, val error: Error? = null, val remainingTreeNodes: List<TreeNode>? = null)
     }
 
 

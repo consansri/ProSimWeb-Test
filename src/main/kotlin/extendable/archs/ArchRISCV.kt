@@ -3,7 +3,6 @@ package extendable.cisc
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.components.assembly.Assembly
-import extendable.components.connected.Instruction
 import extendable.components.types.ByteValue
 
 class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
@@ -18,15 +17,6 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
         for (i in 0..100) {
             getMemory().saveDec(i.toDouble(), i.toString(10))
-        }
-        for (ins in getInstructions()) {
-            if (ins.name == "ADD") {
-                getConsole().log("execute ADD")
-                val reg1 = getRegisterContainer().getRegister("ra")
-                reg1?.let {
-                    ins.execute(this, Instruction.ExecutionMode.EXECUTION(emptyList()))
-                }
-            }
         }
     }
 

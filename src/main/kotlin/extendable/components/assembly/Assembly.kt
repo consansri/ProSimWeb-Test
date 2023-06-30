@@ -116,18 +116,6 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                         }
                     }
 
-                    val insRes = regexCollection.word.find(remainingLine)
-                    if (insRes != null) {
-                        val ins = architecture.findInstruction(insRes.value)
-                        if (ins != null) {
-                            tokenList += Token.Instruction(LineLoc(lineID, startIndex, startIndex + insRes.value.length), insRes.value, ins, tokenList.size)
-                            tempTokenList += Token.Instruction(LineLoc(lineID, startIndex, startIndex + insRes.value.length), insRes.value, ins, tokenList.size)
-                            startIndex += insRes.value.length
-                            remainingLine = line.substring(startIndex)
-                            continue
-                        }
-                    }
-
                     // apply rest
                     val alphaNumeric = regexCollection.alphaNumeric.find(remainingLine)
                     val word = regexCollection.word.find(remainingLine)
@@ -189,78 +177,77 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                     }
                 }
 
-                when (token) {
-                    is Token.AlphaNum -> {
-                        hlFlagCollection.alphaNum?.let {
-                            token.hl(architecture, it)
+                if (grammar.applyStandardHLForRest) {
+                    when (token) {
+                        is Token.AlphaNum -> {
+                            hlFlagCollection.alphaNum?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Constant.Binary -> {
-                        hlFlagCollection.const_bin?.let {
-                            token.hl(architecture, it)
+                        is Token.Constant.Binary -> {
+                            hlFlagCollection.const_bin?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Constant.Dec -> {
-                        hlFlagCollection.const_dec?.let {
-                            token.hl(architecture, it)
+                        is Token.Constant.Dec -> {
+                            hlFlagCollection.const_dec?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Constant.Hex -> {
-                        hlFlagCollection.const_hex?.let {
-                            token.hl(architecture, it)
+                        is Token.Constant.Hex -> {
+                            hlFlagCollection.const_hex?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Constant.UDec -> {
-                        hlFlagCollection.const_udec?.let {
-                            token.hl(architecture, it)
+                        is Token.Constant.UDec -> {
+                            hlFlagCollection.const_udec?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Constant.Ascii -> {
-                        hlFlagCollection.const_ascii?.let {
-                            token.hl(architecture, it)
+                        is Token.Constant.Ascii -> {
+                            hlFlagCollection.const_ascii?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Instruction -> {
-                        hlFlagCollection.instruction?.let {
-                            token.hl(architecture, it)
+                        is Token.Register -> {
+                            hlFlagCollection.register?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Register -> {
-                        hlFlagCollection.register?.let {
-                            token.hl(architecture, it)
+                        is Token.Symbol -> {
+                            hlFlagCollection.symbol?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Symbol -> {
-                        hlFlagCollection.symbol?.let {
-                            token.hl(architecture, it)
+                        is Token.Word -> {
+                            hlFlagCollection.word?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Word -> {
-                        hlFlagCollection.word?.let {
-                            token.hl(architecture, it)
+                        is Token.Space -> {
+                            hlFlagCollection.whitespace?.let {
+                                token.hl(architecture, it)
+                            }
                         }
-                    }
 
-                    is Token.Space -> {
-                        hlFlagCollection.whitespace?.let {
-                            token.hl(architecture, it)
+                        else -> {
+
                         }
-                    }
-
-                    else -> {
 
                     }
-
+                } else {
+                    token.hl(architecture, "")
                 }
+
                 hlLine += token.hlContent
             }
 
@@ -326,10 +313,6 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
         class Register(lineLoc: LineLoc, content: String, reg: RegisterContainer.Register, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.REGISTER
-        }
-
-        class Instruction(lineLoc: LineLoc, content: String, ins: extendable.components.connected.Instruction, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.INSTRUCTION
         }
 
         class AlphaNum(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {

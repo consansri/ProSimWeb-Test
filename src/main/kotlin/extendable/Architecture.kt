@@ -10,7 +10,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     private var name: String
     private val registerContainer: RegisterContainer
-    private val instructions: List<Instruction>
     private val memory: Memory
     private var transcript: Transcript
     private var flagsConditions: FlagsConditions?
@@ -26,7 +25,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     init {
         this.name = config.name
         this.registerContainer = config.registerContainer
-        this.instructions = config.instructions
         this.memory = config.memory
         this.transcript = config.transcript
         this.flagsConditions = config.flagsConditions
@@ -73,19 +71,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         return registerContainer
     }
 
-    fun getInstructions(): List<Instruction> {
-        return instructions
-    }
-
-    fun findInstruction(name: String): Instruction? {
-        for (ins in instructions) {
-            if (ins.name.matches(Regex("""$name""", RegexOption.IGNORE_CASE))) {
-                return ins
-            }
-        }
-        return null
-    }
-
     fun getTranscript(): Transcript {
         return transcript
     }
@@ -93,7 +78,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getMemory(): Memory {
         return memory
     }
-
 
     fun getFlagsConditions(): FlagsConditions? {
         return flagsConditions

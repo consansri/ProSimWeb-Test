@@ -62,6 +62,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (exeStartLine, setExeStartLine) = useState(1)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
     val (darkMode, setDarkMode) = useState(false)
+    val (infoPanelText, setInfoPanelText) = useState("")
 
     /* ----------------- localStorage Sync Objects ----------------- */
 
@@ -374,7 +375,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 id = "editor-info-panel"
                 ref = infoPanelRef
 
-                +"Info Panel"
+                +"{$infoPanelText}"
+
+                img {
+                    src = "icons/editor/token-tags.svg"
+                }
+
 
             }
 
@@ -433,28 +439,61 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             placeholder = "Enter ${appLogic.getArch().getName()} Assembly ..."
 
                             onSelect = { event ->
-                                infoPanelRef.current?.let { infoPanel ->
-                                    val cursorPosition = event.currentTarget.selectionStart
-                                    cursorPosition?.let { cursorPos ->
+                                val cursorPosition = event.currentTarget.selectionStart
+                                cursorPosition?.let { cursorPos ->
 
-                                        val lines = event.currentTarget.value.substring(0, cursorPos).split("\n")
-                                        val lineID = lines.size - 1
-                                        val startIndex = lines[lineID].length
+                                    val lines = event.currentTarget.value.substring(0, cursorPos).split("\n")
+                                    val lineID = lines.size - 1
+                                    val startIndex = lines[lineID].length
 
-                                        val grammarTree = appLogic.getArch().getAssembly().getGrammarTree()
-                                        grammarTree?.nodes?.let { nodes ->
-                                            console.log("CursorPosition: $lineID $startIndex")
-                                            for (node in nodes) {
-                                                when (node) {
-                                                    is Grammar.TreeNode.CollectionNode -> {
-                                                        val firstTokenLineID = node.tokenNodes[0].tokens.first().lineLoc.lineID
-                                                        val firstTokenStart = node.tokenNodes[0].tokens.first().lineLoc.startIndex
-                                                        val lastTokenEnd = node.tokenNodes[node.tokenNodes.lastIndex].tokens.last().lineLoc.endIndex
-                                                        var text = ""
+                                    val grammarTree = appLogic.getArch().getAssembly().getGrammarTree()
+                                    grammarTree?.nodes?.let { nodes ->
+                                        console.log("CursorPosition: $lineID $startIndex")
+                                        for (node in nodes) {
+                                            when (node) {
+                                                is Grammar.TreeNode.CollectionNode -> {
+                                                    val firstTokenLineID = node.tokenNodes[0].tokens.first().lineLoc.lineID
+                                                    val firstTokenStart = node.tokenNodes[0].tokens.first().lineLoc.startIndex
+                                                    val lastTokenEnd = node.tokenNodes[node.tokenNodes.lastIndex].tokens.last().lineLoc.endIndex
+                                                    var text = ""
+                                                    if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
+                                                        text += node.name + " -> "
+                                                        val childs = mutableListOf<String>()
+                                                        for (tokenNode in node.tokenNodes) {
+                                                            val firstChildLineLoc = tokenNode.tokens.first().lineLoc
+                                                            val childLineID = firstChildLineLoc.lineID
+                                                            val firstChildStart = firstChildLineLoc.startIndex
+                                                            val lastChildEnd = tokenNode.tokens.last().lineLoc.endIndex
+                                                            if (startIndex in firstChildStart..lastChildEnd) {
+                                                                childs += tokenNode.name
+                                                            }
+                                                        }
+                                                        setInfoPanelText(text + childs.joinToString(" , ") { it } + " ${node.tokenNodes[0].tokens.first().id}")
+                                                        break
+                                                    }
+                                                }
+
+                                                is Grammar.TreeNode.TokenNode -> {
+                                                    val firstTokenLineID = node.tokens.first().lineLoc.lineID
+                                                    val firstTokenStart = node.tokens.first().lineLoc.startIndex
+                                                    val lastTokenEnd = node.tokens.last().lineLoc.endIndex
+                                                    if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
+                                                        setInfoPanelText(node.name + " ${node.tokens.first().id}")
+                                                        break
+                                                    }
+                                                }
+
+                                                is Grammar.TreeNode.SectionNode -> {
+                                                    var text = "${node.name} -> "
+                                                    for(collNode in node.collNodes){
+                                                        val firstTokenLineID = collNode.tokenNodes[0].tokens.first().lineLoc.lineID
+                                                        val firstTokenStart = collNode.tokenNodes[0].tokens.first().lineLoc.startIndex
+                                                        val lastTokenEnd = collNode.tokenNodes[collNode.tokenNodes.lastIndex].tokens.last().lineLoc.endIndex
+
                                                         if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
-                                                            text += node.name + " -> "
+                                                            text += collNode.name + " -> "
                                                             val childs = mutableListOf<String>()
-                                                            for (tokenNode in node.tokenNodes) {
+                                                            for (tokenNode in collNode.tokenNodes) {
                                                                 val firstChildLineLoc = tokenNode.tokens.first().lineLoc
                                                                 val childLineID = firstChildLineLoc.lineID
                                                                 val firstChildStart = firstChildLineLoc.startIndex
@@ -463,23 +502,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                                                     childs += tokenNode.name
                                                                 }
                                                             }
-                                                            infoPanel.text = text + childs.joinToString(" , ") { it }
-                                                            break
-                                                        }
-                                                    }
-
-                                                    is Grammar.TreeNode.TokenNode -> {
-                                                        val firstTokenLineID = node.tokens.first().lineLoc.lineID
-                                                        val firstTokenStart = node.tokens.first().lineLoc.startIndex
-                                                        val lastTokenEnd = node.tokens.last().lineLoc.endIndex
-                                                        if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
-                                                            infoPanel.text = node.name
+                                                            setInfoPanelText(text + childs.joinToString(" , ") { it }+ " ${collNode.tokenNodes[0].tokens.first().id}")
                                                             break
                                                         }
                                                     }
                                                 }
-                                                infoPanel.text = "-"
                                             }
+                                            setInfoPanelText("")
                                         }
                                     }
                                 }
