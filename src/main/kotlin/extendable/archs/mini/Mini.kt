@@ -1,9 +1,6 @@
 package extendable.archs.mini
 
-import extendable.Architecture
-import extendable.archs.cisc.CISC
 import extendable.components.*
-import extendable.components.assembly.Grammar
 import extendable.components.connected.*
 import extendable.components.types.Address
 import extendable.components.types.ByteValue
