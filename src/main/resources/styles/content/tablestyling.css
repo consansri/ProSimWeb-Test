@@ -191,7 +191,7 @@ th {
 }
 
 .dcf-tab-active {
-    background-color: var(--main-bg-color) !important;
+    background-color: var(--proc-reg-bgColor) !important;
     color: var(--main-fg-color) !important;
     box-shadow: 0px 0rem 0.1rem 0px var(--main-bg-color) !important;;
     padding: 0.2rem 0.5rem !important;

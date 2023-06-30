@@ -60,7 +60,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
                 symbol = ArchConst.StandardHL.symbol,
                 instruction = ArchConst.StandardHL.instruction,
                 comment = ArchConst.StandardHL.comment,
-                whitespace = null//ArchConst.StandardHL.whiteSpace
+                //whitespace = ArchConst.StandardHL.whiteSpace
             )
         )
     }
