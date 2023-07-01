@@ -447,9 +447,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     val startIndex = lines[lineID].length
 
                                     val grammarTree = appLogic.getArch().getAssembly().getGrammarTree()
-                                    grammarTree?.nodes?.let { nodes ->
-                                        console.log("CursorPosition: $lineID $startIndex")
-                                        for (node in nodes) {
+                                    grammarTree?.rootNode?.let { rootNode ->
+                                        for (node in rootNode.sections) {
                                             when (node) {
                                                 is Grammar.TreeNode.CollectionNode -> {
                                                     val firstTokenLineID = node.tokenNodes[0].tokens.first().lineLoc.lineID

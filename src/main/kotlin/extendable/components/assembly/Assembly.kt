@@ -157,6 +157,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
     private fun parse() {
         grammar.clear()
         grammarTree = grammar.check(tokenLines)
+
     }
 
     private fun highlight() {
@@ -166,7 +167,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
             var hlLine = ""
 
             for (token in tokenLine) {
-                if (grammarTree?.nodes != null) {
+                if (grammarTree?.rootNode != null) {
                     val node = grammarTree?.contains(token)
                     if (node != null) {
                         if (node.hlFlag.isNotEmpty()) {
@@ -242,10 +243,13 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                         else -> {
 
                         }
-
                     }
                 } else {
                     token.hl(architecture, "")
+                }
+
+                if (grammarTree?.errorsContain(token) ?: false) {
+                    token.hl(architecture, ArchConst.StandardHL.error, "Error")
                 }
 
                 hlLine += token.hlContent
