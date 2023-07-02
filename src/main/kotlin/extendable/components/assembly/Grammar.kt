@@ -217,7 +217,22 @@ abstract class Grammar {
             }
         }
 
-        open class RootNode(name: String, val allComments: CollectionNode, val allErrors: List<Error>, vararg val sections: SectionNode) : TreeNode(name) {
+        open class FlexibleNode(name: String, vararg val nodes: TreeNode) : TreeNode(name) {
+            override fun getAllTokens(): Array<out Assembly.Token> {
+                val tokens = mutableListOf<Assembly.Token>()
+                nodes.forEach { tokens.addAll(it.getAllTokens()) }
+                return tokens.toTypedArray()
+            }
+        }
+
+        open class RootNode(name: String, val allComments: CollectionNode, allErrors: List<Error>, vararg val sections: SectionNode) : TreeNode(name) {
+
+            val allErrors: List<Error>
+
+            init {
+                this.allErrors = allErrors.sortedBy { it.linkedTreeNode.getAllTokens().first().id }.reversed()
+            }
+
             override fun getAllTokens(): Array<out Assembly.Token> {
                 val tokens = mutableListOf<Assembly.Token>()
                 tokens.addAll(allComments.getAllTokens())
@@ -234,6 +249,8 @@ abstract class Grammar {
         constructor(message: String, vararg tokenNodes: TreeNode.TokenNode) : this(message, TreeNode.CollectionNode("unidentified", *tokenNodes))
 
         constructor(message: String, vararg collectionNodes: TreeNode.CollectionNode) : this(message, TreeNode.SectionNode("unidentified", *collectionNodes))
+
+        constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.FlexibleNode("unidentified", *nodes))
 
     }
 
@@ -303,7 +320,7 @@ abstract class Grammar {
             var remainingTreeNodes = treeNodes.toMutableList()
 
             if (treeNodes.isEmpty()) {
-                return SyntaxSeqMatchResult(false, matchingTreeNodes, remainingTreeNodes =  remainingTreeNodes)
+                return SyntaxSeqMatchResult(false, matchingTreeNodes, remainingTreeNodes = remainingTreeNodes)
             }
 
             for (treeNode in treeNodes) {

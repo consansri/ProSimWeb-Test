@@ -84,6 +84,19 @@ class RISCVGrammar : Grammar() {
 
                                 previous--
                             }
+                            val labelNameString = labelName.joinToString("") { it.content }
+                            var alreadyDefined = false
+                            for (label in t1Labels) {
+                                if (label.wholeName == labelNameString) {
+                                    alreadyDefined = true
+                                }
+                            }
+                            if (alreadyDefined) {
+                                errors.add(Error("Mutliple Labels with same name not possible!", *labelName.toTypedArray(), colon))
+                                remainingTokens.removeAll(labelName)
+                                remainingTokens.remove(colon)
+                                break
+                            }
 
                             val t1Label = T1Label(*labelName.toTypedArray(), colon = colon)
                             remainingTokens.removeAll(labelName)
@@ -392,6 +405,9 @@ class RISCVGrammar : Grammar() {
                         errors.add(it)
                     }
                     continue
+                } else {
+                    errors.add(Grammar.Error("Instruction Definition: parameters aren't matching instruction ${t1Instr.type.name}!\nExpecting: ${t1Instr.paramExampleString()}", *tier1Line.toTypedArray()))
+                    continue
                 }
             }
 
@@ -415,6 +431,9 @@ class RISCVGrammar : Grammar() {
                                 errors.add(it)
                             }
                             continue
+                        } else {
+                            errors.add(Grammar.Error("Instruction Definition: parameters aren't matching instruction ${t1Instr.type.name}!\nExpecting: ${t1Instr.paramExampleString()}", *tier1Line.toTypedArray()))
+                            continue
                         }
                     }
                 }
@@ -432,6 +451,9 @@ class RISCVGrammar : Grammar() {
                             errors.add(it)
                         }
                         continue
+                    } else {
+                        errors.add(Grammar.Error("Instruction Definition: parameters aren't matching instruction ${t1PseudoInstr.type.name}!\nExpecting: ${t1PseudoInstr.paramExampleString()}", *tier1Line.toTypedArray()))
+                        continue
                     }
                 }
 
@@ -440,7 +462,6 @@ class RISCVGrammar : Grammar() {
             result = Syntax.NODE2_PSEUDOINSTRDEF2_SYNTAX.exacltyMatches(*tier1Line.toTypedArray())
 
             if (result.matches) {
-
                 if (result.matchingTreeNodes.size > 0) {
                     val t1PseudoInstr = result.matchingTreeNodes[0] as T1PseudoInstr
                     val t1ParamColl: T1ParamColl?
@@ -457,6 +478,9 @@ class RISCVGrammar : Grammar() {
                                 errors.add(it)
                             }
                             continue
+                        } else {
+                            errors.add(Grammar.Error("Instruction Definition: parameters aren't matching instruction ${t1PseudoInstr.type.name}!\nExpecting: ${t1PseudoInstr.paramExampleString()}", *tier1Line.toTypedArray()))
+                            continue
                         }
                     }
                 }
@@ -467,13 +491,12 @@ class RISCVGrammar : Grammar() {
                     val t1Label = result.matchingTreeNodes[0] as T1Label
                     val t1Directive = result.matchingTreeNodes[1] as T1Directive
                     val t1ParamColl = result.matchingTreeNodes[2] as T1ParamColl
-                    if (t1ParamColl.paramsWithOutSplitSymbols.size == 1) {
+                    if (t1ParamColl.paramsWithOutSplitSymbols.size == 1 && t1Directive.isTypeDirective() && t1ParamColl.paramsWithOutSplitSymbols.first() is T1Param.Constant) {
                         tier2Node = T2LabelDef(T2LabelDef.Type.MEMALLOC, t1Label, t1Directive, t1ParamColl)
                         tier2Lines.add(tier2Node)
                     } else {
-                        val lineTokens = mutableListOf<Assembly.Token>()
-                        tier1Line.forEach { lineTokens.addAll(it.getAllTokens()) }
-                        errors.add(Grammar.Error(message = "Less or to many constants for Label Definition!", linkedTreeNode = t1ParamColl))
+                        errors.add(Grammar.Error(message = "Memory / Address Allocation: " + if (!t1Directive.isTypeDirective()) "invalid type!" else "invalid parameter count!", nodes = tier1Line.toTypedArray()))
+                        continue
                     }
                     result.error?.let {
                         errors.add(it)
@@ -537,7 +560,6 @@ class RISCVGrammar : Grammar() {
 
         // TIER 3 MAIN Scan (apply Sections) | Ignore Comments
         val sections = mutableListOf<TreeNode.SectionNode>()
-
 
         val notNullT2Lines = tier2Lines.filterNotNull().toMutableList()
         var isTextSection = true
@@ -722,6 +744,18 @@ class RISCVGrammar : Grammar() {
 
         }
 
+        fun isTypeDirective(): Boolean {
+            when (type) {
+                byte, half, word, dword, asciz, string -> {
+                    return true
+                }
+
+                else -> {
+                    return false
+                }
+            }
+        }
+
         enum class Type {
             data,
             text,
@@ -782,6 +816,7 @@ class RISCVGrammar : Grammar() {
                 AND -> LOGICANDCALC
             }
         }
+
 
         fun check(parameterCollection: T1ParamColl = T1ParamColl()): Boolean {
             val matches: Boolean
@@ -868,6 +903,18 @@ class RISCVGrammar : Grammar() {
             BRANCH, // rs1, rs2, imm
             JUMPLR, // rd, label
             NONE,
+        }
+
+        fun paramExampleString(): String {
+            return when (paramType) {
+                RI -> "rd, imm"
+                LOADSAVE -> "rd, imm(rs) or rs2, imm(rs1)"
+                LOGICANDCALC -> "rd, rs1, rs2"
+                LOGICANDCALCIMM -> "rd, rs, imm"
+                BRANCH -> "rs1, rs2, imm"
+                JUMPLR -> "rd, label"
+                NONE -> "none"
+            }
         }
 
         enum class Type {
@@ -989,6 +1036,16 @@ class RISCVGrammar : Grammar() {
             L,  // label
             RR, // rd, rs
             NONE
+        }
+
+        fun paramExampleString(): String {
+            return when (paramType) {
+                ParameterType.RI -> "rd, imm"
+                ParameterType.RL -> "rs, label"
+                ParameterType.L -> "label"
+                ParameterType.RR -> "rd, rs"
+                ParameterType.NONE -> "none"
+            }
         }
 
         object Types {

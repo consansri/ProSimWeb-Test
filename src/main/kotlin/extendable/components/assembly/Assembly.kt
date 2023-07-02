@@ -12,6 +12,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
     private var hlLines: MutableList<String>? = null
     private var dryContent = ""
     private var grammarTree: Grammar.GrammarTree? = null
+    private var isBuildable = false
 
     private fun initCode(code: String) {
         tokenList = mutableListOf()
@@ -19,6 +20,10 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
         dryContent = code
         dryLines = dryContent.split(*ArchConst.LINEBREAKS.toTypedArray())
         hlLines = dryLines?.toMutableList()
+    }
+
+    fun isBuildable(): Boolean {
+        return isBuildable
     }
 
     fun setCode(code: String, shouldHighlight: Boolean) {
@@ -161,13 +166,16 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
             architecture.getConsole().clear()
             for (error in it) {
                 if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: {NodeType: ${error.linkedTreeNode.name}, Tokens: ${error.linkedTreeNode.getAllTokens().joinToString("") { it.content }}} ${error.message}")
+                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error {NodeType: ${error.linkedTreeNode.name}, Tokens: ${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}} \n${error.message}")
                 } else {
-                    architecture.getConsole().error(error.message)
+                    architecture.getConsole().error("GlobalError: " + error.message)
                 }
             }
-            if(it.isEmpty()){
+            if (it.isEmpty()) {
                 architecture.getConsole().log("build successful!")
+                isBuildable = true
+            } else {
+                isBuildable = false
             }
         }
 

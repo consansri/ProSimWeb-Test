@@ -142,8 +142,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     fun checkCode(taValue: String, immediate: Boolean) {
         val delay: Int
         val size = taValue.split("\n").size
+
         delay = when {
-            size < 500 -> 500
+            size < 500 -> 1000
             size > 3000 -> 3000
             else -> size
         }
@@ -334,6 +335,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         - CTRL + V  (Insert)
                         - CTRL + A  (Select All)
                         - TAB       (Insert Tab)
+                        - CTRL + ALT + L (Reformat)
                         
                         Features
                         - Tab Handling
@@ -585,6 +587,23 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     undo()
                                 } else if (event.key == "Enter") {
                                     preHighlight(event.currentTarget.value)
+                                } else if (event.ctrlKey && event.altKey && event.key == "l") {
+                                    // REFORMAT CODE
+                                    val lines = event.currentTarget.value.split("\n").toMutableList()
+                                    for (lineID in lines.indices) {
+                                        var lineContent = lines[lineID]
+                                        for (reformat in Formatter.reformats) {
+                                            lineContent = lineContent.replace(reformat.regex) {
+                                                it.value.replaceFirst(it.groupValues[1], reformat.replace)
+                                            }
+                                        }
+                                        lines[lineID] = lineContent
+                                    }
+
+                                    val formatted = lines.joinToString("\n") { it }
+                                    event.currentTarget.value = formatted
+                                    preHighlight(formatted)
+                                    checkCode(formatted, false)
                                 }
                             }
                         }
@@ -739,3 +758,15 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 }
+
+object Formatter {
+
+    val reformats = listOf<ReFormat>(
+        ReFormat(Regex("""(\s{2,})"""), "\t"),
+        ReFormat(Regex("""(,)\S"""), ", ")
+
+    )
+
+}
+
+data class ReFormat(val regex: Regex, val replace: String)
