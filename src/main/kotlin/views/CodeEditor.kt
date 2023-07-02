@@ -380,7 +380,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 title = "{$infoPanelText}"
 
                 img {
-                    src = StyleConst.Icons.pin
+                    src = StyleConst.Icons.tag
                 }
 
 

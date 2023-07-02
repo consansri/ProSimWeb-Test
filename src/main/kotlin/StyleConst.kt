@@ -99,6 +99,7 @@ object StyleConst {
         const val status_fine = "benicons/ver3/status_fine.svg"
         const val status_loading = "benicons/ver3/status_loading.svg"
         const val delete = "benicons/ver3/delete.svg"
+        const val tag = "benicons/ver3/tag.svg"
 
 
     }
