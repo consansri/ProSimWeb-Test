@@ -157,6 +157,20 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
     private fun parse() {
         grammar.clear()
         grammarTree = grammar.check(tokenLines)
+        grammarTree?.rootNode?.allErrors?.let {
+            architecture.getConsole().clear()
+            for (error in it) {
+                if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
+                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: {NodeType: ${error.linkedTreeNode.name}, Tokens: ${error.linkedTreeNode.getAllTokens().joinToString("") { it.content }}} ${error.message}")
+                } else {
+                    architecture.getConsole().error(error.message)
+                }
+            }
+            if(it.isEmpty()){
+                architecture.getConsole().log("build successful!")
+            }
+        }
+
 
     }
 
@@ -175,6 +189,11 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                             hlLine += token.hlContent
                             continue
                         }
+                    }
+                    if (grammarTree?.errorsContain(token) == true) {
+                        token.hl(architecture, ArchConst.StandardHL.error, "error")
+                        hlLine += token.hlContent
+                        continue
                     }
                 }
 
@@ -246,10 +265,6 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                     }
                 } else {
                     token.hl(architecture, "")
-                }
-
-                if (grammarTree?.errorsContain(token) ?: false) {
-                    token.hl(architecture, ArchConst.StandardHL.error, "Error")
                 }
 
                 hlLine += token.hlContent

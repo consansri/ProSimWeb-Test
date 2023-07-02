@@ -125,7 +125,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             }
 
             onClick = {
-                iConsole.clear()
+                appLogic.getArch().getConsole().clear()
             }
 
             src = StyleConst.Icons.delete

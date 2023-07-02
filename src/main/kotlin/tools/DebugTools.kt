@@ -53,4 +53,11 @@ object DebugTools {
         iConsole.log("BinaryTools.multiply(): ${bin1} * ${bin2} = ${BinaryTools.multiply(bin1, bin2)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.multiply(bin1, bin2), ByteValue.Size.Byte())).getDecStr()} ")
     }
 
+    object RISCV{
+        const val showGrammarScanTiers = false
+
+    }
+
+
+
 }

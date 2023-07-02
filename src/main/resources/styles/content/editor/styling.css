@@ -313,6 +313,10 @@
     color: var(--editor-code-dark-color) !important;
 }
 
+.editor-dark .editor-area {
+    caret-color: var(--editor-code-dark-color) !important;
+}
+
 
 .token:hover #editor-info-panel::before {
     content: attr(title);

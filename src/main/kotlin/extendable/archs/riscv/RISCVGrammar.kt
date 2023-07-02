@@ -6,6 +6,7 @@ import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
 import extendable.archs.riscv.RISCVGrammar.T1PseudoInstr.Type.*
 import extendable.components.assembly.Assembly
 import extendable.components.assembly.Grammar
+import tools.DebugTools
 
 class RISCVGrammar : Grammar() {
 
@@ -36,6 +37,8 @@ class RISCVGrammar : Grammar() {
     }
 
     override fun check(tokenLines: List<List<Assembly.Token>>): GrammarTree {
+
+        errors.clear()
 
         val tier1Lines = mutableListOf<List<TreeNode>>()
 
@@ -341,6 +344,8 @@ class RISCVGrammar : Grammar() {
                             val content = remainingTokens.dropWhile { it != token }.drop(1).toTypedArray()
                             val t1Comment = T1Comment(token, *content)
                             t1Comments.add(t1Comment) // not included in tier1Lines
+                            remainingTokens.remove(token)
+                            remainingTokens.removeAll(content)
                             break
                         }
                     }
@@ -352,13 +357,15 @@ class RISCVGrammar : Grammar() {
             }
 
             remainingLines[lineID] = remainingTokens
-            errors.add(Grammar.Error(*remainingTokens.toTypedArray(), message = "couldn't match Tokens to RiscV Tier1 TokenNode!"))
+            if (remainingTokens.isNotEmpty()) {
+                errors.add(Grammar.Error(message = "couldn't match Tokens to RiscV Tier1 TokenNode!", *remainingTokens.toTypedArray()))
+            }
 
             tier1Lines[lineID] += tier1Line
         }
-
-        console.log("Tier 1 Main Scan: ${tier1Lines.joinToString(", line: ") { it.joinToString(" ") { it.name } }}")
-
+        if (DebugTools.RISCV.showGrammarScanTiers) {
+            console.log("Tier 1 Main Scan: ${tier1Lines.joinToString(", line: ") { it.joinToString(" ") { it.name } }}")
+        }
 
         // TIER 2 MAIN Scan (check Syntax) | Ignore Comments
         var isTextArea = true
@@ -466,7 +473,7 @@ class RISCVGrammar : Grammar() {
                     } else {
                         val lineTokens = mutableListOf<Assembly.Token>()
                         tier1Line.forEach { lineTokens.addAll(it.getAllTokens()) }
-                        errors.add(Grammar.Error(*t1ParamColl.getAllTokens(), message = "Less or to many constants for Label Definition!", linkedTreeNode = t1ParamColl))
+                        errors.add(Grammar.Error(message = "Less or to many constants for Label Definition!", linkedTreeNode = t1ParamColl))
                     }
                     result.error?.let {
                         errors.add(it)
@@ -518,9 +525,15 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             }
-        }
 
-        console.log("Tier 2 Main Scan: ${tier2Lines.filterNotNull().joinToString { it.name }}")
+            for (tokenNode in tier1Line) {
+                errors.add(Grammar.Error("couldn't match RiscV Tier1 Nodes to RiscV Tier2 Node!", tokenNode))
+            }
+
+        }
+        if (DebugTools.RISCV.showGrammarScanTiers) {
+            console.log("Tier 2 Main Scan: ${tier2Lines.filterNotNull().joinToString { it.name }}")
+        }
 
         // TIER 3 MAIN Scan (apply Sections) | Ignore Comments
         val sections = mutableListOf<TreeNode.SectionNode>()
@@ -611,7 +624,7 @@ class RISCVGrammar : Grammar() {
 
             }
 
-            errors.add(Grammar.Error(tokens = firstT2Line.getAllTokens(), message = "Element not possible in ${if (isTextSection) "text section" else "data section"}!", linkedTreeNode = firstT2Line))
+            errors.add(Grammar.Error(message = "Element not possible in ${if (isTextSection) "text section" else "data section"}!", linkedTreeNode = firstT2Line))
             notNullT2Lines.removeFirst()
         }
 
@@ -628,15 +641,17 @@ class RISCVGrammar : Grammar() {
                 sections.add(T3DataSection(sectionIdentification as T2DataSectionStart, collectionNodes = sectionContent.toTypedArray()))
                 sectionContent.clear()
             } else {
-                errors.add(Grammar.Error(message = "No Valid Data Section Identification found!"))
+                errors.add(Grammar.Error(message = "No Valid Data Section Identification found!", sectionContent.first()))
             }
         }
-        console.log("Tier 3 Main Scan: ${sections.joinToString { it.name }}")
+        if (DebugTools.RISCV.showGrammarScanTiers) {
+            console.log("Tier 3 Main Scan: ${sections.joinToString { it.name }}")
+        }
+
         // Build Comment Node
         val commentNode = T2CommentCollection(*t1Comments.toTypedArray())
-        val errorNode = TreeNode.ErrorNode(errors = errors.toTypedArray())
         // Build CodeRoot Node
-        val rootNode = T4CodeRoot(commentNode, errorNode, *sections.toTypedArray())
+        val rootNode = T4CodeRoot(commentNode, errors, *sections.toTypedArray())
 
         return GrammarTree(rootNode)
     }
@@ -699,13 +714,12 @@ class RISCVGrammar : Grammar() {
                 tokenSequenceComponents.add(TokenSequence.SequenceComponent.Specific(token.content))
             }
             tokenSequence = TokenSequence(*tokenSequenceComponents.toTypedArray(), ignoreSpaces = false)
-            console.log("line ${colon.lineLoc.lineID + 1}: Grammar RiscV Label <$wholeName>")
         }
     }
 
     class T1Directive(val dot: Assembly.Token.Symbol, val type: T1Directive.Type, vararg tokens: Assembly.Token) : TreeNode.TokenNode(RISCVFlags.directive, Syntax.NODE_DIRECTIVE, dot, *tokens) {
         init {
-            console.log("line ${dot.lineLoc.lineID + 1}: Grammar RiscV Directive <${type.name}>")
+
         }
 
         enum class Type {
@@ -726,12 +740,11 @@ class RISCVGrammar : Grammar() {
         val paramType: ParameterType
 
         init {
-            console.log("line ${insToken.lineLoc.lineID + 1}: Grammar RiscV Instruction <${insToken.content}>")
             paramType = when (type) {
                 LUI -> RI
                 AUIPC -> RI
-                JAL -> JUMP
-                JALR -> JUMP
+                JAL -> JUMPLR
+                JALR -> JUMPLR
                 ECALL -> NONE
                 EBREAK -> NONE
                 BEQ -> BRANCH
@@ -830,13 +843,14 @@ class RISCVGrammar : Grammar() {
                     }
                 }
 
-                JUMP -> {
+                JUMPLR -> {
                     matches = if (trimmedT1ParamColl.size == 2) {
                         trimmedT1ParamColl[0] is T1Param.Register &&
                                 trimmedT1ParamColl[1] is T1Param.LabelLink
                     } else {
                         false
                     }
+
                 }
 
                 NONE -> {
@@ -852,7 +866,7 @@ class RISCVGrammar : Grammar() {
             LOGICANDCALC, // rd, rs1, rs2
             LOGICANDCALCIMM, // rd, rs, imm/shamt
             BRANCH, // rs1, rs2, imm
-            JUMP, // rd, rs, imm
+            JUMPLR, // rd, label
             NONE,
         }
 
@@ -905,7 +919,6 @@ class RISCVGrammar : Grammar() {
         val paramType: ParameterType
 
         init {
-            console.log("line ${insName.lineLoc.lineID + 1}: Grammar RiscV Instruction <${insName.content}>")
             paramType = when (type) {
                 li -> ParameterType.RI
                 beqz -> ParameterType.RL
@@ -989,7 +1002,6 @@ class RISCVGrammar : Grammar() {
 
         init {
             wholeContent = content.joinToString("") { it.content }
-            console.log("line ${prefix.lineLoc.lineID + 1}: Grammar RiscV Comment <$wholeContent>")
         }
     }
 
@@ -1029,7 +1041,7 @@ class RISCVGrammar : Grammar() {
 
     }
 
-    class T4CodeRoot(allComments: T2CommentCollection, allErrors: ErrorNode, vararg sectionNodes: TreeNode.SectionNode) : TreeNode.RootNode(Syntax.NODE4_ROOT, allComments, allErrors, *sectionNodes)
+    class T4CodeRoot(allComments: T2CommentCollection, allErrors: List<Error>, vararg sectionNodes: TreeNode.SectionNode) : TreeNode.RootNode(Syntax.NODE4_ROOT, allComments, allErrors, *sectionNodes)
 
     object Syntax {
         // Tier 1

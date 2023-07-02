@@ -4,11 +4,6 @@ class IConsole(val name: String) {
 
     private val messageArray: MutableList<Message> = mutableListOf()
 
-    init {
-
-    }
-
-
     fun info(message: String) {
         messageArray.add(Message(StyleConst.MESSAGE_TYPE_INFO, message))
     }

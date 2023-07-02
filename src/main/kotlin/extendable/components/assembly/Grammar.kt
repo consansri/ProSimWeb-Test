@@ -13,7 +13,6 @@ abstract class Grammar {
 
     class GrammarTree(val rootNode: TreeNode.RootNode? = null) {
         fun contains(token: Assembly.Token): TreeNode.TokenNode? {
-
             rootNode?.let {
                 for (comment in it.allComments.tokenNodes) {
                     if (comment.tokens.contains(token)) {
@@ -35,12 +34,15 @@ abstract class Grammar {
             return null
         }
 
-        fun errorsContain(token: Assembly.Token): Boolean{
+        fun errorsContain(token: Assembly.Token): Boolean {
             rootNode?.let {
-                for(error in rootNode.allErrors.errors){
-                    return error.tokens.contains(token)
+                for (error in rootNode.allErrors) {
+                    if (error.linkedTreeNode.getAllTokens().contains(token)) {
+                        return true
+                    }
                 }
             }
+
             return false
         }
     }
@@ -91,9 +93,6 @@ abstract class Grammar {
             val sequenceResult = match(*trimmedTokens.toTypedArray())
 
             if (sequenceResult.size == sequenceComponents.size) {
-                console.log(
-                    "Grammar.Sequence.match(): found ${sequenceResult.joinToString("") { it.token.content }}"
-                )
                 return SeqMatchResult(true, sequenceResult)
             } else {
                 return SeqMatchResult(false, sequenceResult)
@@ -189,13 +188,6 @@ abstract class Grammar {
 
     sealed class TreeNode(val name: String) {
         abstract fun getAllTokens(): Array<out Assembly.Token>
-        open class ErrorNode(val hlFlag: String = ArchConst.StandardHL.error, vararg val errors: Error) : TreeNode("Errors") {
-            override fun getAllTokens(): Array<out Assembly.Token> {
-                val tokens = mutableListOf<Assembly.Token>()
-                errors.forEach { it.tokens.forEach { tokens.add(it) } }
-                return tokens.toTypedArray()
-            }
-        }
 
         open class TokenNode(val hlFlag: String, name: String, vararg val tokens: Assembly.Token) : TreeNode(name) {
             override fun getAllTokens(): Array<out Assembly.Token> {
@@ -225,18 +217,25 @@ abstract class Grammar {
             }
         }
 
-        open class RootNode(name: String, val allComments: CollectionNode, val allErrors: ErrorNode, vararg val sections: SectionNode) : TreeNode(name) {
+        open class RootNode(name: String, val allComments: CollectionNode, val allErrors: List<Error>, vararg val sections: SectionNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Assembly.Token> {
                 val tokens = mutableListOf<Assembly.Token>()
                 tokens.addAll(allComments.getAllTokens())
-                tokens.addAll(allErrors.getAllTokens())
+                allErrors.forEach { tokens.addAll(it.linkedTreeNode.getAllTokens() ?: emptyArray()) }
                 sections.forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
             }
         }
     }
 
-    class Error(vararg val tokens: Assembly.Token, val message: String, val linkedTreeNode: TreeNode? = null)
+    class Error(val message: String, val linkedTreeNode: TreeNode) {
+        constructor(message: String, vararg tokens: Assembly.Token) : this(message, TreeNode.TokenNode("", "unidentified", *tokens))
+
+        constructor(message: String, vararg tokenNodes: TreeNode.TokenNode) : this(message, TreeNode.CollectionNode("unidentified", *tokenNodes))
+
+        constructor(message: String, vararg collectionNodes: TreeNode.CollectionNode) : this(message, TreeNode.SectionNode("unidentified", *collectionNodes))
+
+    }
 
     class SyntaxSequence(vararg val components: Component) {
 
@@ -249,7 +248,7 @@ abstract class Grammar {
             var remainingTreeNodes = treeNodes.toMutableList()
 
             if (treeNodes.isEmpty()) {
-                return SyntaxSeqMatchResult(false, matchingTreeNodes, Error(message = "no match found for empty TreeNodes List!"), remainingTreeNodes)
+                return SyntaxSeqMatchResult(false, matchingTreeNodes, remainingTreeNodes = remainingTreeNodes)
             }
 
             for (treeNode in treeNodes) {
@@ -261,7 +260,7 @@ abstract class Grammar {
                     remainingTreeNodes.remove(treeNode)
                 } else {
                     valid = false
-                    error = Grammar.Error(*treeNode.getAllTokens(), message = "expecting ${component.treeNodeNames} but found ${treeNode.name}", linkedTreeNode = treeNode)
+                    error = Grammar.Error(message = "expecting ${component.treeNodeNames} but found ${treeNode.name}", linkedTreeNode = treeNode)
                     break
                 }
 
@@ -290,7 +289,7 @@ abstract class Grammar {
                 val tokens = mutableListOf<Assembly.Token>()
                 remainingTreeNodes.forEach { tokens.addAll(it.getAllTokens()) }
 
-                error = Grammar.Error(*tokens.toTypedArray(), message = "to many arguments for Sequence {${components.joinToString(" , ") { "${it.treeNodeNames} repeatable: ${it.repeatable}" }}}!")
+                error = Grammar.Error(message = "to many arguments for Sequence {${components.joinToString(" , ") { "${it.treeNodeNames} repeatable: ${it.repeatable}" }}}!", *tokens.toTypedArray())
             }
             return SyntaxSeqMatchResult(valid, matchingTreeNodes, error, remainingTreeNodes)
         }
@@ -304,7 +303,7 @@ abstract class Grammar {
             var remainingTreeNodes = treeNodes.toMutableList()
 
             if (treeNodes.isEmpty()) {
-                return SyntaxSeqMatchResult(false, matchingTreeNodes, Error(message = "no match found for empty TreeNodes List!"), remainingTreeNodes)
+                return SyntaxSeqMatchResult(false, matchingTreeNodes, remainingTreeNodes =  remainingTreeNodes)
             }
 
             for (treeNode in treeNodes) {
@@ -315,7 +314,7 @@ abstract class Grammar {
                     remainingTreeNodes.remove(treeNode)
                 } else {
                     valid = false
-                    error = Grammar.Error(*treeNode.getAllTokens(), message = "expecting ${component.treeNodeNames} but found ${treeNode.name}", linkedTreeNode = treeNode)
+                    error = Grammar.Error(message = "expecting ${component.treeNodeNames} but found ${treeNode.name}", linkedTreeNode = treeNode)
                     break
                 }
 
