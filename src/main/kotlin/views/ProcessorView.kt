@@ -192,7 +192,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 title = "Reset"
                 p {
                     img {
-                        src = "benicons/exec/delete.svg"
+                        src = StyleConst.Icons.delete
                     }
                 }
                 onClick = {

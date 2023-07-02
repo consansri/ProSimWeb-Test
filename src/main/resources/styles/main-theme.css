@@ -13,10 +13,14 @@
 
     --rcontainer-bg-color: #091A40;
 
+    --main-delete-bg-color: #EE2222;
+
     --padding-size: 0.4rem;
     --border-radius: 0.3rem;
 
-    --icon-size: 32px;
+    --icon-size: 1.8rem;
+    --icon-padding: 0.1rem;
+    --icon-border-radius: 0.4rem;
 
     --logoFont: 'Bungee Shade', cursive;
 }

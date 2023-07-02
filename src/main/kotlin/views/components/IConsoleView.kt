@@ -2,6 +2,7 @@ package views.components
 
 import AppLogic
 import StorageKey
+import StyleConst
 import csstype.*
 import emotion.react.css
 import extendable.components.connected.IConsole
@@ -14,9 +15,11 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.*
 import react.dom.html.ButtonType
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 
 external interface IConsoleViewProps : Props {
@@ -95,82 +98,101 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             +iConsole.name
         }
 
-        button {
+        img {
 
             css {
                 display = Display.inlineBlock
+                cursor = Cursor.pointer
                 float = Float.right
-                paddingLeft = 5.px
-                paddingRight = 5.px
+                padding = 0.1.rem
+                width = 1.8.rem
+                height = 1.8.rem
+                marginLeft = 0.4.rem
 
-                color = Color("#EEEEEE")
                 borderRadius = 5.px
 
-                backgroundColor = Color("#EE2222")
+                backgroundColor = Color("#11dddd")
 
+                filter = invert(100)
+
+                transitionProperty = TransitionProperty.all
+                transitionDuration = 0.2.s
+                transitionTimingFunction = TransitionTimingFunction.easeInOut
+
+                hover {
+                    backgroundColor = Color("#00AAAA")
+                }
             }
-
-            type = ButtonType.button
 
             onClick = {
                 iConsole.clear()
             }
 
-            +"clear"
+            src = StyleConst.Icons.delete
+
+
         }
 
-        button {
+        img {
 
             css {
                 display = Display.inlineBlock
+                cursor = Cursor.pointer
                 float = Float.right
-                paddingLeft = 5.px
-                paddingRight = 5.px
+                padding = 0.1.rem
+                width = 1.8.rem
+                height = 1.8.rem
+                marginLeft = 0.4.rem
 
-                color = Color("#313131")
                 borderRadius = 5.px
 
+                filter = invert(100)
+
+
+
                 if (pin) {
-                    backgroundColor = Color("#AAAAAA")
-                } else {
                     backgroundColor = Color("#777777")
+                } else {
+                    backgroundColor = Color("#AAAAAA")
                 }
             }
-
-            type = ButtonType.button
 
             onClick = {
                 setPin(!pin)
             }
 
-            +"pin"
+            src = StyleConst.Icons.pin
         }
 
-        button {
+        img {
 
             css {
                 display = Display.inlineBlock
+                cursor = Cursor.pointer
                 float = Float.right
-                paddingLeft = 5.px
-                paddingRight = 5.px
+                padding = 0.1.rem
+                width = 1.8.rem
+                height = 1.8.rem
+                marginLeft = 0.4.rem
 
-                color = Color("#313131")
                 borderRadius = 5.px
 
+                filter = invert(100)
+
+
+
                 if (scrollDown) {
-                    backgroundColor = Color("#AAAAAA")
-                } else {
                     backgroundColor = Color("#777777")
+                } else {
+                    backgroundColor = Color("#AAAAAA")
                 }
             }
-
-            type = ButtonType.button
 
             onClick = {
                 setScrollDown(!scrollDown)
             }
 
-            +"auto scroll"
+            src = StyleConst.Icons.autoscroll
         }
 
 

@@ -1,5 +1,7 @@
 object StyleConst {
 
+
+
     /* HIGHLIGHTING */
 
     val HLCLASS_WHITESPACE = "whitespace"
@@ -79,5 +81,26 @@ object StyleConst {
 
 
     /*  */
+
+    object Icons{
+        const val autoscroll = "benicons/ver3/autoscroll.svg"
+        const val backwards = "benicons/ver3/backwards.svg"
+        const val darkmode = "benicons/ver3/darkmode.svg"
+        const val disassembler = "benicons/ver3/disassembler.svg"
+        const val export = "benicons/ver3/export.svg"
+        const val forwards = "benicons/ver3/forwards.svg"
+        const val home = "benicons/ver3/home.svg"
+        const val import = "benicons/ver3/import.svg"
+        const val info = "benicons/ver3/info.svg"
+        const val lightmode = "benicons/ver3/lightmode.svg"
+        const val pin = "benicons/ver3/pin.svg"
+        const val processor = "benicons/ver3/processor.svg"
+        const val status_error = "benicons/ver3/status_error.svg"
+        const val status_fine = "benicons/ver3/status_fine.svg"
+        const val status_loading = "benicons/ver3/status_loading.svg"
+        const val delete = "benicons/ver3/delete.svg"
+
+
+    }
 
 }

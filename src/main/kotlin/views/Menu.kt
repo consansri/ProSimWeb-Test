@@ -1,6 +1,7 @@
 package views
 
 import AppLogic
+import StyleConst
 import csstype.ClassName
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
@@ -71,7 +72,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 img {
                     className = ClassName("nav-img")
-                    src = "benicons/home.svg"
+                    src = StyleConst.Icons.home
 
                 }
             }
@@ -83,7 +84,7 @@ val Menu = FC<MenuProps>() { props ->
                 }
                 img {
                     className = ClassName("nav-img")
-                    src = "benicons/processor.svg"
+                    src = StyleConst.Icons.processor
                 }
             }
 
@@ -92,7 +93,7 @@ val Menu = FC<MenuProps>() { props ->
                 img {
                     className = ClassName("nav-img")
                     alt = "Upload"
-                    src = "icons/upload.svg"
+                    src = StyleConst.Icons.import
 
                 }
             }
@@ -102,7 +103,7 @@ val Menu = FC<MenuProps>() { props ->
                 img {
                     className = ClassName("nav-img")
                     alt = "Download"
-                    src = "icons/download.svg"
+                    src = StyleConst.Icons.export
 
                 }
             }

@@ -14,13 +14,12 @@
     --exec-sstepFgColor: white;
     --exec-continuousBgColor: #58cc79;
     --exec-continuousFgColor: white;
-    --exec-resetBgColor: #FF6D60;
+    --exec-resetBgColor: #EE2222;
     --exec-resetFgColor: white;
     --exec-soverBgColor: #549fd8;
     --exec-soverFgColor: white;
     --exec-esubBgColor: #549fd8;
     --exec-esubFgColor: white;
-    /*--exec-mstepBgColor: #F7D060; */
     --exec-mstepBgColor: #e2b124;
     --exec-mstepFgColor: white;
     --exec-progressBarColor: #007bff;

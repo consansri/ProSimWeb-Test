@@ -220,7 +220,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 ref = btnSwitchRef
                 title = "Transcript Switch"
                 ReactHTML.img {
-                    src = "icons/cpu-charge.svg"
+                    src = StyleConst.Icons.disassembler
                 }
 
                 onClick = {
@@ -251,28 +251,28 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         title = "Status: loading..."
                         img {
                             className = ClassName(StyleConst.CLASS_ANIM_ROTATION)
-                            src = "icons/loading.svg"
+                            src = StyleConst.Icons.status_loading
                         }
                     }
 
                     ArchConst.STATE_BUILDABLE -> {
                         title = "Status: ready to build"
                         img {
-                            src = "icons/check.svg"
+                            src = StyleConst.Icons.status_fine
                         }
                     }
 
                     ArchConst.STATE_HASERRORS -> {
                         title = "Status: fix errors!"
                         img {
-                            src = "icons/error.svg"
+                            src = StyleConst.Icons.status_error
                         }
                     }
 
                     ArchConst.STATE_EXECUTION -> {
                         title = "Status: executing..."
                         img {
-                            src = "icons/check.svg"
+                            src = StyleConst.Icons.status_fine
                         }
                     }
 
@@ -280,7 +280,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         title = "Status: loading..."
                         img {
                             className = ClassName(StyleConst.CLASS_ANIM_ROTATION)
-                            src = "icons/loading.svg"
+                            src = StyleConst.Icons.status_loading
                         }
                     }
                 }
@@ -294,9 +294,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                 img {
                     if (darkMode) {
-                        src = "icons/editor/mode-dark.svg"
+                        src = StyleConst.Icons.darkmode
                     } else {
-                        src = "icons/editor/mode-light.svg"
+                        src = StyleConst.Icons.lightmode
                     }
                 }
 
@@ -313,7 +313,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 title = "Undo"
 
                 img {
-                    src = "icons/undo.svg"
+                    src = StyleConst.Icons.backwards
                 }
 
                 onClick = {
@@ -347,7 +347,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 """.trimIndent()
 
                 img {
-                    src = "icons/info.svg"
+                    src = StyleConst.Icons.info
                 }
 
             }
@@ -359,7 +359,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 title = "Clear"
 
                 img {
-                    src = "icons/clear.svg"
+                    src = StyleConst.Icons.delete
                 }
 
                 onClick = {
@@ -375,10 +375,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 id = "editor-info-panel"
                 ref = infoPanelRef
 
-                +"{$infoPanelText}"
+                title = "{$infoPanelText}"
 
                 img {
-                    src = "icons/editor/token-tags.svg"
+                    src = StyleConst.Icons.pin
                 }
 
 
@@ -484,7 +484,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                                 is Grammar.TreeNode.SectionNode -> {
                                                     var text = "${node.name} -> "
-                                                    for(collNode in node.collNodes){
+                                                    for (collNode in node.collNodes) {
                                                         val firstTokenLineID = collNode.tokenNodes[0].tokens.first().lineLoc.lineID
                                                         val firstTokenStart = collNode.tokenNodes[0].tokens.first().lineLoc.startIndex
                                                         val lastTokenEnd = collNode.tokenNodes[collNode.tokenNodes.lastIndex].tokens.last().lineLoc.endIndex
@@ -501,7 +501,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                                                     childs += tokenNode.name
                                                                 }
                                                             }
-                                                            setInfoPanelText(text + childs.joinToString(" , ") { it }+ " ${collNode.tokenNodes[0].tokens.first().id}")
+                                                            setInfoPanelText(text + childs.joinToString(" , ") { it } + " ${collNode.tokenNodes[0].tokens.first().id}")
                                                             break
                                                         }
                                                     }

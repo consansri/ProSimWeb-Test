@@ -1,10 +1,11 @@
 :root {
-    --editor-controls-bg-color: #36454f;
-    --editor-controls-bg-hover-color: #EEEEEE;
+    --editor-controls-bg-color: #29335c;
+    --editor-controls-bg-hover-color: #7983Ac;
     --editor-bg-color: #EEEEEE;
-    --editor-code-color: #222222;
+    --editor-code-color: #313131;
+    --editor-code-dark-color: #BACADA;
     --editor-linenumbers-border-color: #B5B5B5;
-    --editor-linenumbers-color: #2222EE;
+    --editor-linenumbers-color: #999999;
     --editor-lineactive-color: green;
 
     --editor-lineHeight: 21px;
@@ -54,11 +55,12 @@
 
 .editor-control {
     cursor: pointer;
-    width: var(--icon-size);
-    height: var(--icon-size);
-    border-radius: 2px;
+    width: calc(2 * var(--icon-padding) + var(--icon-size));
+    height: calc(2 * var(--icon-padding) + var(--icon-size));
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    padding: var(--icon-padding);
+    border-radius: var(--icon-border-radius);
     background-color: var(--editor-controls-bg-color);
-    box-shadow: rgba(0, 0, 0, 0.09) 0 2px 1px, rgba(0, 0, 0, 0.09) 0 4px 2px, rgba(0, 0, 0, 0.09) 0 8px 4px, rgba(0, 0, 0, 0.09) 0 16px 8px, rgba(0, 0, 0, 0.09) 0 32px 16px;
     transition: 0.1s;
 }
 
@@ -71,6 +73,10 @@
 
 .editor-control-active img {
     filter: invert(71%) sepia(54%) saturate(429%) hue-rotate(83deg) brightness(89%) contrast(87%) !important;
+}
+
+#editor-clear {
+    background-color: var(--main-delete-bg-color);
 }
 
 
@@ -111,11 +117,12 @@
 .editor-line-numbers span {
     cursor: pointer;
     padding-right: 5px;
+    color: var(--editor-linenumbers-color);
     border-right: 1px solid var(--editor-linenumbers-border-color);
 }
 
 .line-active {
-    color: var(--editor-lineactive-color);
+    color: var(--editor-lineactive-color)!important;
 }
 
 /* EDITOR Input Field */
@@ -161,7 +168,7 @@
     width: 100%;
     height: 100%;
 
-    color: var(--hl-base02);
+    color: var(--editor-code-color);
 }
 
 .editor-highlighting-content mark {
@@ -199,8 +206,7 @@
 }
 
 .anim-hover:hover {
-    /*background-color: var(--editor-controls-bg-hover-color);*/
-    filter: brightness(150%);
+    background-color: var(--editor-controls-bg-hover-color);
 }
 
 .anim-deactivated {
@@ -299,8 +305,14 @@
 }
 
 .editor-dark {
-    filter: invert(100%) !important;
+    /*filter: invert(100%) !important;*/
+    background-color: #313131;
 }
+
+.editor-dark .editor-highlighting-content {
+    color: var(--editor-code-dark-color) !important;
+}
+
 
 .token:hover #editor-info-panel::before {
     content: attr(title);
@@ -314,18 +326,16 @@
     color: var(--editor-controls-bg-hover-color);
     background-color: var(--editor-controls-bg-color);
     border-radius: var(--border-radius);
-    box-shadow: rgba(0, 0, 0, 0.09) 0 2px 1px, rgba(0, 0, 0, 0.09) 0 4px 2px, rgba(0, 0, 0, 0.09) 0 8px 4px, rgba(0, 0, 0, 0.09) 0 16px 8px, rgba(0, 0, 0, 0.09) 0 32px 16px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
     height: auto;
-    padding-left: 0.2rem;
-    padding-right: 0.2rem;
-    padding-top: 0.5rem;
-    width: var(--icon-size);
+    padding: var(--icon-padding);
+    width: calc(2 * var(--icon-padding) + var(--icon-size));
     transition: all 0.3s ease-in-out;
 }
 
 #editor-info-panel img {
     position: relative;
-    width: calc(100% );
+    width: calc(100%);
     height: var(--icon-size);
     filter: invert(100%);
     transition: 0.1s;
