@@ -9,7 +9,7 @@ import extendable.components.types.ByteValue
 
 object CISC {
 
-    val asmConfig = AsmConfig(CISCGrammar())
+    val asmConfig = AsmConfig(CISCGrammar(), CISCCompiler())
 
     val config = Config(
         "IKR CISC",

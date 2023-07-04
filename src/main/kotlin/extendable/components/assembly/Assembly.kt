@@ -4,7 +4,7 @@ import extendable.ArchConst
 import extendable.Architecture
 import extendable.components.connected.RegisterContainer
 
-class Assembly(private val architecture: Architecture, private val grammar: Grammar, private val regexCollection: RegexCollection, private val hlFlagCollection: HLFlagCollection) {
+class Assembly(private val architecture: Architecture, private val grammar: Grammar, private val compiler: Compiler, private val regexCollection: RegexCollection, private val hlFlagCollection: HLFlagCollection) {
 
     private var tokenList: MutableList<Token> = mutableListOf()
     private var tokenLines: MutableList<MutableList<Token>> = mutableListOf()
@@ -33,6 +33,7 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
         if (shouldHighlight) {
             highlight()
         }
+        compile()
     }
 
     private fun analyze() {
@@ -178,8 +179,6 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
                 isBuildable = false
             }
         }
-
-
     }
 
     private fun highlight() {
@@ -280,6 +279,15 @@ class Assembly(private val architecture: Architecture, private val grammar: Gram
 
             hlLines?.let {
                 it[lineID] = hlLine
+            }
+        }
+    }
+
+    private fun compile() {
+        if(isBuildable){
+            grammarTree?.let {
+                compiler.generateTranscript(architecture, it)
+                compiler.generateByteCode(architecture, it)
             }
         }
     }

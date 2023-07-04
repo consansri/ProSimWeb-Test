@@ -17,7 +17,8 @@ object RISCV {
 
     // Assembler CONFIG
     val asmConfig = AsmConfig(
-        RISCVGrammar()
+        RISCVGrammar(),
+        RISCVCompiler()
     )
 
 
@@ -33,8 +34,8 @@ object RISCV {
                 RegisterContainer.RegisterFile(
                     RegisterContainer.RegLabel.MAIN, "MAIN", arrayOf(
                         RegisterContainer.Register(ByteValue.Type.Dec("0", REG_ADDRESS_SIZE), "zero", ByteValue(REG_INIT, REG_SIZE), "hardwired zero"),
-                        RegisterContainer.Register(ByteValue.Type.Dec("0", REG_ADDRESS_SIZE), "ra", ByteValue(REG_INIT, REG_SIZE), "return address"),
-                        RegisterContainer.Register(ByteValue.Type.Dec("0", REG_ADDRESS_SIZE), "sp", ByteValue(REG_INIT, REG_SIZE), "stack pointer"),
+                        RegisterContainer.Register(ByteValue.Type.Dec("1", REG_ADDRESS_SIZE), "ra", ByteValue(REG_INIT, REG_SIZE), "return address"),
+                        RegisterContainer.Register(ByteValue.Type.Dec("2", REG_ADDRESS_SIZE), "sp", ByteValue(REG_INIT, REG_SIZE), "stack pointer"),
                         RegisterContainer.Register(ByteValue.Type.Dec("3", REG_ADDRESS_SIZE), "gp", ByteValue(REG_INIT, REG_SIZE), "global pointer"),
                         RegisterContainer.Register(ByteValue.Type.Dec("4", REG_ADDRESS_SIZE), "tp", ByteValue(REG_INIT, REG_SIZE), "thread pointer"),
                         RegisterContainer.Register(ByteValue.Type.Dec("5", REG_ADDRESS_SIZE), "t0", ByteValue(REG_INIT, REG_SIZE), "temporary register 0"),
@@ -69,7 +70,7 @@ object RISCV {
             )
         ),
         Memory(ByteValue.Size.Bit32(), MEM_INIT, ByteValue.Size.Bit8(), Memory.Endianess.LittleEndian),
-        Transcript(arrayOf("Address", "Line", "Code", "Labels", "Instruction"))
+        Transcript()
     )
 
     // EDITOR

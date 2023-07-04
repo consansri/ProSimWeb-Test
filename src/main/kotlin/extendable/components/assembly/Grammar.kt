@@ -2,6 +2,7 @@ package extendable.components.assembly
 
 import emotion.css.keyframes
 import extendable.ArchConst
+import extendable.Architecture
 
 abstract class Grammar {
 

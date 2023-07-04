@@ -8,13 +8,16 @@ class Transcript {
     private var content: List<TranscriptEntry> = listOf()
 
     constructor() {
-        this.headers = ArchConst.TRANSCRIPT_HEADERS
-
+        val transcriptHeaders = ArchConst.TranscriptHeaders.values()
+        val headersList = mutableListOf<String>()
+        for(header in transcriptHeaders){
+            headersList.add(header.name)
+        }
+        this.headers = headersList.toTypedArray()
     }
 
     constructor(headers: Array<String>) {
         this.headers = headers
-
     }
 
     fun setContent(transcriptEntrys: List<TranscriptEntry>) {
@@ -33,6 +36,14 @@ class Transcript {
         return headers
     }
 
-    class TranscriptEntry(val content: Array<String>, val map: Map<LongRange, IntRange>)
+    class TranscriptEntry(val memoryHexAddress: String, val editorLines: IntRange){
+
+        val content = mutableMapOf<String, String>()
+
+        fun addContent(header: String, value: String){
+            content[header] = value
+        }
+
+    }
 
 }

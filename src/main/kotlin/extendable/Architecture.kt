@@ -15,8 +15,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private var flagsConditions: FlagsConditions?
     private var cache: Cache?
     private val IConsole: IConsole
-    private val grammar: Grammar
-
     private val archState = ArchState()
     private val assembly: Assembly
     private val executionStartAddress = 0
@@ -30,11 +28,11 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
         this.IConsole = IConsole("${config.name} Console")
-        this.grammar = asmConfig.grammar
 
         this.assembly = Assembly(
             this,
-            grammar,
+            asmConfig.grammar,
+            asmConfig.compiler,
             Assembly.RegexCollection(
                 Regex("""^\s+"""),
                 Regex("""^[^0-9A-Za-z]"""),

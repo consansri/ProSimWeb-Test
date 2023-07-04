@@ -7,8 +7,6 @@ object ArchConst {
     /*
      *    !! use this Object only in Development Phase to test instances even if other Instances are not integrated yet !!
      */
-    val TRANSCRIPT_HEADERS = arrayOf("Address", "Line", "Code", "Labels", "Instruction")
-
 
     /*
         NOT OVERRIDABLE!
@@ -71,6 +69,13 @@ object ArchConst {
         NAME,
         VALUE,
         DESCRIPTION
+    }
+
+    enum class TranscriptHeaders{
+        ADDRESS,
+        LINE,
+        LABELS,
+        INSTRUCTION
     }
 
     enum class RegTypes {
