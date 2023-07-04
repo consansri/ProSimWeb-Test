@@ -30,10 +30,8 @@ val TranscriptView = FC<TranscriptProps> { props ->
     val transcript by useState(props.transcript)
 
 
-
     div {
         className = ClassName(StyleConst.CLASS_TRANSCRIPT)
-
 
         div {
             className = ClassName(StyleConst.CLASS_TRANSCRIPT_TITLE)
