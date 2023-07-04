@@ -678,6 +678,56 @@ class RISCVGrammar : Grammar() {
         return GrammarTree(rootNode)
     }
 
+    /* ---------- SYNTAX ------------ */
+
+    object Syntax {
+        // Tier 1
+        const val NODE_LABEL = "Label"
+        const val NODE_DIRECTIVE = "Directive"
+        const val NODE_INSTR = "Instr"
+        const val NODE_PSEUDOINSTR = "PseudoInstr"
+        const val NODE_PARAMCOLLECTION = "Params"
+        const val NODE_COMMENT = "Comment"
+
+        const val NODE_PARAM_OFFSET = "Offset"
+        const val NODE_PARAM_SPLIT = "Splitter"
+        const val NODE_PARAM_CONST = "Constant"
+        const val NODE_PARAM_REG = "Register"
+        const val NODE_PARAM_LABELLINK = "LabelLink"
+
+        // Tier 2
+        const val NODE2_LABELDEF = "LabelDef"
+        const val NODE2_LABELJUMP = "LabelJump"
+        const val NODE2_INSTRDEF = "InstrDef"
+        const val NODE2_PSEUDOINSTRDEF = "PseudoInstrDef"
+        const val NODE2_TEXTSECTIONSTART = "TextSectionStart"
+        const val NODE2_DATASECTIONSTART = "DataSectionStart"
+        const val NODE2_COMMENTCOLLECTION = "AllComments"
+
+        val NODE2_INSTRDEF_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_INSTR))
+        val NODE2_INSTRDEF2_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_INSTR), SyntaxSequence.Component(NODE_PARAMCOLLECTION))
+        val NODE2_PSEUDOINSTRDEF_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_PSEUDOINSTR))
+        val NODE2_PSEUDOINSTRDEF2_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_PSEUDOINSTR), SyntaxSequence.Component(NODE_PARAMCOLLECTION))
+        val NODE2_JUMPLABEL_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_LABEL))
+        val NODE2_ADDRESSALLOCLABEL_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_LABEL), SyntaxSequence.Component(NODE_DIRECTIVE), SyntaxSequence.Component(NODE_PARAMCOLLECTION))
+        val NODE2_SECTIONSTART_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_DIRECTIVE))
+
+        // Tier 3
+        const val NODE3_SECTION_DATA = "Data Section"
+        const val NODE3_SECTION_TEXT = "Text Section"
+
+        val NODE3_SECTION_DATA_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_DATASECTIONSTART), SyntaxSequence.Component(NODE2_LABELDEF, repeatable = true))
+        val NODE3_SECTION_TEXT_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_TEXTSECTIONSTART), SyntaxSequence.Component(NODE2_INSTRDEF, NODE2_PSEUDOINSTRDEF, NODE2_LABELJUMP, repeatable = true))
+        val NODE3_SECTION_TEXT1_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_INSTRDEF, NODE2_PSEUDOINSTRDEF, NODE2_LABELJUMP, repeatable = true))
+
+        // Tier 4
+        const val NODE4_ROOT = "root"
+    }
+
+
+    /* ---------- All SYNTAX Tokens which all implement a TreeNode ------------ */
+
+    /* ---------- SYNTAX Tokens: Tier 1 ------------ */
 
     sealed class T1Param(hlFlag: String, val type: String, vararg val paramTokens: Assembly.Token) : TreeNode.TokenNode(hlFlag, type, *paramTokens) {
 
@@ -1049,7 +1099,7 @@ class RISCVGrammar : Grammar() {
         }
 
         object Types {
-            val list = listOf(li, beqz, j, ret, bltz, mv)
+            val list = listOf(Type.li, Type.beqz, Type.j, Type.ret, Type.bltz, Type.mv)
         }
     }
 
@@ -1062,17 +1112,13 @@ class RISCVGrammar : Grammar() {
         }
     }
 
-    class T2CommentCollection(vararg val comments: T1Comment) : TreeNode.CollectionNode(Syntax.NODE2_COMMENTCOLLECTION, *comments) {
+    /* ---------- SYNTAX Tokens: Tier 2 ------------ */
 
-    }
+    class T2CommentCollection(vararg val comments: T1Comment) : TreeNode.CollectionNode(Syntax.NODE2_COMMENTCOLLECTION, *comments)
 
-    class T2TextSectionStart(val t1Directive: T1Directive) : TreeNode.CollectionNode(Syntax.NODE2_TEXTSECTIONSTART, t1Directive) {
+    class T2TextSectionStart(val t1Directive: T1Directive) : TreeNode.CollectionNode(Syntax.NODE2_TEXTSECTIONSTART, t1Directive)
 
-    }
-
-    class T2DataSectionStart(val t1Directive: T1Directive) : TreeNode.CollectionNode(Syntax.NODE2_DATASECTIONSTART, t1Directive) {
-
-    }
+    class T2DataSectionStart(val t1Directive: T1Directive) : TreeNode.CollectionNode(Syntax.NODE2_DATASECTIONSTART, t1Directive)
 
     class T2LabelDef(val type: Type, val t1Label: T1Label, val t1Directive: T1Directive? = null, val t1Param: T1ParamColl? = null) : TreeNode.CollectionNode(if (type == Type.JUMP) Syntax.NODE2_LABELJUMP else Syntax.NODE2_LABELDEF, t1Label, t1Directive, *t1Param?.tokenNodes ?: emptyArray()) {
 
@@ -1082,67 +1128,21 @@ class RISCVGrammar : Grammar() {
         }
     }
 
-    class T2InstrDef(val t1Instr: T1Instr, val t1ParamColl: T1ParamColl? = null) : TreeNode.CollectionNode(Syntax.NODE2_INSTRDEF, t1Instr, *t1ParamColl?.tokenNodes ?: emptyArray()) {
+    class T2InstrDef(val t1Instr: T1Instr, val t1ParamColl: T1ParamColl? = null) : TreeNode.CollectionNode(Syntax.NODE2_INSTRDEF, t1Instr, *t1ParamColl?.tokenNodes ?: emptyArray())
 
-    }
+    class T2PseudoInstrDef(val t1PseudoInstr: T1PseudoInstr, val t1ParamColl: T1ParamColl? = null) : TreeNode.CollectionNode(Syntax.NODE2_PSEUDOINSTRDEF, t1PseudoInstr, *t1ParamColl?.tokenNodes ?: emptyArray())
 
-    class T2PseudoInstrDef(val t1PseudoInstr: T1PseudoInstr, val t1ParamColl: T1ParamColl? = null) : TreeNode.CollectionNode(Syntax.NODE2_PSEUDOINSTRDEF, t1PseudoInstr, *t1ParamColl?.tokenNodes ?: emptyArray()) {
+    /* ---------- SYNTAX Tokens: Tier 3 ------------ */
 
-    }
+    class T3DataSection(val dataDirective: T2DataSectionStart, vararg val collectionNodes: TreeNode.CollectionNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_DATA, dataDirective, *collectionNodes)
 
-    class T3DataSection(val dataDirective: T2DataSectionStart, vararg val collectionNodes: TreeNode.CollectionNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_DATA, dataDirective, *collectionNodes) {
+    class T3TextSection(val textDirective: T2TextSectionStart? = null, vararg val collectionNodes: TreeNode.CollectionNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_TEXT, collNodes = arrayOf(textDirective, *collectionNodes).filterNotNull().toTypedArray())
 
-    }
-
-    class T3TextSection(val textDirective: T2TextSectionStart? = null, vararg val collectionNodes: TreeNode.CollectionNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_TEXT, collNodes = arrayOf(textDirective, *collectionNodes).filterNotNull().toTypedArray()) {
-
-    }
+    /* ---------- SYNTAX Tokens: Tier 4 ------------ */
 
     class T4CodeRoot(allComments: T2CommentCollection, allErrors: List<Error>, vararg sectionNodes: TreeNode.SectionNode) : TreeNode.RootNode(Syntax.NODE4_ROOT, allComments, allErrors, *sectionNodes)
 
-    object Syntax {
-        // Tier 1
-        const val NODE_LABEL = "Label"
-        const val NODE_DIRECTIVE = "Directive"
-        const val NODE_INSTR = "Instr"
-        const val NODE_PSEUDOINSTR = "PseudoInstr"
-        const val NODE_PARAMCOLLECTION = "Params"
-        const val NODE_COMMENT = "Comment"
 
-        const val NODE_PARAM_OFFSET = "Offset"
-        const val NODE_PARAM_SPLIT = "Splitter"
-        const val NODE_PARAM_CONST = "Constant"
-        const val NODE_PARAM_REG = "Register"
-        const val NODE_PARAM_LABELLINK = "LabelLink"
 
-        // Tier 2
-        const val NODE2_LABELDEF = "LabelDef"
-        const val NODE2_LABELJUMP = "LabelJump"
-        const val NODE2_INSTRDEF = "InstrDef"
-        const val NODE2_PSEUDOINSTRDEF = "PseudoInstrDef"
-        const val NODE2_TEXTSECTIONSTART = "TextSectionStart"
-        const val NODE2_DATASECTIONSTART = "DataSectionStart"
-        const val NODE2_COMMENTCOLLECTION = "AllComments"
-
-        val NODE2_INSTRDEF_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_INSTR))
-        val NODE2_INSTRDEF2_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_INSTR), SyntaxSequence.Component(NODE_PARAMCOLLECTION))
-        val NODE2_PSEUDOINSTRDEF_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_PSEUDOINSTR))
-        val NODE2_PSEUDOINSTRDEF2_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_PSEUDOINSTR), SyntaxSequence.Component(NODE_PARAMCOLLECTION))
-        val NODE2_JUMPLABEL_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_LABEL))
-        val NODE2_ADDRESSALLOCLABEL_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_LABEL), SyntaxSequence.Component(NODE_DIRECTIVE), SyntaxSequence.Component(NODE_PARAMCOLLECTION))
-        val NODE2_SECTIONSTART_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE_DIRECTIVE))
-
-        // Tier 3
-        const val NODE3_SECTION_DATA = "Data Section"
-        const val NODE3_SECTION_TEXT = "Text Section"
-
-        val NODE3_SECTION_DATA_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_DATASECTIONSTART), SyntaxSequence.Component(NODE2_LABELDEF, repeatable = true))
-        val NODE3_SECTION_TEXT_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_TEXTSECTIONSTART), SyntaxSequence.Component(NODE2_INSTRDEF, NODE2_PSEUDOINSTRDEF, NODE2_LABELJUMP, repeatable = true))
-        val NODE3_SECTION_TEXT1_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_INSTRDEF, NODE2_PSEUDOINSTRDEF, NODE2_LABELJUMP, repeatable = true))
-
-        // Tier 4
-        const val NODE4_ROOT = "root"
-
-    }
 
 }

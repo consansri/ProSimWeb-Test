@@ -1,6 +1,7 @@
 package extendable
 
 import StyleConst
+import extendable.components.types.ByteValue
 
 object ArchConst {
     /*
@@ -40,7 +41,6 @@ object ArchConst {
     val REGISTER_LABEL_MAIN = "main"
 
     // ADDRESS
-    const val ADDRESS_NOVALUE = -1L
     const val hex = 0b10111001
 
     // EXTENSION, OPLABE and REGEX TYPES

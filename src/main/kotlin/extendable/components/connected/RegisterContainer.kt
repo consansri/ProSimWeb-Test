@@ -1,6 +1,5 @@
 package extendable.components.connected
 
-import extendable.components.types.Address
 import extendable.components.types.ByteValue
 
 class RegisterContainer(private val registerFileList: List<RegisterFile>) {
@@ -33,7 +32,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>) {
         return null
     }
 
-    fun getRegister(address: Address): Register? {
+    fun getRegister(address: ByteValue.Type): Register? {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
                 if (reg.address == address) {
@@ -48,12 +47,12 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>) {
         return registerFileList
     }
 
-    data class Register(val address: Address, val name: String, val byteValue: ByteValue, val description: String){
+    data class Register(val address: ByteValue.Type, val name: String, val byteValue: ByteValue, val description: String) {
         fun get(): ByteValue.Type {
             return byteValue.get()
         }
 
-        fun set(value: ByteValue.Type){
+        fun set(value: ByteValue.Type) {
             byteValue.set(value)
         }
     }
@@ -66,5 +65,6 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>) {
         SYSTEM,
         CUSTOM
     }
+
 
 }

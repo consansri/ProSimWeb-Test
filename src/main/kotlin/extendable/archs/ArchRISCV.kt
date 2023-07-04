@@ -16,13 +16,12 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
         }
 
         for (i in 0..100) {
-            getMemory().saveDec(i.toDouble(), i.toString(10))
+            getMemory().save(ByteValue.Type.Dec("$i", ByteValue.Size.Bit32()), ByteValue.Type.Dec("$i", ByteValue.Size.Bit8()))
         }
     }
 
     override fun exeMultiStep(steps: Int) {
         super.exeMultiStep(steps)
-        getMemory().saveDec(0.0, steps.toString(10))
     }
 
     override fun exeClear() {

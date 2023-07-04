@@ -9,30 +9,9 @@ class ByteValue {
     val size: Size
     private var value: Type
 
-    constructor(initialBinary: String, byteCount: Int) {
+    constructor(initialBinary: String, size: Size) {
         this.initialBinary = initialBinary
-        when (byteCount) {
-            1 -> {
-                size = Size.Byte()
-            }
-
-            2 -> {
-                size = Size.Short()
-            }
-
-            in 3..4 -> {
-                size = Size.Int()
-            }
-
-            in 5..8 -> {
-                size = Size.Long()
-            }
-
-            else -> {
-                size = Size.Long()
-                console.warn("Binary: $byteCount is no valid ByteCount (Maximum 8 Bytes) (Size is set to 8 Bytes)")
-            }
-        }
+        this.size = size
         value = Type.Binary(initialBinary, size)
     }
 
@@ -52,24 +31,29 @@ class ByteValue {
         return Bounds(size)
     }
 
-    fun set(value: Type) {
+    fun set(value: Type): ByteValue {
         this.value = value
+        return this
     }
 
-    fun setHex(hexString: String) {
+    fun setHex(hexString: String): ByteValue {
         value = Type.Hex(hexString, size)
+        return this
     }
 
-    fun setDec(decString: String) {
+    fun setDec(decString: String): ByteValue {
         value = Type.Dec(decString, size)
+        return this
     }
 
-    fun setUDec(udecString: String) {
+    fun setUDec(udecString: String): ByteValue {
         value = Type.UDec(udecString, size)
+        return this
     }
 
-    fun setBin(binString: String) {
+    fun setBin(binString: String): ByteValue {
         value = Type.Binary(binString, size)
+        return this
     }
 
     fun clear() {
@@ -133,7 +117,8 @@ class ByteValue {
         abstract fun toDec(): Dec
         abstract fun toUDec(): UDec
         abstract fun toASCII(): String
-
+        abstract fun toDouble(): Double
+        abstract fun getBiggest(): Type
         abstract operator fun plus(operand: Type): Type
         abstract operator fun minus(operand: Type): Type
         abstract operator fun times(operand: Type): Type
@@ -155,6 +140,8 @@ class ByteValue {
             private val binString: String
 
             constructor(size: Size) : this(ArchConst.PRESTRING_BINARY + "0", size)
+
+            constructor(binString: String) : this(binString, Tools.getNearestSize(binString.trim().removePrefix(ArchConst.PRESTRING_BINARY).length))
 
             init {
                 this.binString = check(binString, size).corrected
@@ -229,6 +216,14 @@ class ByteValue {
                 return Conversion.getASCII(this)
             }
 
+            override fun toDouble(): Double {
+                return this.toDec().toDouble()
+            }
+
+            override fun getBiggest(): Type {
+                return Binary("1".repeat(size.bitWidth), size)
+            }
+
             override fun plus(operand: Type): Type {
                 val result = BinaryTools.add(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
                 val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
@@ -281,6 +276,8 @@ class ByteValue {
                 this.hexString = check(hexString, size).corrected
             }
 
+            constructor(hexString: String) : this(hexString, Tools.getNearestSize(hexString.trim().removePrefix(ArchConst.PRESTRING_HEX).length * 4))
+
             fun getRawHexStr(): String {
                 return hexString.removePrefix(ArchConst.PRESTRING_HEX)
             }
@@ -324,6 +321,14 @@ class ByteValue {
 
             override fun toASCII(): String {
                 return Conversion.getASCII(this)
+            }
+
+            override fun toDouble(): Double {
+                return this.toDec().toDouble()
+            }
+
+            override fun getBiggest(): Type {
+                return Hex("F".repeat(size.byteCount * 2), size)
             }
 
             override fun plus(operand: Type): Type {
@@ -436,6 +441,19 @@ class ByteValue {
                 return Conversion.getBinary(this).toASCII()
             }
 
+            override fun toDouble(): Double {
+                try {
+                    return getRawDecStr().toDouble()
+                } catch (e: NumberFormatException) {
+                    console.warn("ByteValue.Type.toDouble(): NumberFormatException (dec: ${getRawDecStr()}) -> returning 0")
+                    return 0.0
+                }
+            }
+
+            override fun getBiggest(): Type {
+                return Dec(Bounds(size).max, size)
+            }
+
             override fun plus(operand: Type): Type {
                 val result = DecTools.add(this.getRawDecStr(), operand.toDec().getRawDecStr())
                 val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
@@ -542,6 +560,19 @@ class ByteValue {
                 return Conversion.getASCII(this)
             }
 
+            override fun toDouble(): Double {
+                try {
+                    return getRawUDecStr().toDouble()
+                } catch (e: NumberFormatException) {
+                    console.warn("ByteValue.Type.toDouble(): NumberFormatException (udec: ${getRawUDecStr()}) -> returning 0")
+                    return 0.0
+                }
+            }
+
+            override fun getBiggest(): Type {
+                return UDec(Bounds(size).umax, size)
+            }
+
             override fun plus(operand: Type): Type {
                 val result = DecTools.add(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
                 val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
@@ -590,14 +621,14 @@ class ByteValue {
 
             fun getType(string: String): Type {
                 var removedPrefString = string.trim().removePrefix(ArchConst.PRESTRING_BINARY)
-                if (removedPrefString.length < string.trim().length - 1){
-                    return Binary("0",Size.Byte())
+                if (removedPrefString.length < string.trim().length - 1) {
+                    return Binary("0", Size.Bit8())
                 }
                 removedPrefString = string.trim().removePrefix(ArchConst.PRESTRING_HEX)
-                if (removedPrefString.length < string.trim().length - 1){
-                    return Hex("0",Size.Byte())
+                if (removedPrefString.length < string.trim().length - 1) {
+                    return Hex("0", Size.Bit8())
                 }
-                return Dec("0",Size.Byte())
+                return Dec("0", Size.Bit8())
             }
 
             fun getHex(binary: Binary): Hex {
@@ -789,12 +820,6 @@ class ByteValue {
 
     }
 
-    enum class Types{
-        HEX,
-        BIN,
-        DEC
-    }
-
     sealed class Size(val bitWidth: kotlin.Int, val byteCount: kotlin.Int) {
 
         override fun equals(other: Any?): Boolean {
@@ -806,10 +831,12 @@ class ByteValue {
             return super.equals(other)
         }
 
-        class Byte : Size(8, 1)
-        class Short : Size(16, 2)
-        class Int : Size(32, 4)
-        class Long : Size(64, 8)
+        class Bit8 : Size(8, 1)
+        class Bit16 : Size(16, 2)
+        class Bit32 : Size(32, 4)
+        class Bit64 : Size(64, 8)
+        class Bit128 : Size(128, 16)
+
     }
 
     class Bounds {
@@ -821,32 +848,39 @@ class ByteValue {
 
         constructor(size: Size) {
             when (size) {
-                is Size.Byte -> {
+                is Size.Bit8 -> {
                     this.min = "-128"
                     this.max = "127"
                     this.umin = "0"
                     this.umax = "255"
                 }
 
-                is Size.Short -> {
+                is Size.Bit16 -> {
                     this.min = "-32768"
                     this.max = "32767"
                     this.umin = "0"
                     this.umax = "65535"
                 }
 
-                is Size.Int -> {
+                is Size.Bit32 -> {
                     this.min = "-2147483648"
                     this.max = "2147483647"
                     this.umin = "0"
                     this.umax = "4294967295"
                 }
 
-                is Size.Long -> {
+                is Size.Bit64 -> {
                     this.min = "-9223372036854775807"
                     this.max = "9223372036854775807"
                     this.umin = "0"
                     this.umax = "18446744073709551615"
+                }
+
+                is Size.Bit128 -> {
+                    this.min = "-170141183460469231731687303715884105728"
+                    this.max = "170141183460469231731687303715884105727"
+                    this.umin = "0"
+                    this.umax = "340282366920938463463374607431768211455"
                 }
             }
         }
@@ -856,6 +890,40 @@ class ByteValue {
             this.max = max
             this.umin = "0"
             this.umax = DecTools.abs(DecTools.sub(min, max))
+        }
+
+
+    }
+
+    object Tools {
+        fun getNearestSize(bitWidth: Int): Size {
+
+            when {
+                bitWidth <= 8 -> {
+                    return Size.Bit8()
+                }
+
+                bitWidth <= 16 -> {
+                    return Size.Bit16()
+                }
+
+                bitWidth <= 32 -> {
+                    return Size.Bit32()
+                }
+
+                bitWidth <= 64 -> {
+                    return Size.Bit64()
+                }
+
+                bitWidth <= 128 -> {
+                    return Size.Bit128()
+                }
+
+                else -> {
+                    console.warn("ByteValue.Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128()")
+                    return Size.Bit128()
+                }
+            }
         }
     }
 

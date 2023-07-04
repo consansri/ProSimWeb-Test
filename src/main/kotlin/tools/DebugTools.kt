@@ -41,16 +41,16 @@ object DebugTools {
 
         iConsole.log("BinaryTools.sub(): ${bin1} - ${bin2} = ${BinaryTools.sub(bin1, bin2)}")
         iConsole.log("BinaryTools.div(): ${bin1} - ${bin2} = ${BinaryTools.divide(bin1, bin2)}")
-        iConsole.log("BinaryTools.inv(): ${bin1} = ${BinaryTools.inv(bin1)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.inv(bin1), ByteValue.Size.Byte())).getDecStr()}")
+        iConsole.log("BinaryTools.inv(): ${bin1} = ${BinaryTools.inv(bin1)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.inv(bin1), ByteValue.Size.Bit8())).getDecStr()}")
         iConsole.log(
-            "BinaryTools.addWithCarry(): ${bin1} + ${bin2} = ${BinaryTools.addWithCarry(bin1, bin2)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.addWithCarry(bin1, bin2).result, ByteValue.Size.Byte())).getDecStr()} carry: ${
+            "BinaryTools.addWithCarry(): ${bin1} + ${bin2} = ${BinaryTools.addWithCarry(bin1, bin2)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.addWithCarry(bin1, bin2).result, ByteValue.Size.Bit8())).getDecStr()} carry: ${
                 BinaryTools.addWithCarry(
                     bin1,
                     bin2
                 ).carry
             }"
         )
-        iConsole.log("BinaryTools.multiply(): ${bin1} * ${bin2} = ${BinaryTools.multiply(bin1, bin2)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.multiply(bin1, bin2), ByteValue.Size.Byte())).getDecStr()} ")
+        iConsole.log("BinaryTools.multiply(): ${bin1} * ${bin2} = ${BinaryTools.multiply(bin1, bin2)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.multiply(bin1, bin2), ByteValue.Size.Bit8())).getDecStr()} ")
     }
 
     object RISCV{

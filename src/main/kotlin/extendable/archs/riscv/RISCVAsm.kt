@@ -30,15 +30,15 @@ object RISCVAsm {
         fun getImm(string: String): ImmResult? {
             val binResult = P_IMM_BIN.find(string)
             if (binResult != null) {
-                return ImmResult(binResult, ByteValue.Type.Binary(binResult.groupValues[1], ByteValue.Size.Int()))
+                return ImmResult(binResult, ByteValue.Type.Binary(binResult.groupValues[1], ByteValue.Size.Bit32()))
             }
             val hexResult = P_IMM_HEX.find(string)
             if (hexResult != null) {
-                return ImmResult(hexResult, ByteValue.Type.Hex(hexResult.groupValues[1], ByteValue.Size.Int()))
+                return ImmResult(hexResult, ByteValue.Type.Hex(hexResult.groupValues[1], ByteValue.Size.Bit32()))
             }
             val decResult = P_IMM_DEC.find(string)
             if (decResult != null) {
-                return ImmResult(decResult, ByteValue.Type.Dec(decResult.groupValues[1], ByteValue.Size.Int()))
+                return ImmResult(decResult, ByteValue.Type.Dec(decResult.groupValues[1], ByteValue.Size.Bit32()))
             }
             return null
         }

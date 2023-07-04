@@ -7,7 +7,6 @@ import extendable.ArchConst
 import extendable.ArchConst.RegTypes.*
 import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
-import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
@@ -130,8 +129,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
 
-
-
         div {
             className = ClassName("dcf-overflow-x-auto")
             tabIndex = 0
@@ -174,9 +171,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     }
                 }
 
-
-
-
                 tbody {
                     ref = bodyRef
 
@@ -188,11 +182,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 th {
                                     className = ClassName("dcf-txt-center")
                                     scope = "row"
-                                    if (reg.address.getValue() == ArchConst.ADDRESS_NOVALUE) {
-                                        +"-"
-                                    } else {
-                                        +"${reg.address.getValue()}"
-                                    }
+                                    +reg.address.toHex().getRawHexStr()
                                 }
                                 td {
                                     className = ClassName("dcf-txt-center")

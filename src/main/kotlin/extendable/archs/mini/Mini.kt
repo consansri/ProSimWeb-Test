@@ -1,8 +1,8 @@
 package extendable.archs.mini
 
+import extendable.archs.riscv.RISCV
 import extendable.components.*
 import extendable.components.connected.*
-import extendable.components.types.Address
 import extendable.components.types.ByteValue
 
 object Mini {
@@ -13,10 +13,10 @@ object Mini {
         "IKR Minimalprozessor",
         RegisterContainer(
             listOf(
-                RegisterContainer.RegisterFile(RegisterContainer.RegLabel.PC, "PC", arrayOf(RegisterContainer.Register(Address(0, 32), "r0", ByteValue("0", 4), "")))
+                RegisterContainer.RegisterFile(RegisterContainer.RegLabel.PC, "PC", arrayOf(RegisterContainer.Register(ByteValue.Type.Dec("-1", RISCV.REG_ADDRESS_SIZE), "r0", ByteValue("0", ByteValue.Size.Bit32()), "")))
             )
         ),
-        Memory(32, "0",4, Memory.Endianess.LittleEndian),
+        Memory(ByteValue.Size.Bit32(), "0",ByteValue.Size.Bit8(), Memory.Endianess.LittleEndian),
         Transcript(),
         FlagsConditions(
             listOf(
