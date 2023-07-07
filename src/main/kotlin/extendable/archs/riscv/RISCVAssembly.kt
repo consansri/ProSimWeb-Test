@@ -42,8 +42,9 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper) : Assembly() {
 
             var instrID: Long = 0
 
+
+            // Resolving Sections
             for (section in rootNode.sections) {
-                // Resolve data sections
                 when (section) {
                     is RISCVGrammar.T3TextSection -> {
                         for (entry in section.collNodes) {
@@ -64,15 +65,13 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper) : Assembly() {
                     }
 
                     is RISCVGrammar.T3DataSection -> {
-
+                        TODO()
                     }
                 }
-
-                // Resolve text sections
-
-
             }
 
+
+            // Getting binary and store binary in memory
             binaryMapper.setLabelLinks(labelBinAddrMap)
 
             for (instr in instructionMapList) {

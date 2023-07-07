@@ -24,6 +24,15 @@ class RISCVBinMapper {
             console.log("BinMapper.getBinaryFromInstrDef(): labels -> ${labels?.joinToString { it.wholeName }}")
         }
 
+        if (!labels.isNullOrEmpty()) {
+            for(label in labels){
+                val linkedAddress = labelAddrMap.get(label)
+                if(linkedAddress == null){
+                    console.warn("BinMapper.getBinaryFromInstrDef(): missing label address entry for [${label.wholeName}]!")
+                }
+            }
+        }
+
         try {
             when (instrDef.type) {
                 LUI, AUIPC, JAL -> {

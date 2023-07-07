@@ -25,7 +25,7 @@ object DebugTools {
 
     // ARCH COMPONENTS
     //      Compiler
-    const val showCompilerInfo = true
+    const val showCompilerInfo = false
 
 
     //      Memory

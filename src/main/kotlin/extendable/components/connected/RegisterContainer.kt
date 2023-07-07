@@ -24,7 +24,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>) {
     fun getRegister(name: String): Register? {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
-                if (reg.name == name) {
+                if (reg.names.contains(name)) {
                     return reg
                 }
             }
@@ -47,7 +47,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>) {
         return registerFileList
     }
 
-    data class Register(val address: ByteValue.Type, val name: String, val byteValue: ByteValue, val description: String) {
+    data class Register(val address: ByteValue.Type, val names: List<String>, val byteValue: ByteValue, val description: String) {
         fun get(): ByteValue.Type {
             return byteValue.get()
         }
