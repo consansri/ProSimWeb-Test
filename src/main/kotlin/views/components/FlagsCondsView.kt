@@ -3,21 +3,14 @@ package views.components
 import AppLogic
 import StyleConst
 import csstype.ClassName
-import extendable.ArchConst
 import extendable.components.connected.FlagsConditions
 import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.span
-import react.dom.onChange
+import tools.DebugTools
 
 external interface FlagsCondsViewProps : Props {
     var name: String
@@ -96,7 +89,9 @@ val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
         }
     }
     useEffect(update) {
-        console.log("(update) FlagsCondsView")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) FlagsCondsView")
+        }
     }
 
 

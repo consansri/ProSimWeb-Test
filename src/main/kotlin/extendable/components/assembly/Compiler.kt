@@ -4,6 +4,7 @@ import extendable.ArchConst
 import extendable.Architecture
 import extendable.components.connected.RegisterContainer
 import extendable.components.types.ByteValue
+import tools.DebugTools
 
 class Compiler(private val architecture: Architecture, private val grammar: Grammar, private val assembly: Assembly, private val regexCollection: RegexCollection, private val hlFlagCollection: HLFlagCollection) {
 
@@ -366,14 +367,18 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class Dec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): ByteValue.Type {
-                    console.log("Compiler.Dec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
+                    if(DebugTools.showCompilerInfo) {
+                        console.warn("Compiler.Dec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
+                    }
                     return ByteValue.Type.Dec(content, ByteValue.Size.Bit32())
                 }
             }
 
             class UDec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id){
                 override fun getValue(): ByteValue.Type {
-                    console.log("Compiler.UDec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
+                    if(DebugTools.showCompilerInfo) {
+                        console.warn("Compiler.UDec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
+                    }
                     return ByteValue.Type.UDec(content, ByteValue.Size.Bit32())
                 }
             }

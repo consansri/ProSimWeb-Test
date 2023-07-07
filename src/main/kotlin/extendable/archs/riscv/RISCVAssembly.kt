@@ -6,6 +6,7 @@ import extendable.components.assembly.Assembly
 import extendable.components.assembly.Grammar
 import extendable.components.connected.Transcript
 import extendable.components.types.ByteValue
+import tools.DebugTools
 
 class RISCVAssembly(val binaryMapper: RISCVBinMapper) : Assembly() {
 
@@ -76,7 +77,9 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper) : Assembly() {
 
             for (instr in instructionMapList) {
                 val binary = binaryMapper.getBinaryFromInstrDef(instr.value)
-                console.log("ASM-MAP: LINE ${instr.value.t1Instr.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.type.id},  ${instr.value.t1ParamColl?.paramsWithOutSplitSymbols?.joinToString(",") { it.getAllTokens().joinToString("") { it.content } }} -> ${binary.joinToString { it.getRawBinaryStr() }}")
+                if(DebugTools.RISCV_showAsmInfo){
+                    console.log("Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.t1Instr.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.type.id},  ${instr.value.t1ParamColl?.paramsWithOutSplitSymbols?.joinToString(",") { it.getAllTokens().joinToString("") { it.content } }} to ${binary.joinToString { it.getRawBinaryStr() }}]")
+                }
                 binarys.addAll(binary)
             }
 

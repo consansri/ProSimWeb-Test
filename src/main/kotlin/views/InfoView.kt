@@ -6,6 +6,7 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.*
 import react.dom.html.ReactHTML.div
+import tools.DebugTools
 import views.components.IConsoleView
 
 external interface InfoViewProps : Props {
@@ -38,7 +39,9 @@ val InfoView = FC<InfoViewProps> { props ->
     }
 
     useEffect(update) {
-        console.log("(update) InfoView")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) InfoView")
+        }
     }
 
 }

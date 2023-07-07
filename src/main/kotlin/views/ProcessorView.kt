@@ -2,9 +2,6 @@ package views
 
 import AppLogic
 import csstype.ClassName
-import csstype.Color
-import emotion.react.css
-import extendable.components.connected.RegisterContainer
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -15,7 +12,6 @@ import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
 import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
-import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -24,6 +20,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
+import tools.DebugTools
 import views.components.FlagsCondsView
 import views.components.MemoryView
 import views.components.RegisterView
@@ -254,7 +251,9 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     }
 
     useEffect(change) {
-        console.log("(update) ProcessorView")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) ProcessorView")
+        }
         mStepInputRef.current?.let {
             val value = localStorage.getItem(StorageKey.MSTEP_VALUE) ?: ""
             it.value = value

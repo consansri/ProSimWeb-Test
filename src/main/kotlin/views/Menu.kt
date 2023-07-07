@@ -15,6 +15,7 @@ import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.header
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.nav
+import tools.DebugTools
 
 
 external interface MenuProps : Props {
@@ -177,7 +178,9 @@ val Menu = FC<MenuProps>() { props ->
     }
 
     useEffect(update){
-        console.log("(update) Menu")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) Menu")
+        }
     }
 
 }

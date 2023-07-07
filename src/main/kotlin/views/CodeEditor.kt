@@ -22,6 +22,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import tools.DebugTools
 import views.components.TranscriptView
 
 external interface CodeEditorProps : Props {
@@ -638,6 +639,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
     useEffect(update) {
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) CodeEditor")
+        }
         textareaRef.current?.let {
             checkCode(it.value, true)
         }

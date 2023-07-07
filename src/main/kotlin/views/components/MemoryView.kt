@@ -14,9 +14,7 @@ import org.w3c.dom.HTMLTableSectionElement
 import react.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.body
 import react.dom.html.ReactHTML.caption
-import react.dom.html.ReactHTML.col
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.table
@@ -25,7 +23,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import kotlin.math.floor
+import tools.DebugTools
 
 external interface MemViewProps : Props {
     var name: String
@@ -206,12 +204,17 @@ val MemoryView = FC<MemViewProps> { props ->
         }
     }
     useEffect(update, memLength) {
-        console.log("(update) MemoryView")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) MemoryView")
+        }
     }
 
-    useEffect(internalUpdate){
+    useEffect(internalUpdate, update) {
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(internal-update) MemoryView")
+        }
         calcMemTable()
-        console.log("(internal-update) MemoryView")
+
     }
 
 

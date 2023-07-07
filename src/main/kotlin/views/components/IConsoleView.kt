@@ -5,7 +5,6 @@ import StorageKey
 import StyleConst
 import csstype.*
 import emotion.react.css
-import extendable.components.connected.IConsole
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
@@ -14,13 +13,11 @@ import kotlinx.js.timers.setInterval
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
+import tools.DebugTools
 
 external interface IConsoleViewProps : Props {
     var appLogic: AppLogic
@@ -309,7 +306,9 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
         }
 
         useEffect(update) {
-            console.log("(update) ConsoleView")
+            if (DebugTools.REACT_showUpdateInfo) {
+                console.log("(update) ConsoleView")
+            }
             scrollRef.current?.let {
                 it.scrollTo(0.0, it.scrollHeight.toDouble())
             }
@@ -317,7 +316,9 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
         }
 
         useEffect(internalUpdate) {
-            // console.log("(update-internal) ConsoleView")
+            /*if (DebugTools.showUpdateInfo) {
+                console.log("(update-internal) ConsoleView")
+            }*/
         }
 
     }

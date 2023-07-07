@@ -373,8 +373,8 @@ class RISCVGrammar : Grammar() {
 
             tier1Lines[lineID] += tier1Line
         }
-        if (DebugTools.RISCV.showGrammarScanTiers) {
-            console.log("Tier 1 Main Scan: ${tier1Lines.joinToString(", line: ") { it.joinToString(" ") { it.name } }}")
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: Tier 1 Main Scan -> ${tier1Lines.joinToString(", line: ") { it.joinToString(" ") { it.name } }}")
         }
 
         // TIER 2 MAIN Scan (check Syntax) | Ignore Comments
@@ -506,8 +506,8 @@ class RISCVGrammar : Grammar() {
             }
 
         }
-        if (DebugTools.RISCV.showGrammarScanTiers) {
-            console.log("Tier 2 Main Scan: ${tier2Lines.filterNotNull().joinToString { it.name }}")
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: Tier 2 Main Scan -> ${tier2Lines.filterNotNull().joinToString { it.name }}")
         }
 
         // TIER 3 MAIN Scan (apply Sections) | Ignore Comments
@@ -610,8 +610,8 @@ class RISCVGrammar : Grammar() {
                 errors.add(Grammar.Error(message = "No Valid Data Section Identification found!", sectionContent.first()))
             }
         }
-        if (DebugTools.RISCV.showGrammarScanTiers) {
-            console.log("Tier 3 Main Scan: ${sections.joinToString { it.name }}")
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: Tier 3 Main Scan -> ${sections.joinToString { it.name }}")
         }
 
         // Build Comment Node

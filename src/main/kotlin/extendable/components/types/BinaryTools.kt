@@ -16,7 +16,7 @@ object BinaryTools {
             result = add(inv(a), "1")
         }
 
-        if (DebugTools.showBinaryToolsCalculations) {
+        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
             console.info("BinaryTools: negotiate($aBin) -> $result")
         }
 
@@ -60,7 +60,7 @@ object BinaryTools {
             carryChar = '0'
         }
 
-        if (DebugTools.showBinaryToolsCalculations) {
+        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
             console.info("BinaryTools: addWithCarry($aBin, $bBin) -> result: ${result.trimStart('0')}, carry: $carryChar")
         }
 
@@ -99,7 +99,7 @@ object BinaryTools {
             }
         }
 
-        if (DebugTools.showBinaryToolsCalculations) {
+        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
             console.info("BinaryTools: sub($aBin, $bBin) -> result: ${result.trimStart('0')}")
         }
 
@@ -135,7 +135,7 @@ object BinaryTools {
             }
         }
 
-        if (DebugTools.showBinaryToolsCalculations) {
+        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
             console.info("BinaryTools: multiply($aBin, $bBin) -> ${result.trimStart('0')}")
         }
 
@@ -166,7 +166,7 @@ object BinaryTools {
                 result += "0"
             }
         }
-        if (DebugTools.showBinaryToolsCalculations) {
+        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
             console.log("BinaryTools: , divide($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${comparison + remainingDividend}")
         }
 
@@ -191,7 +191,7 @@ object BinaryTools {
             }
         }
 
-        if (DebugTools.showBinaryToolsCalculations) {
+        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
             console.info("BinaryTools: inv($aBin) -> $result")
         }
         return checkEmpty(result)

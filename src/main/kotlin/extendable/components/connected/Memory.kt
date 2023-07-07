@@ -1,6 +1,7 @@
 package extendable.components.connected
 
 import extendable.components.types.ByteValue
+import tools.DebugTools
 
 class Memory(private val addressSize: ByteValue.Size, private val initBin: String, private val wordSize: ByteValue.Size, private val endianess: Endianess) {
     private var memMap: MutableMap<String, DMemInstance> = mutableMapOf()
@@ -17,14 +18,14 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
     fun save(address: ByteValue.Type, byteValue: ByteValue) {
         val wordList = byteValue.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
-        console.log("saving...  ${byteValue.get().toHex().getRawHexStr()}")
-
         if (endianess == Endianess.LittleEndian) {
             wordList.reversed()
         }
 
         val hexAddress = address.toBin().getResized(addressSize).toHex()
-
+        if (DebugTools.ARCH_showMemoryInfo) {
+            console.log("saving...  ${byteValue.get().toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+        }
         for (word in wordList) {
             val instance = memMap[hexAddress.getRawHexStr()]
 
@@ -41,16 +42,14 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
     fun save(address: ByteValue.Type, value: ByteValue.Type) {
         val wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
-
-
         if (endianess == Endianess.LittleEndian) {
             wordList.reversed()
         }
 
         var hexAddress = address.toBin().getResized(addressSize).toHex()
-
-        console.log("saving...  ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
-
+        if (DebugTools.ARCH_showMemoryInfo) {
+            console.log("saving...  ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+        }
         for (word in wordList) {
             val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {

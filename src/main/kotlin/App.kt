@@ -5,6 +5,7 @@ import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
+import tools.DebugTools
 import views.*
 
 val App = FC<Props> { props ->
@@ -32,7 +33,7 @@ val App = FC<Props> { props ->
         setReloadUI(!reloadUI)
     }
 
-    fun updateApp(){
+    fun updateApp() {
         setReloadUI(!reloadUI)
     }
 
@@ -87,7 +88,6 @@ val App = FC<Props> { props ->
         }
 
 
-
     }
 
 
@@ -99,7 +99,9 @@ val App = FC<Props> { props ->
     }
 
     useEffect(reloadUI) {
-        console.log("(update) App")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) App")
+        }
     }
 
 }

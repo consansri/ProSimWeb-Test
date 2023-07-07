@@ -4,6 +4,7 @@ import extendable.ArchConst
 import extendable.Architecture
 import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
 import extendable.components.types.ByteValue
+import tools.DebugTools
 
 class RISCVBinMapper {
 
@@ -18,8 +19,10 @@ class RISCVBinMapper {
         val values = instrDef.t1ParamColl?.getValues()
         val labels = instrDef.t1ParamColl?.getLabels()
 
-        console.log("values: ${values?.joinToString { it.toHex().getRawHexStr() }}")
-        console.log("labels: ${labels?.joinToString { it.wholeName }}")
+        if(DebugTools.RISCV_showBinMapperInfo){
+            console.log("BinMapper.getBinaryFromInstrDef(): values -> ${values?.joinToString { it.toHex().getRawHexStr() }}")
+            console.log("BinMapper.getBinaryFromInstrDef(): labels -> ${labels?.joinToString { it.wholeName }}")
+        }
 
         try {
             when (instrDef.type) {
@@ -253,6 +256,7 @@ class RISCVBinMapper {
             console.error("IndexOutOfBoundsException: $e")
         }
 
+
         return binaryArray.toTypedArray()
     }
 
@@ -269,11 +273,15 @@ class RISCVBinMapper {
             var length = 0
             opCode.forEach { length += it.length }
             if (length != ByteValue.Size.Bit32().bitWidth) {
-                console.warn("RISCVBinMapper.OpCode: OpMask isn't 32Bit Binary! -> returning null")
+                if(DebugTools.RISCV_showOpCodeInfo){
+                    console.warn("BinMapper.OpCode: OpMask isn't 32Bit Binary! -> returning null")
+                }
                 return null
             }
             if (opCode.size != maskLabels.size) {
-                console.warn("RISCVBinMapper.OpCode: OpMask [$opMask] and Labels [${maskLabels.joinToString { it.name }}] aren't the same size! -> returning null")
+                if(DebugTools.RISCV_showOpCodeInfo) {
+                    console.warn("BinMapper.OpCode: OpMask [$opMask] and Labels [${maskLabels.joinToString { it.name }}] aren't the same size! -> returning null")
+                }
                 return null
             }
 
@@ -286,11 +294,15 @@ class RISCVBinMapper {
                         if (size != null) {
                             opCode[labelID] = param.getResized(size).getRawBinaryStr()
                         } else {
-                            console.warn("RISCVBinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
+                            if(DebugTools.RISCV_showOpCodeInfo) {
+                                console.warn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
+                            }
                             return null
                         }
                     } else {
-                        console.warn("RISCVBinMapper.OpCode.getOpCode(): parameter [${maskLabel.name}] not found! -> inserting zeros")
+                        if(DebugTools.RISCV_showOpCodeInfo) {
+                            console.warn("BinMapper.OpCode.getOpCode(): parameter [${maskLabel.name}] not found! -> inserting zeros")
+                        }
                         val bitWidth = maskLabel.maxSize?.bitWidth
                         bitWidth?.let {
                             opCode[labelID] = "0".repeat(it)

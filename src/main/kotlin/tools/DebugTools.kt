@@ -7,15 +7,41 @@ import extendable.components.types.DecTools
 
 object DebugTools {
 
-    val divisionLoopLimit: Long? = 255
 
-    const val showTypeConversionInfo = false
-    const val showOperatorCalculations = false
-    const val showBinaryToolsCalculations = false
-    const val showBinaryToolsCalculationDetails = false
-    const val showDecToolsCalculations = false
-    const val showDecToolsCalculationDetails = false
+    // ARCH
 
+    //      RISCV
+    const val RISCV_showAsmInfo = false
+    const val RISCV_showBinMapperInfo = false
+    const val RISCV_showOpCodeInfo = false
+    const val RISCV_showGrammarScanTiers = false
+
+    //      RISCII
+
+    //      MINI
+
+    //      CISC
+
+
+    // ARCH COMPONENTS
+    //      Compiler
+    const val showCompilerInfo = true
+
+
+    //      Memory
+    const val ARCH_showMemoryInfo = false
+
+
+    //      ByteValue
+    val ARCH_BVDivisionLoopLimit: Long? = null
+
+    const val ARCH_showBVCheckWarnings = false
+    const val ARCH_showBVTypeConversionInfo = false
+    const val ARCH_showBVOperatorCalculations = false
+    const val ARCH_showBVBinaryToolsCalculations = false
+    const val ARCH_showBVBinaryToolsCalculationDetails = false
+    const val ARCH_showBVDecToolsCalculations = false
+    const val ARCH_showBVDecToolsCalculationDetails = false
 
     fun testDecTools(iConsole: IConsole) {
         val dec1 = "12"
@@ -53,11 +79,9 @@ object DebugTools {
         iConsole.log("BinaryTools.multiply(): ${bin1} * ${bin2} = ${BinaryTools.multiply(bin1, bin2)} | ${ByteValue.Type.Conversion.getDec(ByteValue.Type.Binary(BinaryTools.multiply(bin1, bin2), ByteValue.Size.Bit8())).getDecStr()} ")
     }
 
-    object RISCV{
-        const val showGrammarScanTiers = false
 
-    }
-
+    // React Components
+    const val REACT_showUpdateInfo = false
 
 
 }

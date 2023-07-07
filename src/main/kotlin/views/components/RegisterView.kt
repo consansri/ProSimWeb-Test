@@ -22,6 +22,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import tools.DebugTools
 
 external interface RegisterViewProps : Props {
     var name: String
@@ -303,7 +304,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
     }
 
     useEffect(currRegTypeIndex, change) {
-        console.log("(part-update) RegisterView")
+        if(DebugTools.REACT_showUpdateInfo) {
+            console.log("(part-update) RegisterView")
+        }
         val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
             registerContainer.getRegisterFileList()[currRegFileIndex]
         } else {
@@ -359,7 +362,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
     }
 
     useEffect(change) {
-        console.log("(update) RegisterView")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) RegisterView")
+        }
         val registerContainer = appLogic.getArch().getRegisterContainer()
         val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
             registerContainer.getRegisterFileList()[currRegFileIndex]
@@ -382,7 +387,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
     useEffect(update) {
-        console.log("(part-update) RegisterView")
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(part-update) RegisterView")
+        }
     }
 
 }

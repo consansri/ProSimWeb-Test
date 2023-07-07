@@ -111,7 +111,7 @@ class ByteValue {
     }
 
     sealed class Type(val size: Size) {
-        abstract fun check(string: String, size: Size): CheckResult
+        abstract fun check(string: String, size: Size, warnings: Boolean): CheckResult
         abstract fun toBin(): Binary
         abstract fun toHex(): Hex
         abstract fun toDec(): Dec
@@ -144,10 +144,10 @@ class ByteValue {
             constructor(binString: String) : this(binString, Tools.getNearestSize(binString.trim().removePrefix(ArchConst.PRESTRING_BINARY).length))
 
             init {
-                this.binString = check(binString, size).corrected
+                this.binString = check(binString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
 
-            override fun check(string: String, size: Size): CheckResult {
+            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 val regexWithPreString = Regex("0b[0-1]+")
                 val regex = Regex("[0-1]+")
 
@@ -163,7 +163,9 @@ class ByteValue {
                         }
                     } else {
                         val trimmedString = formattedInput.removePrefix(ArchConst.PRESTRING_BINARY).substring(formattedInput.length - 2 - size.bitWidth)
-                        console.warn("ByteValue.Type.Binary.check(): ${formattedInput} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!")
+                        if (warnings) {
+                            console.warn("ByteValue.Type.Binary.check(): ${formattedInput} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!")
+                        }
                         CheckResult(false, trimmedString)
                     }
                 } else if (regex.matches(formattedInput)) {
@@ -176,12 +178,16 @@ class ByteValue {
                         }
                     } else {
                         val trimmedString = formattedInput.substring(formattedInput.length - size.bitWidth)
-                        console.warn("ByteValue.Type.Binary.check(): ${formattedInput} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!")
+                        if (warnings) {
+                            console.warn("ByteValue.Type.Binary.check(): ${formattedInput} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!")
+                        }
                         CheckResult(false, trimmedString)
                     }
                 } else {
                     val zeroString = ArchConst.PRESTRING_BINARY + "0".repeat(size.bitWidth)
-                    console.warn("ByteValue.Type.Binary.check(): ${formattedInput} does not match the binary Pattern (${ArchConst.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning ${zeroString} instead!")
+                    if (warnings) {
+                        console.warn("ByteValue.Type.Binary.check(): ${formattedInput} does not match the binary Pattern (${ArchConst.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning ${zeroString} instead!")
+                    }
                     return CheckResult(false, formattedInput)
                 }
             }
@@ -277,7 +283,7 @@ class ByteValue {
             private val hexString: String
 
             init {
-                this.hexString = check(hexString, size).corrected
+                this.hexString = check(hexString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
 
             constructor(hexString: String) : this(hexString, Tools.getNearestSize(hexString.trim().removePrefix(ArchConst.PRESTRING_HEX).length * 4))
@@ -290,7 +296,7 @@ class ByteValue {
                 return hexString
             }
 
-            override fun check(string: String, size: Size): CheckResult {
+            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 var formatted = string.trim().removePrefix(ArchConst.PRESTRING_HEX).padStart(size.byteCount * 2, '0').uppercase()
 
                 val regex = Regex("[0-9A-Fa-f]+")
@@ -301,12 +307,16 @@ class ByteValue {
                         return CheckResult(true, ArchConst.PRESTRING_HEX + formatted)
                     } else {
                         val trimmedString = formatted.substring(formatted.length - size.byteCount * 2)
-                        console.warn("ByteValue.Type.Hex.check(): ${formatted} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.byteCount * 2}!")
+                        if (warnings) {
+                            console.warn("ByteValue.Type.Hex.check(): ${formatted} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.byteCount * 2}!")
+                        }
                         return CheckResult(false, ArchConst.PRESTRING_HEX + trimmedString)
                     }
                 } else {
                     val zeroString = ArchConst.PRESTRING_HEX + "0".repeat(size.bitWidth)
-                    console.warn("ByteValue.Type.Hex.check(): ${formatted} does not match the hex Pattern (${ArchConst.PRESTRING_HEX + "X".repeat(size.byteCount * 2)} where X is element of [0-9,A-F]), returning ${zeroString} instead!")
+                    if (warnings) {
+                        console.warn("ByteValue.Type.Hex.check(): ${formatted} does not match the hex Pattern (${ArchConst.PRESTRING_HEX + "X".repeat(size.byteCount * 2)} where X is element of [0-9,A-F]), returning ${zeroString} instead!")
+                    }
                     return CheckResult(false, zeroString)
                 }
             }
@@ -387,7 +397,7 @@ class ByteValue {
             private val negative: Boolean
 
             init {
-                this.decString = check(decString, size).corrected
+                this.decString = check(decString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
                 this.negative = DecTools.isNegative(this.decString)
             }
 
@@ -403,21 +413,27 @@ class ByteValue {
                 return decString
             }
 
-            override fun check(string: String, size: Size): CheckResult {
+            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 val formatted = string.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
 
                 val posRegex = Regex("[0-9]+")
 
                 if (!posRegex.matches(formatted.replace("-", ""))) {
                     val zeroString = "0"
-                    console.warn("ByteValue.Type.Dec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
+                    if (warnings) {
+                        console.warn("ByteValue.Type.Dec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
+                    }
                     return CheckResult(false, ArchConst.PRESTRING_DECIMAL + zeroString)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).max)) {
-                        console.warn("ByteValue.Type.Dec.check(): ${formatted} must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}")
+                        if (warnings) {
+                            console.warn("ByteValue.Type.Dec.check(): ${formatted} must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}")
+                        }
                         return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).max)
                     } else if (DecTools.isGreaterThan(Bounds(size).min, formatted)) {
-                        console.warn("ByteValue.Type.Dec.check(): ${formatted} must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}")
+                        if (warnings) {
+                            console.warn("ByteValue.Type.Dec.check(): ${formatted} must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}")
+                        }
                         return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).min)
                     } else {
                         return CheckResult(true, ArchConst.PRESTRING_DECIMAL + formatted)
@@ -506,7 +522,7 @@ class ByteValue {
             private val udecString: String
 
             init {
-                this.udecString = check(udecString, size).corrected
+                this.udecString = check(udecString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
 
             fun getUDecStr(): String {
@@ -517,7 +533,7 @@ class ByteValue {
                 return udecString.removePrefix(ArchConst.PRESTRING_DECIMAL)
             }
 
-            override fun check(string: String, size: Size): CheckResult {
+            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 val formatted = string.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
 
                 val posRegex = Regex("[0-9]+")
@@ -525,18 +541,26 @@ class ByteValue {
 
                 if (negRegex.matches(formatted)) {
                     val posValue = DecTools.abs(formatted)
-                    console.warn("ByteValue.Type.UDec.check(): ${formatted} is negative! returning absolute Value instead: ${posValue}")
+                    if(warnings) {
+                        console.warn("ByteValue.Type.UDec.check(): ${formatted} is negative! returning absolute Value instead: ${posValue}")
+                    }
                     return CheckResult(false, ArchConst.PRESTRING_DECIMAL + posValue)
                 } else if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
-                    console.warn("ByteValue.Type.UDec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_DECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
+                    if(warnings) {
+                        console.warn("ByteValue.Type.UDec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_DECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
+                    }
                     return CheckResult(false, ArchConst.PRESTRING_DECIMAL + zeroString)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
-                        console.warn("ByteValue.Type.UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}")
+                        if(warnings) {
+                            console.warn("ByteValue.Type.UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}")
+                        }
                         return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).umax)
                     } else if (DecTools.isGreaterThan(Bounds(size).umin, formatted)) {
-                        console.warn("ByteValue.Type.UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}")
+                        if(warnings) {
+                            console.warn("ByteValue.Type.UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}")
+                        }
                         return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).umin)
                     } else {
                         return CheckResult(true, ArchConst.PRESTRING_DECIMAL + formatted)
@@ -646,7 +670,7 @@ class ByteValue {
                     stringBuilder.append(int.toString(16).uppercase())
                 }
 
-                if (DebugTools.showTypeConversionInfo) {
+                if (DebugTools.ARCH_showBVTypeConversionInfo) {
                     console.info("Conversion: ${binary.getBinaryStr()} to ${stringBuilder}")
                 }
 
@@ -662,7 +686,7 @@ class ByteValue {
                     val hexDigit = hexStr[i].digitToInt(16)
                     stringBuilder.append(hexDigit.toString(2).padStart(4, '0'))
                 }
-                if (DebugTools.showTypeConversionInfo) {
+                if (DebugTools.ARCH_showBVTypeConversionInfo) {
                     console.info("Conversion: ${hex.getHexStr()} to ${stringBuilder}")
                 }
                 return Binary(stringBuilder.toString(), hex.size)
@@ -697,7 +721,7 @@ class ByteValue {
                     binaryStr = BinaryTools.inv(binaryStr)
                 }
 
-                if (DebugTools.showTypeConversionInfo) {
+                if (DebugTools.ARCH_showBVTypeConversionInfo) {
                     console.info("Conversion: ${dec.getDecStr()} to ${binaryStr}")
                 }
 
@@ -724,7 +748,7 @@ class ByteValue {
                     console.warn("ByteValue.Type.Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to ${binaryStr}")
                 }
 
-                if (DebugTools.showTypeConversionInfo) {
+                if (DebugTools.ARCH_showBVTypeConversionInfo) {
                     console.info("Conversion: ${udec.getUDecStr()} to ${binaryStr}")
                 }
 
@@ -761,7 +785,7 @@ class ByteValue {
                     decString = DecTools.negotiate(decString)
                 }
 
-                if (DebugTools.showTypeConversionInfo) {
+                if (DebugTools.ARCH_showBVTypeConversionInfo) {
                     console.info("Conversion: ${binary.getBinaryStr()} to ${decString}")
                 }
 
@@ -783,7 +807,7 @@ class ByteValue {
                         }
                     }
                 }
-                if (DebugTools.showTypeConversionInfo) {
+                if (DebugTools.ARCH_showBVTypeConversionInfo) {
                     console.info("Conversion: ${binary.getBinaryStr()} to ${udecString}")
                 }
 
@@ -813,7 +837,7 @@ class ByteValue {
                     }
                 }
 
-                if (DebugTools.showTypeConversionInfo) {
+                if (DebugTools.ARCH_showBVTypeConversionInfo) {
                     console.info("Conversion: ${type.toHex().getHexStr()} to ${stringBuilder}")
                 }
 
