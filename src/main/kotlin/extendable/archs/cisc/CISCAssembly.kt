@@ -1,10 +1,10 @@
-package extendable.archs.riscii
+package extendable.archs.cisc
 
 import extendable.Architecture
-import extendable.components.assembly.Compiler
+import extendable.components.assembly.Assembly
 import extendable.components.assembly.Grammar
 
-class RISCIICompiler:Compiler() {
+class CISCAssembly:Assembly() {
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
         TODO("Not yet implemented")
     }

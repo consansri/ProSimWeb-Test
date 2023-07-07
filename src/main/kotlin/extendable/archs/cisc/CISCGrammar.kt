@@ -1,6 +1,6 @@
 package extendable.archs.cisc
 
-import extendable.components.assembly.Assembly
+import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
 
 class CISCGrammar: Grammar() {
@@ -11,7 +11,7 @@ class CISCGrammar: Grammar() {
 
     }
 
-    override fun check(tokenLines: List<List<Assembly.Token>>): GrammarTree {
+    override fun check(tokenLines: List<List<Compiler.Token>>): GrammarTree {
         return GrammarTree()
     }
 }

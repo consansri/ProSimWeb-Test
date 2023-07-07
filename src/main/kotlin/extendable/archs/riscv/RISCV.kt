@@ -1,6 +1,5 @@
 package extendable.archs.riscv
 
-import extendable.ArchConst
 import extendable.components.*
 import extendable.components.connected.*
 import extendable.components.types.*
@@ -18,7 +17,7 @@ object RISCV {
     // Assembler CONFIG
     val asmConfig = AsmConfig(
         RISCVGrammar(),
-        RISCVCompiler()
+        RISCVAssembly(RISCVBinMapper())
     )
 
 

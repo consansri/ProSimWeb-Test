@@ -1,10 +1,10 @@
 package extendable.archs.mini
 
 import extendable.Architecture
-import extendable.components.assembly.Compiler
+import extendable.components.assembly.Assembly
 import extendable.components.assembly.Grammar
 
-class MiniCompiler: Compiler() {
+class MiniAssembly: Assembly() {
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
         TODO("Not yet implemented")
     }

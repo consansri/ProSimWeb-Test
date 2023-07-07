@@ -1,19 +1,15 @@
 package extendable.components.assembly
 
-import emotion.css.keyframes
-import extendable.ArchConst
-import extendable.Architecture
-
 abstract class Grammar {
 
     abstract val applyStandardHLForRest: Boolean
 
     abstract fun clear()
 
-    abstract fun check(tokenLines: List<List<Assembly.Token>>): GrammarTree
+    abstract fun check(tokenLines: List<List<Compiler.Token>>): GrammarTree
 
     class GrammarTree(val rootNode: TreeNode.RootNode? = null) {
-        fun contains(token: Assembly.Token): TreeNode.TokenNode? {
+        fun contains(token: Compiler.Token): TreeNode.TokenNode? {
             rootNode?.let {
                 for (comment in it.allComments.tokenNodes) {
                     if (comment.tokens.contains(token)) {
@@ -35,7 +31,7 @@ abstract class Grammar {
             return null
         }
 
-        fun errorsContain(token: Assembly.Token): Boolean {
+        fun errorsContain(token: Compiler.Token): Boolean {
             rootNode?.let {
                 for (error in rootNode.allErrors) {
                     if (error.linkedTreeNode.getAllTokens().contains(token)) {
@@ -54,11 +50,11 @@ abstract class Grammar {
             return sequenceComponents.size
         }
 
-        fun exactlyMatches(vararg tokens: Assembly.Token): SeqMatchResult {
+        fun exactlyMatches(vararg tokens: Compiler.Token): SeqMatchResult {
             var trimmedTokens = tokens.toMutableList()
             if (ignoreSpaces) {
                 for (token in trimmedTokens) {
-                    if (token is Assembly.Token.Space) {
+                    if (token is Compiler.Token.Space) {
                         trimmedTokens.remove(token)
                     }
                 }
@@ -77,11 +73,11 @@ abstract class Grammar {
             }
         }
 
-        fun matches(vararg tokens: Assembly.Token): SeqMatchResult {
+        fun matches(vararg tokens: Compiler.Token): SeqMatchResult {
             var trimmedTokens = tokens.toMutableList()
             if (ignoreSpaces) {
                 for (token in trimmedTokens) {
-                    if (token is Assembly.Token.Space) {
+                    if (token is Compiler.Token.Space) {
                         trimmedTokens.remove(token)
                     }
                 }
@@ -101,7 +97,7 @@ abstract class Grammar {
 
         }
 
-        private fun match(vararg tokens: Assembly.Token): List<SeqMap> {
+        private fun match(vararg tokens: Compiler.Token): List<SeqMap> {
             val sequenceResult = mutableListOf<SeqMap>()
             for (component in sequenceComponents) {
                 val index = sequenceComponents.indexOf(component)
@@ -112,37 +108,37 @@ abstract class Grammar {
                     is SequenceComponent.InSpecific -> {
                         when (component) {
                             is SequenceComponent.InSpecific.Symbol -> {
-                                if (token is Assembly.Token.Symbol) {
+                                if (token is Compiler.Token.Symbol) {
                                     sequenceResult.add(SeqMap(component, token))
                                 }
                             }
 
                             is SequenceComponent.InSpecific.Word -> {
-                                if (token is Assembly.Token.Word) {
+                                if (token is Compiler.Token.Word) {
                                     sequenceResult.add(SeqMap(component, token))
                                 }
                             }
 
                             is SequenceComponent.InSpecific.AlphaNum -> {
-                                if (token is Assembly.Token.AlphaNum) {
+                                if (token is Compiler.Token.AlphaNum) {
                                     sequenceResult.add(SeqMap(component, token))
                                 }
                             }
 
                             is SequenceComponent.InSpecific.Constant -> {
-                                if (token is Assembly.Token.Constant) {
+                                if (token is Compiler.Token.Constant) {
                                     sequenceResult.add(SeqMap(component, token))
                                 }
                             }
 
                             is SequenceComponent.InSpecific.Register -> {
-                                if (token is Assembly.Token.Register) {
+                                if (token is Compiler.Token.Register) {
                                     sequenceResult.add(SeqMap(component, token))
                                 }
                             }
 
                             is SequenceComponent.InSpecific.Space -> {
-                                if (token is Assembly.Token.Space) {
+                                if (token is Compiler.Token.Space) {
                                     sequenceResult.add(SeqMap(component, token))
                                 }
                             }
@@ -159,7 +155,7 @@ abstract class Grammar {
             return sequenceResult
         }
 
-        data class SeqMap(val component: SequenceComponent, val token: Assembly.Token)
+        data class SeqMap(val component: SequenceComponent, val token: Compiler.Token)
 
         data class SeqMatchResult(val matches: Boolean, val sequenceMap: List<SeqMap>)
 
@@ -188,10 +184,10 @@ abstract class Grammar {
 
 
     sealed class TreeNode(val name: String) {
-        abstract fun getAllTokens(): Array<out Assembly.Token>
+        abstract fun getAllTokens(): Array<out Compiler.Token>
 
-        open class TokenNode(val hlFlag: String, name: String, vararg val tokens: Assembly.Token) : TreeNode(name) {
-            override fun getAllTokens(): Array<out Assembly.Token> {
+        open class TokenNode(val hlFlag: String, name: String, vararg val tokens: Compiler.Token) : TreeNode(name) {
+            override fun getAllTokens(): Array<out Compiler.Token> {
                 return tokens
             }
         }
@@ -203,24 +199,24 @@ abstract class Grammar {
                 tokenNodes = nullableTokenNodes.toMutableList().filterNotNull().toTypedArray()
             }
 
-            override fun getAllTokens(): Array<out Assembly.Token> {
-                val tokens = mutableListOf<Assembly.Token>()
+            override fun getAllTokens(): Array<out Compiler.Token> {
+                val tokens = mutableListOf<Compiler.Token>()
                 nullableTokenNodes.filterNotNull().forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
             }
         }
 
         open class SectionNode(name: String, vararg val collNodes: CollectionNode) : TreeNode(name) {
-            override fun getAllTokens(): Array<out Assembly.Token> {
-                val tokens = mutableListOf<Assembly.Token>()
+            override fun getAllTokens(): Array<out Compiler.Token> {
+                val tokens = mutableListOf<Compiler.Token>()
                 collNodes.forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
             }
         }
 
         open class FlexibleNode(name: String, vararg val nodes: TreeNode) : TreeNode(name) {
-            override fun getAllTokens(): Array<out Assembly.Token> {
-                val tokens = mutableListOf<Assembly.Token>()
+            override fun getAllTokens(): Array<out Compiler.Token> {
+                val tokens = mutableListOf<Compiler.Token>()
                 nodes.forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
             }
@@ -234,8 +230,8 @@ abstract class Grammar {
                 this.allErrors = allErrors.sortedBy { it.linkedTreeNode.getAllTokens().first().id }.reversed()
             }
 
-            override fun getAllTokens(): Array<out Assembly.Token> {
-                val tokens = mutableListOf<Assembly.Token>()
+            override fun getAllTokens(): Array<out Compiler.Token> {
+                val tokens = mutableListOf<Compiler.Token>()
                 tokens.addAll(allComments.getAllTokens())
                 allErrors.forEach { tokens.addAll(it.linkedTreeNode.getAllTokens() ?: emptyArray()) }
                 sections.forEach { tokens.addAll(it.getAllTokens()) }
@@ -245,7 +241,7 @@ abstract class Grammar {
     }
 
     class Error(val message: String, val linkedTreeNode: TreeNode) {
-        constructor(message: String, vararg tokens: Assembly.Token) : this(message, TreeNode.TokenNode("", "unidentified", *tokens))
+        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.TokenNode("", "unidentified", *tokens))
 
         constructor(message: String, vararg tokenNodes: TreeNode.TokenNode) : this(message, TreeNode.CollectionNode("unidentified", *tokenNodes))
 
@@ -304,7 +300,7 @@ abstract class Grammar {
 
             if (remainingTreeNodes.isNotEmpty()) {
                 valid = false
-                val tokens = mutableListOf<Assembly.Token>()
+                val tokens = mutableListOf<Compiler.Token>()
                 remainingTreeNodes.forEach { tokens.addAll(it.getAllTokens()) }
 
                 error = Grammar.Error(message = "to many arguments for Sequence {${components.joinToString(" , ") { "${it.treeNodeNames} repeatable: ${it.repeatable}" }}}!", *tokens.toTypedArray())

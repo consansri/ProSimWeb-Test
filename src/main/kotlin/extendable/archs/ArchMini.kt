@@ -2,7 +2,7 @@ package extendable.cisc
 
 import extendable.Architecture
 import extendable.archs.mini.Mini
-import extendable.components.assembly.Assembly
+import extendable.components.assembly.Compiler
 
 class ArchMini : Architecture {
 
@@ -23,7 +23,7 @@ class ArchMini : Architecture {
 
     }
 
-    override fun hlAndCompile(code: String, startAtLine: Int): Assembly.CompilationResult {
+    override fun hlAndCompile(code: String, startAtLine: Int): Compiler.CompilationResult {
         /* ----------------------- Token Identification ------------------------- */
         /**
          *   Line by Line
@@ -54,7 +54,7 @@ class ArchMini : Architecture {
 
         }
 
-        return Assembly.CompilationResult(getAssembly().getHLContent(), true)
+        return Compiler.CompilationResult(getAssembly().getHLContent(), true)
     }
 
 }

@@ -17,19 +17,23 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
     fun save(address: ByteValue.Type, byteValue: ByteValue) {
         val wordList = byteValue.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
+        console.log("saving...  ${byteValue.get().toHex().getRawHexStr()}")
+
         if (endianess == Endianess.LittleEndian) {
             wordList.reversed()
         }
 
+        val hexAddress = address.toBin().getResized(addressSize).toHex()
+
         for (word in wordList) {
-            val instance = memMap[address.toHex().getRawHexStr()]
+            val instance = memMap[hexAddress.getRawHexStr()]
 
             if (instance != null) {
                 instance.byteValue.setHex(word.toString())
             } else {
-                val newInstance = DMemInstance(address.toHex(), ByteValue(initBin, wordSize))
+                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize))
                 newInstance.byteValue.setHex(word.toString())
-                memMap[address.toHex().getRawHexStr()] = newInstance
+                memMap[hexAddress.getRawHexStr()] = newInstance
             }
         }
     }
@@ -37,20 +41,27 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
     fun save(address: ByteValue.Type, value: ByteValue.Type) {
         val wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
+
+
         if (endianess == Endianess.LittleEndian) {
             wordList.reversed()
         }
 
-        for (word in wordList) {
-            val instance = memMap[address.toHex().getRawHexStr()]
+        var hexAddress = address.toBin().getResized(addressSize).toHex()
 
+        console.log("saving...  ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+
+        for (word in wordList) {
+            val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {
                 instance.byteValue.setHex(word.toString())
             } else {
-                val newInstance = DMemInstance(address.toHex(), ByteValue(initBin, wordSize))
+                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize))
                 newInstance.byteValue.setHex(word.toString())
-                memMap[address.toHex().getRawHexStr()] = newInstance
+                memMap[hexAddress.getRawHexStr()] = newInstance
             }
+            hexAddress = (hexAddress + ByteValue.Type.Hex("1")).toHex()
+
         }
     }
 
@@ -97,11 +108,11 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         return ByteValue(initBin, wordSize)
     }
 
-    fun getAddressSize(): ByteValue.Size{
+    fun getAddressSize(): ByteValue.Size {
         return addressSize
     }
 
-    fun getWordSize(): ByteValue.Size{
+    fun getWordSize(): ByteValue.Size {
         return wordSize
     }
 

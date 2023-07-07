@@ -7,7 +7,7 @@ import extendable.components.types.ByteValue
 
 object Mini {
 
-    val asmConfig = AsmConfig(MiniGrammar(), MiniCompiler())
+    val asmConfig = AsmConfig(MiniGrammar(), MiniAssembly())
 
     val config = Config(
         "IKR Minimalprozessor",

@@ -2,7 +2,7 @@ package extendable.cisc
 
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
-import extendable.components.assembly.Assembly
+import extendable.components.assembly.Compiler
 import extendable.components.types.ByteValue
 
 class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
@@ -34,7 +34,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
         return super.getPreHighlighting(line)
     }
 
-    override fun hlAndCompile(code: String, startAtLine: Int): Assembly.CompilationResult {
+    override fun hlAndCompile(code: String, startAtLine: Int): Compiler.CompilationResult {
 
         /* ----------------------- Token Identification ------------------------- */
         /**
@@ -64,7 +64,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             /* ----------------------- Write Binary to Memory -------------------------- */
 
         }
-        return Assembly.CompilationResult(getAssembly().getHLContent(), getAssembly().isBuildable())
+        return Compiler.CompilationResult(getAssembly().getHLContent(), getAssembly().isBuildable())
 
     }
 }

@@ -1,8 +1,7 @@
 package extendable
 
 import extendable.components.*
-import extendable.components.assembly.Assembly
-import extendable.components.assembly.Grammar
+import extendable.components.assembly.Compiler
 import extendable.components.connected.*
 import tools.HTMLTools
 
@@ -16,7 +15,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private var cache: Cache?
     private val IConsole: IConsole
     private val archState = ArchState()
-    private val assembly: Assembly
+    private val compiler: Compiler
     private val executionStartAddress = 0
 
 
@@ -29,11 +28,11 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.cache = config.cache
         this.IConsole = IConsole("${config.name} Console")
 
-        this.assembly = Assembly(
+        this.compiler = Compiler(
             this,
             asmConfig.grammar,
-            asmConfig.compiler,
-            Assembly.RegexCollection(
+            asmConfig.assembly,
+            Compiler.RegexCollection(
                 Regex("""^\s+"""),
                 Regex("""^[^0-9A-Za-z]"""),
                 Regex("""^${ArchConst.PRESTRING_BINARY}[01]+"""),
@@ -44,7 +43,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
                 Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
                 Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
             ),
-            Assembly.HLFlagCollection(
+            Compiler.HLFlagCollection(
                 alphaNum = ArchConst.StandardHL.alphaNum,
                 word = ArchConst.StandardHL.word,
                 const_hex = ArchConst.StandardHL.hex,
@@ -89,8 +88,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         return archState
     }
 
-    fun getAssembly(): Assembly {
-        return assembly
+    fun getAssembly(): Compiler {
+        return compiler
     }
 
 
@@ -126,7 +125,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
 
-    abstract fun hlAndCompile(code: String, startAtLine: Int): Assembly.CompilationResult
+    abstract fun hlAndCompile(code: String, startAtLine: Int): Compiler.CompilationResult
 
     open fun getPreHighlighting(line: String): String {
         val encodedLine = HTMLTools.encodeBeforeHTML(line)
@@ -134,7 +133,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     fun check(input: String, startAtLine: Int): String {
-        assembly.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
+        compiler.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
         var encode = HTMLTools.encodeBeforeHTML(input)
         val code = hlAndCompile(encode, startAtLine)
         archState.check(code.buildable)

@@ -195,6 +195,10 @@ class ByteValue {
                 return binString
             }
 
+            fun getResized(size: Size): Binary {
+                return Binary(getRawBinaryStr(), size)
+            }
+
             override fun toHex(): Hex {
                 return Conversion.getHex(this)
             }
@@ -831,8 +835,13 @@ class ByteValue {
             return super.equals(other)
         }
 
+        class Bit3 : Size(3, 1)
+        class Bit5 : Size(5, 1)
+        class Bit7 : Size(7, 1)
         class Bit8 : Size(8, 1)
+        class Bit12 : Size(12, 2)
         class Bit16 : Size(16, 2)
+        class Bit20 : Size(20, 3)
         class Bit32 : Size(32, 4)
         class Bit64 : Size(64, 8)
         class Bit128 : Size(128, 16)
@@ -881,6 +890,41 @@ class ByteValue {
                     this.max = "170141183460469231731687303715884105727"
                     this.umin = "0"
                     this.umax = "340282366920938463463374607431768211455"
+                }
+
+                is Size.Bit3 -> {
+                    this.min = "-4"
+                    this.max = "3"
+                    this.umin = "0"
+                    this.umax = "7"
+                }
+
+                is Size.Bit5 -> {
+                    this.min = "-16"
+                    this.max = "15"
+                    this.umin = "0"
+                    this.umax = "31"
+                }
+
+                is Size.Bit7 -> {
+                    this.min = "-64"
+                    this.max = "63"
+                    this.umin = "0"
+                    this.umax = "127"
+                }
+
+                is Size.Bit12 -> {
+                    this.min = "-2048"
+                    this.max = "2047"
+                    this.umin = "0"
+                    this.umax = "4095"
+                }
+
+                is Size.Bit20 -> {
+                    this.min = "-524288"
+                    this.max = "524287"
+                    this.umin = "0"
+                    this.umax = "1048575"
                 }
             }
         }

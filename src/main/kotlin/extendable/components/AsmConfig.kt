@@ -1,8 +1,8 @@
 package extendable.components
 
-import extendable.components.assembly.Compiler
+import extendable.components.assembly.Assembly
 import extendable.components.assembly.Grammar
 
-class AsmConfig(val grammar: Grammar, val compiler: Compiler) {
+class AsmConfig(val grammar: Grammar, val assembly: Assembly) {
 
 }

@@ -2,7 +2,7 @@ package extendable.cisc
 
 import extendable.Architecture
 import extendable.archs.riscii.RISCII
-import extendable.components.assembly.Assembly
+import extendable.components.assembly.Compiler
 
 class ArchRISCII : Architecture {
 
@@ -10,7 +10,7 @@ class ArchRISCII : Architecture {
 
     }
 
-    override fun hlAndCompile(code: String, startAtLine: Int): Assembly.CompilationResult {
+    override fun hlAndCompile(code: String, startAtLine: Int): Compiler.CompilationResult {
         /* ----------------------- Token Identification ------------------------- */
         /**
          *   Line by Line
@@ -41,7 +41,7 @@ class ArchRISCII : Architecture {
 
         }
 
-        return Assembly.CompilationResult(getAssembly().getHLContent(), true)
+        return Compiler.CompilationResult(getAssembly().getHLContent(), true)
     }
 
 }

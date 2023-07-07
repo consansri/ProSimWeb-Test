@@ -1,17 +1,13 @@
 package extendable.archs.riscii
 
-import extendable.Architecture
-import extendable.archs.cisc.CISC
 import extendable.archs.riscv.RISCV
-import extendable.archs.riscv.RISCVCompiler
 import extendable.components.*
-import extendable.components.assembly.Grammar
 import extendable.components.connected.*
 import extendable.components.types.ByteValue
 
 object RISCII {
 
-    val asmConfig = AsmConfig(RISCIIGrammar(), RISCIICompiler())
+    val asmConfig = AsmConfig(RISCIIGrammar(), RISCIIAssembly())
 
 
     val config = Config(

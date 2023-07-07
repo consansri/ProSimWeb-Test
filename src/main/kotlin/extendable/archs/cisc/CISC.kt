@@ -1,15 +1,13 @@
 package extendable.archs.cisc
 
-import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.components.*
-import extendable.components.assembly.Grammar
 import extendable.components.connected.*
 import extendable.components.types.ByteValue
 
 object CISC {
 
-    val asmConfig = AsmConfig(CISCGrammar(), CISCCompiler())
+    val asmConfig = AsmConfig(CISCGrammar(), CISCAssembly())
 
     val config = Config(
         "IKR CISC",

@@ -6,6 +6,9 @@ import emotion.react.css
 import extendable.components.connected.Memory
 import extendable.components.types.ByteValue
 import kotlinx.browser.localStorage
+import kotlinx.js.timers.Timeout
+import kotlinx.js.timers.clearInterval
+import kotlinx.js.timers.setInterval
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
@@ -34,19 +37,26 @@ external interface MemViewProps : Props {
 
 val MemoryView = FC<MemViewProps> { props ->
 
+
+    val tbody = useRef<HTMLTableSectionElement>()
+    val inputLengthRef = useRef<HTMLInputElement>()
+    val contentIVRef = useRef<Timeout>()
+
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
     val update = props.update
+    val (internalUpdate, setIUpdate) = useState(false)
     val (memLength, setMemLength) = useState<Int>(props.length)
     val (memRows, setMemRows) = useState<MutableMap<String, MutableMap<Int, Memory.DMemInstance>>>(mutableMapOf())
 
-    val tbody = useRef<HTMLTableSectionElement>()
-
-    val inputLengthRef = useRef<HTMLInputElement>()
-
+    contentIVRef.current?.let {
+        clearInterval(it)
+    }
+    contentIVRef.current = setInterval({
+        setIUpdate(!internalUpdate)
+    }, 5000)
 
     fun calcMemTable() {
-
         val memRowsList: MutableMap<String, MutableMap<Int, Memory.DMemInstance>> = mutableMapOf()
         for (entry in appLogic.getArch().getMemory().getMemMap()) {
             val offset = (entry.value.address % ByteValue.Type.Dec("$memLength", ByteValue.Size.Bit8())).toHex().getRawHexStr().toInt(16)
@@ -60,7 +70,6 @@ val MemoryView = FC<MemViewProps> { props ->
                 rowList[offset] = entry.value
                 memRowsList[rowAddress.toHex().getRawHexStr()] = rowList
             }
-
         }
 
         setMemRows(memRowsList)
@@ -197,8 +206,12 @@ val MemoryView = FC<MemViewProps> { props ->
         }
     }
     useEffect(update, memLength) {
-        calcMemTable()
         console.log("(update) MemoryView")
+    }
+
+    useEffect(internalUpdate){
+        calcMemTable()
+        console.log("(internal-update) MemoryView")
     }
 
 
