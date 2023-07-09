@@ -3,6 +3,7 @@ package extendable
 import extendable.components.*
 import extendable.components.assembly.Compiler
 import extendable.components.connected.*
+import tools.DebugTools
 import tools.HTMLTools
 
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
@@ -133,12 +134,18 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     fun check(input: String, startAtLine: Int): String {
-        compiler.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
-        var encode = HTMLTools.encodeBeforeHTML(input)
-        val code = hlAndCompile(encode, startAtLine)
-        archState.check(code.buildable)
-
-        return code.highlightedContent
+        if (input.isNotEmpty()) {
+            if (DebugTools.ARCH_showCheckCodeEvents) {
+                console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
+            }
+            compiler.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
+            var encode = HTMLTools.encodeBeforeHTML(input)
+            val code = hlAndCompile(encode, startAtLine)
+            archState.check(code.buildable)
+            return code.highlightedContent
+        } else {
+            return input
+        }
     }
 
 }

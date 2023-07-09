@@ -1,3 +1,4 @@
+import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement

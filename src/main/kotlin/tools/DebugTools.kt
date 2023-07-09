@@ -24,8 +24,11 @@ object DebugTools {
 
 
     // ARCH COMPONENTS
+    //      Main
+    const val ARCH_showCheckCodeEvents = false
+
     //      Compiler
-    const val showCompilerInfo = false
+    const val ARCH_showCompilerInfo = false
 
 
     //      Memory
@@ -81,7 +84,7 @@ object DebugTools {
 
 
     // React Components
-    const val REACT_showUpdateInfo = false
+    const val REACT_showUpdateInfo = true
     const val REACT_deactivateAutoRefreshs = false
 
 

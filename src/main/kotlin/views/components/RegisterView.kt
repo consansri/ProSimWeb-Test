@@ -256,7 +256,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                 }
                                                 setUpdate(!update)
                                                 appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBin().getBinaryStr()}]")
-
                                             } catch (e: NumberFormatException) {
                                                 console.warn("RegisterView reg onBlur: NumberFormatException")
                                             }
@@ -277,7 +276,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                     }
 
                                                     UDEC -> {
-                                                        event.currentTarget.value = reg.byteValue.get().toDec().getRawDecStr()
+                                                        event.currentTarget.value = reg.byteValue.get().toUDec().getRawUDecStr()
                                                     }
                                                 }
                                             } catch (e: NumberFormatException) {

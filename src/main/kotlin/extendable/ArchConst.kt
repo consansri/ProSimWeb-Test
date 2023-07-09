@@ -1,7 +1,6 @@
 package extendable
 
 import StyleConst
-import extendable.components.types.ByteValue
 
 object ArchConst {
     /*
@@ -61,7 +60,7 @@ object ArchConst {
     // STATES
     const val STATE_UNCHECKED = "unchecked"
     const val STATE_HASERRORS = "hasErrors"
-    const val STATE_BUILDABLE = "buildable"
+    const val STATE_EXECUTABLE = "buildable"
     const val STATE_EXECUTION = "execution"
 
     enum class RegHeaders {

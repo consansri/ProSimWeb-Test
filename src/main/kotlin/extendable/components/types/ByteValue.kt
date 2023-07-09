@@ -317,7 +317,7 @@ class ByteValue {
                         return CheckResult(false, ArchConst.PRESTRING_HEX + trimmedString)
                     }
                 } else {
-                    val zeroString = ArchConst.PRESTRING_HEX + "0".repeat(size.bitWidth)
+                    val zeroString = ArchConst.PRESTRING_HEX + "0".repeat(size.byteCount * 2)
                     if (warnings) {
                         console.warn("ByteValue.Type.Hex.check(): ${formatted} does not match the hex Pattern (${ArchConst.PRESTRING_HEX + "X".repeat(size.byteCount * 2)} where X is element of [0-9,A-F]), returning ${zeroString} instead!")
                     }

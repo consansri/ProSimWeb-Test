@@ -78,7 +78,6 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                                             val originalValue: ByteValue.Type.Hex
                                             val constToken = param.constant
                                             val isAsciiString: Boolean
-                                            console.log("Content: ${constToken.content}, ${constToken.type.name}")
                                             when (constToken) {
                                                 is Compiler.Token.Constant.Ascii -> {
                                                     originalValue = ByteValue.Type.Hex(ByteValue.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
@@ -103,7 +102,6 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                                                 is Compiler.Token.Constant.UDec -> {
                                                     originalValue = ByteValue.Type.UDec(constToken.content).toHex()
                                                     isAsciiString = false
-                                                    console.log("from ${constToken.content} to ${originalValue.toUDec().getRawUDecStr()}")
                                                 }
                                             }
 

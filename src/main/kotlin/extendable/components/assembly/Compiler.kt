@@ -292,6 +292,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 assembly.generateByteCode(architecture, it)
             }
         }
+
     }
 
     fun getHLContent(): String {
@@ -367,7 +368,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class Dec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): ByteValue.Type {
-                    if(DebugTools.showCompilerInfo) {
+                    if(DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.Dec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
                     }
                     return ByteValue.Type.Dec(content, ByteValue.Size.Bit32())
@@ -376,7 +377,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class UDec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id){
                 override fun getValue(): ByteValue.Type {
-                    if(DebugTools.showCompilerInfo) {
+                    if(DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.UDec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
                     }
                     return ByteValue.Type.UDec(content, ByteValue.Size.Bit32())

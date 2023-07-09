@@ -6,6 +6,7 @@ import StyleConst
 import csstype.ClassName
 import extendable.ArchConst
 import extendable.components.assembly.Grammar
+import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearTimeout
@@ -59,6 +60,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val (update, setUpdate) = useState(props.update)
+    val (internalUpdate, setIUpdate) = useState(false)
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
     val (exeStartLine, setExeStartLine) = useState(1)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
@@ -229,7 +231,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     if (transcriptView) {
                         setTranscriptView(!transcriptView)
                     } else {
-                        if (appLogic.getArch().getState().getState() == ArchConst.STATE_BUILDABLE) {
+                        if (appLogic.getArch().getState().getState() == ArchConst.STATE_EXECUTABLE) {
                             textareaRef.current?.let {
                                 checkCode(it.value, true)
                                 setTranscriptView(!transcriptView)
@@ -257,7 +259,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
                     }
 
-                    ArchConst.STATE_BUILDABLE -> {
+                    ArchConst.STATE_EXECUTABLE -> {
                         title = "Status: ready to build"
                         img {
                             src = StyleConst.Icons.status_fine
@@ -636,6 +638,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 
+
+
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
     useEffect(update) {
@@ -679,11 +683,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
             setta_val_ss(tempTaValSS)
         }
+
     }
 
     useEffect(checkState) {
         when (checkState) {
-            ArchConst.STATE_BUILDABLE -> {
+            ArchConst.STATE_EXECUTABLE -> {
                 btnSwitchRef.current?.let {
                     it.classList.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
                 }
@@ -730,9 +735,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         /* SAVE ta_val change */
         ta_val?.let {
             localStorage.setItem(StorageKey.TA_VALUE, it)
+            checkCode(it, false)
         }
         textareaRef.current?.let {
             it.value = ta_val ?: ""
+
         }
         updateTAResize()
         updateClearButton()
@@ -746,6 +753,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 localStorage.setItem(StorageKey.TA_VALUE_SaveState + "$taValSSID", ta_val_ss[taValSSID])
             }
             localStorage.setItem(StorageKey.TA_VALUE_SaveState_Length, ta_val_ss.size.toString())
+
         }
         updateUndoButton()
     }
@@ -761,16 +769,17 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         }
     }
+
+
+
 }
 
 object Formatter {
-
     val reformats = listOf<ReFormat>(
         ReFormat(Regex("""(\s{2,})"""), "\t"),
         ReFormat(Regex("""(,)\S"""), ", ")
 
     )
-
 }
 
 data class ReFormat(val regex: Regex, val replace: String)
