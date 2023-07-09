@@ -9,6 +9,7 @@ import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearInterval
 import kotlinx.js.timers.setInterval
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
@@ -43,6 +44,7 @@ val MemoryView = FC<MemViewProps> { props ->
     val tbody = useRef<HTMLTableSectionElement>()
     val inputLengthRef = useRef<HTMLInputElement>()
     val contentIVRef = useRef<Timeout>()
+    val asciiRef = useRef<HTMLElement>()
 
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
@@ -94,7 +96,7 @@ val MemoryView = FC<MemViewProps> { props ->
             tabIndex = 0
 
             table {
-                className = ClassName("dcf-table dcf-table-striped dcf-w-100%")
+                className = ClassName("dcf-table dcf-table-striped dcf-w-100% dcf-darkbg")
                 caption {
                     a {
                         +name
@@ -144,23 +146,18 @@ val MemoryView = FC<MemViewProps> { props ->
                         if (nextAddress != ByteValue.Type.Hex(memRowKey) && memRowKey != sortedKeys.first()) {
                             tr {
                                 th {
-                                    className = ClassName("dcf-txt-center")
+                                    colSpan = 2 + memLength
+                                    className = ClassName("dcf-txt-center dcf-mark-notused dcf-darkbg")
                                     scope = "row"
                                     title = "only zeros in addresses between"
                                     +"..."
-                                }
-                                for (column in 0..memLength) {
-                                    td {
-                                        className = ClassName("dcf-txt-center")
-                                        title = "only zeros in addresses between"
-                                    }
                                 }
                             }
                         }
 
                         tr {
                             th {
-                                className = ClassName("dcf-txt-center")
+                                className = ClassName("dcf-txt-center dcf-darkbg dcf-mark-address")
                                 scope = "row"
                                 +memRowKey
                             }
@@ -169,13 +166,13 @@ val MemoryView = FC<MemViewProps> { props ->
                                 val memInstance = memRow?.get(column)
                                 if (memInstance != null) {
                                     td {
-                                        className = ClassName("dcf-txt-center ${memInstance.mark}")
+                                        className = ClassName("dcf-txt-center dcf-darkbg ${memInstance.mark}")
                                         title = "Address: ${memInstance.address.getRawHexStr()}"
                                         +memInstance.byteValue.get().toHex().getRawHexStr()
                                     }
                                 } else {
                                     td {
-                                        className = ClassName("dcf-txt-center")
+                                        className = ClassName("dcf-txt-center dcf-mark-notused dcf-darkbg")
                                         title = "unused"
                                         +appLogic.getArch().getMemory().getInitialBinary().get().toHex().getRawHexStr()
                                     }
@@ -183,7 +180,8 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             td {
-                                className = ClassName("dcf-txt-center" + " " + "dcf-monospace")
+                                className = ClassName("dcf-txt-center dcf-monospace dcf-mark-ascii dcf-darkbg")
+                                ref = asciiRef
                                 var asciiString = ""
                                 val emptyAscii = appLogic.getArch().getMemory().getInitialBinary().get().toASCII()
                                 for (column in 0 until memLength) {
@@ -194,6 +192,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                         asciiString += emptyAscii
                                     }
                                 }
+
                                 +asciiString
                             }
                         }

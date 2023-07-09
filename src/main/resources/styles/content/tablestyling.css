@@ -18,19 +18,35 @@ th {
     text-align: center !important;
 }
 
+.dcf-darkbg {
+
+}
+
 .dcf-mark-program {
-    /*color: darkgreen;*/
-    color: white;
-    background-color: #537188;
+    font-weight: 700;
+    color: cornflowerblue;
 }
 
 .dcf-mark-data {
-    color: white;
-    background-color: #CBB279;
+    font-weight: 700;
+    color: green;
+}
+
+.dcf-mark-address {
+
+}
+
+.dcf-mark-ascii {
+    color: #777777;
+}
+
+.dcf-mark-notused {
+    color: #AAAAAA;
 }
 
 .dcf-mark-else {
-    background-color: #E1D4BB;
+    font-weight: 700;
+    color: darkorange;
 }
 
 .dcf-txt-left {
