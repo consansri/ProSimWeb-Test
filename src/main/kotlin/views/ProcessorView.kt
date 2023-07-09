@@ -57,13 +57,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
         }
 
-        div {
+        /*div {
             p {
                 ref = progressPCRef
             }
-        }
+        }*/
 
-        div {
+        // PROGRESSBAR
+        /*div {
             div {
                 className = ClassName(StyleConst.CLASS_EXEC_PROGRESS)
                 div {
@@ -77,7 +78,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
                 }
             }
-        }
+        }*/
 
         div {
 

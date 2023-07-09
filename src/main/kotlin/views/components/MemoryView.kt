@@ -169,7 +169,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 val memInstance = memRow?.get(column)
                                 if (memInstance != null) {
                                     td {
-                                        className = ClassName("dcf-txt-center")
+                                        className = ClassName("dcf-txt-center ${memInstance.mark}")
                                         title = "Address: ${memInstance.address.getRawHexStr()}"
                                         +memInstance.byteValue.get().toHex().getRawHexStr()
                                     }
@@ -214,7 +214,6 @@ val MemoryView = FC<MemViewProps> { props ->
             console.log("(internal-update) MemoryView")
         }
         calcMemTable()
-
     }
 
 

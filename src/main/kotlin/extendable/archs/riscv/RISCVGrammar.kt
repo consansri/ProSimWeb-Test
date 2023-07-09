@@ -539,7 +539,6 @@ class RISCVGrammar : Grammar() {
                     sectionIdentification = firstT2Line
                     notNullT2Lines.removeFirst()
                     continue
-
                 }
 
                 is T2TextSectionStart -> {

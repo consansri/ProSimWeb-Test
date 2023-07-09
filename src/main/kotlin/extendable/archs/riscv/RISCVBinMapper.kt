@@ -19,15 +19,15 @@ class RISCVBinMapper {
         val values = instrDef.t1ParamColl?.getValues()
         val labels = instrDef.t1ParamColl?.getLabels()
 
-        if(DebugTools.RISCV_showBinMapperInfo){
+        if (DebugTools.RISCV_showBinMapperInfo) {
             console.log("BinMapper.getBinaryFromInstrDef(): values -> ${values?.joinToString { it.toHex().getRawHexStr() }}")
             console.log("BinMapper.getBinaryFromInstrDef(): labels -> ${labels?.joinToString { it.wholeName }}")
         }
 
         if (!labels.isNullOrEmpty()) {
-            for(label in labels){
+            for (label in labels) {
                 val linkedAddress = labelAddrMap.get(label)
-                if(linkedAddress == null){
+                if (linkedAddress == null) {
                     console.warn("BinMapper.getBinaryFromInstrDef(): missing label address entry for [${label.wholeName}]!")
                 }
             }
@@ -64,13 +64,15 @@ class RISCVBinMapper {
 
                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
                     values?.let {
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0].toBin(), MaskLabel.RS2 to values[1].toBin(), MaskLabel.IMM12 to values[2].toBin()))
+                        val imm12 = values[2].toBin().getRawBinaryStr()
+                        val imm5 = ByteValue.Type.Binary(imm12.substring(imm12.length - 5), ByteValue.Size.Bit5())
+                        val imm7 = ByteValue.Type.Binary(imm12.substring(0, 7), ByteValue.Size.Bit7())
+                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0].toBin(), MaskLabel.RS2 to values[1].toBin(), MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
                     }
                 }
-
 
 
                 LB, LH, LW, LBU, LHU -> {
@@ -88,7 +90,7 @@ class RISCVBinMapper {
                         val imm5 = ByteValue.Type.Binary(imm12.substring(imm12.length - 5))
                         val imm7 = ByteValue.Type.Binary(imm12.substring(imm12.length - 12, imm12.length - 5))
 
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0].toBin(), MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5, MaskLabel.RS1 to values[2].toBin()))
+                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RS2 to values[0].toBin(), MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5, MaskLabel.RS1 to values[2].toBin()))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
@@ -141,11 +143,13 @@ class RISCVBinMapper {
                 }
 
                 BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
-                    if(values != null && labels != null){
+                    if (values != null && labels != null) {
                         val lblAddr = labelAddrMap.get(labels.first())
-                        if(lblAddr != null){
-                            val imm12 = ByteValue.Type.Binary(lblAddr, ByteValue.Size.Bit12())
-                            val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0].toBin(), MaskLabel.RS2 to values[1].toBin(), MaskLabel.IMM12 to imm12))
+                        if (lblAddr != null) {
+                            val imm12 = ByteValue.Type.Binary(lblAddr, ByteValue.Size.Bit12()).getRawBinaryStr()
+                            val imm5 = ByteValue.Type.Binary(imm12.substring(imm12.length - 5), ByteValue.Size.Bit5())
+                            val imm7 = ByteValue.Type.Binary(imm12.substring(0, 7), ByteValue.Size.Bit7())
+                            val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0].toBin(), MaskLabel.RS2 to values[1].toBin(), MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                             opCode?.let {
                                 binaryArray.add(opCode)
                             }
@@ -159,9 +163,10 @@ class RISCVBinMapper {
                         if (lblAddr != null) {
                             val rs1 = values[0].toBin()
                             val x0 = ByteValue.Type.Binary("0", ByteValue.Size.Bit5())
-                            val imm12 = ByteValue.Type.Binary(lblAddr, ByteValue.Size.Bit12())
-
-                            val beqOpCode = RISCVGrammar.T1Instr.Type.BEQ.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM12 to imm12))
+                            val imm12 = ByteValue.Type.Binary(lblAddr, ByteValue.Size.Bit12()).getRawBinaryStr()
+                            val imm5 = ByteValue.Type.Binary(imm12.substring(imm12.length - 5), ByteValue.Size.Bit5())
+                            val imm7 = ByteValue.Type.Binary(imm12.substring(0, 7), ByteValue.Size.Bit7())
+                            val beqOpCode = RISCVGrammar.T1Instr.Type.BEQ.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
 
                             if (beqOpCode != null) {
                                 binaryArray.add(beqOpCode)
@@ -176,9 +181,10 @@ class RISCVBinMapper {
                         if (lblAddr != null) {
                             val rs1 = values[0].toBin()
                             val x0 = ByteValue.Type.Binary("0", ByteValue.Size.Bit5())
-                            val imm12 = ByteValue.Type.Binary(lblAddr, ByteValue.Size.Bit12())
-
-                            val bltOpCode = RISCVGrammar.T1Instr.Type.BLT.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM12 to imm12))
+                            val imm12 = ByteValue.Type.Binary(lblAddr, ByteValue.Size.Bit12()).getRawBinaryStr()
+                            val imm5 = ByteValue.Type.Binary(imm12.substring(imm12.length - 5), ByteValue.Size.Bit5())
+                            val imm7 = ByteValue.Type.Binary(imm12.substring(0, 7), ByteValue.Size.Bit7())
+                            val bltOpCode = RISCVGrammar.T1Instr.Type.BLT.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
 
                             if (bltOpCode != null) {
                                 binaryArray.add(bltOpCode)
@@ -282,13 +288,13 @@ class RISCVBinMapper {
             var length = 0
             opCode.forEach { length += it.length }
             if (length != ByteValue.Size.Bit32().bitWidth) {
-                if(DebugTools.RISCV_showOpCodeInfo){
+                if (DebugTools.RISCV_showOpCodeInfo) {
                     console.warn("BinMapper.OpCode: OpMask isn't 32Bit Binary! -> returning null")
                 }
                 return null
             }
             if (opCode.size != maskLabels.size) {
-                if(DebugTools.RISCV_showOpCodeInfo) {
+                if (DebugTools.RISCV_showOpCodeInfo) {
                     console.warn("BinMapper.OpCode: OpMask [$opMask] and Labels [${maskLabels.joinToString { it.name }}] aren't the same size! -> returning null")
                 }
                 return null
@@ -303,13 +309,13 @@ class RISCVBinMapper {
                         if (size != null) {
                             opCode[labelID] = param.getResized(size).getRawBinaryStr()
                         } else {
-                            if(DebugTools.RISCV_showOpCodeInfo) {
+                            if (DebugTools.RISCV_showOpCodeInfo) {
                                 console.warn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
                             }
                             return null
                         }
                     } else {
-                        if(DebugTools.RISCV_showOpCodeInfo) {
+                        if (DebugTools.RISCV_showOpCodeInfo) {
                             console.warn("BinMapper.OpCode.getOpCode(): parameter [${maskLabel.name}] not found! -> inserting zeros")
                         }
                         val bitWidth = maskLabel.maxSize?.bitWidth

@@ -66,6 +66,11 @@ object StyleConst {
     val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
     val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
 
+    // PROCESSOR.MEMORY
+    val CLASS_TABLE_MARK_PROGRAM = "dcf-mark-program"
+    val CLASS_TABLE_MARK_DATA = "dcf-mark-data"
+    val CLASS_TABLE_MARK_ELSE = "dcf-mark-else"
+
     // INFO
 
 

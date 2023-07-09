@@ -1,5 +1,5 @@
 #arch-title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     font-style: normal;
     color: white;
@@ -25,8 +25,7 @@
 .exeControlDiv div a {
     flex-grow: 1;
     text-align: center;
-    font-size: 1rem;
-    padding: var(--padding-size);
+    font-size: 0.8rem;
     color: var(--exec-textColor);
 }
 
@@ -40,7 +39,7 @@
     display: inline-block;
     height: 100%;
     vertical-align: middle;
-    width: 2rem;
+    width: 1.8rem;
     filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(215deg) brightness(109%) contrast(100%);
 }
 

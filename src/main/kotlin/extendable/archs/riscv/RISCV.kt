@@ -17,7 +17,7 @@ object RISCV {
     // Assembler CONFIG
     val asmConfig = AsmConfig(
         RISCVGrammar(),
-        RISCVAssembly(RISCVBinMapper())
+        RISCVAssembly(RISCVBinMapper(), ByteValue.Type.Hex("00008000", ByteValue.Size.Bit32()))
     )
 
 

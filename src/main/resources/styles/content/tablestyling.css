@@ -18,6 +18,21 @@ th {
     text-align: center !important;
 }
 
+.dcf-mark-program {
+    /*color: darkgreen;*/
+    color: white;
+    background-color: #537188;
+}
+
+.dcf-mark-data {
+    color: white;
+    background-color: #CBB279;
+}
+
+.dcf-mark-else {
+    background-color: #E1D4BB;
+}
+
 .dcf-txt-left {
     text-align: left !important;
 }
@@ -69,7 +84,7 @@ th {
 }
 
 .dcf-table td, .dcf-table th {
-    padding-right: 1.78em
+    padding-right: 0.2em
 }
 
 .dcf-table-bordered, .dcf-table-bordered td, .dcf-table-bordered th {
@@ -77,8 +92,8 @@ th {
 }
 
 .dcf-table-bordered td, .dcf-table-bordered th, .dcf-table-striped td, .dcf-table-striped th {
-    padding-left: 1em;
-    padding-right: 1em
+    padding-left: 0.2em;
+    padding-right: 0.2em;
 }
 
 .dcf-table-bordered tr:not(:last-child), .dcf-table-striped tr:not(:last-child) {

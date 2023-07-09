@@ -1,5 +1,6 @@
 package extendable.components.connected
 
+import StyleConst
 import extendable.components.types.ByteValue
 import tools.DebugTools
 
@@ -15,7 +16,7 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         save(getAddressMax(), getInitialBinary())
     }
 
-    fun save(address: ByteValue.Type, byteValue: ByteValue) {
+    fun save(address: ByteValue.Type, byteValue: ByteValue, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
         val wordList = byteValue.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
         if (endianess == Endianess.LittleEndian) {
@@ -31,15 +32,16 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
 
             if (instance != null) {
                 instance.byteValue.setHex(word.toString())
+                instance.mark = mark
             } else {
-                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize))
+                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize), mark)
                 newInstance.byteValue.setHex(word.toString())
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
         }
     }
 
-    fun save(address: ByteValue.Type, value: ByteValue.Type) {
+    fun save(address: ByteValue.Type, value: ByteValue.Type, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
         val wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
         if (endianess == Endianess.LittleEndian) {
@@ -54,13 +56,13 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
             val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {
                 instance.byteValue.setHex(word.toString())
+                instance.mark = mark
             } else {
-                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize))
+                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize), mark)
                 newInstance.byteValue.setHex(word.toString())
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
             hexAddress = (hexAddress + ByteValue.Type.Hex("1")).toHex()
-
         }
     }
 
@@ -115,7 +117,7 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         return wordSize
     }
 
-    data class DMemInstance(val address: ByteValue.Type.Hex, var byteValue: ByteValue)
+    data class DMemInstance(val address: ByteValue.Type.Hex, var byteValue: ByteValue, var mark: String = "")
 
     enum class Endianess {
         LittleEndian,

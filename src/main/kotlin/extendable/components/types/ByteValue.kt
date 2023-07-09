@@ -296,6 +296,10 @@ class ByteValue {
                 return hexString
             }
 
+            fun getResized(size: Size): Hex{
+                return Hex(getRawHexStr(), size)
+            }
+
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 var formatted = string.trim().removePrefix(ArchConst.PRESTRING_HEX).padStart(size.byteCount * 2, '0').uppercase()
 
@@ -400,6 +404,8 @@ class ByteValue {
                 this.decString = check(decString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
                 this.negative = DecTools.isNegative(this.decString)
             }
+
+            constructor(decString: String) : this(decString, Tools.getNearestDecSize(decString))
 
             fun isNegative(): Boolean {
                 return negative
@@ -525,6 +531,8 @@ class ByteValue {
                 this.udecString = check(udecString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
 
+            constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString))
+
             fun getUDecStr(): String {
                 return udecString
             }
@@ -541,24 +549,24 @@ class ByteValue {
 
                 if (negRegex.matches(formatted)) {
                     val posValue = DecTools.abs(formatted)
-                    if(warnings) {
+                    if (warnings) {
                         console.warn("ByteValue.Type.UDec.check(): ${formatted} is negative! returning absolute Value instead: ${posValue}")
                     }
                     return CheckResult(false, ArchConst.PRESTRING_DECIMAL + posValue)
                 } else if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
-                    if(warnings) {
+                    if (warnings) {
                         console.warn("ByteValue.Type.UDec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_DECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
                     }
                     return CheckResult(false, ArchConst.PRESTRING_DECIMAL + zeroString)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
-                        if(warnings) {
+                        if (warnings) {
                             console.warn("ByteValue.Type.UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}")
                         }
                         return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).umax)
                     } else if (DecTools.isGreaterThan(Bounds(size).umin, formatted)) {
-                        if(warnings) {
+                        if (warnings) {
                             console.warn("ByteValue.Type.UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}")
                         }
                         return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).umin)
@@ -844,6 +852,8 @@ class ByteValue {
                 return stringBuilder.toString()
             }
 
+
+
         }
 
     }
@@ -993,6 +1003,76 @@ class ByteValue {
                 }
             }
         }
+
+        fun getNearestDecSize(decString: String): Size {
+            when {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit8()).min) -> {
+                    return Size.Bit8()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit16()).min) -> {
+                    return Size.Bit16()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit32()).min) -> {
+                    return Size.Bit32()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit64()).min) -> {
+                    return Size.Bit64()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit128()).min) -> {
+                    return Size.Bit128()
+                }
+
+                else -> {
+                    console.warn("ByteValue.Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).max}, min: ${Bounds(Size.Bit128()).min}] -> returning Size.Bit128()")
+                    return Size.Bit128()
+                }
+            }
+        }
+
+        fun getNearestUDecSize(udecString: String): Size {
+            when {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).umax, udecString) -> {
+                    return Size.Bit8()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).umax, udecString) -> {
+                    return Size.Bit16()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).umax, udecString) -> {
+                    return Size.Bit32()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).umax, udecString) -> {
+                    return Size.Bit64()
+                }
+
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).umax, udecString) -> {
+                    return Size.Bit128()
+                }
+
+                else -> {
+                    console.warn("ByteValue.Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).umax}, min: ${Bounds(Size.Bit128()).umin}] -> returning Size.Bit128()")
+                    return Size.Bit128()
+                }
+            }
+        }
+
+        fun asciiToHex(asciiString: String): String {
+            val hexBuilder = StringBuilder()
+
+            for(char in asciiString){
+                val hexValue = char.code.toString(16)
+                hexBuilder.append(hexValue)
+            }
+
+            return hexBuilder.toString()
+        }
+
     }
 
     data class CheckResult(val valid: Boolean, val corrected: String)
