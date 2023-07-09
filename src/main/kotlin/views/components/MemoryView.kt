@@ -12,14 +12,18 @@ import kotlinx.js.timers.setInterval
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
+import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.tfoot
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
@@ -45,14 +49,18 @@ val MemoryView = FC<MemViewProps> { props ->
     val update = props.update
     val (internalUpdate, setIUpdate) = useState(false)
     val (memLength, setMemLength) = useState<Int>(props.length)
+    val (lowFirst, setLowFirst) = useState(true)
     val (memRows, setMemRows) = useState<MutableMap<String, MutableMap<Int, Memory.DMemInstance>>>(mutableMapOf())
 
     contentIVRef.current?.let {
         clearInterval(it)
     }
-    contentIVRef.current = setInterval({
-        setIUpdate(!internalUpdate)
-    }, 5000)
+    if (!DebugTools.REACT_deactivateAutoRefreshs) {
+        contentIVRef.current = setInterval({
+            setIUpdate(!internalUpdate)
+        }, 5000)
+    }
+
 
     fun calcMemTable() {
         val memRowsList: MutableMap<String, MutableMap<Int, Memory.DMemInstance>> = mutableMapOf()
@@ -92,22 +100,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         +name
                     }
                 }
-                caption {
-                    input {
-                        ref = inputLengthRef
-                        placeholder = "values per row"
-                        type = InputType.range
-                        min = 1.0
-                        max = 16.0
-                        step = 1.0
-                        value = "$memLength"
 
-                        onInput = {
-                            setMemLength(it.currentTarget.valueAsNumber.toInt())
-                            localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
-                        }
-                    }
-                }
                 thead {
                     tr {
 
@@ -139,9 +132,16 @@ val MemoryView = FC<MemViewProps> { props ->
                     var nextAddress: ByteValue.Type = appLogic.getArch().getMemory().getInitialBinary().setBin("0").get()
                     val memLengthValue = ByteValue.Type.Dec("$memLength", ByteValue.Size.Bit8()).toHex()
 
-                    for (memRowKey in memRows.keys.sorted()) {
+                    var sortedKeys = memRows.keys.sorted()
+
+                    if (!lowFirst) {
+                        sortedKeys = sortedKeys.reversed()
+                        nextAddress = nextAddress.getBiggest() - memLengthValue
+                    }
+
+                    for (memRowKey in sortedKeys) {
                         val memRow = memRows[memRowKey]
-                        if (nextAddress != ByteValue.Type.Hex(memRowKey)) {
+                        if (nextAddress != ByteValue.Type.Hex(memRowKey) && memRowKey != sortedKeys.first()) {
                             tr {
                                 th {
                                     className = ClassName("dcf-txt-center")
@@ -183,7 +183,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             td {
-                                className = ClassName("dcf-txt-left" + " " + "dcf-monospace")
+                                className = ClassName("dcf-txt-center" + " " + "dcf-monospace")
                                 var asciiString = ""
                                 val emptyAscii = appLogic.getArch().getMemory().getInitialBinary().get().toASCII()
                                 for (column in 0 until memLength) {
@@ -197,9 +197,60 @@ val MemoryView = FC<MemViewProps> { props ->
                                 +asciiString
                             }
                         }
-                        nextAddress = (ByteValue.Type.Hex(memRowKey) + memLengthValue)
+                        if (lowFirst) {
+                            nextAddress = (ByteValue.Type.Hex(memRowKey) + memLengthValue)
+                        } else {
+                            nextAddress = (ByteValue.Type.Hex(memRowKey) - memLengthValue)
+                        }
+
                     }
+
                 }
+
+                tfoot {
+
+                    tr {
+                        td {
+                            className = ClassName("dcf-control")
+                            button {
+                                type = ButtonType.button
+
+                                onClick = { event ->
+                                    setLowFirst(!lowFirst)
+                                }
+
+                                img {
+                                    src = "icons/direction.svg"
+                                }
+
+                            }
+                        }
+                        td {
+                            colSpan = 1 + memLength
+                            className = ClassName("dcf-control")
+
+
+
+                            input {
+                                ref = inputLengthRef
+                                placeholder = "values per row"
+                                type = InputType.range
+                                min = 1.0
+                                max = 16.0
+                                step = 1.0
+                                value = "$memLength"
+
+                                onInput = {
+                                    setMemLength(it.currentTarget.valueAsNumber.toInt())
+                                    localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+
             }
         }
     }

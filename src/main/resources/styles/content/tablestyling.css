@@ -57,16 +57,7 @@ th {
 }
 
 .dcf-table caption input {
-    cursor: pointer;
-    border: none;
-    height: calc(100% - 2 * .56rem);
-    width: calc(100% - 2 * .56rem);
-    min-height: 1em;
-    border-radius: var(--border-radius);
-    margin-left: var(--padding-size);
-    margin-right: var(--padding-size);
-    vertical-align: middle;
-    accent-color: var(--main-accent-color);
+
 }
 
 .dcf-table thead {
@@ -80,7 +71,44 @@ th {
 }
 
 .dcf-table tfoot {
-    font-size: .84em
+    font-size: .84em;
+    position: relative;
+    width: 100%;
+    padding: var(--padding-size);
+}
+
+.dcf-control input {
+    cursor: pointer;
+    border: none;
+    height: calc(100% - 2 * .56rem);
+    width: calc(100% - 2 * .56rem);
+    min-height: 1em;
+    border-radius: var(--border-radius);
+    margin-left: var(--padding-size);
+    margin-right: var(--padding-size);
+    vertical-align: middle;
+    accent-color: var(--main-accent-color);
+}
+
+.dcf-control button {
+    cursor: pointer;
+    padding: var(--icon-padding);
+    appearance: none;
+    border: none;
+    background-color: var(--rcontainer-bg-color);
+    border-radius: var(--icon-border-radius);
+    transition: 0.2s all ease;
+}
+
+.dcf-control button:hover {
+    background-color: var(--main-fg-color);
+}
+
+.dcf-control button img {
+    display: block;
+    height: var(--icon-size);
+    width: var(--icon-size);
+    filter: invert(100%);
 }
 
 .dcf-table td, .dcf-table th {

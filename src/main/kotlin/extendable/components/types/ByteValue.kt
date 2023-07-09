@@ -531,7 +531,11 @@ class ByteValue {
                 this.udecString = check(udecString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
 
-            constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString))
+            constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString)){
+                if(DebugTools.ARCH_showBVCheckWarnings) {
+                    console.log("ByteValue.UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
+                }
+            }
 
             fun getUDecStr(): String {
                 return udecString
@@ -746,7 +750,7 @@ class ByteValue {
                     val weight = DecTools.pow("2", "$i")
                     if (DecTools.isGreaterEqualThan(udecString, weight)) {
                         binaryStr = binaryStr + "1"
-                        udecString = DecTools.pow(udecString, weight)
+                        udecString = DecTools.sub(udecString, weight)
                     } else {
                         binaryStr = binaryStr + "0"
                     }

@@ -78,9 +78,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                                             val originalValue: ByteValue.Type.Hex
                                             val constToken = param.constant
                                             val isAsciiString: Boolean
+                                            console.log("Content: ${constToken.content}, ${constToken.type.name}")
                                             when (constToken) {
                                                 is Compiler.Token.Constant.Ascii -> {
-                                                    originalValue = ByteValue.Type.Hex(ByteValue.Tools.asciiToHex(constToken.content.substring(1,constToken.content.length - 1)))
+                                                    originalValue = ByteValue.Type.Hex(ByteValue.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
                                                     isAsciiString = true
                                                 }
 
@@ -102,6 +103,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                                                 is Compiler.Token.Constant.UDec -> {
                                                     originalValue = ByteValue.Type.UDec(constToken.content).toHex()
                                                     isAsciiString = false
+                                                    console.log("from ${constToken.content} to ${originalValue.toUDec().getRawUDecStr()}")
                                                 }
                                             }
 
@@ -155,6 +157,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                                                 }
                                             }
 
+                                            if(DebugTools.RISCV_showAsmInfo){
+                                                console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} resized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} allocating at ${nextAddress.toHex().getRawHexStr()}")
+                                            }
+
                                             dataAllocList.add(MemAllocEntry(entry, nextAddress.toHex(), resizedValues.first().size, *resizedValues))
                                             nextAddress += length
                                         }
@@ -174,7 +180,11 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                 labelBinAddrMap.set(alloc.labelDef.t1Label, alloc.address.toBin().getRawBinaryStr())
                 for (valueID in alloc.values.indices) {
                     val value = alloc.values[valueID]
-                    memory.save(alloc.address + ByteValue.Type.Hex(valueID.toString(16)) * ByteValue.Type.Hex(alloc.sizeOfOne.byteCount.toString(16)), value, StyleConst.CLASS_TABLE_MARK_DATA)
+                    val address = alloc.address + ByteValue.Type.Hex(valueID.toString(16)) * ByteValue.Type.Hex(alloc.sizeOfOne.byteCount.toString(16))
+                    if (DebugTools.RISCV_showAsmInfo) {
+                        console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
+                    }
+                    memory.save(address, value, StyleConst.CLASS_TABLE_MARK_DATA)
                 }
             }
 
@@ -200,7 +210,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
 
             for (binaryID in binarys.indices) {
                 val binary = binarys[binaryID]
-                if(DebugTools.RISCV_showAsmInfo) {
+                if (DebugTools.RISCV_showAsmInfo) {
                     console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
                 }
                 memory.save(ByteValue.Type.Hex((binaryID * 4).toString(16), ByteValue.Size.Bit32()), binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)

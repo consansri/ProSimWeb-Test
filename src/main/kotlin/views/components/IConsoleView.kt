@@ -49,9 +49,11 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
     contentIVRef.current?.let {
         clearInterval(it)
     }
-    contentIVRef.current = setInterval({
-        setIUpdate(!internalUpdate)
-    }, 200)
+    if(!DebugTools.REACT_deactivateAutoRefreshs) {
+        contentIVRef.current = setInterval({
+            setIUpdate(!internalUpdate)
+        }, 200)
+    }
 
     div {
 
