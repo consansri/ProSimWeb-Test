@@ -89,11 +89,17 @@ th {
     padding: var(--padding-size);
 }
 
+.dcf-control {
+
+}
+
 .dcf-control input {
+    display: inline-block;
     cursor: pointer;
     border: none;
-    height: calc(100% - 2 * .56rem);
-    width: calc(100% - 2 * .56rem);
+    height: calc(var(--icon-size) + 2 * var(--icon-padding));
+    width: calc(100% - 2 * .56rem - 2 * var(--icon-padding) -  var(--icon-size));
+    float: right;
     min-height: 1em;
     border-radius: var(--border-radius);
     margin-left: var(--padding-size);
@@ -103,6 +109,7 @@ th {
 }
 
 .dcf-control button {
+    display: inline-block;
     cursor: pointer;
     padding: var(--icon-padding);
     appearance: none;
@@ -112,8 +119,10 @@ th {
     transition: 0.2s all ease;
 }
 
-.dcf-control button:hover {
-    background-color: var(--main-fg-color);
+.dcf-control button:hover img {
+    height: calc(var(--icon-size) * 0.8);
+    margin-top: calc(var(--icon-size) * 0.1);
+    margin-bottom: calc(var(--icon-size) * 0.1);
 }
 
 .dcf-control button img {

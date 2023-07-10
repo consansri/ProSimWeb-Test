@@ -209,10 +209,22 @@ val MemoryView = FC<MemViewProps> { props ->
                 tfoot {
 
                     tr {
-                        td {
+                        /*td {
                             className = ClassName("dcf-control")
+
+                        }*/
+                        td {
+                            colSpan = 2 + memLength
+                            className = ClassName("dcf-control")
+
                             button {
                                 type = ButtonType.button
+                                css {
+                                    if(!lowFirst){
+                                        filter = invert(100)
+                                    }
+                                }
+
 
                                 onClick = { event ->
                                     setLowFirst(!lowFirst)
@@ -223,12 +235,6 @@ val MemoryView = FC<MemViewProps> { props ->
                                 }
 
                             }
-                        }
-                        td {
-                            colSpan = 1 + memLength
-                            className = ClassName("dcf-control")
-
-
 
                             input {
                                 ref = inputLengthRef
