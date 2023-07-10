@@ -1,6 +1,11 @@
 package extendable.components.connected
 
 import extendable.ArchConst
+import extendable.Architecture
+import extendable.archs.riscv.RISCVBinMapper
+import extendable.archs.riscv.RISCVGrammar
+import extendable.components.assembly.Compiler
+import extendable.components.types.ByteValue
 
 class Transcript {
 
@@ -10,7 +15,7 @@ class Transcript {
     constructor() {
         val transcriptHeaders = ArchConst.TranscriptHeaders.values()
         val headersList = mutableListOf<String>()
-        for(header in transcriptHeaders){
+        for (header in transcriptHeaders) {
             headersList.add(header.name)
         }
         this.headers = headersList.toTypedArray()
@@ -36,11 +41,11 @@ class Transcript {
         return headers
     }
 
-    class TranscriptEntry(val memoryHexAddress: String, val editorLines: IntRange){
+    class TranscriptEntry(val memoryAddress: ByteValue.Type.Hex) {
 
-        val content = mutableMapOf<String, String>()
+        val content = mutableMapOf<ArchConst.TranscriptHeaders, String>(ArchConst.TranscriptHeaders.ADDRESS to memoryAddress.getRawHexStr())
 
-        fun addContent(header: String, value: String){
+        fun addContent(header: ArchConst.TranscriptHeaders, value: String) {
             content[header] = value
         }
 

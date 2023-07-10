@@ -23,7 +23,7 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
             wordList.reversed()
         }
 
-        val hexAddress = address.toBin().getResized(addressSize).toHex()
+        val hexAddress = address.toBin().getUResized(addressSize).toHex()
         if (DebugTools.ARCH_showMemoryInfo) {
             console.log("saving...  ${byteValue.get().toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
@@ -48,7 +48,7 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
             wordList.reversed()
         }
 
-        var hexAddress = address.toBin().getResized(addressSize).toHex()
+        var hexAddress = address.toBin().getUResized(addressSize).toHex()
         if (DebugTools.ARCH_showMemoryInfo) {
             console.log("saving...  ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
@@ -81,7 +81,7 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         var instanceAddress = address.toBin()
         for (i in 0 until amount) {
             val instance = load(instanceAddress)
-            instances.add(instance.get().toHex().getRawHexStr())
+            instances.add(instance.get().toBin().getRawBinaryStr())
             instanceAddress = (instanceAddress + ByteValue.Type.Binary("1", addressSize)).toBin()
         }
 

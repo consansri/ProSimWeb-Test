@@ -228,16 +228,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
 
                 onClick = {
-                    if (transcriptView) {
-                        setTranscriptView(!transcriptView)
-                    } else {
-                        if (appLogic.getArch().getState().getState() == ArchConst.STATE_EXECUTABLE) {
-                            textareaRef.current?.let {
-                                checkCode(it.value, true)
-                                setTranscriptView(!transcriptView)
-                            }
-                        }
-                    }
+                    setTranscriptView(!transcriptView)
                 }
             }
 
@@ -639,7 +630,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
 
-
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
     useEffect(update) {
@@ -769,7 +759,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         }
     }
-
 
 
 }

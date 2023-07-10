@@ -127,6 +127,8 @@ class ByteValue {
         abstract operator fun unaryMinus(): Type
         abstract operator fun inc(): Type
         abstract operator fun dec(): Type
+        abstract operator fun compareTo(other: Type): Int
+
         override fun equals(other: Any?): Boolean {
             when (other) {
                 is Type -> {
@@ -201,14 +203,19 @@ class ByteValue {
                 return binString
             }
 
-            fun getResized(size: Size): Binary {
+            fun getUResized(size: Size): Binary {
                 return Binary(getRawBinaryStr(), size)
             }
+
+            fun getResized(size: Size): Binary {
+                val paddedBinString = getRawBinaryStr().padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                return Binary(paddedBinString, size)
+            }
+
 
             override fun toHex(): Hex {
                 return Conversion.getHex(this)
             }
-
 
             override fun toBin(): Binary {
                 return this
@@ -276,6 +283,55 @@ class ByteValue {
                 return Binary(BinaryTools.sub(this.getRawBinaryStr(), "1"), size)
             }
 
+            override fun compareTo(other: Type): Int {
+                if (BinaryTools.isEqual(getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                    return 0
+                } else if (BinaryTools.isGreaterThan(getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                    return 1
+                } else {
+                    return -1
+                }
+            }
+
+            infix fun shl(bitCount: Int): Binary {
+                val shiftedBinary = getRawBinaryStr().substring(bitCount).padEnd(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                return Binary(shiftedBinary, size)
+            }
+
+            infix fun ushl(bitCount: Int): Binary {
+                val shiftedBinary = getRawBinaryStr().substring(bitCount).padEnd(size.bitWidth, '0')
+                return Binary(shiftedBinary, size)
+            }
+
+            infix fun shr(bitCount: Int): Binary {
+                val shiftedBinary = getRawBinaryStr().removeRange(0, size.bitWidth - bitCount).padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                return Binary(shiftedBinary, size)
+            }
+
+            infix fun ushr(bitCount: Int): Binary {
+                val shiftedBinary = getRawBinaryStr().removeRange(0, size.bitWidth - bitCount).padStart(size.bitWidth, '0')
+                return Binary(shiftedBinary, size)
+            }
+
+            infix fun xor(binary2: Binary): Binary {
+                val biggestSize = if (size.bitWidth >= binary2.size.bitWidth) size else binary2.size
+                return Binary(BinaryTools.xor(getRawBinaryStr(), binary2.getRawBinaryStr()), biggestSize)
+            }
+
+            infix fun or(binary2: Binary): Binary{
+                val biggestSize = if (size.bitWidth >= binary2.size.bitWidth) size else binary2.size
+                return Binary(BinaryTools.or(getRawBinaryStr(), binary2.getRawBinaryStr()), biggestSize)
+            }
+
+            infix fun and(binary2: Binary): Binary{
+                val biggestSize = if (size.bitWidth >= binary2.size.bitWidth) size else binary2.size
+                return Binary(BinaryTools.and(getRawBinaryStr(), binary2.getRawBinaryStr()), biggestSize)
+            }
+
+            operator fun inv(): Binary {
+                return Binary(BinaryTools.inv(getRawBinaryStr()), size)
+            }
+
 
         }
 
@@ -296,7 +352,7 @@ class ByteValue {
                 return hexString
             }
 
-            fun getResized(size: Size): Hex{
+            fun getResized(size: Size): Hex {
                 return Hex(getRawHexStr(), size)
             }
 
@@ -389,6 +445,16 @@ class ByteValue {
 
             override fun dec(): Type {
                 return Binary(BinaryTools.sub(this.toBin().getRawBinaryStr(), "1"), size).toHex()
+            }
+
+            override fun compareTo(other: Type): Int {
+                if (BinaryTools.isEqual(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                    return 0
+                } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                    return 1
+                } else {
+                    return -1
+                }
             }
 
             override fun toHex(): Hex {
@@ -522,6 +588,16 @@ class ByteValue {
                 return Dec(DecTools.sub(this.getRawDecStr(), "1"), size)
             }
 
+            override fun compareTo(other: Type): Int {
+                if (DecTools.isEqual(this.getRawDecStr(), other.toDec().getRawDecStr())) {
+                    return 0
+                } else if (DecTools.isGreaterThan(this.getRawDecStr(), other.toDec().getRawDecStr())) {
+                    return 1
+                } else {
+                    return -1
+                }
+            }
+
         }
 
         class UDec(udecString: String, size: Size) : Type(size) {
@@ -531,8 +607,8 @@ class ByteValue {
                 this.udecString = check(udecString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
 
-            constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString)){
-                if(DebugTools.ARCH_showBVCheckWarnings) {
+            constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString)) {
+                if (DebugTools.ARCH_showBVCheckWarnings) {
                     console.log("ByteValue.UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
                 }
             }
@@ -654,6 +730,16 @@ class ByteValue {
 
             override fun dec(): Type {
                 return Dec(DecTools.sub(this.getRawUDecStr(), "1"), size)
+            }
+
+            override fun compareTo(other: Type): Int {
+                if (DecTools.isEqual(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
+                    return 0
+                } else if (DecTools.isGreaterThan(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
+                    return 1
+                } else {
+                    return -1
+                }
             }
         }
 
@@ -855,7 +941,6 @@ class ByteValue {
 
                 return stringBuilder.toString()
             }
-
 
 
         }
@@ -1069,7 +1154,7 @@ class ByteValue {
         fun asciiToHex(asciiString: String): String {
             val hexBuilder = StringBuilder()
 
-            for(char in asciiString){
+            for (char in asciiString) {
                 val hexValue = char.code.toString(16)
                 hexBuilder.append(hexValue)
             }

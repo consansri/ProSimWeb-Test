@@ -2,7 +2,9 @@ package extendable.components.connected
 
 import extendable.components.types.ByteValue
 
-class RegisterContainer(private val registerFileList: List<RegisterFile>) {
+class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: ByteValue.Size) {
+
+    val pc = PC(ByteValue("0", pcSize))
 
     fun clear() {
         for (registerFile in registerFileList) {
@@ -47,20 +49,26 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>) {
         return registerFileList
     }
 
-    data class Register(val address: ByteValue.Type, val names: List<String>, val byteValue: ByteValue, val description: String) {
+    data class Register(val address: ByteValue.Type, val names: List<String>, val byteValue: ByteValue, val description: String, val hardwire: Boolean = false) {
         fun get(): ByteValue.Type {
             return byteValue.get()
         }
 
         fun set(value: ByteValue.Type) {
-            byteValue.set(value)
+            if (!hardwire) {
+                byteValue.set(value)
+            }
         }
+    }
+
+    data class PC(val value: ByteValue) {
+        val name = "program counter"
+        val shortName = "pc"
     }
 
     data class RegisterFile(val label: RegLabel, val name: String, val registers: Array<Register>)
 
     enum class RegLabel {
-        PC,
         MAIN,
         SYSTEM,
         CUSTOM

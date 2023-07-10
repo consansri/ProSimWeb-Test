@@ -2,6 +2,7 @@ package views.components
 
 import StyleConst
 import csstype.ClassName
+import extendable.ArchConst
 import extendable.components.connected.Transcript
 import react.FC
 import react.Props
@@ -88,9 +89,14 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 tbody {
                     for (row in transcript.getContent()) {
                         tr {
-                            for (header in transcript.getHeaders()) {
+                            for (header in ArchConst.TranscriptHeaders.values()) {
                                 td {
-                                    className = ClassName("dcf-txt-left")
+                                    if(header == ArchConst.TranscriptHeaders.PARAMS){
+                                        className = ClassName("dcf-txt-left")
+                                    }else{
+                                        className = ClassName("dcf-txt-center")
+                                    }
+
                                     +(row.content[header] ?: "")
                                 }
                             }

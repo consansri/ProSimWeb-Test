@@ -2,6 +2,7 @@ package extendable.components.types
 
 import extendable.ArchConst
 import tools.DebugTools
+import kotlin.math.max
 
 object BinaryTools {
 
@@ -197,6 +198,69 @@ object BinaryTools {
         return checkEmpty(result)
     }
 
+    fun xor(aBin: String, bBin: String): String{
+        val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+
+        val maxLength = maxOf(a.length,b.length)
+
+        val paddedA = a.padStart(maxLength, '0')
+        val paddedB = b.padStart(maxLength, '0')
+
+        var result = ""
+        for (id in paddedA.indices) {
+            if (paddedA[id] != paddedB[id]) {
+                result += "1"
+            } else {
+                result += "0"
+            }
+        }
+
+        return result
+    }
+
+    fun or(aBin: String, bBin: String): String{
+        val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+
+        val maxLength = maxOf(a.length,b.length)
+
+        val paddedA = a.padStart(maxLength, '0')
+        val paddedB = b.padStart(maxLength, '0')
+
+        var result = ""
+        for (id in paddedA.indices) {
+            if (paddedA[id] == '1'  || paddedB[id] == '1') {
+                result += "1"
+            } else {
+                result += "0"
+            }
+        }
+
+        return result
+    }
+
+    fun and(aBin: String, bBin: String): String{
+        val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
+
+        val maxLength = maxOf(a.length,b.length)
+
+        val paddedA = a.padStart(maxLength, '0')
+        val paddedB = b.padStart(maxLength, '0')
+
+        var result = ""
+        for (id in paddedA.indices) {
+            if (paddedA[id] == '1'  && paddedB[id] == '1') {
+                result += "1"
+            } else {
+                result += "0"
+            }
+        }
+
+        return result
+    }
+
     fun isGreaterThan(aBin: String, bBin: String): Boolean {
         val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
@@ -242,7 +306,6 @@ object BinaryTools {
         val paddedA = a.padStart(maxLength, '0')
         val paddedB = b.padStart(maxLength, '0')
         for (i in paddedA.indices) {
-
             val aDigit = paddedA[i]
             val bDigit = paddedB[i]
 

@@ -1,7 +1,6 @@
 package extendable.archs.riscv
 
 import extendable.ArchConst
-import extendable.Architecture
 import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
 import extendable.components.types.ByteValue
 import tools.DebugTools
@@ -127,7 +126,7 @@ class RISCVBinMapper {
                 Li -> {
                     values?.let {
                         val regBin = values[0].toBin()
-                        val imm32 = values[1].toBin().getResized(ByteValue.Size.Bit32()).getRawBinaryStr()
+                        val imm32 = values[1].toBin().getUResized(ByteValue.Size.Bit32()).getRawBinaryStr()
                         val hi20 = imm32.substring(0, 20)
                         val low12 = imm32.substring(20)
 
@@ -271,20 +270,72 @@ class RISCVBinMapper {
             console.error("IndexOutOfBoundsException: $e")
         }
 
-
         return binaryArray.toTypedArray()
     }
 
-    fun executeFromBinary(architecture: Architecture, binary: ByteValue.Type.Binary) {
-
-
+    fun getInstrFromBinary(binary: ByteValue.Type.Binary): InstrResult? {
+        for (instrType in RISCVGrammar.T1Instr.Type.values()) {
+            val checkResult = instrType.opCode?.checkOpCode(binary)
+            checkResult?.let {
+                if (it.matches) {
+                    return InstrResult(instrType, it.binaryMap)
+                }
+            }
+        }
+        return null
     }
+
+    data class InstrResult(val type: RISCVGrammar.T1Instr.Type, val binaryMap: Map<MaskLabel, ByteValue.Type.Binary> = mapOf())
 
     class OpCode(val opMask: String, val maskLabels: Array<MaskLabel>) {
 
+        val opMaskList = opMask.removePrefix(ArchConst.PRESTRING_BINARY).split(" ")
+
+        fun checkOpCode(binary: ByteValue.Type.Binary): CheckResult {
+            if (binary.size != ByteValue.Size.Bit32()) {
+                return CheckResult(false)
+            }
+            // Check OpCode
+            val binaryString = binary.getRawBinaryStr()
+            val binaryOpCode = binaryString.substring(binaryString.length - 7)
+            val originalOpCode = getMaskString(MaskLabel.OPCODE)
+            if (originalOpCode.isNotEmpty()) {
+                if (binaryOpCode == originalOpCode) {
+                    // check static labels
+                    val binaryMap = mutableMapOf<MaskLabel, ByteValue.Type.Binary>()
+                    console.warn("found Instr $binaryOpCode")
+                    for (labelID in maskLabels.indices) {
+                        val label = maskLabels[labelID]
+                        if (label.static) {
+                            val substring = getSubString(binaryString, label)
+                            console.log("substring static: ${label.name} $substring")
+                            if (substring != opMaskList[labelID]) {
+                                return CheckResult(false)
+                            }
+                        }
+                    }
+
+                    for (labelID in maskLabels.indices) {
+                        val label = maskLabels[labelID]
+                        if (!label.static) {
+                            val substring = getSubString(binaryString, label)
+                            if (label.maxSize != null) {
+                                binaryMap.set(label, ByteValue.Type.Binary(substring, label.maxSize))
+                            }
+                        }
+                    }
+
+                    return CheckResult(true, binaryMap)
+                } else {
+                    return CheckResult(false)
+                }
+            } else {
+                return CheckResult(false)
+            }
+        }
 
         fun getOpCode(parameterMap: Map<MaskLabel, ByteValue.Type.Binary>): ByteValue.Type.Binary? {
-            val opCode = opMask.removePrefix(ArchConst.PRESTRING_BINARY).split(" ").toMutableList()
+            val opCode = opMaskList.toMutableList()
             var length = 0
             opCode.forEach { length += it.length }
             if (length != ByteValue.Size.Bit32().bitWidth) {
@@ -307,7 +358,7 @@ class RISCVBinMapper {
                     if (param != null) {
                         val size = maskLabel.maxSize
                         if (size != null) {
-                            opCode[labelID] = param.getResized(size).getRawBinaryStr()
+                            opCode[labelID] = param.getUResized(size).getRawBinaryStr()
                         } else {
                             if (DebugTools.RISCV_showOpCodeInfo) {
                                 console.warn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
@@ -330,7 +381,30 @@ class RISCVBinMapper {
             return ByteValue.Type.Binary(opCode.joinToString("") { it }, ByteValue.Size.Bit32())
         }
 
+        private fun getSubString(binary: String, maskLabel: MaskLabel): String {
+            var startIndex = 0
+            for (maskID in opMaskList.indices) {
+                val maskString = opMaskList[maskID]
+                if (maskLabels[maskID] == maskLabel) {
+                    console.log("maskStringLength: ${maskString.length}")
+                    return binary.substring(startIndex, startIndex + maskString.length)
+                }
+                startIndex += maskString.length
+            }
+            return ""
+        }
 
+        private fun getMaskString(maskLabel: MaskLabel): String {
+            for (labelID in maskLabels.indices) {
+                val label = maskLabels[labelID]
+                if (label == maskLabel) {
+                    return opMaskList[labelID]
+                }
+            }
+            return ""
+        }
+
+        data class CheckResult(val matches: Boolean, val binaryMap: Map<MaskLabel, ByteValue.Type.Binary> = mapOf())
     }
 
     enum class MaskLabel(val static: Boolean, val maxSize: ByteValue.Size? = null) {

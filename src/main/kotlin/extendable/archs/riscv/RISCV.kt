@@ -27,12 +27,8 @@ object RISCV {
         RegisterContainer(
             listOf(
                 RegisterContainer.RegisterFile(
-                    RegisterContainer.RegLabel.PC, "PC", arrayOf(RegisterContainer.Register(ByteValue.Type.Dec("-1", REG_ADDRESS_SIZE), listOf("pc"), ByteValue(REG_INIT, REG_SIZE), "program counter"))
-                ),
-
-                RegisterContainer.RegisterFile(
                     RegisterContainer.RegLabel.MAIN, "MAIN", arrayOf(
-                        RegisterContainer.Register(ByteValue.Type.Dec("0", REG_ADDRESS_SIZE), listOf("zero"), ByteValue(REG_INIT, REG_SIZE), "hardwired zero"),
+                        RegisterContainer.Register(ByteValue.Type.Dec("0", REG_ADDRESS_SIZE), listOf("zero"), ByteValue(REG_INIT, REG_SIZE), "hardwired zero", hardwire = true),
                         RegisterContainer.Register(ByteValue.Type.Dec("1", REG_ADDRESS_SIZE), listOf("ra"), ByteValue(REG_INIT, REG_SIZE), "return address"),
                         RegisterContainer.Register(ByteValue.Type.Dec("2", REG_ADDRESS_SIZE), listOf("sp"), ByteValue(REG_INIT, REG_SIZE), "stack pointer"),
                         RegisterContainer.Register(ByteValue.Type.Dec("3", REG_ADDRESS_SIZE), listOf("gp"), ByteValue(REG_INIT, REG_SIZE), "global pointer"),
@@ -66,7 +62,8 @@ object RISCV {
                         RegisterContainer.Register(ByteValue.Type.Dec("31", REG_ADDRESS_SIZE), listOf("t6"), ByteValue(REG_INIT, REG_SIZE), "temporary register 6")
                     )
                 )
-            )
+            ),
+            pcSize = ByteValue.Size.Bit32()
         ),
         Memory(ByteValue.Size.Bit32(), MEM_INIT, ByteValue.Size.Bit8(), Memory.Endianess.LittleEndian),
         Transcript()

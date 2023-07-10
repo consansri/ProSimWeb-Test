@@ -72,9 +72,9 @@ object ArchConst {
 
     enum class TranscriptHeaders{
         ADDRESS,
-        LINE,
         LABELS,
-        INSTRUCTION
+        INSTRUCTION,
+        PARAMS
     }
 
     enum class RegTypes {

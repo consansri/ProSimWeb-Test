@@ -288,8 +288,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private fun compile() {
         if (isBuildable) {
             grammarTree?.let {
-                assembly.generateTranscript(architecture, it)
                 assembly.generateByteCode(architecture, it)
+                assembly.generateTranscript(architecture, it)
             }
         }
 
