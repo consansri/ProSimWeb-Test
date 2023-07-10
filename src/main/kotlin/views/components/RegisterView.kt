@@ -73,10 +73,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
             for (regFile in regFileList) {
                 when (regFile.label) {
-                    RegisterContainer.RegLabel.PC -> {
-
-                    }
-
                     RegisterContainer.RegLabel.MAIN -> {
                         a {
                             if (currRegFileIndex == regFileList.indexOf(regFile)) {
