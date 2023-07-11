@@ -15,7 +15,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private var dryContent = ""
     private var grammarTree: Grammar.GrammarTree? = null
     private var isBuildable = false
-    private var progStart: Assembly.ReservationMap = Assembly.ReservationMap(ByteValue.Type.Hex("0"))
+    private var reservationMap: Assembly.ReservationMap = Assembly.ReservationMap()
 
     private fun initCode(code: String) {
         tokenList = mutableListOf()
@@ -29,18 +29,22 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         return isBuildable
     }
 
-    fun getProgStartAddress(): ByteValue.Type.Hex{
-        return progStart.address
+    fun getReservationMap(): Assembly.ReservationMap{
+        return reservationMap
     }
 
-    fun setCode(code: String, shouldHighlight: Boolean, startIndex: Int = 0) {
+    fun setCode(code: String, shouldHighlight: Boolean) {
         initCode(code)
         analyze()
         parse()
         if (shouldHighlight) {
             highlight()
         }
-        compile(startIndex)
+        compile()
+    }
+
+    fun recompile(){
+        compile()
     }
 
     private fun analyze() {
@@ -290,11 +294,11 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
     }
 
-    private fun compile(startIndex: Int) {
+    private fun compile() {
         architecture.getMemory().clear()
         if (isBuildable) {
             grammarTree?.let {
-                progStart = assembly.generateByteCode(architecture, it, startIndex)
+                reservationMap = assembly.generateByteCode(architecture, it)
                 assembly.generateTranscript(architecture, it)
                 architecture.getRegisterContainer().pc.value.setHex("0")
             }

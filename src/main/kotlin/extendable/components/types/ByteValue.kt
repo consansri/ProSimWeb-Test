@@ -32,7 +32,7 @@ class ByteValue {
     }
 
     fun set(value: Type): ByteValue {
-        this.value = value
+        this.value = value.toBin().getResized(size)
         return this
     }
 

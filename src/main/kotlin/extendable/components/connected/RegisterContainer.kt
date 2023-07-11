@@ -1,13 +1,13 @@
 package extendable.components.connected
 
+import extendable.components.assembly.Compiler
 import extendable.components.types.ByteValue
 
 class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: ByteValue.Size) {
 
-    val pc = PC(ByteValue("0", pcSize))
+    val pc = PC(ByteValue("0", pcSize), ByteValue.Type.Binary("0"))
 
     fun clear() {
-        pc.value.setHex("0")
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
                 reg.byteValue.clear()
@@ -62,9 +62,14 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         }
     }
 
-    data class PC(val value: ByteValue) {
+    data class PC(val value: ByteValue, val initial: ByteValue.Type) {
         val name = "program counter"
         val shortName = "pc"
+
+        fun reset() {
+            value.set(initial)
+        }
+
     }
 
     data class RegisterFile(val label: RegLabel, val name: String, val registers: Array<Register>)

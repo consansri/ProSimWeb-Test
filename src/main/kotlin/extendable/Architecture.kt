@@ -116,6 +116,12 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         getConsole().info("executing --subroutine ...")
     }
 
+    open fun exeReset() {
+        getConsole().info("reseting memory and recompiling code ...")
+        registerContainer.pc.reset()
+        getAssembly().recompile()
+    }
+
     open fun exeClear() {
         getConsole().info("clearing registers and pc ...")
         registerContainer.clear()
@@ -139,7 +145,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             if (DebugTools.ARCH_showCheckCodeEvents) {
                 console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
             }
-            compiler.setCode(input, true, startAtLine) // TODO(if certain CodeSize is reached disable highlighting!)
+            compiler.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
             var encode = HTMLTools.encodeBeforeHTML(input)
             val code = hlAndCompile(encode, startAtLine)
             archState.check(code.buildable)

@@ -14,7 +14,9 @@
     --exec-sstepFgColor: white;
     --exec-continuousBgColor: #58cc79;
     --exec-continuousFgColor: white;
-    --exec-resetBgColor: #EE2222;
+    --exec-clearBgColor: #EE2222;
+    --exec-clearFgColor: white;
+    --exec-resetBgColor: #EE9955;
     --exec-resetFgColor: white;
     --exec-soverBgColor: #549fd8;
     --exec-soverFgColor: white;

@@ -15,15 +15,16 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
         val binMapper = RISCVBinMapper()
         var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
         var result = binMapper.getInstrFromBinary(binary.get().toBin())
-        while (result != null) {
-
+        var instrCount = 0
+        while (result != null && instrCount < 5000) {
+            instrCount++
             result.type.execute(this, result.binaryMap)
 
             // Load next Instruction
             binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
             result = binMapper.getInstrFromBinary(binary.get().toBin())
         }
-
+        getConsole().info("executing --continuous finished! [executed $instrCount instructions]")
 
     }
 

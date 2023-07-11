@@ -7,6 +7,7 @@ import extendable.ArchConst
 import extendable.ArchConst.RegTypes.*
 import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
@@ -33,6 +34,9 @@ external interface RegisterViewProps : Props {
 
 val RegisterView = FC<RegisterViewProps> { props ->
 
+    val bodyRef = useRef<HTMLTableSectionElement>()
+    val pcRef = useRef<HTMLAnchorElement>()
+
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
     val regFileList = appLogic.getArch().getRegisterContainer().getRegisterFileList()
@@ -41,8 +45,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
     val (update, setUpdate) = useState(false)
     val change = props.update
     val theaders = ArchConst.REGISTER_HEADERS
-
-    val bodyRef = useRef<HTMLTableSectionElement>()
 
     val registerContainer = appLogic.getArch().getRegisterContainer()
 
@@ -125,7 +127,16 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
 
                 a {
-                    +registerContainer.pc.value.get().toHex().getRawHexStr()
+                    className = ClassName("dcf-tab-pc")
+                    ref = pcRef
+
+                    +"PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
+
+                    onClick = {event ->
+                        appLogic.getArch().getRegisterContainer().pc
+                        setUpdate(!update)
+                    }
+
                 }
             }
         }
@@ -388,6 +399,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
     useEffect(update) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(part-update) RegisterView")
+        }
+        pcRef.current?.let {
+            it.innerText = "PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
         }
     }
 

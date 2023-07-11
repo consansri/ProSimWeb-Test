@@ -7,8 +7,8 @@ abstract class Assembly {
 
     abstract fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree)
 
-    abstract fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree, startAtLine: Int): ReservationMap
+    abstract fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree): ReservationMap
 
-    data class ReservationMap(val address: ByteValue.Type.Hex)
+    class ReservationMap()
 
 }

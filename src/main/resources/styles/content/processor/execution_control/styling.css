@@ -151,6 +151,11 @@
     color: var(--exec-resetFgColor);
 }
 
+#clear {
+    background-color: var(--exec-clearBgColor);
+    color: var(--exec-clearFgColor);
+}
+
 #sover {
     background-color: var(--exec-soverBgColor);
     color: var(--exec-soverFgColor);

@@ -190,6 +190,21 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 title = "Reset"
                 p {
                     img {
+                        src = StyleConst.Icons.backwards
+                    }
+                }
+                onClick = {
+                    appLogic.getArch().exeReset()
+                    setUpdate(!change)
+                }
+            }
+
+            button {
+                className = ClassName("button")
+                id = "clear"
+                title = "Clear"
+                p {
+                    img {
                         src = StyleConst.Icons.delete
                     }
                 }

@@ -98,7 +98,7 @@ th {
     cursor: pointer;
     border: none;
     height: calc(var(--icon-size) + 2 * var(--icon-padding));
-    width: calc(100% - 2 * .56rem - 2 * var(--icon-padding) -  var(--icon-size));
+    width: calc(100% - 2 * .56rem - 2 * var(--icon-padding) - var(--icon-size));
     float: right;
     min-height: 1em;
     border-radius: var(--border-radius);
@@ -259,6 +259,12 @@ th {
     color: var(--main-fg-color) !important;
     box-shadow: 0px 0rem 0.1rem 0px var(--main-bg-color) !important;;
     padding: 0.2rem 0.5rem !important;
+}
+
+.dcf-tab-pc {
+    float: right;
+    background-color: transparent!important;
+    box-shadow: none!important;
 }
 
 .dcf-tabs a:hover {
