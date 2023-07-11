@@ -5,6 +5,7 @@ import extendable.components.assembly.Compiler
 import extendable.components.connected.*
 import tools.DebugTools
 import tools.HTMLTools
+import kotlin.time.ExperimentalTime
 
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
@@ -17,8 +18,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val IConsole: IConsole
     private val archState = ArchState()
     private val compiler: Compiler
-    private val executionStartAddress = 0
-
 
     init {
         this.name = config.name
@@ -96,34 +95,34 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     /*Execution Events*/
     open fun exeContinuous() {
-        getConsole().info("executing --continuous ...")
+        getConsole().log("executing --continuous ...")
     }
 
     open fun exeSingleStep() {
-        getConsole().info("executing --single_step ...")
+        getConsole().log("executing --single_step ...")
     }
 
     open fun exeMultiStep(steps: Int) {
-        getConsole().info("executing --multi_step $steps ...")
+        getConsole().log("executing --multi_step $steps ...")
 
     }
 
     open fun exeSkipSubroutines() {
-        getConsole().info("executing --skip_subroutines ...")
+        getConsole().log("executing --skip_subroutines ...")
     }
 
     open fun exeSubroutine() {
-        getConsole().info("executing --subroutine ...")
+        getConsole().log("executing --subroutine ...")
     }
 
     open fun exeReset() {
-        getConsole().info("reseting memory and recompiling code ...")
+        getConsole().log("reseting memory and recompiling code ...")
         registerContainer.pc.reset()
         getAssembly().recompile()
     }
 
     open fun exeClear() {
-        getConsole().info("clearing registers and pc ...")
+        getConsole().log("clearing registers and pc ...")
         registerContainer.clear()
     }
 

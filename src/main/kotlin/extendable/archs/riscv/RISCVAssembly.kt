@@ -20,7 +20,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
 
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
         val transcript = architecture.getTranscript()
-        if(DebugTools.RISCV_showAsmInfo){
+        if (DebugTools.RISCV_showAsmInfo) {
             console.log("RISCVAssembly.generateTranscript(): labelMap -> ${labelBinAddrMap.values.joinToString { it }}")
         }
 
@@ -87,16 +87,16 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
             }
 
         }
-        if(DebugTools.RISCV_showAsmInfo){
+        if (DebugTools.RISCV_showAsmInfo) {
             console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> ${transcriptEntrys.joinToString { it.content.values.joinToString { it } }}")
         }
 
         transcript.setContent(transcriptEntrys)
     }
 
-    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree): ReservationMap {
+    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree): AssemblyMap {
         val rootNode = grammarTree.rootNode
-        var reservationMap: ReservationMap? = null
+        var assemblyMap: AssemblyMap? = null
         rootNode?.let {
             labelBinAddrMap.clear()
             transcriptEntrys.clear()
@@ -245,6 +245,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
             }
 
             // Getting binary and store binary in memory
+            val instrIDMap = mutableMapOf< String, Int>()
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
                 val binary = binaryMapper.getBinaryFromInstrDef(instr.value)
@@ -257,9 +258,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                         } to ${binary.joinToString { it.getRawBinaryStr() }}]"
                     )
                 }
-
+                for (wordID in binary.indices) {
+                    instrIDMap.set( ByteValue.Type.Hex(((binarys.size + wordID) * 4).toString(16), ByteValue.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
+                }
                 binarys.addAll(binary)
-
             }
 
             for (binaryID in binarys.indices) {
@@ -273,10 +275,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                 memory.save(address, binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)
             }
 
-            reservationMap = ReservationMap()
+            assemblyMap = AssemblyMap(instrIDMap)
         }
 
-        return reservationMap ?: ReservationMap()
+        return assemblyMap ?: AssemblyMap()
     }
 
     class MemAllocEntry(val labelDef: RISCVGrammar.T2LabelDef, val address: ByteValue.Type.Hex, val sizeOfOne: ByteValue.Size, vararg val values: ByteValue.Type)

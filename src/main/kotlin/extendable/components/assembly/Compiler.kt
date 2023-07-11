@@ -15,7 +15,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private var dryContent = ""
     private var grammarTree: Grammar.GrammarTree? = null
     private var isBuildable = false
-    private var reservationMap: Assembly.ReservationMap = Assembly.ReservationMap()
+    private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
 
     private fun initCode(code: String) {
         tokenList = mutableListOf()
@@ -29,8 +29,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         return isBuildable
     }
 
-    fun getReservationMap(): Assembly.ReservationMap{
-        return reservationMap
+    fun getAssemblyMap(): Assembly.AssemblyMap{
+        return assemblyMap
     }
 
     fun setCode(code: String, shouldHighlight: Boolean) {
@@ -296,11 +296,12 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
     private fun compile() {
         architecture.getMemory().clear()
+        architecture.getRegisterContainer().pc.reset()
         if (isBuildable) {
             grammarTree?.let {
-                reservationMap = assembly.generateByteCode(architecture, it)
+                assemblyMap = assembly.generateByteCode(architecture, it)
                 assembly.generateTranscript(architecture, it)
-                architecture.getRegisterContainer().pc.value.setHex("0")
+
             }
         }
     }

@@ -12,8 +12,8 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
     }
 
     private fun setup() {
-        save(ByteValue.Type.Hex("0", addressSize), getInitialBinary())
-        save(getAddressMax(), getInitialBinary())
+        /*save(ByteValue.Type.Hex("0", addressSize), getInitialBinary())
+        save(getAddressMax(), getInitialBinary())*/
     }
 
     fun save(address: ByteValue.Type, byteValue: ByteValue, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {

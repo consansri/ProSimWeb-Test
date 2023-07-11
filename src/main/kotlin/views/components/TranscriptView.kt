@@ -1,9 +1,13 @@
 package views.components
 
+import AppLogic
 import StyleConst
 import csstype.ClassName
 import extendable.ArchConst
 import extendable.components.connected.Transcript
+import kotlinx.js.timers.Timeout
+import kotlinx.js.timers.clearInterval
+import kotlinx.js.timers.setInterval
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
@@ -14,21 +18,37 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import react.useRef
 import react.useState
+import tools.DebugTools
 
 external interface TranscriptProps : Props {
 
     var ta_val: String
     var transcript: Transcript
+    var appLogic: AppLogic
 
 }
 
 val TranscriptView = FC<TranscriptProps> { props ->
 
+    val executionPointInterval = useRef<Timeout>(null)
 
+    val appLogic by useState(props.appLogic)
     val ta_val = props.ta_val
-
     val transcript by useState(props.transcript)
+    val (currExeAddr, setCurrExeAddr) = useState<String>("0")
+
+    executionPointInterval.current?.let {
+        clearInterval(it)
+    }
+    if (!DebugTools.REACT_deactivateAutoRefreshs) {
+        executionPointInterval.current = setInterval({
+            val pcValue = appLogic.getArch().getRegisterContainer().pc.value.get()
+            setCurrExeAddr(pcValue.toHex().getRawHexStr())
+        }, 500)
+    }
+
 
 
     div {
@@ -89,6 +109,10 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 tbody {
                     for (row in transcript.getContent()) {
                         tr {
+                            if(row.memoryAddress.getRawHexStr() == currExeAddr){
+                                className = ClassName("dcf-mark-green")
+                            }
+
                             for (header in ArchConst.TranscriptHeaders.values()) {
                                 td {
                                     if(header == ArchConst.TranscriptHeaders.PARAMS){

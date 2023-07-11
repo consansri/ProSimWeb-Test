@@ -22,6 +22,10 @@ th {
 
 }
 
+.dcf-mark-green {
+    background-color: #99EE9966!important;
+}
+
 .dcf-mark-program {
     font-weight: 700;
     color: cornflowerblue;
@@ -263,8 +267,8 @@ th {
 
 .dcf-tab-pc {
     float: right;
-    background-color: transparent!important;
-    box-shadow: none!important;
+    background-color: transparent !important;
+    box-shadow: none !important;
 }
 
 .dcf-tabs a:hover {

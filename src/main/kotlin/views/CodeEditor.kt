@@ -8,9 +8,7 @@ import extendable.ArchConst
 import extendable.components.assembly.Grammar
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
-import kotlinx.js.timers.Timeout
-import kotlinx.js.timers.clearTimeout
-import kotlinx.js.timers.setTimeout
+import kotlinx.js.timers.*
 import org.w3c.dom.*
 import react.*
 import react.dom.aria.ariaHidden
@@ -55,6 +53,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val undoTimeoutRef = useRef<Timeout>(null)
     val preHLTimeoutRef = useRef<Timeout>(null)
     val checkTimeOutRef = useRef<Timeout>(null)
+    val executionPointInterval = useRef<Timeout>(null)
 
     /* ----------------- REACT STATES ----------------- */
 
@@ -62,7 +61,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (update, setUpdate) = useState(props.update)
     val (internalUpdate, setIUpdate) = useState(false)
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
-    val (exeStartLine, setExeStartLine) = useState(1)
+    val (currExeLine, setCurrExeLine) = useState(1)
+
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
     val (darkMode, setDarkMode) = useState(false)
     val (infoPanelText, setInfoPanelText) = useState("")
@@ -74,7 +74,24 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (ta_val_ss, setta_val_ss) = useState<List<String>>()
     val (transcriptView, setTranscriptView) = useState(false)
 
+    /* ----------------- Initiate Intervals ----------------- */
+
+    executionPointInterval.current?.let {
+        clearInterval(it)
+    }
+    if (!DebugTools.REACT_deactivateAutoRefreshs) {
+        executionPointInterval.current = setInterval({
+            val lineAddressMap = appLogic.getArch().getAssembly().getAssemblyMap().lineAddressMap
+            val pcValue = appLogic.getArch().getRegisterContainer().pc.value.get()
+            val lineID = lineAddressMap.get(pcValue.toHex().getRawHexStr())
+            lineID?.let {
+                setCurrExeLine(it + 1)
+            }
+        }, 500)
+    }
+
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
+
 
     fun updateLineNumbers() {
         val textarea = textareaRef.current ?: return
@@ -153,14 +170,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         if (immediate) {
-            setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
+            setvc_rows(appLogic.getArch().check(taValue, currExeLine).split("\n"))
             setCheckState(appLogic.getArch().getState().getState())
         } else {
             checkTimeOutRef.current?.let {
                 clearTimeout(it)
             }
             checkTimeOutRef.current = setTimeout({
-                setvc_rows(appLogic.getArch().check(taValue, exeStartLine).split("\n"))
+                setvc_rows(appLogic.getArch().check(taValue, currExeLine).split("\n"))
                 setCheckState(appLogic.getArch().getState().getState())
             }, delay)
         }
@@ -390,6 +407,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 TranscriptView {
                     this.ta_val = ta_val ?: ""
                     this.transcript = appLogic.getArch().getTranscript()
+                    this.appLogic = appLogic
                 }
             } else {
 
@@ -403,16 +421,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         for (lineNumber in 1..lineNumbers) {
                             span {
 
-                                if (lineNumber == exeStartLine) {
+                                if (lineNumber == currExeLine) {
                                     className = ClassName(StyleConst.CLASS_EDITOR_LINE_ACTIVE)
 
                                     +"► $lineNumber"
                                     onClick = {
-                                        setExeStartLine(1)
+                                        setCurrExeLine(1)
                                     }
                                 } else {
                                     onClick = {
-                                        setExeStartLine(lineNumber)
+                                        setCurrExeLine(lineNumber)
                                     }
                                     +"$lineNumber"
                                 }
@@ -692,10 +710,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 
-    useEffect(exeStartLine) {
-        textareaRef.current?.let {
-            appLogic.getArch().check(it.value, exeStartLine)
-        }
+    useEffect(currExeLine) {
+
     }
 
     useEffect(transcriptView) {

@@ -60,7 +60,7 @@ val MemoryView = FC<MemViewProps> { props ->
     if (!DebugTools.REACT_deactivateAutoRefreshs) {
         contentIVRef.current = setInterval({
             setIUpdate(!internalUpdate)
-        }, 2000)
+        }, 500)
     }
 
 

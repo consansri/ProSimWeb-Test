@@ -9,7 +9,7 @@ class CISCAssembly:Assembly() {
         TODO("Not yet implemented")
     }
 
-    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree):ReservationMap {
+    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree):AssemblyMap {
         TODO("Not yet implemented")
     }
 }
