@@ -5,7 +5,10 @@
 ### Risc V Instruction Implementation ###
 
 - JAL: Wird das jump offset (imm20) vorzeichenbehaftet  mit 2 oder 4 multipliziert? 
-- 
+- BEQ: selbe Frage 
+- BNE: selbe Frage
+- ...
+
 
 ## Risc V Compiler ##
 
