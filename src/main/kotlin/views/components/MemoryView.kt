@@ -60,7 +60,7 @@ val MemoryView = FC<MemViewProps> { props ->
     if (!DebugTools.REACT_deactivateAutoRefreshs) {
         contentIVRef.current = setInterval({
             setIUpdate(!internalUpdate)
-        }, 5000)
+        }, 2000)
     }
 
 
@@ -221,7 +221,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 type = ButtonType.button
                                 css {
                                     if(!lowFirst){
-                                        filter = invert(100)
+                                        filter = invert(0.7)
                                     }
                                 }
 

@@ -303,12 +303,13 @@ class RISCVBinMapper {
                 if (binaryOpCode == originalOpCode) {
                     // check static labels
                     val binaryMap = mutableMapOf<MaskLabel, ByteValue.Type.Binary>()
-                    console.warn("found Instr $binaryOpCode")
+                    if (DebugTools.RISCV_showBinMapperInfo) {
+                        console.log("BinMapper.OpCode.checkOpCode(): found instr $binaryOpCode")
+                    }
                     for (labelID in maskLabels.indices) {
                         val label = maskLabels[labelID]
                         if (label.static) {
                             val substring = getSubString(binaryString, label)
-                            console.log("substring static: ${label.name} $substring")
                             if (substring != opMaskList[labelID]) {
                                 return CheckResult(false)
                             }
@@ -386,7 +387,6 @@ class RISCVBinMapper {
             for (maskID in opMaskList.indices) {
                 val maskString = opMaskList[maskID]
                 if (maskLabels[maskID] == maskLabel) {
-                    console.log("maskStringLength: ${maskString.length}")
                     return binary.substring(startIndex, startIndex + maskString.length)
                 }
                 startIndex += maskString.length

@@ -2,6 +2,8 @@ package extendable.cisc
 
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
+import extendable.archs.riscv.RISCVAssembly
+import extendable.archs.riscv.RISCVBinMapper
 import extendable.components.assembly.Compiler
 import extendable.components.types.ByteValue
 
@@ -9,19 +11,28 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
     override fun exeContinuous() {
         super.exeContinuous()
-        val reg = getRegisterContainer().getRegister("a0")
 
-        reg?.let {
-            reg.set(reg.get() + ByteValue.Type.Dec("1", reg.byteValue.size))
+        val binMapper = RISCVBinMapper()
+        var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+        var result = binMapper.getInstrFromBinary(binary.get().toBin())
+        while (result != null) {
+
+            result.type.execute(this, result.binaryMap)
+
+            // Load next Instruction
+            binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+            result = binMapper.getInstrFromBinary(binary.get().toBin())
         }
 
-        for (i in 0..100) {
-            getMemory().save(ByteValue.Type.Dec("$i", ByteValue.Size.Bit32()), ByteValue.Type.Dec("$i", ByteValue.Size.Bit8()))
-        }
+
     }
 
     override fun exeMultiStep(steps: Int) {
         super.exeMultiStep(steps)
+        if (getAssembly().isBuildable()) {
+
+
+        }
     }
 
     override fun exeClear() {

@@ -7,6 +7,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
     val pc = PC(ByteValue("0", pcSize))
 
     fun clear() {
+        pc.value.setHex("0")
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
                 reg.byteValue.clear()

@@ -15,6 +15,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private var dryContent = ""
     private var grammarTree: Grammar.GrammarTree? = null
     private var isBuildable = false
+    private var progStart: Assembly.ReservationMap = Assembly.ReservationMap(ByteValue.Type.Hex("0"))
 
     private fun initCode(code: String) {
         tokenList = mutableListOf()
@@ -28,14 +29,18 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         return isBuildable
     }
 
-    fun setCode(code: String, shouldHighlight: Boolean) {
+    fun getProgStartAddress(): ByteValue.Type.Hex{
+        return progStart.address
+    }
+
+    fun setCode(code: String, shouldHighlight: Boolean, startIndex: Int = 0) {
         initCode(code)
         analyze()
         parse()
         if (shouldHighlight) {
             highlight()
         }
-        compile()
+        compile(startIndex)
     }
 
     private fun analyze() {
@@ -285,14 +290,15 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
     }
 
-    private fun compile() {
+    private fun compile(startIndex: Int) {
+        architecture.getMemory().clear()
         if (isBuildable) {
             grammarTree?.let {
-                assembly.generateByteCode(architecture, it)
+                progStart = assembly.generateByteCode(architecture, it, startIndex)
                 assembly.generateTranscript(architecture, it)
+                architecture.getRegisterContainer().pc.value.setHex("0")
             }
         }
-
     }
 
     fun getHLContent(): String {
@@ -368,16 +374,16 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class Dec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): ByteValue.Type {
-                    if(DebugTools.ARCH_showCompilerInfo) {
+                    if (DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.Dec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
                     }
                     return ByteValue.Type.Dec(content, ByteValue.Size.Bit32())
                 }
             }
 
-            class UDec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id){
+            class UDec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): ByteValue.Type {
-                    if(DebugTools.ARCH_showCompilerInfo) {
+                    if (DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.UDec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
                     }
                     return ByteValue.Type.UDec(content, ByteValue.Size.Bit32())

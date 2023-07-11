@@ -119,6 +119,7 @@
     padding-right: 5px;
     color: var(--editor-linenumbers-color);
     border-right: 1px solid var(--editor-linenumbers-border-color);
+    white-space: nowrap;
 }
 
 .line-active {

@@ -20,18 +20,19 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
 
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
         val transcript = architecture.getTranscript()
-        console.log("labelMap: ${labelBinAddrMap.values.joinToString { it }}")
+        if(DebugTools.RISCV_showAsmInfo){
+            console.log("RISCVAssembly.generateTranscript(): labelMap -> ${labelBinAddrMap.values.joinToString { it }}")
+        }
+
         for (entryID in transcriptEntrys.indices) {
             val entry = transcriptEntrys[entryID]
             val binary = architecture.getMemory().load(entry.memoryAddress, 4).get().toBin()
-            console.log("binary: ${binary.getRawBinaryStr()}")
             var labelString = ""
             for (labels in labelBinAddrMap) {
                 if (ByteValue.Type.Binary(labels.value) == entry.memoryAddress.toBin()) {
                     labelString += "${labels.key.wholeName} "
                 }
             }
-            console.log("labels: $labelString")
             entry.addContent(ArchConst.TranscriptHeaders.LABELS, labelString)
 
             val result = binaryMapper.getInstrFromBinary(binary)
@@ -85,14 +86,17 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                 entry.addContent(ArchConst.TranscriptHeaders.PARAMS, paramString)
             }
 
-            console.log("entry: ${entry.content.values.joinToString { it }}")
         }
-        console.log("TranscriptEntries: ${transcriptEntrys.joinToString { it.content.values.joinToString { it } }}")
+        if(DebugTools.RISCV_showAsmInfo){
+            console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> ${transcriptEntrys.joinToString { it.content.values.joinToString { it } }}")
+        }
+
         transcript.setContent(transcriptEntrys)
     }
 
-    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
+    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree, startAtLine: Int): ReservationMap {
         val rootNode = grammarTree.rootNode
+        var reservationMap: ReservationMap? = null
         rootNode?.let {
             labelBinAddrMap.clear()
             transcriptEntrys.clear()
@@ -242,7 +246,8 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
 
             // Getting binary and store binary in memory
             binaryMapper.setLabelLinks(labelBinAddrMap)
-
+            var nextInstrAfterStartAtLine: RISCVGrammar.T1Instr? = null
+            var startAtLineBinaryID = 0
             for (instr in instructionMapList) {
                 val binary = binaryMapper.getBinaryFromInstrDef(instr.value)
                 if (DebugTools.RISCV_showAsmInfo) {
@@ -254,7 +259,20 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                         } to ${binary.joinToString { it.getRawBinaryStr() }}]"
                     )
                 }
+                val t1InstrToCheckLineStart = instr.value.t1Instr
+                if (t1InstrToCheckLineStart.insToken.lineLoc.lineID >= startAtLine) {
+                    if (nextInstrAfterStartAtLine != null) {
+                        if (nextInstrAfterStartAtLine.insToken.lineLoc.lineID > t1InstrToCheckLineStart.insToken.lineLoc.lineID) {
+                            nextInstrAfterStartAtLine = instr.value.t1Instr
+                        }
+                    } else {
+                        nextInstrAfterStartAtLine = instr.value.t1Instr
+                    }
+                }
                 binarys.addAll(binary)
+                if(nextInstrAfterStartAtLine == t1InstrToCheckLineStart){
+                    startAtLineBinaryID = binarys.indexOf(binary.first())
+                }
             }
 
             for (binaryID in binarys.indices) {
@@ -263,11 +281,15 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                     console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
                 }
                 val address = ByteValue.Type.Hex((binaryID * 4).toString(16), ByteValue.Size.Bit32())
+
                 transcriptEntrys.add(Transcript.TranscriptEntry(address))
                 memory.save(address, binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)
             }
 
+            reservationMap = ReservationMap(ByteValue.Type.Hex((startAtLineBinaryID * 4).toString(16), ByteValue.Size.Bit32()))
         }
+
+        return reservationMap ?: ReservationMap(ByteValue.Type.Hex("0",ByteValue.Size.Bit32()))
     }
 
     class MemAllocEntry(val labelDef: RISCVGrammar.T2LabelDef, val address: ByteValue.Type.Hex, val sizeOfOne: ByteValue.Size, vararg val values: ByteValue.Type)

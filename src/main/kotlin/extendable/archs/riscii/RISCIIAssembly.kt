@@ -9,7 +9,7 @@ class RISCIIAssembly:Assembly() {
         TODO("Not yet implemented")
     }
 
-    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
+    override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree, startAtLine: Int): ReservationMap {
         TODO("Not yet implemented")
     }
 }

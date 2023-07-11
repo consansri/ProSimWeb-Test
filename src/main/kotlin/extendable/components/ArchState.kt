@@ -4,17 +4,11 @@ import extendable.ArchConst
 
 class ArchState {
 
-    private val states = listOf(ArchConst.STATE_UNCHECKED, ArchConst.STATE_HASERRORS, ArchConst.STATE_EXECUTABLE, ArchConst.STATE_EXECUTION)
+    private val states = listOf(ArchConst.STATE_UNCHECKED, ArchConst.STATE_HASERRORS, ArchConst.STATE_EXECUTABLE)
     private var stateID = states.indexOf(ArchConst.STATE_UNCHECKED)
 
     fun getState(): String {
         return states[stateID]
-    }
-
-    fun execute() {
-        if (states[stateID] == ArchConst.STATE_EXECUTABLE) {
-            stateID = states.indexOf(ArchConst.STATE_EXECUTION)
-        }
     }
 
     fun edit() {

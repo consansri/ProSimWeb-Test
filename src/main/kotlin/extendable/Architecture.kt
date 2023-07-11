@@ -96,27 +96,28 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     /*Execution Events*/
     open fun exeContinuous() {
-
+        getConsole().info("executing --continuous ...")
     }
 
     open fun exeSingleStep() {
-
+        getConsole().info("executing --single_step ...")
     }
 
     open fun exeMultiStep(steps: Int) {
+        getConsole().info("executing --multi_step $steps ...")
 
     }
 
     open fun exeSkipSubroutines() {
-
+        getConsole().info("executing --skip_subroutines ...")
     }
 
     open fun exeSubroutine() {
-
+        getConsole().info("executing --subroutine ...")
     }
 
     open fun exeClear() {
-        memory.clear()
+        getConsole().info("clearing registers and pc ...")
         registerContainer.clear()
     }
 
@@ -138,7 +139,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             if (DebugTools.ARCH_showCheckCodeEvents) {
                 console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
             }
-            compiler.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
+            compiler.setCode(input, true, startAtLine) // TODO(if certain CodeSize is reached disable highlighting!)
             var encode = HTMLTools.encodeBeforeHTML(input)
             val code = hlAndCompile(encode, startAtLine)
             archState.check(code.buildable)

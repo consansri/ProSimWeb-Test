@@ -123,6 +123,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         }
                     }
                 }
+
+                a {
+                    +registerContainer.pc.value.get().toHex().getRawHexStr()
+                }
             }
         }
 
@@ -299,7 +303,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
     }
 
     useEffect(currRegTypeIndex, change) {
-        if(DebugTools.REACT_showUpdateInfo) {
+        if (DebugTools.REACT_showUpdateInfo) {
             console.log("(part-update) RegisterView")
         }
         val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
