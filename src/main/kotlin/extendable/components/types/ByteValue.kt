@@ -294,7 +294,7 @@ class ByteValue {
             }
 
             infix fun shl(bitCount: Int): Binary {
-                val shiftedBinary = getRawBinaryStr().substring(bitCount).padEnd(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                val shiftedBinary = getRawBinaryStr().substring(bitCount).padEnd(size.bitWidth, '0')
                 return Binary(shiftedBinary, size)
             }
 
@@ -304,12 +304,12 @@ class ByteValue {
             }
 
             infix fun shr(bitCount: Int): Binary {
-                val shiftedBinary = getRawBinaryStr().removeRange(0, size.bitWidth - bitCount).padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                val shiftedBinary = getRawBinaryStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
                 return Binary(shiftedBinary, size)
             }
 
             infix fun ushr(bitCount: Int): Binary {
-                val shiftedBinary = getRawBinaryStr().removeRange(0, size.bitWidth - bitCount).padStart(size.bitWidth, '0')
+                val shiftedBinary = getRawBinaryStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, '0')
                 return Binary(shiftedBinary, size)
             }
 

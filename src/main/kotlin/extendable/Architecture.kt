@@ -5,7 +5,6 @@ import extendable.components.assembly.Compiler
 import extendable.components.connected.*
 import tools.DebugTools
 import tools.HTMLTools
-import kotlin.time.ExperimentalTime
 
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
@@ -95,34 +94,40 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     /*Execution Events*/
     open fun exeContinuous() {
-        getConsole().log("executing --continuous ...")
+        getConsole().clear()
     }
 
     open fun exeSingleStep() {
-        getConsole().log("executing --single_step ...")
+        getConsole().clear()
     }
 
     open fun exeMultiStep(steps: Int) {
-        getConsole().log("executing --multi_step $steps ...")
+        getConsole().clear()
+        getConsole().log("--exe_multi_step $steps ...")
 
     }
 
-    open fun exeSkipSubroutines() {
-        getConsole().log("executing --skip_subroutines ...")
+    open fun exeSkipSubroutine() {
+        getConsole().clear()
     }
 
-    open fun exeSubroutine() {
-        getConsole().log("executing --subroutine ...")
+    open fun exeReturnFromSubroutine() {
+        getConsole().clear()
+    }
+
+    open fun exeUntilLine(lineID: Int){
+        getConsole().clear()
     }
 
     open fun exeReset() {
-        getConsole().log("reseting memory and recompiling code ...")
+        getConsole().clear()
+        getConsole().log("--reset ...")
         registerContainer.pc.reset()
         getAssembly().recompile()
     }
 
     open fun exeClear() {
-        getConsole().log("clearing registers and pc ...")
+        getConsole().log("--clear_registers ...")
         registerContainer.clear()
     }
 
@@ -131,11 +136,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         return "<$tag class='$flag ${classNames.joinToString(" ") { it }}' id='$id'>$input</$tag>"
     }
 
-
-    abstract fun hlAndCompile(code: String, startAtLine: Int): Compiler.CompilationResult
-
     open fun getPreHighlighting(line: String): String {
-        val encodedLine = HTMLTools.encodeBeforeHTML(line)
+        val encodedLine = HTMLTools.encodeHTML(line)
         return encodedLine
     }
 
@@ -144,11 +146,9 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             if (DebugTools.ARCH_showCheckCodeEvents) {
                 console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
             }
-            compiler.setCode(input, true) // TODO(if certain CodeSize is reached disable highlighting!)
-            var encode = HTMLTools.encodeBeforeHTML(input)
-            val code = hlAndCompile(encode, startAtLine)
-            archState.check(code.buildable)
-            return code.highlightedContent
+            archState.check(compiler.setCode(input, true)) // TODO(if certain CodeSize is reached disable highlighting!)
+
+            return compiler.getHLContent()
         } else {
             return input
         }

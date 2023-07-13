@@ -2,14 +2,11 @@ package extendable.cisc
 
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
-import extendable.archs.riscv.RISCVAssembly
 import extendable.archs.riscv.RISCVBinMapper
 import extendable.archs.riscv.RISCVGrammar
-import extendable.components.assembly.Compiler
 import extendable.components.types.ByteValue
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
-import kotlin.time.measureTimedValue
 
 class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
@@ -23,7 +20,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
             var result = binMapper.getInstrFromBinary(binary.get().toBin())
 
-            while (result != null && instrCount < 5000) {
+            while (result != null && instrCount < 10000) {
                 instrCount++
                 result.type.execute(this, result.binaryMap)
 
@@ -33,7 +30,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().info("finish --continuous in ${measuredTime.inWholeMilliseconds} ms [executed $instrCount instructions]")
+        getConsole().log("--continuous finishing... \ntook ${measuredTime.inWholeMilliseconds} ms [executed $instrCount instructions]")
 
     }
 
@@ -50,7 +47,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().info("finish --single_step in ${measuredTime.inWholeMilliseconds} ms")
+        getConsole().log("--single_step finishing... \ntook ${measuredTime.inWholeMilliseconds} ms")
 
     }
 
@@ -79,32 +76,126 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().info("finish --multi_step in ${measuredTime.inWholeMilliseconds} ms [executed $instrCount instructions]")
+        getConsole().log("--multi_step finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
     }
 
     @OptIn(ExperimentalTime::class)
-    override fun exeSkipSubroutines() {
+    override fun exeSkipSubroutine() {
+        var instrCount = 0
 
         val measuredTime = measureTime {
-            super.exeSkipSubroutines()
+            super.exeSkipSubroutine()
             val binMapper = RISCVBinMapper()
             var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
             var result = binMapper.getInstrFromBinary(binary.get().toBin())
             if (result != null) {
                 if (result.type == RISCVGrammar.T1Instr.Type.JAL || result.type == RISCVGrammar.T1Instr.Type.JALR) {
-                    getRegisterContainer().pc.value.set(getRegisterContainer().pc.value.get() + ByteValue.Type.Hex("4"))
+                    val returnAddress = getRegisterContainer().pc.value.get() + ByteValue.Type.Hex("4")
+                    while (getRegisterContainer().pc.value.get() != returnAddress) {
+                        if (result != null) {
+                            result.type.execute(this, result.binaryMap)
+                            instrCount++
+                        } else {
+                            break
+                        }
+                        binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+                        result = binMapper.getInstrFromBinary(binary.get().toBin())
+                    }
+
                 } else {
                     result.type.execute(this, result.binaryMap)
+                    instrCount++
                 }
             }
         }
 
-        getConsole().info("finish --skip_subroutine in ${measuredTime.inWholeMilliseconds} ms")
+        getConsole().log("--exe_skip_subroutine finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
     }
 
     @OptIn(ExperimentalTime::class)
-    override fun exeSubroutine() {
-        super.exeSubroutine()
+    override fun exeReturnFromSubroutine() {
+        super.exeReturnFromSubroutine()
+        var instrCount = 0
+        val measuredTime = measureTime {
+            val binMapper = RISCVBinMapper()
+            var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+            var result = binMapper.getInstrFromBinary(binary.get().toBin())
+
+            val returnTypeList = listOf(RISCVGrammar.T1Instr.Type.JALR, RISCVGrammar.T1Instr.Type.JAL)
+
+            while (result != null && !returnTypeList.contains(result.type)) {
+                result.type.execute(this, result.binaryMap)
+
+                binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+                result = binMapper.getInstrFromBinary(binary.get().toBin())
+                instrCount++
+            }
+        }
+
+        getConsole().log("--exe_return_from_subroutine finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+
+    }
+
+    @OptIn(ExperimentalTime::class)
+    override fun exeUntilLine(lineID: Int) {
+        super.exeUntilLine(lineID)
+        var instrCount = 0
+        val binMapper = RISCVBinMapper()
+        val lineAddressMap = getAssembly().getAssemblyMap().lineAddressMap.map { it.value to it.key }
+        var closestID: Int? = null
+        for (entry in lineAddressMap) {
+            if (entry.first > lineID) {
+                if (closestID != null) {
+                    if (entry.first < closestID) {
+                        closestID = entry.first
+                    }
+                } else {
+                    closestID = entry.first
+                }
+            }
+        }
+
+        if (closestID != null) {
+            val destAddr = ByteValue.Type.Hex(lineAddressMap.get(closestID).second)
+            getConsole().info("--exe_until_line executing until line ${closestID + 1} or address ${destAddr.getHexStr()}")
+            val measuredTime = measureTime {
+                super.exeSkipSubroutine()
+
+                while (true) {
+                    val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+                    val result = binMapper.getInstrFromBinary(binary.get().toBin())
+                    if (destAddr == getRegisterContainer().pc.value.get()) {
+                        break
+                    }
+                    if (result != null) {
+                        result.type.execute(this, result.binaryMap)
+                        instrCount++
+                    } else {
+                        break
+                    }
+                }
+            }
+
+            getConsole().log("--exe_until_line finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+        } else {
+            getConsole().info("--exe_continuous")
+
+            val measuredTime = measureTime {
+                while (true) {
+                    val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+                    val result = binMapper.getInstrFromBinary(binary.get().toBin())
+                    if (result != null) {
+                        result.type.execute(this, result.binaryMap)
+                        instrCount++
+                    } else {
+                        break
+                    }
+                }
+            }
+
+            getConsole().log("--exe_continuous finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+        }
+
 
     }
 
@@ -114,42 +205,4 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
     }
 
-    override fun getPreHighlighting(line: String): String {
-
-        return super.getPreHighlighting(line)
-    }
-
-    override fun hlAndCompile(code: String, startAtLine: Int): Compiler.CompilationResult {
-
-        /* ----------------------- Token Identification ------------------------- */
-        /**
-         *   Line by Line
-         *   1. Find Assembly Tokens
-         *   2. Highlight Assembly Tokens
-         */
-
-
-        /* ----------------------- Highlight Tokens ------------------------- */
-
-        //  HL Assembly Tokens
-
-
-        /* ------------------------------------------------------------------------------------------------------- */
-
-
-        /* ----------------------- Generate Disassembled View and Write Binary to Memory ------------------------- */
-        /**
-         *   Line by Line
-         */
-
-        if (true) {
-            /* ------------------------- Generate Transcript --------------------------- */
-
-
-            /* ----------------------- Write Binary to Memory -------------------------- */
-
-        }
-        return Compiler.CompilationResult(getAssembly().getHLContent(), getAssembly().isBuildable())
-
-    }
 }

@@ -8,10 +8,6 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLParagraphElement
 import react.*
-import react.dom.aria.AriaRole
-import react.dom.aria.ariaValueMax
-import react.dom.aria.ariaValueMin
-import react.dom.aria.ariaValueNow
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -158,28 +154,28 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             button {
                 className = ClassName("button")
                 id = "sover"
-                title = "Skip Subroutines"
+                title = "Skip Subroutine"
                 p {
                     img {
                         src = "benicons/exec/step_over.svg"
                     }
                 }
                 onClick = {
-                    appLogic.getArch().exeSkipSubroutines()
+                    appLogic.getArch().exeSkipSubroutine()
                     setUpdate(!change)
                 }
             }
             button {
                 className = ClassName("button")
                 id = "esub"
-                title = "Execute Subroutine"
+                title = "Return From Subroutine"
                 p {
                     img {
                         src = "benicons/exec/step_into.svg"
                     }
                 }
                 onClick = {
-                    appLogic.getArch().exeSubroutine()
+                    appLogic.getArch().exeReturnFromSubroutine()
                     setUpdate(!change)
                 }
             }

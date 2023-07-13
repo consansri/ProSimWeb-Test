@@ -7,6 +7,9 @@ import extendable.ArchConst
 import extendable.ArchConst.RegTypes.*
 import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
+import kotlinx.js.timers.Timeout
+import kotlinx.js.timers.clearInterval
+import kotlinx.js.timers.setInterval
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
@@ -47,6 +50,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
     val theaders = ArchConst.REGISTER_HEADERS
 
     val registerContainer = appLogic.getArch().getRegisterContainer()
+
+    /* DOM */
 
     div {
 

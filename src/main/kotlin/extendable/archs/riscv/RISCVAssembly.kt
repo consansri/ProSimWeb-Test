@@ -119,7 +119,12 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
 
                                 is RISCVGrammar.T2LabelDef -> {
                                     if (entry.type == JUMP) {
-                                        labelBinAddrMap.set(entry.t1Label, (instrID * 4).toString(2))
+                                        val address = (instrID * 4).toString(2)
+                                        if (DebugTools.RISCV_showAsmInfo) {
+                                            console.log("RISCVAssembly.generateByteCode(): found Label ${entry.t1Label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
+                                        }
+                                        labelBinAddrMap.set(entry.t1Label, address)
+
                                     }
                                 }
                             }
@@ -245,10 +250,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
             }
 
             // Getting binary and store binary in memory
-            val instrIDMap = mutableMapOf< String, Int>()
+            val instrIDMap = mutableMapOf<String, Int>()
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
-                val binary = binaryMapper.getBinaryFromInstrDef(instr.value)
+                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, ByteValue.Type.Hex((binarys.size * 4).toString(16), ByteValue.Size.Bit32()))
                 if (DebugTools.RISCV_showAsmInfo) {
                     console.log(
                         "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.t1Instr.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.type.id},  ${
@@ -259,7 +264,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                     )
                 }
                 for (wordID in binary.indices) {
-                    instrIDMap.set( ByteValue.Type.Hex(((binarys.size + wordID) * 4).toString(16), ByteValue.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
+                    instrIDMap.set(ByteValue.Type.Hex(((binarys.size + wordID) * 4).toString(16), ByteValue.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
                 }
                 binarys.addAll(binary)
             }

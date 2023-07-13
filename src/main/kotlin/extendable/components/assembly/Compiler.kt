@@ -5,6 +5,7 @@ import extendable.Architecture
 import extendable.components.connected.RegisterContainer
 import extendable.components.types.ByteValue
 import tools.DebugTools
+import tools.HTMLTools
 
 class Compiler(private val architecture: Architecture, private val grammar: Grammar, private val assembly: Assembly, private val regexCollection: RegexCollection, private val hlFlagCollection: HLFlagCollection) {
 
@@ -29,11 +30,11 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         return isBuildable
     }
 
-    fun getAssemblyMap(): Assembly.AssemblyMap{
+    fun getAssemblyMap(): Assembly.AssemblyMap {
         return assemblyMap
     }
 
-    fun setCode(code: String, shouldHighlight: Boolean) {
+    fun setCode(code: String, shouldHighlight: Boolean): Boolean {
         initCode(code)
         analyze()
         parse()
@@ -41,9 +42,10 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             highlight()
         }
         compile()
+        return isBuildable
     }
 
-    fun recompile(){
+    fun recompile() {
         compile()
     }
 
@@ -331,7 +333,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         abstract val type: TokenType
 
         fun hl(architecture: Architecture, hlFlag: String, title: String = "") {
-            hlContent = architecture.highlight(content, id, title, hlFlag, "token")
+            hlContent = architecture.highlight(HTMLTools.encodeHTML(content), id, title, hlFlag, "token")
         }
 
         override fun toString(): String {
@@ -348,6 +350,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         class Symbol(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.SYMBOL
+
         }
 
         sealed class Constant(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {

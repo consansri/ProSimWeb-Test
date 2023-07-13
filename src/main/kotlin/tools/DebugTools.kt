@@ -84,7 +84,7 @@ object DebugTools {
 
 
     // React Components
-    const val REACT_showUpdateInfo = false
+    const val REACT_showUpdateInfo = true
     const val REACT_deactivateAutoRefreshs = false
 
 

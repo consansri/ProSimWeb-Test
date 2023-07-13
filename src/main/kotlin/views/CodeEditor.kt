@@ -58,7 +58,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- REACT STATES ----------------- */
 
     val appLogic by useState(props.appLogic)
-    val (update, setUpdate) = useState(props.update)
+    val (update, setUpdate) = props.update
     val (internalUpdate, setIUpdate) = useState(false)
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
     val (currExeLine, setCurrExeLine) = useState(1)
@@ -420,18 +420,17 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                         for (lineNumber in 1..lineNumbers) {
                             span {
+                                onClick = { event ->
+                                    appLogic.getArch().exeUntilLine(lineNumber - 1)
+                                    props.updateParent(appLogic)
+                                }
 
                                 if (lineNumber == currExeLine) {
                                     className = ClassName(StyleConst.CLASS_EDITOR_LINE_ACTIVE)
-
                                     +"► $lineNumber"
-                                    onClick = {
-                                        setCurrExeLine(1)
-                                    }
+
                                 } else {
-                                    onClick = {
-                                        setCurrExeLine(lineNumber)
-                                    }
+
                                     +"$lineNumber"
                                 }
                             }
@@ -592,7 +591,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                             editedLines.put(lineID, lines[lineID])
                                         }
                                         preHighlight(editedLines)
-
                                         checkCode(event.currentTarget.value, false)
                                     }
                                 } else if (event.ctrlKey && event.key == "z") {
