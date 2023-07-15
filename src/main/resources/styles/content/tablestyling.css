@@ -23,7 +23,7 @@ th {
 }
 
 .dcf-mark-green {
-    background-color: #99EE9966!important;
+    background-color: #99EE9966 !important;
 }
 
 .dcf-mark-program {
@@ -40,6 +40,11 @@ th {
 
 }
 
+.dcf-mark-defaultvalue {
+    font-weight: 700;
+    color: darkorange;
+}
+
 .dcf-mark-ascii {
     color: #777777;
 }
@@ -50,7 +55,7 @@ th {
 
 .dcf-mark-else {
     font-weight: 700;
-    color: darkorange;
+    color: blueviolet;
 }
 
 .dcf-txt-left {
@@ -102,8 +107,8 @@ th {
     cursor: pointer;
     border: none;
     height: calc(var(--icon-size) + 2 * var(--icon-padding));
-    width: calc(100% - 2 * .56rem - 2 * var(--icon-padding) - var(--icon-size));
-    float: right;
+    width: calc(100% - 2 * .56rem - 4 * var(--icon-padding) - 2 * var(--icon-size) - 2 * var(--padding-size));
+    float: left;
     min-height: 1em;
     border-radius: var(--border-radius);
     margin-left: var(--padding-size);
@@ -118,6 +123,9 @@ th {
     padding: var(--icon-padding);
     appearance: none;
     border: none;
+    float: left;
+    margin-right: var(--padding-size);
+    margin-bottom: var(--padding-size);
     background-color: var(--rcontainer-bg-color);
     border-radius: var(--icon-border-radius);
     transition: 0.2s all ease;
@@ -125,8 +133,8 @@ th {
 
 .dcf-control button:hover img {
     height: calc(var(--icon-size) * 0.8);
-    margin-top: calc(var(--icon-size) * 0.1);
-    margin-bottom: calc(var(--icon-size) * 0.1);
+    width: calc(var(--icon-size) * 0.8);
+    margin: calc(var(--icon-size) * 0.1);
 }
 
 .dcf-control button img {

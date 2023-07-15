@@ -46,7 +46,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
         executionPointInterval.current = setInterval({
             val pcValue = appLogic.getArch().getRegisterContainer().pc.value.get()
             setCurrExeAddr(pcValue.toHex().getRawHexStr())
-        }, 500)
+        }, 50)
     }
 
 

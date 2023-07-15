@@ -2,11 +2,11 @@ package views
 
 import AppLogic
 import csstype.ClassName
+import csstype.HtmlAttributes
 import kotlinx.browser.localStorage
-import org.w3c.dom.HTMLAnchorElement
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLParagraphElement
+import kotlinx.js.timers.Timeout
+import kotlinx.js.timers.setTimeout
+import org.w3c.dom.*
 import react.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
@@ -17,10 +17,10 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import tools.DebugTools
+import views.ExecutionType.*
 import views.components.FlagsCondsView
 import views.components.MemoryView
 import views.components.RegisterView
-import kotlin.coroutines.*
 
 external interface ProcessorViewProps : Props {
     var appLogic: AppLogic
@@ -31,17 +31,68 @@ external interface ProcessorViewProps : Props {
 
 val ProcessorView = FC<ProcessorViewProps> { props ->
 
-    val appLogic by useState(props.appLogic)
-    val (change, setUpdate) = props.update
-    val (mStepValue, setMStepValue) = useState<Double>()
-    val (progress, setProgress) = useState<Double>(0.0)
-
     val titleRef = useRef<HTMLAnchorElement>()
     val mStepInputRef = useRef<HTMLInputElement>()
-    val progressBarRef = useRef<HTMLDivElement>()
-    val progressPCRef = useRef<HTMLParagraphElement>()
+    val executionQueue = useRef<Timeout>(null)
 
-    val (currRegIndex, setCurrRegIndex) = useState(1)
+    val (allowExe, setAllowExe) = useState(true)
+    val appLogic by useState(props.appLogic)
+    val (change, setUpdate) = props.update
+
+    fun queueExecution(executionType: ExecutionType, steps: Int = 1) {
+        when (executionType) {
+            Continuous -> executionQueue.current = setTimeout({
+                setAllowExe(false)
+                appLogic.getArch().exeContinuous()
+                setUpdate(!change)
+                setAllowExe(true)
+            }, 0)
+
+            SingleStep -> executionQueue.current = setTimeout({
+                setAllowExe(false)
+                appLogic.getArch().exeSingleStep()
+                setUpdate(!change)
+                setAllowExe(true)
+            }, 0)
+
+            MultiStep -> executionQueue.current = setTimeout({
+                setAllowExe(false)
+                appLogic.getArch().exeMultiStep(steps)
+                setUpdate(!change)
+                setAllowExe(true)
+            }, 0)
+
+            SkipSubroutine -> executionQueue.current = setTimeout({
+                setAllowExe(false)
+                appLogic.getArch().exeSkipSubroutine()
+                setUpdate(!change)
+                setAllowExe(true)
+            }, 0)
+
+            ReturnFromSubroutine -> executionQueue.current = setTimeout({
+                setAllowExe(false)
+                appLogic.getArch().exeReturnFromSubroutine()
+                setUpdate(!change)
+                setAllowExe(true)
+            }, 0)
+
+            Reset -> executionQueue.current = setTimeout({
+                setAllowExe(false)
+                appLogic.getArch().exeReset()
+                setUpdate(!change)
+                setAllowExe(true)
+            }, 0)
+
+            Clear -> executionQueue.current = setTimeout({
+                setAllowExe(false)
+                appLogic.getArch().exeClear()
+                setUpdate(!change)
+                setAllowExe(true)
+            }, 0)
+        }
+    }
+
+
 
     div {
         className = ClassName("exeControlDiv")
@@ -54,45 +105,21 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
         }
 
-        /*div {
-            p {
-                ref = progressPCRef
-            }
-        }*/
-
-        // PROGRESSBAR
-        /*div {
-            div {
-                className = ClassName(StyleConst.CLASS_EXEC_PROGRESS)
-                div {
-                    ref = progressBarRef
-
-                    className = ClassName(StyleConst.CLASS_EXEC_PROGRESS_BAR)
-                    role = AriaRole.progressbar
-                    ariaValueNow = 10.0
-                    ariaValueMin = 0.0
-                    ariaValueMax = 100.0
-
-                }
-            }
-        }*/
-
         div {
 
             button {
                 className = ClassName("button")
                 id = "continuous"
                 title = "Continuous Execution"
+                disabled = !allowExe
                 p {
                     img {
                         src = "benicons/exec/continuous-exe.svg"
                     }
-
                 }
 
                 onClick = {
-                    appLogic.getArch().exeContinuous()
-                    setUpdate(!change)
+                    queueExecution(Continuous)
                 }
             }
 
@@ -100,15 +127,15 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 className = ClassName("button")
                 id = "sstep"
                 title = "Single Step"
+                disabled = !allowExe
+
                 p {
                     img {
                         src = "benicons/exec/single_exe.svg"
                     }
                 }
                 onClick = {
-                    appLogic.getArch().exeSingleStep()
-                    setUpdate(!change)
-                    setProgress(progress + 21.23)
+                    queueExecution(SingleStep)
                 }
             }
             span {
@@ -139,14 +166,15 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     }
                 }
                 onClick = {
-                    mStepInputRef.current?.let {
-                        try {
-                            appLogic.getArch().exeMultiStep(it.value.toInt())
-                        } catch (e: NumberFormatException) {
-                            console.log("(info) steps input value isn't valid!")
+                    if (allowExe) {
+                        mStepInputRef.current?.let {
+                            try {
+                                queueExecution(MultiStep, steps = it.value.toInt())
+                            } catch (e: NumberFormatException) {
+                                console.log("(info) steps input value isn't valid!")
+                            }
                         }
                     }
-                    setUpdate(!change)
                 }
             }
 
@@ -156,28 +184,28 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 className = ClassName("button")
                 id = "sover"
                 title = "Skip Subroutine"
+                disabled = !allowExe
                 p {
                     img {
                         src = "benicons/exec/step_over.svg"
                     }
                 }
                 onClick = {
-                    appLogic.getArch().exeSkipSubroutine()
-                    setUpdate(!change)
+                    queueExecution(SkipSubroutine)
                 }
             }
             button {
                 className = ClassName("button")
                 id = "esub"
                 title = "Return From Subroutine"
+                disabled = !allowExe
                 p {
                     img {
                         src = "benicons/exec/step_into.svg"
                     }
                 }
                 onClick = {
-                    appLogic.getArch().exeReturnFromSubroutine()
-                    setUpdate(!change)
+                    queueExecution(ReturnFromSubroutine)
                 }
             }
 
@@ -185,14 +213,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 className = ClassName("button")
                 id = "reset"
                 title = "Reset"
+                disabled = !allowExe
                 p {
                     img {
                         src = StyleConst.Icons.backwards
                     }
                 }
                 onClick = {
-                    appLogic.getArch().exeReset()
-                    setUpdate(!change)
+                    queueExecution(Reset)
                 }
             }
 
@@ -200,14 +228,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 className = ClassName("button")
                 id = "clear"
                 title = "Clear"
+                disabled = !allowExe
                 p {
                     img {
                         src = StyleConst.Icons.delete
                     }
                 }
                 onClick = {
-                    appLogic.getArch().exeClear()
-                    setUpdate(!change)
+                    queueExecution(Clear)
                 }
             }
         }
@@ -246,23 +274,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
     }
 
-    useEffect(progress) {
-        if (progress in 0.0..100.0) {
-            progressPCRef.current?.let {
-                it.innerText = "${progress}%"
-            }
-            progressBarRef.current?.let {
-                it.style.width = "${progress}%"
-            }
-        } else {
-            if (progress > 100.0) {
-                setProgress(100.0)
-            } else {
-                setProgress(0.0)
-            }
-        }
-    }
-
     useEffect(change) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) ProcessorView")
@@ -272,6 +283,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             it.value = value
         }
     }
+}
 
-
+enum class ExecutionType {
+    Continuous,
+    SingleStep,
+    MultiStep,
+    SkipSubroutine,
+    ReturnFromSubroutine,
+    Reset,
+    Clear
 }

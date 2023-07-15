@@ -1,0 +1,45 @@
+
+.window {
+    display: block;
+    position: fixed;
+    font-weight: 700;
+    color: white;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    min-width: 30rem;
+    height: 100vh!important;
+    background-color: darkorange;
+    overflow-y: auto;
+}
+
+.window div {
+    white-space: nowrap;
+    height: auto!important;
+}
+
+.window img {
+    width: var(--icon-size);
+    height: var(--icon-size);
+}
+
+.window .delete {
+    filter: invert(15%) sepia(69%) saturate(7492%) hue-rotate(358deg) brightness(106%) contrast(114%);
+}
+
+.memDef {
+    display: block;
+}
+
+@media (max-width: 1200px) {
+    .window {
+        position: fixed;
+        position: -ms-device-fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+
+    }
+}
+

@@ -87,7 +87,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             lineID?.let {
                 setCurrExeLine(it + 1)
             }
-        }, 500)
+        }, 250)
     }
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */

@@ -3,8 +3,10 @@ package views.components
 import AppLogic
 import csstype.*
 import emotion.react.css
+import extendable.ArchConst
 import extendable.components.connected.Memory
 import extendable.components.types.MutVal
+import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearInterval
@@ -21,6 +23,7 @@ import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -53,6 +56,8 @@ val MemoryView = FC<MemViewProps> { props ->
     val (memLength, setMemLength) = useState<Int>(props.length)
     val (lowFirst, setLowFirst) = useState(true)
     val (memRows, setMemRows) = useState<MutableMap<String, MutableMap<Int, Memory.DMemInstance>>>(mutableMapOf())
+    val (showDefMemSettings, setShowDefMemSettings) = useState(false)
+    val (showAddMem, setShowAddMem) = useState(false)
 
     contentIVRef.current?.let {
         clearInterval(it)
@@ -62,7 +67,6 @@ val MemoryView = FC<MemViewProps> { props ->
             setIUpdate(!internalUpdate)
         }, 500)
     }
-
 
     fun calcMemTable() {
         val memRowsList: MutableMap<String, MutableMap<Int, Memory.DMemInstance>> = mutableMapOf()
@@ -168,7 +172,12 @@ val MemoryView = FC<MemViewProps> { props ->
                                     td {
                                         className = ClassName("dcf-txt-center dcf-darkbg ${memInstance.mark}")
                                         title = "Address: ${memInstance.address.getRawHexStr()}"
-                                        +memInstance.mutVal.get().toHex().getRawHexStr()
+                                        if (memInstance is Memory.DMemInstance.EditableValue) {
+                                            +("[" + memInstance.mutVal.get().toHex().getRawHexStr() + "]")
+                                        } else {
+                                            +memInstance.mutVal.get().toHex().getRawHexStr()
+                                        }
+
                                     }
                                 } else {
                                     td {
@@ -220,7 +229,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             button {
                                 type = ButtonType.button
                                 css {
-                                    if(!lowFirst){
+                                    if (!lowFirst) {
                                         filter = invert(0.7)
                                     }
                                 }
@@ -232,6 +241,19 @@ val MemoryView = FC<MemViewProps> { props ->
 
                                 img {
                                     src = "icons/direction.svg"
+                                }
+
+                            }
+
+                            button {
+                                type = ButtonType.button
+
+                                onClick = {
+                                    setShowDefMemSettings(!showDefMemSettings)
+                                }
+
+                                img {
+                                    src = "icons/settings.svg"
                                 }
 
                             }
@@ -250,15 +272,335 @@ val MemoryView = FC<MemViewProps> { props ->
                                     localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
                                 }
                             }
+
+
                         }
                     }
-
-
                 }
-
             }
         }
     }
+
+    if (showDefMemSettings) {
+        div {
+            className = ClassName("window")
+
+            div {
+
+                css {
+                    position = Position.relative
+                    padding = 1.5.rem
+                }
+
+                button {
+                    css {
+                        appearance = null
+                        border = 0.px
+                        background = Color("#00000000")
+                        color = Color("#FFFFFF")
+                        position = Position.absolute
+                        top = 0.5.rem
+                        right = 0.5.rem
+                        cursor = Cursor.pointer
+                    }
+
+                    img {
+
+                        css {
+                            filter = invert(1)
+                        }
+
+                        src = "icons/clear.svg"
+                    }
+
+                    onClick = {
+                        setShowDefMemSettings(false)
+                        setShowAddMem(false)
+                    }
+
+                }
+
+                a {
+                    css {
+                        color = Color("#FFFFFF")
+                        position = Position.absolute
+                        top = 0.5.rem
+                        left = 0.5.rem
+                        whiteSpace = WhiteSpace.nowrap
+                    }
+                    +"I/O Memory Section"
+                }
+            }
+
+            div {
+
+                css {
+                    padding = 3.rem
+                    overflowY = Overflow.scroll
+                    boxShadow = BoxShadow(BoxShadowInset.inset, 0.px, 0.px, 10.px, Color("#000"))
+                }
+
+
+
+                for (dValue in appLogic.getArch().getMemory().getDefaultInstances()) {
+                    div {
+
+                        css {
+                            marginBottom = 1.rem
+                            backgroundColor = Color("#313131")
+                            borderRadius = 1.rem
+                            padding = 1.rem
+                        }
+
+                        a {
+                            +dValue.name
+                        }
+
+                        a {
+                            css {
+                                marginLeft = 3.rem
+                            }
+
+                            +dValue.address.getRawHexStr()
+                        }
+
+                        a {
+                            css {
+                                marginLeft = 3.rem
+                            }
+
+                            input {
+                                css {
+                                    marginLeft = 1.rem
+                                    background = Color("#00000000")
+                                    borderRadius = 1.rem
+                                    color = Color("#FFFFFF")
+                                    textAlign = TextAlign.center
+                                }
+                                placeholder = ArchConst.PRESTRING_BINARY
+                                maxLength = appLogic.getArch().getMemory().getWordSize().bitWidth
+                                prefix = "value: "
+                                defaultValue = dValue.mutVal.get().toBin().getRawBinaryStr()
+
+                                onBlur = { event ->
+                                    try {
+                                        dValue.mutVal.setBin(event.currentTarget.value)
+                                        event.currentTarget.value = dValue.mutVal.get().toBin().getRawBinaryStr()
+                                        appLogic.getArch().getMemory().refreshEditableValues()
+                                    } catch (e: NumberFormatException) {
+                                        event.currentTarget.value = "0"
+                                    }
+                                }
+
+                            }
+
+
+                        }
+
+                        a {
+                            css {
+                                marginLeft = 1.rem
+                            }
+
+                            button {
+                                css {
+                                    float = Float.right
+                                    background = Color("#00000000")
+                                    color = Color("#FFFFFF")
+                                    border = 0.px
+                                    cursor = Cursor.pointer
+                                }
+
+                                img {
+
+                                    className = ClassName("delete")
+
+                                    src = StyleConst.Icons.delete
+                                }
+
+                                onClick = { event ->
+                                    appLogic.getArch().getMemory().removeEditableValue(dValue)
+                                }
+                            }
+                        }
+                        onClick = {
+                            setShowAddMem(false)
+                        }
+
+                    }
+                }
+
+                div {
+                    css {
+                        position = Position.relative
+                        textAlign = TextAlign.center
+                        backgroundColor = Color("#515151")
+                        padding = 1.rem
+                        borderRadius = 1.rem
+                        cursor = Cursor.pointer
+                        transitionDuration = 200.ms
+                        transitionProperty = TransitionProperty.all
+                        transitionTimingFunction = TransitionTimingFunction.ease
+
+                        if (!showAddMem) {
+                            hover {
+                                backgroundColor = Color("#717171")
+                            }
+                        }
+                    }
+
+                    onClick = {
+                        setShowAddMem(true)
+                    }
+
+                    if (showAddMem) {
+
+                        var name = ""
+                        var address: MutVal.Value.Hex = appLogic.getArch().getMemory().getAddressMax().toHex()
+                        var value: MutVal.Value.Binary = MutVal.Value.Binary("0")
+
+                        a {
+                            input {
+                                id = "dv-name"
+                                css {
+                                    marginLeft = 1.rem
+                                    background = Color("#00000000")
+                                    borderRadius = 1.rem
+                                    color = Color("#FFFFFF")
+                                    textAlign = TextAlign.center
+                                }
+                                placeholder = "[name]"
+                                prefix = "name: "
+
+                                onBlur = {
+                                    name = it.currentTarget.value
+                                }
+
+                            }
+                        }
+
+                        a {
+                            css {
+                                marginLeft = 1.rem
+                            }
+
+                            input {
+                                id = "dv-address"
+                                css {
+                                    marginLeft = 1.rem
+                                    background = Color("#00000000")
+                                    borderRadius = 1.rem
+                                    color = Color("#FFFFFF")
+                                    textAlign = TextAlign.center
+                                }
+                                pattern = "[0-9A-Fa-f]+"
+                                placeholder = ArchConst.PRESTRING_HEX + "[address]"
+                                maxLength = appLogic.getArch().getMemory().getAddressSize().byteCount * 2
+                                prefix = "addr: "
+
+                                onBlur = {
+                                    address = MutVal.Value.Hex(it.currentTarget.value)
+                                    it.currentTarget.value = address.getRawHexStr()
+                                }
+
+                            }
+                        }
+
+                        a {
+                            css {
+                                marginLeft = 1.rem
+                            }
+
+                            input {
+                                id = "dv-value"
+                                css {
+                                    marginLeft = 1.rem
+                                    background = Color("#00000000")
+                                    borderRadius = 1.rem
+                                    color = Color("#FFFFFF")
+                                    textAlign = TextAlign.center
+                                }
+                                pattern = "[01]+"
+                                placeholder = ArchConst.PRESTRING_BINARY + "[value]"
+                                maxLength = appLogic.getArch().getMemory().getWordSize().bitWidth
+                                prefix = "value: "
+
+                                onBlur = {
+                                    value = MutVal.Value.Binary(it.currentTarget.value)
+                                    it.currentTarget.value = value.getRawBinaryStr()
+                                }
+
+                            }
+                        }
+
+                        a {
+                            css {
+                                marginLeft = 1.rem
+                            }
+
+                            button {
+                                css {
+                                    float = Float.right
+                                    background = Color("#00000000")
+                                    color = Color("#FFFFFF")
+                                    border = 0.px
+                                    cursor = Cursor.pointer
+                                    fontWeight = integer(700)
+
+                                    hover {
+                                        filter = brightness(2)
+                                    }
+                                }
+
+                                onClick = { event ->
+                                    val name = (document.getElementById("dv-name") as HTMLInputElement).value
+                                    val addr = (document.getElementById("dv-address") as HTMLInputElement).value
+                                    val value = (document.getElementById("dv-value") as HTMLInputElement).value
+                                    try {
+                                        appLogic.getArch().getMemory().addEditableValue(name, MutVal.Value.Hex(addr, appLogic.getArch().getMemory().getAddressSize()), MutVal.Value.Binary(value, appLogic.getArch().getMemory().getWordSize()))
+                                        appLogic.getArch().getMemory().refreshEditableValues()
+                                        setShowAddMem(false)
+                                    } catch (e: NumberFormatException) {
+
+                                    }
+                                }
+
+                                img {
+                                    css {
+                                        filter = invert(1)
+                                    }
+                                    src = "icons/add-circle.svg"
+                                }
+                            }
+                        }
+
+                    } else {
+                        +"+"
+                    }
+                }
+            }
+
+            div {
+                css {
+                    position = Position.absolute
+                    bottom = 0.px
+                    padding = 1.rem
+                }
+                p {
+                    +"Default Values will be written in Memory before compilation!"
+                }
+                p {
+                    +"You can update default values on runtime!"
+                }
+
+            }
+
+        }
+
+
+    }
+
+
     useEffect(update, memLength) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) MemoryView")

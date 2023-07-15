@@ -6,15 +6,7 @@ import tools.DebugTools
 
 class Memory(private val addressSize: MutVal.Size, private val initBin: String, private val wordSize: MutVal.Size, private val endianess: Endianess) {
     private var memMap: MutableMap<String, DMemInstance> = mutableMapOf()
-
-    init {
-        setup()
-    }
-
-    private fun setup() {
-        /*save(ByteValue.Type.Hex("0", addressSize), getInitialBinary())
-        save(getAddressMax(), getInitialBinary())*/
-    }
+    private var editableValues: MutableList<DMemInstance.EditableValue> = mutableListOf()
 
     fun save(address: MutVal.Value, mutVal: MutVal, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
         val wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
@@ -94,7 +86,25 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun clear() {
         this.memMap.clear()
-        setup()
+        refreshEditableValues()
+    }
+
+    fun addEditableValue(name: String, address: MutVal.Value.Hex, value: MutVal.Value.Binary) {
+        editableValues.add(DMemInstance.EditableValue(name, address, value))
+    }
+
+    fun refreshEditableValues() {
+        for (value in editableValues) {
+            val key = value.address.getResized(addressSize).getRawHexStr()
+            if (memMap.containsKey(key)) {
+                memMap.remove(key)
+            }
+            memMap[key] = value
+        }
+    }
+
+    fun removeEditableValue(editableValue: DMemInstance.EditableValue) {
+        editableValues.remove(editableValue)
     }
 
     fun getMemMap(): Map<String, DMemInstance> {
@@ -103,6 +113,10 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun getAddressMax(): MutVal.Value {
         return MutVal.Value.Hex("0", addressSize).getBiggest()
+    }
+
+    fun getDefaultInstances(): List<DMemInstance.EditableValue> {
+        return editableValues
     }
 
     fun getInitialBinary(): MutVal {
@@ -117,7 +131,10 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         return wordSize
     }
 
-    data class DMemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "")
+    open class DMemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "") {
+        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Binary) : DMemInstance(address, MutVal(value), "dcf-mark-defaultvalue")
+
+    }
 
     enum class Endianess {
         LittleEndian,
