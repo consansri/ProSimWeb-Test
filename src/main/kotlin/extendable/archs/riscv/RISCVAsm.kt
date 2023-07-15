@@ -1,7 +1,7 @@
 package extendable.archs.riscv
 
 import extendable.ArchConst
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 
 object RISCVAsm {
 
@@ -30,20 +30,20 @@ object RISCVAsm {
         fun getImm(string: String): ImmResult? {
             val binResult = P_IMM_BIN.find(string)
             if (binResult != null) {
-                return ImmResult(binResult, ByteValue.Type.Binary(binResult.groupValues[1], ByteValue.Size.Bit32()))
+                return ImmResult(binResult, MutVal.Value.Binary(binResult.groupValues[1], MutVal.Size.Bit32()))
             }
             val hexResult = P_IMM_HEX.find(string)
             if (hexResult != null) {
-                return ImmResult(hexResult, ByteValue.Type.Hex(hexResult.groupValues[1], ByteValue.Size.Bit32()))
+                return ImmResult(hexResult, MutVal.Value.Hex(hexResult.groupValues[1], MutVal.Size.Bit32()))
             }
             val decResult = P_IMM_DEC.find(string)
             if (decResult != null) {
-                return ImmResult(decResult, ByteValue.Type.Dec(decResult.groupValues[1], ByteValue.Size.Bit32()))
+                return ImmResult(decResult, MutVal.Value.Dec(decResult.groupValues[1], MutVal.Size.Bit32()))
             }
             return null
         }
 
-        data class ImmResult(val matchResult: MatchResult, val value: ByteValue.Type)
+        data class ImmResult(val matchResult: MatchResult, val value: MutVal.Value)
 
     }
 

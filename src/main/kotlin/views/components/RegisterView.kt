@@ -7,9 +7,6 @@ import extendable.ArchConst
 import extendable.ArchConst.RegTypes.*
 import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
-import kotlinx.js.timers.Timeout
-import kotlinx.js.timers.clearInterval
-import kotlinx.js.timers.setInterval
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
@@ -27,6 +24,7 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import tools.DebugTools
+import kotlin.time.measureTime
 
 external interface RegisterViewProps : Props {
     var name: String
@@ -191,128 +189,134 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 tbody {
                     ref = bodyRef
 
-                    registerArray.let {
-                        for (reg in it.registers) {
-                            val regID = it.registers.indexOf(reg)
+                    val measuredRegTypeChange = measureTime {
+                        registerArray.let {
+                            for (reg in it.registers) {
+                                val regID = it.registers.indexOf(reg)
 
-                            tr {
-                                th {
-                                    className = ClassName("dcf-txt-center")
-                                    scope = "row"
-                                    +reg.address.toHex().getRawHexStr()
-                                }
-                                td {
-                                    className = ClassName("dcf-txt-center")
-                                    +reg.names.joinToString(" / ") { it }
-                                }
-                                td {
-                                    className = ClassName("value-col dcf-txt-center")
+                                tr {
+                                    th {
+                                        className = ClassName("dcf-txt-center")
+                                        scope = "row"
+                                        +reg.address.toHex().getRawHexStr()
+                                    }
+                                    td {
+                                        className = ClassName("dcf-txt-center")
+                                        +reg.names.joinToString(" / ") { it }
+                                    }
+                                    td {
+                                        className = ClassName("value-col dcf-txt-center")
 
-                                    input {
-                                        id = "reg0${regID}"
-                                        className = ClassName(StyleConst.CLASS_TABLE_INPUT)
-                                        readOnly = false
+                                        input {
+                                            id = "reg0${regID}"
+                                            className = ClassName(StyleConst.CLASS_TABLE_INPUT)
+                                            readOnly = false
 
-                                        when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                                            HEX -> {
-                                                type = InputType.text
-                                                pattern = "[0-9a-fA-F]+"
-                                                placeholder = ArchConst.PRESTRING_HEX
-                                                maxLength = reg.byteValue.size.byteCount * 2
-                                                defaultValue = reg.byteValue.get().toHex().getRawHexStr()
+                                            when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                                                HEX -> {
+                                                    type = InputType.text
+                                                    pattern = "[0-9a-fA-F]+"
+                                                    placeholder = ArchConst.PRESTRING_HEX
+                                                    maxLength = reg.mutVal.size.byteCount * 2
+                                                    defaultValue = reg.mutVal.get().toHex().getRawHexStr()
+                                                }
+
+                                                BIN -> {
+                                                    type = InputType.text
+                                                    pattern = "[01]+"
+                                                    placeholder = ArchConst.PRESTRING_BINARY
+                                                    maxLength = reg.mutVal.size.bitWidth
+                                                    defaultValue = reg.mutVal.get().toBin().getRawBinaryStr()
+                                                }
+
+                                                DEC -> {
+                                                    type = InputType.number
+                                                    pattern = "-?\\d+"
+                                                    placeholder = ArchConst.PRESTRING_DECIMAL
+                                                    defaultValue = reg.mutVal.get().toDec().getRawDecStr()
+                                                }
+
+                                                UDEC -> {
+                                                    type = InputType.number
+                                                    placeholder = ArchConst.PRESTRING_DECIMAL
+                                                    defaultValue = reg.mutVal.get().toUDec().getRawUDecStr()
+                                                }
                                             }
 
-                                            BIN -> {
-                                                type = InputType.text
-                                                pattern = "[01]+"
-                                                placeholder = ArchConst.PRESTRING_BINARY
-                                                maxLength = reg.byteValue.size.bitWidth
-                                                defaultValue = reg.byteValue.get().toBin().getRawBinaryStr()
-                                            }
+                                            onBlur = { event ->
+                                                val measuredTime = measureTime {
+                                                    // Set Value
+                                                    try {
+                                                        val newValue = event.currentTarget.value
+                                                        when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                                                            HEX -> {
+                                                                reg.mutVal.setHex(newValue)
+                                                            }
 
-                                            DEC -> {
-                                                type = InputType.number
-                                                pattern = "-?\\d+"
-                                                placeholder = ArchConst.PRESTRING_DECIMAL
-                                                defaultValue = reg.byteValue.get().toDec().getRawDecStr()
-                                            }
+                                                            BIN -> {
+                                                                reg.mutVal.setBin(newValue)
+                                                            }
 
-                                            UDEC -> {
-                                                type = InputType.number
-                                                placeholder = ArchConst.PRESTRING_DECIMAL
-                                                defaultValue = reg.byteValue.get().toUDec().getRawUDecStr()
-                                            }
-                                        }
+                                                            DEC -> {
+                                                                reg.mutVal.setDec(newValue)
+                                                            }
 
-                                        onChange = { event ->
-
-                                        }
-
-                                        onBlur = { event ->
-
-                                            // Set Value
-                                            try {
-                                                val newValue = event.currentTarget.value
-                                                when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                                                    HEX -> {
-                                                        reg.byteValue.setHex(newValue)
+                                                            UDEC -> {
+                                                                reg.mutVal.setUDec(newValue)
+                                                            }
+                                                        }
+                                                        setUpdate(!update)
+                                                        appLogic.getArch().getConsole().info("Register setValue: [${reg.mutVal.get().toDec().getDecStr()}|${reg.mutVal.get().toUDec().getUDecStr()}|${reg.mutVal.get().toHex().getHexStr()}|${reg.mutVal.get().toBin().getBinaryStr()}]")
+                                                    } catch (e: NumberFormatException) {
+                                                        console.warn("RegisterView reg onBlur: NumberFormatException")
                                                     }
 
-                                                    BIN -> {
-                                                        reg.byteValue.setBin(newValue)
-                                                    }
+                                                    // Get Actual Interpretation (for example padded binary number)
+                                                    try {
+                                                        when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                                                            HEX -> {
+                                                                event.currentTarget.value = reg.mutVal.get().toHex().getRawHexStr()
+                                                            }
 
-                                                    DEC -> {
-                                                        reg.byteValue.setDec(newValue)
-                                                    }
+                                                            BIN -> {
+                                                                event.currentTarget.value = reg.mutVal.get().toBin().getRawBinaryStr()
+                                                            }
 
-                                                    UDEC -> {
-                                                        reg.byteValue.setUDec(newValue)
+                                                            DEC -> {
+                                                                event.currentTarget.value = reg.mutVal.get().toDec().getRawDecStr()
+                                                            }
+
+                                                            UDEC -> {
+                                                                event.currentTarget.value = reg.mutVal.get().toUDec().getRawUDecStr()
+                                                            }
+                                                        }
+                                                    } catch (e: NumberFormatException) {
+                                                        console.warn("RegisterView reg onBlur: NumberFormatException")
                                                     }
                                                 }
-                                                setUpdate(!update)
-                                                appLogic.getArch().getConsole().info("Register setValue: [${reg.byteValue.get().toDec().getDecStr()}|${reg.byteValue.get().toUDec().getUDecStr()}|${reg.byteValue.get().toHex().getHexStr()}|${reg.byteValue.get().toBin().getBinaryStr()}]")
-                                            } catch (e: NumberFormatException) {
-                                                console.warn("RegisterView reg onBlur: NumberFormatException")
+
+                                                console.log("Blur Event took ${measuredTime.inWholeMilliseconds} ms editing in ${ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].name} type")
+
                                             }
-
-                                            // Get Actual Interpretation (for example padded binary number)
-                                            try {
-                                                when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                                                    HEX -> {
-                                                        event.currentTarget.value = reg.byteValue.get().toHex().getRawHexStr()
-                                                    }
-
-                                                    BIN -> {
-                                                        event.currentTarget.value = reg.byteValue.get().toBin().getRawBinaryStr()
-                                                    }
-
-                                                    DEC -> {
-                                                        event.currentTarget.value = reg.byteValue.get().toDec().getRawDecStr()
-                                                    }
-
-                                                    UDEC -> {
-                                                        event.currentTarget.value = reg.byteValue.get().toUDec().getRawUDecStr()
-                                                    }
+                                            onKeyDown = { event ->
+                                                if (event.key == "Enter") {
+                                                    event.currentTarget.blur()
                                                 }
-                                            } catch (e: NumberFormatException) {
-                                                console.warn("RegisterView reg onBlur: NumberFormatException")
-                                            }
-                                        }
-                                        onKeyDown = { event ->
-                                            if (event.key == "Enter") {
-                                                event.currentTarget.blur()
                                             }
                                         }
                                     }
-                                }
-                                td {
-                                    className = ClassName("dcf-txt-left")
-                                    +reg.description
+                                    td {
+                                        className = ClassName("dcf-txt-left")
+                                        +reg.description
+                                    }
                                 }
                             }
                         }
                     }
+
+                    console.log("RegisterView RegTypeChange took ${measuredRegTypeChange.inWholeMilliseconds} ms")
+
+
                 }
             }
         }
@@ -335,28 +339,28 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     val regRef = document.getElementById("reg0$regID") as HTMLInputElement
                     regRef.value = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                         HEX -> {
-                            reg.byteValue.get().toHex().getRawHexStr()
+                            reg.mutVal.get().toHex().getRawHexStr()
                         }
 
                         BIN -> {
-                            reg.byteValue.get().toBin().getRawBinaryStr()
+                            reg.mutVal.get().toBin().getRawBinaryStr()
                         }
 
                         DEC -> {
-                            reg.byteValue.get().toDec().getRawDecStr()
+                            reg.mutVal.get().toDec().getRawDecStr()
                         }
 
                         UDEC -> {
-                            reg.byteValue.get().toUDec().getRawUDecStr()
+                            reg.mutVal.get().toUDec().getRawUDecStr()
                         }
                     }
                     regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                         HEX -> {
-                            "${reg.byteValue.size.byteCount * 2}ch;"
+                            "${reg.mutVal.size.byteCount * 2}ch;"
                         }
 
                         BIN -> {
-                            "${reg.byteValue.size.bitWidth}ch;"
+                            "${reg.mutVal.size.bitWidth}ch;"
                         }
 
                         DEC -> {

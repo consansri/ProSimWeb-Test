@@ -4,7 +4,7 @@ import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVBinMapper
 import extendable.archs.riscv.RISCVGrammar
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -90,7 +90,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             var result = binMapper.getInstrFromBinary(binary.get().toBin())
             if (result != null) {
                 if (result.type == RISCVGrammar.T1Instr.Type.JAL || result.type == RISCVGrammar.T1Instr.Type.JALR) {
-                    val returnAddress = getRegisterContainer().pc.value.get() + ByteValue.Type.Hex("4")
+                    val returnAddress = getRegisterContainer().pc.value.get() + MutVal.Value.Hex("4")
                     while (getRegisterContainer().pc.value.get() != returnAddress) {
                         if (result != null) {
                             result.type.execute(this, result.binaryMap)
@@ -156,7 +156,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
         }
 
         if (closestID != null) {
-            val destAddr = ByteValue.Type.Hex(lineAddressMap.get(closestID).second)
+            val destAddr = MutVal.Value.Hex(lineAddressMap.get(closestID).second)
             getConsole().info("--exe_until_line executing until line ${closestID + 1} or address ${destAddr.getHexStr()}")
             val measuredTime = measureTime {
                 super.exeSkipSubroutine()

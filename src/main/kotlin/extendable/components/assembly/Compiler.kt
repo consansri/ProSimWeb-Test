@@ -3,7 +3,7 @@ package extendable.components.assembly
 import extendable.ArchConst
 import extendable.Architecture
 import extendable.components.connected.RegisterContainer
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 import tools.DebugTools
 import tools.HTMLTools
 
@@ -355,46 +355,46 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         sealed class Constant(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.CONSTANT
-            abstract fun getValue(): ByteValue.Type
+            abstract fun getValue(): MutVal.Value
 
             class Ascii(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): ByteValue.Type {
+                override fun getValue(): MutVal.Value {
                     val binChars = StringBuilder()
                     for (char in content) {
                         val bin = char.digitToInt().toString(2)
                         binChars.append(bin)
                     }
-                    return ByteValue.Type.Binary(binChars.toString())
+                    return MutVal.Value.Binary(binChars.toString())
                 }
             }
 
             class Binary(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): ByteValue.Type {
-                    return ByteValue.Type.Binary(content)
+                override fun getValue(): MutVal.Value {
+                    return MutVal.Value.Binary(content)
                 }
             }
 
             class Hex(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): ByteValue.Type {
-                    return ByteValue.Type.Hex(content).toBin()
+                override fun getValue(): MutVal.Value {
+                    return MutVal.Value.Hex(content).toBin()
                 }
             }
 
             class Dec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): ByteValue.Type {
+                override fun getValue(): MutVal.Value {
                     if (DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.Dec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
                     }
-                    return ByteValue.Type.Dec(content, ByteValue.Size.Bit32())
+                    return MutVal.Value.Dec(content, MutVal.Size.Bit32())
                 }
             }
 
             class UDec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): ByteValue.Type {
+                override fun getValue(): MutVal.Value {
                     if (DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.UDec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
                     }
-                    return ByteValue.Type.UDec(content, ByteValue.Size.Bit32())
+                    return MutVal.Value.UDec(content, MutVal.Size.Bit32())
                 }
             }
         }

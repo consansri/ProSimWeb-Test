@@ -7,7 +7,7 @@ import extendable.archs.riscv.RISCVGrammar.T1Instr.ParameterType.*
 import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 
 import tools.DebugTools
 
@@ -677,20 +677,20 @@ class RISCVGrammar : Grammar() {
                 val tokenSequence = TokenSequence(TokenSequence.SequenceComponent.InSpecific.Constant(), TokenSequence.SequenceComponent.Specific("("), TokenSequence.SequenceComponent.InSpecific.Register(), TokenSequence.SequenceComponent.Specific(")"), ignoreSpaces = true)
             }
 
-            fun getValueArray(): Array<ByteValue.Type> {
+            fun getValueArray(): Array<MutVal.Value> {
                 return arrayOf(offset.getValue(), register.reg.address)
             }
 
         }
 
         class Constant(val constant: Compiler.Token.Constant) : T1Param("", Syntax.NODE_PARAM_CONST, constant) {
-            fun getValue(): ByteValue.Type {
+            fun getValue(): MutVal.Value {
                 return constant.getValue()
             }
         }
 
         class Register(val register: Compiler.Token.Register) : T1Param("", Syntax.NODE_PARAM_REG, register) {
-            fun getAddress(): ByteValue.Type {
+            fun getAddress(): MutVal.Value {
                 return register.reg.address
             }
         }
@@ -719,8 +719,8 @@ class RISCVGrammar : Grammar() {
             paramsWithOutSplitSymbols = parameterList.toTypedArray()
         }
 
-        fun getValues(): Array<ByteValue.Type> {
-            val values = mutableListOf<ByteValue.Type>()
+        fun getValues(): Array<MutVal.Value> {
+            val values = mutableListOf<MutVal.Value>()
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is T1Param.Constant -> {
@@ -971,7 +971,7 @@ class RISCVGrammar : Grammar() {
 
         enum class Type(val id: String, val pseudo: Boolean, val paramType: ParameterType, val opCode: OpCode? = null, val memWords: Int = 1) {
             LUI("LUI", false, RI, OpCode("00000000000000000000 00000 0110111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     if (rdAddr != null) {
@@ -979,15 +979,15 @@ class RISCVGrammar : Grammar() {
                         val imm20 = paramMap.get(MaskLabel.IMM20)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedIMM32 = imm20.getUResized(ByteValue.Size.Bit32()) shl 12
+                            val shiftedIMM32 = imm20.getUResized(MutVal.Size.Bit32()) shl 12
                             rd.set(shiftedIMM32)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             AUIPC("AUIPC", false, RI, OpCode("00000000000000000000 00000 0010111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     if (rdAddr != null) {
@@ -995,16 +995,16 @@ class RISCVGrammar : Grammar() {
                         val imm20 = paramMap.get(MaskLabel.IMM20)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedIMM32 = imm20.getUResized(ByteValue.Size.Bit32()) shl 12
+                            val shiftedIMM32 = imm20.getUResized(MutVal.Size.Bit32()) shl 12
                             val sum = pc.value.get() + shiftedIMM32
                             rd.set(sum)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             JAL("JAL", false, RI, OpCode("00000000000000000000 00000 1101111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     if (rdAddr != null) {
@@ -1012,15 +1012,15 @@ class RISCVGrammar : Grammar() {
                         val imm20 = paramMap.get(MaskLabel.IMM20)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedImm = imm20.getResized(ByteValue.Size.Bit32()) shl 1
-                            rd.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            val shiftedImm = imm20.getResized(MutVal.Size.Bit32()) shl 1
+                            rd.set(pc.value.get() + MutVal.Value.Hex("4"))
                             pc.value.set(pc.value.get() + shiftedImm)
                         }
                     }
                 }
             },
             JALR("JALR", false, JUMPLR, OpCode("000000000000 00000 000 00000 1100111", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1030,8 +1030,8 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val jumpAddr = rs1.get() + imm12.getResized(ByteValue.Size.Bit32())
-                            rd.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            val jumpAddr = rs1.get() + imm12.getResized(MutVal.Size.Bit32())
+                            rd.set(pc.value.get() + MutVal.Value.Hex("4"))
                             pc.value.set(jumpAddr)
                         }
                     }
@@ -1040,7 +1040,7 @@ class RISCVGrammar : Grammar() {
             ECALL("ECALL", false, NONE, OpCode("000000000000 00000 000 00000 1110011", arrayOf(MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.OPCODE))),
             EBREAK("EBREAK", false, NONE, OpCode("000000000001 00000 000 00000 1110011", arrayOf(MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.OPCODE))),
             BEQ("BEQ", false, BRANCH, OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1051,19 +1051,19 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = ByteValue.Type.Binary(imm7.getResized(ByteValue.Size.Bit7()).getRawBinaryStr() + imm5.getResized(ByteValue.Size.Bit5()).getRawBinaryStr(), ByteValue.Size.Bit12())
-                            val offset = imm12.toBin().getResized(ByteValue.Size.Bit32()) shl 1
+                            val imm12 = MutVal.Value.Binary(imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr() + imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr(), MutVal.Size.Bit12())
+                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() == rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                             }
                         }
                     }
                 }
             },
             BNE("BNE", false, BRANCH, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1074,19 +1074,19 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(ByteValue.Size.Bit12()) ushl 5) + imm5
-                            val offset = imm12.toBin().getResized(ByteValue.Size.Bit32()) shl 1
+                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() != rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                             }
                         }
                     }
                 }
             },
             BLT("BLT", false, BRANCH, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1097,19 +1097,19 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(ByteValue.Size.Bit12()) ushl 5) + imm5
-                            val offset = imm12.toBin().getResized(ByteValue.Size.Bit32()) shl 1
+                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() < rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                             }
                         }
                     }
                 }
             },
             BGE("BGE", false, BRANCH, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1120,19 +1120,19 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(ByteValue.Size.Bit12()) ushl 5) + imm5
-                            val offset = imm12.toBin().getResized(ByteValue.Size.Bit32()) shl 1
+                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() >= rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                             }
                         }
                     }
                 }
             },
             BLTU("BLTU", false, BRANCH, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1143,19 +1143,19 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(ByteValue.Size.Bit12()) ushl 5) + imm5
-                            val offset = imm12.toBin().getResized(ByteValue.Size.Bit32()) shl 1
+                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toUDec() < rs2.get().toUDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                             }
                         }
                     }
                 }
             },
             BGEU("BGEU", false, BRANCH, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1166,12 +1166,12 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(ByteValue.Size.Bit12()) ushl 5) + imm5
-                            val offset = imm12.toBin().getResized(ByteValue.Size.Bit32()) shl 1
+                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toUDec() >= rs2.get().toUDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                             }
                         }
                     }
@@ -1184,7 +1184,7 @@ class RISCVGrammar : Grammar() {
             BLTU1("BLTU", true, PS_BRANCHLBL),
             BGEU1("BGEU", true, PS_BRANCHLBL),
             LB("LB", false, LOAD, OpCode("000000000000 00000 000 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1195,15 +1195,15 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
-                            val loadedByte = architecture.getMemory().load(memAddr).get().toBin().getResized(ByteValue.Size.Bit32())
+                            val loadedByte = architecture.getMemory().load(memAddr).get().toBin().getResized(MutVal.Size.Bit32())
                             rd.set(loadedByte)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             LH("LH", false, LOAD, OpCode("000000000000 00000 001 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1214,15 +1214,15 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
-                            val loadedByte = architecture.getMemory().load(memAddr, 2).get().toBin().getResized(ByteValue.Size.Bit32())
+                            val loadedByte = architecture.getMemory().load(memAddr, 2).get().toBin().getResized(MutVal.Size.Bit32())
                             rd.set(loadedByte)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             LW("LW", false, LOAD, OpCode("000000000000 00000 010 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1235,13 +1235,13 @@ class RISCVGrammar : Grammar() {
                             val memAddr = rs1.get().toBin() + imm12
                             val loadedByte = architecture.getMemory().load(memAddr, 4)
                             rd.set(loadedByte.get())
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             LBU("LBU", false, LOAD, OpCode("000000000000 00000 100 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1253,14 +1253,14 @@ class RISCVGrammar : Grammar() {
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
                             val loadedByte = architecture.getMemory().load(memAddr)
-                            rd.set(ByteValue.Type.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 24) + loadedByte.get().toBin().getRawBinaryStr(), ByteValue.Size.Bit32()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            rd.set(MutVal.Value.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 24) + loadedByte.get().toBin().getRawBinaryStr(), MutVal.Size.Bit32()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             LHU("LHU", false, LOAD, OpCode("000000000000 00000 101 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1272,14 +1272,14 @@ class RISCVGrammar : Grammar() {
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
                             val loadedByte = architecture.getMemory().load(memAddr, 2)
-                            rd.set(ByteValue.Type.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 16) + loadedByte.get().toBin().getRawBinaryStr(), ByteValue.Size.Bit32()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            rd.set(MutVal.Value.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 16) + loadedByte.get().toBin().getRawBinaryStr(), MutVal.Size.Bit32()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SB("SB", false, STORE, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1289,15 +1289,15 @@ class RISCVGrammar : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.get().toBin().getResized(ByteValue.Size.Bit32()) + imm5
-                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(ByteValue.Size.Bit8()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            val memAddr = rs1.get().toBin().getResized(MutVal.Size.Bit32()) + imm5
+                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(MutVal.Size.Bit8()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SH("SH", false, STORE, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1307,15 +1307,15 @@ class RISCVGrammar : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.get().toBin().getResized(ByteValue.Size.Bit32()) + imm5
-                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(ByteValue.Size.Bit16()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            val memAddr = rs1.get().toBin().getResized(MutVal.Size.Bit32()) + imm5
+                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(MutVal.Size.Bit16()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SW("SW", false, STORE, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
                     val rs2Addr = paramMap.get(MaskLabel.RS2)
@@ -1325,15 +1325,15 @@ class RISCVGrammar : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.byteValue.get().toBin().getResized(ByteValue.Size.Bit32()) + imm5
-                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(ByteValue.Size.Bit32()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            val memAddr = rs1.mutVal.get().toBin().getResized(MutVal.Size.Bit32()) + imm5
+                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(MutVal.Size.Bit32()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             ADDI("ADDI", false, LOGICCALCIMM, OpCode("000000000000 00000 000 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1343,16 +1343,16 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getResized(ByteValue.Size.Bit32())
+                            val paddedImm32 = imm12.getResized(MutVal.Size.Bit32())
                             val sum = rs1.get().toDec() + paddedImm32.toDec()
                             rd.set(sum)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SLTI("SLTI", false, LOGICCALCIMM, OpCode("000000000000 00000 010 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1362,15 +1362,15 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getResized(ByteValue.Size.Bit32())
-                            rd.set(if (rs1.get().toDec() < paddedImm32.toDec()) ByteValue.Type.Binary("1", ByteValue.Size.Bit32()) else ByteValue.Type.Binary("0", ByteValue.Size.Bit32()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            val paddedImm32 = imm12.getResized(MutVal.Size.Bit32())
+                            rd.set(if (rs1.get().toDec() < paddedImm32.toDec()) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SLTIU("SLTIU", false, LOGICCALCIMM, OpCode("000000000000 00000 011 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1380,15 +1380,15 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(ByteValue.Size.Bit32())
-                            rd.set(if (rs1.get().toBin() < paddedImm32) ByteValue.Type.Binary("1", ByteValue.Size.Bit32()) else ByteValue.Type.Binary("0", ByteValue.Size.Bit32()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
+                            rd.set(if (rs1.get().toBin() < paddedImm32) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             XORI("XORI", false, LOGICCALCIMM, OpCode("000000000000 00000 100 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1398,15 +1398,15 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(ByteValue.Size.Bit32())
+                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
                             rd.set(rs1.get().toBin() xor paddedImm32)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             ORI("ORI", false, LOGICCALCIMM, OpCode("000000000000 00000 110 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1416,15 +1416,15 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(ByteValue.Size.Bit32())
+                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
                             rd.set(rs1.get().toBin() or paddedImm32)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             ANDI("ANDI", false, LOGICCALCIMM, OpCode("000000000000 00000 111 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1434,15 +1434,15 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(ByteValue.Size.Bit32())
+                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
                             rd.set(rs1.get().toBin() and paddedImm32)
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SLLI("SLLI", false, SHIFTIMM, OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1453,13 +1453,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
                             rd.set(rs1.get().toBin() ushl shamt.getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SRLI("SRLI", false, SHIFTIMM, OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1470,13 +1470,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
                             rd.set(rs1.get().toBin() ushr shamt.getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SRAI("SRAI", false, SHIFTIMM, OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1487,13 +1487,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
                             rd.set(rs1.get().toBin() shr shamt.getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             ADD("ADD", false, OP_R, OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1505,13 +1505,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toDec() + rs2.get().toDec())
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SUB("SUB", false, OP_R, OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1523,13 +1523,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toDec() - rs2.get().toDec())
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SLL("SLL", false, OP_R, OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1541,13 +1541,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() ushl rs2.get().toBin().getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SLT("SLT", false, OP_R, OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1558,14 +1558,14 @@ class RISCVGrammar : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
-                            rd.set(if (rs1.get().toDec() < rs2.get().toDec()) ByteValue.Type.Binary("1", ByteValue.Size.Bit32()) else ByteValue.Type.Binary("0", ByteValue.Size.Bit32()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            rd.set(if (rs1.get().toDec() < rs2.get().toDec()) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SLTU("SLTU", false, OP_R, OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1576,14 +1576,14 @@ class RISCVGrammar : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
-                            rd.set(if (rs1.get().toBin() < rs2.get().toBin()) ByteValue.Type.Binary("1", ByteValue.Size.Bit32()) else ByteValue.Type.Binary("0", ByteValue.Size.Bit32()))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            rd.set(if (rs1.get().toBin() < rs2.get().toBin()) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             XOR("XOR", false, OP_R, OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1595,13 +1595,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() xor rs2.get().toBin())
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SRL("SRL", false, OP_R, OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1613,13 +1613,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() ushr rs2.get().toBin().getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             SRA("SRA", false, OP_R, OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1631,13 +1631,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() shr rs2.get().toBin().getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             OR("OR", false, OP_R, OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1649,13 +1649,13 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() or rs2.get().toBin())
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
             },
             AND("AND", false, OP_R, OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1667,7 +1667,7 @@ class RISCVGrammar : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() and rs2.get().toBin())
-                            pc.value.set(pc.value.get() + ByteValue.Type.Hex("4"))
+                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }
                 }
@@ -1698,7 +1698,7 @@ class RISCVGrammar : Grammar() {
             JALR1("JALR", true, PS_R),
             Ret("RET", true, PS_NONE);
 
-            open fun execute(architecture: Architecture, paramMap: Map<MaskLabel, ByteValue.Type.Binary>) {
+            open fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                 architecture.getConsole().info("executing $id ...")
             }
         }

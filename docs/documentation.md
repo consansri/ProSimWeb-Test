@@ -2,7 +2,9 @@
 
 ## Performance Improvement ##
 
-- **Example Program**
+### RiscV Program Execution ###
+
+**Example**
 
 ```riscv
 li t0, 0xCAFEAFFE
@@ -73,12 +75,108 @@ lru:
     nop
 ```
 
-**Mode**
-
 **Before**
 
 | execution mode | time elapsed | elapsed time with performance measurement | executed instructions |
 |:--------------:|:------------:|:-----------------------------------------:|----------------------:|
 |   continuous   |   2577 ms    |                  3302 ms                  |                   247 |
+|  single step   |   2 - 5 ms   |                     -                     |                   lui |
+|  single step   |  9 - 22 ms   |                     -                     |                  addi |
+|  single step   |   0 - 1 ms   |                     -                     |                   jal |
+|  single step   |    13 ms     |                     -                     |                   beq |
+|  single step   |  16 - 32 ms  |                     -                     |                   add |
+|  single step   |  5 - 14 ms   |                     -                     |                    lb |
+|  single step   |  4 - 20 ms   |                     -                     |                    sb |
+|  single step   |    13 ms     |                     -                     |                   beq |
+|  single step   |     1 ms     |                     -                     |                  jalr |
+|  single step   |   5 - 8 ms   |                     -                     |                   blt |
+|  single step   |  18 - 19 ms  |                     -                     |                   bne |
+
+Measurement continuous
+<p align="center">
+    <img width="90%" alt="[measurement-before]" src="Performance Traces/measurement20230715-continuousexample-before.png"/>
+</p>
+
+Measurement Single Instruction add
+> **Test Program**
+> ```riscv
+> main:
+>         jal prereginit
+>         add a2, a1, a0	
+>         j end
+>
+> prereginit:
+>         lui a0, 0xCAFEAFFE
+>         lui a1, 0xAffECAFE
+>         ret
+> end:
+> ```
+
+<p align="center">
+    <img width="90%" alt="[measurement-before]" src="Performance Traces/measurement20230715-addexample-before.png"/>
+</p>
+
+**Issues and Solutions**
+
+> **Issue:** Short Site Blocking while executing anything\
+> **Solution:** Async Execution
+
+> **Issue:** Execution to slow\
+> **Solution:** TODO
+
+**After**
+
+### RegisterEdit ###
+
+**Example**
+
+- **32 Bit**
+    - Hex: 0x00000000 to 0xFFFFFFFF
+    - Bin: 0b00000000000000000000000000000000 to 0b11111111111111111111111111111111
+    - UDec: 0 to 4294967295
+    - Dec: -2147483648 to 2147483647
+
+**Before**
+
+| Type | elapsed time |
+|------|-------------:|
+| Hex  |         3 ms |
+| Bin  |         3 ms |
+| UDec |        12 ms |
+| Dec  |        15 ms |
+
+**Issues and Solutions**
+
+> **Issue:** Short Site Blocking while onBlur is calculating\
+> **Solution:** ASync onBlur Event
+
+> **Issue:** Decimal Calculations to long!\
+> **Solution:** TODO
+
+
+**After**
+
+### Register Type Switch ###
+
+**Example**
+
+- **Initial:** Switching Type of 32 Registers filled with zeros
+
+**Before**
+
+| From | To   | elapsed time |
+|------|------|-------------:|
+| Hex  | UDec |       449 ms |
+| UDec | Dec  |       425 ms |
+| Dec  | Bin  |       344 ms |
+| Bin  | Hex  |       339 ms |
+
+**Issues and Solutions**
+
+> **Issue:** Short Site Blocking while RegType is changed\
+> **Solution:** ASync calculation of new types
+
+> **Issue:** Decimal Calculations to long\
+> **Solution:** TODO
 
 **After**

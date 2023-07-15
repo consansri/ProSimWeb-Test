@@ -4,7 +4,7 @@ import AppLogic
 import csstype.*
 import emotion.react.css
 import extendable.components.connected.Memory
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearInterval
@@ -67,8 +67,8 @@ val MemoryView = FC<MemViewProps> { props ->
     fun calcMemTable() {
         val memRowsList: MutableMap<String, MutableMap<Int, Memory.DMemInstance>> = mutableMapOf()
         for (entry in appLogic.getArch().getMemory().getMemMap()) {
-            val offset = (entry.value.address % ByteValue.Type.Dec("$memLength", ByteValue.Size.Bit8())).toHex().getRawHexStr().toInt(16)
-            val rowAddress = (entry.value.address - ByteValue.Type.Dec("$offset", ByteValue.Size.Bit8())).toHex()
+            val offset = (entry.value.address % MutVal.Value.Dec("$memLength", MutVal.Size.Bit8())).toHex().getRawHexStr().toInt(16)
+            val rowAddress = (entry.value.address - MutVal.Value.Dec("$offset", MutVal.Size.Bit8())).toHex()
             val rowResult = memRowsList.get(rowAddress.getRawHexStr())
 
             if (rowResult != null) {
@@ -131,8 +131,8 @@ val MemoryView = FC<MemViewProps> { props ->
                 tbody {
                     ref = tbody
 
-                    var nextAddress: ByteValue.Type = appLogic.getArch().getMemory().getInitialBinary().setBin("0").get()
-                    val memLengthValue = ByteValue.Type.Dec("$memLength", ByteValue.Size.Bit8()).toHex()
+                    var nextAddress: MutVal.Value = appLogic.getArch().getMemory().getInitialBinary().setBin("0").get()
+                    val memLengthValue = MutVal.Value.Dec("$memLength", MutVal.Size.Bit8()).toHex()
 
                     var sortedKeys = memRows.keys.sorted()
 
@@ -143,7 +143,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                     for (memRowKey in sortedKeys) {
                         val memRow = memRows[memRowKey]
-                        if (nextAddress != ByteValue.Type.Hex(memRowKey) && memRowKey != sortedKeys.first()) {
+                        if (nextAddress != MutVal.Value.Hex(memRowKey) && memRowKey != sortedKeys.first()) {
                             tr {
                                 th {
                                     colSpan = 2 + memLength
@@ -168,7 +168,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                     td {
                                         className = ClassName("dcf-txt-center dcf-darkbg ${memInstance.mark}")
                                         title = "Address: ${memInstance.address.getRawHexStr()}"
-                                        +memInstance.byteValue.get().toHex().getRawHexStr()
+                                        +memInstance.mutVal.get().toHex().getRawHexStr()
                                     }
                                 } else {
                                     td {
@@ -187,7 +187,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 for (column in 0 until memLength) {
                                     val memInstance = memRow?.get(column)
                                     if (memInstance != null) {
-                                        asciiString += memInstance.byteValue.get().toASCII()
+                                        asciiString += memInstance.mutVal.get().toASCII()
                                     } else {
                                         asciiString += emptyAscii
                                     }
@@ -197,9 +197,9 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
                         }
                         if (lowFirst) {
-                            nextAddress = (ByteValue.Type.Hex(memRowKey) + memLengthValue)
+                            nextAddress = (MutVal.Value.Hex(memRowKey) + memLengthValue)
                         } else {
-                            nextAddress = (ByteValue.Type.Hex(memRowKey) - memLengthValue)
+                            nextAddress = (MutVal.Value.Hex(memRowKey) - memLengthValue)
                         }
 
                     }

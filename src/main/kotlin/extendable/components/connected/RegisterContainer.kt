@@ -1,16 +1,15 @@
 package extendable.components.connected
 
-import extendable.components.assembly.Compiler
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 
-class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: ByteValue.Size) {
+class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: MutVal.Size) {
 
-    val pc = PC(ByteValue("0", pcSize), ByteValue.Type.Binary("0"))
+    val pc = PC(MutVal("0", pcSize), MutVal.Value.Binary("0"))
 
     fun clear() {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
-                reg.byteValue.clear()
+                reg.mutVal.clear()
             }
         }
     }
@@ -35,7 +34,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return null
     }
 
-    fun getRegister(address: ByteValue.Type): Register? {
+    fun getRegister(address: MutVal.Value): Register? {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
                 if (reg.address == address) {
@@ -50,19 +49,19 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return registerFileList
     }
 
-    data class Register(val address: ByteValue.Type, val names: List<String>, val byteValue: ByteValue, val description: String, val hardwire: Boolean = false) {
-        fun get(): ByteValue.Type {
-            return byteValue.get()
+    data class Register(val address: MutVal.Value, val names: List<String>, val mutVal: MutVal, val description: String, val hardwire: Boolean = false) {
+        fun get(): MutVal.Value {
+            return mutVal.get()
         }
 
-        fun set(value: ByteValue.Type) {
+        fun set(value: MutVal.Value) {
             if (!hardwire) {
-                byteValue.set(value)
+                mutVal.set(value)
             }
         }
     }
 
-    data class PC(val value: ByteValue, val initial: ByteValue.Type) {
+    data class PC(val value: MutVal, val initial: MutVal.Value) {
         val name = "program counter"
         val shortName = "pc"
 

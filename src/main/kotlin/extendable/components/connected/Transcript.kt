@@ -1,11 +1,7 @@
 package extendable.components.connected
 
 import extendable.ArchConst
-import extendable.Architecture
-import extendable.archs.riscv.RISCVBinMapper
-import extendable.archs.riscv.RISCVGrammar
-import extendable.components.assembly.Compiler
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 
 class Transcript {
 
@@ -41,7 +37,7 @@ class Transcript {
         return headers
     }
 
-    class TranscriptEntry(val memoryAddress: ByteValue.Type.Hex) {
+    class TranscriptEntry(val memoryAddress: MutVal.Value.Hex) {
 
         val content = mutableMapOf<ArchConst.TranscriptHeaders, String>(ArchConst.TranscriptHeaders.ADDRESS to memoryAddress.getRawHexStr())
 

@@ -9,14 +9,14 @@ import extendable.components.assembly.Assembly
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
 import extendable.components.connected.Transcript
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 import tools.DebugTools
 
-class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: ByteValue.Type) : Assembly() {
+class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: MutVal.Value) : Assembly() {
 
     val labelBinAddrMap = mutableMapOf<RISCVGrammar.T1Label, String>()
     val transcriptEntrys = mutableListOf<Transcript.TranscriptEntry>()
-    val binarys = mutableListOf<ByteValue.Type.Binary>()
+    val binarys = mutableListOf<MutVal.Value.Binary>()
 
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
         val transcript = architecture.getTranscript()
@@ -29,7 +29,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
             val binary = architecture.getMemory().load(entry.memoryAddress, 4).get().toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
-                if (ByteValue.Type.Binary(labels.value) == entry.memoryAddress.toBin()) {
+                if (MutVal.Value.Binary(labels.value) == entry.memoryAddress.toBin()) {
                     labelString += "${labels.key.wholeName} "
                 }
             }
@@ -61,7 +61,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                                 if (result.type == RISCVGrammar.T1Instr.Type.JALR || result.type == RISCVGrammar.T1Instr.Type.JAL) {
                                     var labelString = ""
                                     for (labels in labelBinAddrMap) {
-                                        if (ByteValue.Type.Binary(labels.value) == it.value) {
+                                        if (MutVal.Value.Binary(labels.value) == it.value) {
                                             labelString = labels.key.wholeName
                                         }
                                     }
@@ -138,83 +138,83 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                                     if (entry.type == MEMALLOC) {
                                         val param = entry.t1Param?.paramsWithOutSplitSymbols?.first()
                                         if (param is RISCVGrammar.T1Param.Constant) {
-                                            val originalValue: ByteValue.Type.Hex
+                                            val originalValue: MutVal.Value.Hex
                                             val constToken = param.constant
                                             val isAsciiString: Boolean
                                             when (constToken) {
                                                 is Compiler.Token.Constant.Ascii -> {
-                                                    originalValue = ByteValue.Type.Hex(ByteValue.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
+                                                    originalValue = MutVal.Value.Hex(MutVal.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
                                                     isAsciiString = true
                                                 }
 
                                                 is Compiler.Token.Constant.Binary -> {
-                                                    originalValue = ByteValue.Type.Binary(constToken.content).toHex()
+                                                    originalValue = MutVal.Value.Binary(constToken.content).toHex()
                                                     isAsciiString = false
                                                 }
 
                                                 is Compiler.Token.Constant.Dec -> {
-                                                    originalValue = ByteValue.Type.Dec(constToken.content).toHex()
+                                                    originalValue = MutVal.Value.Dec(constToken.content).toHex()
                                                     isAsciiString = false
                                                 }
 
                                                 is Compiler.Token.Constant.Hex -> {
-                                                    originalValue = ByteValue.Type.Hex(constToken.content)
+                                                    originalValue = MutVal.Value.Hex(constToken.content)
                                                     isAsciiString = false
                                                 }
 
                                                 is Compiler.Token.Constant.UDec -> {
-                                                    originalValue = ByteValue.Type.UDec(constToken.content).toHex()
+                                                    originalValue = MutVal.Value.UDec(constToken.content).toHex()
                                                     isAsciiString = false
                                                 }
                                             }
 
-                                            val resizedValues: Array<ByteValue.Type.Hex>
-                                            val length: ByteValue.Type.Hex
+                                            val resizedValues: Array<MutVal.Value.Hex>
+                                            val length: MutVal.Value.Hex
                                             when (entry.t1Directive?.type) {
                                                 byte -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(ByteValue.Size.Bit8()))
-                                                    length = ByteValue.Type.Hex("1")
+                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit8()))
+                                                    length = MutVal.Value.Hex("1")
                                                 }
 
                                                 half -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(ByteValue.Size.Bit16()))
-                                                    length = ByteValue.Type.Hex("2")
+                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit16()))
+                                                    length = MutVal.Value.Hex("2")
                                                 }
 
                                                 word -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(ByteValue.Size.Bit32()))
-                                                    length = ByteValue.Type.Hex("4")
+                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit32()))
+                                                    length = MutVal.Value.Hex("4")
                                                 }
 
                                                 dword -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(ByteValue.Size.Bit64()))
-                                                    length = ByteValue.Type.Hex("8")
+                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit64()))
+                                                    length = MutVal.Value.Hex("8")
                                                 }
 
                                                 asciz -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(ByteValue.Size.Bit8()))
-                                                    length = ByteValue.Type.Hex("1")
+                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit8()))
+                                                    length = MutVal.Value.Hex("1")
                                                 }
 
                                                 string -> {
                                                     if (isAsciiString) {
                                                         val content = constToken.content.substring(1, constToken.content.length - 1)
-                                                        val valueList = mutableListOf<ByteValue.Type.Hex>()
+                                                        val valueList = mutableListOf<MutVal.Value.Hex>()
                                                         for (char in content) {
-                                                            valueList.add(ByteValue.Type.Hex(char.code.toString(16), ByteValue.Size.Bit8()))
+                                                            valueList.add(MutVal.Value.Hex(char.code.toString(16), MutVal.Size.Bit8()))
                                                         }
                                                         resizedValues = valueList.toTypedArray()
-                                                        length = ByteValue.Type.Hex(content.length.toString(16))
+                                                        length = MutVal.Value.Hex(content.length.toString(16))
                                                     } else {
                                                         resizedValues = arrayOf(originalValue)
-                                                        length = ByteValue.Type.Hex(originalValue.size.byteCount.toString(16))
+                                                        length = MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
                                                     }
 
                                                 }
 
                                                 else -> {
                                                     resizedValues = arrayOf(originalValue)
-                                                    length = ByteValue.Type.Hex(originalValue.size.byteCount.toString(16))
+                                                    length = MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
                                                 }
                                             }
 
@@ -241,7 +241,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                 labelBinAddrMap.set(alloc.labelDef.t1Label, alloc.address.toBin().getRawBinaryStr())
                 for (valueID in alloc.values.indices) {
                     val value = alloc.values[valueID]
-                    val address = alloc.address + ByteValue.Type.Hex(valueID.toString(16)) * ByteValue.Type.Hex(alloc.sizeOfOne.byteCount.toString(16))
+                    val address = alloc.address + MutVal.Value.Hex(valueID.toString(16)) * MutVal.Value.Hex(alloc.sizeOfOne.byteCount.toString(16))
                     if (DebugTools.RISCV_showAsmInfo) {
                         console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
                     }
@@ -253,7 +253,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
             val instrIDMap = mutableMapOf<String, Int>()
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
-                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, ByteValue.Type.Hex((binarys.size * 4).toString(16), ByteValue.Size.Bit32()))
+                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, MutVal.Value.Hex((binarys.size * 4).toString(16), MutVal.Size.Bit32()))
                 if (DebugTools.RISCV_showAsmInfo) {
                     console.log(
                         "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.t1Instr.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.type.id},  ${
@@ -264,7 +264,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                     )
                 }
                 for (wordID in binary.indices) {
-                    instrIDMap.set(ByteValue.Type.Hex(((binarys.size + wordID) * 4).toString(16), ByteValue.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
+                    instrIDMap.set(MutVal.Value.Hex(((binarys.size + wordID) * 4).toString(16), MutVal.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
                 }
                 binarys.addAll(binary)
             }
@@ -274,7 +274,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
                 if (DebugTools.RISCV_showAsmInfo) {
                     console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
                 }
-                val address = ByteValue.Type.Hex((binaryID * 4).toString(16), ByteValue.Size.Bit32())
+                val address = MutVal.Value.Hex((binaryID * 4).toString(16), MutVal.Size.Bit32())
 
                 transcriptEntrys.add(Transcript.TranscriptEntry(address))
                 memory.save(address, binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)
@@ -286,6 +286,6 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Byt
         return assemblyMap ?: AssemblyMap()
     }
 
-    class MemAllocEntry(val labelDef: RISCVGrammar.T2LabelDef, val address: ByteValue.Type.Hex, val sizeOfOne: ByteValue.Size, vararg val values: ByteValue.Type)
+    class MemAllocEntry(val labelDef: RISCVGrammar.T2LabelDef, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
 
 }

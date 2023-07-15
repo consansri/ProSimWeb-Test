@@ -1,7 +1,6 @@
 package extendable.components.assembly
 
 import extendable.Architecture
-import extendable.components.types.ByteValue
 import tools.DebugTools
 
 abstract class Assembly {

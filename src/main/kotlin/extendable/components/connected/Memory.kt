@@ -1,10 +1,10 @@
 package extendable.components.connected
 
 import StyleConst
-import extendable.components.types.ByteValue
+import extendable.components.types.MutVal
 import tools.DebugTools
 
-class Memory(private val addressSize: ByteValue.Size, private val initBin: String, private val wordSize: ByteValue.Size, private val endianess: Endianess) {
+class Memory(private val addressSize: MutVal.Size, private val initBin: String, private val wordSize: MutVal.Size, private val endianess: Endianess) {
     private var memMap: MutableMap<String, DMemInstance> = mutableMapOf()
 
     init {
@@ -16,8 +16,8 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         save(getAddressMax(), getInitialBinary())*/
     }
 
-    fun save(address: ByteValue.Type, byteValue: ByteValue, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
-        val wordList = byteValue.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
+    fun save(address: MutVal.Value, mutVal: MutVal, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
+        val wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
         if (endianess == Endianess.LittleEndian) {
             wordList.reversed()
@@ -25,23 +25,23 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
 
         val hexAddress = address.toBin().getUResized(addressSize).toHex()
         if (DebugTools.ARCH_showMemoryInfo) {
-            console.log("saving...  ${byteValue.get().toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+            console.log("saving...  ${mutVal.get().toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
         for (word in wordList) {
             val instance = memMap[hexAddress.getRawHexStr()]
 
             if (instance != null) {
-                instance.byteValue.setHex(word.toString())
+                instance.mutVal.setHex(word.toString())
                 instance.mark = mark
             } else {
-                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize), mark)
-                newInstance.byteValue.setHex(word.toString())
+                val newInstance = DMemInstance(hexAddress, MutVal(initBin, wordSize), mark)
+                newInstance.mutVal.setHex(word.toString())
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
         }
     }
 
-    fun save(address: ByteValue.Type, value: ByteValue.Type, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
+    fun save(address: MutVal.Value, value: MutVal.Value, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
         val wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
         if (endianess == Endianess.LittleEndian) {
@@ -55,19 +55,19 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         for (word in wordList) {
             val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {
-                instance.byteValue.setHex(word.toString())
+                instance.mutVal.setHex(word.toString())
                 instance.mark = mark
             } else {
-                val newInstance = DMemInstance(hexAddress, ByteValue(initBin, wordSize), mark)
-                newInstance.byteValue.setHex(word.toString())
+                val newInstance = DMemInstance(hexAddress, MutVal(initBin, wordSize), mark)
+                newInstance.mutVal.setHex(word.toString())
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
-            hexAddress = (hexAddress + ByteValue.Type.Hex("1")).toHex()
+            hexAddress = (hexAddress + MutVal.Value.Hex("1")).toHex()
         }
     }
 
-    fun load(address: ByteValue.Type): ByteValue {
-        val value = memMap.get(address.toHex().getRawHexStr())?.byteValue
+    fun load(address: MutVal.Value): MutVal {
+        val value = memMap.get(address.toHex().getRawHexStr())?.mutVal
         if (value != null) {
             return value
         } else {
@@ -75,21 +75,21 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         }
     }
 
-    fun load(address: ByteValue.Type, amount: Int): ByteValue {
+    fun load(address: MutVal.Value, amount: Int): MutVal {
         val instances = mutableListOf<String>()
 
         var instanceAddress = address.toBin()
         for (i in 0 until amount) {
             val instance = load(instanceAddress)
             instances.add(instance.get().toBin().getRawBinaryStr())
-            instanceAddress = (instanceAddress + ByteValue.Type.Binary("1", addressSize)).toBin()
+            instanceAddress = (instanceAddress + MutVal.Value.Binary("1", addressSize)).toBin()
         }
 
         if (endianess == Endianess.LittleEndian) {
             instances.reverse()
         }
 
-        return ByteValue(instances.joinToString("") { it }, ByteValue.Tools.getNearestSize(amount * wordSize.bitWidth))
+        return MutVal(instances.joinToString("") { it }, MutVal.Tools.getNearestSize(amount * wordSize.bitWidth))
     }
 
     fun clear() {
@@ -101,23 +101,23 @@ class Memory(private val addressSize: ByteValue.Size, private val initBin: Strin
         return memMap
     }
 
-    fun getAddressMax(): ByteValue.Type {
-        return ByteValue.Type.Hex("0", addressSize).getBiggest()
+    fun getAddressMax(): MutVal.Value {
+        return MutVal.Value.Hex("0", addressSize).getBiggest()
     }
 
-    fun getInitialBinary(): ByteValue {
-        return ByteValue(initBin, wordSize)
+    fun getInitialBinary(): MutVal {
+        return MutVal(initBin, wordSize)
     }
 
-    fun getAddressSize(): ByteValue.Size {
+    fun getAddressSize(): MutVal.Size {
         return addressSize
     }
 
-    fun getWordSize(): ByteValue.Size {
+    fun getWordSize(): MutVal.Size {
         return wordSize
     }
 
-    data class DMemInstance(val address: ByteValue.Type.Hex, var byteValue: ByteValue, var mark: String = "")
+    data class DMemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "")
 
     enum class Endianess {
         LittleEndian,
