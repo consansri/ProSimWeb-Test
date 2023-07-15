@@ -161,7 +161,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             val measuredTime = measureTime {
                 super.exeSkipSubroutine()
 
-                while (true) {
+                while (instrCount < 10000) {
                     val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                     val result = binMapper.getInstrFromBinary(binary.get().toBin())
                     if (destAddr == getRegisterContainer().pc.value.get()) {

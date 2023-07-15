@@ -1,5 +1,5 @@
 plugins {
-    kotlin("js") version "1.8.20"
+    kotlin("js") version "1.9.0"
 }
 
 group = "me.c3"

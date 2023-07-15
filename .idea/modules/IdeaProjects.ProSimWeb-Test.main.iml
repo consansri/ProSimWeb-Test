@@ -4,22 +4,26 @@
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="5" platform="JavaScript " allPlatforms="JS []" useProjectSettings="false" isTestModule="false" externalProjectId="ProSimWeb-Test">
         <newMppModelJpsModuleKind>COMPILATION_AND_SOURCE_SET_HOLDER</newMppModelJpsModuleKind>
-        <compilerSettings>
-          <option name="additionalArguments" value="-Xir-module-name=me.c3:ProSimWeb-Test -Xir-only -Xir-per-module-output-name=ProSimWeb-Test -Xir-produce-klib-dir -ir-output-name ProSimWeb-Test -ir-output-dir D:\PROJECTS\IdeaProjects\ProSimWeb-Test\build\classes\kotlin\main" />
-        </compilerSettings>
+        <compilerSettings />
         <compilerArguments>
           <flagArguments>
+            <flagArg name="irOnly" arg="true" />
+            <flagArg name="irProduceKlibDir" arg="true" />
             <flagArg name="metaInfo" arg="true" />
             <flagArg name="noStdlib" arg="true" />
             <flagArg name="sourceMap" arg="true" />
           </flagArguments>
           <stringArguments>
+            <stringArg name="irModuleName" arg="me.c3:ProSimWeb-Test" />
+            <stringArg name="irPerModuleOutputName" arg="ProSimWeb-Test" />
             <stringArg name="main" arg="call" />
             <stringArg name="moduleKind" arg="umd" />
+            <stringArg name="moduleName" arg="ProSimWeb-Test" />
+            <stringArg name="outputDir" arg="D:\PROJECTS\IdeaProjects\ProSimWeb-Test\build\classes\kotlin\main" />
             <stringArg name="sourceMapEmbedSources" arg="never" />
             <stringArg name="target" arg="v5" />
-            <stringArg name="apiVersion" arg="1.8" />
-            <stringArg name="languageVersion" arg="1.8" />
+            <stringArg name="apiVersion" arg="1.9" />
+            <stringArg name="languageVersion" arg="1.9" />
           </stringArguments>
           <arrayArguments>
             <arrayArg name="pluginClasspaths" />

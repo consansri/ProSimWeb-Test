@@ -20,6 +20,7 @@ import tools.DebugTools
 import views.components.FlagsCondsView
 import views.components.MemoryView
 import views.components.RegisterView
+import kotlin.coroutines.*
 
 external interface ProcessorViewProps : Props {
     var appLogic: AppLogic
