@@ -70,6 +70,7 @@ object StyleConst {
     val CLASS_TABLE_MARK_PROGRAM = "dcf-mark-program"
     val CLASS_TABLE_MARK_DATA = "dcf-mark-data"
     val CLASS_TABLE_MARK_ELSE = "dcf-mark-else"
+    val CLASS_TABLE_MARK_EDITABLE = "dcf-mark-editable"
 
     // INFO
 

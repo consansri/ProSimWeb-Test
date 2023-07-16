@@ -24,7 +24,9 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
             if (instance != null) {
                 instance.mutVal.setHex(word.toString())
-                instance.mark = mark
+                if(mark != StyleConst.CLASS_TABLE_MARK_ELSE){
+                    instance.mark = mark
+                }
             } else {
                 val newInstance = DMemInstance(hexAddress, MutVal(initBin, wordSize), mark)
                 newInstance.mutVal.setHex(word.toString())
@@ -48,7 +50,9 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
             val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {
                 instance.mutVal.setHex(word.toString())
-                instance.mark = mark
+                if(mark != StyleConst.CLASS_TABLE_MARK_ELSE){
+                    instance.mark = mark
+                }
             } else {
                 val newInstance = DMemInstance(hexAddress, MutVal(initBin, wordSize), mark)
                 newInstance.mutVal.setHex(word.toString())
@@ -91,6 +95,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun addEditableValue(name: String, address: MutVal.Value.Hex, value: MutVal.Value.Binary) {
         editableValues.add(DMemInstance.EditableValue(name, address, value))
+        editableValues.sortBy { it.address.getRawHexStr() }
     }
 
     fun refreshEditableValues() {
@@ -107,6 +112,10 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         editableValues.remove(editableValue)
     }
 
+    fun clearEditableValues(){
+        editableValues.clear()
+    }
+
     fun getMemMap(): Map<String, DMemInstance> {
         return memMap
     }
@@ -115,7 +124,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         return MutVal.Value.Hex("0", addressSize).getBiggest()
     }
 
-    fun getDefaultInstances(): List<DMemInstance.EditableValue> {
+    fun getEditableInstances(): List<DMemInstance.EditableValue> {
         return editableValues
     }
 
@@ -132,7 +141,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
     }
 
     open class DMemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "") {
-        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Binary) : DMemInstance(address, MutVal(value), "dcf-mark-defaultvalue")
+        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Binary) : DMemInstance(address, MutVal(value), "dcf-mark-editable")
 
     }
 

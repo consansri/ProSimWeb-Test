@@ -1,6 +1,7 @@
 
 .window {
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: fixed;
     font-weight: 700;
     color: white;
@@ -8,14 +9,94 @@
     left: 0;
     top: 0;
     min-width: 30rem;
-    height: 100vh!important;
-    background-color: darkorange;
+    height: 100vh !important;
+    background-color: var(--main-fg-color-sec);
     overflow-y: auto;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transition: all 0.1s ease;
+}
+
+.window-scrollContainer {
+    padding: 1rem;
+    box-shadow: inset 0px 11px 8px -10px #313131, inset 0px -11px 8px -10px #313131;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.window-element {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    gap: 0.5rem;
+    justify-content: space-evenly;
+    margin-bottom: 1rem;
+    background-color: #313131;
+    border-radius: 2rem;
+    padding: 1rem;
+    box-shadow: 0 0 5px lightblue;
 }
 
 .window div {
     white-space: nowrap;
-    height: auto!important;
+    height: auto !important;
+}
+
+.window button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.window .apply:hover {
+    filter: brightness(200%);
+}
+
+.window-addelement {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: space-evenly;
+    gap: 0.5rem;
+    position: relative;
+    text-align: center;
+    background: #515151;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.window-addelement * {
+    height: calc(var(--icon-size) + 2 * var(--icon-padding));
+}
+
+.window-element * {
+    height: calc(var(--icon-size) + 2 * var(--icon-padding));
+}
+
+.window-element .noedit {
+    appearance: none;
+    border: none;
+}
+
+.window .addelement:hover {
+    background: #717171;
+}
+
+.window input {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: max-content;
+    background: transparent;
+    border-radius: 1rem;
+    flex-grow: 1;
+    color: white;
+    text-align: center;
 }
 
 .window img {

@@ -40,9 +40,9 @@ th {
 
 }
 
-.dcf-mark-defaultvalue {
+.dcf-mark-editable {
     font-weight: 700;
-    color: darkorange;
+    color: black;
 }
 
 .dcf-mark-ascii {
@@ -55,7 +55,7 @@ th {
 
 .dcf-mark-else {
     font-weight: 700;
-    color: blueviolet;
+    color: darkorange;
 }
 
 .dcf-txt-left {
@@ -88,12 +88,14 @@ th {
 .dcf-table tbody {
     border-bottom: 1px solid var(--b-table);
     border-top: 1px solid var(--b-table);
-    font-size: .84em
+    font-size: .84em;
 }
 
 .dcf-table tfoot {
+    position: absolute;
     font-size: .84em;
-    position: relative;
+    height: 4rem;
+    top: 0;
     width: 100%;
     padding: var(--padding-size);
 }
