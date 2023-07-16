@@ -1,16 +1,43 @@
+/*:root{
+    --win-bg-color: #29335C;
+    --win-fg-color: #e3e3e2;
+    --win-el-bg-color: #e3e3e2;
+    --win-el-fg-color: #29335C;
+    --win-addel-bg-color: #29335C;
+    --win-addel-fg-color: #e3e3e2;
+}*/
+/*:root{
+    --win-bg-color: #313131;
+    --win-fg-color: white;
+    --win-el-bg-color: #515151;
+    --win-el-fg-color: white;
+    --win-addel-bg-color: #717171;
+    --win-addel-fg-color: white;
+}*/
+:root{
+    --win-bg-color: #29335C;
+    --win-fg-color: white;
+    --win-el-bg-color: white;
+    --win-el-fg-color: #29335C;
+    --win-addel-bg-color: white;
+    --win-addel-fg-color: #29335C;
+    --win-el-radius: 0.5rem;
+}
+
+
 
 .window {
     display: flex;
     flex-direction: column;
     position: fixed;
     font-weight: 700;
-    color: white;
+    color: var(--win-fg-color);
     z-index: 1000;
     left: 0;
     top: 0;
     min-width: 30rem;
     height: 100vh !important;
-    background-color: var(--main-fg-color-sec);
+    background-color: var(--win-bg-color);
     overflow-y: auto;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     transition: all 0.1s ease;
@@ -18,7 +45,7 @@
 
 .window-scrollContainer {
     padding: 1rem;
-    box-shadow: inset 0px 11px 8px -10px #313131, inset 0px -11px 8px -10px #313131;
+    box-shadow: inset 0px 11px 8px -10px var(--win-el-bg-color), inset 0px -11px 8px -10px var(--win-el-bg-color);
     overflow-y: auto;
     flex-grow: 1;
 }
@@ -30,10 +57,11 @@
     gap: 0.5rem;
     justify-content: space-evenly;
     margin-bottom: 1rem;
-    background-color: #313131;
-    border-radius: 2rem;
+    background-color: var(--win-el-bg-color);
+    color: var(--win-el-fg-color)!important;
+    border-radius: var(--win-el-radius);
     padding: 1rem;
-    box-shadow: 0 0 5px lightblue;
+    /*box-shadow: 0 0 5px lightblue;*/
 }
 
 .window div {
@@ -45,7 +73,6 @@
     appearance: none;
     border: none;
     background: transparent;
-    color: white;
     cursor: pointer;
     transition: all 0.1s ease;
 }
@@ -62,10 +89,11 @@
     gap: 0.5rem;
     position: relative;
     text-align: center;
-    background: #515151;
+    background: var(--win-addel-bg-color);
+    color: var(--win-addel-fg-color)!important;
     padding: 1rem;
     margin-bottom: 1rem;
-    border-radius: 2rem;
+    border-radius: var(--win-el-radius);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -93,9 +121,8 @@
     -moz-appearance: none;
     width: max-content;
     background: transparent;
-    border-radius: 1rem;
+    border-radius: var(--win-el-radius);
     flex-grow: 1;
-    color: white;
     text-align: center;
 }
 

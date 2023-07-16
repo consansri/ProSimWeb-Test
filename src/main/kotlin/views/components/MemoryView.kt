@@ -539,9 +539,6 @@ val MemoryView = FC<MemViewProps> { props ->
                                 }
 
                                 img {
-                                    css {
-                                        filter = invert(1)
-                                    }
                                     src = "icons/add-circle.svg"
                                 }
                             }
@@ -654,9 +651,6 @@ val MemoryView = FC<MemViewProps> { props ->
                                 }
 
                                 img {
-                                    css {
-                                        filter = invert(1)
-                                    }
                                     src = "icons/add-circle.svg"
                                 }
                             }
