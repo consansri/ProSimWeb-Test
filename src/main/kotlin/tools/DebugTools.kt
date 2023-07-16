@@ -65,8 +65,8 @@ object DebugTools {
     }
 
     fun testBinTools(iConsole: IConsole) {
-        val bin1 = "111101"
-        val bin2 = "011"
+        val bin1 = "11001010111111101010000000000000"
+        val bin2 = "11111111111111111111111111111110"
 
         iConsole.log("BinaryTools.sub(): ${bin1} - ${bin2} = ${BinaryTools.sub(bin1, bin2)}")
         iConsole.log("BinaryTools.div(): ${bin1} - ${bin2} = ${BinaryTools.divide(bin1, bin2)}")

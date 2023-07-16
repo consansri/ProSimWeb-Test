@@ -1343,10 +1343,9 @@ class RISCVGrammar : Grammar() {
                         val imm12 = paramMap.get(MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
-                            val sum = rs1.get().toDec() + paddedImm32.toDec()
+                            val paddedImm32 = imm12.getResized(MutVal.Size.Bit32())
+                            val sum = rs1.get().toBin() + paddedImm32
                             rd.set(sum)
-                            console.log("addi: ${rs1.get().toHex().getHexStr()} + ${paddedImm32.getResized(MutVal.Size.Bit32()).toHex().getHexStr()} -> ${sum.toHex().getHexStr()}")
                             pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
                         }
                     }

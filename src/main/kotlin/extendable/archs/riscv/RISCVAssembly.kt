@@ -172,27 +172,27 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                             val length: MutVal.Value.Hex
                                             when (entry.t1Directive?.type) {
                                                 byte -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit8()))
+                                                    resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit8()))
                                                     length = MutVal.Value.Hex("1")
                                                 }
 
                                                 half -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit16()))
+                                                    resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit16()))
                                                     length = MutVal.Value.Hex("2")
                                                 }
 
                                                 word -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit32()))
+                                                    resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit32()))
                                                     length = MutVal.Value.Hex("4")
                                                 }
 
                                                 dword -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit64()))
+                                                    resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit64()))
                                                     length = MutVal.Value.Hex("8")
                                                 }
 
                                                 asciz -> {
-                                                    resizedValues = arrayOf(originalValue.getResized(MutVal.Size.Bit8()))
+                                                    resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit8()))
                                                     length = MutVal.Value.Hex("1")
                                                 }
 

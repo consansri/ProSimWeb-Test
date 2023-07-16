@@ -5,12 +5,12 @@ import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVBinMapper
 import extendable.archs.riscv.RISCVGrammar
 import extendable.components.types.MutVal
+import tools.DebugTools
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
 class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
-    @OptIn(ExperimentalTime::class)
     override fun exeContinuous() {
         var instrCount = 0
         val measuredTime = measureTime {
@@ -34,8 +34,8 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun exeSingleStep() {
+
         val measuredTime = measureTime {
             super.exeSingleStep()
 
@@ -47,11 +47,12 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
+        DebugTools.testBinTools(getConsole())
+
         getConsole().log("--single_step finishing... \ntook ${measuredTime.inWholeMilliseconds} ms")
 
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun exeMultiStep(steps: Int) {
         var instrCount = 0
 
@@ -79,7 +80,6 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
         getConsole().log("--multi_step finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun exeSkipSubroutine() {
         var instrCount = 0
 
@@ -112,7 +112,6 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
         getConsole().log("--exe_skip_subroutine finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun exeReturnFromSubroutine() {
         super.exeReturnFromSubroutine()
         var instrCount = 0
@@ -136,7 +135,6 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun exeUntilLine(lineID: Int) {
         super.exeUntilLine(lineID)
         var instrCount = 0
@@ -199,7 +197,6 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun exeClear() {
         super.exeClear()
 

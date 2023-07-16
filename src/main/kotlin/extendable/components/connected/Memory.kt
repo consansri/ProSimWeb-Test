@@ -95,7 +95,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun refreshEditableValues() {
         for (value in editableValues) {
-            val key = value.address.getResized(addressSize).getRawHexStr()
+            val key = value.address.getUResized(addressSize).getRawHexStr()
             if (memMap.containsKey(key)) {
                 memMap.remove(key)
             }

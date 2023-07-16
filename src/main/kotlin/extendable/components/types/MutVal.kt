@@ -318,12 +318,12 @@ class MutVal {
                 return Binary(BinaryTools.xor(getRawBinaryStr(), binary2.getRawBinaryStr()), biggestSize)
             }
 
-            infix fun or(binary2: Binary): Binary{
+            infix fun or(binary2: Binary): Binary {
                 val biggestSize = if (size.bitWidth >= binary2.size.bitWidth) size else binary2.size
                 return Binary(BinaryTools.or(getRawBinaryStr(), binary2.getRawBinaryStr()), biggestSize)
             }
 
-            infix fun and(binary2: Binary): Binary{
+            infix fun and(binary2: Binary): Binary {
                 val biggestSize = if (size.bitWidth >= binary2.size.bitWidth) size else binary2.size
                 return Binary(BinaryTools.and(getRawBinaryStr(), binary2.getRawBinaryStr()), biggestSize)
             }
@@ -352,7 +352,7 @@ class MutVal {
                 return hexString
             }
 
-            fun getResized(size: Size): Hex {
+            fun getUResized(size: Size): Hex {
                 return Hex(getRawHexStr(), size)
             }
 
@@ -483,6 +483,10 @@ class MutVal {
 
             fun getDecStr(): String {
                 return decString
+            }
+
+            fun getResized(size: Size): Dec {
+                return Dec(getRawDecStr(), size)
             }
 
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
@@ -619,6 +623,10 @@ class MutVal {
 
             fun getRawUDecStr(): String {
                 return udecString.removePrefix(ArchConst.PRESTRING_DECIMAL)
+            }
+
+            fun getUResized(size: Size): UDec {
+                return UDec(getRawUDecStr(), size)
             }
 
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
