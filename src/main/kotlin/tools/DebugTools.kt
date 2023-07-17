@@ -14,7 +14,7 @@ object DebugTools {
     const val RISCV_showAsmInfo = false
     const val RISCV_showBinMapperInfo = false
     const val RISCV_showOpCodeInfo = false
-    const val RISCV_showGrammarScanTiers = false
+    const val RISCV_showGrammarScanTiers = true
 
     //      RISCII
 

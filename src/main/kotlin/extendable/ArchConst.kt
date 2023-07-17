@@ -25,6 +25,7 @@ object ArchConst {
         val dec = StyleConst.HLCLASS_blue
         val udec = StyleConst.HLCLASS_blue
         val ascii = StyleConst.HLCLASS_green
+        val string = StyleConst.HLCLASS_green
 
         val error = StyleConst.HLCLASS_red
 

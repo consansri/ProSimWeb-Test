@@ -15,6 +15,7 @@ import tools.DebugTools
 class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: MutVal.Value) : Assembly() {
 
     val labelBinAddrMap = mutableMapOf<RISCVGrammar.T1Label, String>()
+    val labelConstMap = mutableMapOf<RISCVGrammar.T1Label, MutVal.Value>()
     val transcriptEntrys = mutableListOf<Transcript.TranscriptEntry>()
     val binarys = mutableListOf<MutVal.Value.Binary>()
 
@@ -99,6 +100,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
         var assemblyMap: AssemblyMap? = null
         rootNode?.let {
             labelBinAddrMap.clear()
+            labelConstMap.clear()
             transcriptEntrys.clear()
             binarys.clear()
             val instructionMapList = mutableMapOf<Long, RISCVGrammar.T2InstrDef>()
@@ -124,7 +126,16 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                             console.log("RISCVAssembly.generateByteCode(): found Label ${entry.t1Label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
                                         }
                                         labelBinAddrMap.set(entry.t1Label, address)
-
+                                    } else if (entry.type == CONSTANT) {
+                                        val constant = entry.t1Param?.getValues()?.first()
+                                        if (constant != null) {
+                                            if (DebugTools.RISCV_showAsmInfo) {
+                                                console.log("RISCVAssembly.generateByteCode(): found EQU ${entry.t1Label.wholeName} with constant ${constant.toHex().getHexStr()}")
+                                            }
+                                            labelConstMap.set(entry.t1Label, constant)
+                                        } else {
+                                            console.error("RISCVAssembly.generateByteCode(): haven't found any constant of label definition ${entry.t1Label.wholeName}")
+                                        }
                                     }
                                 }
                             }
@@ -140,32 +151,39 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                         if (param is RISCVGrammar.T1Param.Constant) {
                                             val originalValue: MutVal.Value.Hex
                                             val constToken = param.constant
-                                            val isAsciiString: Boolean
+                                            val isString: Boolean
                                             when (constToken) {
                                                 is Compiler.Token.Constant.Ascii -> {
                                                     originalValue = MutVal.Value.Hex(MutVal.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
-                                                    isAsciiString = true
+                                                    isString = false
+                                                }
+
+                                                is Compiler.Token.Constant.String -> {
+                                                    originalValue = MutVal.Value.Hex(MutVal.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
+                                                    isString = true
                                                 }
 
                                                 is Compiler.Token.Constant.Binary -> {
                                                     originalValue = MutVal.Value.Binary(constToken.content).toHex()
-                                                    isAsciiString = false
+                                                    isString = false
                                                 }
 
                                                 is Compiler.Token.Constant.Dec -> {
                                                     originalValue = MutVal.Value.Dec(constToken.content).toHex()
-                                                    isAsciiString = false
+                                                    isString = false
                                                 }
 
                                                 is Compiler.Token.Constant.Hex -> {
                                                     originalValue = MutVal.Value.Hex(constToken.content)
-                                                    isAsciiString = false
+                                                    isString = false
                                                 }
 
                                                 is Compiler.Token.Constant.UDec -> {
                                                     originalValue = MutVal.Value.UDec(constToken.content).toHex()
-                                                    isAsciiString = false
+                                                    isString = false
                                                 }
+
+
                                             }
 
                                             val resizedValues: Array<MutVal.Value.Hex>
@@ -197,7 +215,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                                 }
 
                                                 string -> {
-                                                    if (isAsciiString) {
+                                                    if (isString) {
                                                         val content = constToken.content.substring(1, constToken.content.length - 1)
                                                         val valueList = mutableListOf<MutVal.Value.Hex>()
                                                         for (char in content) {
@@ -209,7 +227,6 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                                         resizedValues = arrayOf(originalValue)
                                                         length = MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
                                                     }
-
                                                 }
 
                                                 else -> {
@@ -251,7 +268,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
             // Getting binary and store binary in memory
             val instrIDMap = mutableMapOf<String, Int>()
-            binaryMapper.setLabelLinks(labelBinAddrMap)
+            binaryMapper.setLabelLinks(labelBinAddrMap, labelConstMap)
             for (instr in instructionMapList) {
                 val binary = binaryMapper.getBinaryFromInstrDef(instr.value, MutVal.Value.Hex((binarys.size * 4).toString(16), MutVal.Size.Bit32()))
                 if (DebugTools.RISCV_showAsmInfo) {

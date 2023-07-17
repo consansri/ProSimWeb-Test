@@ -113,6 +113,15 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                         continue
                     }
 
+                    val string = regexCollection.string.find(remainingLine)
+                    if(string != null){
+                        tokenList += Token.Constant.String(LineLoc(lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
+                        tempTokenList += Token.Constant.String(LineLoc(lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
+                        startIndex += string.value.length
+                        remainingLine = line.substring(startIndex)
+                        continue
+                    }
+
                     val symbol = regexCollection.symbol.find(remainingLine)
                     if (symbol != null) {
                         tokenList += Token.Symbol(LineLoc(lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
@@ -180,7 +189,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             architecture.getConsole().clear()
             for (error in it) {
                 if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error {NodeType: ${error.linkedTreeNode.name}, Tokens: ${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}} \n${error.message}")
+                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error [NodeType: ${error.linkedTreeNode.name}, Tokens: ${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}] \nmessage: ${error.message}")
                 } else {
                     architecture.getConsole().error("GlobalError: " + error.message)
                 }
@@ -250,6 +259,12 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                         }
 
                         is Token.Constant.Ascii -> {
+                            hlFlagCollection.const_ascii?.let {
+                                token.hl(architecture, it)
+                            }
+                        }
+
+                        is Token.Constant.String -> {
                             hlFlagCollection.const_ascii?.let {
                                 token.hl(architecture, it)
                             }
@@ -350,14 +365,13 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         class Symbol(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.SYMBOL
-
         }
 
-        sealed class Constant(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
+        sealed class Constant(lineLoc: LineLoc, content: kotlin.String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.CONSTANT
             abstract fun getValue(): MutVal.Value
 
-            class Ascii(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
+            class Ascii(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
                     val binChars = StringBuilder()
                     for (char in content) {
@@ -368,19 +382,31 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 }
             }
 
-            class Binary(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
+            class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id){
+                override fun getValue(): MutVal.Value {
+                    val binChars = StringBuilder()
+                    for (char in content) {
+                        val bin = char.digitToInt().toString(2)
+                        binChars.append(bin)
+                    }
+                    return MutVal.Value.Binary(binChars.toString())
+                }
+
+            }
+
+            class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
                     return MutVal.Value.Binary(content)
                 }
             }
 
-            class Hex(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
+            class Hex(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
                     return MutVal.Value.Hex(content).toBin()
                 }
             }
 
-            class Dec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
+            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
                     if (DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.Dec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
@@ -389,7 +415,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 }
             }
 
-            class UDec(lineLoc: LineLoc, content: String, id: Int) : Constant(lineLoc, content, id) {
+            class UDec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
                     if (DebugTools.ARCH_showCompilerInfo) {
                         console.warn("Compiler.UDec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
@@ -432,6 +458,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         val const_dec: String? = null,
         val const_udec: String? = null,
         val const_ascii: String? = null,
+        val const_string: String? = null,
         val register: String? = null,
         val symbol: String? = null,
         val instruction: String? = null,
@@ -447,6 +474,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         val dec: Regex,
         val udec: Regex,
         val ascii: Regex,
+        val string: Regex,
         val alphaNumeric: Regex,
         val word: Regex,
     )

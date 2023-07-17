@@ -2,15 +2,18 @@ package extendable.archs.riscv
 
 import extendable.ArchConst
 import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
+import extendable.components.types.BinaryTools
 import extendable.components.types.MutVal
 import tools.DebugTools
 
 class RISCVBinMapper {
 
     var labelAddrMap = mapOf<RISCVGrammar.T1Label, String>()
+    var labelConstMap = mapOf<RISCVGrammar.T1Label, MutVal.Value>()
 
-    fun setLabelLinks(labelAddrMap: Map<RISCVGrammar.T1Label, String>) {
+    fun setLabelLinks(labelAddrMap: Map<RISCVGrammar.T1Label, String>, labelConstMap: Map<RISCVGrammar.T1Label, MutVal.Value>) {
         this.labelAddrMap = labelAddrMap
+        this.labelConstMap = labelConstMap
     }
 
     fun getBinaryFromInstrDef(instrDef: RISCVGrammar.T2InstrDef, instrStartAddress: MutVal.Value.Hex): Array<MutVal.Value.Binary> {
@@ -26,19 +29,36 @@ class RISCVBinMapper {
         if (!labels.isNullOrEmpty()) {
             for (label in labels) {
                 val linkedAddress = labelAddrMap.get(label)
-                if (linkedAddress == null) {
-                    console.warn("BinMapper.getBinaryFromInstrDef(): missing label address entry for [${label.wholeName}]!")
+                val linkedConstant = labelConstMap.get(label)
+                if (linkedAddress == null && linkedConstant == null) {
+                    console.warn("BinMapper.getBinaryFromInstrDef(): missing label address or constant entry for [${label.wholeName}]!")
                 }
             }
         }
 
         try {
-            when (instrDef.type) {
+            val instrDefType = instrDef.type
+            when (instrDefType) {
                 LUI, AUIPC, JAL -> {
                     values?.let {
                         val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0].toBin(), MaskLabel.IMM20 to values[1].toBin()))
                         opCode?.let {
                             binaryArray.add(opCode)
+                        }
+                    }
+                }
+
+                LUI_Const, AUIPC_Const, JAL_Const -> {
+                    if (values != null && labels != null) {
+                        val constant = labelConstMap.get(labels.first())
+                        if (constant != null) {
+                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0].toBin(), MaskLabel.IMM20 to constant.toBin().getUResized(MutVal.Size.Bit20())))
+
+                            opCode?.let {
+                                binaryArray.add(opCode)
+                            }
+                        } else {
+                            console.warn("RI_Const didn't find constant!")
                         }
                     }
                 }
@@ -73,6 +93,23 @@ class RISCVBinMapper {
                     }
                 }
 
+                BEQ_Const, BNE_Const, BLT_Const, BGE_Const, BLTU_Const, BGEU_Const -> {
+                    if (values != null && labels != null) {
+                        val constant = labelConstMap.get(labels.first())
+                        if (constant != null) {
+                            val imm12 = constant.toBin().getResized(MutVal.Size.Bit12()).getRawBinaryStr()
+                            val imm5 = MutVal.Value.Binary(imm12.substring(imm12.length - 5), MutVal.Size.Bit5())
+                            val imm7 = MutVal.Value.Binary(imm12.substring(0, 7), MutVal.Size.Bit7())
+
+                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0].toBin(), MaskLabel.RS2 to values[1].toBin(), MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
+                            opCode?.let {
+                                binaryArray.add(opCode)
+                            }
+                        } else {
+                            console.warn("BRANCH_Const didn't find constant!")
+                        }
+                    }
+                }
 
                 LB, LH, LW, LBU, LHU -> {
                     values?.let {
@@ -105,11 +142,41 @@ class RISCVBinMapper {
                     }
                 }
 
+                ADDI_Const, SLTI_Const, SLTIU_Const, XORI_Const, ORI_Const, ANDI_Const -> {
+                    if (values != null && labels != null) {
+                        val constant = labelConstMap.get(labels.first())
+                        if (constant != null) {
+                            val imm12 = constant.toBin().getResized(MutVal.Size.Bit12())
+                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0].toBin(), MaskLabel.RS1 to values[1].toBin(), MaskLabel.IMM12 to imm12))
+                            opCode?.let {
+                                binaryArray.add(opCode)
+                            }
+                        } else {
+                            console.warn("LOGICANDCALCIMM_Const didn't find constant!")
+                        }
+                    }
+                }
+
                 SLLI, SRLI, SRAI -> {
                     values?.let {
                         val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0].toBin(), MaskLabel.RS1 to values[1].toBin(), MaskLabel.SHAMT to values[2].toBin()))
                         opCode?.let {
                             binaryArray.add(opCode)
+                        }
+                    }
+                }
+
+                SLLI_Const, SRLI_Const, SRAI_Const -> {
+                    if (values != null && labels != null) {
+                        val constant = labelConstMap.get(labels.first())
+                        if (constant != null) {
+                            val imm5 = constant.toBin().getResized(MutVal.Size.Bit5())
+                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0].toBin(), MaskLabel.RS1 to values[1].toBin(), MaskLabel.SHAMT to imm5))
+                            opCode?.let {
+                                binaryArray.add(opCode)
+                            }
+                        } else {
+                            console.warn("SHIFT_Const didn't find constant!")
                         }
                     }
                 }
@@ -150,7 +217,7 @@ class RISCVBinMapper {
 
                         val imm12 = MutVal.Value.Binary(low12, MutVal.Size.Bit12())
 
-                        var imm20 = when (immediate) {
+                        val imm20 = when (immediate) {
                             is MutVal.Value.Binary -> {
                                 val imm20temp = (MutVal.Value.Binary(hi20, MutVal.Size.Bit20())).toBin() // more performant
                                 if (imm12.toDec().isNegative()) {
@@ -185,18 +252,118 @@ class RISCVBinMapper {
                             }
                         }
 
-
                         val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
                         val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
-
-                        val shouldResult = (imm20.getResized(MutVal.Size.Bit32()).shl(12) + imm12).toBin()
-                        console.log("PseudoInstr.Li: orig 0b$imm32 -> imm20 ${imm20.getBinaryStr()} + imm12 ${imm12.getBinaryStr()} toDec ${imm12.toDec().getRawDecStr()} -> imm32 ${shouldResult.getRawBinaryStr()} toDec ${shouldResult.toDec().getRawDecStr()} {same: ${shouldResult == imm32}}")
 
                         if (luiOpCode != null && addiOpCode != null) {
                             binaryArray.add(luiOpCode)
                             binaryArray.add(addiOpCode)
                         }
 
+                    }
+                }
+
+                Li_Const -> {
+                    if (values != null && labels != null) {
+                        val regBin = values[0].toBin()
+                        val constant = labelConstMap.get(labels.first())
+                        if (constant != null) {
+                            val immediate = constant
+                            val imm32 = when (immediate) {
+                                is MutVal.Value.Binary -> {
+                                    immediate.getUResized(MutVal.Size.Bit32())
+                                }
+
+                                is MutVal.Value.Dec -> {
+                                    immediate.getResized(MutVal.Size.Bit32()).toBin()
+                                }
+
+                                is MutVal.Value.Hex -> {
+                                    immediate.toBin().getResized(MutVal.Size.Bit32())
+                                }
+
+                                is MutVal.Value.UDec -> {
+                                    immediate.getUResized(MutVal.Size.Bit32()).toBin()
+                                }
+                            }
+
+                            val hi20 = imm32.getRawBinaryStr().substring(0, 20)
+                            val low12 = imm32.getRawBinaryStr().substring(20)
+
+                            val imm12 = MutVal.Value.Binary(low12, MutVal.Size.Bit12())
+
+                            val imm20 = when (immediate) {
+                                is MutVal.Value.Binary -> {
+                                    val imm20temp = (MutVal.Value.Binary(hi20, MutVal.Size.Bit20())).toBin()
+                                    if (imm12.toDec().isNegative()) {
+                                        (imm20temp + MutVal.Value.Binary("1")).toBin()
+                                    } else {
+                                        imm20temp
+                                    }
+                                }
+
+                                is MutVal.Value.Dec -> {
+                                    (imm32 - imm12).toBin() ushr 12
+                                }
+
+                                is MutVal.Value.Hex -> {
+                                    val imm20temp = (MutVal.Value.Binary(hi20, MutVal.Size.Bit20())).toBin()
+                                    if (imm12.toDec().isNegative()) {
+                                        (imm20temp + MutVal.Value.Binary("1")).toBin()
+                                    } else {
+                                        imm20temp
+                                    }
+                                }
+
+                                is MutVal.Value.UDec -> {
+                                    val imm20temp = (MutVal.Value.Binary(hi20, MutVal.Size.Bit20())).toBin()
+                                    if (imm12.toDec().isNegative()) {
+                                        (imm20temp + MutVal.Value.Binary("1")).toBin()
+                                    } else {
+                                        imm20temp
+                                    }
+                                }
+                            }
+
+                            val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
+                            val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
+
+                            if (luiOpCode != null && addiOpCode != null) {
+                                binaryArray.add(luiOpCode)
+                                binaryArray.add(addiOpCode)
+                            }
+                        } else {
+                            console.warn("PS_RI_Const didn't find constant!")
+                        }
+                    }
+                }
+
+                La -> {
+                    if (values != null && labels != null) {
+                        val regBin = values[0].toBin()
+                        val address = labelAddrMap.get(labels.first())
+                        if (address != null) {
+                            val imm32 = MutVal.Value.Binary(address)
+                            val hi20 = imm32.getRawBinaryStr().substring(0, 20)
+                            val low12 = imm32.getRawBinaryStr().substring(20)
+
+                            val imm12 = MutVal.Value.Binary(low12, MutVal.Size.Bit12())
+
+                            val imm20temp = (MutVal.Value.Binary(hi20, MutVal.Size.Bit20())).toBin() // more performant
+                            val imm20 = if (imm12.toDec().isNegative()) {
+                                (imm20temp + MutVal.Value.Binary("1")).toBin()
+                            } else {
+                                imm20temp
+                            }
+
+                            val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
+                            val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
+
+                            if (luiOpCode != null && addiOpCode != null) {
+                                binaryArray.add(luiOpCode)
+                                binaryArray.add(addiOpCode)
+                            }
+                        }
                     }
                 }
 
@@ -209,26 +376,13 @@ class RISCVBinMapper {
                             val imm5 = MutVal.Value.Binary(imm12offset.substring(imm12offset.length - 5), MutVal.Size.Bit5())
                             val imm7 = MutVal.Value.Binary(imm12offset.substring(0, 7), MutVal.Size.Bit7())
 
-                            val thisType = when (instrDef.type) {
-                                BEQ1 -> BEQ
-                                BNE1 -> BNE
-                                BLT1 -> BLT
-                                BGE1 -> BGE
-                                BLTU1 -> BLTU
-                                BGEU1 -> BGEU
-                                else -> {
-                                    null
-                                }
-                            }
-
-                            val opCode = thisType?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0].toBin(), MaskLabel.RS2 to values[1].toBin(), MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
+                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0].toBin(), MaskLabel.RS2 to values[1].toBin(), MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                             opCode?.let {
                                 binaryArray.add(opCode)
                             }
                         }
                     }
                 }
-
 
                 JAL1 -> {
                     if (!values.isNullOrEmpty() && !labels.isNullOrEmpty()) {
@@ -621,6 +775,8 @@ class RISCVBinMapper {
                         }
                     }
                 }
+
+
             }
         } catch (e: IndexOutOfBoundsException) {
             console.error("IndexOutOfBoundsException: $e")
@@ -630,7 +786,7 @@ class RISCVBinMapper {
     }
 
     fun getInstrFromBinary(binary: MutVal.Value.Binary): InstrResult? {
-        for (instrType in RISCVGrammar.T1Instr.Type.values()) {
+        for (instrType in entries) {
             val checkResult = instrType.opCode?.checkOpCode(binary)
             checkResult?.let {
                 if (it.matches) {

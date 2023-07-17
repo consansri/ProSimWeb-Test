@@ -5,6 +5,7 @@ import extendable.archs.riscv.RISCVBinMapper.*
 import extendable.archs.riscv.RISCVGrammar.T1Directive.Type.*
 import extendable.archs.riscv.RISCVGrammar.T1Instr.ParameterType.*
 import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
+import extendable.archs.riscv.RISCVGrammar.T2LabelDef.Type.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
 import extendable.components.types.MutVal
@@ -49,7 +50,7 @@ class RISCVGrammar : Grammar() {
 
         var remainingLines = tokenLines.toMutableList()
 
-        // TIER 1 PRE Elements (Labels)
+        // -------------------------------------------------------------------------- TIER 1 PRE Elements (Labels) --------------------------------------------------------------------------
         for (lineID in remainingLines.indices) {
             var remainingTokens = remainingLines[lineID].toMutableList()
             val tier1Line = mutableListOf<TreeNode>()
@@ -93,7 +94,7 @@ class RISCVGrammar : Grammar() {
                                 }
                             }
                             if (alreadyDefined) {
-                                errors.add(Error("Mutliple Labels with same name not possible!", *labelName.toTypedArray(), colon))
+                                errors.add(Error("Mutliple labels with same name not possible!", *labelName.toTypedArray(), colon))
                                 remainingTokens.removeAll(labelName)
                                 remainingTokens.remove(colon)
                                 break
@@ -118,7 +119,7 @@ class RISCVGrammar : Grammar() {
             tier1Lines[lineID] += tier1Line
         }
 
-        // TIER 1 MAIN Scan
+        // -------------------------------------------------------------------------- TIER 1 MAIN Scan --------------------------------------------------------------------------
         for (lineID in remainingLines.indices) {
             var remainingTokens = remainingLines[lineID].toMutableList()
             val tier1Line = mutableListOf<TreeNode>()
@@ -226,6 +227,14 @@ class RISCVGrammar : Grammar() {
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
+
+                    equ.name -> {
+                        val t1Directive = T1Directive(dot, equ, *directiveName.toTypedArray())
+                        remainingTokens.removeAll(directiveName)
+                        remainingTokens.remove(dot)
+                        t1Directives.add(t1Directive)
+                        tier1Line.add(t1Directive)
+                    }
                 }
             }
 
@@ -299,7 +308,7 @@ class RISCVGrammar : Grammar() {
                     }
 
                     var labelLink: T1Param.LabelLink? = null
-                    var tokensForLabelToCheck = mutableListOf<Compiler.Token>()
+                    val tokensForLabelToCheck = mutableListOf<Compiler.Token>()
                     for (possibleLabelToken in remainingTokens.dropWhile { firstToken != it }) {
                         if (possibleLabelToken is Compiler.Token.Space || (possibleLabelToken.content == ",")) {
                             break
@@ -378,7 +387,7 @@ class RISCVGrammar : Grammar() {
             console.log("Grammar: Tier 1 Main Scan -> ${tier1Lines.joinToString(", line: ") { it.joinToString(" ") { it.name } }}")
         }
 
-        // TIER 2 MAIN Scan (check Syntax) | Ignore Comments
+        // -------------------------------------------------------------------------- TIER 2 MAIN Scan (check Syntax) | Ignore Comments --------------------------------------------------------------------------
         var isTextArea = true
         val tier2Lines = mutableListOf<TreeNode?>()
 
@@ -414,7 +423,6 @@ class RISCVGrammar : Grammar() {
             if (result.matches) {
                 if (result.matchingTreeNodes.size > 0) {
                     val t1Instr = result.matchingTreeNodes[0] as T1Instr
-
                     val t1ParamColl: T1ParamColl?
                     if (result.matchingTreeNodes.size == 2) {
                         t1ParamColl = result.matchingTreeNodes[1] as T1ParamColl
@@ -445,7 +453,10 @@ class RISCVGrammar : Grammar() {
                     val t1Directive = result.matchingTreeNodes[1] as T1Directive
                     val t1ParamColl = result.matchingTreeNodes[2] as T1ParamColl
                     if (t1ParamColl.paramsWithOutSplitSymbols.size == 1 && t1Directive.isTypeDirective() && t1ParamColl.paramsWithOutSplitSymbols.first() is T1Param.Constant) {
-                        tier2Node = T2LabelDef(T2LabelDef.Type.MEMALLOC, t1Label, t1Directive, t1ParamColl)
+                        tier2Node = T2LabelDef(MEMALLOC, t1Label, t1Directive, t1ParamColl)
+                        tier2Lines.add(tier2Node)
+                    } else if (t1ParamColl.paramsWithOutSplitSymbols.size == 1 && t1Directive.isConstantDirective() && t1ParamColl.paramsWithOutSplitSymbols.first() is T1Param.Constant) {
+                        tier2Node = T2LabelDef(CONSTANT, t1Label, t1Directive, t1ParamColl)
                         tier2Lines.add(tier2Node)
                     } else {
                         errors.add(Grammar.Error(message = "Memory / Address Allocation: " + if (!t1Directive.isTypeDirective()) "invalid type!" else "invalid parameter count!", nodes = tier1Line.toTypedArray()))
@@ -463,7 +474,7 @@ class RISCVGrammar : Grammar() {
             if (result.matches) {
                 if (result.matchingTreeNodes.size == 1) {
                     val t1Label = result.matchingTreeNodes[0] as T1Label
-                    tier2Node = T2LabelDef(T2LabelDef.Type.JUMP, t1Label)
+                    tier2Node = T2LabelDef(JUMP, t1Label)
                     tier2Lines.add(tier2Node)
                     result.error?.let {
                         errors.add(it)
@@ -505,22 +516,92 @@ class RISCVGrammar : Grammar() {
             for (tokenNode in tier1Line) {
                 errors.add(Grammar.Error("couldn't match RiscV Tier1 Nodes to RiscV Tier2 Node!", tokenNode))
             }
-
         }
         if (DebugTools.RISCV_showGrammarScanTiers) {
             console.log("Grammar: Tier 2 Main Scan -> ${tier2Lines.filterNotNull().joinToString { it.name }}")
         }
 
-        // TIER 3 MAIN Scan (apply Sections) | Ignore Comments
+        // -------------------------------------------------------------------------- Tier 2.5 ReCheck Label Types --------------------------------------------------------------------------
+        val recheckedT2Lines = mutableListOf<TreeNode>()
+        val notNullT2lines = tier2Lines.filterNotNull().toMutableList()
+        val jumpLabels = mutableListOf<T1Label>()
+        tier2Lines.filterNotNull().forEach {
+            if (it is T2LabelDef && it.type == JUMP) {
+                jumpLabels.add(it.t1Label)
+            }
+        }
+        val memAllocLabels = mutableListOf<T1Label>()
+        tier2Lines.filterNotNull().forEach {
+            if (it is T2LabelDef && it.type == MEMALLOC) {
+                memAllocLabels.add(it.t1Label)
+            }
+        }
+        val constantLabels = mutableListOf<T1Label>()
+        tier2Lines.filterNotNull().forEach {
+            if (it is T2LabelDef && it.type == CONSTANT) {
+                constantLabels.add(it.t1Label)
+            }
+        }
+
+        for (entry in notNullT2lines) {
+            when (entry) {
+                is T2InstrDef -> {
+                    val labelsToCheck = mutableListOf<T1Label>()
+                    entry.t1ParamColl?.t1Params?.forEach {
+                        if (it is T1Param.LabelLink) {
+                            labelsToCheck.add(it.linkedT1Label)
+                        }
+                    }
+                    when (entry.type.paramType.expectedLabelType) {
+                        JUMP -> {
+                            if (jumpLabels.containsAll(labelsToCheck)) {
+                                recheckedT2Lines.add(entry)
+                            } else {
+                                errors.add(Error("[${labelsToCheck.joinToString { it.wholeName }}] not a jump label!", entry))
+                            }
+                        }
+
+                        MEMALLOC -> {
+                            if (memAllocLabels.containsAll(labelsToCheck)) {
+                                recheckedT2Lines.add(entry)
+                            } else {
+                                errors.add(Error("[${labelsToCheck.joinToString { it.wholeName }}] not a mem alloc label!", entry))
+                            }
+                        }
+
+                        CONSTANT -> {
+                            if (constantLabels.containsAll(labelsToCheck)) {
+                                recheckedT2Lines.add(entry)
+                            } else {
+                                errors.add(Grammar.Error("[${labelsToCheck.joinToString { it.wholeName }}] not a equ label!", entry))
+                            }
+                        }
+
+                        null -> {
+                            recheckedT2Lines.add(entry)
+                        }
+                    }
+                }
+
+                else -> {
+                    recheckedT2Lines.add(entry)
+                }
+            }
+        }
+
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: Tier 2.5 ReCheck Label Types -> ${recheckedT2Lines.filterNotNull().joinToString { it.name }}")
+        }
+
+        // -------------------------------------------------------------------------- TIER 3 MAIN Scan (apply Sections) | Ignore Comments --------------------------------------------------------------------------
         val sections = mutableListOf<TreeNode.SectionNode>()
 
-        val notNullT2Lines = tier2Lines.filterNotNull().toMutableList()
         var isTextSection = true
         var sectionIdentification: TreeNode.CollectionNode? = null
         var sectionContent = mutableListOf<TreeNode.CollectionNode>()
 
-        while (notNullT2Lines.isNotEmpty()) {
-            val firstT2Line = notNullT2Lines.first()
+        while (recheckedT2Lines.isNotEmpty()) {
+            val firstT2Line = recheckedT2Lines.first()
 
             when (firstT2Line) {
                 is T2DataSectionStart -> {
@@ -538,7 +619,7 @@ class RISCVGrammar : Grammar() {
                     }
                     isTextSection = false
                     sectionIdentification = firstT2Line
-                    notNullT2Lines.removeFirst()
+                    recheckedT2Lines.removeFirst()
                     continue
                 }
 
@@ -558,29 +639,34 @@ class RISCVGrammar : Grammar() {
                     }
                     isTextSection = true
                     sectionIdentification = firstT2Line
-                    notNullT2Lines.removeFirst()
+                    recheckedT2Lines.removeFirst()
                     continue
                 }
 
                 is T2InstrDef -> {
                     if (isTextSection) {
                         sectionContent.add(firstT2Line)
-                        notNullT2Lines.removeFirst()
+                        recheckedT2Lines.removeFirst()
                         continue
                     }
                 }
 
                 is T2LabelDef -> {
                     if (isTextSection) {
-                        if (firstT2Line.type == T2LabelDef.Type.JUMP) {
+                        if (firstT2Line.type == JUMP) {
                             sectionContent.add(firstT2Line)
-                            notNullT2Lines.removeFirst()
+                            recheckedT2Lines.removeFirst()
+                            continue
+                        }
+                        if (firstT2Line.type == CONSTANT) {
+                            sectionContent.add(firstT2Line)
+                            recheckedT2Lines.removeFirst()
                             continue
                         }
                     } else {
-                        if (firstT2Line.type == T2LabelDef.Type.MEMALLOC) {
+                        if (firstT2Line.type == MEMALLOC) {
                             sectionContent.add(firstT2Line)
-                            notNullT2Lines.removeFirst()
+                            recheckedT2Lines.removeFirst()
                             continue
                         }
                     }
@@ -591,7 +677,7 @@ class RISCVGrammar : Grammar() {
             }
 
             errors.add(Grammar.Error(message = "Element not possible in ${if (isTextSection) "text section" else "data section"}!", linkedTreeNode = firstT2Line))
-            notNullT2Lines.removeFirst()
+            recheckedT2Lines.removeFirst()
         }
 
         if (isTextSection) {
@@ -614,9 +700,9 @@ class RISCVGrammar : Grammar() {
             console.log("Grammar: Tier 3 Main Scan -> ${sections.joinToString { it.name }}")
         }
 
-        // Build Comment Node
+        // -------------------------------------------------------------------------- Build Comment Node --------------------------------------------------------------------------
         val commentNode = T2CommentCollection(*t1Comments.toTypedArray())
-        // Build CodeRoot Node
+        // -------------------------------------------------------------------------- Build CodeRoot Node --------------------------------------------------------------------------
         val rootNode = T4CodeRoot(commentNode, errors, *sections.toTypedArray())
 
         return GrammarTree(rootNode)
@@ -680,7 +766,6 @@ class RISCVGrammar : Grammar() {
             fun getValueArray(): Array<MutVal.Value> {
                 return arrayOf(offset.getValue(), register.reg.address)
             }
-
         }
 
         class Constant(val constant: Compiler.Token.Constant) : T1Param("", Syntax.NODE_PARAM_CONST, constant) {
@@ -773,9 +858,6 @@ class RISCVGrammar : Grammar() {
     }
 
     class T1Directive(val dot: Compiler.Token.Symbol, val type: T1Directive.Type, vararg tokens: Compiler.Token) : TreeNode.TokenNode(RISCVFlags.directive, Syntax.NODE_DIRECTIVE, dot, *tokens) {
-        init {
-
-        }
 
         fun isTypeDirective(): Boolean {
             when (type) {
@@ -789,9 +871,14 @@ class RISCVGrammar : Grammar() {
             }
         }
 
+        fun isConstantDirective(): Boolean {
+            return type == equ
+        }
+
         enum class Type {
             data,
             text,
+            equ,
             byte,
             half,
             word,
@@ -823,6 +910,14 @@ class RISCVGrammar : Grammar() {
                     RI -> {
                         matches = if (trimmedT1ParamColl.size == 2) {
                             trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.Constant
+                        } else {
+                            false
+                        }
+                    }
+
+                    RI_Const -> {
+                        matches = if (trimmedT1ParamColl.size == 2) {
+                            trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
                         } else {
                             false
                         }
@@ -866,6 +961,16 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
+                    LOGICCALCIMM_Const -> {
+                        matches = if (trimmedT1ParamColl.size == 3) {
+                            trimmedT1ParamColl[0] is T1Param.Register &&
+                                    trimmedT1ParamColl[1] is T1Param.Register &&
+                                    trimmedT1ParamColl[2] is T1Param.LabelLink
+                        } else {
+                            false
+                        }
+                    }
+
                     SHIFTIMM -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
@@ -876,11 +981,31 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
+                    SHIFTIMM_Const -> {
+                        matches = if (trimmedT1ParamColl.size == 3) {
+                            trimmedT1ParamColl[0] is T1Param.Register &&
+                                    trimmedT1ParamColl[1] is T1Param.Register &&
+                                    trimmedT1ParamColl[2] is T1Param.LabelLink
+                        } else {
+                            false
+                        }
+                    }
+
                     BRANCH -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
                                     trimmedT1ParamColl[2] is T1Param.Constant
+                        } else {
+                            false
+                        }
+                    }
+
+                    BRANCH_Const -> {
+                        matches = if (trimmedT1ParamColl.size == 3) {
+                            trimmedT1ParamColl[0] is T1Param.Register &&
+                                    trimmedT1ParamColl[1] is T1Param.Register &&
+                                    trimmedT1ParamColl[2] is T1Param.LabelLink
                         } else {
                             false
                         }
@@ -915,7 +1040,21 @@ class RISCVGrammar : Grammar() {
                         false
                     }
 
+                    PS_RI_Const -> {
+                        matches = if (trimmedT1ParamColl.size == 2) {
+                            trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
+                        } else {
+                            false
+                        }
+                    }
+
                     PS_RL -> matches = if (trimmedT1ParamColl.size == 2) {
+                        trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
+                    } else {
+                        false
+                    }
+
+                    PS_RAllocL -> matches = if (trimmedT1ParamColl.size == 2) {
                         trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
                     } else {
                         false
@@ -947,7 +1086,7 @@ class RISCVGrammar : Grammar() {
             return Pair(false, type)
         }
 
-        enum class ParameterType(val pseudo: Boolean, val exampleString: String) {
+        enum class ParameterType(val pseudo: Boolean, val exampleString: String, val expectedLabelType: T2LabelDef.Type? = null) {
             // NORMAL INSTRUCTIONS
             RI(false, "rd, imm20"), // rd, imm
             LOAD(false, "rd, imm12(rs)"), // rd, imm12(rs)
@@ -960,16 +1099,22 @@ class RISCVGrammar : Grammar() {
             NONE(false, "none"),
 
             // PSEUDO INSTRUCTIONS
-            PS_BRANCHLBL(true, "rs1, rs2, label"),
+            RI_Const(true, "rd, constant20", CONSTANT), // rd, constant
+            LOGICCALCIMM_Const(true, "rd, rs1, constant12", CONSTANT), // rd, rs, constant
+            SHIFTIMM_Const(true, "rd, rs1, constant5", CONSTANT), //rd, rs1, constant5
+            BRANCH_Const(true, "rs1, rs2, const", CONSTANT), // rs1, rs2, constant
+            PS_BRANCHLBL(true, "rs1, rs2, label", JUMP),
             PS_RI(true, "rd, imm32"), // rd, imm
-            PS_RL(true, "rs, label"), // rs, label
-            PS_L(true, "label"),  // label
+            PS_RI_Const(true, "rd, constant32", CONSTANT), // rd, imm
+            PS_RL(true, "rs, label", JUMP), // rs, label
+            PS_RAllocL(true, "rd, label", MEMALLOC), // rd, label
+            PS_L(true, "label", JUMP),  // label
             PS_RR(true, "rd, rs"), // rd, rs
             PS_R(true, "rs1"),
             PS_NONE(true, "none")
         }
 
-        enum class Type(val id: String, val pseudo: Boolean, val paramType: ParameterType, val opCode: OpCode? = null, val memWords: Int = 1) {
+        enum class Type(val id: String, val pseudo: Boolean, val paramType: ParameterType, val opCode: OpCode? = null, val memWords: Int = 1, val relative: Type? = null) {
             LUI("LUI", false, RI, OpCode("00000000000000000000 00000 0110111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -986,6 +1131,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            LUI_Const("LUI", true, RI_Const, relative = LUI),
             AUIPC("AUIPC", false, RI, OpCode("00000000000000000000 00000 0010111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1003,6 +1149,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            AUIPC_Const("AUIPC", true, RI_Const, relative = AUIPC),
             JAL("JAL", false, RI, OpCode("00000000000000000000 00000 1101111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1019,6 +1166,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            JAL_Const("JAL", true, RI_Const, relative = JAL),
             JALR("JALR", false, JUMPLR, OpCode("000000000000 00000 000 00000 1100111", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1062,6 +1210,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            BEQ_Const("BEQ", true, BRANCH_Const, relative = BEQ),
             BNE("BNE", false, BRANCH, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1085,6 +1234,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            BNE_Const("BNE", true, BRANCH_Const, relative = BNE),
             BLT("BLT", false, BRANCH, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1108,6 +1258,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            BLT_Const("BLT", true, BRANCH_Const, relative = BLT),
             BGE("BGE", false, BRANCH, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1131,6 +1282,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            BGE_Const("BGE", true, BRANCH_Const, relative = BGE),
             BLTU("BLTU", false, BRANCH, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1154,6 +1306,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            BLTU_Const("BLTU", true, BRANCH_Const, relative = BLTU),
             BGEU("BGEU", false, BRANCH, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1177,12 +1330,13 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BEQ1("BEQ", true, PS_BRANCHLBL),
-            BNE1("BNE", true, PS_BRANCHLBL),
-            BLT1("BLT", true, PS_BRANCHLBL),
-            BGE1("BGE", true, PS_BRANCHLBL),
-            BLTU1("BLTU", true, PS_BRANCHLBL),
-            BGEU1("BGEU", true, PS_BRANCHLBL),
+            BGEU_Const("BGEU", true, BRANCH_Const, relative = BGEU),
+            BEQ1("BEQ", true, PS_BRANCHLBL, relative = BEQ),
+            BNE1("BNE", true, PS_BRANCHLBL, relative = BNE),
+            BLT1("BLT", true, PS_BRANCHLBL, relative = BLT),
+            BGE1("BGE", true, PS_BRANCHLBL, relative = BGE),
+            BLTU1("BLTU", true, PS_BRANCHLBL, relative = BLTU),
+            BGEU1("BGEU", true, PS_BRANCHLBL, relative = BGEU),
             LB("LB", false, LOAD, OpCode("000000000000 00000 000 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1351,6 +1505,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            ADDI_Const("ADDI", true, LOGICCALCIMM_Const, relative = ADDI),
             SLTI("SLTI", false, LOGICCALCIMM, OpCode("000000000000 00000 010 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1369,6 +1524,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            SLTI_Const("SLTI", true, LOGICCALCIMM_Const, relative = SLTI),
             SLTIU("SLTIU", false, LOGICCALCIMM, OpCode("000000000000 00000 011 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1387,6 +1543,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            SLTIU_Const("SLTIU", true, LOGICCALCIMM_Const, relative = SLTIU),
             XORI("XORI", false, LOGICCALCIMM, OpCode("000000000000 00000 100 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1405,6 +1562,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            XORI_Const("XORI", true, LOGICCALCIMM_Const, relative = XORI),
             ORI("ORI", false, LOGICCALCIMM, OpCode("000000000000 00000 110 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1423,6 +1581,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            ORI_Const("ORI", true, LOGICCALCIMM_Const, relative = ORI),
             ANDI("ANDI", false, LOGICCALCIMM, OpCode("000000000000 00000 111 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1441,6 +1600,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            ANDI_Const("ANDI", true, LOGICCALCIMM_Const, relative = ANDI),
             SLLI("SLLI", false, SHIFTIMM, OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1458,6 +1618,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            SLLI_Const("SLLI", true, SHIFTIMM_Const, relative = SLLI),
             SRLI("SRLI", false, SHIFTIMM, OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1475,6 +1636,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            SRLI_Const("SRLI", true, SHIFTIMM_Const, relative = SRLI),
             SRAI("SRAI", false, SHIFTIMM, OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1492,6 +1654,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
+            SRAI_Const("SRAI", true, SHIFTIMM_Const, relative = SRAI),
             ADD("ADD", false, OP_R, OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1675,6 +1838,8 @@ class RISCVGrammar : Grammar() {
             Nop("NOP", true, PS_NONE),
             Mv("MV", true, PS_RR),
             Li("LI", true, PS_RI, memWords = 2),
+            Li_Const("LI", true, PS_RI_Const, memWords = 2),
+            La("LA", true, PS_RAllocL, memWords = 2),
             Not("NOT", true, PS_RR),
             Neg("NEG", true, PS_RR),
             Seqz("SEQZ", true, PS_RR),
@@ -1721,15 +1886,23 @@ class RISCVGrammar : Grammar() {
 
     class T2DataSectionStart(val t1Directive: T1Directive) : TreeNode.CollectionNode(Syntax.NODE2_DATASECTIONSTART, t1Directive)
 
-    class T2LabelDef(val type: Type, val t1Label: T1Label, val t1Directive: T1Directive? = null, val t1Param: T1ParamColl? = null) : TreeNode.CollectionNode(if (type == Type.JUMP) Syntax.NODE2_LABELJUMP else Syntax.NODE2_LABELDEF, t1Label, t1Directive, *t1Param?.tokenNodes ?: emptyArray()) {
+    class T2LabelDef(val type: Type, val t1Label: T1Label, val t1Directive: T1Directive? = null, val t1Param: T1ParamColl? = null) : TreeNode.CollectionNode(if (type == JUMP) Syntax.NODE2_LABELJUMP else Syntax.NODE2_LABELDEF, t1Label, t1Directive, *t1Param?.tokenNodes ?: emptyArray()) {
 
         enum class Type {
             JUMP,
             MEMALLOC,
+            CONSTANT
         }
     }
 
     class T2InstrDef(val t1Instr: T1Instr, val t1ParamColl: T1ParamColl? = null, val type: T1Instr.Type) : TreeNode.CollectionNode(Syntax.NODE2_INSTRDEF, t1Instr, *t1ParamColl?.tokenNodes ?: emptyArray()) {
+        fun check(): Boolean {
+            return if (t1ParamColl != null) {
+                t1Instr.check(t1ParamColl).first
+            } else {
+                t1Instr.check().first
+            }
+        }
 
     }
 

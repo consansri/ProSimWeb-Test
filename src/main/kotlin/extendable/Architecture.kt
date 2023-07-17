@@ -38,7 +38,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
                 Regex("""^${ArchConst.PRESTRING_HEX}[0-9a-f]+""", RegexOption.IGNORE_CASE),
                 Regex("""^${ArchConst.PRESTRING_DECIMAL}-[0-9]+"""),
                 Regex("""^${ArchConst.PRESTRING_DECIMAL}[0-9]+"""),
-                Regex("""^'.+'"""),
+                Regex("""^'.'"""),
+                Regex("""^".+""""),
                 Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
                 Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
             ),
@@ -50,6 +51,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
                 const_dec = ArchConst.StandardHL.dec,
                 const_udec = ArchConst.StandardHL.udec,
                 const_ascii = ArchConst.StandardHL.ascii,
+                const_string = ArchConst.StandardHL.string,
                 register = ArchConst.StandardHL.register,
                 symbol = ArchConst.StandardHL.symbol,
                 instruction = ArchConst.StandardHL.instruction,
