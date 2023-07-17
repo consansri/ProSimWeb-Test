@@ -191,8 +191,10 @@ val MemoryView = FC<MemViewProps> { props ->
                                         title = "[${memInstance.address.getRawHexStr()}] [${memInstance.mark.removePrefix("dcf-mark-")}]"
 
                                         if (memInstance is Memory.DMemInstance.EditableValue) {
-                                            p {
-                                                +memInstance.name
+                                            if (memInstance.name.isNotEmpty()) {
+                                                p {
+                                                    +memInstance.name
+                                                }
                                             }
                                             +("[" + memInstance.mutVal.get().toHex().getRawHexStr() + "]")
                                         } else {
@@ -389,12 +391,14 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         className = ClassName("window-element")
 
-                        input {
-                            className = ClassName("noedit")
-                            contentEditable = false
-                            type = InputType.text
-                            readOnly = true
-                            value = dValue.name
+                        if(dValue.name.isNotEmpty()){
+                            input {
+                                className = ClassName("noedit")
+                                contentEditable = false
+                                type = InputType.text
+                                readOnly = true
+                                value = dValue.name
+                            }
                         }
 
                         input {
@@ -529,7 +533,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                         val dvaddr = (document.getElementById("dv-address") as HTMLInputElement).value
                                         val dvvalue = (document.getElementById("dv-value") as HTMLInputElement).value
                                         try {
-                                            appLogic.getArch().getMemory().addEditableValue(if (dvname.isEmpty()) "noname" else dvname, MutVal.Value.Hex(dvaddr, appLogic.getArch().getMemory().getAddressSize()), MutVal.Value.Hex(dvvalue, appLogic.getArch().getMemory().getWordSize()))
+                                            appLogic.getArch().getMemory().addEditableValue(dvname, MutVal.Value.Hex(dvaddr, appLogic.getArch().getMemory().getAddressSize()), MutVal.Value.Hex(dvvalue, appLogic.getArch().getMemory().getWordSize()))
                                             appLogic.getArch().getMemory().refreshEditableValues()
                                             setShowAddMem(false)
                                         } catch (e: NumberFormatException) {
@@ -580,7 +584,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 placeholder = ArchConst.PRESTRING_HEX + "[start address]"
                                 maxLength = appLogic.getArch().getMemory().getAddressSize().byteCount * 2
                                 prefix = "addr: "
-                                defaultValue = "7".padEnd(appLogic.getArch().getMemory().getWordSize().bitWidth,'0')
+                                defaultValue = "7".padEnd(appLogic.getArch().getMemory().getWordSize().bitWidth, '0')
 
                                 onKeyDown = { event ->
                                     if (event.key == "Enter") {
@@ -610,7 +614,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
                         }
 
-                        a{
+                        a {
                             input {
                                 id = "dr-amount"
                                 type = InputType.number
@@ -639,7 +643,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                         try {
                                             var address = MutVal.Value.Hex(draddr, appLogic.getArch().getMemory().getAddressSize())
                                             for (id in 0 until dramount) {
-                                                appLogic.getArch().getMemory().addEditableValue(if (drname.isEmpty()) "io$id" else "$drname$id", address, MutVal.Value.Hex(drvalue, appLogic.getArch().getMemory().getWordSize()))
+                                                appLogic.getArch().getMemory().addEditableValue(if (drname.isNotEmpty()) "$drname$id" else "", address, MutVal.Value.Hex(drvalue, appLogic.getArch().getMemory().getWordSize()))
                                                 address = (address + MutVal.Value.Hex("1")).toHex()
                                             }
                                             appLogic.getArch().getMemory().refreshEditableValues()
