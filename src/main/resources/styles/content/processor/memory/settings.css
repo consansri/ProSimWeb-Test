@@ -45,7 +45,7 @@
 
 .window-scrollContainer {
     padding: 1rem;
-    box-shadow: inset 0px 11px 8px -10px var(--win-el-bg-color), inset 0px -11px 8px -10px var(--win-el-bg-color);
+    box-shadow: inset 0px 11px 8px -10px var(--win-el-bg-color)/*, inset 0px -11px 8px -10px var(--win-el-bg-color)*/;
     overflow-y: auto;
     flex-grow: 1;
 }

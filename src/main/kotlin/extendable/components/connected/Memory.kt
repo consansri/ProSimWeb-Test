@@ -93,7 +93,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         refreshEditableValues()
     }
 
-    fun addEditableValue(name: String, address: MutVal.Value.Hex, value: MutVal.Value.Binary) {
+    fun addEditableValue(name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) {
         editableValues.add(DMemInstance.EditableValue(name, address, value))
         editableValues.sortBy { it.address.getRawHexStr() }
     }
@@ -141,7 +141,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
     }
 
     open class DMemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "") {
-        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Binary) : DMemInstance(address, MutVal(value), "dcf-mark-editable")
+        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : DMemInstance(address, MutVal(value), "dcf-mark-editable")
 
     }
 

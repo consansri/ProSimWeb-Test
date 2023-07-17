@@ -408,15 +408,15 @@ val MemoryView = FC<MemViewProps> { props ->
                         a {
                             input {
                                 id = "editval${dValue.address.getRawHexStr()}"
-                                placeholder = ArchConst.PRESTRING_BINARY
-                                maxLength = appLogic.getArch().getMemory().getWordSize().bitWidth
+                                placeholder = ArchConst.PRESTRING_HEX
+                                maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
                                 prefix = "value: "
-                                defaultValue = dValue.mutVal.get().toBin().getRawBinaryStr()
+                                defaultValue = dValue.mutVal.get().toHex().getRawHexStr()
 
                                 onBlur = { event ->
                                     try {
-                                        dValue.mutVal.setBin(event.currentTarget.value)
-                                        event.currentTarget.value = dValue.mutVal.get().toBin().getRawBinaryStr()
+                                        dValue.mutVal.setHex(event.currentTarget.value)
+                                        event.currentTarget.value = dValue.mutVal.get().toHex().getRawHexStr()
                                         appLogic.getArch().getMemory().refreshEditableValues()
                                     } catch (e: NumberFormatException) {
                                         event.currentTarget.value = "0"
@@ -505,11 +505,11 @@ val MemoryView = FC<MemViewProps> { props ->
                         a {
                             input {
                                 id = "dv-value"
-                                pattern = "[01]+"
-                                placeholder = ArchConst.PRESTRING_BINARY + "[value]"
-                                maxLength = appLogic.getArch().getMemory().getWordSize().bitWidth
+                                pattern = "[0-9A-Fa-f]+"
+                                placeholder = ArchConst.PRESTRING_HEX + "[value]"
+                                maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
                                 prefix = "value: "
-                                defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().bitWidth)
+                                defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().byteCount * 2)
 
                                 onKeyDown = { event ->
                                     if (event.key == "Enter") {
@@ -529,7 +529,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                         val dvaddr = (document.getElementById("dv-address") as HTMLInputElement).value
                                         val dvvalue = (document.getElementById("dv-value") as HTMLInputElement).value
                                         try {
-                                            appLogic.getArch().getMemory().addEditableValue(if (dvname.isEmpty()) "noname" else dvname, MutVal.Value.Hex(dvaddr, appLogic.getArch().getMemory().getAddressSize()), MutVal.Value.Binary(dvvalue, appLogic.getArch().getMemory().getWordSize()))
+                                            appLogic.getArch().getMemory().addEditableValue(if (dvname.isEmpty()) "noname" else dvname, MutVal.Value.Hex(dvaddr, appLogic.getArch().getMemory().getAddressSize()), MutVal.Value.Hex(dvvalue, appLogic.getArch().getMemory().getWordSize()))
                                             appLogic.getArch().getMemory().refreshEditableValues()
                                             setShowAddMem(false)
                                         } catch (e: NumberFormatException) {
@@ -595,11 +595,11 @@ val MemoryView = FC<MemViewProps> { props ->
                         a {
                             input {
                                 id = "dr-value"
-                                pattern = "[01]+"
-                                placeholder = ArchConst.PRESTRING_BINARY + "[initial]"
-                                maxLength = appLogic.getArch().getMemory().getWordSize().bitWidth
+                                pattern = "[0-9A-Fa-f]+"
+                                placeholder = ArchConst.PRESTRING_HEX + "[initial]"
+                                maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
                                 prefix = "value: "
-                                defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().bitWidth)
+                                defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().byteCount * 2)
 
                                 onKeyDown = { event ->
                                     if (event.key == "Enter") {
@@ -639,7 +639,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                         try {
                                             var address = MutVal.Value.Hex(draddr, appLogic.getArch().getMemory().getAddressSize())
                                             for (id in 0 until dramount) {
-                                                appLogic.getArch().getMemory().addEditableValue(if (drname.isEmpty()) "io$id" else "$drname$id", address, MutVal.Value.Binary(drvalue, appLogic.getArch().getMemory().getWordSize()))
+                                                appLogic.getArch().getMemory().addEditableValue(if (drname.isEmpty()) "io$id" else "$drname$id", address, MutVal.Value.Hex(drvalue, appLogic.getArch().getMemory().getWordSize()))
                                                 address = (address + MutVal.Value.Hex("1")).toHex()
                                             }
                                             appLogic.getArch().getMemory().refreshEditableValues()
