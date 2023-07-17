@@ -275,13 +275,7 @@ th {
     padding: 0.2rem 0.5rem !important;
 }
 
-.dcf-tab-pc {
-    float: right;
-    background-color: transparent !important;
-    box-shadow: none !important;
-}
-
-.dcf-tabs a:hover {
+.dcf-tabs-a:hover {
     /*transform: translateY(0.05rem);*/
     padding: 0.2rem 0.5rem;
     border: none;

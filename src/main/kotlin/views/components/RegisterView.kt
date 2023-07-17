@@ -9,6 +9,7 @@ import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
 import kotlinx.js.timers.setTimeout
 import org.w3c.dom.HTMLAnchorElement
+import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
 import react.*
@@ -37,7 +38,7 @@ external interface RegisterViewProps : Props {
 val RegisterView = FC<RegisterViewProps> { props ->
 
     val bodyRef = useRef<HTMLTableSectionElement>()
-    val pcRef = useRef<HTMLAnchorElement>()
+    val pcRef = useRef<HTMLButtonElement>()
 
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
@@ -82,9 +83,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     RegisterContainer.RegLabel.MAIN -> {
                         a {
                             if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                className = ClassName("dcf-tab-active")
+                                className = ClassName("dcf-tab-a dcf-tab-active")
                             } else {
-                                className = ClassName("")
+                                className = ClassName("dcf-tab-a")
                             }
 
                             title = "Show RegFile ${regFile.name}"
@@ -99,9 +100,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     RegisterContainer.RegLabel.SYSTEM -> {
                         a {
                             if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                className = ClassName("dcf-tab-active")
+                                className = ClassName("dcf-tab-a dcf-tab-active")
                             } else {
-                                className = ClassName("")
+                                className = ClassName("dcf-tab-a")
                             }
                             title = "Show RegFile ${regFile.name}"
                             +regFile.name
@@ -115,9 +116,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     RegisterContainer.RegLabel.CUSTOM -> {
                         a {
                             if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                className = ClassName("dcf-tab-active")
+                                className = ClassName("dcf-tab-a dcf-tab-active")
                             } else {
-                                className = ClassName("")
+                                className = ClassName("dcf-tab-a")
                             }
                             title = "Show RegFile ${regFile.name}"
 
@@ -130,9 +131,17 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     }
                 }
 
-                a {
-                    className = ClassName("dcf-tab-pc")
+                button {
                     ref = pcRef
+
+                    css {
+                        color = Color("#FFFFFF")
+                        backgroundColor = Color("#AAAAAA00")
+                        paddingLeft = 1.rem
+                        paddingRight = 1.rem
+                        float = Float.right
+                        border = Border(0.px, LineStyle.hidden)
+                    }
 
                     +"PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
 
@@ -140,7 +149,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         appLogic.getArch().getRegisterContainer().pc
                         setUpdate(!update)
                     }
-
                 }
             }
         }
