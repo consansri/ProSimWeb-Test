@@ -460,7 +460,7 @@ class RISCVBinMapper {
 
                 Nop -> {
                     val zero = MutVal.Value.Binary("0", MutVal.Size.Bit5())
-                    val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to zero, MaskLabel.RS1 to zero, MaskLabel.RS2 to zero))
+                    val addiOpCode = ADD.opCode?.getOpCode(mapOf(MaskLabel.RD to zero, MaskLabel.RS1 to zero, MaskLabel.RS2 to zero))
 
                     if (addiOpCode != null) {
                         binaryArray.add(addiOpCode)

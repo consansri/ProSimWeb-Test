@@ -107,13 +107,9 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 width = 1.8.rem
                 height = 1.8.rem
                 marginLeft = 0.4.rem
-
                 borderRadius = 5.px
-
                 backgroundColor = Color("#11dddd")
-
                 filter = invert(100)
-
                 transitionProperty = TransitionProperty.all
                 transitionDuration = 0.2.s
                 transitionTimingFunction = TransitionTimingFunction.easeInOut
@@ -128,8 +124,6 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             }
 
             src = StyleConst.Icons.delete
-
-
         }
 
         img {
@@ -142,17 +136,13 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 width = 1.8.rem
                 height = 1.8.rem
                 marginLeft = 0.4.rem
-
                 borderRadius = 5.px
-
                 filter = invert(100)
 
-
-
-                if (pin) {
-                    backgroundColor = Color("#777777")
+                backgroundColor = if (pin) {
+                    Color("#777777")
                 } else {
-                    backgroundColor = Color("#AAAAAA")
+                    Color("#AAAAAA")
                 }
             }
 
@@ -173,17 +163,13 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 width = 1.8.rem
                 height = 1.8.rem
                 marginLeft = 0.4.rem
-
                 borderRadius = 5.px
-
                 filter = invert(100)
 
-
-
-                if (scrollDown) {
-                    backgroundColor = Color("#777777")
+                backgroundColor = if (scrollDown) {
+                    Color("#777777")
                 } else {
-                    backgroundColor = Color("#AAAAAA")
+                    Color("#AAAAAA")
                 }
             }
 
@@ -203,24 +189,20 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 display = Display.block
                 position = Position.relative
                 marginTop = 5.px
-
                 height = 10.rem
                 overflowX = Overflow.hidden
                 overflowY = Overflow.scroll
-
                 scrollBehavior = ScrollBehavior.smooth
-
                 transition = Transition.all
                 transitionDuration = 0.3.s
 
-                if (shadow) {
+                borderTop = if (shadow) {
                     /*boxShadow = BoxShadow(BoxShadowInset.inset, 0.px, 7.px, 0.px, (-6).px, rgba(255,255,255,0.8))*/
-                    borderTop = Border(1.px, LineStyle.solid, Color("#777777"))
+                    Border(1.px, LineStyle.solid, Color("#777777"))
                 } else {
-                    borderTop = null
+                    null
                 }
             }
-
 
             for (message in appLogic.getArch().getConsole().getMessages()) {
                 for (line in message.message.split("\n")) {
@@ -259,8 +241,6 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 }
 
             }
-
-
 
             onScroll = { event ->
                 if (event.currentTarget.scrollTop <= 1.0) {

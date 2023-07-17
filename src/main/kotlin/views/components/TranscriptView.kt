@@ -49,8 +49,6 @@ val TranscriptView = FC<TranscriptProps> { props ->
         }, 50)
     }
 
-
-
     div {
         className = ClassName(StyleConst.CLASS_TRANSCRIPT)
 
@@ -87,7 +85,6 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 +"T"
             }
         }
-
 
         div {
             className = ClassName(StyleConst.CLASS_TRANSCRIPT_TABLE)

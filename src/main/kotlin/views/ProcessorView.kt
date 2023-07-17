@@ -92,8 +92,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         }
     }
 
-
-
     div {
         className = ClassName("exeControlDiv")
 
@@ -138,6 +136,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     queueExecution(SingleStep)
                 }
             }
+
             span {
                 className = ClassName("input-button")
                 id = "mstep"
@@ -178,8 +177,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 }
             }
 
-
-
             button {
                 className = ClassName("button")
                 id = "sover"
@@ -194,6 +191,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     queueExecution(SkipSubroutine)
                 }
             }
+
             button {
                 className = ClassName("button")
                 id = "esub"
@@ -262,7 +260,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     div {
         className = ClassName("memoryDiv")
 
-
         MemoryView {
             this.name = "Memory"
             this.appLogic = appLogic
@@ -270,8 +267,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
             this.updateParent = props.updateAppLogic
         }
-
-
     }
 
     useEffect(change) {

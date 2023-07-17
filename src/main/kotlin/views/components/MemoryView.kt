@@ -56,7 +56,7 @@ val MemoryView = FC<MemViewProps> { props ->
     val (internalUpdate, setIUpdate) = useState(false)
     val (memLength, setMemLength) = useState<Int>(props.length)
     val (lowFirst, setLowFirst) = useState(true)
-    val (memRows, setMemRows) = useState<MutableMap<String, MutableMap<Int, Memory.DMemInstance>>>(mutableMapOf())
+    val (memRows, setMemRows) = useState<MutableMap<String, MutableMap<Int, Memory.MemInstance>>>(mutableMapOf())
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (showAddMem, setShowAddMem) = useState(false)
     val (showAddRow, setShowAddRow) = useState(false)
@@ -71,7 +71,7 @@ val MemoryView = FC<MemViewProps> { props ->
     }
 
     fun calcMemTable() {
-        val memRowsList: MutableMap<String, MutableMap<Int, Memory.DMemInstance>> = mutableMapOf()
+        val memRowsList: MutableMap<String, MutableMap<Int, Memory.MemInstance>> = mutableMapOf()
         for (entry in appLogic.getArch().getMemory().getMemMap()) {
             val offset = (entry.value.address % MutVal.Value.Dec("$memLength", MutVal.Size.Bit8())).toHex().getRawHexStr().toInt(16)
             val rowAddress = (entry.value.address - MutVal.Value.Dec("$offset", MutVal.Size.Bit8())).toHex()
@@ -80,7 +80,7 @@ val MemoryView = FC<MemViewProps> { props ->
             if (rowResult != null) {
                 rowResult[offset] = entry.value
             } else {
-                val rowList = mutableMapOf<Int, Memory.DMemInstance>()
+                val rowList = mutableMapOf<Int, Memory.MemInstance>()
                 rowList[offset] = entry.value
                 memRowsList[rowAddress.toHex().getRawHexStr()] = rowList
             }
@@ -190,7 +190,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                         className = ClassName("dcf-txt-center dcf-darkbg ${memInstance.mark}")
                                         title = "[${memInstance.address.getRawHexStr()}] [${memInstance.mark.removePrefix("dcf-mark-")}]"
 
-                                        if (memInstance is Memory.DMemInstance.EditableValue) {
+                                        if (memInstance is Memory.MemInstance.EditableValue) {
                                             if (memInstance.name.isNotEmpty()) {
                                                 p {
                                                     +memInstance.name

@@ -657,7 +657,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 
-
     useEffect(update, transcriptView) {
         /* Component RELOAD */
 
@@ -695,15 +694,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     useEffect(checkState) {
         when (checkState) {
             ArchConst.STATE_EXECUTABLE -> {
-                btnSwitchRef.current?.let {
-                    it.classList.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
-                }
+                btnSwitchRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
             }
 
             else -> {
-                btnSwitchRef.current?.let {
-                    it.classList.add(StyleConst.CLASS_ANIM_DEACTIVATED)
-                }
+                btnSwitchRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
             }
         }
     }

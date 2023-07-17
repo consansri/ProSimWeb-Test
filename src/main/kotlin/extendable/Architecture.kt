@@ -133,6 +133,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         registerContainer.clear()
     }
 
+    /* Compilation Event */
     fun highlight(input: String, id: Int, title: String, flag: String, vararg classNames: String): String {
         val tag = "span"
         return "<$tag class='$flag ${classNames.joinToString(" ") { it }}' id='$id'>$input</$tag>"

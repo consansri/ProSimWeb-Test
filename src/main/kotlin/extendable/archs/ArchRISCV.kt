@@ -197,9 +197,4 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
     }
 
-    override fun exeClear() {
-        super.exeClear()
-
-    }
-
 }

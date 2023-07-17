@@ -28,7 +28,6 @@ val Menu = FC<MenuProps>() { props ->
 
     val data by useState(props.appLogic)
     val (update, setUpdate) = props.update
-    val updateParent = props.updateParent
     val (navHidden, setNavHidden) = useState(true)
     val (archsHidden, setArchsHidden) = useState(true)
 

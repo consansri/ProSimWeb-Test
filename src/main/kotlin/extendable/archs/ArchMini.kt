@@ -15,12 +15,8 @@ class ArchMini : Architecture {
         val flag = getFlagsConditions()?.findFlag("Carry")
         if (flag != null) {
             getFlagsConditions()?.setFlag(flag, !flag.getValue())
-            console.log("Flag ${flag?.name} ${flag?.getValue()}")
+            console.log("Flag ${flag.name} ${flag.getValue()}")
         }
-
-
-
-
     }
 
 

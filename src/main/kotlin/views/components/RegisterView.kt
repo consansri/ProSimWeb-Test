@@ -8,7 +8,6 @@ import extendable.ArchConst.RegTypes.*
 import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
 import kotlinx.js.timers.setTimeout
-import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTableSectionElement
@@ -59,7 +58,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
             display = Display.block
             overflowY = Overflow.scroll
             maxHeight = 40.vh
-
         }
 
         div {
@@ -82,10 +80,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 when (regFile.label) {
                     RegisterContainer.RegLabel.MAIN -> {
                         a {
-                            if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                className = ClassName("dcf-tab-a dcf-tab-active")
+                            className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                                ClassName("dcf-tab-a dcf-tab-active")
                             } else {
-                                className = ClassName("dcf-tab-a")
+                                ClassName("dcf-tab-a")
                             }
 
                             title = "Show RegFile ${regFile.name}"
@@ -99,10 +97,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     RegisterContainer.RegLabel.SYSTEM -> {
                         a {
-                            if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                className = ClassName("dcf-tab-a dcf-tab-active")
+                            className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                                ClassName("dcf-tab-a dcf-tab-active")
                             } else {
-                                className = ClassName("dcf-tab-a")
+                                ClassName("dcf-tab-a")
                             }
                             title = "Show RegFile ${regFile.name}"
                             +regFile.name
@@ -115,10 +113,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     RegisterContainer.RegLabel.CUSTOM -> {
                         a {
-                            if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                className = ClassName("dcf-tab-a dcf-tab-active")
+                            className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                                ClassName("dcf-tab-a dcf-tab-active")
                             } else {
-                                className = ClassName("dcf-tab-a")
+                                ClassName("dcf-tab-a")
                             }
                             title = "Show RegFile ${regFile.name}"
 
@@ -156,7 +154,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
         div {
             className = ClassName("dcf-overflow-x-auto")
             tabIndex = 0
-
 
             table {
                 className = ClassName("dcf-table dcf-table-striped dcf-w-100%")
@@ -402,12 +399,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) RegisterView")
         }
-        val registerContainer = appLogic.getArch().getRegisterContainer()
-        val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
-            registerContainer.getRegisterFileList()[currRegFileIndex]
+        val regCont = appLogic.getArch().getRegisterContainer()
+        val registers = if (currRegFileIndex < regCont.getRegisterFileList().size) {
+            regCont.getRegisterFileList()[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
-            registerContainer.getRegisterFileList()[0]
+            regCont.getRegisterFileList()[0]
         }
         registers.let {
             for (reg in it.registers) {
@@ -423,6 +420,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
     }
+
     useEffect(update) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(part-update) RegisterView")

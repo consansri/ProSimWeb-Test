@@ -21,7 +21,6 @@ val App = FC<Props> { props ->
     }
 
     val (reloadUI, setReloadUI) = useState(false)
-    val (resetUI, setResetUI) = useState(false)
 
     val navRef = useRef<HTMLDivElement>()
     val mainRef = useRef<HTMLElement>()
@@ -32,20 +31,6 @@ val App = FC<Props> { props ->
 
         setAppLogic(newData)
         setReloadUI(!reloadUI)
-    }
-
-    fun updateApp() {
-        setReloadUI(!reloadUI)
-    }
-
-    fun resizeNav() {
-        navRef.current?.let {
-            if (it.className == "navbar") {
-                it.className = "responsive"
-            } else {
-                it.className = "navbar"
-            }
-        }
     }
 
     Menu {
@@ -90,7 +75,6 @@ val App = FC<Props> { props ->
 
 
     }
-
 
     footer {
         ref = footerRef

@@ -5,8 +5,8 @@ import extendable.components.types.MutVal
 import tools.DebugTools
 
 class Memory(private val addressSize: MutVal.Size, private val initBin: String, private val wordSize: MutVal.Size, private val endianess: Endianess) {
-    private var memMap: MutableMap<String, DMemInstance> = mutableMapOf()
-    private var editableValues: MutableList<DMemInstance.EditableValue> = mutableListOf()
+    private var memMap: MutableMap<String, MemInstance> = mutableMapOf()
+    private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
 
     fun save(address: MutVal.Value, mutVal: MutVal, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
         val wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
@@ -28,7 +28,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
                     instance.mark = mark
                 }
             } else {
-                val newInstance = DMemInstance(hexAddress, MutVal(initBin, wordSize), mark)
+                val newInstance = MemInstance(hexAddress, MutVal(initBin, wordSize), mark)
                 newInstance.mutVal.setHex(word.toString())
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
@@ -54,7 +54,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
                     instance.mark = mark
                 }
             } else {
-                val newInstance = DMemInstance(hexAddress, MutVal(initBin, wordSize), mark)
+                val newInstance = MemInstance(hexAddress, MutVal(initBin, wordSize), mark)
                 newInstance.mutVal.setHex(word.toString())
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
@@ -94,7 +94,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
     }
 
     fun addEditableValue(name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) {
-        editableValues.add(DMemInstance.EditableValue(name, address, value))
+        editableValues.add(MemInstance.EditableValue(name, address, value))
         editableValues.sortBy { it.address.getRawHexStr() }
     }
 
@@ -108,7 +108,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         }
     }
 
-    fun removeEditableValue(editableValue: DMemInstance.EditableValue) {
+    fun removeEditableValue(editableValue: MemInstance.EditableValue) {
         editableValues.remove(editableValue)
     }
 
@@ -116,7 +116,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         editableValues.clear()
     }
 
-    fun getMemMap(): Map<String, DMemInstance> {
+    fun getMemMap(): Map<String, MemInstance> {
         return memMap
     }
 
@@ -124,7 +124,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         return MutVal.Value.Hex("0", addressSize).getBiggest()
     }
 
-    fun getEditableInstances(): List<DMemInstance.EditableValue> {
+    fun getEditableInstances(): List<MemInstance.EditableValue> {
         return editableValues
     }
 
@@ -140,8 +140,8 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         return wordSize
     }
 
-    open class DMemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "") {
-        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : DMemInstance(address, MutVal(value), "dcf-mark-editable")
+    open class MemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "") {
+        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : MemInstance(address, MutVal(value), "dcf-mark-editable")
 
     }
 

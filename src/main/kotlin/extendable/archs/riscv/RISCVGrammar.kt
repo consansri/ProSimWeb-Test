@@ -26,7 +26,6 @@ class RISCVGrammar : Grammar() {
     var t1Directives = mutableListOf<T1Directive>()
     var t1Instrs = mutableListOf<T1Instr>()
     var params = mutableListOf<T1ParamColl>()
-
     var t1Comments = mutableListOf<T1Comment>()
     var errors = mutableListOf<Grammar.Error>()
 
@@ -383,6 +382,7 @@ class RISCVGrammar : Grammar() {
 
             tier1Lines[lineID] += tier1Line
         }
+
         if (DebugTools.RISCV_showGrammarScanTiers) {
             console.log("Grammar: Tier 1 Main Scan -> ${tier1Lines.joinToString(", line: ") { it.joinToString(" ") { it.name } }}")
         }
@@ -470,7 +470,6 @@ class RISCVGrammar : Grammar() {
             }
 
             result = Syntax.NODE2_JUMPLABEL_SYNTAX.exacltyMatches(*tier1Line.toTypedArray())
-
             if (result.matches) {
                 if (result.matchingTreeNodes.size == 1) {
                     val t1Label = result.matchingTreeNodes[0] as T1Label
@@ -482,8 +481,8 @@ class RISCVGrammar : Grammar() {
                     continue
                 }
             }
-            result = Syntax.NODE2_SECTIONSTART_SYNTAX.exacltyMatches(*tier1Line.toTypedArray())
 
+            result = Syntax.NODE2_SECTIONSTART_SYNTAX.exacltyMatches(*tier1Line.toTypedArray())
             if (result.matches) {
                 if (result.matchingTreeNodes.size == 1) {
                     val t1Directive = result.matchingTreeNodes[0] as T1Directive
@@ -517,6 +516,7 @@ class RISCVGrammar : Grammar() {
                 errors.add(Grammar.Error("couldn't match RiscV Tier1 Nodes to RiscV Tier2 Node!", tokenNode))
             }
         }
+
         if (DebugTools.RISCV_showGrammarScanTiers) {
             console.log("Grammar: Tier 2 Main Scan -> ${tier2Lines.filterNotNull().joinToString { it.name }}")
         }
@@ -741,10 +741,6 @@ class RISCVGrammar : Grammar() {
         // Tier 3
         const val NODE3_SECTION_DATA = "Data Section"
         const val NODE3_SECTION_TEXT = "Text Section"
-
-        val NODE3_SECTION_DATA_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_DATASECTIONSTART), SyntaxSequence.Component(NODE2_LABELDEF, repeatable = true))
-        val NODE3_SECTION_TEXT_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_TEXTSECTIONSTART), SyntaxSequence.Component(NODE2_INSTRDEF, NODE2_LABELJUMP, repeatable = true))
-        val NODE3_SECTION_TEXT1_SYNTAX = SyntaxSequence(SyntaxSequence.Component(NODE2_INSTRDEF, NODE2_LABELJUMP, repeatable = true))
 
         // Tier 4
         const val NODE4_ROOT = "root"
@@ -1099,16 +1095,16 @@ class RISCVGrammar : Grammar() {
             NONE(false, "none"),
 
             // PSEUDO INSTRUCTIONS
-            RI_Const(true, "rd, constant20", CONSTANT), // rd, constant
-            LOGICCALCIMM_Const(true, "rd, rs1, constant12", CONSTANT), // rd, rs, constant
-            SHIFTIMM_Const(true, "rd, rs1, constant5", CONSTANT), //rd, rs1, constant5
+            RI_Const(true, "rd, const20", CONSTANT), // rd, constant
+            LOGICCALCIMM_Const(true, "rd, rs1, const12", CONSTANT), // rd, rs, constant
+            SHIFTIMM_Const(true, "rd, rs1, const5", CONSTANT), //rd, rs1, constant5
             BRANCH_Const(true, "rs1, rs2, const", CONSTANT), // rs1, rs2, constant
-            PS_BRANCHLBL(true, "rs1, rs2, label", JUMP),
+            PS_BRANCHLBL(true, "rs1, rs2, jlabel", JUMP),
             PS_RI(true, "rd, imm32"), // rd, imm
-            PS_RI_Const(true, "rd, constant32", CONSTANT), // rd, imm
-            PS_RL(true, "rs, label", JUMP), // rs, label
-            PS_RAllocL(true, "rd, label", MEMALLOC), // rd, label
-            PS_L(true, "label", JUMP),  // label
+            PS_RI_Const(true, "rd, clabel", CONSTANT), // rd, imm
+            PS_RL(true, "rs, jlabel", JUMP), // rs, label
+            PS_RAllocL(true, "rd, alabel", MEMALLOC), // rd, label
+            PS_L(true, "jlabel", JUMP),  // label
             PS_RR(true, "rd, rs"), // rd, rs
             PS_R(true, "rs1"),
             PS_NONE(true, "none")

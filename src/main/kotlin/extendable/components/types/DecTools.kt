@@ -136,7 +136,6 @@ object DecTools {
         return checkEmpty(result)
     }
 
-
     fun isNegative(a: String): Boolean {
         /*
          * (checked)

@@ -950,7 +950,6 @@ class MutVal {
                 return stringBuilder.toString()
             }
 
-
         }
 
     }
@@ -1066,8 +1065,6 @@ class MutVal {
             this.umin = "0"
             this.umax = DecTools.abs(DecTools.sub(min, max))
         }
-
-
     }
 
     object Tools {
