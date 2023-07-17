@@ -114,7 +114,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                     }
 
                     val string = regexCollection.string.find(remainingLine)
-                    if(string != null){
+                    if (string != null) {
                         tokenList += Token.Constant.String(LineLoc(lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
                         tempTokenList += Token.Constant.String(LineLoc(lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
                         startIndex += string.value.length
@@ -374,24 +374,25 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             class Ascii(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
                     val binChars = StringBuilder()
-                    for (char in content) {
-                        val bin = char.digitToInt().toString(2)
+                    val byteArray = content.substring(1, content.length - 1).encodeToByteArray()
+                    for (byte in byteArray) {
+                        val bin = byte.toString(2)
                         binChars.append(bin)
                     }
                     return MutVal.Value.Binary(binChars.toString())
                 }
             }
 
-            class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id){
+            class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
                     val binChars = StringBuilder()
-                    for (char in content) {
-                        val bin = char.digitToInt().toString(2)
+                    val byteArray = content.substring(1, content.length - 1).encodeToByteArray()
+                    for (byte in byteArray) {
+                        val bin = byte.toString(2)
                         binChars.append(bin)
                     }
                     return MutVal.Value.Binary(binChars.toString())
                 }
-
             }
 
             class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {

@@ -66,3 +66,57 @@
 |   ```j```    |                          ```jal [zero], jlabel```                          |                                                  | ```jlabel```                         |
 |   ```jr```   |                        ```jalr [zero], [0](rs1)```                         |                                                  | ```rs1```                            |
 |  ```ret```   |                        ```jalr [zero], [0]([ra])```                        |                                                  |                                      |
+
+
+## Available Syntax ##
+
+- Text Sections (standard if no section start is defined)
+
+```
+.text
+    ...Constant Definitions (const)...
+    ...Jump Label Definitions (jlabel)...
+    ...Instruction Definitions...
+
+```
+
+- Data Sections
+```
+.data
+    ...Initiated Address Labels (alabel)...
+    
+```
+
+- Constant Definition (const)
+```
+.text
+    constantname: .equ 0xCAFEAFFE
+    
+```
+- Jump Label Definition (jlabel) (no automatic sublabels)
+```
+.text
+main:
+    ...
+    jal     loop
+    ...
+
+loop:
+    ...
+    beqz    t0, end
+    j       loop 
+    
+end:    
+    
+```
+
+- Instruction Definition
+```
+.text
+     lui    t0, 0xCAFEA
+     addi   t0, t0, 0b111111111110
+     li     t1, -4000
+     sltz   t2, t1
+     ...
+    
+```

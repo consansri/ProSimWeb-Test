@@ -672,7 +672,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
     }
 
-
     useEffect(update, memLength) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) MemoryView")

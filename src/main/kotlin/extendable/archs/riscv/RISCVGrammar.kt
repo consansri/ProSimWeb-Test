@@ -270,7 +270,6 @@ class RISCVGrammar : Grammar() {
             // search Parameters
             val parameterList = mutableListOf<T1Param>()
             var validParams = true
-            var labelBuilder = mutableListOf<Compiler.Token>()
 
             while (remainingTokens.isNotEmpty()) {
                 var firstToken = remainingTokens.first()
