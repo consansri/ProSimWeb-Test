@@ -40,14 +40,12 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             super.exeSingleStep()
 
             val binMapper = RISCVBinMapper()
-            var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-            var result = binMapper.getInstrFromBinary(binary.get().toBin())
+            val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+            val result = binMapper.getInstrFromBinary(binary.get().toBin())
             if (result != null) {
                 result.type.execute(this, result.binaryMap)
             }
         }
-
-        DebugTools.testBinTools(getConsole())
 
         getConsole().log("--single_step finishing... \ntook ${measuredTime.inWholeMilliseconds} ms")
 
