@@ -1135,6 +1135,7 @@ class RISCVGrammar : Grammar() {
                     } else {
                         false
                     }
+
                 }
                 if (matches) {
                     return Pair(matches, type)
@@ -1267,7 +1268,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BEQ_Const("BEQ", true, BRANCH_Const, relative = BEQ),
+            BEQ_Const("BEQC", true, BRANCH_Const, relative = BEQ),
             BNE("BNE", false, BRANCH, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1291,7 +1292,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BNE_Const("BNE", true, BRANCH_Const, relative = BNE),
+            BNE_Const("BNEC", true, BRANCH_Const, relative = BNE),
             BLT("BLT", false, BRANCH, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1315,7 +1316,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BLT_Const("BLT", true, BRANCH_Const, relative = BLT),
+            BLT_Const("BLTC", true, BRANCH_Const, relative = BLT),
             BGE("BGE", false, BRANCH, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1339,7 +1340,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BGE_Const("BGE", true, BRANCH_Const, relative = BGE),
+            BGE_Const("BGEC", true, BRANCH_Const, relative = BGE),
             BLTU("BLTU", false, BRANCH, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1363,7 +1364,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BLTU_Const("BLTU", true, BRANCH_Const, relative = BLTU),
+            BLTU_Const("BLTUC", true, BRANCH_Const, relative = BLTU),
             BGEU("BGEU", false, BRANCH, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1387,7 +1388,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BGEU_Const("BGEU", true, BRANCH_Const, relative = BGEU),
+            BGEU_Const("BGEUC", true, BRANCH_Const, relative = BGEU),
             BEQ1("BEQ", true, PS_BRANCHLBL, relative = BEQ),
             BNE1("BNE", true, PS_BRANCHLBL, relative = BNE),
             BLT1("BLT", true, PS_BRANCHLBL, relative = BLT),
