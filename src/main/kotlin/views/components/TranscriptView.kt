@@ -90,7 +90,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
             className = ClassName(StyleConst.CLASS_TRANSCRIPT_TABLE)
 
             table {
-                className = ClassName("dcf-table dcf-table-striped dcf-w-100%")
+                className = ClassName("dcf-table dcf-w-100%")
 
                 thead {
                     tr {
