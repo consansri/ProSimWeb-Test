@@ -376,7 +376,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                     val binChars = StringBuilder()
                     val byteArray = content.substring(1, content.length - 1).encodeToByteArray()
                     for (byte in byteArray) {
-                        val bin = byte.toString(2)
+                        val bin = byte.toInt().toString(2)
                         binChars.append(bin)
                     }
                     return MutVal.Value.Binary(binChars.toString())
@@ -385,13 +385,13 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
-                    val binChars = StringBuilder()
-                    val byteArray = content.substring(1, content.length - 1).encodeToByteArray()
-                    for (byte in byteArray) {
-                        val bin = byte.toString(2)
-                        binChars.append(bin)
+                    val hexStr = StringBuilder()
+                    val trimmedContent = content.substring(1, content.length - 1)
+                    for (char in trimmedContent) {
+                        val hexChar = char.code.toString(16)
+                        hexStr.append(hexChar)
                     }
-                    return MutVal.Value.Binary(binChars.toString())
+                    return MutVal.Value.Hex(hexStr.toString())
                 }
             }
 
@@ -409,19 +409,14 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
-                    if (DebugTools.ARCH_showCompilerInfo) {
-                        console.warn("Compiler.Dec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
-                    }
-                    return MutVal.Value.Dec(content, MutVal.Size.Bit32())
+                    return MutVal.Value.Dec(content)
                 }
             }
 
             class UDec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
-                    if (DebugTools.ARCH_showCompilerInfo) {
-                        console.warn("Compiler.UDec.getValue(): Bottleneck of maximum input is set to 32 Bit caused by missing getNearestSize for decimal Values!")
-                    }
-                    return MutVal.Value.UDec(content, MutVal.Size.Bit32())
+
+                    return MutVal.Value.UDec(content)
                 }
             }
         }

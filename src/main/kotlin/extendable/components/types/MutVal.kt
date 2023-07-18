@@ -471,7 +471,7 @@ class MutVal {
                 this.negative = DecTools.isNegative(this.decString)
             }
 
-            constructor(decString: String) : this(decString, Tools.getNearestDecSize(decString))
+            constructor(decString: String) : this(decString, Tools.getNearestDecSize(decString.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)))
 
             fun isNegative(): Boolean {
                 return negative
@@ -611,7 +611,7 @@ class MutVal {
                 this.udecString = check(udecString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
 
-            constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString)) {
+            constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString.trim().removePrefix(ArchConst.PRESTRING_UDECIMAL))) {
                 if (DebugTools.ARCH_showBVCheckWarnings) {
                     console.log("ByteValue.UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
                 }
@@ -622,7 +622,7 @@ class MutVal {
             }
 
             fun getRawUDecStr(): String {
-                return udecString.removePrefix(ArchConst.PRESTRING_DECIMAL)
+                return udecString.removePrefix(ArchConst.PRESTRING_UDECIMAL)
             }
 
             fun getUResized(size: Size): UDec {
@@ -630,7 +630,7 @@ class MutVal {
             }
 
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
-                val formatted = string.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
+                val formatted = string.trim().removePrefix(ArchConst.PRESTRING_UDECIMAL)
 
                 val posRegex = Regex("[0-9]+")
                 val negRegex = Regex("-[0-9]+")
@@ -640,26 +640,26 @@ class MutVal {
                     if (warnings) {
                         console.warn("ByteValue.Type.UDec.check(): ${formatted} is negative! returning absolute Value instead: ${posValue}")
                     }
-                    return CheckResult(false, ArchConst.PRESTRING_DECIMAL + posValue)
+                    return CheckResult(false, ArchConst.PRESTRING_UDECIMAL + posValue)
                 } else if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
                     if (warnings) {
-                        console.warn("ByteValue.Type.UDec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_DECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
+                        console.warn("ByteValue.Type.UDec.check(): ${formatted} does not match the dec Pattern (${ArchConst.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
                     }
-                    return CheckResult(false, ArchConst.PRESTRING_DECIMAL + zeroString)
+                    return CheckResult(false, ArchConst.PRESTRING_UDECIMAL + zeroString)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
                         if (warnings) {
                             console.warn("ByteValue.Type.UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}")
                         }
-                        return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).umax)
+                        return CheckResult(false, ArchConst.PRESTRING_UDECIMAL + Bounds(size).umax)
                     } else if (DecTools.isGreaterThan(Bounds(size).umin, formatted)) {
                         if (warnings) {
                             console.warn("ByteValue.Type.UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}")
                         }
-                        return CheckResult(false, ArchConst.PRESTRING_DECIMAL + Bounds(size).umin)
+                        return CheckResult(false, ArchConst.PRESTRING_UDECIMAL + Bounds(size).umin)
                     } else {
-                        return CheckResult(true, ArchConst.PRESTRING_DECIMAL + formatted)
+                        return CheckResult(true, ArchConst.PRESTRING_UDECIMAL + formatted)
                     }
                 }
             }

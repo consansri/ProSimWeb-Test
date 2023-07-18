@@ -53,6 +53,7 @@ object ArchConst {
     const val PRESTRING_HEX = "0x"
     const val PRESTRING_BINARY = "0b"
     const val PRESTRING_DECIMAL = ""
+    const val PRESTRING_UDECIMAL = "u"
     const val POSTSTRING_JLABEL = ":"
 
     // REGEX SPLITTER

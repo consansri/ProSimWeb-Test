@@ -15,7 +15,7 @@ import tools.DebugTools
 class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: MutVal.Value) : Assembly() {
 
     val labelBinAddrMap = mutableMapOf<RISCVGrammar.T1Label, String>()
-    val labelConstMap = mutableMapOf<RISCVGrammar.T1Label, MutVal.Value>()
+    val labelConstMap = mutableMapOf<RISCVGrammar.T1Label, MutVal.Value.Binary>()
     val transcriptEntrys = mutableListOf<Transcript.TranscriptEntry>()
     val binarys = mutableListOf<MutVal.Value.Binary>()
 
@@ -39,7 +39,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             val result = binaryMapper.getInstrFromBinary(binary)
             if (result != null) {
                 entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id)
-                var paramString = result.binaryMap.entries.joinToString(", ") {
+                val paramString = result.binaryMap.entries.joinToString(", ") {
                     "${it.key.name.lowercase()}: ${
                         when (it.key) {
                             RISCVBinMapper.MaskLabel.RD -> {
@@ -60,14 +60,14 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
                             RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.IMM20 -> {
                                 if (result.type == RISCVGrammar.T1Instr.Type.JALR || result.type == RISCVGrammar.T1Instr.Type.JAL) {
-                                    var labelString = ""
+                                    var refLabelStr = ""
                                     for (labels in labelBinAddrMap) {
                                         if (MutVal.Value.Binary(labels.value) == it.value) {
-                                            labelString = labels.key.wholeName
+                                            refLabelStr = labels.key.wholeName
                                         }
                                     }
-                                    if (labelString.isNotEmpty()) {
-                                        "${it.value.toHex().getHexStr()} -> $labelString"
+                                    if (refLabelStr.isNotEmpty()) {
+                                        "${it.value.toHex().getHexStr()} -> $refLabelStr"
                                     } else {
                                         it.value.toHex().getHexStr()
                                     }
@@ -218,7 +218,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                                     if (isString) {
                                                         val content = constToken.content.substring(1, constToken.content.length - 1)
                                                         val valueList = mutableListOf<MutVal.Value.Hex>()
-                                                        for (char in content) {
+                                                        for (char in content.reversed()) {
                                                             valueList.add(MutVal.Value.Hex(char.code.toString(16), MutVal.Size.Bit8()))
                                                         }
                                                         resizedValues = valueList.toTypedArray()
@@ -241,6 +241,9 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
                                             dataAllocList.add(MemAllocEntry(entry, nextAddress.toHex(), resizedValues.first().size, *resizedValues))
                                             nextAddress += length
+                                            if (nextAddress % MutVal.Value.Binary("10") == MutVal.Value.Binary("1")) {
+                                                nextAddress += MutVal.Value.Binary("1")
+                                            }
                                         }
 
                                     }

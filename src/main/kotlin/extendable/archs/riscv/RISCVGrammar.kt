@@ -86,9 +86,33 @@ class RISCVGrammar : Grammar() {
                                 previous--
                             }
                             val labelNameString = labelName.joinToString("") { it.content }
+
+                            // check if sublabel
+                            var sublabelFrom: T1Label? = null
+                            if (labelNameString.first() == '.') {
+                                val superLabelsToCheck = t1Labels.toMutableList()
+                                while (superLabelsToCheck.isNotEmpty()) {
+                                    // super label can't be sub label!
+                                    if (!superLabelsToCheck.last().isSubLabel) {
+                                        // check if super label line contains equ so equ constant labels can't be super labels
+                                        val remainingLineElements = mutableListOf<Compiler.Token>()
+                                        remainingLines.get(superLabelsToCheck.last().getAllTokens().first().lineLoc.lineID).forEach { if (it.content == "equ") remainingLineElements.add(it) }
+                                        if (remainingLineElements.isEmpty()) {
+                                            sublabelFrom = superLabelsToCheck.last()
+                                            break
+                                        } else {
+                                            superLabelsToCheck.removeLast()
+                                        }
+                                    } else {
+                                        superLabelsToCheck.removeLast()
+                                    }
+                                }
+                            }
+
+                            // check if label is already in use!
                             var alreadyDefined = false
                             for (label in t1Labels) {
-                                if (label.wholeName == labelNameString) {
+                                if (label.wholeName == (if (sublabelFrom != null) sublabelFrom.wholeName else "") + labelNameString) {
                                     alreadyDefined = true
                                 }
                             }
@@ -99,7 +123,8 @@ class RISCVGrammar : Grammar() {
                                 break
                             }
 
-                            val t1Label = T1Label(*labelName.toTypedArray(), colon = colon)
+                            // adding label
+                            val t1Label = T1Label(*labelName.toTypedArray(), colon = colon, sublabelFrom = sublabelFrom)
                             remainingTokens.removeAll(labelName)
                             remainingTokens.remove(colon)
                             t1Labels.add(t1Label)
@@ -117,6 +142,10 @@ class RISCVGrammar : Grammar() {
             remainingLines[lineID] = remainingTokens
             tier1Lines[lineID] += tier1Line
         }
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: Tier 1 Pre Label Scan -> Labels: ${t1Labels.joinToString(", ") { it.wholeName }}")
+        }
+
 
         // -------------------------------------------------------------------------- TIER 1 MAIN Scan --------------------------------------------------------------------------
         for (lineID in remainingLines.indices) {
@@ -316,6 +345,19 @@ class RISCVGrammar : Grammar() {
                     }
                     if (tokensForLabelToCheck.isNotEmpty()) {
                         for (label in t1Labels) {
+
+                            if (label.isSubLabel) {
+                                // check sublabel names
+                                val wholeLinkName = tokensForLabelToCheck.joinToString("") { it.content }
+                                if (label.wholeName == wholeLinkName) {
+                                    val labelNameTokens = mutableListOf<Compiler.Token>()
+                                    labelNameTokens.addAll(tokensForLabelToCheck)
+                                    labelLink = T1Param.LabelLink(label, *labelNameTokens.toTypedArray())
+                                    break
+                                }
+                            }
+
+                            // check not sublabelnames
                             val labelResult = label.tokenSequence.exactlyMatches(*tokensForLabelToCheck.toTypedArray())
                             if (labelResult.matches) {
                                 val labelNameTokens = mutableListOf<Compiler.Token>()
@@ -758,20 +800,20 @@ class RISCVGrammar : Grammar() {
                 val tokenSequence = TokenSequence(TokenSequence.SequenceComponent.InSpecific.Constant(), TokenSequence.SequenceComponent.Specific("("), TokenSequence.SequenceComponent.InSpecific.Register(), TokenSequence.SequenceComponent.Specific(")"), ignoreSpaces = true)
             }
 
-            fun getValueArray(): Array<MutVal.Value> {
-                return arrayOf(offset.getValue(), register.reg.address)
+            fun getValueArray(): Array<MutVal.Value.Binary> {
+                return arrayOf(offset.getValue().toBin(), register.reg.address.toBin())
             }
         }
 
         class Constant(val constant: Compiler.Token.Constant) : T1Param("", Syntax.NODE_PARAM_CONST, constant) {
-            fun getValue(): MutVal.Value {
-                return constant.getValue()
+            fun getValue(): MutVal.Value.Binary {
+                return constant.getValue().toBin()
             }
         }
 
         class Register(val register: Compiler.Token.Register) : T1Param("", Syntax.NODE_PARAM_REG, register) {
-            fun getAddress(): MutVal.Value {
-                return register.reg.address
+            fun getAddress(): MutVal.Value.Binary {
+                return register.reg.address.toBin()
             }
         }
 
@@ -799,12 +841,24 @@ class RISCVGrammar : Grammar() {
             paramsWithOutSplitSymbols = parameterList.toTypedArray()
         }
 
-        fun getValues(): Array<MutVal.Value> {
-            val values = mutableListOf<MutVal.Value>()
+        fun getValues(): Array<MutVal.Value.Binary> {
+            val values = mutableListOf<MutVal.Value.Binary>()
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is T1Param.Constant -> {
-                        values.add(it.getValue())
+                        var value = it.getValue()
+                        if (value.size.byteCount < MutVal.Size.Bit32().byteCount) {
+                            value = when (it.constant) {
+                                is Compiler.Token.Constant.Dec -> {
+                                    value.getResized(MutVal.Size.Bit32())
+                                }
+
+                                else -> {
+                                    value.getUResized(MutVal.Size.Bit32())
+                                }
+                            }
+                        }
+                        values.add(value)
                     }
 
                     is T1Param.Offset -> {
@@ -818,6 +872,7 @@ class RISCVGrammar : Grammar() {
                     else -> {}
                 }
             }
+
             return values.toTypedArray()
         }
 
@@ -837,13 +892,20 @@ class RISCVGrammar : Grammar() {
 
     }
 
-    class T1Label(vararg val labelName: Compiler.Token, colon: Compiler.Token.Symbol) : TreeNode.TokenNode(RISCVFlags.label, Syntax.NODE_LABEL, *labelName, colon) {
+    class T1Label(vararg val labelName: Compiler.Token, colon: Compiler.Token.Symbol, val sublabelFrom: T1Label? = null) : TreeNode.TokenNode(RISCVFlags.label, Syntax.NODE_LABEL, *labelName, colon) {
 
         val wholeName: String
         val tokenSequence: TokenSequence
+        val isSubLabel: Boolean
 
         init {
-            wholeName = labelName.joinToString("") { it.content }
+            if (sublabelFrom != null) {
+                isSubLabel = true
+            } else {
+                isSubLabel = false
+            }
+
+            wholeName = (if (sublabelFrom != null) sublabelFrom.wholeName else "") + labelName.joinToString("") { it.content }
             val tokenSequenceComponents = mutableListOf<TokenSequence.SequenceComponent>()
             for (token in labelName) {
                 tokenSequenceComponents.add(TokenSequence.SequenceComponent.Specific(token.content))
