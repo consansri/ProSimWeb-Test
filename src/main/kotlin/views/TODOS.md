@@ -1,9 +1,14 @@
-# View Ideas #
+# View TODOS #
 
 ## Console ##
 
 - deactivate auto scroll by scrolling to top
 - making the console vertically resizable
+
+## Menu, Code Editor, Architecture ##
+
+- Adding Export and Import functionality of code and compiled code
+- Adding Multi File Support
 
 ## Info ##
 
