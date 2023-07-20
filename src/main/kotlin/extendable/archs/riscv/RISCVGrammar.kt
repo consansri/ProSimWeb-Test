@@ -8,6 +8,7 @@ import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
 import extendable.archs.riscv.RISCVGrammar.T2LabelDef.Type.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
+import extendable.components.types.BinaryTools
 import extendable.components.types.MutVal
 
 import tools.DebugTools
@@ -192,72 +193,72 @@ class RISCVGrammar : Grammar() {
             if (dot != null && directiveName.isNotEmpty()) {
                 val name = directiveName.joinToString { it.content }
                 when (name) {
-                    data.name -> {
-                        val t1Directive = T1Directive(dot, data, *directiveName.toTypedArray())
+                    DATA.name -> {
+                        val t1Directive = T1Directive(dot, DATA, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    text.name -> {
-                        val t1Directive = T1Directive(dot, text, *directiveName.toTypedArray())
+                    TEXT.name -> {
+                        val t1Directive = T1Directive(dot, TEXT, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    byte.name -> {
-                        val t1Directive = T1Directive(dot, byte, *directiveName.toTypedArray())
+                    BYTE.name -> {
+                        val t1Directive = T1Directive(dot, BYTE, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    half.name -> {
-                        val t1Directive = T1Directive(dot, half, *directiveName.toTypedArray())
+                    HALF.name -> {
+                        val t1Directive = T1Directive(dot, HALF, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    word.name -> {
-                        val t1Directive = T1Directive(dot, word, *directiveName.toTypedArray())
+                    WORD.name -> {
+                        val t1Directive = T1Directive(dot, WORD, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    dword.name -> {
-                        val t1Directive = T1Directive(dot, dword, *directiveName.toTypedArray())
+                    DWORD.name -> {
+                        val t1Directive = T1Directive(dot, DWORD, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    asciz.name -> {
-                        val t1Directive = T1Directive(dot, asciz, *directiveName.toTypedArray())
+                    ASCIZ.name -> {
+                        val t1Directive = T1Directive(dot, ASCIZ, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    string.name -> {
-                        val t1Directive = T1Directive(dot, string, *directiveName.toTypedArray())
+                    STRING.name -> {
+                        val t1Directive = T1Directive(dot, STRING, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
                         tier1Line.add(t1Directive)
                     }
 
-                    equ.name -> {
-                        val t1Directive = T1Directive(dot, equ, *directiveName.toTypedArray())
+                    EQU.name -> {
+                        val t1Directive = T1Directive(dot, EQU, *directiveName.toTypedArray())
                         remainingTokens.removeAll(directiveName)
                         remainingTokens.remove(dot)
                         t1Directives.add(t1Directive)
@@ -528,7 +529,7 @@ class RISCVGrammar : Grammar() {
                 if (result.matchingTreeNodes.size == 1) {
                     val t1Directive = result.matchingTreeNodes[0] as T1Directive
                     when (t1Directive.type) {
-                        data -> {
+                        DATA -> {
                             tier2Node = T2DataSectionStart(t1Directive)
                             tier2Lines.add(tier2Node)
                             result.error?.let {
@@ -537,7 +538,7 @@ class RISCVGrammar : Grammar() {
                             continue
                         }
 
-                        text -> {
+                        TEXT -> {
                             tier2Node = T2TextSectionStart(t1Directive)
                             tier2Lines.add(tier2Node)
                             result.error?.let {
@@ -918,7 +919,7 @@ class RISCVGrammar : Grammar() {
 
         fun isTypeDirective(): Boolean {
             when (type) {
-                byte, half, word, dword, asciz, string -> {
+                BYTE, HALF, WORD, DWORD, ASCIZ, STRING -> {
                     return true
                 }
 
@@ -929,19 +930,29 @@ class RISCVGrammar : Grammar() {
         }
 
         fun isConstantDirective(): Boolean {
-            return type == equ
+            return type == EQU
         }
 
-        enum class Type {
-            data,
-            text,
-            equ,
-            byte,
-            half,
-            word,
-            dword,
-            asciz,
-            string
+        enum class DirParam {
+            NONE,
+            VALUE,
+        }
+
+        enum class Type(val dirParam: DirParam) {
+            // SECTIONS
+            DATA(DirParam.NONE),
+            TEXT(DirParam.NONE),
+
+            // VALUE TYPES
+            BYTE(DirParam.VALUE),
+            HALF(DirParam.VALUE),
+            WORD(DirParam.VALUE),
+            DWORD(DirParam.VALUE),
+            ASCIZ(DirParam.VALUE),
+            STRING(DirParam.VALUE),
+
+            //
+            EQU(DirParam.VALUE),
         }
 
     }
@@ -964,7 +975,7 @@ class RISCVGrammar : Grammar() {
                 val matches: Boolean
                 type = it
                 when (it.paramType) {
-                    RI -> {
+                    RD_I20 -> {
                         matches = if (trimmedT1ParamColl.size == 2) {
                             trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.Constant
                         } else {
@@ -972,7 +983,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    RI_Const -> {
+                    PS_RD_Const20 -> {
                         matches = if (trimmedT1ParamColl.size == 2) {
                             trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
                         } else {
@@ -980,7 +991,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    LOAD -> {
+                    RD_Off12 -> {
                         matches = if (trimmedT1ParamColl.size == 2) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     (trimmedT1ParamColl[1] is T1Param.Offset || trimmedT1ParamColl[1] is T1Param.LabelLink)
@@ -989,7 +1000,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    STORE -> {
+                    RS2_Off5 -> {
                         matches = if (trimmedT1ParamColl.size == 2) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     (trimmedT1ParamColl[1] is T1Param.Offset || trimmedT1ParamColl[1] is T1Param.LabelLink)
@@ -998,7 +1009,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    OP_R -> {
+                    RD_RS1_RS1 -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1008,7 +1019,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    LOGICCALCIMM -> {
+                    RD_RS1_I12 -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1018,7 +1029,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    LOGICCALCIMM_Const -> {
+                    PS_RD_RS1_Const12 -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1028,7 +1039,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    SHIFTIMM -> {
+                    RD_RS1_I5 -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1038,7 +1049,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    SHIFTIMM_Const -> {
+                    PS_RD_RS1_Const5 -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1048,7 +1059,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    BRANCH -> {
+                    RS1_RS2_I12 -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1058,7 +1069,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    BRANCH_Const -> {
+                    PS_RS1_RS2_Const12 -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1068,7 +1079,7 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    PS_BRANCHLBL -> {
+                    PS_RS1_RS2_Jlbl -> {
                         matches = if (trimmedT1ParamColl.size == 3) {
                             trimmedT1ParamColl[0] is T1Param.Register &&
                                     trimmedT1ParamColl[1] is T1Param.Register &&
@@ -1078,26 +1089,14 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    JUMPLR -> {
-                        matches = if (trimmedT1ParamColl.size == 2) {
-                            trimmedT1ParamColl[0] is T1Param.Register &&
-                                    trimmedT1ParamColl[1] is T1Param.Offset
-                        } else {
-                            false
-                        }
-                    }
 
-                    NONE -> {
-                        matches = trimmedT1ParamColl.size == 0
-                    }
-
-                    PS_RI -> matches = if (trimmedT1ParamColl.size == 2) {
+                    PS_RD_I32 -> matches = if (trimmedT1ParamColl.size == 2) {
                         trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.Constant
                     } else {
                         false
                     }
 
-                    PS_RI_Const -> {
+                    PS_RD_Clbl -> {
                         matches = if (trimmedT1ParamColl.size == 2) {
                             trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
                         } else {
@@ -1105,36 +1104,45 @@ class RISCVGrammar : Grammar() {
                         }
                     }
 
-                    PS_RL -> matches = if (trimmedT1ParamColl.size == 2) {
+                    PS_RS1_Jlbl -> matches = if (trimmedT1ParamColl.size == 2) {
                         trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
                     } else {
                         false
                     }
 
-                    PS_RAllocL -> matches = if (trimmedT1ParamColl.size == 2) {
+                    PS_RD_Albl -> matches = if (trimmedT1ParamColl.size == 2) {
                         trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.LabelLink
                     } else {
                         false
                     }
 
-                    PS_L -> matches = if (trimmedT1ParamColl.size == 1) {
+                    PS_Jlbl -> matches = if (trimmedT1ParamColl.size == 1) {
                         trimmedT1ParamColl[0] is T1Param.LabelLink
                     } else {
                         false
                     }
 
-                    PS_RR -> matches = if (trimmedT1ParamColl.size == 2) {
+                    PS_RD_RS1 -> matches = if (trimmedT1ParamColl.size == 2) {
                         trimmedT1ParamColl[0] is T1Param.Register && trimmedT1ParamColl[1] is T1Param.Register
                     } else {
                         false
                     }
 
-                    PS_NONE -> matches = trimmedT1ParamColl.size == 0
-                    PS_R -> matches = if (trimmedT1ParamColl.size == 1) {
+                    PS_RS1 -> matches = if (trimmedT1ParamColl.size == 1) {
                         trimmedT1ParamColl[0] is T1Param.Register
                     } else {
                         false
                     }
+
+
+                    PS_NONE -> {
+                        matches = trimmedT1ParamColl.size == 0
+                    }
+
+                    NONE -> {
+                        matches = trimmedT1ParamColl.size == 0
+                    }
+
 
                 }
                 if (matches) {
@@ -1146,34 +1154,35 @@ class RISCVGrammar : Grammar() {
 
         enum class ParameterType(val pseudo: Boolean, val exampleString: String, val expectedLabelType: T2LabelDef.Type? = null) {
             // NORMAL INSTRUCTIONS
-            RI(false, "rd, imm20"), // rd, imm
-            LOAD(false, "rd, imm12(rs)"), // rd, imm12(rs)
-            STORE(false, "rs2, imm5(rs1)"), // rs2, imm5(rs1)
-            OP_R(false, "rd, rs1, rs2"), // rd, rs1, rs2
-            LOGICCALCIMM(false, "rd, rs1, imm12"), // rd, rs, imm
-            SHIFTIMM(false, "rd, rs1, shamt5"), // rd, rs, shamt
-            BRANCH(false, "rs1, rs2, imm12"), // rs1, rs2, imm
-            JUMPLR(false, "rd, imm12(rs1)"), // rd, label
-            NONE(false, "none"),
+            RD_I20(false, "rd, imm20"), // rd, imm
+            RD_Off12(false, "rd, imm12(rs)"), // rd, imm12(rs)
+            RS2_Off5(false, "rs2, imm5(rs1)"), // rs2, imm5(rs1)
+            RD_RS1_RS1(false, "rd, rs1, rs2"), // rd, rs1, rs2
+            RD_RS1_I12(false, "rd, rs1, imm12"), // rd, rs, imm
+            RD_RS1_I5(false, "rd, rs1, shamt5"), // rd, rs, shamt
+            RS1_RS2_I12(false, "rs1, rs2, imm12"), // rs1, rs2, imm
 
             // PSEUDO INSTRUCTIONS
-            RI_Const(true, "rd, const20", CONSTANT), // rd, constant
-            LOGICCALCIMM_Const(true, "rd, rs1, const12", CONSTANT), // rd, rs, constant
-            SHIFTIMM_Const(true, "rd, rs1, const5", CONSTANT), //rd, rs1, constant5
-            BRANCH_Const(true, "rs1, rs2, const", CONSTANT), // rs1, rs2, constant
-            PS_BRANCHLBL(true, "rs1, rs2, jlabel", JUMP),
-            PS_RI(true, "rd, imm32"), // rd, imm
-            PS_RI_Const(true, "rd, clabel", CONSTANT), // rd, imm
-            PS_RL(true, "rs, jlabel", JUMP), // rs, label
-            PS_RAllocL(true, "rd, alabel", MEMALLOC), // rd, label
-            PS_L(true, "jlabel", JUMP),  // label
-            PS_RR(true, "rd, rs"), // rd, rs
-            PS_R(true, "rs1"),
+            PS_RD_Const20(true, "rd, const20", CONSTANT), // rd, constant
+            PS_RD_RS1_Const12(true, "rd, rs1, const12", CONSTANT), // rd, rs, constant
+            PS_RD_RS1_Const5(true, "rd, rs1, const5", CONSTANT), //rd, rs1, constant5
+            PS_RS1_RS2_Const12(true, "rs1, rs2, const", CONSTANT), // rs1, rs2, constant
+            PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel", JUMP),
+            PS_RD_I32(true, "rd, imm32"), // rd, imm
+            PS_RD_Clbl(true, "rd, clabel", CONSTANT), // rd, imm
+            PS_RS1_Jlbl(true, "rs, jlabel", JUMP), // rs, label
+            PS_RD_Albl(true, "rd, alabel", MEMALLOC), // rd, label
+            PS_Jlbl(true, "jlabel", JUMP),  // label
+            PS_RD_RS1(true, "rd, rs"), // rd, rs
+            PS_RS1(true, "rs1"),
+
+            // NONE PARAM INSTR
+            NONE(false, "none"),
             PS_NONE(true, "none")
         }
 
         enum class Type(val id: String, val pseudo: Boolean, val paramType: ParameterType, val opCode: OpCode? = null, val memWords: Int = 1, val relative: Type? = null) {
-            LUI("LUI", false, RI, OpCode("00000000000000000000 00000 0110111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
+            LUI("LUI", false, RD_I20, OpCode("00000000000000000000 00000 0110111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1189,8 +1198,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            LUI_Const("LUI", true, RI_Const, relative = LUI),
-            AUIPC("AUIPC", false, RI, OpCode("00000000000000000000 00000 0010111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
+            LUI_Const("LUI", true, PS_RD_Const20, relative = LUI),
+            AUIPC("AUIPC", false, RD_I20, OpCode("00000000000000000000 00000 0010111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1207,8 +1216,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            AUIPC_Const("AUIPC", true, RI_Const, relative = AUIPC),
-            JAL("JAL", false, RI, OpCode("00000000000000000000 00000 1101111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
+            AUIPC_Const("AUIPC", true, PS_RD_Const20, relative = AUIPC),
+            JAL("JAL", false, RD_I20, OpCode("00000000000000000000 00000 1101111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1217,15 +1226,24 @@ class RISCVGrammar : Grammar() {
                         val imm20 = paramMap.get(MaskLabel.IMM20)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedImm = imm20.getResized(MutVal.Size.Bit32()) shl 1
+                            val imm20str = imm20.getRawBinaryStr()
+
+                            /**
+                             *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
+                             *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
+                             *        Location       20 [      10 : 1               ] 11 [ 19 : 12             ]
+                             */
+
+                            val shiftedImm = MutVal.Value.Binary(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), MutVal.Size.Bit20()).getResized(MutVal.Size.Bit32()) shl 1
+
                             rd.set(pc.value.get() + MutVal.Value.Hex("4"))
                             pc.value.set(pc.value.get() + shiftedImm)
                         }
                     }
                 }
             },
-            JAL_Const("JAL", true, RI_Const, relative = JAL),
-            JALR("JALR", false, JUMPLR, OpCode("000000000000 00000 000 00000 1100111", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            JAL_Const("JAL", true, PS_RD_Const20, relative = JAL),
+            JALR("JALR", false, RD_Off12, OpCode("000000000000 00000 000 00000 1100111", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1245,7 +1263,7 @@ class RISCVGrammar : Grammar() {
             },
             ECALL("ECALL", false, NONE, OpCode("000000000000 00000 000 00000 1110011", arrayOf(MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.OPCODE))),
             EBREAK("EBREAK", false, NONE, OpCode("000000000001 00000 000 00000 1110011", arrayOf(MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.OPCODE))),
-            BEQ("BEQ", false, BRANCH, OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            BEQ("BEQ", false, RS1_RS2_I12, OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1257,7 +1275,12 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = MutVal.Value.Binary(imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr() + imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr(), MutVal.Size.Bit12())
+                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
+
+                            console.warn("$imm7str $imm5str -> ${imm12.getRawBinaryStr()}")
+
                             val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() == rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
@@ -1268,8 +1291,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BEQ_Const("BEQC", true, BRANCH_Const, relative = BEQ),
-            BNE("BNE", false, BRANCH, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            BEQ_Const("BEQC", true, PS_RS1_RS2_Const12, relative = BEQ),
+            BNE("BNE", false, RS1_RS2_I12, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1281,7 +1304,9 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
                             val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() != rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
@@ -1292,8 +1317,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BNE_Const("BNEC", true, BRANCH_Const, relative = BNE),
-            BLT("BLT", false, BRANCH, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            BNE_Const("BNEC", true, PS_RS1_RS2_Const12, relative = BNE),
+            BLT("BLT", false, RS1_RS2_I12, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1305,7 +1330,9 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
                             val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() < rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
@@ -1316,8 +1343,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BLT_Const("BLTC", true, BRANCH_Const, relative = BLT),
-            BGE("BGE", false, BRANCH, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            BLT_Const("BLTC", true, PS_RS1_RS2_Const12, relative = BLT),
+            BGE("BGE", false, RS1_RS2_I12, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1329,7 +1356,9 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
                             val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() >= rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
@@ -1340,8 +1369,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BGE_Const("BGEC", true, BRANCH_Const, relative = BGE),
-            BLTU("BLTU", false, BRANCH, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            BGE_Const("BGEC", true, PS_RS1_RS2_Const12, relative = BGE),
+            BLTU("BLTU", false, RS1_RS2_I12, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1353,7 +1382,9 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
                             val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toUDec() < rs2.get().toUDec()) {
                                 pc.value.set(pc.value.get() + offset)
@@ -1364,8 +1395,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BLTU_Const("BLTUC", true, BRANCH_Const, relative = BLTU),
-            BGEU("BGEU", false, BRANCH, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            BLTU_Const("BLTUC", true, PS_RS1_RS2_Const12, relative = BLTU),
+            BGEU("BGEU", false, RS1_RS2_I12, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1377,7 +1408,9 @@ class RISCVGrammar : Grammar() {
                         val imm5 = paramMap.get(MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm12 = (imm7.getResized(MutVal.Size.Bit12()) ushl 5) + imm5
+                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
                             val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toUDec() >= rs2.get().toUDec()) {
                                 pc.value.set(pc.value.get() + offset)
@@ -1388,14 +1421,14 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            BGEU_Const("BGEUC", true, BRANCH_Const, relative = BGEU),
-            BEQ1("BEQ", true, PS_BRANCHLBL, relative = BEQ),
-            BNE1("BNE", true, PS_BRANCHLBL, relative = BNE),
-            BLT1("BLT", true, PS_BRANCHLBL, relative = BLT),
-            BGE1("BGE", true, PS_BRANCHLBL, relative = BGE),
-            BLTU1("BLTU", true, PS_BRANCHLBL, relative = BLTU),
-            BGEU1("BGEU", true, PS_BRANCHLBL, relative = BGEU),
-            LB("LB", false, LOAD, OpCode("000000000000 00000 000 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            BGEU_Const("BGEUC", true, PS_RS1_RS2_Const12, relative = BGEU),
+            BEQ1("BEQ", true, PS_RS1_RS2_Jlbl, relative = BEQ),
+            BNE1("BNE", true, PS_RS1_RS2_Jlbl, relative = BNE),
+            BLT1("BLT", true, PS_RS1_RS2_Jlbl, relative = BLT),
+            BGE1("BGE", true, PS_RS1_RS2_Jlbl, relative = BGE),
+            BLTU1("BLTU", true, PS_RS1_RS2_Jlbl, relative = BLTU),
+            BGEU1("BGEU", true, PS_RS1_RS2_Jlbl, relative = BGEU),
+            LB("LB", false, RD_Off12, OpCode("000000000000 00000 000 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1414,7 +1447,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            LH("LH", false, LOAD, OpCode("000000000000 00000 001 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            LH("LH", false, RD_Off12, OpCode("000000000000 00000 001 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1433,7 +1466,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            LW("LW", false, LOAD, OpCode("000000000000 00000 010 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            LW("LW", false, RD_Off12, OpCode("000000000000 00000 010 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1452,7 +1485,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            LBU("LBU", false, LOAD, OpCode("000000000000 00000 100 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            LBU("LBU", false, RD_Off12, OpCode("000000000000 00000 100 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1471,7 +1504,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            LHU("LHU", false, LOAD, OpCode("000000000000 00000 101 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            LHU("LHU", false, RD_Off12, OpCode("000000000000 00000 101 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1490,7 +1523,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SB("SB", false, STORE, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            SB("SB", false, RS2_Off5, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1508,7 +1541,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SH("SH", false, STORE, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            SH("SH", false, RS2_Off5, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1526,7 +1559,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SW("SW", false, STORE, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
+            SW("SW", false, RS2_Off5, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(MaskLabel.RS1)
@@ -1544,7 +1577,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            ADDI("ADDI", false, LOGICCALCIMM, OpCode("000000000000 00000 000 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            ADDI("ADDI", false, RD_RS1_I12, OpCode("000000000000 00000 000 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1563,8 +1596,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            ADDI_Const("ADDI", true, LOGICCALCIMM_Const, relative = ADDI),
-            SLTI("SLTI", false, LOGICCALCIMM, OpCode("000000000000 00000 010 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            ADDI_Const("ADDI", true, PS_RD_RS1_Const12, relative = ADDI),
+            SLTI("SLTI", false, RD_RS1_I12, OpCode("000000000000 00000 010 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1582,8 +1615,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SLTI_Const("SLTI", true, LOGICCALCIMM_Const, relative = SLTI),
-            SLTIU("SLTIU", false, LOGICCALCIMM, OpCode("000000000000 00000 011 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SLTI_Const("SLTI", true, PS_RD_RS1_Const12, relative = SLTI),
+            SLTIU("SLTIU", false, RD_RS1_I12, OpCode("000000000000 00000 011 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1601,8 +1634,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SLTIU_Const("SLTIU", true, LOGICCALCIMM_Const, relative = SLTIU),
-            XORI("XORI", false, LOGICCALCIMM, OpCode("000000000000 00000 100 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SLTIU_Const("SLTIU", true, PS_RD_RS1_Const12, relative = SLTIU),
+            XORI("XORI", false, RD_RS1_I12, OpCode("000000000000 00000 100 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1620,8 +1653,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            XORI_Const("XORI", true, LOGICCALCIMM_Const, relative = XORI),
-            ORI("ORI", false, LOGICCALCIMM, OpCode("000000000000 00000 110 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            XORI_Const("XORI", true, PS_RD_RS1_Const12, relative = XORI),
+            ORI("ORI", false, RD_RS1_I12, OpCode("000000000000 00000 110 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1639,8 +1672,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            ORI_Const("ORI", true, LOGICCALCIMM_Const, relative = ORI),
-            ANDI("ANDI", false, LOGICCALCIMM, OpCode("000000000000 00000 111 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            ORI_Const("ORI", true, PS_RD_RS1_Const12, relative = ORI),
+            ANDI("ANDI", false, RD_RS1_I12, OpCode("000000000000 00000 111 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1658,8 +1691,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            ANDI_Const("ANDI", true, LOGICCALCIMM_Const, relative = ANDI),
-            SLLI("SLLI", false, SHIFTIMM, OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            ANDI_Const("ANDI", true, PS_RD_RS1_Const12, relative = ANDI),
+            SLLI("SLLI", false, RD_RS1_I5, OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1676,8 +1709,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SLLI_Const("SLLI", true, SHIFTIMM_Const, relative = SLLI),
-            SRLI("SRLI", false, SHIFTIMM, OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SLLI_Const("SLLI", true, PS_RD_RS1_Const5, relative = SLLI),
+            SRLI("SRLI", false, RD_RS1_I5, OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1694,8 +1727,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SRLI_Const("SRLI", true, SHIFTIMM_Const, relative = SRLI),
-            SRAI("SRAI", false, SHIFTIMM, OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SRLI_Const("SRLI", true, PS_RD_RS1_Const5, relative = SRLI),
+            SRAI("SRAI", false, RD_RS1_I5, OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT7, MaskLabel.SHAMT, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1712,8 +1745,8 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SRAI_Const("SRAI", true, SHIFTIMM_Const, relative = SRAI),
-            ADD("ADD", false, OP_R, OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SRAI_Const("SRAI", true, PS_RD_RS1_Const5, relative = SRAI),
+            ADD("ADD", false, RD_RS1_RS1, OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1731,7 +1764,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SUB("SUB", false, OP_R, OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SUB("SUB", false, RD_RS1_RS1, OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1749,7 +1782,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SLL("SLL", false, OP_R, OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SLL("SLL", false, RD_RS1_RS1, OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1767,7 +1800,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SLT("SLT", false, OP_R, OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SLT("SLT", false, RD_RS1_RS1, OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1785,7 +1818,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SLTU("SLTU", false, OP_R, OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SLTU("SLTU", false, RD_RS1_RS1, OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1803,7 +1836,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            XOR("XOR", false, OP_R, OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            XOR("XOR", false, RD_RS1_RS1, OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1821,7 +1854,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SRL("SRL", false, OP_R, OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SRL("SRL", false, RD_RS1_RS1, OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1839,7 +1872,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            SRA("SRA", false, OP_R, OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            SRA("SRA", false, RD_RS1_RS1, OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1857,7 +1890,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            OR("OR", false, OP_R, OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            OR("OR", false, RD_RS1_RS1, OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1875,7 +1908,7 @@ class RISCVGrammar : Grammar() {
                     }
                 }
             },
-            AND("AND", false, OP_R, OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
+            AND("AND", false, RD_RS1_RS1, OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(MaskLabel.RD)
@@ -1894,31 +1927,31 @@ class RISCVGrammar : Grammar() {
                 }
             },
             Nop("NOP", true, PS_NONE),
-            Mv("MV", true, PS_RR),
-            Li("LI", true, PS_RI, memWords = 2),
-            Li_Const("LI", true, PS_RI_Const, memWords = 2),
-            La("LA", true, PS_RAllocL, memWords = 2),
-            Not("NOT", true, PS_RR),
-            Neg("NEG", true, PS_RR),
-            Seqz("SEQZ", true, PS_RR),
-            Snez("SNEZ", true, PS_RR),
-            Sltz("SLTZ", true, PS_RR),
-            Sgtz("SGTZ", true, PS_RR),
-            Beqz("BEQZ", true, PS_RL),
-            Bnez("BNEZ", true, PS_RL),
-            Blez("BLEZ", true, PS_RL),
-            Bgez("BGEZ", true, PS_RL),
-            Bltz("BLTZ", true, PS_RL),
-            BGTZ("BGTZ", true, PS_RL),
-            Bgt("BGT", true, PS_BRANCHLBL),
-            Ble("BLE", true, PS_BRANCHLBL),
-            Bgtu("BGTU", true, PS_BRANCHLBL),
-            Bleu("BLEU", true, PS_BRANCHLBL),
-            J("J", true, PS_L),
-            JAL1("JAL", true, PS_RL),
-            JAL2("JAL", true, PS_L),
-            Jr("JR", true, PS_R),
-            JALR1("JALR", true, PS_R),
+            Mv("MV", true, PS_RD_RS1),
+            Li("LI", true, PS_RD_I32, memWords = 2),
+            Li_Const("LI", true, PS_RD_Clbl, memWords = 2),
+            La("LA", true, PS_RD_Albl, memWords = 2),
+            Not("NOT", true, PS_RD_RS1),
+            Neg("NEG", true, PS_RD_RS1),
+            Seqz("SEQZ", true, PS_RD_RS1),
+            Snez("SNEZ", true, PS_RD_RS1),
+            Sltz("SLTZ", true, PS_RD_RS1),
+            Sgtz("SGTZ", true, PS_RD_RS1),
+            Beqz("BEQZ", true, PS_RS1_Jlbl),
+            Bnez("BNEZ", true, PS_RS1_Jlbl),
+            Blez("BLEZ", true, PS_RS1_Jlbl),
+            Bgez("BGEZ", true, PS_RS1_Jlbl),
+            Bltz("BLTZ", true, PS_RS1_Jlbl),
+            BGTZ("BGTZ", true, PS_RS1_Jlbl),
+            Bgt("BGT", true, PS_RS1_RS2_Jlbl),
+            Ble("BLE", true, PS_RS1_RS2_Jlbl),
+            Bgtu("BGTU", true, PS_RS1_RS2_Jlbl),
+            Bleu("BLEU", true, PS_RS1_RS2_Jlbl),
+            J("J", true, PS_Jlbl),
+            JAL1("JAL", true, PS_RS1_Jlbl),
+            JAL2("JAL", true, PS_Jlbl),
+            Jr("JR", true, PS_RS1),
+            JALR1("JALR", true, PS_RS1),
             Ret("RET", true, PS_NONE);
 
             open fun execute(architecture: Architecture, paramMap: Map<MaskLabel, MutVal.Value.Binary>) {

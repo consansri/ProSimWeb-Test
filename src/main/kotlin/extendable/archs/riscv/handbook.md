@@ -1,5 +1,197 @@
 # RiscV Handbook #
 
+## Available Syntax ##
+
+### Directives ###
+*(starting with \ means is recognized but not executed)*
+
+#### INCLUDED ####
+
+- **data emmitting**
+
+  *comma seperated words [UNALIGNED or ALIGNED]*
+
+  - **unaligned**
+    ```
+    .2byte          value
+    .4byte          value
+    .8byte          value
+    ```
+  - **aligned**
+    ```
+    .byte           value 
+    .half           value
+    .word           value
+    .dword          value
+    
+    \.dtprelword    value
+    \.dtpreldword   value
+    
+    \.uleb128       value
+    \.sleb128       value
+    ```
+
+- **attributes**
+  ```
+  .attribute tag, value
+
+  tag = {
+  Tag_RISCV_arch;
+  Tag_RISCV_stack_align;
+  Tag_RISCV_unaligned_access;
+  Tag_RISCV_priv_spec;
+  Tag_RISCV_priv_spec_minor;
+  Tag_RISCV_priv_spec_revision;
+  }
+  ```
+
+- **options**
+  ```
+  .option argument
+  
+  argument = { 
+      push; 
+      pop; 
+      \rvc; 
+      \norvc; 
+      \pic; 
+      \nopic; 
+      \relax; 
+      \norelax; 
+      \csr-check; 
+      \no-csr-check; 
+      \arch, +extension[version] [,...,+extension_n[version_n]];
+      \arch, -extension [,...,-extension_n];
+      \arch, =ISA;
+  }
+  ```
+  
+- **macros**
+  ```
+  .macro arg1 [,...,argn]
+    [instructions which can take argn as parameters]
+    ...  
+  .endm
+  
+  ```
+  
+
+- **sections**
+
+  On Every Position in any section a **label** can stand which **holds the address** of the **next element**
+
+  Sections are written chronological to the memory
+
+  - **text**
+    
+    ```
+    .text
+        # Read Only Section containing executable code
+    ```
+      
+  - **data**
+    
+    ```
+    .data
+        # Initialized Read Write Static Variables
+    ```
+    
+  - **rodata**
+    
+    ```
+    .rodata
+        # Initialized Read Only Const Variables      
+    ```
+        
+    - **bss**
+    ```
+    .bss
+        # Uninitialized Read Write Data      
+    ```
+
+
+#### NOT INCLUDED ####
+
+```
+.insn type, operand [,...,operand_n]
+.insn insn_length, value
+.insn value
+```
+
+```
+\.align size-log-2
+```
+
+### Global Syntax ###
+
+- Text Sections (standard if no section start is defined)
+
+```
+.text
+    ...EQU Constant Definitions (const)...
+    ...Jump Label Definitions (jlabel)...
+    ...Instruction Definitions...
+
+```
+
+- Data Sections
+
+```
+.data
+    ...Initialized Address Labels (alabel)...
+        
+```
+
+- EQU Constant Definition (const) ```[clabel]: .equ [constant]```
+
+```
+.text
+    constantname: .equ 0xCAFEAFFE
+    
+```
+
+- Jump Label Definition (jlabel)```[jlabel]:```
+
+```
+.text
+main:
+    ...
+    jal     loop
+    ...
+
+.loop:
+    ...
+    beqz    t0, end
+    j       main.loop 
+    
+end:    
+    
+```
+
+- Instruction Definition ```[instr] [parameters]```
+
+```
+.text
+     lui    t0, 0xCAFEA
+     addi   t0, t0, 0b111111111110
+     li     t1, -4000
+     sltz   t2, t1
+     ...
+    
+```
+
+- Initialized Address Labels ```[alabel] [type directive] [constant]```
+
+```
+.data
+    lbl1: .word     "jklm"
+    lbl2: .half     -34
+    lbl3: .byte     0b11111011
+    lbl4: .asciz    '['
+    lbl5: .string   "hello world"
+        
+```
+
 ## Implemented Instructions ##
 
 |     name     |                                pseudo usage                                | original params                              | pseudo params                      |
@@ -73,75 +265,7 @@
 |   ```jr```   |                        ```jalr [zero], [0](rs1)```                         |                                              | ```rs1```                          |
 |  ```ret```   |                        ```jalr [zero], [0]([ra])```                        |                                              |                                    |
 
-## Available Syntax ##
 
-- Text Sections (standard if no section start is defined)
-
-```
-.text
-    ...EQU Constant Definitions (const)...
-    ...Jump Label Definitions (jlabel)...
-    ...Instruction Definitions...
-
-```
-
-- Data Sections
-
-```
-.data
-    ...Initialized Address Labels (alabel)...
-        
-```
-
-- EQU Constant Definition (const) ```[clabel]: .equ [constant]```
-
-```
-.text
-    constantname: .equ 0xCAFEAFFE
-    
-```
-
-- Jump Label Definition (jlabel)```[jlabel]:```
-
-```
-.text
-main:
-    ...
-    jal     loop
-    ...
-
-.loop:
-    ...
-    beqz    t0, end
-    j       main.loop 
-    
-end:    
-    
-```
-
-- Instruction Definition ```[instr] [parameters]```
-
-```
-.text
-     lui    t0, 0xCAFEA
-     addi   t0, t0, 0b111111111110
-     li     t1, -4000
-     sltz   t2, t1
-     ...
-    
-```
-
-- Initialized Address Labels ```[alabel] [type directive] [constant]```
-
-```
-.data
-    lbl1: .word     "jklm"
-    lbl2: .half     -34
-    lbl3: .byte     0b11111011
-    lbl4: .asciz    '['
-    lbl5: .string   "hello world"
-        
-```
 
 ## Value Input Sizes and Types ##
 

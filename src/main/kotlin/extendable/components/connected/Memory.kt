@@ -37,7 +37,6 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun save(address: MutVal.Value, value: MutVal.Value, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
         val wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
-
         if (endianess == Endianess.LittleEndian) {
             wordList.reversed()
         }

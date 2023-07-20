@@ -212,7 +212,6 @@ class MutVal {
                 return Binary(paddedBinString, size)
             }
 
-
             override fun toHex(): Hex {
                 return Conversion.getHex(this)
             }

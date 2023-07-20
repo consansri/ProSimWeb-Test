@@ -189,32 +189,32 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                             val resizedValues: Array<MutVal.Value.Hex>
                                             val length: MutVal.Value.Hex
                                             when (entry.t1Directive?.type) {
-                                                byte -> {
+                                                BYTE -> {
                                                     resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit8()))
                                                     length = MutVal.Value.Hex("1")
                                                 }
 
-                                                half -> {
+                                                HALF -> {
                                                     resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit16()))
                                                     length = MutVal.Value.Hex("2")
                                                 }
 
-                                                word -> {
+                                                WORD -> {
                                                     resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit32()))
                                                     length = MutVal.Value.Hex("4")
                                                 }
 
-                                                dword -> {
+                                                DWORD -> {
                                                     resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit64()))
                                                     length = MutVal.Value.Hex("8")
                                                 }
 
-                                                asciz -> {
+                                                ASCIZ -> {
                                                     resizedValues = arrayOf(originalValue.getUResized(MutVal.Size.Bit8()))
                                                     length = MutVal.Value.Hex("1")
                                                 }
 
-                                                string -> {
+                                                STRING -> {
                                                     if (isString) {
                                                         val content = constToken.content.substring(1, constToken.content.length - 1)
                                                         val valueList = mutableListOf<MutVal.Value.Hex>()
@@ -286,18 +286,20 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                 for (wordID in binary.indices) {
                     instrIDMap.set(MutVal.Value.Hex(((binarys.size + wordID) * 4).toString(16), MutVal.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
                 }
+
                 binarys.addAll(binary)
             }
 
             for (binaryID in binarys.indices) {
+
                 val binary = binarys[binaryID]
                 if (DebugTools.RISCV_showAsmInfo) {
                     console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
                 }
                 val address = MutVal.Value.Hex((binaryID * 4).toString(16), MutVal.Size.Bit32())
-
                 transcriptEntrys.add(Transcript.TranscriptEntry(address))
                 memory.save(address, binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)
+
             }
 
             assemblyMap = AssemblyMap(instrIDMap)

@@ -30,7 +30,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().log("--continuous finishing... \ntook ${measuredTime.inWholeMilliseconds} ms [executed $instrCount instructions]")
+        getConsole().log("--continuous finishing... \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
 
     }
 
@@ -47,7 +47,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().log("--single_step finishing... \ntook ${measuredTime.inWholeMilliseconds} ms")
+        getConsole().log("--single_step finishing... \ntook ${measuredTime.inWholeMicroseconds} μs")
 
     }
 
@@ -75,7 +75,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().log("--multi_step finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+        getConsole().log("--multi_step finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
     }
 
     override fun exeSkipSubroutine() {
@@ -107,7 +107,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().log("--exe_skip_subroutine finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+        getConsole().log("--exe_skip_subroutine finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
     }
 
     override fun exeReturnFromSubroutine() {
@@ -129,7 +129,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             }
         }
 
-        getConsole().log("--exe_return_from_subroutine finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+        getConsole().log("--exe_return_from_subroutine finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
 
     }
 
@@ -172,7 +172,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
                 }
             }
 
-            getConsole().log("--exe_until_line finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+            getConsole().log("--exe_until_line finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
         } else {
             getConsole().info("--exe_continuous")
 
@@ -189,10 +189,24 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
                 }
             }
 
-            getConsole().log("--exe_continuous finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMilliseconds} ms")
+            getConsole().log("--exe_continuous finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
         }
 
 
+    }
+
+    override fun exeClear() {
+        val measuredTime = measureTime {
+            super.exeClear()
+        }
+        getConsole().log("--clear finishing... \ntook ${measuredTime.inWholeMicroseconds} μs")
+    }
+
+    override fun exeReset() {
+        val measuredTime = measureTime {
+            super.exeReset()
+        }
+        getConsole().log("--reset finishing... \ntook ${measuredTime.inWholeMicroseconds} μs")
     }
 
 }
