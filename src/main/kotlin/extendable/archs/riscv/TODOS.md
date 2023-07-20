@@ -5,3 +5,4 @@
 - **(done)** fix referenced constants so that asciis are still readable after written to memory
 - check binary mapper bit map syntax
 - rename Instruction Types (R Type, I Type, ...)
+- to get a more performant instruction execution instantiate a address instruction map while generating transcript from which the instructions will be execute
