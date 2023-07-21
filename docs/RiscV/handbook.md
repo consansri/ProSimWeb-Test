@@ -1,4 +1,4 @@
-# RiscV Handbook #
+# RISC-V Handbook #
 
 ## Available Syntax ##
 
@@ -23,6 +23,8 @@
     .half           value
     .word           value
     .dword          value
+    .asciz          value
+    .string         value
     
     \.dtprelword    value
     \.dtpreldword   value
