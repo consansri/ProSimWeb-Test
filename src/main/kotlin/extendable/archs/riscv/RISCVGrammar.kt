@@ -2006,6 +2006,4 @@ class RISCVGrammar : Grammar() {
     /* ---------- SYNTAX Tokens: Tier 4 ------------ */
 
     class T4CodeRoot(allComments: T2CommentCollection, allErrors: List<Error>, vararg sectionNodes: TreeNode.SectionNode) : TreeNode.RootNode(Syntax.NODE4_ROOT, allComments, allErrors, *sectionNodes)
-
-
 }
