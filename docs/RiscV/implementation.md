@@ -119,13 +119,13 @@ border-radius: 0.2rem;
 
 <div class="pre">
 
-| pre type         | format                         | example | execution usage                                                                    |
-|------------------|--------------------------------|---------|------------------------------------------------------------------------------------|
-| `pre_comment`    | `#[.]+`                        |         |                                                                                    |     
-| `pre_macro_def`  |                                |         |                                                                                    |    
-| `pre_option_def` | `.option [argument]`           |         |                                                                                    |
-| `pre_attr_def`   | `.attribute [tag], [constant]` |         |                                                                                    |
-| `pre_equ_def`    | `.equ equname, [constant]`     |         | should replace all places where the equ name is referenced with the given constant |    
+| pre type        | format                         | example | execution usage                                                                    |
+|-----------------|--------------------------------|---------|------------------------------------------------------------------------------------|
+| `pre_comment`   | `#[.]+`                        |         |                                                                                    |
+| `pre_option`    | `.option [argument]`           |         |                                                                                    |
+| `pre_attr_def`  | `.attribute [tag], [constant]` |         |                                                                                    |
+| `pre_macro_def` |                                |         |                                                                                    |
+| `pre_equ_def`   | `.equ equname, [constant]`     |         | should replace all places where the equ name is referenced with the given constant |   
 
 </div>
 
@@ -133,13 +133,13 @@ border-radius: 0.2rem;
 
 <div class="e">
 
-| element type  | format            | conditions                            | examples                          | types                                                        | val and fun                       | usage |
-|---------------|-------------------|---------------------------------------|-----------------------------------|--------------------------------------------------------------|-----------------------------------|-------|
-| `e_instr`     | `[instrtypename]` |                                       | `li`, `lui`, ...                  | `[InstrTypes]`     `[ParamTypes]`                            | `ParamType`, `check(e_paramcoll)` |       |
-| `e_paramcoll` |                   |                                       | `[e_param], [e_param], [e_param]` |                                                              | `getValues()`, `getLabels()`      |       |
-| `e_param`     |                   |                                       |                                   | `Offset`, `Constant`, `Register`, `SplitSymbol`, `LabelLink` |                                   |       |
-| `e_label`     | `[.]+: `          |                                       | `main:`, `.loop:`, `var1:`        |                                                              |                                   |       |
-| `e_directive` | `.[.]+`           | must have type **DE** (Data Emitting) |                                   | `[DirTypes]`                                                 |                                   |       |
+| element type  | format            | conditions                                                | examples                          | types                                                        | val and fun                       | usage |
+|---------------|-------------------|-----------------------------------------------------------|-----------------------------------|--------------------------------------------------------------|-----------------------------------|-------|
+| `e_instr`     | `[instrtypename]` |                                                           | `li`, `lui`, ...                  | `[InstrTypes]`     `[ParamTypes]`                            | `ParamType`, `check(e_paramcoll)` |       |
+| `e_paramcoll` |                   |                                                           | `[e_param], [e_param], [e_param]` |                                                              | `getValues()`, `getLabels()`      |       |
+| `e_param`     |                   |                                                           |                                   | `Offset`, `Constant`, `Register`, `SplitSymbol`, `LabelLink` |                                   |       |
+| `e_label`     | `[.]+: `          |                                                           | `main:`, `.loop:`, `var1:`        |                                                              |                                   |       |
+| `e_directive` | `.[.]+`           | must have type **DE** (Data Emitting) or **SectionStart** |                                   | `[DirTypes]`                                                 |                                   |       |
 
 </div>
 
