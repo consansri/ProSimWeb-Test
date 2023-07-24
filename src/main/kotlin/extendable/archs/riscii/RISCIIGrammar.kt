@@ -11,7 +11,7 @@ class RISCIIGrammar: Grammar() {
 
     }
 
-    override fun check(tokenLines: List<List<Compiler.Token>>): GrammarTree {
+    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<Compiler.OtherFile>): GrammarTree {
         return GrammarTree()
     }
 

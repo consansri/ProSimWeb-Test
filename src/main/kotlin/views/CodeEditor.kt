@@ -6,7 +6,6 @@ import StyleConst
 import csstype.ClassName
 import extendable.ArchConst
 import extendable.components.assembly.Grammar
-import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.*
 import org.w3c.dom.*
@@ -461,67 +460,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                     val grammarTree = appLogic.getArch().getAssembly().getGrammarTree()
                                     grammarTree?.rootNode?.let { rootNode ->
-                                        for (node in rootNode.sections) {
-                                            when (node) {
-                                                is Grammar.TreeNode.CollectionNode -> {
-                                                    val firstTokenLineID = node.tokenNodes[0].tokens.first().lineLoc.lineID
-                                                    val firstTokenStart = node.tokenNodes[0].tokens.first().lineLoc.startIndex
-                                                    val lastTokenEnd = node.tokenNodes[node.tokenNodes.lastIndex].tokens.last().lineLoc.endIndex
-                                                    var text = ""
-                                                    if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
-                                                        text += node.name + " -> "
-                                                        val childs = mutableListOf<String>()
-                                                        for (tokenNode in node.tokenNodes) {
-                                                            val firstChildLineLoc = tokenNode.tokens.first().lineLoc
-                                                            val childLineID = firstChildLineLoc.lineID
-                                                            val firstChildStart = firstChildLineLoc.startIndex
-                                                            val lastChildEnd = tokenNode.tokens.last().lineLoc.endIndex
-                                                            if (startIndex in firstChildStart..lastChildEnd) {
-                                                                childs += tokenNode.name
-                                                            }
-                                                        }
-                                                        setInfoPanelText(text + childs.joinToString(" , ") { it } + " ${node.tokenNodes[0].tokens.first().id}")
-                                                        break
-                                                    }
-                                                }
 
-                                                is Grammar.TreeNode.TokenNode -> {
-                                                    val firstTokenLineID = node.tokens.first().lineLoc.lineID
-                                                    val firstTokenStart = node.tokens.first().lineLoc.startIndex
-                                                    val lastTokenEnd = node.tokens.last().lineLoc.endIndex
-                                                    if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
-                                                        setInfoPanelText(node.name + " ${node.tokens.first().id}")
-                                                        break
-                                                    }
-                                                }
-
-                                                is Grammar.TreeNode.SectionNode -> {
-                                                    var text = "${node.name} -> "
-                                                    for (collNode in node.collNodes) {
-                                                        val firstTokenLineID = collNode.tokenNodes[0].tokens.first().lineLoc.lineID
-                                                        val firstTokenStart = collNode.tokenNodes[0].tokens.first().lineLoc.startIndex
-                                                        val lastTokenEnd = collNode.tokenNodes[collNode.tokenNodes.lastIndex].tokens.last().lineLoc.endIndex
-
-                                                        if (firstTokenLineID == lineID && (startIndex in firstTokenStart..lastTokenEnd)) {
-                                                            text += collNode.name + " -> "
-                                                            val childs = mutableListOf<String>()
-                                                            for (tokenNode in collNode.tokenNodes) {
-                                                                val firstChildLineLoc = tokenNode.tokens.first().lineLoc
-                                                                val childLineID = firstChildLineLoc.lineID
-                                                                val firstChildStart = firstChildLineLoc.startIndex
-                                                                val lastChildEnd = tokenNode.tokens.last().lineLoc.endIndex
-                                                                if (startIndex in firstChildStart..lastChildEnd) {
-                                                                    childs += tokenNode.name
-                                                                }
-                                                            }
-                                                            setInfoPanelText(text + childs.joinToString(" , ") { it } + " ${collNode.tokenNodes[0].tokens.first().id}")
-                                                            break
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            setInfoPanelText("")
-                                        }
                                     }
                                 }
                             }

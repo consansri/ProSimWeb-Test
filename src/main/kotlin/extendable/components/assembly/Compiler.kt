@@ -4,7 +4,6 @@ import extendable.ArchConst
 import extendable.Architecture
 import extendable.components.connected.RegisterContainer
 import extendable.components.types.MutVal
-import tools.DebugTools
 import tools.HTMLTools
 
 class Compiler(private val architecture: Architecture, private val grammar: Grammar, private val assembly: Assembly, private val regexCollection: RegexCollection, private val hlFlagCollection: HLFlagCollection) {
@@ -17,6 +16,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private var grammarTree: Grammar.GrammarTree? = null
     private var isBuildable = false
     private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
+    private val allFiles: MutableList<OtherFile> = mutableListOf() // TODO("add multi file support")
 
     private fun initCode(code: String) {
         tokenList = mutableListOf()
@@ -179,27 +179,32 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 tokenList += Token.NewLine(LineLoc(lineID, line.length, line.length + 2), "\n", tokenList.size)
             }
         }
-
     }
 
     private fun parse() {
         grammar.clear()
-        grammarTree = grammar.check(tokenLines)
+        grammarTree = grammar.check(this, tokenLines, allFiles)
+        architecture.getConsole().clear()
+        grammarTree?.rootNode?.allWarnings?.let {
+            for (warning in it) {
+                if (warning.linkedTreeNode.getAllTokens().isNotEmpty()) {
+                    architecture.getConsole().warn("line ${warning.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Warning ${warning.message}")
+                } else {
+                    architecture.getConsole().error("GlobalWarning: " + warning.message)
+                }
+            }
+        }
+
         grammarTree?.rootNode?.allErrors?.let {
-            architecture.getConsole().clear()
             for (error in it) {
                 if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error [NodeType: ${error.linkedTreeNode.name}, Tokens: ${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}] \nmessage: ${error.message}")
+                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString("") { it.content }}]")
                 } else {
                     architecture.getConsole().error("GlobalError: " + error.message)
                 }
             }
-            if (it.isEmpty()) {
-                architecture.getConsole().log("build successful!")
-                isBuildable = true
-            } else {
-                isBuildable = false
-            }
+            isBuildable = it.isEmpty()
+            if (isBuildable) architecture.getConsole().log("build successful!")
         }
     }
 
@@ -213,8 +218,9 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 if (grammarTree?.rootNode != null) {
                     val node = grammarTree?.contains(token)
                     if (node != null) {
-                        if (node.hlFlag.isNotEmpty()) {
-                            token.hl(architecture, node.hlFlag, node.name)
+                        val hlFlag = node.highlighting.getHLFlag(token)
+                        if(hlFlag != null){
+                            token.hl(architecture, hlFlag, node.name)
                             hlLine += token.hlContent
                             continue
                         }
@@ -323,6 +329,120 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
     }
 
+    fun pseudoAnalyze(content: String): List<Token> {
+        val tokens = mutableListOf<Token>()
+        var remaining = content
+        var startIndex = 0
+
+        while (remaining.isNotEmpty()) {
+            val space = regexCollection.space.find(remaining)
+            if (space != null) {
+                tokens += Token.Space(LineLoc(-1, startIndex, startIndex + space.value.length), space.value, -1)
+                startIndex += space.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val binary = regexCollection.binary.find(remaining)
+            if (binary != null) {
+                tokens += Token.Constant.Binary(LineLoc(-1, startIndex, startIndex + binary.value.length), binary.value, -1)
+                startIndex += binary.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val hex = regexCollection.hex.find(remaining)
+            if (hex != null) {
+                tokens += Token.Constant.Hex(LineLoc(-1, startIndex, startIndex + hex.value.length), hex.value, -1)
+                startIndex += hex.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val dec = regexCollection.dec.find(remaining)
+            if (dec != null) {
+                tokens += Token.Constant.Dec(LineLoc(-1, startIndex, startIndex + dec.value.length), dec.value, -1)
+                startIndex += dec.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val udec = regexCollection.udec.find(remaining)
+            if (udec != null) {
+                tokens += Token.Constant.UDec(LineLoc(-1, startIndex, startIndex + udec.value.length), udec.value, -1)
+                startIndex += udec.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val ascii = regexCollection.ascii.find(remaining)
+            if (ascii != null) {
+                tokens += Token.Constant.Ascii(LineLoc(-1, startIndex, startIndex + ascii.value.length), ascii.value, -1)
+                startIndex += ascii.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val string = regexCollection.string.find(remaining)
+            if (string != null) {
+                tokens += Token.Constant.String(LineLoc(-1, startIndex, startIndex + string.value.length), string.value, -1)
+                startIndex += string.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val symbol = regexCollection.symbol.find(remaining)
+            if (symbol != null) {
+                tokens += Token.Symbol(LineLoc(-1, startIndex, startIndex + symbol.value.length), symbol.value, -1)
+                startIndex += symbol.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val regRes = regexCollection.alphaNumeric.find(remaining)
+            if (regRes != null) {
+                val reg = architecture.getRegisterContainer().getRegister(regRes.value)
+                if (reg != null) {
+                    tokens += Token.Register(LineLoc(-1, startIndex, startIndex + regRes.value.length), regRes.value, reg, -1)
+                    startIndex += regRes.value.length
+                    remaining = content.substring(startIndex)
+                    continue
+
+                }
+            }
+
+            // apply rest
+            val alphaNumeric = regexCollection.alphaNumeric.find(remaining)
+            val word = regexCollection.word.find(remaining)
+
+            if (alphaNumeric != null && word != null) {
+                if (alphaNumeric.value.length == word.value.length) {
+                    tokens += Token.Word(LineLoc(-1, startIndex, startIndex + word.value.length), word.value, -1)
+                    startIndex += word.value.length
+                    remaining = content.substring(startIndex)
+                    continue
+                } else {
+                    tokens += Token.AlphaNum(LineLoc(-1, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, -1)
+                    startIndex += alphaNumeric.value.length
+                    remaining = content.substring(startIndex)
+                    continue
+                }
+            } else {
+                if (alphaNumeric != null) {
+                    tokens += Token.AlphaNum(LineLoc(-1, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, -1)
+                    startIndex += alphaNumeric.value.length
+                    remaining = content.substring(startIndex)
+                    continue
+                }
+            }
+
+            architecture.getConsole().warn("Assembly.analyze($content): no match found for $remaining")
+            break;
+        }
+
+        return tokens
+    }
+
     fun getHLContent(): String {
         val stringBuilder = StringBuilder()
         hlLines?.let {
@@ -341,6 +461,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     fun getGrammarTree(): Grammar.GrammarTree? {
         return grammarTree
     }
+
 
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 
@@ -419,6 +540,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                     return MutVal.Value.UDec(content)
                 }
             }
+
         }
 
         class Register(lineLoc: LineLoc, content: String, val reg: RegisterContainer.Register, id: Int) : Token(lineLoc, content, id) {
@@ -478,7 +600,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     data class LineLoc(val lineID: Int, val startIndex: Int, val endIndex: Int)
 
     // endIndex means index after last Character
-    data class CompilationResult(val highlightedContent: String, val buildable: Boolean)
 
+    data class OtherFile(val fileName: String, val grammarTree: Grammar.GrammarTree)
 
 }

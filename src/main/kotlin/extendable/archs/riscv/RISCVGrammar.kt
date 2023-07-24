@@ -8,7 +8,6 @@ import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
 import extendable.archs.riscv.RISCVGrammar.T2LabelDef.Type.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
-import extendable.components.types.BinaryTools
 import extendable.components.types.MutVal
 
 import tools.DebugTools
@@ -38,7 +37,7 @@ class RISCVGrammar : Grammar() {
         t1Comments.clear()
     }
 
-    override fun check(tokenLines: List<List<Compiler.Token>>): GrammarTree {
+    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<Compiler.OtherFile>): GrammarTree {
 
         errors.clear()
 
@@ -48,11 +47,11 @@ class RISCVGrammar : Grammar() {
             tier1Lines.add(lineID, emptyList())
         }
 
-        var remainingLines = tokenLines.toMutableList()
+        val remainingLines = tokenLines.toMutableList()
 
         // -------------------------------------------------------------------------- TIER 1 PRE Elements (Labels) --------------------------------------------------------------------------
         for (lineID in remainingLines.indices) {
-            var remainingTokens = remainingLines[lineID].toMutableList()
+            val remainingTokens = remainingLines[lineID].toMutableList()
             val tier1Line = mutableListOf<TreeNode>()
 
             // search Label
@@ -639,8 +638,8 @@ class RISCVGrammar : Grammar() {
         val sections = mutableListOf<TreeNode.SectionNode>()
 
         var isTextSection = true
-        var sectionIdentification: TreeNode.CollectionNode? = null
-        var sectionContent = mutableListOf<TreeNode.CollectionNode>()
+        var sectionIdentification: TreeNode.RowNode? = null
+        var sectionContent = mutableListOf<TreeNode.RowNode>()
 
         while (recheckedT2Lines.isNotEmpty()) {
             val firstT2Line = recheckedT2Lines.first()
@@ -651,7 +650,7 @@ class RISCVGrammar : Grammar() {
                         if (sectionIdentification != null) {
                             sections.add(T3TextSection(sectionIdentification as T2TextSectionStart, *sectionContent.toTypedArray()))
                         } else {
-                            sections.add(T3TextSection(collectionNodes = sectionContent.toTypedArray()))
+                            sections.add(T3TextSection(rowNodes = sectionContent.toTypedArray()))
                         }
                         sectionContent.clear()
 
@@ -670,7 +669,7 @@ class RISCVGrammar : Grammar() {
                         if (sectionIdentification != null) {
                             sections.add(T3TextSection(sectionIdentification as T2TextSectionStart, *sectionContent.toTypedArray()))
                         } else {
-                            sections.add(T3TextSection(collectionNodes = sectionContent.toTypedArray()))
+                            sections.add(T3TextSection(rowNodes = sectionContent.toTypedArray()))
                         }
 
                         sectionContent.clear()
@@ -724,15 +723,15 @@ class RISCVGrammar : Grammar() {
 
         if (isTextSection) {
             if (sectionIdentification != null) {
-                sections.add(T3TextSection(sectionIdentification as T2TextSectionStart, collectionNodes = sectionContent.toTypedArray()))
+                sections.add(T3TextSection(sectionIdentification as T2TextSectionStart, rowNodes = sectionContent.toTypedArray()))
             } else {
-                sections.add(T3TextSection(collectionNodes = sectionContent.toTypedArray()))
+                sections.add(T3TextSection(rowNodes = sectionContent.toTypedArray()))
             }
             sectionContent.clear()
 
         } else {
             if (sectionIdentification != null) {
-                sections.add(T3DataSection(sectionIdentification as T2DataSectionStart, collectionNodes = sectionContent.toTypedArray()))
+                sections.add(T3DataSection(sectionIdentification as T2DataSectionStart, rowNodes = sectionContent.toTypedArray()))
                 sectionContent.clear()
             } else {
                 errors.add(Grammar.Error(message = "No Valid Data Section Identification found!", sectionContent.first()))
@@ -743,7 +742,7 @@ class RISCVGrammar : Grammar() {
         }
 
         // -------------------------------------------------------------------------- Build Comment Node --------------------------------------------------------------------------
-        val commentNode = T2CommentCollection(*t1Comments.toTypedArray())
+        val commentNode = T2CommentRow(*t1Comments.toTypedArray())
         // -------------------------------------------------------------------------- Build CodeRoot Node --------------------------------------------------------------------------
         val rootNode = T4CodeRoot(commentNode, errors, *sections.toTypedArray())
 
@@ -793,7 +792,7 @@ class RISCVGrammar : Grammar() {
 
     /* ---------- SYNTAX Tokens: Tier 1 ------------ */
 
-    sealed class T1Param(hlFlag: String, val type: String, vararg val paramTokens: Compiler.Token) : TreeNode.TokenNode(hlFlag, type, *paramTokens) {
+    sealed class T1Param(hlFlag: String, val type: String, vararg val paramTokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(hlFlag), type, *paramTokens) {
 
         class Offset(val offset: Compiler.Token.Constant, val openParan: Compiler.Token, val register: Compiler.Token.Register, val closeParan: Compiler.Token) : T1Param(RISCVFlags.offset, RISCVGrammar.Syntax.NODE_PARAM_OFFSET, offset, openParan, register, closeParan) {
 
@@ -828,7 +827,7 @@ class RISCVGrammar : Grammar() {
 
     }
 
-    class T1ParamColl(vararg val t1Params: T1Param) : TreeNode.CollectionNode(Syntax.NODE_PARAMCOLLECTION, *t1Params) {
+    class T1ParamColl(vararg val t1Params: T1Param) : TreeNode.RowNode(Syntax.NODE_PARAMCOLLECTION, *t1Params) {
 
         val paramsWithOutSplitSymbols: Array<T1Param>
 
@@ -893,7 +892,7 @@ class RISCVGrammar : Grammar() {
 
     }
 
-    class T1Label(vararg val labelName: Compiler.Token, colon: Compiler.Token.Symbol, val sublabelFrom: T1Label? = null) : TreeNode.TokenNode(RISCVFlags.label, Syntax.NODE_LABEL, *labelName, colon) {
+    class T1Label(vararg val labelName: Compiler.Token, colon: Compiler.Token.Symbol, val sublabelFrom: T1Label? = null) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.label), Syntax.NODE_LABEL, *labelName, colon) {
 
         val wholeName: String
         val tokenSequence: TokenSequence
@@ -915,7 +914,7 @@ class RISCVGrammar : Grammar() {
         }
     }
 
-    class T1Directive(val dot: Compiler.Token.Symbol, val type: T1Directive.Type, vararg tokens: Compiler.Token) : TreeNode.TokenNode(RISCVFlags.directive, Syntax.NODE_DIRECTIVE, dot, *tokens) {
+    class T1Directive(val dot: Compiler.Token.Symbol, val type: T1Directive.Type, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.directive), Syntax.NODE_DIRECTIVE, dot, *tokens) {
 
         fun isTypeDirective(): Boolean {
             when (type) {
@@ -957,10 +956,9 @@ class RISCVGrammar : Grammar() {
 
     }
 
-    class T1Instr(val insToken: Compiler.Token.Word, vararg val types: Type) : TreeNode.TokenNode(RISCVFlags.instruction, Syntax.NODE_INSTR, insToken) {
+    class T1Instr(val insToken: Compiler.Token.Word, vararg val types: Type) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.instruction), Syntax.NODE_INSTR, insToken) {
 
         fun check(parameterCollection: T1ParamColl = T1ParamColl()): Pair<Boolean, Type> {
-
             val trimmedT1ParamColl = mutableListOf<T1Param>()
             for (param in parameterCollection.t1Params) {
                 when (param) {
@@ -1960,7 +1958,7 @@ class RISCVGrammar : Grammar() {
         }
     }
 
-    class T1Comment(val prefix: Compiler.Token.Symbol, vararg val content: Compiler.Token) : TreeNode.TokenNode(RISCVFlags.comment, Syntax.NODE_COMMENT, prefix, *content) {
+    class T1Comment(val prefix: Compiler.Token.Symbol, vararg val content: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.comment), Syntax.NODE_COMMENT, prefix, *content) {
 
         val wholeContent: String
 
@@ -1971,13 +1969,13 @@ class RISCVGrammar : Grammar() {
 
     /* ---------- SYNTAX Tokens: Tier 2 ------------ */
 
-    class T2CommentCollection(vararg val comments: T1Comment) : TreeNode.CollectionNode(Syntax.NODE2_COMMENTCOLLECTION, *comments)
+    class T2CommentRow(vararg val comments: T1Comment) : TreeNode.RowNode(Syntax.NODE2_COMMENTCOLLECTION, *comments)
 
-    class T2TextSectionStart(val t1Directive: T1Directive) : TreeNode.CollectionNode(Syntax.NODE2_TEXTSECTIONSTART, t1Directive)
+    class T2TextSectionStart(val t1Directive: T1Directive) : TreeNode.RowNode(Syntax.NODE2_TEXTSECTIONSTART, t1Directive)
 
-    class T2DataSectionStart(val t1Directive: T1Directive) : TreeNode.CollectionNode(Syntax.NODE2_DATASECTIONSTART, t1Directive)
+    class T2DataSectionStart(val t1Directive: T1Directive) : TreeNode.RowNode(Syntax.NODE2_DATASECTIONSTART, t1Directive)
 
-    class T2LabelDef(val type: Type, val t1Label: T1Label, val t1Directive: T1Directive? = null, val t1Param: T1ParamColl? = null) : TreeNode.CollectionNode(if (type == JUMP) Syntax.NODE2_LABELJUMP else Syntax.NODE2_LABELDEF, t1Label, t1Directive, *t1Param?.tokenNodes ?: emptyArray()) {
+    class T2LabelDef(val type: Type, val t1Label: T1Label, val t1Directive: T1Directive? = null, val t1Param: T1ParamColl? = null) : TreeNode.RowNode(if (type == JUMP) Syntax.NODE2_LABELJUMP else Syntax.NODE2_LABELDEF, t1Label, t1Directive, *t1Param?.elementNodes ?: emptyArray()) {
 
         enum class Type {
             JUMP,
@@ -1986,7 +1984,7 @@ class RISCVGrammar : Grammar() {
         }
     }
 
-    class T2InstrDef(val t1Instr: T1Instr, val t1ParamColl: T1ParamColl? = null, val type: T1Instr.Type) : TreeNode.CollectionNode(Syntax.NODE2_INSTRDEF, t1Instr, *t1ParamColl?.tokenNodes ?: emptyArray()) {
+    class T2InstrDef(val t1Instr: T1Instr, val t1ParamColl: T1ParamColl? = null, val type: T1Instr.Type) : TreeNode.RowNode(Syntax.NODE2_INSTRDEF, t1Instr, *t1ParamColl?.elementNodes ?: emptyArray()) {
         fun check(): Boolean {
             return if (t1ParamColl != null) {
                 t1Instr.check(t1ParamColl).first
@@ -1994,16 +1992,15 @@ class RISCVGrammar : Grammar() {
                 t1Instr.check().first
             }
         }
-
     }
 
     /* ---------- SYNTAX Tokens: Tier 3 ------------ */
 
-    class T3DataSection(val dataDirective: T2DataSectionStart, vararg val collectionNodes: TreeNode.CollectionNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_DATA, dataDirective, *collectionNodes)
+    class T3DataSection(val dataDirective: T2DataSectionStart, vararg val rowNodes: TreeNode.RowNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_DATA, dataDirective, *rowNodes)
 
-    class T3TextSection(val textDirective: T2TextSectionStart? = null, vararg val collectionNodes: TreeNode.CollectionNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_TEXT, collNodes = arrayOf(textDirective, *collectionNodes).filterNotNull().toTypedArray())
+    class T3TextSection(val textDirective: T2TextSectionStart? = null, vararg val rowNodes: TreeNode.RowNode) : TreeNode.SectionNode(Syntax.NODE3_SECTION_TEXT, collNodes = arrayOf(textDirective, *rowNodes).filterNotNull().toTypedArray())
 
     /* ---------- SYNTAX Tokens: Tier 4 ------------ */
 
-    class T4CodeRoot(allComments: T2CommentCollection, allErrors: List<Error>, vararg sectionNodes: TreeNode.SectionNode) : TreeNode.RootNode(Syntax.NODE4_ROOT, allComments, allErrors, *sectionNodes)
+    class T4CodeRoot(allComments: T2CommentRow, allErrors: List<Error>, vararg sectionNodes: TreeNode.SectionNode) : TreeNode.RootNode(allErrors, emptyList(), ContainerNode("comments", allComments), ContainerNode("sections", *sectionNodes))
 }

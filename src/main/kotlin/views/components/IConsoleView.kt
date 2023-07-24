@@ -16,6 +16,7 @@ import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import tools.DebugTools
 
@@ -49,7 +50,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
     contentIVRef.current?.let {
         clearInterval(it)
     }
-    if(!DebugTools.REACT_deactivateAutoRefreshs) {
+    if (!DebugTools.REACT_deactivateAutoRefreshs) {
         contentIVRef.current = setInterval({
             setIUpdate(!internalUpdate)
         }, 200)
@@ -205,14 +206,15 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             }
 
             for (message in appLogic.getArch().getConsole().getMessages()) {
-                for (line in message.message.split("\n")) {
-
+                val lines = message.message.split("\n")
+                for (lineID in lines.indices) {
                     span {
                         css {
                             display = Display.block
                             width = scrollRef.current?.clientWidth?.px ?: 100.pc
                             fontSize = 1.rem
                             fontFamily = FontFamily.monospace
+                            whiteSpace = WhiteSpace.pre
                             when (message.type) {
                                 StyleConst.MESSAGE_TYPE_INFO -> {
                                     color = Color("#777777")
@@ -235,8 +237,9 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                                 }
                             }
                         }
+                        tabIndex = 4
 
-                        +"> ${line}"
+                        +((if (lineID == 0) "" else "\t") + lines[lineID])
                     }
                 }
 

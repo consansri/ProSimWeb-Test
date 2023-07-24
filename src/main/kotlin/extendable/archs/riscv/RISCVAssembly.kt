@@ -109,7 +109,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
             var nextAddress = allocStartAddress
             // Resolving Sections
-            for (section in rootNode.sections) {
+
+            val sectionContainer = rootNode.containers.first() as RISCVGrammarV1.C_SECTIONS
+
+            for (section in sectionContainer.nodes) {
                 when (section) {
                     is RISCVGrammar.T3TextSection -> {
                         for (entry in section.collNodes) {
@@ -251,6 +254,8 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             }
                         }
                     }
+
+                    else -> {}
                 }
             }
 

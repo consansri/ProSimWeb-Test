@@ -6,26 +6,12 @@ abstract class Grammar {
 
     abstract fun clear()
 
-    abstract fun check(tokenLines: List<List<Compiler.Token>>): GrammarTree
+    abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<Compiler.OtherFile>): GrammarTree
 
     class GrammarTree(val rootNode: TreeNode.RootNode? = null) {
-        fun contains(token: Compiler.Token): TreeNode.TokenNode? {
+        fun contains(token: Compiler.Token): TreeNode.ElementNode? {
             rootNode?.let {
-                for (comment in it.allComments.tokenNodes) {
-                    if (comment.tokens.contains(token)) {
-                        return comment
-                    }
-                }
-
-                for (section in it.sections) {
-                    for (collection in section.collNodes) {
-                        for (tokenNode in collection.tokenNodes) {
-                            if (tokenNode.tokens.contains(token)) {
-                                return tokenNode
-                            }
-                        }
-                    }
-                }
+                return it.searchTokenNode(token)
             }
 
             return null
@@ -186,69 +172,124 @@ abstract class Grammar {
     sealed class TreeNode(val name: String) {
         abstract fun getAllTokens(): Array<out Compiler.Token>
 
-        open class TokenNode(val hlFlag: String, name: String, vararg val tokens: Compiler.Token) : TreeNode(name) {
+        abstract fun searchTokenNode(token: Compiler.Token): ElementNode?
+
+        open class ElementNode(val highlighting: ConnectedHL, name: String, vararg val tokens: Compiler.Token) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 return tokens
             }
+
+            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+
+                if (tokens.contains(token)) {
+                    return this
+                } else {
+                    return null
+                }
+            }
         }
 
-        open class CollectionNode(name: String, vararg val nullableTokenNodes: TokenNode?) : TreeNode(name) {
-            val tokenNodes: Array<out TokenNode>
+        open class RowNode(name: String, vararg val nullableElementNodes: ElementNode?) : TreeNode(name) {
+            val elementNodes: Array<out ElementNode>
 
             init {
-                tokenNodes = nullableTokenNodes.toMutableList().filterNotNull().toTypedArray()
+                elementNodes = nullableElementNodes.toMutableList().filterNotNull().toTypedArray()
             }
 
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
-                nullableTokenNodes.filterNotNull().forEach { tokens.addAll(it.getAllTokens()) }
+                nullableElementNodes.filterNotNull().forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
+            }
+
+            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+                elementNodes.forEach {
+                    val result = it.searchTokenNode(token)
+                    if (result != null) {
+                        return result
+                    }
+                }
+                return null
             }
         }
 
-        open class SectionNode(name: String, vararg val collNodes: CollectionNode) : TreeNode(name) {
+        open class SectionNode(name: String, vararg val collNodes: RowNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
                 collNodes.forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
             }
+
+            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+                collNodes.forEach {
+                    val result = it.searchTokenNode(token)
+                    if (result != null) {
+                        return result
+                    }
+                }
+                return null
+            }
         }
 
-        open class FlexibleNode(name: String, vararg val nodes: TreeNode) : TreeNode(name) {
+        open class ContainerNode(name: String, vararg val nodes: TreeNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
                 nodes.forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
             }
+
+            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+                nodes.forEach {
+                    val result = it.searchTokenNode(token)
+                    if (result != null) {
+                        return result
+                    }
+                }
+                return null
+            }
         }
 
-        open class RootNode(name: String, val allComments: CollectionNode, allErrors: List<Error>, vararg val sections: SectionNode) : TreeNode(name) {
+        open class RootNode(allErrors: List<Error>, allWarnings: List<Warning>, vararg val containers: ContainerNode) : TreeNode("name") {
 
             val allErrors: List<Error>
+            val allWarnings: List<Warning>
 
             init {
                 this.allErrors = allErrors.sortedBy { it.linkedTreeNode.getAllTokens().first().id }.reversed()
+                this.allWarnings = allWarnings.sortedBy { it.linkedTreeNode.getAllTokens().first().id }.reversed()
             }
 
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
-                tokens.addAll(allComments.getAllTokens())
                 allErrors.forEach { tokens.addAll(it.linkedTreeNode.getAllTokens() ?: emptyArray()) }
-                sections.forEach { tokens.addAll(it.getAllTokens()) }
+                containers.forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
+            }
+
+            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+                containers.forEach {
+                    val result = it.searchTokenNode(token)
+                    if (result != null) {
+                        return result
+                    }
+                }
+                return null
             }
         }
     }
 
     class Error(val message: String, val linkedTreeNode: TreeNode) {
-        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.TokenNode("", "unidentified", *tokens))
+        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode(ConnectedHL(), "unidentified", *tokens))
+        constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
+        constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
+        constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
+    }
 
-        constructor(message: String, vararg tokenNodes: TreeNode.TokenNode) : this(message, TreeNode.CollectionNode("unidentified", *tokenNodes))
-
-        constructor(message: String, vararg collectionNodes: TreeNode.CollectionNode) : this(message, TreeNode.SectionNode("unidentified", *collectionNodes))
-
-        constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.FlexibleNode("unidentified", *nodes))
-
+    class Warning(val message: String, val linkedTreeNode: TreeNode) {
+        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode(ConnectedHL(), "unidentified", *tokens))
+        constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
+        constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
+        constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
     }
 
     class SyntaxSequence(vararg val components: Component) {
@@ -361,5 +402,49 @@ abstract class Grammar {
         data class SyntaxSeqMatchResult(val matches: Boolean, val matchingTreeNodes: List<TreeNode>, val error: Error? = null, val remainingTreeNodes: List<TreeNode>? = null)
     }
 
+    class ConnectedHL(vararg val hlPairs: Pair<String, List<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
+
+        val hlTokenMap: MutableMap<String, MutableList<Compiler.Token>>
+
+        init {
+            hlTokenMap = mutableMapOf()
+            for (hlPair in hlPairs) {
+                val entry = hlTokenMap.get(hlPair.first)
+
+                if(entry != null){
+                    entry.addAll(hlPair.second)
+                }else{
+                    hlTokenMap.set(hlPair.first, hlPair.second.toMutableList())
+                }
+            }
+
+
+            if (global && hlTokenMap.size != 1) {
+                console.warn("Grammar.TokenHL(): to many or less hlFlags!")
+            }
+        }
+
+        constructor(hlFlag: String) : this(hlFlag to emptyList(), global = true)
+        constructor() : this(applyNothing = true)
+
+        fun getHLFlag(token: Compiler.Token): String? {
+            if (!applyNothing) {
+                if (global) {
+                    return hlTokenMap.entries.first().key
+                } else {
+                    for (entry in hlTokenMap) {
+                        if (entry.value.contains(token)) {
+                            return entry.key
+                        }
+                    }
+                    return null
+                }
+            } else {
+                return null
+            }
+        }
+
+
+    }
 
 }
