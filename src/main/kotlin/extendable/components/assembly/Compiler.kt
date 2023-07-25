@@ -188,17 +188,26 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         grammarTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
                 if (warning.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    architecture.getConsole().warn("line ${warning.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Warning ${warning.message}")
+                    if(warning.linkedTreeNode.getAllTokens().first().isPseudo()){
+                        architecture.getConsole().warn("pseudo: Warning ${warning.message}")
+                    }else{
+                        architecture.getConsole().warn("line ${warning.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Warning ${warning.message}")
+                    }
                 } else {
                     architecture.getConsole().error("GlobalWarning: " + warning.message)
                 }
             }
         }
 
+
         grammarTree?.rootNode?.allErrors?.let {
             for (error in it) {
                 if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString("") { it.content }}]")
+                    if(error.linkedTreeNode.getAllTokens().first().isPseudo()){
+                        architecture.getConsole().error("pseudo: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}]")
+                    }else{
+                        architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString("") { it.content }}]")
+                    }
                 } else {
                     architecture.getConsole().error("GlobalError: " + error.message)
                 }
@@ -206,6 +215,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             isBuildable = it.isEmpty()
             if (isBuildable) architecture.getConsole().log("build successful!")
         }
+
     }
 
     private fun highlight() {
@@ -219,7 +229,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                     val node = grammarTree?.contains(token)
                     if (node != null) {
                         val hlFlag = node.highlighting.getHLFlag(token)
-                        if(hlFlag != null){
+                        if (hlFlag != null) {
                             token.hl(architecture, hlFlag, node.name)
                             hlLine += token.hlContent
                             continue
@@ -337,7 +347,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         while (remaining.isNotEmpty()) {
             val space = regexCollection.space.find(remaining)
             if (space != null) {
-                tokens += Token.Space(LineLoc(-1, startIndex, startIndex + space.value.length), space.value, -1)
+                tokens += Token.Space(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + space.value.length), space.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += space.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -345,7 +355,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val binary = regexCollection.binary.find(remaining)
             if (binary != null) {
-                tokens += Token.Constant.Binary(LineLoc(-1, startIndex, startIndex + binary.value.length), binary.value, -1)
+                tokens += Token.Constant.Binary(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + binary.value.length), binary.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += binary.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -353,7 +363,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val hex = regexCollection.hex.find(remaining)
             if (hex != null) {
-                tokens += Token.Constant.Hex(LineLoc(-1, startIndex, startIndex + hex.value.length), hex.value, -1)
+                tokens += Token.Constant.Hex(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + hex.value.length), hex.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += hex.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -361,7 +371,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                tokens += Token.Constant.Dec(LineLoc(-1, startIndex, startIndex + dec.value.length), dec.value, -1)
+                tokens += Token.Constant.Dec(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + dec.value.length), dec.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -369,7 +379,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val udec = regexCollection.udec.find(remaining)
             if (udec != null) {
-                tokens += Token.Constant.UDec(LineLoc(-1, startIndex, startIndex + udec.value.length), udec.value, -1)
+                tokens += Token.Constant.UDec(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + udec.value.length), udec.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += udec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -377,7 +387,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val ascii = regexCollection.ascii.find(remaining)
             if (ascii != null) {
-                tokens += Token.Constant.Ascii(LineLoc(-1, startIndex, startIndex + ascii.value.length), ascii.value, -1)
+                tokens += Token.Constant.Ascii(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + ascii.value.length), ascii.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += ascii.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -385,7 +395,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val string = regexCollection.string.find(remaining)
             if (string != null) {
-                tokens += Token.Constant.String(LineLoc(-1, startIndex, startIndex + string.value.length), string.value, -1)
+                tokens += Token.Constant.String(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + string.value.length), string.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += string.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -393,7 +403,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val symbol = regexCollection.symbol.find(remaining)
             if (symbol != null) {
-                tokens += Token.Symbol(LineLoc(-1, startIndex, startIndex + symbol.value.length), symbol.value, -1)
+                tokens += Token.Symbol(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + symbol.value.length), symbol.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                 startIndex += symbol.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -403,7 +413,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             if (regRes != null) {
                 val reg = architecture.getRegisterContainer().getRegister(regRes.value)
                 if (reg != null) {
-                    tokens += Token.Register(LineLoc(-1, startIndex, startIndex + regRes.value.length), regRes.value, reg, -1)
+                    tokens += Token.Register(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + regRes.value.length), regRes.value, reg, ArchConst.COMPILER_TOKEN_PSEUDOID)
                     startIndex += regRes.value.length
                     remaining = content.substring(startIndex)
                     continue
@@ -417,19 +427,19 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             if (alphaNumeric != null && word != null) {
                 if (alphaNumeric.value.length == word.value.length) {
-                    tokens += Token.Word(LineLoc(-1, startIndex, startIndex + word.value.length), word.value, -1)
+                    tokens += Token.Word(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + word.value.length), word.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                     startIndex += word.value.length
                     remaining = content.substring(startIndex)
                     continue
                 } else {
-                    tokens += Token.AlphaNum(LineLoc(-1, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, -1)
+                    tokens += Token.AlphaNum(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                     startIndex += alphaNumeric.value.length
                     remaining = content.substring(startIndex)
                     continue
                 }
             } else {
                 if (alphaNumeric != null) {
-                    tokens += Token.AlphaNum(LineLoc(-1, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, -1)
+                    tokens += Token.AlphaNum(LineLoc(ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
                     startIndex += alphaNumeric.value.length
                     remaining = content.substring(startIndex)
                     continue
@@ -451,10 +461,10 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             }
         }
         val hlContent = stringBuilder.toString()
-        if (hlContent.isNotEmpty()) {
-            return hlContent
+        return if (hlContent.isNotEmpty()) {
+            hlContent
         } else {
-            return dryContent
+            dryContent
         }
     }
 
@@ -467,6 +477,10 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         var hlContent = content
         abstract val type: TokenType
+
+        fun isPseudo(): Boolean {
+            return id == ArchConst.COMPILER_TOKEN_PSEUDOID
+        }
 
         fun hl(architecture: Architecture, hlFlag: String, title: String = "") {
             hlContent = architecture.highlight(HTMLTools.encodeHTML(content), id, title, hlFlag, "token")

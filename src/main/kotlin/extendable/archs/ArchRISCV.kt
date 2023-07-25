@@ -3,7 +3,7 @@ package extendable.cisc
 import extendable.Architecture
 import extendable.archs.riscv.RISCV
 import extendable.archs.riscv.RISCVBinMapper
-import extendable.archs.riscv.RISCVGrammar
+import extendable.archs.riscv.RISCVGrammarV1
 import extendable.components.types.MutVal
 import tools.DebugTools
 import kotlin.time.ExperimentalTime
@@ -87,7 +87,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
             var result = binMapper.getInstrFromBinary(binary.get().toBin())
             if (result != null) {
-                if (result.type == RISCVGrammar.T1Instr.Type.JAL || result.type == RISCVGrammar.T1Instr.Type.JALR) {
+                if (result.type == RISCVGrammarV1.R_INSTR.InstrType.JAL || result.type == RISCVGrammarV1.R_INSTR.InstrType.JALR) {
                     val returnAddress = getRegisterContainer().pc.value.get() + MutVal.Value.Hex("4")
                     while (getRegisterContainer().pc.value.get() != returnAddress) {
                         if (result != null) {
@@ -118,7 +118,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
             var result = binMapper.getInstrFromBinary(binary.get().toBin())
 
-            val returnTypeList = listOf(RISCVGrammar.T1Instr.Type.JALR, RISCVGrammar.T1Instr.Type.JAL)
+            val returnTypeList = listOf(RISCVGrammarV1.R_INSTR.InstrType.JALR, RISCVGrammarV1.R_INSTR.InstrType.JAL)
 
             while (result != null && !returnTypeList.contains(result.type)) {
                 result.type.execute(this, result.binaryMap)

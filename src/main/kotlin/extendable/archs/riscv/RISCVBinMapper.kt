@@ -1,67 +1,48 @@
 package extendable.archs.riscv
 
 import extendable.ArchConst
-import extendable.archs.riscv.RISCVGrammar.T1Instr.Type.*
-import extendable.components.assembly.Compiler
-import extendable.components.types.BinaryTools
+import extendable.archs.riscv.RISCVGrammarV1.R_INSTR.InstrType.*
 import extendable.components.types.MutVal
 import tools.DebugTools
 
 class RISCVBinMapper {
 
-    var labelAddrMap = mapOf<RISCVGrammar.T1Label, String>()
-    var labelConstMap = mapOf<RISCVGrammar.T1Label, MutVal.Value.Binary>()
+    var labelAddrMap = mapOf<RISCVGrammarV1.E_LABEL, String>()
 
-    fun setLabelLinks(labelAddrMap: Map<RISCVGrammar.T1Label, String>, labelConstMap: Map<RISCVGrammar.T1Label, MutVal.Value.Binary>) {
+    fun setLabelLinks(labelAddrMap: Map<RISCVGrammarV1.E_LABEL, String>) {
         this.labelAddrMap = labelAddrMap
-        this.labelConstMap = labelConstMap
     }
 
-    fun getBinaryFromInstrDef(instrDef: RISCVGrammar.T2InstrDef, instrStartAddress: MutVal.Value.Hex): Array<MutVal.Value.Binary> {
+    fun getBinaryFromInstrDef(instrDef: RISCVGrammarV1.R_INSTR, instrStartAddress: MutVal.Value.Hex): Array<MutVal.Value.Binary> {
         val binaryArray = mutableListOf<MutVal.Value.Binary>()
-        val values = instrDef.t1ParamColl?.getValues()
-        val labels = instrDef.t1ParamColl?.getLabels()
+        val values = instrDef.paramcoll?.getValues()
+        val labels = mutableListOf<RISCVGrammarV1.E_LABEL>()
+        instrDef.paramcoll?.getILabels()?.forEach { labels.add(it.label) }
+        instrDef.paramcoll?.getULabels()?.forEach { labels.add(it.label) }
+        instrDef.paramcoll?.getJLabels()?.forEach { labels.add(it.label) }
 
         if (DebugTools.RISCV_showBinMapperInfo) {
-            console.log("BinMapper.getBinaryFromInstrDef(): values -> ${values?.joinToString { it.toHex().getRawHexStr() }}")
-            console.log("BinMapper.getBinaryFromInstrDef(): labels -> ${labels?.joinToString { it.wholeName }}")
+            console.log("BinMapper.getBinaryFromInstrDef(): \t${instrDef.instrType.id} -> values: ${values?.joinToString(",") { it.toHex().getRawHexStr() }} labels: ${labels.joinToString(",") { it.wholeName }}")
         }
 
-        if (!labels.isNullOrEmpty()) {
+        if (labels.isNotEmpty()) {
             for (label in labels) {
                 val linkedAddress = labelAddrMap.get(label)
-                val linkedConstant = labelConstMap.get(label)
-                if (linkedAddress == null && linkedConstant == null) {
-                    console.warn("BinMapper.getBinaryFromInstrDef(): missing label address or constant entry for [${label.wholeName}]!")
+                if (linkedAddress == null) {
+                    console.warn("BinMapper.getBinaryFromInstrDef(): missing label address entry for [${label.wholeName}]!")
                 }
             }
         }
 
         try {
-            val instrDefType = instrDef.type
+            val instrDefType = instrDef.instrType
             when (instrDefType) {
                 LUI, AUIPC -> {
                     values?.let {
                         val imm20 = MutVal.Value.Binary(values[1].getRawBinaryStr().substring(0, 20), MutVal.Size.Bit20())
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
                         opCode?.let {
                             binaryArray.add(opCode)
-                        }
-                    }
-                }
-
-                LUI_Const, AUIPC_Const -> {
-                    if (values != null && labels != null) {
-                        val constant = labelConstMap.get(labels.first())
-                        if (constant != null) {
-                            val imm20 = MutVal.Value.Binary(constant.getRawBinaryStr().substring(0, 20), MutVal.Size.Bit20())
-                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
-
-                            opCode?.let {
-                                binaryArray.add(opCode)
-                            }
-                        } else {
-                            console.warn("RI_Const didn't find constant!")
                         }
                     }
                 }
@@ -77,42 +58,16 @@ class RISCVBinMapper {
 
                         val imm20 = MutVal.Value.Binary(imm20toWork[0].toString() + imm20toWork.substring(10) + imm20toWork[9] + imm20toWork.substring(1, 9), MutVal.Size.Bit20())
 
-                        console.warn("binmap jal $imm20toWork -> ${imm20.getRawBinaryStr()}")
-
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
                     }
                 }
 
-                JAL_Const -> {
-                    if (values != null && labels != null) {
-                        val constant = labelConstMap.get(labels.first())
-                        if (constant != null) {
-                            val imm20toWork = constant.getResized(MutVal.Size.Bit20()).getRawBinaryStr()
-
-                            /**
-                             *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
-                             *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
-                             */
-
-                            val imm20 = MutVal.Value.Binary(imm20toWork[0].toString() + imm20toWork.substring(10) + imm20toWork[9] + imm20toWork.substring(1, 9), MutVal.Size.Bit20())
-
-                            val opCode = RISCVGrammar.T1Instr.Type.JAL?.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
-
-                            opCode?.let {
-                                binaryArray.add(opCode)
-                            }
-                        } else {
-                            console.warn("RI_Const didn't find constant!")
-                        }
-                    }
-                }
-
                 JALR -> {
                     values?.let {
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
@@ -121,7 +76,7 @@ class RISCVBinMapper {
 
                 EBREAK, ECALL -> {
                     values?.let {
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf())
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf())
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
@@ -134,29 +89,9 @@ class RISCVBinMapper {
                         val imm5 = MutVal.Value.Binary(imm12.substring(8) + imm12[1], MutVal.Size.Bit5())
                         val imm7 = MutVal.Value.Binary(imm12[0] + imm12.substring(2, 8), MutVal.Size.Bit7())
 
-                        console.warn("$imm12 -> ${imm7.getRawBinaryStr()} ${imm5.getRawBinaryStr()}")
-
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0], MaskLabel.RS2 to values[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0], MaskLabel.RS2 to values[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                         opCode?.let {
                             binaryArray.add(opCode)
-                        }
-                    }
-                }
-
-                BEQ_Const, BNE_Const, BLT_Const, BGE_Const, BLTU_Const, BGEU_Const -> {
-                    if (values != null && labels != null) {
-                        val constant = labelConstMap.get(labels.first())
-                        if (constant != null) {
-                            val imm12 = values[2].getResized(MutVal.Size.Bit12()).getRawBinaryStr()
-                            val imm5 = MutVal.Value.Binary(imm12.substring(8) + imm12[1], MutVal.Size.Bit5())
-                            val imm7 = MutVal.Value.Binary(imm12[0] + imm12.substring(2, 8), MutVal.Size.Bit7())
-
-                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0], MaskLabel.RS2 to values[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
-                            opCode?.let {
-                                binaryArray.add(opCode)
-                            }
-                        } else {
-                            console.warn("BRANCH_Const didn't find constant!")
                         }
                     }
                 }
@@ -170,8 +105,6 @@ class RISCVBinMapper {
                             val imm5 = MutVal.Value.Binary(imm12offset.substring(8) + imm12offset[1], MutVal.Size.Bit5())
                             val imm7 = MutVal.Value.Binary(imm12offset[0] + imm12offset.substring(2, 8), MutVal.Size.Bit7())
 
-                            console.warn("$imm12offset -> ${imm7.getRawBinaryStr()} ${imm5.getRawBinaryStr()}")
-
                             val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0], MaskLabel.RS2 to values[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                             opCode?.let {
                                 binaryArray.add(opCode)
@@ -182,7 +115,7 @@ class RISCVBinMapper {
 
                 LB, LH, LW, LBU, LHU -> {
                     values?.let {
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
@@ -195,7 +128,7 @@ class RISCVBinMapper {
                         val imm5 = MutVal.Value.Binary(imm12.substring(imm12.length - 5))
                         val imm7 = MutVal.Value.Binary(imm12.substring(imm12.length - 12, imm12.length - 5))
 
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RS2 to values[0], MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5, MaskLabel.RS1 to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RS2 to values[0], MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5, MaskLabel.RS1 to values[2]))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
@@ -204,55 +137,25 @@ class RISCVBinMapper {
 
                 ADDI, SLTI, SLTIU, XORI, ORI, ANDI -> {
                     values?.let {
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.IMM12 to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.IMM12 to values[2]))
                         opCode?.let {
                             binaryArray.add(opCode)
-                        }
-                    }
-                }
-
-                ADDI_Const, SLTI_Const, SLTIU_Const, XORI_Const, ORI_Const, ANDI_Const -> {
-                    if (values != null && labels != null) {
-                        val constant = labelConstMap.get(labels.first())
-                        if (constant != null) {
-                            val imm12 = constant.getResized(MutVal.Size.Bit12())
-                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.IMM12 to imm12))
-                            opCode?.let {
-                                binaryArray.add(opCode)
-                            }
-                        } else {
-                            console.warn("LOGICANDCALCIMM_Const didn't find constant!")
                         }
                     }
                 }
 
                 SLLI, SRLI, SRAI -> {
                     values?.let {
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.SHAMT to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.SHAMT to values[2]))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
                     }
                 }
 
-                SLLI_Const, SRLI_Const, SRAI_Const -> {
-                    if (values != null && labels != null) {
-                        val constant = labelConstMap.get(labels.first())
-                        if (constant != null) {
-                            val imm5 = constant.getResized(MutVal.Size.Bit5())
-                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.SHAMT to imm5))
-                            opCode?.let {
-                                binaryArray.add(opCode)
-                            }
-                        } else {
-                            console.warn("SHIFT_Const didn't find constant!")
-                        }
-                    }
-                }
-
                 ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND -> {
                     values?.let {
-                        val opCode = instrDef.type.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.RS2 to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.RS2 to values[2]))
                         opCode?.let {
                             binaryArray.add(opCode)
                         }
@@ -285,40 +188,6 @@ class RISCVBinMapper {
                             binaryArray.add(addiOpCode)
                         }
 
-                    }
-                }
-
-                Li_Const -> {
-                    if (values != null && labels != null) {
-                        val regBin = values[0]
-                        val constant = labelConstMap.get(labels.first())
-                        if (constant != null) {
-                            val immediate = constant
-
-                            val imm32 = immediate.getUResized(MutVal.Size.Bit32())
-
-                            val hi20 = imm32.getRawBinaryStr().substring(0, 20)
-                            val low12 = imm32.getRawBinaryStr().substring(20)
-
-                            val imm12 = MutVal.Value.Binary(low12, MutVal.Size.Bit12())
-
-                            val imm20temp = (MutVal.Value.Binary(hi20, MutVal.Size.Bit20())).toBin()
-                            val imm20 = if (imm12.toDec().isNegative()) {
-                                (imm20temp + MutVal.Value.Binary("1")).toBin()
-                            } else {
-                                imm20temp
-                            }
-
-                            val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
-                            val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
-
-                            if (luiOpCode != null && addiOpCode != null) {
-                                binaryArray.add(luiOpCode)
-                                binaryArray.add(addiOpCode)
-                            }
-                        } else {
-                            console.warn("PS_RI_Const didn't find constant!")
-                        }
                     }
                 }
 
@@ -357,6 +226,7 @@ class RISCVBinMapper {
                         if (lblAddr != null) {
                             val rd = values[0]
                             val imm20toWork = ((MutVal.Value.Binary(lblAddr, MutVal.Size.Bit32()) - instrStartAddress).toBin() shr 1).getResized(MutVal.Size.Bit20()).getRawBinaryStr()
+
                             /**
                              *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
                              *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
@@ -378,6 +248,7 @@ class RISCVBinMapper {
                         if (lblAddr != null) {
                             val rd = MutVal.Value.Binary("1", MutVal.Size.Bit5())
                             val imm20toWork = ((MutVal.Value.Binary(lblAddr, MutVal.Size.Bit32()) - instrStartAddress).toBin() shr 1).getResized(MutVal.Size.Bit20()).getRawBinaryStr()
+
                             /**
                              *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
                              *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
@@ -399,6 +270,7 @@ class RISCVBinMapper {
                         if (lblAddr != null) {
                             val rd = MutVal.Value.Binary("0", MutVal.Size.Bit5())
                             val imm20toWork = ((MutVal.Value.Binary(lblAddr, MutVal.Size.Bit32()) - instrStartAddress).toBin() shr 1).getResized(MutVal.Size.Bit20()).getRawBinaryStr()
+
                             /**
                              *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
                              *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
@@ -766,7 +638,7 @@ class RISCVBinMapper {
         }
 
         if (binaryArray.isEmpty()) {
-            console.error("RISCVBinMapper: values and labels not matching for ${instrDef.type.name}!")
+            console.error("RISCVBinMapper: values and labels not matching for ${instrDef.instrType.name}!")
         }
 
         return binaryArray.toTypedArray()
@@ -784,7 +656,7 @@ class RISCVBinMapper {
         return null
     }
 
-    data class InstrResult(val type: RISCVGrammar.T1Instr.Type, val binaryMap: Map<MaskLabel, MutVal.Value.Binary> = mapOf())
+    data class InstrResult(val type: RISCVGrammarV1.R_INSTR.InstrType, val binaryMap: Map<MaskLabel, MutVal.Value.Binary> = mapOf())
 
     class OpCode(val opMask: String, val maskLabels: Array<MaskLabel>) {
 

@@ -1,6 +1,7 @@
 package extendable.archs.riscv
 
 import extendable.Architecture
+import extendable.archs.riscv.RISCVGrammarV1.E_DIRECTIVE.DirType.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
 import extendable.components.types.MutVal
@@ -21,16 +22,10 @@ class RISCVGrammarV1() : Grammar() {
          *  usage:
          */
 
-
         // List which holds the actual state after the actuall scans
         val remainingLines = tokenLines.toMutableList()
 
         val fileIndexMap = others.associate { it.fileName to others.indexOf(it) }
-
-        val pres = mutableListOf<TreeNode.ElementNode>()
-        val elements = mutableListOf<MutableList<TreeNode.ElementNode>>()
-        val rows = mutableListOf<TreeNode.RowNode>()
-        val sections = mutableListOf<TreeNode.SectionNode>()
 
         // For Root Node
         val errors: MutableList<Error> = mutableListOf()
@@ -46,6 +41,7 @@ class RISCVGrammarV1() : Grammar() {
          *  -------------------------------------------------------------- PRE SCAN --------------------------------------------------------------
          *  usage: replace pre elements with their main usage (using compiler.pseudoAnalyze())
          */
+        val pres = mutableListOf<TreeNode.ElementNode>()
 
         // ----------------- resolve imports
         for (lineID in remainingLines.indices) {
@@ -205,7 +201,7 @@ class RISCVGrammarV1() : Grammar() {
                 for (macro in macros) {
                     if (resultName == macro.name && argumentContent.size == macro.arguments.size) {
                         pres.add(Pre_MACRO(*remainingLines[lineID].toTypedArray()))
-                        remainingLines[lineID] = emptyList()
+                        remainingLines.removeAt(lineID)
 
                         // actual replacement
                         for (macroLine in macro.replacementLines.reversed()) {
@@ -213,7 +209,9 @@ class RISCVGrammarV1() : Grammar() {
                             for (attrID in macro.arguments.indices) {
                                 replacedLine = replacedLine.replace("""\""" + macro.arguments[attrID], argumentContent[attrID])
                             }
-                            console.log("replacedLine: $replacedLine")
+                            if(DebugTools.RISCV_showGrammarScanTiers){
+                                console.log("\tmacro insert line ${lineID + 1}: $replacedLine")
+                            }
                             remainingLines.add(lineID, compiler.pseudoAnalyze(replacedLine))
                         }
                     }
@@ -238,13 +236,9 @@ class RISCVGrammarV1() : Grammar() {
          */
         c_pres = C_PRES(*pres.toTypedArray())
         if (DebugTools.RISCV_showGrammarScanTiers) {
-            console.log("Grammar: PRE Scan -> \n${
-                remainingLines.joinToString("") { tokenList ->
-                    if (tokenList.isNotEmpty()) {
-                        "\nline ${remainingLines.indexOf(tokenList)}: " + tokenList.joinToString("") { it.content }
-                    } else {
-                        ""
-                    }
+            console.log("Grammar: PRE Scan -> ${
+                remainingLines.filter { it.isNotEmpty() }.joinToString("") { tokenList ->
+                    "\n\tline ${remainingLines.indexOf(tokenList) + 1}: " + tokenList.joinToString("") { it.content }
                 }
             }")
         }
@@ -253,6 +247,7 @@ class RISCVGrammarV1() : Grammar() {
          *  -------------------------------------------------------------- ELEMENT SCAN --------------------------------------------------------------
          *  usage:
          */
+        val elements = mutableListOf<MutableList<TreeNode.ElementNode>>()
 
         // --------------------------------- SCAN LABELS
         for (lineID in remainingLines.indices) {
@@ -338,9 +333,6 @@ class RISCVGrammarV1() : Grammar() {
 
             remainingLines[lineID] = remainingTokens
             elements.add(lineElements)
-        }
-        if (DebugTools.RISCV_showGrammarScanTiers) {
-            console.log("Grammar: ELEMENTS Scan -> Labels: ${labels.joinToString(", ") { it.wholeName }}")
         }
 
         // --------------------------------- SCAN OTHER ELEMENTS
@@ -439,9 +431,6 @@ class RISCVGrammarV1() : Grammar() {
                     continue
                 }
 
-                console.log("line ${lineID + 1} rem: ${remainingTokens.joinToString("") {  it.content }}")
-
-
                 if (parameterList.isEmpty() || parameterList.last() is E_PARAM.SplitSymbol) {
                     // OFFSET
                     val offsetResult = E_PARAM.Offset.Syntax.tokenSequence.matches(*remainingTokens.toTypedArray())
@@ -471,7 +460,7 @@ class RISCVGrammarV1() : Grammar() {
                     }
 
                     // LABELLINK
-                    var labelLink: E_PARAM.LabelLink? = null
+                    var link: E_PARAM.Link? = null
                     val tokensForLabelToCheck = mutableListOf<Compiler.Token>()
                     for (possibleLabelToken in remainingTokens.dropWhile { firstToken != it }) {
                         if (possibleLabelToken is Compiler.Token.Space || (possibleLabelToken.content == ",")) {
@@ -481,36 +470,10 @@ class RISCVGrammarV1() : Grammar() {
                         }
                     }
                     if (tokensForLabelToCheck.isNotEmpty()) {
-                        for (label in labels) {
-                            if (label.isSubLabel) {
-                                // check sublabel names
-                                val wholeLinkName = tokensForLabelToCheck.joinToString("") { it.content }
-                                if (label.wholeName == wholeLinkName) {
-                                    val labelNameTokens = mutableListOf<Compiler.Token>()
-                                    labelNameTokens.addAll(tokensForLabelToCheck)
-                                    labelLink = E_PARAM.LabelLink(label, *labelNameTokens.toTypedArray())
-                                    break
-                                }
-
-                            } else {
-                                // check not sublabelnames
-                                val labelResult = label.tokenSequence.exactlyMatches(*tokensForLabelToCheck.toTypedArray())
-                                if (labelResult.matches) {
-                                    val labelNameTokens = mutableListOf<Compiler.Token>()
-                                    for (entry in labelResult.sequenceMap) {
-                                        labelNameTokens.add(entry.token)
-                                    }
-                                    labelLink = E_PARAM.LabelLink(label, *labelNameTokens.toTypedArray())
-                                    break
-                                }
-                            }
-                        }
-                        if (labelLink != null) {
-                            parameterList.add(labelLink)
-                            remainingTokens.removeAll(labelLink.labelName)
-
-                            continue
-                        }
+                        link = E_PARAM.Link(*tokensForLabelToCheck.toTypedArray())
+                        parameterList.add(link)
+                        remainingTokens.removeAll(link.labelName.toSet())
+                        continue
                     }
 
                 } else {
@@ -529,7 +492,6 @@ class RISCVGrammarV1() : Grammar() {
             if (validParams && parameterList.isNotEmpty()) {
                 val paramArray = parameterList.toTypedArray()
                 val e_paramcoll = E_PARAMCOLL(*paramArray)
-                console.log("adding param_coll: ${parameterList.joinToString("") { it.paramTokens.joinToString("") { token -> token.content } }}")
                 lineElements.add(e_paramcoll)
             }
 
@@ -541,9 +503,8 @@ class RISCVGrammarV1() : Grammar() {
 
             elements[lineID] += lineElements
         }
-
         if (DebugTools.RISCV_showGrammarScanTiers) {
-            console.log("Grammar: ELEMENTS Scan -> ${elements.joinToString(", line: ") { it.joinToString(" ") { it.name } }}")
+            console.log("Grammar: ELEMENTS Scan -> ${elements.filter { it.isNotEmpty() }.joinToString("") { "\n\tline ${elements.indexOf(it) + 1}: " + it.joinToString(" ") { it.name } }}")
         }
 
         /**
@@ -553,21 +514,326 @@ class RISCVGrammarV1() : Grammar() {
         /**
          *  -------------------------------------------------------------- ROW SCAN --------------------------------------------------------------
          *  usage:
+         *  1.  All Labels JLabel, ULabel, ILabel
+         *  2.  All Directives
+         *  3.  All Instructions
+         *
+         *
          */
+        val rows: Array<TreeNode.RowNode?> = arrayOfNulls(elements.size)
+
+        // ----------------- 1.    All Labels
+        for (lineID in elements.indices) {
+            val lineElements = elements[lineID].toMutableList()
+            val rowNode: TreeNode.RowNode?
+
+            var result = RowSeqs.ilabel.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches) {
+                if (result.matchingTreeNodes.size == 3) {
+                    val eLabel = result.matchingTreeNodes[0] as E_LABEL
+                    val eDir = result.matchingTreeNodes[1] as E_DIRECTIVE
+                    val eParamcoll = result.matchingTreeNodes[2] as E_PARAMCOLL
+                    if (eParamcoll.paramsWithOutSplitSymbols.size == 1 && eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.first() is E_PARAM.Constant) {
+                        rowNode = R_ILBL(eLabel, eDir, eParamcoll)
+                        rows[lineID] = rowNode
+                    } else {
+                        errors.add(Grammar.Error((if (!eDir.isDataEmitting()) "Not a data emitting directive for" else "Invalid parameter count for") + " initialized label!", nodes = lineElements.toTypedArray()))
+                    }
+                    result.error?.let {
+                        errors.add(it)
+                    }
+                    elements[lineID] = mutableListOf()
+                    continue
+                }
+            }
+
+            result = RowSeqs.ulabel.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches) {
+                if (result.matchingTreeNodes.size == 2) {
+                    val eLabel = result.matchingTreeNodes[0] as E_LABEL
+                    val eDir = result.matchingTreeNodes[1] as E_DIRECTIVE
+                    if (eDir.isDataEmitting()) {
+                        rowNode = R_ULBL(eLabel, eDir)
+                        rows[lineID] = rowNode
+                    } else {
+                        errors.add(Grammar.Error("Not a data emitting directive for uninitialized label!", nodes = lineElements.toTypedArray()))
+                    }
+                    result.error?.let {
+                        errors.add(it)
+                    }
+                    elements[lineID] = mutableListOf()
+                    continue
+                }
+            }
+
+            result = RowSeqs.jlabel.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches) {
+                if (result.matchingTreeNodes.size == 1) {
+                    val eLabel = result.matchingTreeNodes[0] as E_LABEL
+                    rowNode = R_JLBL(eLabel, !eLabel.isSubLabel)
+                    rows[lineID] = rowNode
+                    result.error?.let {
+                        errors.add(it)
+                    }
+                    elements[lineID] = mutableListOf()
+                    continue
+                }
+            }
+        }
+
+
+        // ----------------- 2.    All Directives
+        for (lineID in elements.indices) {
+            val lineElements = elements[lineID].toMutableList()
+            val rowNode: TreeNode.RowNode?
+
+            val result = RowSeqs.directive.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches) {
+                val eDir = result.matchingTreeNodes[0] as E_DIRECTIVE
+                if (eDir.type.majorType == E_DIRECTIVE.MajorType.SECTIONSTART) {
+                    rowNode = R_SECSTART(eDir)
+                    rows[lineID] = rowNode
+                } else {
+                    errors.add(Grammar.Error("Found directive type which shouldn't indicate a section start!", *lineElements.toTypedArray()))
+                }
+                result.error?.let {
+                    errors.add(it)
+                }
+                elements[lineID] = mutableListOf()
+                continue
+            }
+        }
+
+        // ----------------- 3.    All Instructions
+        for (lineID in elements.indices) {
+            val lineElements = elements[lineID].toMutableList()
+            val rowNode: TreeNode.RowNode?
+
+            var result = RowSeqs.instrWithParams.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches && result.matchingTreeNodes.size == 2) {
+                var lastMainJLBL: R_JLBL? = null
+                for (index in lineID downTo 0) {
+                    val rowContent = rows.getOrNull(index)
+                    if (rowContent != null && rowContent is R_JLBL && rowContent.isMainLabel) {
+                        lastMainJLBL = rowContent
+                        break
+                    }
+                }
+
+                val eInstrName = result.matchingTreeNodes[0] as E_INSTRNAME
+                val eParamcoll = result.matchingTreeNodes[1] as E_PARAMCOLL
+
+                // link params
+                for (param in eParamcoll.paramsWithOutSplitSymbols) {
+                    if (param is E_PARAM.Link) {
+                        if (param.linkName.startsWith(".") && lastMainJLBL != null) {
+                            // links sublabel
+                            val searchName = lastMainJLBL.label.wholeName + param.linkName
+                            for (label in rows) {
+                                when (label) {
+                                    is R_JLBL -> {
+                                        if (searchName == label.label.wholeName) {
+                                            param.linkTo(label)
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            // links main label
+                            val searchName = param.linkName
+                            for (label in rows) {
+                                when (label) {
+                                    is R_JLBL -> {
+                                        if (searchName == label.label.wholeName) {
+                                            param.linkTo(label)
+                                            break
+                                        }
+                                    }
+
+                                    is R_ULBL -> {
+                                        if (searchName == label.label.wholeName) {
+                                            param.linkTo(label)
+                                            break
+                                        }
+                                    }
+
+                                    is R_ILBL -> {
+                                        if (searchName == label.label.wholeName) {
+                                            param.linkTo(label)
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (param.getLinkType() == null) {
+                            warnings.add(Warning("Parameter [${param.linkName}] couldn't get linked to any label!", *param.tokens))
+                        }
+                    }
+                }
+
+                // check params
+                val checkedType = eInstrName.check(eParamcoll)
+                if (checkedType != null) {
+                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL)
+                    rows[lineID] = rowNode
+                    result.error?.let {
+                        errors.add(it)
+                    }
+                } else {
+                    errors.add(Error("Couldn't match parameters to any instruction!\nexpected parameters: ${eInstrName.types.joinToString(" or ") { it.paramType.exampleString }}", *lineElements.toTypedArray()))
+                }
+                elements[lineID] = mutableListOf()
+                continue
+            }
+
+            result = RowSeqs.instrWithoutParams.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches) {
+                var lastMainJLBL: R_JLBL? = null
+                for (index in lineID downTo 0) {
+                    val rowContent = rows[index]
+                    if (rowContent is R_JLBL && rowContent.isMainLabel) {
+                        lastMainJLBL = rowContent
+                        break
+                    }
+                }
+
+                val eInstrName = result.matchingTreeNodes[0] as E_INSTRNAME
+
+                // check params
+                val checkedType = eInstrName.check()
+                if (checkedType != null) {
+                    rowNode = R_INSTR(eInstrName, null, checkedType, lastMainJLBL)
+                    rows[lineID] = rowNode
+                    result.error?.let {
+                        errors.add(it)
+                    }
+                } else {
+                    errors.add(Error("Couldn't match parameters to any instruction!\nexpected parameters: ${eInstrName.types.joinToString(" or ") { it.paramType.exampleString }}", *lineElements.toTypedArray()))
+                }
+                elements[lineID] = mutableListOf()
+                continue
+            }
+        }
 
         /**
          * FINISH ROW SCAN
          */
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: ROWS Scan -> ${rows.filterNotNull().joinToString("") { "\n\tline ${rows.indexOf(it) + 1}: ${it.name}" }}")
+        }
+
 
         /**
          *  -------------------------------------------------------------- SECTION SCAN --------------------------------------------------------------
          *  usage:
          */
+        val sections = mutableListOf<TreeNode.SectionNode>()
+
+        val remainingRowList = rows.toMutableList()
+        var sectionType = TEXT
+        var sectionIdentification: R_SECSTART? = null
+        val sectionContent = mutableListOf<TreeNode.RowNode>()
+
+        while (remainingRowList.isNotEmpty()) {
+            val firstRow = remainingRowList.first()
+            var resolved = false
+
+            when (firstRow) {
+                is R_SECSTART -> {
+                    when (sectionType) {
+                        TEXT -> {
+                            sections.add(S_TEXT(sectionIdentification, *sectionContent.toTypedArray()))
+                            resolved = true
+                        }
+
+                        DATA -> if (sectionIdentification != null) {
+                            sections.add(S_DATA(sectionIdentification, *sectionContent.toTypedArray()))
+                            resolved = true
+                        }
+
+                        RODATA -> if (sectionIdentification != null) {
+                            sections.add(S_RODATA(sectionIdentification, *sectionContent.toTypedArray()))
+                            resolved = true
+                        }
+
+                        BSS -> if (sectionIdentification != null) {
+                            sections.add(S_BSS(sectionIdentification, *sectionContent.toTypedArray()))
+                            resolved = true
+                        }
+
+                        else -> {}
+                    }
+
+                    sectionType = firstRow.directive.type
+                    sectionIdentification = firstRow
+                    sectionContent.clear()
+                }
+
+                is R_INSTR -> {
+                    if (sectionType == TEXT) {
+                        sectionContent.add(firstRow)
+                        resolved = true
+                    }
+                }
+
+                is R_JLBL -> {
+                    if (sectionType == TEXT) {
+                        sectionContent.add(firstRow)
+                        resolved = true
+                    }
+                }
+
+                is R_ILBL -> {
+                    if (sectionType == DATA || sectionType == RODATA) {
+                        sectionContent.add(firstRow)
+                        resolved = true
+                    }
+                }
+
+                is R_ULBL -> {
+                    if (sectionType == BSS) {
+                        sectionContent.add(firstRow)
+                        resolved = true
+                    }
+                }
+            }
+
+            if (!resolved && firstRow != null) {
+                errors.add(Grammar.Error("Couldn't match row into section!", firstRow))
+            }
+
+            remainingRowList.removeFirst()
+        }
+        // resolve last section
+        when (sectionType) {
+            TEXT -> {
+                sections.add(S_TEXT(sectionIdentification, *sectionContent.toTypedArray()))
+            }
+
+            DATA -> if (sectionIdentification != null) {
+                sections.add(S_DATA(sectionIdentification, *sectionContent.toTypedArray()))
+            }
+
+            RODATA -> if (sectionIdentification != null) {
+                sections.add(S_RODATA(sectionIdentification, *sectionContent.toTypedArray()))
+            }
+
+            BSS -> if (sectionIdentification != null) {
+                sections.add(S_BSS(sectionIdentification, *sectionContent.toTypedArray()))
+            }
+
+            else -> {}
+        }
+
 
         /**
          * FINISH SECTION SCAN
          */
-
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: SECTIONS Scan -> ${sections.joinToString("") { "\n\tsection ${sections.indexOf(it) + 1}: ${it.name}" }}")
+        }
         /**
          *  -------------------------------------------------------------- CONTAINER SCAN --------------------------------------------------------------
          *  usage:
@@ -579,9 +845,10 @@ class RISCVGrammarV1() : Grammar() {
         /**
          * FINISH CONTAINER SCAN
          */
-        val c_test = TreeNode.ContainerNode("test", *elements.flatMap { it }.toTypedArray()) // TODO("REMOVE")
 
-        return GrammarTree(TreeNode.RootNode(errors, warnings, c_sections, c_pres, c_test))
+        val rootNode = TreeNode.RootNode(errors, warnings, c_sections, c_pres)
+
+        return GrammarTree(rootNode)
     }
 
     /* -------------------------------------------------------------- TREE COMPONENTS -------------------------------------------------------------- */
@@ -594,6 +861,17 @@ class RISCVGrammarV1() : Grammar() {
         val pre_import = Regex("""^\s*(#import\s+"(.+)")\s*?""")
         val pre_comment = Regex("""^\s*#.*?""")
         val pre_equ_def = Regex("""^\s*(.equ\s+(.+)\s*,\s*(.+))\s*?""")
+    }
+
+    object RowSeqs {
+        val jlabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL))
+        val ulabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL), RowSeq.Component(REFS.REF_E_DIRECTIVE))
+        val ilabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL), RowSeq.Component(REFS.REF_E_DIRECTIVE), RowSeq.Component(REFS.REF_E_PARAMCOLL))
+
+        val directive = RowSeq(RowSeq.Component(REFS.REF_E_DIRECTIVE))
+
+        val instrWithoutParams = RowSeq(RowSeq.Component(REFS.REF_E_INSTRNAME))
+        val instrWithParams = RowSeq(RowSeq.Component(REFS.REF_E_INSTRNAME), RowSeq.Component(REFS.REF_E_PARAMCOLL))
     }
 
     object SyntaxInfo {
@@ -645,7 +923,7 @@ class RISCVGrammarV1() : Grammar() {
 
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.instruction), REFS.REF_E_INSTRNAME, insToken) {
-        fun check(paramcoll: E_PARAMCOLL): R_INSTR.InstrType? {
+        fun check(paramcoll: E_PARAMCOLL = E_PARAMCOLL()): R_INSTR.InstrType? {
             val params = paramcoll.paramsWithOutSplitSymbols
             var type: R_INSTR.InstrType = types.first()
             types.forEach {
@@ -660,18 +938,10 @@ class RISCVGrammarV1() : Grammar() {
                         }
                     }
 
-                    R_INSTR.ParamType.PS_RD_Const20 -> {
-                        matches = if (params.size == 2) {
-                            params[0] is E_PARAM.Register && params[1] is E_PARAM.LabelLink
-                        } else {
-                            false
-                        }
-                    }
-
                     R_INSTR.ParamType.RD_Off12 -> {
                         matches = if (params.size == 2) {
                             params[0] is E_PARAM.Register &&
-                                    (params[1] is E_PARAM.Offset || params[1] is E_PARAM.LabelLink)
+                                    params[1] is E_PARAM.Offset
                         } else {
                             false
                         }
@@ -680,7 +950,7 @@ class RISCVGrammarV1() : Grammar() {
                     R_INSTR.ParamType.RS2_Off5 -> {
                         matches = if (params.size == 2) {
                             params[0] is E_PARAM.Register &&
-                                    (params[1] is E_PARAM.Offset || params[1] is E_PARAM.LabelLink)
+                                    params[1] is E_PARAM.Offset
                         } else {
                             false
                         }
@@ -706,31 +976,11 @@ class RISCVGrammarV1() : Grammar() {
                         }
                     }
 
-                    R_INSTR.ParamType.PS_RD_RS1_Const12 -> {
-                        matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.LabelLink
-                        } else {
-                            false
-                        }
-                    }
-
                     R_INSTR.ParamType.RD_RS1_I5 -> {
                         matches = if (params.size == 3) {
                             params[0] is E_PARAM.Register &&
                                     params[1] is E_PARAM.Register &&
                                     params[2] is E_PARAM.Constant
-                        } else {
-                            false
-                        }
-                    }
-
-                    R_INSTR.ParamType.PS_RD_RS1_Const5 -> {
-                        matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.LabelLink
                         } else {
                             false
                         }
@@ -746,21 +996,11 @@ class RISCVGrammarV1() : Grammar() {
                         }
                     }
 
-                    R_INSTR.ParamType.PS_RS1_RS2_Const12 -> {
-                        matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.LabelLink
-                        } else {
-                            false
-                        }
-                    }
-
                     R_INSTR.ParamType.PS_RS1_RS2_Jlbl -> {
                         matches = if (params.size == 3) {
                             params[0] is E_PARAM.Register &&
                                     params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.LabelLink
+                                    (params[2] is E_PARAM.Link && params[2].ifLinkGetLinkType() == E_PARAM.Link.LinkTypes.JLBL)
                         } else {
                             false
                         }
@@ -772,28 +1012,20 @@ class RISCVGrammarV1() : Grammar() {
                         false
                     }
 
-                    R_INSTR.ParamType.PS_RD_Clbl -> {
-                        matches = if (params.size == 2) {
-                            params[0] is E_PARAM.Register && params[1] is E_PARAM.LabelLink
-                        } else {
-                            false
-                        }
-                    }
-
                     R_INSTR.ParamType.PS_RS1_Jlbl -> matches = if (params.size == 2) {
-                        params[0] is E_PARAM.Register && params[1] is E_PARAM.LabelLink
+                        params[0] is E_PARAM.Register && (params[1] is E_PARAM.Link && params[1].ifLinkGetLinkType() == E_PARAM.Link.LinkTypes.JLBL)
                     } else {
                         false
                     }
 
                     R_INSTR.ParamType.PS_RD_Albl -> matches = if (params.size == 2) {
-                        params[0] is E_PARAM.Register && params[1] is E_PARAM.LabelLink
+                        params[0] is E_PARAM.Register && (params[1] is E_PARAM.Link && (params[1].ifLinkGetLinkType() == E_PARAM.Link.LinkTypes.ILBL || params[1].ifLinkGetLinkType() == E_PARAM.Link.LinkTypes.ULBL))
                     } else {
                         false
                     }
 
                     R_INSTR.ParamType.PS_Jlbl -> matches = if (params.size == 1) {
-                        params[0] is E_PARAM.LabelLink
+                        params[0] is E_PARAM.Link && params[0].ifLinkGetLinkType() == E_PARAM.Link.LinkTypes.JLBL
                     } else {
                         false
                     }
@@ -825,13 +1057,12 @@ class RISCVGrammarV1() : Grammar() {
                     return type
                 }
             }
+
             return null
         }
     }
 
-    class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toList() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param ->
-        param.paramTokens.toList()
-    }.toTypedArray()) {
+    class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toList() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toList() }.toTypedArray()) {
         val paramsWithOutSplitSymbols: Array<E_PARAM>
 
         init {
@@ -842,8 +1073,6 @@ class RISCVGrammarV1() : Grammar() {
                 }
             }
             paramsWithOutSplitSymbols = parameterList.toTypedArray()
-            console.log("e_param init: ${params.joinToString("") { it.tokens.joinToString("") { it.content } }} and hl ${this.highlighting.hlTokenMap}")
-            console.log("e_paramcoll init: ${paramsWithOutSplitSymbols.joinToString("") { it.tokens.joinToString("") { it.content } }} and hl ${this.highlighting.hlTokenMap}")
         }
 
         fun getValues(): Array<MutVal.Value.Binary> {
@@ -880,12 +1109,46 @@ class RISCVGrammarV1() : Grammar() {
             return values.toTypedArray()
         }
 
-        fun getLabels(): Array<E_LABEL> {
-            val labels = mutableListOf<E_LABEL>()
-            paramsWithOutSplitSymbols.forEach {
-                when (it) {
-                    is E_PARAM.LabelLink -> {
-                        labels.add(it.linkedLabel)
+        fun getILabels(): Array<R_ILBL> {
+            val labels = mutableListOf<R_ILBL>()
+            paramsWithOutSplitSymbols.forEach { param ->
+                when (param) {
+                    is E_PARAM.Link -> {
+                        param.getILBL()?.let {
+                            labels.add(it)
+                        }
+                    }
+
+                    else -> {}
+                }
+            }
+            return labels.toTypedArray()
+        }
+
+        fun getULabels(): Array<R_ULBL> {
+            val labels = mutableListOf<R_ULBL>()
+            paramsWithOutSplitSymbols.forEach { param ->
+                when (param) {
+                    is E_PARAM.Link -> {
+                        param.getULBL()?.let {
+                            labels.add(it)
+                        }
+                    }
+
+                    else -> {}
+                }
+            }
+            return labels.toTypedArray()
+        }
+
+        fun getJLabels(): Array<R_JLBL> {
+            val labels = mutableListOf<R_JLBL>()
+            paramsWithOutSplitSymbols.forEach { param ->
+                when (param) {
+                    is E_PARAM.Link -> {
+                        param.getJLBL()?.let {
+                            labels.add(it)
+                        }
                     }
 
                     else -> {}
@@ -896,13 +1159,21 @@ class RISCVGrammarV1() : Grammar() {
     }
 
     sealed class E_PARAM(val type: String, val paramHLFlag: String, vararg val paramTokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(paramHLFlag), type, *paramTokens) {
+        fun ifLinkGetLinkType(): Link.LinkTypes? {
+            return if (this is Link) {
+                this.getLinkType()
+            } else {
+                null
+            }
+        }
+
         class Offset(val offset: Compiler.Token.Constant, openParan: Compiler.Token, val register: Compiler.Token.Register, closeParan: Compiler.Token) : E_PARAM(REFS.REF_E_PARAM_OFFSET, RISCVFlags.offset, offset, openParan, register, closeParan) {
             fun getValueArray(): Array<MutVal.Value.Binary> {
                 return arrayOf(offset.getValue().toBin(), register.reg.address.toBin())
             }
 
             object Syntax {
-                val tokenSequence = TokenSequence(TokenSequence.SequenceComponent.InSpecific.Constant(), TokenSequence.SequenceComponent.Specific("("), TokenSequence.SequenceComponent.InSpecific.Register(), TokenSequence.SequenceComponent.Specific(")"), ignoreSpaces = true)
+                val tokenSequence = TokenSequence(TokenSequence.Component.InSpecific.Constant(), TokenSequence.Component.Specific("("), TokenSequence.Component.InSpecific.Register(), TokenSequence.Component.Specific(")"), ignoreSpaces = true)
             }
         }
 
@@ -919,10 +1190,66 @@ class RISCVGrammarV1() : Grammar() {
         }
 
         class SplitSymbol(val splitSymbol: Compiler.Token.Symbol) : E_PARAM(REFS.REF_E_PARAM_SPLITSYMBOL, RISCVFlags.instruction, splitSymbol)
-        class LabelLink(val linkedLabel: E_LABEL, vararg val labelName: Compiler.Token) : E_PARAM(REFS.REF_E_PARAM_LABELLINK, RISCVFlags.label, *labelName)
+        class Link(vararg val labelName: Compiler.Token) : E_PARAM(REFS.REF_E_PARAM_LABELLINK, RISCVFlags.label, *labelName) {
+            val linkName = labelName.joinToString("") { it.content }
+
+            private var linkedLabel: RowNode? = null
+            private var linkType: LinkTypes? = null
+
+            fun linkTo(jlbl: R_JLBL) {
+                linkedLabel = jlbl
+                linkType = LinkTypes.JLBL
+            }
+
+            fun linkTo(ulbl: R_ULBL) {
+                linkedLabel = ulbl
+                linkType = LinkTypes.ULBL
+            }
+
+            fun linkTo(ilbl: R_ILBL) {
+                linkedLabel = ilbl
+                linkType = LinkTypes.ILBL
+            }
+
+            fun getJLBL(): R_JLBL? {
+                return if (linkType == LinkTypes.JLBL) {
+                    linkedLabel as R_JLBL
+                } else {
+                    null
+                }
+            }
+
+            fun getULBL(): R_ULBL? {
+                return if (linkType == LinkTypes.ULBL) {
+                    linkedLabel as R_ULBL
+                } else {
+                    null
+                }
+            }
+
+            fun getILBL(): R_ILBL? {
+                return if (linkType == LinkTypes.ILBL) {
+                    linkedLabel as R_ILBL
+                } else {
+                    null
+                }
+            }
+
+            fun getLinkType(): LinkTypes? {
+                return linkType
+            }
+
+            enum class LinkTypes {
+                JLBL,
+                ULBL,
+                ILBL
+            }
+
+        }
     }
 
     class E_LABEL(vararg val labelName: Compiler.Token, colon: Compiler.Token.Symbol, val sublblFrom: E_LABEL? = null) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.label), REFS.REF_E_LABEL, *labelName, colon) {
+
         val wholeName: String
         val tokenSequence: TokenSequence
         val isSubLabel: Boolean
@@ -931,16 +1258,19 @@ class RISCVGrammarV1() : Grammar() {
             isSubLabel = sublblFrom != null
 
             wholeName = (if (sublblFrom != null) sublblFrom.wholeName else "") + labelName.joinToString("") { it.content }
-            val tokenSequenceComponents = mutableListOf<TokenSequence.SequenceComponent>()
+            val tokenComponents = mutableListOf<TokenSequence.Component>()
             for (token in labelName) {
-                tokenSequenceComponents.add(TokenSequence.SequenceComponent.Specific(token.content))
+                tokenComponents.add(TokenSequence.Component.Specific(token.content))
             }
-            tokenSequence = TokenSequence(*tokenSequenceComponents.toTypedArray(), ignoreSpaces = false)
+            tokenSequence = TokenSequence(*tokenComponents.toTypedArray(), ignoreSpaces = false)
         }
-
     }
 
     class E_DIRECTIVE(val type: DirType, val dot: Compiler.Token.Symbol, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.directive), REFS.REF_E_DIRECTIVE, dot, *tokens) {
+
+        fun isDataEmitting(): Boolean {
+            return type.majorType == MajorType.DE_ALIGNED || type.majorType == MajorType.DE_UNALIGNED
+        }
 
         enum class MajorType {
             SECTIONSTART,
@@ -968,9 +1298,12 @@ class RISCVGrammarV1() : Grammar() {
     }
 
     /* -------------------------------------------------------------- ROWS -------------------------------------------------------------- */
-    class R_SECSTART : TreeNode.RowNode(REFS.REF_R_SECSTART)
-    class R_INSTR : TreeNode.RowNode(REFS.REF_R_INSTR) {
-        enum class ParamType(val pseudo: Boolean, val exampleString: String, val expectedLabelType: RISCVGrammar.T2LabelDef.Type? = null) {
+    class R_SECSTART(val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_SECSTART, directive)
+    class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
+    class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label)
+    class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label)
+    class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
+        enum class ParamType(val pseudo: Boolean, val exampleString: String) {
             // NORMAL INSTRUCTIONS
             RD_I20(false, "rd, imm20"), // rd, imm
             RD_Off12(false, "rd, imm12(rs)"), // rd, imm12(rs)
@@ -981,16 +1314,11 @@ class RISCVGrammarV1() : Grammar() {
             RS1_RS2_I12(false, "rs1, rs2, imm12"), // rs1, rs2, imm
 
             // PSEUDO INSTRUCTIONS
-            PS_RD_Const20(true, "rd, const20", RISCVGrammar.T2LabelDef.Type.CONSTANT), // rd, constant
-            PS_RD_RS1_Const12(true, "rd, rs1, const12", RISCVGrammar.T2LabelDef.Type.CONSTANT), // rd, rs, constant
-            PS_RD_RS1_Const5(true, "rd, rs1, const5", RISCVGrammar.T2LabelDef.Type.CONSTANT), //rd, rs1, constant5
-            PS_RS1_RS2_Const12(true, "rs1, rs2, const", RISCVGrammar.T2LabelDef.Type.CONSTANT), // rs1, rs2, constant
-            PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel", RISCVGrammar.T2LabelDef.Type.JUMP),
+            PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
             PS_RD_I32(true, "rd, imm32"), // rd, imm
-            PS_RD_Clbl(true, "rd, clabel", RISCVGrammar.T2LabelDef.Type.CONSTANT), // rd, imm
-            PS_RS1_Jlbl(true, "rs, jlabel", RISCVGrammar.T2LabelDef.Type.JUMP), // rs, label
-            PS_RD_Albl(true, "rd, alabel", RISCVGrammar.T2LabelDef.Type.MEMALLOC), // rd, label
-            PS_Jlbl(true, "jlabel", RISCVGrammar.T2LabelDef.Type.JUMP),  // label
+            PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
+            PS_RD_Albl(true, "rd, alabel"), // rd, label
+            PS_Jlbl(true, "jlabel"),  // label
             PS_RD_RS1(true, "rd, rs"), // rd, rs
             PS_RS1(true, "rs1"),
 
@@ -1016,7 +1344,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            LUI_Const("LUI", true, ParamType.PS_RD_Const20, relative = LUI),
             AUIPC("AUIPC", false, ParamType.RD_I20, RISCVBinMapper.OpCode("00000000000000000000 00000 0010111", arrayOf(RISCVBinMapper.MaskLabel.IMM20, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1034,7 +1361,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            AUIPC_Const("AUIPC", true, ParamType.PS_RD_Const20, relative = AUIPC),
             JAL("JAL", false, ParamType.RD_I20, RISCVBinMapper.OpCode("00000000000000000000 00000 1101111", arrayOf(RISCVBinMapper.MaskLabel.IMM20, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1060,7 +1386,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            JAL_Const("JAL", true, ParamType.PS_RD_Const20, relative = JAL),
             JALR(
                 "JALR",
                 false,
@@ -1114,8 +1439,6 @@ class RISCVGrammarV1() : Grammar() {
                             val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
                             val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
 
-                            console.warn("$imm7str $imm5str -> ${imm12.getRawBinaryStr()}")
-
                             val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                             if (rs1.get().toDec() == rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
@@ -1126,7 +1449,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            BEQ_Const("BEQC", true, ParamType.PS_RS1_RS2_Const12, relative = BEQ),
             BNE(
                 "BNE", false,
                 ParamType.RS1_RS2_I12,
@@ -1156,7 +1478,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            BNE_Const("BNEC", true, ParamType.PS_RS1_RS2_Const12, relative = BNE),
             BLT(
                 "BLT", false,
                 ParamType.RS1_RS2_I12,
@@ -1186,7 +1507,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            BLT_Const("BLTC", true, ParamType.PS_RS1_RS2_Const12, relative = BLT),
             BGE(
                 "BGE", false,
                 ParamType.RS1_RS2_I12,
@@ -1216,7 +1536,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            BGE_Const("BGEC", true, ParamType.PS_RS1_RS2_Const12, relative = BGE),
             BLTU(
                 "BLTU", false,
                 ParamType.RS1_RS2_I12,
@@ -1246,7 +1565,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            BLTU_Const("BLTUC", true, ParamType.PS_RS1_RS2_Const12, relative = BLTU),
             BGEU(
                 "BGEU", false,
                 ParamType.RS1_RS2_I12,
@@ -1276,7 +1594,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            BGEU_Const("BGEUC", true, ParamType.PS_RS1_RS2_Const12, relative = BGEU),
             BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ),
             BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE),
             BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT),
@@ -1487,7 +1804,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            ADDI_Const("ADDI", true, ParamType.PS_RD_RS1_Const12, relative = ADDI),
             SLTI(
                 "SLTI", false,
                 ParamType.RD_RS1_I12,
@@ -1510,7 +1826,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            SLTI_Const("SLTI", true, ParamType.PS_RD_RS1_Const12, relative = SLTI),
             SLTIU(
                 "SLTIU", false,
                 ParamType.RD_RS1_I12,
@@ -1533,7 +1848,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            SLTIU_Const("SLTIU", true, ParamType.PS_RD_RS1_Const12, relative = SLTIU),
             XORI(
                 "XORI", false,
                 ParamType.RD_RS1_I12,
@@ -1556,7 +1870,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            XORI_Const("XORI", true, ParamType.PS_RD_RS1_Const12, relative = XORI),
             ORI(
                 "ORI", false,
                 ParamType.RD_RS1_I12,
@@ -1579,7 +1892,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            ORI_Const("ORI", true, ParamType.PS_RD_RS1_Const12, relative = ORI),
             ANDI(
                 "ANDI", false,
                 ParamType.RD_RS1_I12,
@@ -1602,7 +1914,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            ANDI_Const("ANDI", true, ParamType.PS_RD_RS1_Const12, relative = ANDI),
             SLLI(
                 "SLLI", false,
                 ParamType.RD_RS1_I5,
@@ -1624,7 +1935,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            SLLI_Const("SLLI", true, ParamType.PS_RD_RS1_Const5, relative = SLLI),
             SRLI(
                 "SRLI", false,
                 ParamType.RD_RS1_I5,
@@ -1646,7 +1956,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            SRLI_Const("SRLI", true, ParamType.PS_RD_RS1_Const5, relative = SRLI),
             SRAI(
                 "SRAI", false,
                 ParamType.RD_RS1_I5,
@@ -1668,7 +1977,6 @@ class RISCVGrammarV1() : Grammar() {
                     }
                 }
             },
-            SRAI_Const("SRAI", true, ParamType.PS_RD_RS1_Const5, relative = SRAI),
             ADD(
                 "ADD", false,
                 ParamType.RD_RS1_RS1,
@@ -1892,7 +2200,6 @@ class RISCVGrammarV1() : Grammar() {
             Nop("NOP", true, ParamType.PS_NONE),
             Mv("MV", true, ParamType.PS_RD_RS1),
             Li("LI", true, ParamType.PS_RD_I32, memWords = 2),
-            Li_Const("LI", true, ParamType.PS_RD_Clbl, memWords = 2),
             La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
             Not("NOT", true, ParamType.PS_RD_RS1),
             Neg("NEG", true, ParamType.PS_RD_RS1),
@@ -1923,27 +2230,11 @@ class RISCVGrammarV1() : Grammar() {
         }
     }
 
-    class R_JLBL : TreeNode.RowNode(REFS.REF_R_JLBL)
-    class R_ILBL : TreeNode.RowNode(REFS.REF_R_ILBL)
-    class R_ULBL : TreeNode.RowNode(REFS.REF_R_ULBL)
-
-    object RowSequences {
-        // row sequences
-
-        val r_instr_seq = SyntaxSequence(SyntaxSequence.Component(REFS.REF_E_INSTRNAME))
-        val r_instr_param_seq = SyntaxSequence(SyntaxSequence.Component(REFS.REF_E_INSTRNAME), SyntaxSequence.Component(REFS.REF_E_PARAMCOLL))
-        val r_jlbl_seq = SyntaxSequence(SyntaxSequence.Component(REFS.REF_E_LABEL))
-        val r_ulbl_seq = SyntaxSequence(SyntaxSequence.Component(REFS.REF_E_LABEL), SyntaxSequence.Component(REFS.REF_E_DIRECTIVE))
-        val r_ilbl_seq = SyntaxSequence(SyntaxSequence.Component(REFS.REF_E_LABEL), SyntaxSequence.Component(REFS.REF_E_DIRECTIVE), SyntaxSequence.Component(REFS.REF_E_PARAMCOLL))
-        val r_secstart_seq = SyntaxSequence(SyntaxSequence.Component(REFS.REF_E_DIRECTIVE))
-
-    }
-
     /* -------------------------------------------------------------- SECTIONS -------------------------------------------------------------- */
-    class S_TEXT : TreeNode.SectionNode(REFS.REF_S_TEXT)
-    class S_DATA : TreeNode.SectionNode(REFS.REF_S_DATA)
-    class S_RODATA : TreeNode.SectionNode(REFS.REF_S_RODATA)
-    class S_BSS : TreeNode.SectionNode(REFS.REF_S_BSS)
+    class S_TEXT(val secStart: R_SECSTART?, vararg val sectionContent: RowNode) : TreeNode.SectionNode(REFS.REF_S_TEXT, collNodes = if (secStart != null) sectionContent + secStart else sectionContent)
+    class S_DATA(val secStart: R_SECSTART, vararg val sectionContent: RowNode) : TreeNode.SectionNode(REFS.REF_S_DATA, secStart, *sectionContent)
+    class S_RODATA(val secStart: R_SECSTART, vararg val sectionContent: RowNode) : TreeNode.SectionNode(REFS.REF_S_RODATA, secStart, *sectionContent)
+    class S_BSS(val secStart: R_SECSTART, vararg val sectionContent: RowNode) : TreeNode.SectionNode(REFS.REF_S_BSS, secStart, *sectionContent)
 
     /* -------------------------------------------------------------- CONTAINER -------------------------------------------------------------- */
     class C_SECTIONS(vararg val sections: SectionNode) : TreeNode.ContainerNode(REFS.REF_C_SECTIONS, *sections)

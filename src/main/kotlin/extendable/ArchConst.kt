@@ -32,11 +32,12 @@ object ArchConst {
         val whiteSpace = StyleConst.HLCLASS_WHITESPACE
     }
 
+    // COMPILER
+    const val COMPILER_TOKEN_PSEUDOID = -100
+
     // REGISTER
     val REGISTER_HEADERS = arrayOf(RegHeaders.ADDRESS, RegHeaders.NAME, RegHeaders.VALUE, RegHeaders.DESCRIPTION)
     val REGISTER_VALUETYPES = arrayOf(RegTypes.BIN, RegTypes.HEX, RegTypes.UDEC, RegTypes.DEC)
-    val REGISTER_LABEL_PC = "pc"
-    val REGISTER_LABEL_MAIN = "main"
 
     // ADDRESS
     const val hex = 0b10111001
@@ -54,7 +55,6 @@ object ArchConst {
     const val PRESTRING_BINARY = "0b"
     const val PRESTRING_DECIMAL = ""
     const val PRESTRING_UDECIMAL = "u"
-    const val POSTSTRING_JLABEL = ":"
 
     // REGEX SPLITTER
     val LINEBREAKS = listOf("\n", "\r", "\r\n")

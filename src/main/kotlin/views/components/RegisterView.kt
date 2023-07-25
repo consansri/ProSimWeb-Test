@@ -209,8 +209,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         +reg.address.toHex().getRawHexStr()
                                     }
                                     td {
-                                        className = ClassName("dcf-txt-center")
-                                        +reg.names.joinToString(" / ") { it }
+                                        className = ClassName("dcf-txt-left")
+                                        +reg.names.joinToString("\t") { it }
                                     }
                                     td {
                                         className = ClassName("value-col dcf-txt-center")
