@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71">
+    <defs>
+        <style>
+            .cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:6px;}
+        </style>
+    </defs>
+    <g id="Ebene_2">
+        <g id="Ebene_1">
+            <rect id="Hintergrund" class="cls-1" width="90.71" height="90.71"/>
+            <line class="cls-2" x1="9.56" y1="45.35" x2="60.85" y2="45.35"/>
+            <line class="cls-2" x1="60.85" y1="45.35" x2="46.19" y2="30.69"/>
+            <line class="cls-2" x1="46.19" y1="60.02" x2="60.85" y2="45.35"/>
+            <circle cx="74.85" cy="45.35" r="6.29"/>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,79 @@
+:root {
+
+    --exec-textColor: #EEEEEE;
+
+    --exec-bgColor: transparent;
+    --exec-iconSize: 15px;
+
+    --exec-inputBgColor: rgba(20%, 20%, 20%, 30%);
+    --exec-inputFgColor: #FFFFFF;
+    --exec-placeholderFgColor: #EEEEEE;
+
+
+    --exec-sstepBgColor: #98d8aa;
+    --exec-sstepFgColor: white;
+    --exec-continuousBgColor: #58cc79;
+    --exec-continuousFgColor: white;
+    --exec-clearBgColor: #EE2222;
+    --exec-clearFgColor: white;
+    --exec-resetBgColor: #EE9955;
+    --exec-resetFgColor: white;
+    --exec-soverBgColor: #549fd8;
+    --exec-soverFgColor: white;
+    --exec-esubBgColor: #549fd8;
+    --exec-esubFgColor: white;
+    --exec-mstepBgColor: #e2b124;
+    --exec-mstepFgColor: white;
+    --exec-progressBarColor: #007bff;
+
+    --proc-reg-bgColor: #EEEEEE;
+    --proc-mem-bgColor: #AAAAAA;
+
+    --proc-bg-color: #aec6cf;
+    --proc-logo-color: #121212;
+    --proc-con-bg-color: #FFFFFF;
+    --proc-con-bg-hover-color: #FFFFFF;
+    --proc-main-bg-color: #121212;
+    --proc-mem-bg-color: #FFFFFF;
+}
+
+.exeControlDiv {
+    border-radius: var(--border-radius);
+    padding: var(--padding-size);
+    background-color: var(--exec-bgColor);
+    overflow: hidden;
+    /*box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;*/
+}
+
+.processorDiv {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    margin-top: var(--padding-size);
+    background-color: var(--proc-reg-bgColor);
+    box-shadow: rgb(204, 219, 232) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.5) -3px -3px 6px 1px inset;
+}
+
+.processorDiv:first-child {
+    flex: 100%;
+}
+
+.processorDiv:last-child {
+    flex: 20%;
+}
+
+.memoryDiv {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    margin-top: var(--padding-size);
+    background-color: var(--proc-mem-bg-color);
+    box-shadow: rgb(204, 219, 232) 3px 3px 6px 0px inset, rgba(255, 255, 255, 0.5) -3px -3px 6px 1px inset;
+}
+
+/*Responsive Layout*/
+@media (max-width: 1200px) {
+    .memoryDiv div {
+        height: 40vh;
+    }
+}
