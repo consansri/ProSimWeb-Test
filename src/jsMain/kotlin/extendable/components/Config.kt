@@ -4,6 +4,7 @@ import extendable.components.connected.*
 
 data class Config(
     val name: String,
+    val fileHandler: FileHandler,
     val registerContainer: RegisterContainer,
     val memory: Memory,
     val transcript: Transcript,
@@ -13,16 +14,18 @@ data class Config(
 
     constructor(
         name: String,
+        fileHandler: FileHandler,
         registerContainer: RegisterContainer,
         memory: Memory,
         transcript: Transcript
-    ) : this(name, registerContainer,  memory, transcript, null, null)
+    ) : this(name, fileHandler, registerContainer, memory, transcript, null, null)
 
     constructor(
         name: String,
+        fileHandler: FileHandler,
         registerContainer: RegisterContainer,
         memory: Memory,
         transcript: Transcript,
         flagsConditions: FlagsConditions?
-    ) : this(name, registerContainer,  memory, transcript, flagsConditions, null)
+    ) : this(name, fileHandler, registerContainer, memory, transcript, flagsConditions, null)
 }

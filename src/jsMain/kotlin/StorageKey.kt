@@ -2,6 +2,12 @@ object StorageKey {
 
     val ARCH_TYPE = "arch-type"
 
+    // files
+    val FILE_COUNT = "file-count"
+    val FILE_NAME = "filename"
+    val FILE_CONTENT = "filecontent"
+
+    // memory
     val MEM_LENGTH = "mem-length"
 
     val MSTEP_VALUE = "m-step-value"

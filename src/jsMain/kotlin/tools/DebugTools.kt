@@ -26,6 +26,7 @@ object DebugTools {
     // ARCH COMPONENTS
     //      Main
     const val ARCH_showCheckCodeEvents = false
+    const val ARCH_showFileHandlerInfo = true
 
     //      Compiler
     const val ARCH_showCompilerInfo = false

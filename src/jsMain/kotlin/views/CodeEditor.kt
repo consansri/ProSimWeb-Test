@@ -411,6 +411,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             } else {
 
                 div {
+
+
+
+
+                }
+
+
+                div {
                     className = ClassName(StyleConst.CLASS_EDITOR_SCROLL_CONTAINER)
 
                     div {

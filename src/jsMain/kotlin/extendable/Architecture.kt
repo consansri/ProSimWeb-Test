@@ -8,18 +8,21 @@ import tools.HTMLTools
 
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
-    private var name: String
+    private val name: String
+    private val fileHandler: FileHandler
     private val registerContainer: RegisterContainer
     private val memory: Memory
-    private var transcript: Transcript
-    private var flagsConditions: FlagsConditions?
-    private var cache: Cache?
     private val IConsole: IConsole
     private val archState = ArchState()
     private val compiler: Compiler
+    private val transcript: Transcript
+    private val flagsConditions: FlagsConditions?
+    private val cache: Cache?
+
 
     init {
         this.name = config.name
+        this.fileHandler = config.fileHandler
         this.registerContainer = config.registerContainer
         this.memory = config.memory
         this.transcript = config.transcript
@@ -63,6 +66,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     fun getName(): String {
         return name
+    }
+
+    fun getFileHandler(): FileHandler {
+        return fileHandler
     }
 
     fun getRegisterContainer(): RegisterContainer {

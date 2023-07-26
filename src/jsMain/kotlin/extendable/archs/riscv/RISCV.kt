@@ -23,6 +23,7 @@ object RISCV {
     // PROCESSOR CONFIG
     val config = Config(
         """RISC-V""",
+        FileHandler("rvasm"),
         RegisterContainer(
             listOf(
                 RegisterContainer.RegisterFile(

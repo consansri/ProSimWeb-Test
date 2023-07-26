@@ -1,3 +1,4 @@
+import extendable.components.connected.FileHandler
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLDivElement
@@ -20,6 +21,20 @@ val App = FC<Props> { props ->
         }
     }
 
+    val fileCount = localStorage.getItem(StorageKey.FILE_COUNT)?.toIntOrNull() ?: 0
+    val files = mutableListOf<FileHandler.File>()
+    if (fileCount != 0) {
+        for (index in 0 until fileCount) {
+            val filename = localStorage.getItem(StorageKey.FILE_NAME + index)
+            val filecontent = localStorage.getItem(StorageKey.FILE_CONTENT + index)
+            if (filename != null && filecontent != null) {
+                files.add(FileHandler.File(filename, filecontent))
+            }
+        }
+    }
+    appLogic.getArch().getFileHandler().initFiles(files)
+
+
     val (reloadUI, setReloadUI) = useState(false)
 
     val navRef = useRef<HTMLDivElement>()
@@ -28,7 +43,6 @@ val App = FC<Props> { props ->
 
     fun updateAppLogic(newData: AppLogic) {
         console.log("update App from Child Component")
-
         setAppLogic(newData)
         setReloadUI(!reloadUI)
     }
@@ -37,7 +51,6 @@ val App = FC<Props> { props ->
         this.appLogic = appLogic
         update = useState(reloadUI)
         updateParent = ::updateAppLogic
-
     }
 
     ReactHTML.main {
