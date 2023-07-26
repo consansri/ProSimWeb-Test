@@ -103,6 +103,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             val instructionMapList = mutableMapOf<Long, RISCVGrammarV1.R_INSTR>()
             val dataAllocList = mutableListOf<MemAllocEntry>()
             var instrID: Long = 0
+            var pcStartAddress = MutVal.Value.Hex("0", MutVal.Size.Bit32())
 
             var nextAddress = allocStartAddress
             // Resolving Sections
@@ -116,7 +117,11 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             when (entry) {
                                 is RISCVGrammarV1.R_INSTR -> {
                                     instructionMapList.set(instrID, entry)
+                                    if(entry.globlStart){
+                                        pcStartAddress = (MutVal.Value.Hex(instrID.toString(16), MutVal.Size.Bit32()) * MutVal.Value.Hex("4")).toHex()
+                                    }
                                     instrID += entry.instrType.memWords
+
                                 }
 
                                 is RISCVGrammarV1.R_JLBL -> {
@@ -425,8 +430,9 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                 val address = MutVal.Value.Hex((binaryID * 4).toString(16), MutVal.Size.Bit32())
                 transcriptEntrys.add(Transcript.TranscriptEntry(address))
                 memory.save(address, binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)
-
             }
+
+            architecture.getRegisterContainer().pc.value.set(pcStartAddress)
 
             assemblyMap = AssemblyMap(instrIDMap)
         }

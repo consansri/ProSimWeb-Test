@@ -2,7 +2,7 @@ package views
 
 import AppLogic
 import StyleConst
-import csstype.ClassName
+import csstype.*
 import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.FileHandler
@@ -11,11 +11,13 @@ import org.w3c.dom.*
 import react.*
 import react.dom.aria.ariaHidden
 import react.dom.html.AutoComplete
+import react.dom.html.InputType
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
@@ -44,11 +46,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val btnClearRef = useRef<HTMLAnchorElement>(null)
     val btnUndoRef = useRef<HTMLAnchorElement>(null)
     val btnRedoRef = useRef<HTMLAnchorElement>(null)
+    val addtabinput = useRef<HTMLInputElement>(null)
     val infoPanelRef = useRef<HTMLAnchorElement>(null)
     val editorContainerRef = useRef<HTMLDivElement>(null)
     val inputDivRef = useRef<HTMLDivElement>(null)
     val codeAreaRef = useRef<HTMLElement>(null)
-    val undoTimeoutRef = useRef<Timeout>(null)
     val preHLTimeoutRef = useRef<Timeout>(null)
     val checkTimeOutRef = useRef<Timeout>(null)
     val executionPointInterval = useRef<Timeout>(null)
@@ -62,6 +64,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (currExeLine, setCurrExeLine) = useState(1)
     val (taValueUpdate, setTaValueUpdate) = useState(false)
 
+    val (showAddTab, setShowAddTab) = useState(false)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
     val (darkMode, setDarkMode) = useState(false)
     val (infoPanelText, setInfoPanelText) = useState("")
@@ -397,8 +400,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 img {
                     src = StyleConst.Icons.tag
                 }
-
-
             }
 
         }
@@ -417,15 +418,83 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                 div {
 
-                    css {
+                    className = ClassName(StyleConst.CLASS_EDITOR_TABS)
 
-                    }
-
-                    for (file in appLogic.getArch().getFileHandler().getAllFiles()) {
+                    for (fileID in appLogic.getArch().getFileHandler().getAllFiles().indices) {
+                        val file = appLogic.getArch().getFileHandler().getAllFiles()[fileID]
                         a {
-                            +file.getName()
+
+                            className = ClassName(StyleConst.CLASS_EDITOR_TAB + if (file == appLogic.getArch().getFileHandler().getCurrent()) " ${StyleConst.CLASS_EDITOR_TAB_ACTIVE}" else "")
+
+                            a {
+                                +file.getName()
+                            }
+
+                            if (file == appLogic.getArch().getFileHandler().getCurrent()) {
+                                img {
+                                    src = StyleConst.Icons.delete
+
+                                    onClick = {
+                                        appLogic.getArch().getFileHandler().remove(file)
+                                        edit(appLogic.getArch().getFileHandler().getCurrContent(), false)
+                                        setTaValueUpdate(!taValueUpdate)
+                                    }
+                                }
+                            } else {
+                                onClick = {
+                                    appLogic.getArch().getFileHandler().setCurrent(fileID)
+                                    edit(appLogic.getArch().getFileHandler().getCurrContent(), false)
+                                    setTaValueUpdate(!taValueUpdate)
+                                }
+                            }
                         }
                     }
+
+
+                    if (showAddTab) {
+                        a {
+                            className = ClassName(StyleConst.CLASS_EDITOR_TAB)
+
+                            input {
+                                ref = addtabinput
+                                type = InputType.text
+                                placeholder = "name"
+                            }
+
+                            a {
+                                +"+"
+
+                                onClick = {
+                                    val input = addtabinput.current
+                                    input?.let {
+                                        val success = appLogic.getArch().getFileHandler().import(FileHandler.File(it.value, ""))
+                                        if (success) {
+                                            edit(appLogic.getArch().getFileHandler().getCurrContent(), false)
+                                            setTaValueUpdate(!taValueUpdate)
+                                            setShowAddTab(false)
+                                        } else {
+                                            input.classList.add(StyleConst.ANIM_SHAKERED)
+                                            setTimeout({
+                                                input.classList.remove(StyleConst.ANIM_SHAKERED)
+                                            }, 300)
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    } else {
+                        a {
+                            className = ClassName(StyleConst.CLASS_EDITOR_TAB)
+
+                            +"+"
+
+                            onClick = { event ->
+                                setShowAddTab(true)
+                            }
+                        }
+                    }
+
 
                 }
 

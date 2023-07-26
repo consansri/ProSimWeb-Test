@@ -16,7 +16,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private var grammarTree: Grammar.GrammarTree? = null
     private var isBuildable = false
     private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
-    private val allFiles: MutableList<OtherFile> = mutableListOf() // TODO("add multi file support")
 
     private fun initCode(code: String) {
         tokenList = mutableListOf()
@@ -180,10 +179,9 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             }
         }
     }
-
     private fun parse() {
         grammar.clear()
-        grammarTree = grammar.check(this, tokenLines, allFiles)
+        grammarTree = grammar.check(this, tokenLines, architecture.getFileHandler().getAllFiles())
         architecture.getConsole().clear()
         grammarTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
@@ -198,7 +196,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 }
             }
         }
-
 
         grammarTree?.rootNode?.allErrors?.let {
             for (error in it) {
@@ -217,7 +214,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
 
     }
-
     private fun highlight() {
 
         for (lineID in tokenLines.indices) {
@@ -326,7 +322,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             }
         }
     }
-
     private fun compile() {
         architecture.getMemory().clear()
         architecture.getRegisterContainer().pc.reset()
@@ -334,11 +329,10 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             grammarTree?.let {
                 assemblyMap = assembly.generateByteCode(architecture, it)
                 assembly.generateTranscript(architecture, it)
-
+                architecture.getFileHandler().getCurrent().linkGrammarTree(it)
             }
         }
     }
-
     fun pseudoAnalyze(content: String): List<Token> {
         val tokens = mutableListOf<Token>()
         var remaining = content
@@ -452,7 +446,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         return tokens
     }
-
     fun getHLContent(): String {
         val stringBuilder = StringBuilder()
         hlLines?.let {
@@ -467,11 +460,9 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             dryContent
         }
     }
-
     fun getGrammarTree(): Grammar.GrammarTree? {
         return grammarTree
     }
-
 
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 
@@ -612,9 +603,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     )
 
     data class LineLoc(val lineID: Int, val startIndex: Int, val endIndex: Int)
-
     // endIndex means index after last Character
-
-    data class OtherFile(val fileName: String, val grammarTree: Grammar.GrammarTree)
 
 }

@@ -2,6 +2,7 @@ package extendable.archs.cisc
 
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
+import extendable.components.connected.FileHandler
 
 class CISCGrammar: Grammar() {
 
@@ -11,7 +12,7 @@ class CISCGrammar: Grammar() {
 
     }
 
-    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<Compiler.OtherFile>): GrammarTree {
+    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>): GrammarTree {
         return GrammarTree()
     }
 

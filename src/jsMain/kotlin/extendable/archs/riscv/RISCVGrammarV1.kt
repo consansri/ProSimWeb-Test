@@ -4,6 +4,7 @@ import extendable.Architecture
 import extendable.archs.riscv.RISCVGrammarV1.E_DIRECTIVE.DirType.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
+import extendable.components.connected.FileHandler
 import extendable.components.types.MutVal
 import tools.DebugTools
 
@@ -15,7 +16,7 @@ class RISCVGrammarV1() : Grammar() {
 
     }
 
-    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<Compiler.OtherFile>): GrammarTree {
+    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, files: List<FileHandler.File>): GrammarTree {
 
         /**
          *  -------------------------------------------------------------- GLOBAL LISTS --------------------------------------------------------------
@@ -24,12 +25,13 @@ class RISCVGrammarV1() : Grammar() {
 
         // List which holds the actual state after the actuall scans
         val remainingLines = tokenLines.toMutableList()
-
-        val fileIndexMap = others.associate { it.fileName to others.indexOf(it) }
+        var startIsDefined = false
 
         // For Root Node
         val errors: MutableList<Error> = mutableListOf()
         val warnings: MutableList<Warning> = mutableListOf()
+
+        val imports: MutableList<TreeNode.SectionNode> = mutableListOf()
 
         val c_sections: C_SECTIONS
         val c_pres: C_PRES
@@ -44,21 +46,44 @@ class RISCVGrammarV1() : Grammar() {
         val pres = mutableListOf<TreeNode.ElementNode>()
 
         // ----------------- resolve imports
+        var importHasErrors: Boolean = false
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
             SyntaxRegex.pre_import.matchEntire(lineStr)?.let {
                 val filename = it.groupValues[2]
-                val fileIndex = fileIndexMap[filename]
+                var linkedFile: FileHandler.File? = null
+                var linkedTree: GrammarTree? = null
+                for (file in files) {
+                    if (file.getName() == filename) {
+                        linkedFile = file
+                        linkedTree = file.getLinkedTree()
+                    }
+                }
 
-                if (fileIndex != null) {
-                    // TODO("get label name address link from other file")
-                    pres.add(Pre_IMPORT(*remainingLines[lineID].toTypedArray()))
+                if (linkedTree != null) {
+                    // Get File Tree
+                    linkedTree.rootNode?.let { root ->
+                        if (root.allErrors.isNotEmpty()) {
+                            errors.add(Grammar.Error("File {filename: $filename} has errors!", *remainingLines[lineID].toTypedArray()))
+                        } else {
+                            val linked_c_section = root.containers.filter { it is C_SECTIONS }
+                            val linked_sections: List<TreeNode.SectionNode> = linked_c_section.flatMap { it.nodes.toList() }.filterIsInstance<TreeNode.SectionNode>()
+
+                            imports.addAll(linked_sections)
+                            pres.add(Pre_IMPORT(*remainingLines[lineID].toTypedArray()))
+                        }
+                    }
                 } else {
-                    errors.add(Grammar.Error("File {filename: $filename} not found!", *remainingLines[lineID].toTypedArray()))
+                    errors.add(Grammar.Error("File {filename: $filename} not ${if (linkedFile != null && linkedTree == null) "compiled" else "found"}!", *remainingLines[lineID].toTypedArray()))
                 }
                 remainingLines[lineID] = emptyList()
             }
+        }
 
+        if (DebugTools.RISCV_showGrammarScanTiers) {
+            console.log("Grammar: IMPORTS -> ${
+                imports.flatMap { it.collNodes.toList() }.filter { it is R_JLBL || it is R_ILBL || it is R_ULBL }.joinToString { "\n\t ${it.name}" }
+            }")
         }
 
         // ----------------- remove Comments
@@ -306,6 +331,11 @@ class RISCVGrammarV1() : Grammar() {
                             // check if label is already in use!
                             var alreadyDefined = false
                             for (label in labels) {
+                                if (label.wholeName == (if (sublabelFrom != null) sublabelFrom.wholeName else "") + labelNameString) {
+                                    alreadyDefined = true
+                                }
+                            }
+                            for (label in imports.flatMap { it.collNodes.toList() }.flatMap { it.elementNodes.toList() }.filterIsInstance<E_LABEL>().toList()) {
                                 if (label.wholeName == (if (sublabelFrom != null) sublabelFrom.wholeName else "") + labelNameString) {
                                     alreadyDefined = true
                                 }
@@ -585,7 +615,6 @@ class RISCVGrammarV1() : Grammar() {
             }
         }
 
-
         // ----------------- 2.    All Directives
         for (lineID in elements.indices) {
             val lineElements = elements[lineID].toMutableList()
@@ -633,6 +662,33 @@ class RISCVGrammarV1() : Grammar() {
                         if (param.linkName.startsWith(".") && lastMainJLBL != null) {
                             // links sublabel
                             val searchName = lastMainJLBL.label.wholeName + param.linkName
+
+                            // scan imports
+                            for (importRowNode in imports.flatMap { it.collNodes.toList() }.filterIsInstance<TreeNode.RowNode>().toList()) {
+                                when (importRowNode) {
+                                    is R_JLBL -> {
+                                        if (searchName == importRowNode.label.wholeName) {
+                                            param.linkTo(importRowNode)
+                                            break
+                                        }
+                                    }
+
+                                    is R_ULBL -> {
+                                        if (searchName == importRowNode.label.wholeName) {
+                                            param.linkTo(importRowNode)
+                                            break
+                                        }
+                                    }
+
+                                    is R_ILBL -> {
+                                        if (searchName == importRowNode.label.wholeName) {
+                                            param.linkTo(importRowNode)
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+
                             for (label in rows) {
                                 when (label) {
                                     is R_JLBL -> {
@@ -646,6 +702,33 @@ class RISCVGrammarV1() : Grammar() {
                         } else {
                             // links main label
                             val searchName = param.linkName
+
+                            // scan imports
+                            for (importRowNode in imports.flatMap { it.collNodes.toList() }.filterIsInstance<TreeNode.RowNode>().toList()) {
+                                when (importRowNode) {
+                                    is R_JLBL -> {
+                                        if (searchName == importRowNode.label.wholeName) {
+                                            param.linkTo(importRowNode)
+                                            break
+                                        }
+                                    }
+
+                                    is R_ULBL -> {
+                                        if (searchName == importRowNode.label.wholeName) {
+                                            param.linkTo(importRowNode)
+                                            break
+                                        }
+                                    }
+
+                                    is R_ILBL -> {
+                                        if (searchName == importRowNode.label.wholeName) {
+                                            param.linkTo(importRowNode)
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+
                             for (label in rows) {
                                 when (label) {
                                     is R_JLBL -> {
@@ -680,7 +763,8 @@ class RISCVGrammarV1() : Grammar() {
                 // check params
                 val checkedType = eInstrName.check(eParamcoll)
                 if (checkedType != null) {
-                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL)
+                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if(!startIsDefined) true else false)
+                    startIsDefined = true
                     rows[lineID] = rowNode
                     result.error?.let {
                         errors.add(it)
@@ -708,7 +792,8 @@ class RISCVGrammarV1() : Grammar() {
                 // check params
                 val checkedType = eInstrName.check()
                 if (checkedType != null) {
-                    rowNode = R_INSTR(eInstrName, null, checkedType, lastMainJLBL)
+                    rowNode = R_INSTR(eInstrName, null, checkedType, lastMainJLBL, if(!startIsDefined) true else false)
+                    startIsDefined = true
                     rows[lineID] = rowNode
                     result.error?.let {
                         errors.add(it)
@@ -847,8 +932,7 @@ class RISCVGrammarV1() : Grammar() {
          *  usage:
          */
 
-        c_sections = C_SECTIONS(*sections.toTypedArray())
-
+        c_sections = C_SECTIONS(*imports.toTypedArray(), *sections.toTypedArray())
 
         /**
          * FINISH CONTAINER SCAN
@@ -1310,7 +1394,7 @@ class RISCVGrammarV1() : Grammar() {
     class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
     class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label)
     class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label)
-    class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
+    class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
         enum class ParamType(val pseudo: Boolean, val exampleString: String) {
             // NORMAL INSTRUCTIONS
             RD_I20(false, "rd, imm20"), // rd, imm

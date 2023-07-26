@@ -34,6 +34,9 @@ object StyleConst {
     val CLASS_EDITOR_LINE_ACTIVE = "line-active"
     val CLASS_EDITOR_HIGHLIGHTING_LANGUAGE = "highlighting-html"
     val CLASS_EDITOR_CONTAINER = "editor-container"
+    val CLASS_EDITOR_TABS = "editor-tabs"
+    val CLASS_EDITOR_TAB = "editor-tab"
+    val CLASS_EDITOR_TAB_ACTIVE = "editor-tab-active"
     val CLASS_EDITOR_SCROLL_CONTAINER = "editor-scroll-container"
     val CLASS_EDITOR_LINE_NUMBERS = "editor-line-numbers"
     val CLASS_EDITOR_INPUT_DIV = "editor-input-div"
@@ -85,6 +88,9 @@ object StyleConst {
 
     // FOOTER
 
+
+    // ANIM
+    val ANIM_SHAKERED = "anim-shakered"
 
     /*  */
 

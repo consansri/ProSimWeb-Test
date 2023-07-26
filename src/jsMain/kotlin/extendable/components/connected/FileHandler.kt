@@ -2,6 +2,7 @@ package extendable.components.connected
 
 import StorageKey
 import extendable.ArchConst
+import extendable.components.assembly.Grammar
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.*
 import tools.DebugTools
@@ -11,16 +12,26 @@ class FileHandler(val fileEnding: String) {
     private val files = mutableListOf<File>()
     private var currentID: Int = 0
 
-    fun import(file: File) {
-        this.files.add(file)
-        if (DebugTools.ARCH_showFileHandlerInfo) {
-            console.log("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
+    fun import(file: File): Boolean {
+        if (files.map { it.getName() }.contains(file.getName())) {
+            console.warn("couldn't import file cause filename duplicate recognized!")
+            return false
+        } else {
+            this.files.add(file)
+            if (DebugTools.ARCH_showFileHandlerInfo) {
+                console.log("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
+            }
+            refreshLocalStorage(true)
+            return true
         }
-        refreshLocalStorage(true)
     }
 
     fun remove(file: File) {
         this.files.remove(file)
+        if (files.isEmpty()) {
+            files.add(File("main.$fileEnding", ""))
+        }
+        setCurrent(0)
         refreshLocalStorage(true)
     }
 
@@ -120,10 +131,10 @@ class FileHandler(val fileEnding: String) {
         } else {
             val fileID = currentID
             val file = files[fileID]
-            localStorage.setItem("$fileID" +StorageKey.FILE_NAME , file.getName())
-            localStorage.setItem("$fileID" +StorageKey.FILE_CONTENT , file.getContent())
-            localStorage.setItem("$fileID" +StorageKey.FILE_UNDO_LENGTH , file.getUndoStates().size.toString())
-            localStorage.setItem("$fileID" +StorageKey.FILE_REDO_LENGTH , file.getRedoStates().size.toString())
+            localStorage.setItem("$fileID" + StorageKey.FILE_NAME, file.getName())
+            localStorage.setItem("$fileID" + StorageKey.FILE_CONTENT, file.getContent())
+            localStorage.setItem("$fileID" + StorageKey.FILE_UNDO_LENGTH, file.getUndoStates().size.toString())
+            localStorage.setItem("$fileID" + StorageKey.FILE_REDO_LENGTH, file.getRedoStates().size.toString())
             file.getUndoStates().forEach {
                 val undoID = file.getUndoStates().indexOf(it)
                 localStorage.setItem("${fileID}${StorageKey.FILE_UNDO}-$undoID", it)
@@ -138,6 +149,7 @@ class FileHandler(val fileEnding: String) {
     data class File(private var name: String, private var content: String, private val hlLines: MutableList<String> = mutableListOf(), private val undoStates: MutableList<String> = mutableListOf(), private val redoStates: MutableList<String> = mutableListOf()) {
 
         var job: Job? = null
+        var grammarTree: Grammar.GrammarTree? = null
 
         fun rename(newName: String) {
             name = newName
@@ -174,6 +186,14 @@ class FileHandler(val fileEnding: String) {
             }
         }
 
+        fun linkGrammarTree(grammarTree: Grammar.GrammarTree){
+            this.grammarTree = grammarTree
+        }
+
+        fun getLinkedTree(): Grammar.GrammarTree?{
+            return grammarTree
+        }
+
         fun getContent(): String {
             return this.content
         }
@@ -202,7 +222,6 @@ class FileHandler(val fileEnding: String) {
 
                 }
             }
-
         }
 
     }

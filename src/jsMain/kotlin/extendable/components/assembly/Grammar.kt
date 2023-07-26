@@ -1,12 +1,14 @@
 package extendable.components.assembly
 
+import extendable.components.connected.FileHandler
+
 abstract class Grammar {
 
     abstract val applyStandardHLForRest: Boolean
 
     abstract fun clear()
 
-    abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<Compiler.OtherFile>): GrammarTree
+    abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>): GrammarTree
 
     class GrammarTree(val rootNode: TreeNode.RootNode? = null) {
         fun contains(token: Compiler.Token): TreeNode.ElementNode? {
