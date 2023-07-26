@@ -32,6 +32,11 @@ object ArchConst {
         val whiteSpace = StyleConst.HLCLASS_WHITESPACE
     }
 
+    // FILEHANDLER
+    const val UNDO_STATE_COUNT = 32
+    const val REDO_STATE_COUNT = 32
+    const val UNDO_DELAY_MILLIS = 1000L
+
     // COMPILER
     const val COMPILER_TOKEN_PSEUDOID = -100
 

@@ -209,7 +209,7 @@ class RISCVGrammarV1() : Grammar() {
                             for (attrID in macro.arguments.indices) {
                                 replacedLine = replacedLine.replace("""\""" + macro.arguments[attrID], argumentContent[attrID])
                             }
-                            if(DebugTools.RISCV_showGrammarScanTiers){
+                            if (DebugTools.RISCV_showGrammarScanTiers) {
                                 console.log("\tmacro insert line ${lineID + 1}: $replacedLine")
                             }
                             remainingLines.add(lineID, compiler.pseudoAnalyze(replacedLine))
@@ -459,7 +459,7 @@ class RISCVGrammarV1() : Grammar() {
                         continue
                     }
 
-                    // LABELLINK
+                    // LINK
                     var link: E_PARAM.Link? = null
                     val tokensForLabelToCheck = mutableListOf<Compiler.Token>()
                     for (possibleLabelToken in remainingTokens.dropWhile { firstToken != it }) {
@@ -492,17 +492,21 @@ class RISCVGrammarV1() : Grammar() {
             if (validParams && parameterList.isNotEmpty()) {
                 val paramArray = parameterList.toTypedArray()
                 val e_paramcoll = E_PARAMCOLL(*paramArray)
+                remainingTokens.removeAll(e_paramcoll.params.flatMap { it.paramTokens.toList() })
                 lineElements.add(e_paramcoll)
             }
 
             // NOT MATCHED TOKENS
             remainingLines[lineID] = remainingTokens
-            if (remainingTokens.isNotEmpty()) {
-                errors.add(Grammar.Error(message = "couldn't match Tokens to RiscV ELEMENTS!", *remainingTokens.toTypedArray()))
-            }
-
             elements[lineID] += lineElements
         }
+
+        for (lineID in remainingLines.indices) {
+            if (remainingLines[lineID].isNotEmpty()) {
+                errors.add(Grammar.Error(message = "couldn't match Tokens to RiscV ELEMENTS!", *remainingLines[lineID].toTypedArray()))
+            }
+        }
+
         if (DebugTools.RISCV_showGrammarScanTiers) {
             console.log("Grammar: ELEMENTS Scan -> ${elements.filter { it.isNotEmpty() }.joinToString("") { "\n\tline ${elements.indexOf(it) + 1}: " + it.joinToString(" ") { it.name } }}")
         }
@@ -714,6 +718,10 @@ class RISCVGrammarV1() : Grammar() {
                 }
                 elements[lineID] = mutableListOf()
                 continue
+            }
+
+            if (lineElements.isNotEmpty()) {
+                errors.add(Grammar.Error("couldn't match Elements to RiscV Row!", *lineElements.toTypedArray()))
             }
         }
 

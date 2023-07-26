@@ -14,7 +14,7 @@ object DebugTools {
     const val RISCV_showAsmInfo = false
     const val RISCV_showBinMapperInfo = false
     const val RISCV_showOpCodeInfo = false
-    const val RISCV_showGrammarScanTiers = false
+    const val RISCV_showGrammarScanTiers = true
 
     //      RISCII
 
@@ -26,7 +26,7 @@ object DebugTools {
     // ARCH COMPONENTS
     //      Main
     const val ARCH_showCheckCodeEvents = false
-    const val ARCH_showFileHandlerInfo = true
+    const val ARCH_showFileHandlerInfo = false
 
     //      Compiler
     const val ARCH_showCompilerInfo = false

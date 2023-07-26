@@ -1,12 +1,11 @@
 package views
 
 import AppLogic
-import StorageKey
 import StyleConst
 import csstype.ClassName
+import emotion.react.css
 import extendable.ArchConst
-import extendable.components.assembly.Grammar
-import kotlinx.browser.localStorage
+import extendable.components.connected.FileHandler
 import kotlinx.js.timers.*
 import org.w3c.dom.*
 import react.*
@@ -44,11 +43,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val btnDarkModeRef = useRef<HTMLAnchorElement>(null)
     val btnClearRef = useRef<HTMLAnchorElement>(null)
     val btnUndoRef = useRef<HTMLAnchorElement>(null)
+    val btnRedoRef = useRef<HTMLAnchorElement>(null)
     val infoPanelRef = useRef<HTMLAnchorElement>(null)
     val editorContainerRef = useRef<HTMLDivElement>(null)
     val inputDivRef = useRef<HTMLDivElement>(null)
     val codeAreaRef = useRef<HTMLElement>(null)
-
     val undoTimeoutRef = useRef<Timeout>(null)
     val preHLTimeoutRef = useRef<Timeout>(null)
     val checkTimeOutRef = useRef<Timeout>(null)
@@ -61,6 +60,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (internalUpdate, setIUpdate) = useState(false)
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
     val (currExeLine, setCurrExeLine) = useState(1)
+    val (taValueUpdate, setTaValueUpdate) = useState(false)
 
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
     val (darkMode, setDarkMode) = useState(false)
@@ -68,9 +68,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- localStorage Sync Objects ----------------- */
 
-    val (vc_rows, setvc_rows) = useState<List<String>>()
-    val (ta_val, setta_val) = useState<String>()
-    val (ta_val_ss, setta_val_ss) = useState<List<String>>()
+    val (vc_rows, setvc_rows) = useState<List<String>>(emptyList())
+    val (files, setFiles) = useState<List<FileHandler.File>>()
     val (transcriptView, setTranscriptView) = useState(false)
 
     /* ----------------- Initiate Intervals ----------------- */
@@ -90,6 +89,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
+
 
 
     fun updateLineNumbers() {
@@ -125,42 +125,25 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 
-    fun updateUndoButton() {
-        if (ta_val_ss != null && ta_val_ss.size > 1) {
+    fun updateUndoRedoButton() {
+        if (appLogic.getArch().getFileHandler().getCurrUndoLength() > 0) {
             btnUndoRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
         } else {
             btnUndoRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
+        }
+        if (appLogic.getArch().getFileHandler().getCurrRedoLength() > 0) {
+            btnRedoRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
+        } else {
+            btnRedoRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
         }
     }
 
     /* ----------------- ASYNC Events ----------------- */
 
-    fun addUndoState(taValue: String, immediate: Boolean) {
-        if (immediate) {
-            val tempTaValSS = ta_val_ss?.toMutableList() ?: mutableListOf<String>()
-            if (tempTaValSS.size > 30) {
-                tempTaValSS.removeFirst()
-            }
-            tempTaValSS += taValue
-            setta_val_ss(tempTaValSS)
-        } else {
-            undoTimeoutRef.current?.let {
-                clearTimeout(it)
-            }
-            undoTimeoutRef.current = setTimeout({
-                val tempTaValSS = ta_val_ss?.toMutableList() ?: mutableListOf<String>()
-                if (tempTaValSS.size > 30) {
-                    tempTaValSS.removeFirst()
-                }
-                tempTaValSS += taValue
-                setta_val_ss(tempTaValSS)
-            }, 1000)
-        }
-    }
-
-    fun checkCode(taValue: String, immediate: Boolean) {
+    fun checkCode(immediate: Boolean) {
+        val valueToCheck = appLogic.getArch().getFileHandler().getCurrContent()
         val delay: Int
-        val size = taValue.split("\n").size
+        val size = valueToCheck.split("\n").size
 
         delay = when {
             size < 500 -> 1000
@@ -169,61 +152,74 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         if (immediate) {
-            setvc_rows(appLogic.getArch().check(taValue, currExeLine).split("\n"))
+            setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
             setCheckState(appLogic.getArch().getState().getState())
         } else {
             checkTimeOutRef.current?.let {
                 clearTimeout(it)
             }
             checkTimeOutRef.current = setTimeout({
-                setvc_rows(appLogic.getArch().check(taValue, currExeLine).split("\n"))
+                setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
                 setCheckState(appLogic.getArch().getState().getState())
             }, delay)
         }
     }
 
-    fun preHighlight(taValue: String) {
+    fun preHighlight() {
+        val value = appLogic.getArch().getFileHandler().getCurrContent()
+        setvc_rows(value.split("\n"))
         preHLTimeoutRef.current?.let {
             clearTimeout(it)
         }
-        setvc_rows(taValue.split("\n"))
+        setvc_rows(value.split("\n"))
         preHLTimeoutRef.current = setTimeout({
-            val hlTaList = appLogic.getArch().getPreHighlighting(taValue).split("\n")
+            val hlTaList = appLogic.getArch().getPreHighlighting(value).split("\n")
             setvc_rows(hlTaList)
         }, 300)
     }
 
-    fun preHighlight(taChangedRows: Map<Int, String>) {
-        preHLTimeoutRef.current?.let {
-            clearTimeout(it)
+
+    /* ----------------- CHANGE EVENTS ----------------- */
+    fun edit(content: String, immediate: Boolean) {
+        appLogic.getArch().getState().edit()
+        setCheckState(appLogic.getArch().getState().getState())
+
+        appLogic.getArch().getFileHandler().editCurr(content)
+        textareaRef.current?.let {
+            it.value = appLogic.getArch().getFileHandler().getCurrContent()
         }
-        preHLTimeoutRef.current = setTimeout({
-            val prevLines = vc_rows?.toMutableList()
-            prevLines?.let {
-                for (line in taChangedRows) {
-                    prevLines[line.key] = appLogic.getArch().getPreHighlighting(line.value)
-                }
-            }
-            setvc_rows(prevLines)
-        }, 0)
 
+        preHighlight()
+        checkCode(immediate)
+        setTaValueUpdate(!taValueUpdate)
     }
-
-    /* ----------------- SYNC EVENTS ----------------- */
 
     fun undo() {
         appLogic.getArch().getState().edit()
         setCheckState(appLogic.getArch().getState().getState())
-        val tempTaValSS = ta_val_ss?.toMutableList()
-        tempTaValSS?.let {
-            if (it.last() == ta_val) {
-                it.removeLast()
-            }
-            setta_val(it.last())
-            checkCode(it.last(), true)
-            setta_val_ss(tempTaValSS)
+
+        appLogic.getArch().getFileHandler().undoCurr()
+        textareaRef.current?.let {
+            it.value = appLogic.getArch().getFileHandler().getCurrContent()
         }
 
+        preHighlight()
+        checkCode(false)
+        setTaValueUpdate(!taValueUpdate)
+    }
+
+    fun redo() {
+        appLogic.getArch().getState().edit()
+        setCheckState(appLogic.getArch().getState().getState())
+
+        appLogic.getArch().getFileHandler().redoCurr()
+        textareaRef.current?.let {
+            it.value = appLogic.getArch().getFileHandler().getCurrContent()
+        }
+
+        preHighlight()
+        checkCode(false)
+        setTaValueUpdate(!taValueUpdate)
     }
 
     /* ----------------- DOM ----------------- */
@@ -252,9 +248,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
 
                 onClick = {
-                    if (ta_val != null) {
-                        checkCode(ta_val, true)
-                    }
+                    checkCode(true)
                 }
 
                 when (checkState) {
@@ -333,6 +327,21 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
+                id = "redo"
+                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
+                ref = btnRedoRef
+                title = "Redo"
+
+                img {
+                    src = StyleConst.Icons.forwards
+                }
+
+                onClick = {
+                    redo()
+                }
+            }
+
+            a {
                 id = "info"
                 className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
 
@@ -375,11 +384,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
 
                 onClick = {
-                    ta_val?.let {
-                        addUndoState(ta_val, true)
-                    }
-                    setta_val("")
-                    setvc_rows(listOf(""))
+                    edit("", false)
                 }
             }
 
@@ -412,8 +417,15 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                 div {
 
+                    css {
 
+                    }
 
+                    for (file in appLogic.getArch().getFileHandler().getAllFiles()) {
+                        a {
+                            +file.getName()
+                        }
+                    }
 
                 }
 
@@ -474,41 +486,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             }
 
                             onChange = { event ->
-                                setta_val(event.currentTarget.value)
-
-                                addUndoState(event.currentTarget.value, false)
-
-                                // Fire Change Events
-                                val lines = event.currentTarget.value.split("\n")
-                                if (vc_rows != null) {
-                                    if (lines.size != vc_rows.size) {
-                                        preHighlight(event.currentTarget.value)
-
-                                    } else {
-                                        val selStart = event.currentTarget.selectionStart ?: 0
-                                        val selEnd =
-                                            event.currentTarget.selectionEnd ?: (event.currentTarget.value.length - 1)
-                                        val lineIDStart =
-                                            event.currentTarget.value.substring(0, selStart).split("\n").size - 1
-                                        val lineIDEnd =
-                                            event.currentTarget.value.substring(0, selEnd).split("\n").size - 1
-                                        val editedLines: MutableMap<Int, String> = mutableMapOf()
-                                        for (lineID in lineIDStart..lineIDEnd) {
-                                            editedLines.put(lineID, lines[lineID])
-                                        }
-
-                                        preHighlight(editedLines)
-
-                                    }
-                                } else {
-                                    preHighlight(event.currentTarget.value)
-                                }
-                                //
-
-                                appLogic.getArch().getState().edit()
-                                setCheckState(appLogic.getArch().getState().getState())
-                                checkCode(event.currentTarget.value, false)
-
+                                edit(event.currentTarget.value, false)
                             }
 
                             onKeyDown = { event ->
@@ -526,24 +504,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         it.selectionEnd = end + 1
 
                                         event.preventDefault()
-                                        setta_val(event.currentTarget.value)
-
-                                        val lines = event.currentTarget.value.split("\n")
-                                        val lineIDStart =
-                                            event.currentTarget.value.substring(0, start).split("\n").size - 1
-                                        val lineIDEnd =
-                                            event.currentTarget.value.substring(0, end).split("\n").size - 1
-                                        val editedLines: MutableMap<Int, String> = mutableMapOf()
-                                        for (lineID in lineIDStart..lineIDEnd) {
-                                            editedLines.put(lineID, lines[lineID])
-                                        }
-                                        preHighlight(editedLines)
-                                        checkCode(event.currentTarget.value, false)
+                                        edit(event.currentTarget.value, false)
                                     }
                                 } else if (event.ctrlKey && event.key == "z") {
                                     undo()
                                 } else if (event.key == "Enter") {
-                                    preHighlight(event.currentTarget.value)
+                                    edit(event.currentTarget.value, false)
                                 } else if (event.ctrlKey && event.altKey && event.key == "l") {
                                     // REFORMAT CODE
                                     val lines = event.currentTarget.value.split("\n").toMutableList()
@@ -559,8 +525,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                     val formatted = lines.joinToString("\n") { it }
                                     event.currentTarget.value = formatted
-                                    preHighlight(formatted)
-                                    checkCode(formatted, false)
+                                    edit(formatted, false)
                                 }
                             }
                         }
@@ -585,7 +550,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -599,43 +563,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) CodeEditor")
         }
-        textareaRef.current?.let {
-            checkCode(it.value, true)
-        }
-    }
-
-    useEffect(update, transcriptView) {
         /* Component RELOAD */
-
+        appLogic.getArch().getFileHandler().getFromLocalStorage()
         /* -- LOAD from localStorage -- */
-        /* ta_val */
-        setta_val(localStorage.getItem(StorageKey.TA_VALUE))
+        setFiles(appLogic.getArch().getFileHandler().getAllFiles())
         textareaRef.current?.let {
-            it.value = ta_val ?: ""
+            it.value = appLogic.getArch().getFileHandler().getCurrContent()
+            edit(it.value, false)
         }
-
-        /* vc_rows */
-        val vc_rows_length = localStorage.getItem(StorageKey.VC_ROW_Length)?.toInt() ?: 0
-        if (vc_rows_length > 0) {
-            val tempVcRows: MutableList<String> = mutableListOf()
-            for (i in 0 until vc_rows_length) {
-                val vcRowContent = localStorage.getItem(StorageKey.VC_ROW + i) ?: ""
-                tempVcRows.add(i, vcRowContent)
-            }
-            setvc_rows(tempVcRows)
-        }
-
-        /* ta_val_ss */
-        val ta_val_ss_length = localStorage.getItem(StorageKey.TA_VALUE_SaveState_Length)?.toInt() ?: 0
-        if (ta_val_ss_length > 0) {
-            val tempTaValSS: MutableList<String> = mutableListOf()
-            for (i in 0 until ta_val_ss_length) {
-                val taValSS = localStorage.getItem(StorageKey.TA_VALUE_SaveState + i) ?: ""
-                tempTaValSS.add(i, taValSS)
-            }
-            setta_val_ss(tempTaValSS)
-        }
-
     }
 
     useEffect(checkState) {
@@ -648,10 +583,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 btnSwitchRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
             }
         }
-    }
-
-    useEffect(currExeLine) {
-
     }
 
     useEffect(transcriptView) {
@@ -667,41 +598,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         updateLineNumbers()
     }
 
-    useEffect(vc_rows) {
-        /* SAVE vc_rows change */
-        if (vc_rows != null) {
-            for (vcRowID in vc_rows.indices) {
-                localStorage.setItem(StorageKey.VC_ROW + vcRowID, vc_rows[vcRowID])
-            }
-            localStorage.setItem(StorageKey.VC_ROW_Length, vc_rows.size.toString())
-        }
-    }
-
-    useEffect(ta_val) {
-        /* SAVE ta_val change */
-        ta_val?.let {
-            localStorage.setItem(StorageKey.TA_VALUE, it)
-            checkCode(it, false)
-        }
-        textareaRef.current?.let {
-            it.value = ta_val ?: ""
-
-        }
+    useEffect(taValueUpdate) {
         updateTAResize()
         updateClearButton()
         updateLineNumbers()
-    }
-
-    useEffect(ta_val_ss) {
-        /* SAVE ta_val_ss */
-        if (ta_val_ss != null) {
-            for (taValSSID in ta_val_ss.indices) {
-                localStorage.setItem(StorageKey.TA_VALUE_SaveState + "$taValSSID", ta_val_ss[taValSSID])
-            }
-            localStorage.setItem(StorageKey.TA_VALUE_SaveState_Length, ta_val_ss.size.toString())
-
-        }
-        updateUndoButton()
+        updateUndoRedoButton()
     }
 
     useEffect(darkMode) {
@@ -712,7 +613,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             } else {
                 div.classList.remove(StyleConst.CLASS_EDITOR_DARKMODE)
             }
-
         }
     }
 
@@ -723,7 +623,6 @@ object Formatter {
     val reformats = listOf<ReFormat>(
         ReFormat(Regex("""(\s{2,})"""), "\t"),
         ReFormat(Regex("""(,)\S"""), ", ")
-
     )
 }
 

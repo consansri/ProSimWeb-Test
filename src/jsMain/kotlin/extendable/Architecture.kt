@@ -124,7 +124,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         getConsole().clear()
     }
 
-    open fun exeUntilLine(lineID: Int){
+    open fun exeUntilLine(lineID: Int) {
         getConsole().clear()
     }
 
@@ -152,16 +152,12 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     fun check(input: String, startAtLine: Int): String {
-        if (input.isNotEmpty()) {
-            if (DebugTools.ARCH_showCheckCodeEvents) {
-                console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
-            }
-            archState.check(compiler.setCode(input, true)) // TODO(if certain CodeSize is reached disable highlighting!)
-
-            return compiler.getHLContent()
-        } else {
-            return input
+        if (DebugTools.ARCH_showCheckCodeEvents) {
+            console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
         }
+        archState.check(compiler.setCode(input, true)) // TODO(if certain CodeSize is reached disable highlighting!)
+
+        return compiler.getHLContent()
     }
 
 }

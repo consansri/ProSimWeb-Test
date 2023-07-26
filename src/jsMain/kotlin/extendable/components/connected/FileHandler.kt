@@ -1,5 +1,9 @@
 package extendable.components.connected
 
+import StorageKey
+import extendable.ArchConst
+import kotlinx.browser.localStorage
+import kotlinx.coroutines.*
 import tools.DebugTools
 
 class FileHandler(val fileEnding: String) {
@@ -7,30 +11,48 @@ class FileHandler(val fileEnding: String) {
     private val files = mutableListOf<File>()
     private var currentID: Int = 0
 
-    fun initFiles(files: List<File>) {
-        if (files.isEmpty()) {
-            this.files.add(File("common." + fileEnding, ""))
-        } else {
-            this.files.addAll(files)
-        }
-    }
-
     fun import(file: File) {
         this.files.add(file)
         if (DebugTools.ARCH_showFileHandlerInfo) {
             console.log("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
         }
-        refreshLocalStorage()
+        refreshLocalStorage(true)
     }
 
     fun remove(file: File) {
         this.files.remove(file)
-        refreshLocalStorage()
+        refreshLocalStorage(true)
     }
 
-    fun edit(content: String) {
-        files[currentID].setContent(content)
-        refreshLocalStorage()
+    fun renameCurrent(newName: String) {
+        files[currentID].rename(newName)
+    }
+
+    fun undoCurr() {
+        files[currentID].undo()
+        refreshLocalStorage(false)
+    }
+
+    fun redoCurr() {
+        files[currentID].redo()
+        refreshLocalStorage(false)
+    }
+
+    fun editCurr(content: String) {
+        files[currentID].setContent(this, content)
+        refreshLocalStorage(false)
+    }
+
+    fun getCurrUndoLength(): Int {
+        return files[currentID].getUndoStates().size
+    }
+
+    fun getCurrRedoLength(): Int {
+        return files[currentID].getRedoStates().size
+    }
+
+    fun getCurrContent(): String {
+        return files[currentID].getContent()
     }
 
     fun setCurrent(index: Int) {
@@ -45,11 +67,78 @@ class FileHandler(val fileEnding: String) {
         return files
     }
 
-    private fun refreshLocalStorage() {
+    fun getFromLocalStorage() {
+        val fileCount = localStorage.getItem(StorageKey.FILE_COUNT)?.toIntOrNull() ?: 0
+        if (fileCount > 0) {
+            for (fileID in 0 until fileCount) {
+                val filename = localStorage.getItem("$fileID" + StorageKey.FILE_NAME)
+                val filecontent = localStorage.getItem("$fileID" + StorageKey.FILE_CONTENT)
+                val fileUndoLength = localStorage.getItem("$fileID" + StorageKey.FILE_UNDO_LENGTH)?.toIntOrNull() ?: 0
+                val fileRedoLength = localStorage.getItem("$fileID" + StorageKey.FILE_REDO_LENGTH)?.toIntOrNull() ?: 0
+                val fileUndoStates = mutableListOf<String>()
+                val fileRedoStates = mutableListOf<String>()
+                for (undoID in 0 until fileUndoLength) {
+                    fileUndoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$undoID") ?: "")
+                }
+                for (redoID in 0 until fileRedoLength) {
+                    fileRedoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$redoID") ?: "")
+                }
 
+                if (filename != null && filecontent != null) {
+                    console.log("found file: $filename $filecontent")
+                    files.add(File(filename, filecontent, fileUndoStates, fileRedoStates))
+                }
+            }
+        } else {
+            files.add(File("main.$fileEnding", ""))
+        }
+        setCurrent(localStorage.getItem(StorageKey.FILE_CURR)?.toIntOrNull() ?: 0)
+        if (DebugTools.ARCH_showFileHandlerInfo) {
+            console.log("FileHandler.init(): ${files.joinToString { "\n\t" + it.getName() }}")
+        }
     }
 
-    data class File(private var name: String, private var content: String) {
+    private fun refreshLocalStorage(all: Boolean) {
+        localStorage.setItem(StorageKey.FILE_CURR, currentID.toString())
+        if (all) {
+            localStorage.setItem(StorageKey.FILE_COUNT, files.size.toString())
+            for (fileID in files.indices) {
+                val file = files[fileID]
+                localStorage.setItem("$fileID" + StorageKey.FILE_NAME, file.getName())
+                localStorage.setItem("$fileID" + StorageKey.FILE_CONTENT, file.getContent())
+                localStorage.setItem("$fileID" + StorageKey.FILE_UNDO_LENGTH, file.getUndoStates().size.toString())
+                localStorage.setItem("$fileID" + StorageKey.FILE_REDO_LENGTH, file.getRedoStates().size.toString())
+                file.getUndoStates().forEach {
+                    val undoID = file.getUndoStates().indexOf(it)
+                    localStorage.setItem("${fileID}${StorageKey.FILE_UNDO}-$undoID", it)
+                }
+                file.getRedoStates().forEach {
+                    val redoID = file.getUndoStates().indexOf(it)
+                    localStorage.setItem("${fileID}${StorageKey.FILE_UNDO}-$redoID", it)
+                }
+            }
+        } else {
+            val fileID = currentID
+            val file = files[fileID]
+            localStorage.setItem("$fileID" +StorageKey.FILE_NAME , file.getName())
+            localStorage.setItem("$fileID" +StorageKey.FILE_CONTENT , file.getContent())
+            localStorage.setItem("$fileID" +StorageKey.FILE_UNDO_LENGTH , file.getUndoStates().size.toString())
+            localStorage.setItem("$fileID" +StorageKey.FILE_REDO_LENGTH , file.getRedoStates().size.toString())
+            file.getUndoStates().forEach {
+                val undoID = file.getUndoStates().indexOf(it)
+                localStorage.setItem("${fileID}${StorageKey.FILE_UNDO}-$undoID", it)
+            }
+            file.getRedoStates().forEach {
+                val redoID = file.getUndoStates().indexOf(it)
+                localStorage.setItem("${fileID}${StorageKey.FILE_REDO}-$redoID", it)
+            }
+        }
+    }
+
+    data class File(private var name: String, private var content: String, private val hlLines: MutableList<String> = mutableListOf(), private val undoStates: MutableList<String> = mutableListOf(), private val redoStates: MutableList<String> = mutableListOf()) {
+
+        var job: Job? = null
+
         fun rename(newName: String) {
             name = newName
         }
@@ -58,12 +147,62 @@ class FileHandler(val fileEnding: String) {
             return name
         }
 
-        fun setContent(content: String) {
+        fun setContent(fileHandler: FileHandler, content: String) {
+            this.addUndoState(fileHandler, content)
             this.content = content
+        }
+
+        fun undo() {
+            if (undoStates.isNotEmpty()) {
+                this.redoStates.add(0, this.content)
+                if (this.redoStates.size > ArchConst.REDO_STATE_COUNT) {
+                    this.redoStates.removeLast()
+                }
+                this.content = undoStates.first()
+                undoStates.removeFirst()
+            }
+        }
+
+        fun redo() {
+            if (redoStates.isNotEmpty()) {
+                this.undoStates.add(0, this.content)
+                if (this.undoStates.size > ArchConst.UNDO_STATE_COUNT) {
+                    this.undoStates.removeLast()
+                }
+                this.content = redoStates.first()
+                redoStates.removeFirst()
+            }
         }
 
         fun getContent(): String {
             return this.content
+        }
+
+        fun getUndoStates(): List<String> {
+            return undoStates
+        }
+
+        fun getRedoStates(): List<String> {
+            return redoStates
+        }
+
+        fun addUndoState(fileHandler: FileHandler, content: String) {
+            job?.cancel()
+            job = GlobalScope.launch {
+                try {
+                    delay(ArchConst.UNDO_DELAY_MILLIS)
+                    undoStates.add(0, content)
+                    if (undoStates.size > ArchConst.UNDO_STATE_COUNT) {
+                        undoStates.removeLast()
+                    }
+                    fileHandler.refreshLocalStorage(true)
+                } catch (e: CancellationException) {
+
+                } finally {
+
+                }
+            }
+
         }
 
     }
