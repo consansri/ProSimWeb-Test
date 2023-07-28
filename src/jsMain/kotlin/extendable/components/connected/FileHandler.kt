@@ -13,16 +13,20 @@ class FileHandler(val fileEnding: String) {
     private var currentID: Int = 0
 
     fun import(file: File): Boolean {
-        if (files.map { it.getName() }.contains(file.getName())) {
+        return if (files.map { it.getName() }.contains(file.getName())) {
             console.warn("couldn't import file cause filename duplicate recognized!")
-            return false
+            false
+
+        } else if (file.getName().isEmpty()) {
+            console.warn("couldn't import file cause filename is empty!")
+            false
         } else {
             this.files.add(file)
             if (DebugTools.ARCH_showFileHandlerInfo) {
                 console.log("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
             }
             refreshLocalStorage(true)
-            return true
+            true
         }
     }
 
@@ -35,8 +39,23 @@ class FileHandler(val fileEnding: String) {
         refreshLocalStorage(true)
     }
 
-    fun renameCurrent(newName: String) {
-        files[currentID].rename(newName)
+    fun renameCurrent(newName: String): Boolean {
+        return if (files.map { it.getName() }.contains(newName)) {
+            console.warn("couldn't import file cause filename duplicate recognized!")
+            false
+
+        } else if (newName.isEmpty()) {
+            console.warn("couldn't import file cause filename is empty!")
+            false
+        } else {
+            if (DebugTools.ARCH_showFileHandlerInfo) {
+                console.log("FileHandler: rename file ${files[currentID].getName()} to ${newName}")
+            }
+            files[currentID].rename(newName)
+            refreshLocalStorage(true)
+            true
+        }
+
     }
 
     fun undoCurr() {
@@ -54,29 +73,19 @@ class FileHandler(val fileEnding: String) {
         refreshLocalStorage(false)
     }
 
-    fun getCurrUndoLength(): Int {
-        return files[currentID].getUndoStates().size
-    }
+    fun getCurrUndoLength(): Int = files[currentID].getUndoStates().size
 
-    fun getCurrRedoLength(): Int {
-        return files[currentID].getRedoStates().size
-    }
+    fun getCurrRedoLength(): Int = files[currentID].getRedoStates().size
 
-    fun getCurrContent(): String {
-        return files[currentID].getContent()
-    }
+    fun getCurrContent(): String = files[currentID].getContent()
 
     fun setCurrent(index: Int) {
         currentID = if (index in files.indices) index else 0
     }
 
-    fun getCurrent(): File {
-        return files[currentID]
-    }
+    fun getCurrent(): File = files[currentID]
 
-    fun getAllFiles(): List<File> {
-        return files
-    }
+    fun getAllFiles(): List<File> = files
 
     fun getFromLocalStorage() {
         val fileCount = localStorage.getItem(StorageKey.FILE_COUNT)?.toIntOrNull() ?: 0
@@ -96,7 +105,9 @@ class FileHandler(val fileEnding: String) {
                 }
 
                 if (filename != null && filecontent != null) {
-                    console.log("found file: $filename $filecontent")
+                    if( DebugTools.ARCH_showFileHandlerInfo) {
+                        console.log("found file: $filename $filecontent")
+                    }
                     files.add(File(filename, filecontent, fileUndoStates, fileRedoStates))
                 }
             }
@@ -186,11 +197,11 @@ class FileHandler(val fileEnding: String) {
             }
         }
 
-        fun linkGrammarTree(grammarTree: Grammar.GrammarTree){
+        fun linkGrammarTree(grammarTree: Grammar.GrammarTree) {
             this.grammarTree = grammarTree
         }
 
-        fun getLinkedTree(): Grammar.GrammarTree?{
+        fun getLinkedTree(): Grammar.GrammarTree? {
             return grammarTree
         }
 

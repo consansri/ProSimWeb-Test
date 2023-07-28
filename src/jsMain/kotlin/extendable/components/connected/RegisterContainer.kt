@@ -14,15 +14,6 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         }
     }
 
-    fun getRegistersFromLabel(label: RegLabel): RegisterFile? {
-        for (registerFile in registerFileList) {
-            if (registerFile.label == label) {
-                return registerFile
-            }
-        }
-        return null
-    }
-
     fun getRegister(name: String): Register? {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
@@ -71,13 +62,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
 
     }
 
-    data class RegisterFile(val label: RegLabel, val name: String, val registers: Array<Register>)
-
-    enum class RegLabel {
-        MAIN,
-        SYSTEM,
-        CUSTOM
-    }
+    data class RegisterFile(val name: String, val registers: Array<Register>)
 
 
 }

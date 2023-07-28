@@ -16,7 +16,7 @@ external interface FlagsCondsViewProps : Props {
     var name: String
     var appLogic: AppLogic
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 
 
 }

@@ -2,7 +2,6 @@ package views
 
 import AppLogic
 import csstype.ClassName
-import csstype.HtmlAttributes
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.setTimeout
@@ -24,7 +23,7 @@ import views.components.RegisterView
 
 external interface ProcessorViewProps : Props {
     var appLogic: AppLogic
-    var updateAppLogic: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var updateAppLogic: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
     var update: StateInstance<Boolean>
 }
 

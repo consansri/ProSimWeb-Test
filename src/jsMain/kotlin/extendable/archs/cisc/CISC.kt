@@ -14,10 +14,10 @@ object CISC {
         FileHandler("ciscasm"),
         RegisterContainer(
             listOf(
-                RegisterContainer.RegisterFile(RegisterContainer.RegLabel.MAIN, "R0", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("0", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
-                RegisterContainer.RegisterFile(RegisterContainer.RegLabel.MAIN, "MAIN", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("-1", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
-                RegisterContainer.RegisterFile(RegisterContainer.RegLabel.SYSTEM, "SYSTEM", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("-1", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
-                RegisterContainer.RegisterFile(RegisterContainer.RegLabel.CUSTOM, "CUSTOM", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("-1", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
+                RegisterContainer.RegisterFile("R0", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("0", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
+                RegisterContainer.RegisterFile("MAIN", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("-1", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
+                RegisterContainer.RegisterFile("SYSTEM", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("-1", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
+                RegisterContainer.RegisterFile("CUSTOM", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("-1", RISCV.REG_ADDRESS_SIZE), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), ""))),
             ),
             pcSize = MutVal.Size.Bit32()
         ),

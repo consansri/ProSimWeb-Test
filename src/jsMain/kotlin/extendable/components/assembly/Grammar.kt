@@ -182,10 +182,10 @@ abstract class Grammar {
 
             override fun searchTokenNode(token: Compiler.Token): ElementNode? {
 
-                if (tokens.contains(token)) {
-                    return this
+                return if (tokens.contains(token)) {
+                    this
                 } else {
-                    return null
+                    null
                 }
             }
         }

@@ -41,8 +41,11 @@ object ArchConst {
     const val COMPILER_TOKEN_PSEUDOID = -100
 
     // REGISTER
-    val REGISTER_HEADERS = arrayOf(RegHeaders.ADDRESS, RegHeaders.NAME, RegHeaders.VALUE, RegHeaders.DESCRIPTION)
+    val REGISTER_HEADERS = arrayOf(RegHeaders.NAMES, RegHeaders.VALUE, RegHeaders.DESCRIPTION)
     val REGISTER_VALUETYPES = arrayOf(RegTypes.BIN, RegTypes.HEX, RegTypes.UDEC, RegTypes.DEC)
+
+    // TRANSCRIPT PARAM SPLIT SYMBOL
+    val TRANSCRIPT_PARAMSPLIT = ",\t"
 
     // ADDRESS
     const val hex = 0b10111001
@@ -71,8 +74,7 @@ object ArchConst {
     const val STATE_EXECUTION = "execution"
 
     enum class RegHeaders {
-        ADDRESS,
-        NAME,
+        NAMES,
         VALUE,
         DESCRIPTION
     }

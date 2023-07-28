@@ -91,6 +91,7 @@ object StyleConst {
 
     // ANIM
     val ANIM_SHAKERED = "anim-shakered"
+    val ANIM_BLINKGREEN = "anim-blinkgreen"
 
     /*  */
 

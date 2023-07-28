@@ -16,6 +16,7 @@ import org.w3c.files.File
 import org.w3c.files.FileReader
 import react.*
 import react.dom.html.InputType
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -30,7 +31,7 @@ import tools.DebugTools
 external interface MenuProps : Props {
     var appLogic: AppLogic
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppLogic) -> Unit
+    var updateParent: () -> Unit
 }
 
 val Menu = FC<MenuProps>() { props ->
@@ -249,6 +250,7 @@ val Menu = FC<MenuProps>() { props ->
                                 importFile(file)
                             }
                         }
+                        props.updateParent()
                         setImportHidden(true)
                     }
                 }

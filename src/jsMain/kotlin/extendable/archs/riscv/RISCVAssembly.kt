@@ -3,7 +3,7 @@ package extendable.archs.riscv
 import StyleConst
 import extendable.ArchConst
 import extendable.Architecture
-import extendable.archs.riscv.RISCVGrammarV1.E_DIRECTIVE.DirType.*
+import extendable.archs.riscv.RISCVGrammar.E_DIRECTIVE.DirType.*
 import extendable.components.assembly.Assembly
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
@@ -13,7 +13,7 @@ import tools.DebugTools
 
 class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: MutVal.Value) : Assembly() {
 
-    val labelBinAddrMap = mutableMapOf<RISCVGrammarV1.E_LABEL, String>()
+    val labelBinAddrMap = mutableMapOf<RISCVGrammar.E_LABEL, String>()
     val transcriptEntrys = mutableListOf<Transcript.TranscriptEntry>()
     val binarys = mutableListOf<MutVal.Value.Binary>()
 
@@ -37,8 +37,8 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             val result = binaryMapper.getInstrFromBinary(binary)
             if (result != null) {
                 entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id)
-                val paramString = result.binaryMap.entries.joinToString(", ") {
-                    "${it.key.name.lowercase()}: ${
+                val paramString = result.binaryMap.entries.joinToString(ArchConst.TRANSCRIPT_PARAMSPLIT) {
+                    "${it.key.name.lowercase()}\t${
                         when (it.key) {
                             RISCVBinMapper.MaskLabel.RD -> {
                                 architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
@@ -57,7 +57,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             }
 
                             RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.IMM20 -> {
-                                if (result.type == RISCVGrammarV1.R_INSTR.InstrType.JALR || result.type == RISCVGrammarV1.R_INSTR.InstrType.JAL) {
+                                if (result.type == RISCVGrammar.R_INSTR.InstrType.JALR || result.type == RISCVGrammar.R_INSTR.InstrType.JAL) {
                                     var refLabelStr = ""
                                     for (labels in labelBinAddrMap) {
                                         if (MutVal.Value.Binary(labels.value) == it.value) {
@@ -100,7 +100,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             labelBinAddrMap.clear()
             transcriptEntrys.clear()
             binarys.clear()
-            val instructionMapList = mutableMapOf<Long, RISCVGrammarV1.R_INSTR>()
+            val instructionMapList = mutableMapOf<Long, RISCVGrammar.R_INSTR>()
             val dataAllocList = mutableListOf<MemAllocEntry>()
             var instrID: Long = 0
             var pcStartAddress = MutVal.Value.Hex("0", MutVal.Size.Bit32())
@@ -108,14 +108,14 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             var nextAddress = allocStartAddress
             // Resolving Sections
 
-            val sections = rootNode.containers.filter { it is RISCVGrammarV1.C_SECTIONS }.flatMap { it.nodes.toList() }
+            val sections = rootNode.containers.filter { it is RISCVGrammar.C_SECTIONS }.flatMap { it.nodes.toList() }
 
             for (section in sections) {
                 when (section) {
-                    is RISCVGrammarV1.S_TEXT -> {
+                    is RISCVGrammar.S_TEXT -> {
                         for (entry in section.collNodes) {
                             when (entry) {
-                                is RISCVGrammarV1.R_INSTR -> {
+                                is RISCVGrammar.R_INSTR -> {
                                     instructionMapList.set(instrID, entry)
                                     if(entry.globlStart){
                                         pcStartAddress = (MutVal.Value.Hex(instrID.toString(16), MutVal.Size.Bit32()) * MutVal.Value.Hex("4")).toHex()
@@ -124,7 +124,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
                                 }
 
-                                is RISCVGrammarV1.R_JLBL -> {
+                                is RISCVGrammar.R_JLBL -> {
                                     val address = (instrID * 4).toString(2)
                                     if (DebugTools.RISCV_showAsmInfo) {
                                         console.log("RISCVAssembly.generateByteCode(): found Label ${entry.label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
@@ -135,12 +135,12 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                         }
                     }
 
-                    is RISCVGrammarV1.S_DATA -> {
+                    is RISCVGrammar.S_DATA -> {
                         for (entry in section.sectionContent) {
                             when (entry) {
-                                is RISCVGrammarV1.R_ILBL -> {
+                                is RISCVGrammar.R_ILBL -> {
                                     val param = entry.paramcoll.paramsWithOutSplitSymbols.first()
-                                    if (param is RISCVGrammarV1.E_PARAM.Constant) {
+                                    if (param is RISCVGrammar.E_PARAM.Constant) {
                                         val originalValue: MutVal.Value.Hex
                                         val constToken = param.constant
                                         val isString: Boolean
@@ -240,12 +240,12 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                         }
                     }
 
-                    is RISCVGrammarV1.S_RODATA -> {
+                    is RISCVGrammar.S_RODATA -> {
                         for (entry in section.sectionContent) {
                             when (entry) {
-                                is RISCVGrammarV1.R_ILBL -> {
+                                is RISCVGrammar.R_ILBL -> {
                                     val param = entry.paramcoll.paramsWithOutSplitSymbols.first()
-                                    if (param is RISCVGrammarV1.E_PARAM.Constant) {
+                                    if (param is RISCVGrammar.E_PARAM.Constant) {
                                         val originalValue: MutVal.Value.Hex
                                         val constToken = param.constant
                                         val isString: Boolean
@@ -347,10 +347,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                         }
                     }
 
-                    is RISCVGrammarV1.S_BSS -> {
+                    is RISCVGrammar.S_BSS -> {
                         for (entry in section.sectionContent) {
                             when (entry) {
-                                is RISCVGrammarV1.R_ULBL -> {
+                                is RISCVGrammar.R_ULBL -> {
                                     val dirType = entry.directive.type
                                     val originalValue: MutVal.Value.Hex = when (dirType) {
                                         BYTE -> MutVal.Value.Hex("", MutVal.Size.Bit8())
@@ -440,6 +440,6 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
         return assemblyMap ?: AssemblyMap()
     }
 
-    class MemAllocEntry(val label: RISCVGrammarV1.E_LABEL, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
+    class MemAllocEntry(val label: RISCVGrammar.E_LABEL, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
 
 }

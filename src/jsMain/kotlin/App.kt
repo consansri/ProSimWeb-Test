@@ -1,5 +1,3 @@
-import extendable.components.connected.FileHandler
-import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
@@ -27,16 +25,15 @@ val App = FC<Props> { props ->
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
 
-    fun updateAppLogic(newData: AppLogic) {
+    fun updateApp() {
         console.log("update App from Child Component")
-        setAppLogic(newData)
         setReloadUI(!reloadUI)
     }
 
     Menu {
         this.appLogic = appLogic
         update = useState(reloadUI)
-        updateParent = ::updateAppLogic
+        updateParent = ::updateApp
     }
 
     ReactHTML.main {
@@ -48,7 +45,7 @@ val App = FC<Props> { props ->
                 CodeEditor {
                     this.appLogic = appLogic
                     update = useState(reloadUI)
-                    updateParent = ::updateAppLogic
+                    updateParent = ::updateApp
                 }
             }
 
@@ -57,7 +54,7 @@ val App = FC<Props> { props ->
                 ProcessorView {
                     this.appLogic = appLogic
                     update = useState(reloadUI)
-                    updateAppLogic = ::updateAppLogic
+                    updateAppLogic = ::updateApp
                 }
             }
 
@@ -67,7 +64,7 @@ val App = FC<Props> { props ->
             InfoView {
                 this.appLogic = appLogic
                 this.update = useState(reloadUI)
-                this.updateParent = ::updateAppLogic
+                this.updateParent = ::updateApp
                 this.footerRef = footerRef
             }
         }

@@ -25,13 +25,9 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         hlLines = dryLines?.toMutableList()
     }
 
-    fun isBuildable(): Boolean {
-        return isBuildable
-    }
+    fun isBuildable(): Boolean = isBuildable
 
-    fun getAssemblyMap(): Assembly.AssemblyMap {
-        return assemblyMap
-    }
+    fun getAssemblyMap(): Assembly.AssemblyMap = assemblyMap
 
     fun setCode(code: String, shouldHighlight: Boolean): Boolean {
         initCode(code)
@@ -179,6 +175,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             }
         }
     }
+
     private fun parse() {
         grammar.clear()
         grammarTree = grammar.check(this, tokenLines, architecture.getFileHandler().getAllFiles())
@@ -186,9 +183,9 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         grammarTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
                 if (warning.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    if(warning.linkedTreeNode.getAllTokens().first().isPseudo()){
+                    if (warning.linkedTreeNode.getAllTokens().first().isPseudo()) {
                         architecture.getConsole().warn("pseudo: Warning ${warning.message}")
-                    }else{
+                    } else {
                         architecture.getConsole().warn("line ${warning.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Warning ${warning.message}")
                     }
                 } else {
@@ -200,10 +197,10 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         grammarTree?.rootNode?.allErrors?.let {
             for (error in it) {
                 if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    if(error.linkedTreeNode.getAllTokens().first().isPseudo()){
+                    if (error.linkedTreeNode.getAllTokens().first().isPseudo()) {
                         architecture.getConsole().error("pseudo: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}]")
-                    }else{
-                        architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString("") { it.content }}]")
+                    } else {
+                        architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}]")
                     }
                 } else {
                     architecture.getConsole().error("GlobalError: " + error.message)
@@ -214,6 +211,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
 
     }
+
     private fun highlight() {
 
         for (lineID in tokenLines.indices) {
@@ -322,6 +320,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             }
         }
     }
+
     private fun compile() {
         architecture.getMemory().clear()
         architecture.getRegisterContainer().pc.reset()
@@ -331,8 +330,15 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 assembly.generateTranscript(architecture, it)
                 architecture.getFileHandler().getCurrent().linkGrammarTree(it)
             }
+        } else {
+            grammarTree?.let {
+                architecture.getFileHandler().getCurrent().linkGrammarTree(it)
+            }
+
         }
+
     }
+
     fun pseudoAnalyze(content: String): List<Token> {
         val tokens = mutableListOf<Token>()
         var remaining = content
@@ -446,6 +452,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         return tokens
     }
+
     fun getHLContent(): String {
         val stringBuilder = StringBuilder()
         hlLines?.let {
@@ -460,9 +467,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             dryContent
         }
     }
-    fun getGrammarTree(): Grammar.GrammarTree? {
-        return grammarTree
-    }
+
+    fun getGrammarTree(): Grammar.GrammarTree? = grammarTree
 
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 
@@ -477,9 +483,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             hlContent = architecture.highlight(HTMLTools.encodeHTML(content), id, title, hlFlag, "token")
         }
 
-        override fun toString(): String {
-            return content
-        }
+        override fun toString(): String = content
 
         class NewLine(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.NEWLINE

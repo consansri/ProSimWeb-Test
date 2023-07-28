@@ -39,7 +39,7 @@ external interface MemViewProps : Props {
     var appLogic: AppLogic
     var length: Int
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
 val MemoryView = FC<MemViewProps> { props ->

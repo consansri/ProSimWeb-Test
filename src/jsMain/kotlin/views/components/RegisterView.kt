@@ -31,7 +31,7 @@ external interface RegisterViewProps : Props {
     var name: String
     var appLogic: AppLogic
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppLogic) -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
 val RegisterView = FC<RegisterViewProps> { props ->
@@ -77,76 +77,39 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
 
             for (regFile in regFileList) {
-                when (regFile.label) {
-                    RegisterContainer.RegLabel.MAIN -> {
-                        a {
-                            className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                ClassName("dcf-tab-a dcf-tab-active")
-                            } else {
-                                ClassName("dcf-tab-a")
-                            }
-
-                            title = "Show RegFile ${regFile.name}"
-
-                            +regFile.name
-                            onClick = {
-                                setCurrRegFileIndex(regFileList.indexOf(regFile))
-                            }
-                        }
+                a {
+                    className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                        ClassName("dcf-tab-a dcf-tab-active")
+                    } else {
+                        ClassName("dcf-tab-a")
                     }
 
-                    RegisterContainer.RegLabel.SYSTEM -> {
-                        a {
-                            className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                ClassName("dcf-tab-a dcf-tab-active")
-                            } else {
-                                ClassName("dcf-tab-a")
-                            }
-                            title = "Show RegFile ${regFile.name}"
-                            +regFile.name
+                    title = "Show RegFile ${regFile.name}"
 
-                            onClick = {
-                                setCurrRegFileIndex(regFileList.indexOf(regFile))
-                            }
-                        }
-                    }
-
-                    RegisterContainer.RegLabel.CUSTOM -> {
-                        a {
-                            className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                                ClassName("dcf-tab-a dcf-tab-active")
-                            } else {
-                                ClassName("dcf-tab-a")
-                            }
-                            title = "Show RegFile ${regFile.name}"
-
-                            +regFile.name
-
-                            onClick = {
-                                setCurrRegFileIndex(regFileList.indexOf(regFile))
-                            }
-                        }
+                    +regFile.name
+                    onClick = {
+                        setCurrRegFileIndex(regFileList.indexOf(regFile))
                     }
                 }
+            }
 
-                button {
-                    ref = pcRef
+            button {
+                ref = pcRef
 
-                    css {
-                        color = Color("#FFFFFF")
-                        backgroundColor = Color("#AAAAAA00")
-                        paddingLeft = 1.rem
-                        paddingRight = 1.rem
-                        float = Float.right
-                        border = Border(0.px, LineStyle.hidden)
-                    }
+                css {
+                    color = Color("#FFFFFF")
+                    backgroundColor = Color("#AAAAAA00")
+                    paddingLeft = 1.rem
+                    paddingRight = 1.rem
+                    float = Float.right
+                    border = Border(0.px, LineStyle.hidden)
+                }
 
-                    +"PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
+                +"PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
 
-                    onClick = { event ->
-                        appLogic.getArch().getRegisterContainer().pc
-                        setUpdate(!update)
-                    }
+                onClick = { event ->
+                    appLogic.getArch().getRegisterContainer().pc
+                    setUpdate(!update)
                 }
             }
         }
@@ -203,11 +166,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 val regID = it.registers.indexOf(reg)
 
                                 tr {
-                                    th {
-                                        className = ClassName("dcf-txt-center")
-                                        scope = "row"
-                                        +reg.address.toHex().getRawHexStr()
-                                    }
+
                                     td {
                                         className = ClassName("dcf-txt-left")
                                         +reg.names.joinToString("\t") { it }

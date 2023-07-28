@@ -8,6 +8,8 @@ table {
     background-color: transparent;
     border-collapse: collapse;
     transition: 0.3s;
+    tab-size: 6;
+    white-space: pre;
 }
 
 th {
@@ -230,12 +232,12 @@ th {
 }
 
 .dcf-button:hover > span:before {
-    content: "[  ";
+    content: "[";
     /*transform: translateY(-0.1rem);*/
 }
 
 .dcf-button:hover > span:after {
-    content: "  ]";
+    content: "]";
     /*transform: translateY(-0.1rem);*/
 }
 

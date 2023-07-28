@@ -1,14 +1,14 @@
 package extendable.archs.riscv
 
 import extendable.Architecture
-import extendable.archs.riscv.RISCVGrammarV1.E_DIRECTIVE.DirType.*
+import extendable.archs.riscv.RISCVGrammar.E_DIRECTIVE.DirType.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
 import extendable.components.connected.FileHandler
 import extendable.components.types.MutVal
 import tools.DebugTools
 
-class RISCVGrammarV1() : Grammar() {
+class RISCVGrammar() : Grammar() {
 
     override val applyStandardHLForRest: Boolean = false
 
@@ -74,7 +74,7 @@ class RISCVGrammarV1() : Grammar() {
                         }
                     }
                 } else {
-                    errors.add(Grammar.Error("File {filename: $filename} not ${if (linkedFile != null && linkedTree == null) "compiled" else "found"}!", *remainingLines[lineID].toTypedArray()))
+                    errors.add(Grammar.Error("File {filename: $filename} not ${if (linkedFile != null) "compiled" else "found"}!", *remainingLines[lineID].toTypedArray()))
                 }
                 remainingLines[lineID] = emptyList()
             }
@@ -451,19 +451,21 @@ class RISCVGrammarV1() : Grammar() {
             }
 
             // ----------------- search parameters
+            val paramBuffer = remainingTokens
             val parameterList = mutableListOf<E_PARAM>()
             var validParams = true
-            while (remainingTokens.isNotEmpty()) {
-                val firstToken = remainingTokens.first()
+            while (paramBuffer.isNotEmpty()) {
+                val firstToken = paramBuffer.first()
 
                 if (firstToken is Compiler.Token.Space) {
-                    remainingTokens.remove(firstToken)
+                    paramBuffer.remove(firstToken)
                     continue
                 }
 
                 if (parameterList.isEmpty() || parameterList.last() is E_PARAM.SplitSymbol) {
+
                     // OFFSET
-                    val offsetResult = E_PARAM.Offset.Syntax.tokenSequence.matches(*remainingTokens.toTypedArray())
+                    val offsetResult = E_PARAM.Offset.Syntax.tokenSequence.matches(*paramBuffer.toTypedArray())
                     if (offsetResult.matches) {
                         val constant = offsetResult.sequenceMap.get(0)
                         val lParan = offsetResult.sequenceMap.get(1)
@@ -471,28 +473,28 @@ class RISCVGrammarV1() : Grammar() {
                         val rParan = offsetResult.sequenceMap.get(3)
                         val e_offset = E_PARAM.Offset(constant.token as Compiler.Token.Constant, lParan.token, reg.token as Compiler.Token.Register, rParan.token)
                         parameterList.add(e_offset)
-                        remainingTokens.removeAll(e_offset.tokens.toSet())
+                        paramBuffer.removeAll(e_offset.tokens.toSet())
                         continue
                     }
 
                     // REGISTER
                     if (firstToken is Compiler.Token.Register) {
                         parameterList.add(E_PARAM.Register(firstToken))
-                        remainingTokens.remove(firstToken)
+                        paramBuffer.remove(firstToken)
                         continue
                     }
 
                     // CONSTANT
                     if (firstToken is Compiler.Token.Constant) {
                         parameterList.add(E_PARAM.Constant(firstToken))
-                        remainingTokens.remove(firstToken)
+                        paramBuffer.remove(firstToken)
                         continue
                     }
 
                     // LINK
                     var link: E_PARAM.Link? = null
                     val tokensForLabelToCheck = mutableListOf<Compiler.Token>()
-                    for (possibleLabelToken in remainingTokens.dropWhile { firstToken != it }) {
+                    for (possibleLabelToken in paramBuffer.dropWhile { firstToken != it }) {
                         if (possibleLabelToken is Compiler.Token.Space || (possibleLabelToken.content == ",")) {
                             break
                         } else {
@@ -502,15 +504,16 @@ class RISCVGrammarV1() : Grammar() {
                     if (tokensForLabelToCheck.isNotEmpty()) {
                         link = E_PARAM.Link(*tokensForLabelToCheck.toTypedArray())
                         parameterList.add(link)
-                        remainingTokens.removeAll(link.labelName.toSet())
+                        paramBuffer.removeAll(link.labelName.toSet())
                         continue
                     }
+
 
                 } else {
                     // SPLITSYMBOL
                     if (firstToken is Compiler.Token.Symbol && firstToken.content == ",") {
                         parameterList.add(E_PARAM.SplitSymbol(firstToken))
-                        remainingTokens.remove(firstToken)
+                        paramBuffer.remove(firstToken)
                         continue
                     }
                 }
@@ -524,17 +527,15 @@ class RISCVGrammarV1() : Grammar() {
                 val e_paramcoll = E_PARAMCOLL(*paramArray)
                 remainingTokens.removeAll(e_paramcoll.params.flatMap { it.paramTokens.toList() })
                 lineElements.add(e_paramcoll)
+            } else {
+                if (remainingTokens.isNotEmpty()) {
+                    errors.add(Error("Tokens couldn't get matched to valid RISC-V ASM Element!", *parameterList.flatMap { it.paramTokens.toList() }.toTypedArray(), *remainingTokens.toTypedArray()))
+                }
             }
 
             // NOT MATCHED TOKENS
             remainingLines[lineID] = remainingTokens
             elements[lineID] += lineElements
-        }
-
-        for (lineID in remainingLines.indices) {
-            if (remainingLines[lineID].isNotEmpty()) {
-                errors.add(Grammar.Error(message = "couldn't match Tokens to RiscV ELEMENTS!", *remainingLines[lineID].toTypedArray()))
-            }
         }
 
         if (DebugTools.RISCV_showGrammarScanTiers) {
@@ -763,7 +764,7 @@ class RISCVGrammarV1() : Grammar() {
                 // check params
                 val checkedType = eInstrName.check(eParamcoll)
                 if (checkedType != null) {
-                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if(!startIsDefined) true else false)
+                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
                     startIsDefined = true
                     rows[lineID] = rowNode
                     result.error?.let {
@@ -792,7 +793,7 @@ class RISCVGrammarV1() : Grammar() {
                 // check params
                 val checkedType = eInstrName.check()
                 if (checkedType != null) {
-                    rowNode = R_INSTR(eInstrName, null, checkedType, lastMainJLBL, if(!startIsDefined) true else false)
+                    rowNode = R_INSTR(eInstrName, null, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
                     startIsDefined = true
                     rows[lineID] = rowNode
                     result.error?.let {

@@ -22,7 +22,7 @@ import tools.DebugTools
 
 external interface IConsoleViewProps : Props {
     var appLogic: AppLogic
-    var updateParent: (appLogic: AppLogic) -> Unit
+    var updateParent: () -> Unit
     var update: StateInstance<Boolean>
     var footerRef: MutableRefObject<HTMLElement>
 
@@ -64,6 +64,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             display = Display.block
             backgroundColor = Color("#313131")
             padding = 10.px
+            fontFamily = FontFamily.monospace
 
             if (pin) {
                 position = Position.fixed

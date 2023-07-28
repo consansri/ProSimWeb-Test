@@ -102,6 +102,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
 
     /*Execution Events*/
+
     open fun exeContinuous() {
         getConsole().clear()
     }
@@ -158,6 +159,14 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         archState.check(compiler.setCode(input, true)) // TODO(if certain CodeSize is reached disable highlighting!)
 
         return compiler.getHLContent()
+    }
+
+    enum class EXETYPE{
+        CONTINUOUS,
+        SSTEP,
+        MSTEP,
+        EXESUB,
+        RETSUB
     }
 
 }

@@ -1,22 +1,22 @@
 package extendable.archs.riscv
 
 import extendable.ArchConst
-import extendable.archs.riscv.RISCVGrammarV1.R_INSTR.InstrType.*
+import extendable.archs.riscv.RISCVGrammar.R_INSTR.InstrType.*
 import extendable.components.types.MutVal
 import tools.DebugTools
 
 class RISCVBinMapper {
 
-    var labelAddrMap = mapOf<RISCVGrammarV1.E_LABEL, String>()
+    var labelAddrMap = mapOf<RISCVGrammar.E_LABEL, String>()
 
-    fun setLabelLinks(labelAddrMap: Map<RISCVGrammarV1.E_LABEL, String>) {
+    fun setLabelLinks(labelAddrMap: Map<RISCVGrammar.E_LABEL, String>) {
         this.labelAddrMap = labelAddrMap
     }
 
-    fun getBinaryFromInstrDef(instrDef: RISCVGrammarV1.R_INSTR, instrStartAddress: MutVal.Value.Hex): Array<MutVal.Value.Binary> {
+    fun getBinaryFromInstrDef(instrDef: RISCVGrammar.R_INSTR, instrStartAddress: MutVal.Value.Hex): Array<MutVal.Value.Binary> {
         val binaryArray = mutableListOf<MutVal.Value.Binary>()
         val values = instrDef.paramcoll?.getValues()
-        val labels = mutableListOf<RISCVGrammarV1.E_LABEL>()
+        val labels = mutableListOf<RISCVGrammar.E_LABEL>()
         instrDef.paramcoll?.getILabels()?.forEach { labels.add(it.label) }
         instrDef.paramcoll?.getULabels()?.forEach { labels.add(it.label) }
         instrDef.paramcoll?.getJLabels()?.forEach { labels.add(it.label) }
@@ -656,7 +656,7 @@ class RISCVBinMapper {
         return null
     }
 
-    data class InstrResult(val type: RISCVGrammarV1.R_INSTR.InstrType, val binaryMap: Map<MaskLabel, MutVal.Value.Binary> = mapOf())
+    data class InstrResult(val type: RISCVGrammar.R_INSTR.InstrType, val binaryMap: Map<MaskLabel, MutVal.Value.Binary> = mapOf())
 
     class OpCode(val opMask: String, val maskLabels: Array<MaskLabel>) {
 

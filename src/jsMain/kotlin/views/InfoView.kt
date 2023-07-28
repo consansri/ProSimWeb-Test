@@ -12,7 +12,7 @@ import views.components.IConsoleView
 external interface InfoViewProps : Props {
     var appLogic: AppLogic
     var update: StateInstance<Boolean>
-    var updateParent: (newData: AppLogic) -> Unit
+    var updateParent: () -> Unit
     var footerRef: MutableRefObject<HTMLElement>
 }
 

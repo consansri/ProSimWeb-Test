@@ -23,11 +23,9 @@ import react.useState
 import tools.DebugTools
 
 external interface TranscriptProps : Props {
-
     var ta_val: String
     var transcript: Transcript
     var appLogic: AppLogic
-
 }
 
 val TranscriptView = FC<TranscriptProps> { props ->
@@ -106,19 +104,26 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 tbody {
                     for (row in transcript.getContent()) {
                         tr {
-                            if(row.memoryAddress.getRawHexStr() == currExeAddr){
+                            if (row.memoryAddress.getRawHexStr() == currExeAddr) {
                                 className = ClassName("dcf-mark-green")
                             }
 
                             for (header in ArchConst.TranscriptHeaders.values()) {
-                                td {
-                                    if(header == ArchConst.TranscriptHeaders.PARAMS){
-                                        className = ClassName("dcf-txt-left")
-                                    }else{
-                                        className = ClassName("dcf-txt-center")
+                                if (header == ArchConst.TranscriptHeaders.PARAMS) {
+                                    val content = row.content[header]
+                                    content?.let {
+                                        for (param in it.split(ArchConst.TRANSCRIPT_PARAMSPLIT)) {
+                                            td {
+                                                className = ClassName("dcf-txt-left")
+                                                +param
+                                            }
+                                        }
                                     }
-
-                                    +(row.content[header] ?: "")
+                                } else {
+                                    td {
+                                        className = ClassName("dcf-txt-center")
+                                        +(row.content[header] ?: "")
+                                    }
                                 }
                             }
                         }

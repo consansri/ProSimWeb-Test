@@ -90,7 +90,7 @@
     width: calc(100% - var(--padding-size));
     line-height: var(--editor-lineHeight);
 
-    font-family: monospace;
+    font-family: 'JetBrains Mono', monospace;
     background: var(--editor-bg-color);
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.16) 0 3px 6px, rgba(0, 0, 0, 0.23) 0 3px 6px;
@@ -101,6 +101,7 @@
     display: flex;
     justify-content: flex-start;
     border-bottom: 1px solid #717171;
+    flex-wrap: wrap;
 }
 
 .editor-tab {
@@ -133,6 +134,7 @@
     width: 1.4rem;
     height: 1.4rem;
     background: transparent;
+    filter: invert(50%);
 }
 
 .editor-tab:hover {
@@ -160,6 +162,7 @@
 .editor-line-numbers span {
     cursor: pointer;
     padding-right: 5px;
+    font-family: 'JetBrains Mono', monospace;
     color: var(--editor-linenumbers-color);
     border-right: 1px solid var(--editor-linenumbers-border-color);
     white-space: nowrap;
@@ -179,7 +182,7 @@
 }
 
 .editor-area, .editor-highlighting-content {
-    font-family: monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 16px;
     tab-size: 6;
     line-height: 21px;
@@ -216,7 +219,7 @@
 }
 
 .editor-highlighting-content mark {
-    font-family: monospace;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 .editor-area {
@@ -243,6 +246,11 @@
 .anim-shakered {
     animation: shake 1s ease-in-out;
     color: #FF0000!important;
+}
+
+.anim-blinkgreen {
+    background-color: #00FF0041!important;
+    font-weight: 400!important;
 }
 
 @keyframes rotation {
@@ -430,7 +438,7 @@
 
 /* HIGHLIGHTING COLORS */
 .editor-highlighting-content * {
-    font-family: monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 16px;
 }
 
