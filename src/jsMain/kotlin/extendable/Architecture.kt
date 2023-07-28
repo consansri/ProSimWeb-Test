@@ -1,5 +1,6 @@
 package extendable
 
+import csstype.HtmlAttributes
 import extendable.components.*
 import extendable.components.assembly.Compiler
 import extendable.components.connected.*
@@ -103,6 +104,30 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     /*Execution Events*/
 
+    fun exeASYNC(exetype: EXETYPE) {
+        getConsole().clear()
+        getConsole().info("async")
+        TODO("imlement async execution")
+        when(exetype){
+            EXETYPE.CONTINUOUS -> {
+
+            }
+            EXETYPE.SSTEP -> {
+
+            }
+            EXETYPE.MSTEP -> {
+
+            }
+            EXETYPE.EXESUB -> {
+
+            }
+            EXETYPE.RETSUB -> {
+
+            }
+        }
+
+    }
+
     open fun exeContinuous() {
         getConsole().clear()
     }
@@ -114,7 +139,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     open fun exeMultiStep(steps: Int) {
         getConsole().clear()
         getConsole().log("--exe_multi_step $steps ...")
-
     }
 
     open fun exeSkipSubroutine() {
@@ -161,7 +185,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         return compiler.getHLContent()
     }
 
-    enum class EXETYPE{
+    enum class EXETYPE {
         CONTINUOUS,
         SSTEP,
         MSTEP,
