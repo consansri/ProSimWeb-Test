@@ -19,7 +19,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
                 var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
 
-                while (result != null && instrCount < 10000) {
+                while (result != null && instrCount < 1000) {
                     instrCount++
                     result.type.execute(this, result.binaryMap)
 

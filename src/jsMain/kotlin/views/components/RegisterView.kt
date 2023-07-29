@@ -169,7 +169,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                                     td {
                                         className = ClassName("dcf-txt-left")
-                                        +reg.names.joinToString("\t") { it }
+                                        +(" " + reg.names.joinToString("\t") { it })
                                     }
                                     td {
                                         className = ClassName("value-col dcf-txt-center")

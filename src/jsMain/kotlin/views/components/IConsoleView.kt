@@ -191,7 +191,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 display = Display.block
                 position = Position.relative
                 marginTop = 5.px
-                height = 10.rem
+                height = 20.rem
                 overflowX = Overflow.hidden
                 overflowY = Overflow.scroll
                 scrollBehavior = ScrollBehavior.smooth
@@ -246,12 +246,28 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
 
             }
 
+            var prevScrollPos = scrollRef.current?.scrollTop
+
             onScroll = { event ->
-                if (event.currentTarget.scrollTop <= 1.0) {
+                val scrollTop = event.currentTarget.scrollTop
+
+                prevScrollPos?.let {
+                    if (scrollTop < it) {
+                        setScrollDown(false)
+                    }
+                }
+
+                if (scrollTop > event.currentTarget.scrollHeight - event.currentTarget.clientHeight - 20) {
+                    setScrollDown(true)
+                }
+
+                if (scrollTop <= 1.0) {
                     setShadow(false)
                 } else {
                     setShadow(true)
                 }
+
+                prevScrollPos = scrollTop
             }
         }
 
