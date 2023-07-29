@@ -103,31 +103,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
 
     /*Execution Events*/
-
-    fun exeASYNC(exetype: EXETYPE) {
-        getConsole().clear()
-        getConsole().info("async")
-        TODO("imlement async execution")
-        when(exetype){
-            EXETYPE.CONTINUOUS -> {
-
-            }
-            EXETYPE.SSTEP -> {
-
-            }
-            EXETYPE.MSTEP -> {
-
-            }
-            EXETYPE.EXESUB -> {
-
-            }
-            EXETYPE.RETSUB -> {
-
-            }
-        }
-
-    }
-
     open fun exeContinuous() {
         getConsole().clear()
     }
