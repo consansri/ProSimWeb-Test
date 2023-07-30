@@ -17,7 +17,7 @@ object RISCV {
     // Assembler CONFIG
     val asmConfig = AsmConfig(
         RISCVGrammar(),
-        RISCVAssembly(RISCVBinMapper(), MutVal.Value.Hex("10000000", MutVal.Size.Bit32()))
+        RISCVAssembly(RISCVBinMapper(), MutVal.Value.Hex("00001000", MutVal.Size.Bit32()))
     )
 
     // PROCESSOR CONFIG

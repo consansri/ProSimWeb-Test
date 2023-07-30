@@ -953,7 +953,7 @@ class MutVal {
 
     }
 
-    sealed class Size(val bitWidth: kotlin.Int, val byteCount: kotlin.Int) {
+    sealed class Size(val name: String, val bitWidth: kotlin.Int, val byteCount: kotlin.Int) {
 
         override fun equals(other: Any?): Boolean {
             when (other) {
@@ -964,18 +964,23 @@ class MutVal {
             return super.equals(other)
         }
 
-        class Bit3 : Size(3, 1)
-        class Bit5 : Size(5, 1)
-        class Bit7 : Size(7, 1)
-        class Bit8 : Size(8, 1)
-        class Bit12 : Size(12, 2)
-        class Bit16 : Size(16, 2)
-        class Bit20 : Size(20, 3)
-        class Bit32 : Size(32, 4)
-        class Bit64 : Size(64, 8)
-        class Bit128 : Size(128, 16)
+        class Bit3 : Size("3 Bit", 3, 1)
+        class Bit5 : Size("5 Bit", 5, 1)
+        class Bit7 : Size("7 Bit", 7, 1)
+        class Bit8 : Size("8 Bit", 8, 1)
+        class Bit12 : Size("12 Bit", 12, 2)
+        class Bit16 : Size("16 Bit", 16, 2)
+        class Bit20 : Size("20 Bit", 20, 3)
+        class Bit32 : Size("32 Bit", 32, 4)
+        class Bit64 : Size("64 Bit", 64, 8)
+        class Bit128 : Size("128 Bit", 128, 16)
 
+        object VALUES {
+            val STANDARD = listOf(Bit8(), Bit16(), Bit32(), Bit64(), Bit128())
+            val ALL = listOf(Bit3(), Bit5(), Bit7(), Bit8(), Bit12(), Bit16(), Bit20(), Bit32(), Bit64(), Bit128())
+        }
     }
+
 
     class Bounds {
 

@@ -84,7 +84,7 @@ th {
 }
 
 .dcf-table thead {
-    font-size: .84em
+    font-size: .84em;
 }
 
 .dcf-table tbody {
@@ -99,19 +99,28 @@ th {
     height: 4rem;
     top: 0;
     width: 100%;
-    padding: var(--padding-size);
+}
+
+.dcf-table tfoot tr {
+    width: 100%;
 }
 
 .dcf-control {
-
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: end;
+    padding: var(--padding-size);
+    align-items: center;
+    gap: var(--padding-size);
 }
 
-.dcf-control input {
+.dcf-control input[type=range] {
     display: inline-block;
     cursor: pointer;
     border: none;
     height: calc(var(--icon-size) + 2 * var(--icon-padding));
-    width: calc(100% - 2 * .56rem - 4 * var(--icon-padding) - 2 * var(--icon-size) - 2 * var(--padding-size));
+    width: calc(var(--icon-size) * 5);
     float: left;
     min-height: 1em;
     border-radius: var(--border-radius);
@@ -121,6 +130,13 @@ th {
     accent-color: var(--main-accent-color);
 }
 
+.dcf-control select {
+    height: calc(var(--icon-size) + 2 * var(--icon-padding));
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7em!important;
+    font-weight: lighter;
+}
+
 .dcf-control button {
     display: inline-block;
     cursor: pointer;
@@ -128,11 +144,14 @@ th {
     appearance: none;
     border: none;
     float: left;
-    margin-right: var(--padding-size);
-    margin-bottom: var(--padding-size);
+    color: whitesmoke;
     background-color: var(--rcontainer-bg-color);
     border-radius: var(--icon-border-radius);
     transition: 0.2s all ease;
+}
+
+.dcf-control button a {
+    padding: var(--padding-size);
 }
 
 .dcf-control button:hover img {

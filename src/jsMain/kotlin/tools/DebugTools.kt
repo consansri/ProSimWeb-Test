@@ -33,7 +33,7 @@ object DebugTools {
     const val ARCH_showAsmInfo = false
 
     //      Memory
-    const val ARCH_showMemoryInfo = false
+    const val ARCH_showMemoryInfo = true
 
 
     //      ByteValue

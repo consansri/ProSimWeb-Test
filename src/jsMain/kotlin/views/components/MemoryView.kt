@@ -18,13 +18,16 @@ import org.w3c.dom.HTMLTableSectionElement
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.InputType
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -55,8 +58,10 @@ val MemoryView = FC<MemViewProps> { props ->
     val update = props.update
     val (internalUpdate, setIUpdate) = useState(false)
     val (memLength, setMemLength) = useState<Int>(props.length)
+    val (memEndianess, setEndianess) = useState<Memory.Endianess>()
     val (lowFirst, setLowFirst) = useState(true)
     val (memRows, setMemRows) = useState<MutableMap<String, MutableMap<Int, Memory.MemInstance>>>(mutableMapOf())
+    val (showGlobalMemSettings, setShowGlobalMemSettings) = useState(false)
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (showAddMem, setShowAddMem) = useState(false)
     val (showAddRow, setShowAddRow) = useState(false)
@@ -118,13 +123,15 @@ val MemoryView = FC<MemViewProps> { props ->
 
             table {
                 className = ClassName("dcf-table dcf-table-striped dcf-w-100% dcf-darkbg")
+
                 caption {
                     a {
-                        +name
+                        +"Memory"
                     }
                 }
 
                 thead {
+
                     tr {
 
                         th {
@@ -151,6 +158,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                 tbody {
                     ref = tbody
+
 
                     var nextAddress: MutVal.Value = appLogic.getArch().getMemory().getInitialBinary().setBin("0").get()
                     val memLengthValue = MutVal.Value.Dec("$memLength", MutVal.Size.Bit8()).toHex()
@@ -241,64 +249,98 @@ val MemoryView = FC<MemViewProps> { props ->
                 tfoot {
 
                     tr {
-                        /*td {
-                            className = ClassName("dcf-control")
-
-                        }*/
                         td {
-                            colSpan = 2 + memLength
                             className = ClassName("dcf-control")
-
-                            button {
-                                type = ButtonType.button
-                                css {
-                                    if (!lowFirst) {
-                                        filter = invert(0.7)
-                                    }
-                                }
-
-
-                                onClick = { event ->
-                                    setLowFirst(!lowFirst)
-                                }
-
-                                img {
-                                    src = "icons/direction.svg"
-                                }
-
-                            }
+                            colSpan = 2 + memLength
 
                             button {
                                 type = ButtonType.button
 
                                 onClick = {
-                                    setShowDefMemSettings(!showDefMemSettings)
+                                    setShowGlobalMemSettings(!showGlobalMemSettings)
                                 }
 
                                 img {
                                     src = "icons/settings.svg"
                                 }
-
                             }
 
-                            input {
-                                ref = inputLengthRef
-                                placeholder = "values per row"
-                                type = InputType.range
-                                min = 1.0
-                                max = 16.0
-                                step = 1.0
-                                value = "$memLength"
+                            if (showGlobalMemSettings) {
 
-                                onInput = {
-                                    setMemLength(it.currentTarget.valueAsNumber.toInt())
-                                    localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
+
+                                button {
+                                    type = ButtonType.button
+                                    css {
+                                        if (!lowFirst) {
+                                            filter = invert(0.7)
+                                        }
+                                    }
+
+                                    onClick = { event ->
+                                        setLowFirst(!lowFirst)
+                                    }
+
+                                    img {
+                                        src = "icons/direction.svg"
+                                    }
+
+                                }
+
+                                button {
+                                    type = ButtonType.button
+
+                                    onClick = {
+                                        setShowDefMemSettings(!showDefMemSettings)
+                                    }
+
+                                    img {
+                                        src = "icons/editable.svg"
+                                    }
+                                }
+
+                                select {
+
+                                    defaultValue = appLogic.getArch().getMemory().getEndianess().name
+
+                                    option {
+                                        disabled = true
+                                        +"Endianess"
+                                    }
+
+                                    for (entry in Memory.Endianess.entries) {
+                                        option {
+                                            value = entry.name
+                                            +entry.name
+                                        }
+                                    }
+
+                                    onChange = {
+                                        for (entry in Memory.Endianess.entries) {
+                                            if (it.currentTarget.value == entry.name) {
+                                                setEndianess(entry)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                input {
+                                    ref = inputLengthRef
+                                    placeholder = "values per row"
+                                    type = InputType.range
+                                    min = 1.0
+                                    max = 16.0
+                                    step = 1.0
+                                    value = "$memLength"
+
+                                    onInput = {
+                                        setMemLength(it.currentTarget.valueAsNumber.toInt())
+                                        localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
+                                    }
                                 }
                             }
-
-
                         }
                     }
+
                 }
             }
         }
@@ -391,7 +433,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         className = ClassName("window-element")
 
-                        if(dValue.name.isNotEmpty()){
+                        if (dValue.name.isNotEmpty()) {
                             input {
                                 className = ClassName("noedit")
                                 contentEditable = false
@@ -584,7 +626,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 placeholder = ArchConst.PRESTRING_HEX + "[start address]"
                                 maxLength = appLogic.getArch().getMemory().getAddressSize().byteCount * 2
                                 prefix = "addr: "
-                                defaultValue = "7".padEnd(appLogic.getArch().getMemory().getWordSize().bitWidth, '0')
+                                defaultValue = "1".padEnd(appLogic.getArch().getMemory().getWordSize().bitWidth, '0')
 
                                 onKeyDown = { event ->
                                     if (event.key == "Enter") {
@@ -675,6 +717,13 @@ val MemoryView = FC<MemViewProps> { props ->
     useEffect(update, memLength) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) MemoryView")
+        }
+        setEndianess(appLogic.getArch().getMemory().getEndianess())
+    }
+
+    useEffect(memEndianess) {
+        memEndianess?.let {
+            appLogic.getArch().getMemory().setEndianess(it)
         }
     }
 

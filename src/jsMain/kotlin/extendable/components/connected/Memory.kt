@@ -4,15 +4,26 @@ import StyleConst
 import extendable.components.types.MutVal
 import tools.DebugTools
 
-class Memory(private val addressSize: MutVal.Size, private val initBin: String, private val wordSize: MutVal.Size, private val endianess: Endianess) {
+class Memory(private val addressSize: MutVal.Size, private val initBin: String, private val wordSize: MutVal.Size, private var endianess: Endianess) {
     private var memMap: MutableMap<String, MemInstance> = mutableMapOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
 
-    fun save(address: MutVal.Value, mutVal: MutVal, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
-        val wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
+    fun setEndianess(endianess: Endianess) {
+        this.endianess = endianess
+        if (DebugTools.ARCH_showMemoryInfo) {
+            console.log("switched Endianess to ${endianess.name}")
+        }
+    }
 
-        if (endianess == Endianess.LittleEndian) {
-            wordList.reversed()
+    fun getEndianess(): Endianess = endianess
+
+    fun save(address: MutVal.Value, mutVal: MutVal, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
+        // Little Endian
+        var wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
+
+        if (endianess == Endianess.BigEndian) {
+            // Big Endian
+            wordList = wordList.reversed()
         }
 
         val hexAddress = address.toBin().getUResized(addressSize).toHex()
@@ -24,7 +35,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
             if (instance != null) {
                 instance.mutVal.setHex(word.toString())
-                if(mark != StyleConst.CLASS_TABLE_MARK_ELSE){
+                if (mark != StyleConst.CLASS_TABLE_MARK_ELSE) {
                     instance.mark = mark
                 }
             } else {
@@ -36,20 +47,23 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
     }
 
     fun save(address: MutVal.Value, value: MutVal.Value, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
-        val wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
-        if (endianess == Endianess.LittleEndian) {
-            wordList.reversed()
+        // Little Endian
+        var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
+
+        if (endianess == Endianess.BigEndian) {
+            // Big Endian
+            wordList = wordList.reversed()
         }
 
         var hexAddress = address.toBin().getUResized(addressSize).toHex()
         if (DebugTools.ARCH_showMemoryInfo) {
-            console.log("saving...  ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+            console.log("saving... ${endianess.name} ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
         for (word in wordList) {
             val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {
                 instance.mutVal.setHex(word.toString())
-                if(mark != StyleConst.CLASS_TABLE_MARK_ELSE){
+                if (mark != StyleConst.CLASS_TABLE_MARK_ELSE) {
                     instance.mark = mark
                 }
             } else {
@@ -111,7 +125,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         editableValues.remove(editableValue)
     }
 
-    fun clearEditableValues(){
+    fun clearEditableValues() {
         editableValues.clear()
     }
 

@@ -73,6 +73,12 @@ class FileHandler(val fileEnding: String) {
         refreshLocalStorage(false)
     }
 
+    fun getCurrNameWithoutType(): String {
+        val name = files[currentID].getName()
+        val index = name.lastIndexOf('.')
+        return name.substring(0, index)
+    }
+
     fun getCurrUndoLength(): Int = files[currentID].getUndoStates().size
 
     fun getCurrRedoLength(): Int = files[currentID].getRedoStates().size
@@ -105,7 +111,7 @@ class FileHandler(val fileEnding: String) {
                 }
 
                 if (filename != null && filecontent != null) {
-                    if( DebugTools.ARCH_showFileHandlerInfo) {
+                    if (DebugTools.ARCH_showFileHandlerInfo) {
                         console.log("found file: $filename $filecontent")
                     }
                     files.add(File(filename, filecontent, fileUndoStates, fileRedoStates))

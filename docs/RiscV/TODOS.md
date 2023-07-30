@@ -5,4 +5,9 @@
 - **(done)** fix referenced constants so that asciis are still readable after written to memory
 - **(done)** check binary mapper bit map syntax
 - **(done)** rename Instruction Types (R Type, I Type, ...)
-- reinvent Grammar and Assembler for advanced assembly syntax
+- **(done)** reinvent Grammar and Assembler for advanced assembly syntax
+- export MIF, HEX DUMP, ...
+
+ 
+## PERFORMANCE ##
+  - replace DecTools cause they are taking pretty long every calculation should happen in binary!

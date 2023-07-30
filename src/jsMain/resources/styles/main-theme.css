@@ -43,6 +43,7 @@ body {
     letter-spacing: 0.3rem;
     font-family: var(--logoFont);
 }
+
 /* file upload button */
 input[type="file"]::file-selector-button {
     border-radius: 4px;
@@ -55,6 +56,7 @@ input[type="file"]::file-selector-button {
     margin-right: 16px;
     transition: background-color 200ms;
 }
+
 /* file upload button hover state */
 input[type="file"]::file-selector-button:hover {
     background-color: #f3f4f6;
@@ -63,4 +65,17 @@ input[type="file"]::file-selector-button:hover {
 /* file upload button active state */
 input[type="file"]::file-selector-button:active {
     background-color: #e5e7eb;
+}
+
+input[type=number]{
+    padding: var(--padding-size);
+    text-align: center;
+    border-radius: var(--border-radius);
+}
+
+select {
+    appearance: none;
+    text-align: center;
+    padding: var(--padding-size);
+    border-radius: var(--border-radius);
 }

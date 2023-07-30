@@ -1,9 +1,9 @@
 package extendable
 
-import csstype.HtmlAttributes
 import extendable.components.*
 import extendable.components.assembly.Compiler
 import extendable.components.connected.*
+import org.w3c.files.Blob
 import tools.DebugTools
 import tools.HTMLTools
 
@@ -100,6 +100,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getAssembly(): Compiler {
         return compiler
     }
+
+    fun getFormattedFile(type: FileFormatter.ExportFormat, vararg settings: FileFormatter.Setting): Blob = FileFormatter().build(this, type, *settings)
 
 
     /*Execution Events*/
