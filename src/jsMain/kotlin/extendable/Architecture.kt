@@ -101,7 +101,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         return compiler
     }
 
-    fun getFormattedFile(type: FileFormatter.ExportFormat, vararg settings: FileFormatter.Setting): Blob = FileFormatter().build(this, type, *settings)
+    fun getFormattedFile(type: FileBuilder.ExportFormat, vararg settings: FileBuilder.Setting): Blob = FileBuilder().build(this, type, *settings)
 
 
     /*Execution Events*/

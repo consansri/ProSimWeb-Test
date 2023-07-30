@@ -4,9 +4,8 @@ import AppLogic
 import StyleConst
 import csstype.*
 import emotion.react.css
-import extendable.components.connected.FileFormatter
+import extendable.components.connected.FileBuilder
 import extendable.components.connected.FileHandler
-import extendable.components.connected.Memory
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import org.w3c.dom.*
@@ -46,7 +45,7 @@ val Menu = FC<MenuProps>() { props ->
     val (importHidden, setImportHidden) = useState(true)
 
     val (exportHidden, setExportHidden) = useState(true)
-    val (selFormat, setSelFormat) = useState<FileFormatter.ExportFormat>(FileFormatter.ExportFormat.entries.first())
+    val (selFormat, setSelFormat) = useState<FileBuilder.ExportFormat>(FileBuilder.ExportFormat.entries.first())
 
     val (selAddrW, setSelAddrW) = useState<Int>(8)
     val (selDataW, setSelDataW) = useState<Int>(256)
@@ -248,12 +247,11 @@ val Menu = FC<MenuProps>() { props ->
 
                     option {
                         disabled = true
-                        selected = true
                         value = ""
                         +"Choose Export Format"
                     }
 
-                    for (format in FileFormatter.ExportFormat.entries) {
+                    for (format in FileBuilder.ExportFormat.entries) {
                         option {
                             value = format.name
                             +format.name
@@ -261,7 +259,7 @@ val Menu = FC<MenuProps>() { props ->
                     }
 
                     onChange = {
-                        for (format in FileFormatter.ExportFormat.entries) {
+                        for (format in FileBuilder.ExportFormat.entries) {
                             if (format.name == it.currentTarget.value) {
                                 setSelFormat(format)
                                 break
@@ -271,7 +269,7 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 when (selFormat) {
-                    FileFormatter.ExportFormat.VHDL -> {
+                    FileBuilder.ExportFormat.VHDL -> {
                         div {
 
                             css {
@@ -332,7 +330,7 @@ val Menu = FC<MenuProps>() { props ->
                             }
 
                             onClick = {
-                                val blob = data.getArch().getFormattedFile(selFormat, FileFormatter.Setting.DataWidth(selDataW), FileFormatter.Setting.AddressWidth(selAddrW))
+                                val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
                                 val anchor = document.createElement("a") as HTMLAnchorElement
                                 document.body?.appendChild(anchor)
                                 anchor.style.display = "none"
@@ -345,7 +343,7 @@ val Menu = FC<MenuProps>() { props ->
                         }
                     }
 
-                    FileFormatter.ExportFormat.MIF -> {
+                    FileBuilder.ExportFormat.MIF -> {
                         div {
 
                             css {
@@ -406,7 +404,7 @@ val Menu = FC<MenuProps>() { props ->
                             }
 
                             onClick = {
-                                val blob = data.getArch().getFormattedFile(selFormat,  FileFormatter.Setting.DataWidth(selDataW), FileFormatter.Setting.AddressWidth(selAddrW))
+                                val blob = data.getArch().getFormattedFile(selFormat,  FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
 
                                 val anchor = document.createElement("a") as HTMLAnchorElement
                                 document.body?.appendChild(anchor)
@@ -420,7 +418,7 @@ val Menu = FC<MenuProps>() { props ->
                         }
                     }
 
-                    FileFormatter.ExportFormat.HEXDUMP -> {
+                    FileBuilder.ExportFormat.HEXDUMP -> {
                         div {
                             css {
                                 display = Display.flex
@@ -480,7 +478,7 @@ val Menu = FC<MenuProps>() { props ->
                             }
 
                             onClick = {
-                                val blob = data.getArch().getFormattedFile(selFormat, FileFormatter.Setting.DataWidth(selDataW), FileFormatter.Setting.AddressWidth(selAddrW))
+                                val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
                                 val anchor = document.createElement("a") as HTMLAnchorElement
                                 document.body?.appendChild(anchor)
                                 anchor.style.display = "none"
