@@ -8,6 +8,10 @@ import extendable.components.connected.FileBuilder
 import extendable.components.connected.FileHandler
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
+import kotlinx.js.timers.Timeout
+import kotlinx.js.timers.clearInterval
+import kotlinx.js.timers.setInterval
+import kotlinx.js.timers.setTimeout
 import org.w3c.dom.*
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
@@ -47,13 +51,14 @@ val Menu = FC<MenuProps>() { props ->
     val (exportHidden, setExportHidden) = useState(true)
     val (selFormat, setSelFormat) = useState<FileBuilder.ExportFormat>(FileBuilder.ExportFormat.entries.first())
 
-    val (selAddrW, setSelAddrW) = useState<Int>(8)
-    val (selDataW, setSelDataW) = useState<Int>(256)
+    val (selAddrW, setSelAddrW) = useState<Int>(data.getArch().getMemory().getAddressSize().bitWidth)
+    val (selDataW, setSelDataW) = useState<Int>(data.getArch().getMemory().getWordSize().bitWidth)
 
     val navRef = useRef<HTMLElement>()
     val archsRef = useRef<HTMLDivElement>()
     val importRef = useRef<HTMLInputElement>()
 
+    val downloadAsyncRef = useRef<Timeout>()
 
     fun showNavbar(state: Boolean) {
         navRef.current?.let {
@@ -268,227 +273,88 @@ val Menu = FC<MenuProps>() { props ->
                     }
                 }
 
-                when (selFormat) {
-                    FileBuilder.ExportFormat.VHDL -> {
-                        div {
+                div {
 
-                            css {
-                                display = Display.flex
-                                flexDirection = FlexDirection.column
-                                justifyContent = JustifyContent.center
-                                alignItems = AlignItems.center
-                            }
-
-                            label {
-                                htmlFor = "vhdlAddrInput"
-                                +"Address Width [Bits]"
-                            }
-
-                            input {
-                                id = "vhdlAddrInput"
-                                type = InputType.number
-                                min = 1.0
-                                max = 2048.0
-                                defaultValue = selAddrW.toString()
-
-                                onChange = {
-                                    setSelAddrW(it.currentTarget.valueAsNumber.toInt())
-                                }
-                            }
-                        }
-
-                        div {
-
-                            css {
-                                display = Display.flex
-                                flexDirection = FlexDirection.column
-                                justifyContent = JustifyContent.center
-                                alignItems = AlignItems.center
-                            }
-                            label {
-                                htmlFor = "vhdlDataInput"
-                                +"Data Width [Bits]"
-                            }
-
-                            input {
-                                id = "vhdlDataInput"
-                                type = InputType.number
-                                min = 1.0
-                                max = 2048.0
-                                defaultValue = selDataW.toString()
-
-                                onChange = {
-                                    setSelDataW(it.currentTarget.valueAsNumber.toInt())
-                                }
-                            }
-                        }
-
-                        a {
-                            img {
-                                className = ClassName("nav-img")
-                                src = "icons/download.svg"
-                            }
-
-                            onClick = {
-                                val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
-                                val anchor = document.createElement("a") as HTMLAnchorElement
-                                document.body?.appendChild(anchor)
-                                anchor.style.display = "none"
-                                anchor.href = URL.createObjectURL(blob)
-                                anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
-                                anchor.click()
-
-                                setExportHidden(true)
-                            }
-                        }
+                    css {
+                        display = Display.flex
+                        flexDirection = FlexDirection.column
+                        justifyContent = JustifyContent.center
+                        alignItems = AlignItems.center
                     }
 
-                    FileBuilder.ExportFormat.MIF -> {
-                        div {
-
-                            css {
-                                display = Display.flex
-                                flexDirection = FlexDirection.column
-                                justifyContent = JustifyContent.center
-                                alignItems = AlignItems.center
-                            }
-
-                            label {
-                                htmlFor = "vhdlAddrInput"
-                                +"Address Width [Bits]"
-                            }
-
-                            input {
-                                id = "vhdlAddrInput"
-                                type = InputType.number
-                                min = 1.0
-                                max = 2048.0
-                                defaultValue = selAddrW.toString()
-
-                                onChange = {
-                                    setSelAddrW(it.currentTarget.valueAsNumber.toInt())
-                                }
-                            }
-                        }
-
-                        div {
-
-                            css {
-                                display = Display.flex
-                                flexDirection = FlexDirection.column
-                                justifyContent = JustifyContent.center
-                                alignItems = AlignItems.center
-                            }
-                            label {
-                                htmlFor = "vhdlDataInput"
-                                +"Data Width [Bits]"
-                            }
-
-                            input {
-                                id = "vhdlDataInput"
-                                type = InputType.number
-                                min = 1.0
-                                max = 2048.0
-                                defaultValue = selDataW.toString()
-
-                                onChange = {
-                                    setSelDataW(it.currentTarget.valueAsNumber.toInt())
-                                }
-                            }
-                        }
-
-                        a {
-                            img {
-                                className = ClassName("nav-img")
-                                src = "icons/download.svg"
-                            }
-
-                            onClick = {
-                                val blob = data.getArch().getFormattedFile(selFormat,  FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
-
-                                val anchor = document.createElement("a") as HTMLAnchorElement
-                                document.body?.appendChild(anchor)
-                                anchor.style.display = "none"
-                                anchor.href = URL.createObjectURL(blob)
-                                anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
-                                anchor.click()
-
-                                setExportHidden(true)
-                            }
-                        }
+                    label {
+                        htmlFor = "vhdlAddrInput"
+                        +"Address Width [Bits]"
                     }
 
-                    FileBuilder.ExportFormat.HEXDUMP -> {
-                        div {
-                            css {
-                                display = Display.flex
-                                flexDirection = FlexDirection.column
-                                justifyContent = JustifyContent.center
-                                alignItems = AlignItems.center
-                            }
+                    input {
+                        id = "vhdlAddrInput"
+                        type = InputType.number
+                        min = 1.0
+                        max = 2048.0
+                        defaultValue = selAddrW.toString()
 
-                            label {
-                                htmlFor = "vhdlAddrInput"
-                                +"Address Width [Bits]"
-                            }
+                        onChange = {
+                            setSelAddrW(it.currentTarget.valueAsNumber.toInt())
+                        }
+                    }
+                }
 
-                            input {
-                                id = "vhdlAddrInput"
-                                type = InputType.number
-                                min = 1.0
-                                max = 2048.0
-                                defaultValue = selAddrW.toString()
+                div {
 
-                                onChange = {
-                                    setSelAddrW(it.currentTarget.valueAsNumber.toInt())
-                                }
-                            }
+                    css {
+                        display = Display.flex
+                        flexDirection = FlexDirection.column
+                        justifyContent = JustifyContent.center
+                        alignItems = AlignItems.center
+                    }
+                    label {
+                        htmlFor = "vhdlDataInput"
+                        +"Data Width [Bits]"
+                    }
+
+                    input {
+                        id = "vhdlDataInput"
+                        type = InputType.number
+                        min = 1.0
+                        max = 2048.0
+                        defaultValue = selDataW.toString()
+
+                        onChange = {
+                            setSelDataW(it.currentTarget.valueAsNumber.toInt())
+                        }
+                    }
+                }
+
+                a {
+                    img {
+                        className = ClassName("nav-img")
+                        src = "icons/download.svg"
+                    }
+
+                    onClick = {
+                        downloadAsyncRef.current?.let {
+                            clearInterval(it)
                         }
 
-                        div {
+                        downloadAsyncRef.current = setTimeout({
+                            val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
+                            val anchor = document.createElement("a") as HTMLAnchorElement
+                            document.body?.appendChild(anchor)
+                            anchor.style.display = "none"
+                            anchor.href = URL.createObjectURL(blob)
+                            anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
+                            anchor.click()
+                        }, 10)
 
-                            css {
-                                display = Display.flex
-                                flexDirection = FlexDirection.column
-                                justifyContent = JustifyContent.center
-                                alignItems = AlignItems.center
+                        setTimeout({
+                            downloadAsyncRef.current?.let{
+                                clearInterval(it)
+                                console.warn("Download File Generation took to long!")
                             }
-                            label {
-                                htmlFor = "vhdlDataInput"
-                                +"Data Width [Bits]"
-                            }
+                        }, 3000)
 
-                            input {
-                                id = "vhdlDataInput"
-                                type = InputType.number
-                                min = 1.0
-                                max = 2048.0
-                                defaultValue = selDataW.toString()
-
-                                onChange = {
-                                    setSelDataW(it.currentTarget.valueAsNumber.toInt())
-                                }
-                            }
-                        }
-
-                        a {
-                            img {
-                                className = ClassName("nav-img")
-                                src = "icons/download.svg"
-                            }
-
-                            onClick = {
-                                val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
-                                val anchor = document.createElement("a") as HTMLAnchorElement
-                                document.body?.appendChild(anchor)
-                                anchor.style.display = "none"
-                                anchor.href = URL.createObjectURL(blob)
-                                anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
-                                anchor.click()
-
-                                setExportHidden(true)
-                            }
-                        }
+                        setExportHidden(true)
                     }
                 }
 

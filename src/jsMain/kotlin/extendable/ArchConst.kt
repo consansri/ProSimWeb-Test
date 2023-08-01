@@ -32,6 +32,9 @@ object ArchConst {
         val whiteSpace = StyleConst.HLCLASS_WHITESPACE
     }
 
+    // GLOBAL
+    const val PROSIMNAME = "ProSimWeb"
+
     // FILEHANDLER
     const val UNDO_STATE_COUNT = 32
     const val REDO_STATE_COUNT = 32

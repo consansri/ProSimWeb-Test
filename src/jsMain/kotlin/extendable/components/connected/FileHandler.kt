@@ -76,7 +76,11 @@ class FileHandler(val fileEnding: String) {
     fun getCurrNameWithoutType(): String {
         val name = files[currentID].getName()
         val index = name.lastIndexOf('.')
-        return name.substring(0, index)
+        return if (index > 0) {
+            name.substring(0, index)
+        } else {
+            name
+        }
     }
 
     fun getCurrUndoLength(): Int = files[currentID].getUndoStates().size
