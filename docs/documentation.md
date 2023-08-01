@@ -122,9 +122,31 @@ Measurement Single Instruction add
 > **Solution:** Async Execution
 
 > **Issue:** Execution to slow\
-> **Solution:** TODO
+> **Solutions:**
+>
+> | id | improvement    | solution                                                                 | continuous speed |
+> |----|----------------|--------------------------------------------------------------------------|-----------------|
+> | 0  | 3 times faster | Exchanged Binary Weight calculation `pow(2, index))` with look up table! | 1015 ms         |
+> |    | |                                                                          ||
+> 
+
 
 **After**
+
+| execution mode | time elapsed | elapsed time with performance measurement | executed instructions |
+|:--------------:|:------------:|:-----------------------------------------:|----------------------:|
+|   continuous   |   1015 ms    |                  1302 ms                  |                   247 |
+|  single step   |   2 - 5 ms   |                     -                     |                   lui |
+|  single step   |  9 - 22 ms   |                     -                     |                  addi |
+|  single step   |   0 - 1 ms   |                     -                     |                   jal |
+|  single step   |    13 ms     |                     -                     |                   beq |
+|  single step   |  16 - 32 ms  |                     -                     |                   add |
+|  single step   |  5 - 14 ms   |                     -                     |                    lb |
+|  single step   |  4 - 20 ms   |                     -                     |                    sb |
+|  single step   |    13 ms     |                     -                     |                   beq |
+|  single step   |     1 ms     |                     -                     |                  jalr |
+|  single step   |   5 - 8 ms   |                     -                     |                   blt |
+|  single step   |  18 - 19 ms  |                     -                     |                   bne |
 
 ### RegisterEdit ###
 

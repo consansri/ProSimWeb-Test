@@ -3,7 +3,10 @@ package extendable.components.types
 import extendable.ArchConst
 import tools.DebugTools
 
+
 object DecTools {
+
+    val binaryWeights: List<BinaryWeight> = List(MutVal.Size.Bit128().bitWidth) { BinaryWeight(it, pow("2", it.toString())) }
 
     fun add(a: String, b: String): String {
         val aTrimmed = a.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
@@ -431,7 +434,7 @@ object DecTools {
             }
             DebugTools.ARCH_BVDivisionLoopLimit?.let {
                 if (loop < DebugTools.ARCH_BVDivisionLoopLimit) {
-                    if(DebugTools.ARCH_showBVDecToolsCalculationDetails){
+                    if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
                         console.log("DecTools.divideUnsigned.loop$loop: dividend: ${dividendBuffer}, result: ${result}, rest: ${rest}, smallResult: ${smallResult}")
                     }
                     loop++
@@ -500,18 +503,18 @@ object DecTools {
         return result.trimStart('0')
     }
 
-    fun checkEmpty(a: String): String{
-        return if(a.equals("")){
+    fun checkEmpty(a: String): String {
+        return if (a.equals("")) {
             "0"
-        }else{
+        } else {
             a
         }
     }
 
-    fun checkEmpty(divResult: DivisionResult): DivisionResult{
-        return if(divResult.result.equals("")){
-            DivisionResult("0",divResult.rest)
-        }else{
+    fun checkEmpty(divResult: DivisionResult): DivisionResult {
+        return if (divResult.result.equals("")) {
+            DivisionResult("0", divResult.rest)
+        } else {
             divResult
         }
 
@@ -519,5 +522,6 @@ object DecTools {
 
 
     data class DivisionResult(val result: String, val rest: String)
+    data class BinaryWeight(val binaryIndex: Int, val weight: String)
 
 }

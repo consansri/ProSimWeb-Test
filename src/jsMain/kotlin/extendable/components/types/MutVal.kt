@@ -797,6 +797,7 @@ class MutVal {
                 return Binary(stringBuilder.toString(), hex.size)
             }
 
+            @Deprecated("Performance issues!")
             fun getBinary(dec: Dec): Binary {
 
                 var decString = dec.getRawDecStr()
@@ -809,7 +810,7 @@ class MutVal {
                 var binaryStr = ""
 
                 for (i in dec.size.bitWidth - 1 downTo 0) {
-                    val weight = DecTools.pow("2", "$i")
+                    val weight = DecTools.binaryWeights[i].weight
                     if (DecTools.isGreaterEqualThan(decString, weight)) {
                         binaryStr = binaryStr + "1"
                         decString = DecTools.sub(decString, weight)
@@ -833,6 +834,7 @@ class MutVal {
                 return Binary(binaryStr, dec.size)
             }
 
+            @Deprecated("Performance issues!")
             fun getBinary(udec: UDec): Binary {
 
                 var udecString = udec.getRawUDecStr()
@@ -840,7 +842,7 @@ class MutVal {
                 var binaryStr = ""
 
                 for (i in udec.size.bitWidth - 1 downTo 0) {
-                    val weight = DecTools.pow("2", "$i")
+                    val weight = DecTools.binaryWeights[i].weight
                     if (DecTools.isGreaterEqualThan(udecString, weight)) {
                         binaryStr = binaryStr + "1"
                         udecString = DecTools.sub(udecString, weight)
