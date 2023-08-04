@@ -140,7 +140,8 @@ class MutVal {
 
         class Binary(binString: String, size: Size) : Value(size) {
             private val binString: String
-
+            val regexWithPreString = Regex("0b[0-1]+")
+            val regex = Regex("[0-1]+")
             constructor(size: Size) : this(ArchConst.PRESTRING_BINARY + "0", size)
 
             constructor(binString: String) : this(binString, Tools.getNearestSize(binString.trim().removePrefix(ArchConst.PRESTRING_BINARY).length))
@@ -150,8 +151,7 @@ class MutVal {
             }
 
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
-                val regexWithPreString = Regex("0b[0-1]+")
-                val regex = Regex("[0-1]+")
+
 
                 val formattedInput = ArchConst.PRESTRING_BINARY + string.trim().removePrefix(ArchConst.PRESTRING_BINARY).padStart(size.bitWidth, '0')
 
@@ -336,7 +336,7 @@ class MutVal {
 
         class Hex(hexString: String, size: Size) : Value(size) {
             private val hexString: String
-
+            val regex = Regex("[0-9A-Fa-f]+")
             init {
                 this.hexString = check(hexString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
@@ -358,7 +358,7 @@ class MutVal {
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 var formatted = string.trim().removePrefix(ArchConst.PRESTRING_HEX).padStart(size.byteCount * 2, '0').uppercase()
 
-                val regex = Regex("[0-9A-Fa-f]+")
+
 
                 if (regex.matches(formatted)) {
                     if (formatted.length <= size.byteCount * 2) {
@@ -464,7 +464,7 @@ class MutVal {
         class Dec(decString: String, size: Size) : Value(size) {
             private val decString: String
             private val negative: Boolean
-
+            val posRegex = Regex("[0-9]+")
             init {
                 this.decString = check(decString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
                 this.negative = DecTools.isNegative(this.decString)
@@ -491,7 +491,7 @@ class MutVal {
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 val formatted = string.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
 
-                val posRegex = Regex("[0-9]+")
+
 
                 if (!posRegex.matches(formatted.replace("-", ""))) {
                     val zeroString = "0"
@@ -605,7 +605,8 @@ class MutVal {
 
         class UDec(udecString: String, size: Size) : Value(size) {
             private val udecString: String
-
+            val posRegex = Regex("[0-9]+")
+            val negRegex = Regex("-[0-9]+")
             init {
                 this.udecString = check(udecString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
             }
@@ -631,8 +632,7 @@ class MutVal {
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 val formatted = string.trim().removePrefix(ArchConst.PRESTRING_UDECIMAL)
 
-                val posRegex = Regex("[0-9]+")
-                val negRegex = Regex("-[0-9]+")
+
 
                 if (negRegex.matches(formatted)) {
                     val posValue = DecTools.abs(formatted)
@@ -882,7 +882,7 @@ class MutVal {
 
                 for (weight in binString.length - 1 downTo 0) {
                     val index = binString.length - 1 - weight
-                    val summand = DecTools.pow("2", weight.toString())
+                    val summand = DecTools.binaryWeights[weight].weight
                     if (binString[index] == '1') {
                         decString = DecTools.add(decString, summand)
                     }
@@ -966,6 +966,7 @@ class MutVal {
             return super.equals(other)
         }
 
+        class Bit1 : Size("1 Bit", 1, 1)
         class Bit3 : Size("3 Bit", 3, 1)
         class Bit5 : Size("5 Bit", 5, 1)
         class Bit7 : Size("7 Bit", 7, 1)
@@ -993,6 +994,13 @@ class MutVal {
 
         constructor(size: Size) {
             when (size) {
+                is Size.Bit1 -> {
+                    this.min = "0"
+                    this.max = "1"
+                    this.umin = "0"
+                    this.umax = "1"
+                }
+
                 is Size.Bit8 -> {
                     this.min = "-128"
                     this.max = "127"

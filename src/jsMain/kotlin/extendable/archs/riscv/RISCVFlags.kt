@@ -4,9 +4,9 @@ import StyleConst
 
 object RISCVFlags {
 
-    val offset = StyleConst.HLCLASS_blue
+    val offset = StyleConst.HLCLASS_green
     val register = StyleConst.HLCLASS_magenta
-    val constant = StyleConst.HLCLASS_green
+    val constant = StyleConst.HLCLASS_blue
 
     val label = StyleConst.HLCLASS_cyan
     val directive = StyleConst.HLCLASS_yellow
@@ -17,5 +17,6 @@ object RISCVFlags {
     val pre_equ = StyleConst.HLCLASS_B03
     val pre_option = StyleConst.HLCLASS_B04
     val pre_macro = StyleConst.HLCLASS_B03
+    val pre_attribute = StyleConst.HLCLASS_B04
 
 }

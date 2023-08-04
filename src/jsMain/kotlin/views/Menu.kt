@@ -10,7 +10,6 @@ import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.js.timers.Timeout
 import kotlinx.js.timers.clearInterval
-import kotlinx.js.timers.setInterval
 import kotlinx.js.timers.setTimeout
 import org.w3c.dom.*
 import org.w3c.dom.url.URL
@@ -259,7 +258,7 @@ val Menu = FC<MenuProps>() { props ->
                     for (format in FileBuilder.ExportFormat.entries) {
                         option {
                             value = format.name
-                            +format.name
+                            +format.uiName
                         }
                     }
 
@@ -273,55 +272,57 @@ val Menu = FC<MenuProps>() { props ->
                     }
                 }
 
-                div {
+                if (selFormat != FileBuilder.ExportFormat.CURRENT_FILE) {
+                    div {
 
-                    css {
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        justifyContent = JustifyContent.center
-                        alignItems = AlignItems.center
-                    }
+                        css {
+                            display = Display.flex
+                            flexDirection = FlexDirection.column
+                            justifyContent = JustifyContent.center
+                            alignItems = AlignItems.center
+                        }
 
-                    label {
-                        htmlFor = "vhdlAddrInput"
-                        +"Address Width [Bits]"
-                    }
+                        label {
+                            htmlFor = "vhdlAddrInput"
+                            +"Address Width [Bits]"
+                        }
 
-                    input {
-                        id = "vhdlAddrInput"
-                        type = InputType.number
-                        min = 1.0
-                        max = 2048.0
-                        defaultValue = selAddrW.toString()
+                        input {
+                            id = "vhdlAddrInput"
+                            type = InputType.number
+                            min = 1.0
+                            max = 2048.0
+                            defaultValue = selAddrW.toString()
 
-                        onChange = {
-                            setSelAddrW(it.currentTarget.valueAsNumber.toInt())
+                            onChange = {
+                                setSelAddrW(it.currentTarget.valueAsNumber.toInt())
+                            }
                         }
                     }
-                }
 
-                div {
+                    div {
 
-                    css {
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        justifyContent = JustifyContent.center
-                        alignItems = AlignItems.center
-                    }
-                    label {
-                        htmlFor = "vhdlDataInput"
-                        +"Data Width [Bits]"
-                    }
+                        css {
+                            display = Display.flex
+                            flexDirection = FlexDirection.column
+                            justifyContent = JustifyContent.center
+                            alignItems = AlignItems.center
+                        }
+                        label {
+                            htmlFor = "vhdlDataInput"
+                            +"Data Width [Bits]"
+                        }
 
-                    input {
-                        id = "vhdlDataInput"
-                        type = InputType.number
-                        min = 1.0
-                        max = 2048.0
-                        defaultValue = selDataW.toString()
+                        input {
+                            id = "vhdlDataInput"
+                            type = InputType.number
+                            min = 1.0
+                            max = 2048.0
+                            defaultValue = selDataW.toString()
 
-                        onChange = {
-                            setSelDataW(it.currentTarget.valueAsNumber.toInt())
+                            onChange = {
+                                setSelDataW(it.currentTarget.valueAsNumber.toInt())
+                            }
                         }
                     }
                 }
@@ -343,12 +344,16 @@ val Menu = FC<MenuProps>() { props ->
                             document.body?.appendChild(anchor)
                             anchor.style.display = "none"
                             anchor.href = URL.createObjectURL(blob)
-                            anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
+                            if (selFormat.ending.isNotEmpty()) {
+                                anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
+                            } else {
+                                anchor.download = data.getArch().getFileHandler().getCurrent().getName()
+                            }
                             anchor.click()
                         }, 10)
 
                         setTimeout({
-                            downloadAsyncRef.current?.let{
+                            downloadAsyncRef.current?.let {
                                 clearInterval(it)
                                 console.warn("Download File Generation took to long!")
                             }

@@ -11,9 +11,9 @@ abstract class Grammar {
     abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>): GrammarTree
 
     class GrammarTree(val rootNode: TreeNode.RootNode? = null) {
-        fun contains(token: Compiler.Token): TreeNode.ElementNode? {
+        fun contains(token: Compiler.Token): SearchResult? {
             rootNode?.let {
-                return it.searchTokenNode(token)
+                return it.searchTokenNode(token, "")
             }
 
             return null
@@ -172,24 +172,20 @@ abstract class Grammar {
 
     sealed class TreeNode(val name: String) {
         abstract fun getAllTokens(): Array<out Compiler.Token>
-
-        abstract fun searchTokenNode(token: Compiler.Token): ElementNode?
-
+        abstract fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult?
         open class ElementNode(val highlighting: ConnectedHL, name: String, vararg val tokens: Compiler.Token) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 return tokens
             }
 
-            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
-
+            override fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult? {
                 return if (tokens.contains(token)) {
-                    this
+                    SearchResult(this, "$prevPath/${this.name}")
                 } else {
                     null
                 }
             }
         }
-
         open class RowNode(name: String, vararg val nullableElementNodes: ElementNode?) : TreeNode(name) {
             val elementNodes: Array<out ElementNode>
 
@@ -203,9 +199,9 @@ abstract class Grammar {
                 return tokens.toTypedArray()
             }
 
-            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+            override fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult? {
                 elementNodes.forEach {
-                    val result = it.searchTokenNode(token)
+                    val result = it.searchTokenNode(token, "$prevPath/${this.name}")
                     if (result != null) {
                         return result
                     }
@@ -213,7 +209,6 @@ abstract class Grammar {
                 return null
             }
         }
-
         open class SectionNode(name: String, vararg val collNodes: RowNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
@@ -221,9 +216,9 @@ abstract class Grammar {
                 return tokens.toTypedArray()
             }
 
-            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+            override fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult? {
                 collNodes.forEach {
-                    val result = it.searchTokenNode(token)
+                    val result = it.searchTokenNode(token, "$prevPath/${this.name}")
                     if (result != null) {
                         return result
                     }
@@ -231,7 +226,6 @@ abstract class Grammar {
                 return null
             }
         }
-
         open class ContainerNode(name: String, vararg val nodes: TreeNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
@@ -239,9 +233,9 @@ abstract class Grammar {
                 return tokens.toTypedArray()
             }
 
-            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+            override fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult? {
                 nodes.forEach {
-                    val result = it.searchTokenNode(token)
+                    val result = it.searchTokenNode(token,"$prevPath/${this.name}")
                     if (result != null) {
                         return result
                     }
@@ -249,8 +243,7 @@ abstract class Grammar {
                 return null
             }
         }
-
-        open class RootNode(allErrors: List<Error>, allWarnings: List<Warning>, vararg val containers: ContainerNode) : TreeNode("name") {
+        open class RootNode(allErrors: List<Error>, allWarnings: List<Warning>, vararg val containers: ContainerNode) : TreeNode("root") {
 
             val allErrors: List<Error>
             val allWarnings: List<Warning>
@@ -280,9 +273,9 @@ abstract class Grammar {
                 return tokens.toTypedArray()
             }
 
-            override fun searchTokenNode(token: Compiler.Token): ElementNode? {
+            override fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult? {
                 containers.forEach {
-                    val result = it.searchTokenNode(token)
+                    val result = it.searchTokenNode(token,"$prevPath/${this.name}")
                     if (result != null) {
                         return result
                     }
@@ -458,5 +451,7 @@ abstract class Grammar {
 
 
     }
+
+    data class SearchResult(val elementNode: TreeNode.ElementNode, val path: String = "")
 
 }

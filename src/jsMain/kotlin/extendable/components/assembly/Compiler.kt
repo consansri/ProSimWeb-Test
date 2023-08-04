@@ -220,7 +220,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             for (token in tokenLine) {
                 if (grammarTree?.rootNode != null) {
-                    val node = grammarTree?.contains(token)
+                    val node = grammarTree?.contains(token)?.elementNode
                     if (node != null) {
                         val hlFlag = node.highlighting.getHLFlag(token)
                         if (hlFlag != null) {

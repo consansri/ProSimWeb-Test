@@ -4,6 +4,7 @@ import StyleConst
 import extendable.ArchConst
 import extendable.Architecture
 import extendable.archs.riscv.RISCVGrammar.E_DIRECTIVE.DirType.*
+import extendable.archs.riscv.RISCVGrammar.R_INSTR.InstrType.*
 import extendable.components.assembly.Assembly
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
@@ -36,9 +37,11 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
             val result = binaryMapper.getInstrFromBinary(binary)
             if (result != null) {
-                entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id)
+                var branchOffset5: String = ""
+                var branchOffset7: String = ""
+                var jalOffset20: String = ""
                 val paramString = result.binaryMap.entries.joinToString(ArchConst.TRANSCRIPT_PARAMSPLIT) {
-                    "${it.key.name.lowercase()}\t${
+                    /*"${it.key.name.lowercase()}\t${*/
                         when (it.key) {
                             RISCVBinMapper.MaskLabel.RD -> {
                                 architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
@@ -57,22 +60,28 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             }
 
                             RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.IMM20 -> {
-                                if (result.type == RISCVGrammar.R_INSTR.InstrType.JALR || result.type == RISCVGrammar.R_INSTR.InstrType.JAL) {
-                                    var refLabelStr = ""
-                                    for (labels in labelBinAddrMap) {
-                                        if (MutVal.Value.Binary(labels.value) == it.value) {
-                                            refLabelStr = labels.key.wholeName
-                                        }
-                                    }
-                                    if (refLabelStr.isNotEmpty()) {
-                                        "${it.value.toHex().getHexStr()} -> $refLabelStr"
-                                    } else {
-                                        it.value.toHex().getHexStr()
+                                when (result.type) {
+                                    JAL -> {
+                                        jalOffset20 = it.value.getRawBinaryStr()
+
                                     }
 
-                                } else {
-                                    it.value.toHex().getHexStr()
+                                    BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
+                                        when (it.key) {
+                                            RISCVBinMapper.MaskLabel.IMM5 -> {
+                                                branchOffset5 = it.value.getRawBinaryStr()
+                                            }
+
+                                            RISCVBinMapper.MaskLabel.IMM7 -> {
+                                                branchOffset7 = it.value.getRawBinaryStr()
+                                            }
+                                            else -> {}
+                                        }
+                                    }
+
+                                    else -> {}
                                 }
+                                it.value.toHex().getHexStr()
                             }
 
                             else -> {
@@ -80,7 +89,30 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             }
                         }
 
-                    }"
+                   /* }"*/
+                }
+                when (result.type) {
+                    JAL -> {
+                        val shiftedImm = MutVal.Value.Binary(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), MutVal.Size.Bit20()).getResized(MutVal.Size.Bit32()) shl 1
+                        for (label in labelBinAddrMap) {
+                            if (MutVal.Value.Binary(label.value) == (entry.memoryAddress.toBin() + shiftedImm).toBin()) {
+                                entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id + " to ${label.key.wholeName}")
+                            }
+                        }
+                    }
+                    BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
+                        val imm12 = MutVal.Value.Binary(branchOffset7[0].toString() + branchOffset5[4] + branchOffset7.substring(1) + branchOffset5.substring(0, 4), MutVal.Size.Bit12())
+                        val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
+                        for (label in labelBinAddrMap) {
+                            if (MutVal.Value.Binary(label.value) == (entry.memoryAddress.toBin() + offset).toBin()) {
+                                entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id + " to ${label.key.wholeName}")
+                            }
+                        }
+                    }
+
+                    else -> {
+                        entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id)
+                    }
                 }
                 entry.addContent(ArchConst.TranscriptHeaders.PARAMS, paramString)
             }
@@ -117,7 +149,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             when (entry) {
                                 is RISCVGrammar.R_INSTR -> {
                                     instructionMapList.set(instrID, entry)
-                                    if(entry.globlStart){
+                                    if (entry.globlStart) {
                                         pcStartAddress = (MutVal.Value.Hex(instrID.toString(16), MutVal.Size.Bit32()) * MutVal.Value.Hex("4")).toHex()
                                     }
                                     instrID += entry.instrType.memWords

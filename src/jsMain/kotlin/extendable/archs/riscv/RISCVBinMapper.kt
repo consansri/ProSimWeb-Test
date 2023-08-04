@@ -1,5 +1,6 @@
 package extendable.archs.riscv
 
+import csstype.Mask
 import extendable.ArchConst
 import extendable.archs.riscv.RISCVGrammar.R_INSTR.InstrType.*
 import extendable.components.types.MutVal
@@ -323,6 +324,47 @@ class RISCVBinMapper {
 
                     if (jalrOpCode != null) {
                         binaryArray.add(jalrOpCode)
+                    }
+                }
+
+                Call -> {
+                    if (labels.isNotEmpty()) {
+                        val lblAddr = labelAddrMap.get(labels.first())
+                        if (lblAddr != null) {
+                            val x1 = MutVal.Value.Binary("1", MutVal.Size.Bit5())
+                            val imm32 = (MutVal.Value.Binary(lblAddr, MutVal.Size.Bit32()) - instrStartAddress).toBin().getRawBinaryStr()
+                            val auipcOff = (MutVal.Value.Binary(imm32.substring(0, 20), MutVal.Size.Bit20()) + MutVal.Value.Binary(imm32[20].toString(), MutVal.Size.Bit1())).toBin()
+                            val jalrOff = MutVal.Value.Binary(imm32.substring(20), MutVal.Size.Bit12())
+
+                            val auipcOpCode = AUIPC.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.IMM20 to auipcOff))
+                            val jalrOpCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.IMM12 to jalrOff, MaskLabel.RS1 to x1))
+
+                            if (auipcOpCode != null && jalrOpCode != null) {
+                                binaryArray.add(auipcOpCode)
+                                binaryArray.add(jalrOpCode)
+                            }
+                        }
+                    }
+                }
+
+                Tail -> {
+                    if (labels.isNotEmpty()) {
+                        val lblAddr = labelAddrMap.get(labels.first())
+                        if (lblAddr != null) {
+                            val x0 = MutVal.Value.Binary("0", MutVal.Size.Bit5())
+                            val x6 = MutVal.Value.Hex("6", MutVal.Size.Bit5()).toBin()
+                            val imm32 = (MutVal.Value.Binary(lblAddr, MutVal.Size.Bit32()) - instrStartAddress).toBin().getRawBinaryStr()
+                            val auipcOff = (MutVal.Value.Binary(imm32.substring(0, 20), MutVal.Size.Bit20()) + MutVal.Value.Binary(imm32[20].toString(), MutVal.Size.Bit1())).toBin()
+                            val jalrOff = MutVal.Value.Binary(imm32.substring(20), MutVal.Size.Bit12())
+
+                            val auipcOpCode = AUIPC.opCode?.getOpCode(mapOf(MaskLabel.RD to x6, MaskLabel.IMM20 to auipcOff))
+                            val jalrOpCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x0, MaskLabel.IMM12 to jalrOff, MaskLabel.RS1 to x6))
+
+                            if (auipcOpCode != null && jalrOpCode != null) {
+                                binaryArray.add(auipcOpCode)
+                                binaryArray.add(jalrOpCode)
+                            }
+                        }
                     }
                 }
 

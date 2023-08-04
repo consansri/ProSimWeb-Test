@@ -95,6 +95,22 @@ class RISCVGrammar() : Grammar() {
             }
         }
 
+        // ----------------- remove options
+        for (lineID in remainingLines.indices) {
+            val lineStr = remainingLines[lineID].joinToString("") { it.content }
+            SyntaxRegex.pre_attribute.matchEntire(lineStr)?.let {
+                pres.add(Pre_ATTRIBUTE(*remainingLines[lineID].toTypedArray()))
+                remainingLines[lineID] = emptyList()
+            }
+        }
+        // ----------------- remove attributes
+        for (lineID in remainingLines.indices) {
+            val lineStr = remainingLines[lineID].joinToString("") { it.content }
+            SyntaxRegex.pre_option.matchEntire(lineStr)?.let {
+                pres.add(Pre_OPTION(*remainingLines[lineID].toTypedArray()))
+                remainingLines[lineID] = emptyList()
+            }
+        }
         // ----------------- replace equ constants
         // find definitions
         val equs = mutableListOf<EquDefinition>()
@@ -933,7 +949,7 @@ class RISCVGrammar() : Grammar() {
          *  usage:
          */
 
-        c_sections = C_SECTIONS(*imports.toTypedArray(), *sections.toTypedArray())
+        c_sections = C_SECTIONS(*sections.toTypedArray(), *imports.toTypedArray())
 
         /**
          * FINISH CONTAINER SCAN
@@ -946,14 +962,16 @@ class RISCVGrammar() : Grammar() {
 
     /* -------------------------------------------------------------- TREE COMPONENTS -------------------------------------------------------------- */
     object SyntaxRegex {
-        val pre_macro_start = Regex("""^\s*(.macro\s+([a-zA-Z0-9_]+)\s+((?:[-'"a-zA-Z0-9_]+\s*,\s*)*[-'"a-zA-Z0-9_]+))\s*?""")
+        val pre_macro_start = Regex("""^\s*(\.macro\s+([a-zA-Z0-9_]+)\s+((?:[-'"a-zA-Z0-9_]+\s*,\s*)*[-'"a-zA-Z0-9_]+))\s*?""")
         val pre_macro_arg_def = Regex("""^\s*([a-zA-Z0-9_]+)\s*?""")
         val pre_macro_line = Regex("""^\s*([a-zA-Z0-9_]+)\s+((?:[a-zA-Z0-9_]+\s*,\s*)*[a-zA-Z0-9_]+)\s*?""")
         val pre_macro_arg_link = Regex("""\\([a-zA-Z0-9_]+)""")
-        val pre_macro_end = Regex(""".endm""")
+        val pre_macro_end = Regex("""\.endm""")
         val pre_import = Regex("""^\s*(#import\s+"(.+)")\s*?""")
         val pre_comment = Regex("""^\s*#.*?""")
-        val pre_equ_def = Regex("""^\s*(.equ\s+(.+)\s*,\s*(.+))\s*?""")
+        val pre_equ_def = Regex("""^\s*(\.equ\s+(.+)\s*,\s*(.+))\s*?""")
+        val pre_option = Regex("""^\s*(\.option\s+.+)\s*?""")
+        val pre_attribute = Regex("""^\s*(\.attribute\s+.+)\s*?""")
     }
 
     object RowSeqs {
@@ -978,6 +996,7 @@ class RISCVGrammar() : Grammar() {
         val REF_PRE_IMPORT = "PRE_import"
         val REF_PRE_COMMENT = "PRE_comment"
         val REF_PRE_OPTION = "PRE_option"
+        val REF_PRE_ATTRIBUTE = "PRE_attribute"
         val REF_PRE_MACRO = "PRE_macro"
         val REF_PRE_EQU = "PRE_equ"
 
@@ -1011,6 +1030,7 @@ class RISCVGrammar() : Grammar() {
     class Pre_IMPORT(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_import), REFS.REF_PRE_IMPORT, *tokens)
     class Pre_COMMENT(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.comment), REFS.REF_PRE_COMMENT, *tokens)
     class Pre_OPTION(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_option), REFS.REF_PRE_OPTION, *tokens)
+    class Pre_ATTRIBUTE(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_attribute), REFS.REF_PRE_ATTRIBUTE, *tokens)
     class Pre_MACRO(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_macro), REFS.REF_PRE_MACRO, *tokens)
     class Pre_EQU(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_equ), REFS.REF_PRE_EQU, *tokens)
 
@@ -1393,8 +1413,8 @@ class RISCVGrammar() : Grammar() {
     /* -------------------------------------------------------------- ROWS -------------------------------------------------------------- */
     class R_SECSTART(val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_SECSTART, directive)
     class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
-    class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label)
-    class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label)
+    class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label, directive)
+    class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label, directive, paramcoll)
     class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
         enum class ParamType(val pseudo: Boolean, val exampleString: String) {
             // NORMAL INSTRUCTIONS
@@ -2315,7 +2335,9 @@ class RISCVGrammar() : Grammar() {
             JAL2("JAL", true, ParamType.PS_Jlbl),
             Jr("JR", true, ParamType.PS_RS1),
             JALR1("JALR", true, ParamType.PS_RS1),
-            Ret("RET", true, ParamType.PS_NONE);
+            Ret("RET", true, ParamType.PS_NONE),
+            Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
+            Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
 
             open fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                 architecture.getConsole().info("executing $id ...")

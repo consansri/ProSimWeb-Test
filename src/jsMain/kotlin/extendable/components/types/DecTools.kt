@@ -6,6 +6,9 @@ import tools.DebugTools
 
 object DecTools {
 
+    val negRegex = Regex("-[0-9]+")
+    val posRegex = Regex("[0-9]+")
+    val zeroRegex = Regex("(-)?0+")
     val binaryWeights: List<BinaryWeight> = List(MutVal.Size.Bit128().bitWidth) { BinaryWeight(it, pow("2", it.toString())) }
 
     fun add(a: String, b: String): String {
@@ -119,9 +122,6 @@ object DecTools {
          */
         val aTrimmed = a.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
 
-        val negRegex = Regex("-[0-9]+")
-        val posRegex = Regex("[0-9]+")
-        val zeroRegex = Regex("(-)?0+")
         if (zeroRegex.matches(aTrimmed)) {
             return aTrimmed.replace("-", "")
         }
@@ -144,8 +144,6 @@ object DecTools {
          * (checked)
          */
         val aTrimmed = a.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)
-        val negRegex = Regex("-[0-9]+")
-        val posRegex = Regex("[0-9]+")
 
         val result = if (negRegex.matches(aTrimmed) && !isEqual(abs(aTrimmed), "0")) {
             true
@@ -168,8 +166,6 @@ object DecTools {
 
         val aNeg = isNegative(aTrimmed)
         val bNeg = isNegative(bTrimmed)
-
-        val result: Boolean
 
         if (aNeg xor bNeg) {
             return false
@@ -277,7 +273,7 @@ object DecTools {
         val paddedA = aTrimmed.padStart(maxLength, '0')
         val paddedB = bTrimmed.padStart(maxLength, '0')
 
-        val sum = StringBuilder()
+        var sum = ""
         var carry = 0
 
         for (i in maxLength - 1 downTo 0) {
@@ -287,17 +283,17 @@ object DecTools {
             val digitSum = digitA + digitB + carry
             carry = digitSum / 10
 
-            sum.insert(0, (digitSum % 10).toString())
+            sum = (digitSum % 10).toString() + sum
         }
 
         if (carry > 0) {
-            sum.insert(0, carry.toString())
+            sum = carry.toString() + sum
         }
         if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
             console.log("DecTools: addUnsigned($a, $b) -> $sum")
         }
 
-        return sum.toString()
+        return sum
     }
 
     private fun subUnsigned(a: String, b: String): String {
@@ -316,7 +312,7 @@ object DecTools {
             console.warn("DecTools.subUnsigned(): a (${aTrimmed}) was smaller than b (${bTrimmed}) so they where switched up!")
         }
 
-        val difference = StringBuilder()
+        var difference = ""
         var borrow = 0
 
         for (i in maxLength - 1 downTo 0) {
@@ -332,14 +328,14 @@ object DecTools {
                 borrow = 0
             }
 
-            difference.insert(0, digitDifference.toString())
+            difference = digitDifference.toString() + difference
         }
 
         if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
             console.log("DecTools: subUnsigned($a, $b) -> $difference")
         }
 
-        return difference.toString().trimStart('0')
+        return difference.trimStart('0')
     }
 
     private fun multiplyUnsigned(a: String, b: String): String {
@@ -351,22 +347,22 @@ object DecTools {
         for (i in bTrimmed.length - 1 downTo 0) {
             val digitB = bTrimmed[i].digitToInt()
             var carry = 0
-            val product = StringBuilder()
+            var product = ""
 
             for (j in aTrimmed.length - 1 downTo 0) {
                 val digitA = aTrimmed[j].digitToInt()
                 val digitProduct = digitA * digitB + carry
                 carry = digitProduct / 10
 
-                product.insert(0, (digitProduct % 10).toString())
+                product = (digitProduct % 10).toString() + product
             }
 
             if (carry > 0) {
-                product.insert(0, carry.toString())
+                product = carry.toString() + product
             }
 
-            product.append("0".repeat(bTrimmed.length - i - 1))
-            result = addUnsigned(result, product.toString())
+            product += "0".repeat(bTrimmed.length - i - 1)
+            result = addUnsigned(result, product)
         }
 
         if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {

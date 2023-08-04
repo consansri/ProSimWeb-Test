@@ -12,8 +12,6 @@
 
 #### 2.1.1 text ####
 
-Possible Line Syntax
-
 #### 2.1.2 data ####
 
 #### 2.1.3 rodata ####

@@ -266,8 +266,6 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             if (showGlobalMemSettings) {
-
-
                                 button {
                                     type = ButtonType.button
                                     css {
@@ -283,7 +281,6 @@ val MemoryView = FC<MemViewProps> { props ->
                                     img {
                                         src = "icons/direction.svg"
                                     }
-
                                 }
 
                                 button {
@@ -310,7 +307,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                     for (entry in Memory.Endianess.entries) {
                                         option {
                                             value = entry.name
-                                            +entry.name
+                                            +entry.uiName
                                         }
                                     }
 

@@ -124,11 +124,11 @@ Measurement Single Instruction add
 > **Issue:** Execution to slow\
 > **Solutions:**
 >
-> | id | improvement    | solution                                                                 | continuous speed |
-> |----|----------------|--------------------------------------------------------------------------|-----------------|
-> | 0  | 3 times faster | Exchanged Binary Weight calculation `pow(2, index))` with look up table! | 1015 ms         |
-> |    | |                                                                          ||
-> 
+> | id | improvement    | solution                                                                               | continuous speed |
+> |----|----------------|----------------------------------------------------------------------------------------|------------------|
+> | 0  | 3 times faster | Exchanged Binary Weight calculation `pow(2, index))` with look up table!               | 1015 ms          |
+> | 1  | 3 times faster | Removed Regex inititalizations in all MutVal functions defined them somewhere globally | 360 ms           |
+>
 
 
 **After**

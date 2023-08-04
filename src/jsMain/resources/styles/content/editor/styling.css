@@ -546,6 +546,7 @@
 }
 
 #editor-info-panel {
+    cursor: pointer;
     position: absolute;
     bottom: 0;
     writing-mode: vertical-lr;

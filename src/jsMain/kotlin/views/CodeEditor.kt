@@ -68,6 +68,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     val (showRenameTab, setShowRenameTab) = useState(false)
     val (showAddTab, setShowAddTab) = useState(false)
+    val (showInfoPanel, setShowInfoPanel) = useState(false)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
     val (darkMode, setDarkMode) = useState(false)
     val (infoPanelText, setInfoPanelText) = useState("")
@@ -91,7 +92,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             lineID?.let {
                 setCurrExeLine(it + 1)
             }
-        }, 250)
+        }, 10)
     }
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
@@ -304,10 +305,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 title = "Editor Mode"
 
                 img {
-                    if (darkMode) {
-                        src = StyleConst.Icons.darkmode
+                    src = if (darkMode) {
+                        StyleConst.Icons.darkmode
                     } else {
-                        src = StyleConst.Icons.lightmode
+                        StyleConst.Icons.lightmode
                     }
                 }
 
@@ -400,9 +401,19 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                 title = "{$infoPanelText}"
 
+                if (showInfoPanel) {
+                    +infoPanelText
+                }
+
                 img {
                     src = StyleConst.Icons.tag
                 }
+
+                onClick = {
+                    setShowInfoPanel(!showInfoPanel)
+                }
+
+
             }
 
         }
@@ -503,7 +514,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             }
                         }
                     }
-
 
                     if (showAddTab) {
                         div {
@@ -624,7 +634,18 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                     val grammarTree = appLogic.getArch().getAssembly().getGrammarTree()
                                     grammarTree?.rootNode?.let { rootNode ->
-
+                                        var path = ""
+                                        rootNode.containers.forEach {
+                                            it.getAllTokens().forEach {
+                                                if (it.lineLoc.lineID == lineID && startIndex in it.lineLoc.startIndex..it.lineLoc.endIndex) {
+                                                    val result = grammarTree.contains(it)
+                                                    if(result != null){
+                                                        path = result.path
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        setInfoPanelText(path)
                                     }
                                 }
                             }

@@ -158,9 +158,9 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     }
 
-    enum class Endianess {
-        LittleEndian,
-        BigEndian
+    enum class Endianess(val uiName: String) {
+        LittleEndian("Little Endian"),
+        BigEndian("Big Endian")
     }
 
 }
