@@ -6,7 +6,8 @@
 - **(done)** check binary mapper bit map syntax
 - **(done)** rename Instruction Types (R Type, I Type, ...)
 - **(done)** reinvent Grammar and Assembler for advanced assembly syntax
-- export MIF, HEX DUMP, ...
+- **(done)** export MIF, HEX DUMP, ...
+- change alignment of RiscV memory allocation variables
 
  
 ## PERFORMANCE ##
