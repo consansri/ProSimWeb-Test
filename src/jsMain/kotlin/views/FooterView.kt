@@ -1,7 +1,6 @@
 package views
 
 import AppLogic
-import csstype.*
 import emotion.react.css
 import react.FC
 import react.Props
@@ -11,6 +10,8 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.ul
+import web.cssom.*
+
 
 external interface FooterViewProps : Props{
 

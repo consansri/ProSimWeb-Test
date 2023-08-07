@@ -1,6 +1,5 @@
 package extendable.archs.riscv
 
-import csstype.Mask
 import extendable.ArchConst
 import extendable.archs.riscv.RISCVGrammar.R_INSTR.InstrType.*
 import extendable.components.types.MutVal

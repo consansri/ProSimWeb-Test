@@ -2,12 +2,8 @@ package views.components
 
 import AppLogic
 import StyleConst
-import csstype.ClassName
 import extendable.ArchConst
 import extendable.components.connected.Transcript
-import kotlinx.js.timers.Timeout
-import kotlinx.js.timers.clearInterval
-import kotlinx.js.timers.setInterval
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
@@ -21,6 +17,10 @@ import react.dom.html.ReactHTML.tr
 import react.useRef
 import react.useState
 import tools.DebugTools
+
+import web.html.*
+import web.timers.*
+import web.cssom.*
 
 external interface TranscriptProps : Props {
     var ta_val: String

@@ -3,22 +3,19 @@ package views.components
 import AppLogic
 import StorageKey
 import StyleConst
-import csstype.*
 import emotion.react.css
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
-import kotlinx.js.timers.Timeout
-import kotlinx.js.timers.clearInterval
-import kotlinx.js.timers.setInterval
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import tools.DebugTools
+
+import web.html.*
+import web.timers.*
+import web.cssom.*
 
 external interface IConsoleViewProps : Props {
     var appLogic: AppLogic

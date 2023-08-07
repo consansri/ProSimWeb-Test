@@ -1,13 +1,11 @@
 package views
 
 import AppLogic
-import csstype.ClassName
+import web.html.*
+import web.timers.*
+import web.cssom.*
 import kotlinx.browser.localStorage
-import kotlinx.js.timers.Timeout
-import kotlinx.js.timers.setTimeout
-import org.w3c.dom.*
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -20,6 +18,9 @@ import views.ExecutionType.*
 import views.components.FlagsCondsView
 import views.components.MemoryView
 import views.components.RegisterView
+
+import web.html.HTMLAnchorElement
+import web.html.HTMLInputElement
 
 external interface ProcessorViewProps : Props {
     var appLogic: AppLogic
@@ -82,7 +83,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 setAllowExe(true)
             }, 0)
 
-            Clear -> executionQueue.current = setTimeout({
+            ExecutionType.ClearAll -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeClear()
                 setUpdate(!change)
@@ -232,7 +233,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     }
                 }
                 onClick = {
-                    queueExecution(Clear)
+                    queueExecution(ExecutionType.ClearAll)
                 }
             }
         }
@@ -286,5 +287,5 @@ enum class ExecutionType {
     SkipSubroutine,
     ReturnFromSubroutine,
     Reset,
-    Clear
+    ClearAll
 }

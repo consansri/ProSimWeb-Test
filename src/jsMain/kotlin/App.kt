@@ -1,6 +1,5 @@
 import kotlinx.browser.localStorage
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
+import web.html.*
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div

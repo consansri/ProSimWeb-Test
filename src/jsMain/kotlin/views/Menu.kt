@@ -2,22 +2,20 @@ package views
 
 import AppLogic
 import StyleConst
-import csstype.*
 import emotion.react.css
 import extendable.components.connected.FileBuilder
 import extendable.components.connected.FileHandler
+import js.core.asList
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
-import kotlinx.js.timers.Timeout
-import kotlinx.js.timers.clearInterval
-import kotlinx.js.timers.setTimeout
-import org.w3c.dom.*
+import kotlinx.html.dom.create
+import kotlinx.html.js.a
+import web.html.*
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import org.w3c.files.File
 import org.w3c.files.FileReader
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -30,6 +28,8 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import tools.DebugTools
+import web.cssom.*
+import web.timers.*
 
 
 external interface MenuProps : Props {
@@ -340,10 +340,11 @@ val Menu = FC<MenuProps>() { props ->
 
                         downloadAsyncRef.current = setTimeout({
                             val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
-                            val anchor = document.createElement("a") as HTMLAnchorElement
+                            val anchor = document.create.a {
+                                href = URL.createObjectURL(blob)
+                                style?.display = null
+                            }
                             document.body?.appendChild(anchor)
-                            anchor.style.display = "none"
-                            anchor.href = URL.createObjectURL(blob)
                             if (selFormat.ending.isNotEmpty()) {
                                 anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
                             } else {

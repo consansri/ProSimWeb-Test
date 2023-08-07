@@ -2,15 +2,14 @@ package views.components
 
 import AppLogic
 import StyleConst
-import csstype.ClassName
 import extendable.components.connected.FlagsConditions
-import org.w3c.dom.HTMLButtonElement
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import tools.DebugTools
+import web.html.*
+import web.cssom.*
 
 external interface FlagsCondsViewProps : Props {
     var name: String

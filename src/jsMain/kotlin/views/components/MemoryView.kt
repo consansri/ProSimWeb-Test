@@ -1,24 +1,13 @@
 package views.components
 
 import AppLogic
-import csstype.*
 import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.Memory
 import extendable.components.types.MutVal
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
-import kotlinx.js.timers.Timeout
-import kotlinx.js.timers.clearInterval
-import kotlinx.js.timers.setInterval
-import kotlinx.js.timers.setTimeout
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLTableSectionElement
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.caption
@@ -36,6 +25,10 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import tools.DebugTools
+
+import web.html.*
+import web.timers.*
+import web.cssom.*
 
 external interface MemViewProps : Props {
     var name: String

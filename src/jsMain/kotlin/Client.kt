@@ -1,6 +1,6 @@
-import kotlinx.browser.document
 import react.create
 import react.dom.client.createRoot
+import web.dom.*
 import tools.DebugTools
 
 fun main() {

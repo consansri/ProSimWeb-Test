@@ -2,16 +2,12 @@ package views
 
 import AppLogic
 import StyleConst
-import csstype.*
-import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.FileHandler
-import kotlinx.js.timers.*
-import org.w3c.dom.*
+import web.html.*
 import react.*
 import react.dom.aria.ariaHidden
 import react.dom.html.AutoComplete
-import react.dom.html.InputType
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.code
@@ -23,6 +19,8 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import tools.DebugTools
 import views.components.TranscriptView
+import web.cssom.ClassName
+import web.timers.*
 
 external interface CodeEditorProps : Props {
     var appLogic: AppLogic
@@ -626,7 +624,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                             onSelect = { event ->
                                 val cursorPosition = event.currentTarget.selectionStart
-                                cursorPosition?.let { cursorPos ->
+                                cursorPosition.let { cursorPos ->
 
                                     val lines = event.currentTarget.value.substring(0, cursorPos).split("\n")
                                     val lineID = lines.size - 1
@@ -751,7 +749,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     useEffect(transcriptView) {
-        setFiles(appLogic.getArch().getFileHandler().getAllFiles())
         textareaRef.current?.let {
             it.value = appLogic.getArch().getFileHandler().getCurrContent()
             edit(it.value, false)
@@ -779,8 +776,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         val div = editorContainerRef.current
         div?.let {
             if (darkMode) {
+                StyleConst.mode = StyleConst.Mode.DARK
                 div.classList.add(StyleConst.CLASS_EDITOR_DARKMODE)
             } else {
+                StyleConst.mode = StyleConst.Mode.LIGHT
                 div.classList.remove(StyleConst.CLASS_EDITOR_DARKMODE)
             }
         }
@@ -789,7 +788,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     useEffect(props.update) {
         setFiles(appLogic.getArch().getFileHandler().getAllFiles())
     }
-
 
 }
 

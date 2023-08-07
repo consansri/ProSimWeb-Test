@@ -1,9 +1,7 @@
 package views
 
 import AppLogic
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
+import web.html.*
 import react.*
 import react.dom.html.ReactHTML.div
 import tools.DebugTools

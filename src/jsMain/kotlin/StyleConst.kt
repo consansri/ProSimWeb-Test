@@ -1,5 +1,18 @@
+import kotlinx.css.Color
+
 object StyleConst {
 
+    var mode: Mode = Mode.LIGHT
+
+    /**
+     * CSSOM
+     */
+    val mainBgColor = ModeColor("#F1F1E6","#313131")
+    val mainFgColor = ModeColor("#454545", "#A5A5A5")
+
+    /**
+     *
+     */
 
 
     /* HIGHLIGHTING */
@@ -61,9 +74,9 @@ object StyleConst {
 
 
     // PROCESSOR.FLAGSCONDSVIEW
-    val CLASS_PROC_FC_CONTAINER= "proc-fc-container"
-    val CLASS_PROC_FC_COND_CONTAINER= "proc-fc-cond-container"
-    val CLASS_PROC_FC_FLAG_CONTAINER= "proc-fc-flag-container"
+    val CLASS_PROC_FC_CONTAINER = "proc-fc-container"
+    val CLASS_PROC_FC_COND_CONTAINER = "proc-fc-cond-container"
+    val CLASS_PROC_FC_FLAG_CONTAINER = "proc-fc-flag-container"
     val CLASS_PROC_FC_COND = "proc-fc-cond"
     val CLASS_PROC_FC_FLAG = "proc-fc-flag"
     val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
@@ -85,7 +98,6 @@ object StyleConst {
     val MESSAGE_TYPE_ERROR = 3
 
 
-
     // FOOTER
 
 
@@ -95,7 +107,7 @@ object StyleConst {
 
     /*  */
 
-    object Icons{
+    object Icons {
         const val autoscroll = "benicons/ver3/autoscroll.svg"
         const val backwards = "benicons/ver3/backwards.svg"
         const val darkmode = "benicons/ver3/darkmode.svg"
@@ -113,8 +125,28 @@ object StyleConst {
         const val status_loading = "benicons/ver3/status_loading.svg"
         const val delete = "benicons/ver3/delete.svg"
         const val tag = "benicons/ver3/tag.svg"
+    }
 
+    class ModeColor(light: String, dark: String? = null) {
+        val light: Color
+        val dark: Color?
 
+        init {
+            this.light = Color(light)
+            this.dark = if (dark != null) Color(dark) else null
+        }
+
+        fun get(): Color{
+            return when(mode){
+                Mode.LIGHT -> light
+                Mode.DARK -> dark ?: light
+            }
+        }
+    }
+
+    enum class Mode {
+        LIGHT,
+        DARK
     }
 
 }

@@ -1,18 +1,11 @@
 package views.components
 
 import AppLogic
-import csstype.*
 import emotion.react.css
 import extendable.ArchConst
 import extendable.ArchConst.RegTypes.*
-import extendable.components.connected.RegisterContainer
 import kotlinx.browser.document
-import kotlinx.js.timers.setTimeout
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLTableSectionElement
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -26,6 +19,9 @@ import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import tools.DebugTools
 import kotlin.time.measureTime
+import web.html.*
+import web.timers.*
+import web.cssom.*
 
 external interface RegisterViewProps : Props {
     var name: String
