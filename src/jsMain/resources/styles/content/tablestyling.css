@@ -1,11 +1,9 @@
 :root {
-    --bg-table-stripe: rgba(100%, 100%, 100%, 50%);
+    --bg-table-stripe: rgba(100%, 100%, 100%, 10%);
     --b-table: #e3e3e2;
-    --caption: #242423;
 }
 
 table {
-    background-color: transparent;
     border-collapse: collapse;
     transition: 0.3s;
     tab-size: 6;
@@ -47,10 +45,6 @@ th {
     color: black;
 }
 
-.dcf-mark-ascii {
-    color: #777777;
-}
-
 .dcf-mark-notused {
     color: #AAAAAA;
 }
@@ -69,7 +63,6 @@ th {
 }
 
 .dcf-table caption {
-    color: var(--caption);
     position: relative;
     font-size: 1.13em;
     font-weight: 700;
@@ -88,8 +81,6 @@ th {
 }
 
 .dcf-table tbody {
-    border-bottom: 1px solid var(--b-table);
-    border-top: 1px solid var(--b-table);
     font-size: .84em;
 }
 
@@ -127,7 +118,7 @@ th {
     margin-left: var(--padding-size);
     margin-right: var(--padding-size);
     vertical-align: middle;
-    accent-color: var(--main-accent-color);
+    accent-color: #091A40;
 }
 
 .dcf-control select {
@@ -270,9 +261,9 @@ th {
     display: block;
     align-content: center;
 
-    border-top: 1px solid var(--main-bg-color);
+    /*border-top: 1px solid var(--main-bg-color);
     border-left: 1px solid var(--main-bg-color);
-    border-top-left-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);*/
 }
 
 
@@ -366,7 +357,6 @@ th {
 .dcf-overflow-x-auto {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
-    border-radius: var(--border-radius);
 }
 
 .dcf-w-100\% {

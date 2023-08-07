@@ -46,7 +46,6 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.2.0-pre.607")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion:11.11.1-pre.607")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.7.3")
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-styled:5.3.11-pre.607")
             }
         }
 

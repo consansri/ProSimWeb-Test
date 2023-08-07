@@ -1,4 +1,5 @@
-import kotlinx.css.Color
+import web.cssom.Color
+import web.cssom.rem
 
 object StyleConst {
 
@@ -7,8 +8,40 @@ object StyleConst {
     /**
      * CSSOM
      */
-    val mainBgColor = ModeColor("#F1F1E6","#313131")
-    val mainFgColor = ModeColor("#454545", "#A5A5A5")
+
+    // COLORS
+    val appControlBgColor = Color("#717171")
+
+    val mainAccColor = Color("#29335C")
+    val mainAccColorSec = Color("#EA5455")
+    val mainAccColorThird = Color("#6D8AF5")
+    val mainBgColor = ModeColor("#F1F1E6", "#515151")
+    val mainFgColor = ModeColor("#454545", "#D5D5D5")
+
+    val editorBgColor = ModeColor("#EEEEEE", "#313131")
+    val editorFgColor = ModeColor("#313131", "#AABACA")
+
+    val tableRegBgColor = ModeColor("#E3E3E2", "#4D628F")
+    val tableMemBgColor = ModeColor("#E3E3E2","#29335C")
+
+    val containerRight = ModeColor("#091A40")
+
+    // NUMBERS
+    val paddingSize = 0.4.rem
+    val borderRadius = 0.3.rem
+
+    val iconSize = 1.8.rem
+    val iconPadding = 0.1.rem
+    val iconBorderRadius = 0.4.rem
+
+    // FONTS
+    val logoFont = "'Bungee Shade', cursive"
+
+
+    // OBJECTS
+
+
+
 
     /**
      *
@@ -136,8 +169,8 @@ object StyleConst {
             this.dark = if (dark != null) Color(dark) else null
         }
 
-        fun get(): Color{
-            return when(mode){
+        fun get(): Color {
+            return when (mode) {
                 Mode.LIGHT -> light
                 Mode.DARK -> dark ?: light
             }

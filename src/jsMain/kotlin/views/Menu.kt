@@ -6,15 +6,7 @@ import emotion.react.css
 import extendable.components.connected.FileBuilder
 import extendable.components.connected.FileHandler
 import js.core.asList
-import kotlinx.browser.document
-import kotlinx.browser.localStorage
-import kotlinx.html.dom.create
-import kotlinx.html.js.a
-import web.html.*
-import org.w3c.dom.url.URL
-import org.w3c.files.Blob
-import org.w3c.files.File
-import org.w3c.files.FileReader
+
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -28,8 +20,15 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import tools.DebugTools
+import web.buffer.Blob
 import web.cssom.*
+import web.storage.localStorage
 import web.timers.*
+import web.html.*
+import web.file.*
+import web.dom.*
+import web.location.location
+import web.url.URL
 
 
 external interface MenuProps : Props {
@@ -197,7 +196,7 @@ val Menu = FC<MenuProps>() { props ->
                         console.log("Load " + data.getArch().getName())
                         event.currentTarget.classList.toggle("nav-arch-active")
                         //updateParent(newData)
-                        document.location?.reload()
+                        location.reload()
                     }
 
                     +data.getArchList()[id].getName()
@@ -340,11 +339,10 @@ val Menu = FC<MenuProps>() { props ->
 
                         downloadAsyncRef.current = setTimeout({
                             val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
-                            val anchor = document.create.a {
-                                href = URL.createObjectURL(blob)
-                                style?.display = null
-                            }
-                            document.body?.appendChild(anchor)
+                            val anchor = document.createElement("a") as HTMLAnchorElement
+                            anchor.href = URL.createObjectURL(blob)
+                            anchor.style.display = "none"
+                            document.body.appendChild(anchor)
                             if (selFormat.ending.isNotEmpty()) {
                                 anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
                             } else {

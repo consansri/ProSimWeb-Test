@@ -54,11 +54,26 @@ val RegisterView = FC<RegisterViewProps> { props ->
             display = Display.block
             overflowY = Overflow.scroll
             maxHeight = 40.vh
+
+            table {
+                backgroundColor = StyleConst.tableRegBgColor.get()
+
+                input {
+                    color = StyleConst.mainFgColor.get()
+                }
+
+                "dcf-tabs" {
+                    border = Border(0.px, LineStyle.hidden)
+                }
+
+
+            }
         }
 
         div {
 
             className = ClassName("dcf-tabs")
+
 
             button {
                 css {
@@ -74,10 +89,13 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
             for (regFile in regFileList) {
                 a {
-                    className = if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                        ClassName("dcf-tab-a dcf-tab-active")
-                    } else {
-                        ClassName("dcf-tab-a")
+                    if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                        css {
+                            backgroundColor = important(StyleConst.tableRegBgColor.get())
+                            boxShadow = important(BoxShadow(0.px, 0.px, 0.px, Color("#FFF")))
+                            padding = important(Padding(0.2.rem,0.5.rem))
+                            color = important(StyleConst.mainFgColor.get())
+                        }
                     }
 
                     title = "Show RegFile ${regFile.name}"
@@ -115,7 +133,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             tabIndex = 0
 
             table {
-                className = ClassName("dcf-table dcf-table-striped dcf-w-100%")
+                className = ClassName("dcf-table dcf-w-100%")
 
                 val registerArray = registerContainer.getRegisterFileList()[currRegFileIndex]
 
@@ -324,7 +342,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             reg.mutVal.get().toUDec().getRawUDecStr()
                         }
                     }
-                    regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                    /*regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                         HEX -> {
                             "${reg.mutVal.size.byteCount * 2}ch;"
                         }
@@ -340,7 +358,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         UDEC -> {
                             "auto;"
                         }
-                    }
+                    }*/
 
                 } catch (e: NumberFormatException) {
                     console.warn("RegisterView useEffect(currRegTypeIndex): NumberFormatException")
@@ -360,19 +378,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
         } else {
             setCurrRegFileIndex(0)
             regCont.getRegisterFileList()[0]
-        }
-        registers.let {
-            for (reg in it.registers) {
-                val regID = it.registers.indexOf(reg)
-                try {
-                    /*val regdec = document.getElementById("regdec${it.name}$regID") as HTMLInputElement
-                    regdec.value = reg.byteValue.get().toDec().getRawDecStr()
-                    val reghex = document.getElementById("reghex${it.name}$regID") as HTMLInputElement
-                    reghex.value = reg.byteValue.get().toHex().getRawHexStr()*/
-                } catch (e: NumberFormatException) {
-                    console.warn("RegisterView useEffect(change): NumberFormatException")
-                }
-            }
         }
     }
 

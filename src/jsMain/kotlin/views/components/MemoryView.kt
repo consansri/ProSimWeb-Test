@@ -107,7 +107,7 @@ val MemoryView = FC<MemViewProps> { props ->
             overflowY = Overflow.scroll
             maxHeight = 40.vh
             display = Display.block
-            backgroundColor = Color("#EEEEEE")
+            backgroundColor = StyleConst.tableMemBgColor.get()
         }
 
         div {
@@ -115,7 +115,7 @@ val MemoryView = FC<MemViewProps> { props ->
             tabIndex = 0
 
             table {
-                className = ClassName("dcf-table dcf-table-striped dcf-w-100% dcf-darkbg")
+                className = ClassName("dcf-table dcf-w-100% dcf-darkbg")
 
                 caption {
                     a {
@@ -213,7 +213,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             td {
-                                className = ClassName("dcf-txt-center dcf-monospace dcf-mark-ascii dcf-darkbg")
+                                className = ClassName("dcf-txt-center dcf-monospace dcf-darkbg")
                                 ref = asciiRef
                                 var asciiString = ""
                                 val emptyAscii = appLogic.getArch().getMemory().getInitialBinary().get().toASCII()

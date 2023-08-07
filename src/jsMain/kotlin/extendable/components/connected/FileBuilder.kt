@@ -3,12 +3,11 @@ package extendable.components.connected
 import extendable.ArchConst
 import extendable.Architecture
 import extendable.components.types.MutVal
-import org.w3c.files.Blob
-import org.w3c.files.BlobPropertyBag
+import web.buffer.Blob
+import web.buffer.BlobPropertyBag
 import kotlin.js.Date
 import kotlin.math.pow
 import kotlin.math.roundToLong
-
 
 class FileBuilder {
 
@@ -52,7 +51,7 @@ class FileBuilder {
                         vhdlItems.add(VHDLItem(rowAddr, id, instance.mutVal.get().toHex().getRawHexStr()))
                     } else {
                         architecture.getConsole().error("FileBuilder: problems by calculating instance id from address ${rowAddr}!")
-                        return Blob(content.toTypedArray(), BlobPropertyBag(type = "text/plain"))
+                        return Blob(content.toTypedArray())
                     }
                 }
 
@@ -188,10 +187,10 @@ class FileBuilder {
                     console.error(e)
                 }
 
-                return Blob(content.toTypedArray(), BlobPropertyBag(type = "text/plain"))
+                return Blob(content.toTypedArray())
             }
             ExportFormat.CURRENT_FILE -> {
-                return Blob(arrayOf(architecture.getFileHandler().getCurrContent()), BlobPropertyBag(type = "text/plain"))
+                return Blob(arrayOf(architecture.getFileHandler().getCurrContent()))
             }
         }
     }

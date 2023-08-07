@@ -2,6 +2,7 @@ import react.create
 import react.dom.client.createRoot
 import web.dom.*
 import tools.DebugTools
+import web.cssom.StyleSheet
 
 fun main() {
     if (DebugTools.REACT_showUpdateInfo) {

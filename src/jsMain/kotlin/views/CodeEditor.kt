@@ -2,6 +2,8 @@ package views
 
 import AppLogic
 import StyleConst
+import emotion.css.cx
+import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.FileHandler
 import web.html.*
@@ -21,6 +23,7 @@ import tools.DebugTools
 import views.components.TranscriptView
 import web.cssom.ClassName
 import web.timers.*
+import web.cssom.*
 
 external interface CodeEditorProps : Props {
     var appLogic: AppLogic
@@ -40,7 +43,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val textareaRef = useRef<HTMLTextAreaElement>(null)
     val lineNumbersRef = useRef<HTMLDivElement>(null)
     val btnSwitchRef = useRef<HTMLAnchorElement>(null)
-    val btnDarkModeRef = useRef<HTMLAnchorElement>(null)
     val btnClearRef = useRef<HTMLAnchorElement>(null)
     val btnUndoRef = useRef<HTMLAnchorElement>(null)
     val btnRedoRef = useRef<HTMLAnchorElement>(null)
@@ -59,7 +61,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val (update, setUpdate) = props.update
-    val (internalUpdate, setIUpdate) = useState(false)
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
     val (currExeLine, setCurrExeLine) = useState(1)
     val (taValueUpdate, setTaValueUpdate) = useState(false)
@@ -68,7 +69,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (showAddTab, setShowAddTab) = useState(false)
     val (showInfoPanel, setShowInfoPanel) = useState(false)
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
-    val (darkMode, setDarkMode) = useState(false)
     val (infoPanelText, setInfoPanelText) = useState("")
 
     /* ----------------- localStorage Sync Objects ----------------- */
@@ -94,8 +94,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
-
-
 
     fun updateLineNumbers() {
         val textarea = textareaRef.current ?: return
@@ -297,26 +295,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
-                id = "darkmode"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
-                ref = btnDarkModeRef
-                title = "Editor Mode"
-
-                img {
-                    src = if (darkMode) {
-                        StyleConst.Icons.darkmode
-                    } else {
-                        StyleConst.Icons.lightmode
-                    }
-                }
-
-                onClick = { event ->
-                    setDarkMode(!darkMode)
-                }
-
-            }
-
-            a {
                 id = "undo"
                 className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
                 ref = btnUndoRef
@@ -418,6 +396,23 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         div {
             className = ClassName(StyleConst.CLASS_EDITOR_CONTAINER)
+
+            css {
+                overflow = Overflow.hidden
+                display = Display.flex
+                flexDirection = FlexDirection.column
+                maxHeight = 100.pc
+                width = 100.pc
+                this.lineHeight = lineHeight.px
+                fontFamily = FontFamily.monospace
+                backgroundColor = StyleConst.editorBgColor.get()
+                color = StyleConst.editorFgColor.get()
+                caretColor = important(StyleConst.editorFgColor.get())
+                borderRadius = 2.px
+                padding = 1.pc
+                boxShadow = BoxShadow(0.px, 3.px, 6.px, Color("#000000F7"))
+            }
+
             ref = editorContainerRef
 
             if (transcriptView) {
@@ -437,7 +432,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         div {
 
                             className = ClassName(StyleConst.CLASS_EDITOR_TAB + if (file == appLogic.getArch().getFileHandler().getCurrent()) " ${StyleConst.CLASS_EDITOR_TAB_ACTIVE}" else "")
-
 
                             if (file == appLogic.getArch().getFileHandler().getCurrent()) {
                                 if (!showRenameTab) {
@@ -637,7 +631,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                             it.getAllTokens().forEach {
                                                 if (it.lineLoc.lineID == lineID && startIndex in it.lineLoc.startIndex..it.lineLoc.endIndex) {
                                                     val result = grammarTree.contains(it)
-                                                    if(result != null){
+                                                    if (result != null) {
                                                         path = result.path
                                                     }
                                                 }
@@ -700,9 +694,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             code {
                                 className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
                                 className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_CONTENT)
+                                style?.caretColor = StyleConst.editorFgColor.get()
+                                style?.color = StyleConst.editorFgColor.get()
+
                                 ref = codeAreaRef
 
-                                vc_rows?.let {
+                                vc_rows.let {
                                     var contentString = ""
                                     for (i in it.indices) {
                                         contentString += "${it[i]}\n"
@@ -770,19 +767,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         updateClearButton()
         updateLineNumbers()
         updateUndoRedoButton()
-    }
-
-    useEffect(darkMode) {
-        val div = editorContainerRef.current
-        div?.let {
-            if (darkMode) {
-                StyleConst.mode = StyleConst.Mode.DARK
-                div.classList.add(StyleConst.CLASS_EDITOR_DARKMODE)
-            } else {
-                StyleConst.mode = StyleConst.Mode.LIGHT
-                div.classList.remove(StyleConst.CLASS_EDITOR_DARKMODE)
-            }
-        }
     }
 
     useEffect(props.update) {

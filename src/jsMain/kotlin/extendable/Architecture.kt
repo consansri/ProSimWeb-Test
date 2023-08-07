@@ -3,9 +3,10 @@ package extendable
 import extendable.components.*
 import extendable.components.assembly.Compiler
 import extendable.components.connected.*
-import org.w3c.files.Blob
+
 import tools.DebugTools
 import tools.HTMLTools
+import web.buffer.Blob
 
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 

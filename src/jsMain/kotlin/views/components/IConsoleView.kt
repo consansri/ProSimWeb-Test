@@ -73,6 +73,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                     top = 100.vh - it.offsetHeight.px
                 }
                 zIndex = integer(10)
+                boxShadow = BoxShadow(0.px, 0.px, 1.rem, Color("#000"))
 
 
             } else {
@@ -80,7 +81,6 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 position = Position.relative
 
             }
-
         }
 
         a {

@@ -31,11 +31,31 @@
     font-family: 'JetBrains Mono', sans-serif;
     font-size: 1rem;
     box-sizing: border-box;
+    scrollbar-color: #515151 transparent !important;
 }
 
-body {
-    background: var(--main-bg-color);
-    color: var(--main-fg-color);
+/* Scroll bar stylings */
+main *::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+    transition: all 0.1s ease;
+}
+
+/* Track */
+main *::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Handle */
+main *::-webkit-scrollbar-thumb {
+    background: #00000033;
+    border-radius: 3px;
+    cursor: pointer!important;
+}
+
+/* Handle on hover */
+main *::-webkit-scrollbar-thumb:hover {
+    background: #00000055;
 }
 
 .logo {
@@ -67,7 +87,7 @@ input[type="file"]::file-selector-button:active {
     background-color: #e5e7eb;
 }
 
-input[type=number]{
+input[type=number] {
     padding: var(--padding-size);
     text-align: center;
     border-radius: var(--border-radius);
