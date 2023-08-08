@@ -42,54 +42,55 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                 var jalOffset20: String = ""
                 val paramString = result.binaryMap.entries.joinToString(ArchConst.TRANSCRIPT_PARAMSPLIT) {
                     /*"${it.key.name.lowercase()}\t${*/
-                        when (it.key) {
-                            RISCVBinMapper.MaskLabel.RD -> {
-                                architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
-                            }
-
-                            RISCVBinMapper.MaskLabel.RS1 -> {
-                                architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
-                            }
-
-                            RISCVBinMapper.MaskLabel.RS2 -> {
-                                architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
-                            }
-
-                            RISCVBinMapper.MaskLabel.SHAMT -> {
-                                it.value.toDec().getDecStr()
-                            }
-
-                            RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.IMM20 -> {
-                                when (result.type) {
-                                    JAL -> {
-                                        jalOffset20 = it.value.getRawBinaryStr()
-
-                                    }
-
-                                    BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
-                                        when (it.key) {
-                                            RISCVBinMapper.MaskLabel.IMM5 -> {
-                                                branchOffset5 = it.value.getRawBinaryStr()
-                                            }
-
-                                            RISCVBinMapper.MaskLabel.IMM7 -> {
-                                                branchOffset7 = it.value.getRawBinaryStr()
-                                            }
-                                            else -> {}
-                                        }
-                                    }
-
-                                    else -> {}
-                                }
-                                it.value.toHex().getHexStr()
-                            }
-
-                            else -> {
-                                ""
-                            }
+                    when (it.key) {
+                        RISCVBinMapper.MaskLabel.RD -> {
+                            architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
                         }
 
-                   /* }"*/
+                        RISCVBinMapper.MaskLabel.RS1 -> {
+                            architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
+                        }
+
+                        RISCVBinMapper.MaskLabel.RS2 -> {
+                            architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
+                        }
+
+                        RISCVBinMapper.MaskLabel.SHAMT -> {
+                            it.value.toDec().getDecStr()
+                        }
+
+                        RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.IMM20 -> {
+                            when (result.type) {
+                                JAL -> {
+                                    jalOffset20 = it.value.getRawBinaryStr()
+
+                                }
+
+                                BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
+                                    when (it.key) {
+                                        RISCVBinMapper.MaskLabel.IMM5 -> {
+                                            branchOffset5 = it.value.getRawBinaryStr()
+                                        }
+
+                                        RISCVBinMapper.MaskLabel.IMM7 -> {
+                                            branchOffset7 = it.value.getRawBinaryStr()
+                                        }
+
+                                        else -> {}
+                                    }
+                                }
+
+                                else -> {}
+                            }
+                            it.value.toHex().getHexStr()
+                        }
+
+                        else -> {
+                            ""
+                        }
+                    }
+
+                    /* }"*/
                 }
                 when (result.type) {
                     JAL -> {
@@ -100,6 +101,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             }
                         }
                     }
+
                     BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
                         val imm12 = MutVal.Value.Binary(branchOffset7[0].toString() + branchOffset5[4] + branchOffset7.substring(1) + branchOffset5.substring(0, 4), MutVal.Size.Bit12())
                         val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
@@ -261,11 +263,14 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                             console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tresized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} \n\tallocating at ${nextAddress.toHex().getRawHexStr()}")
                                         }
 
-                                        dataAllocList.add(MemAllocEntry(entry.label, nextAddress.toHex(), resizedValues.first().size, *resizedValues))
-                                        nextAddress += length
-                                        if (nextAddress % MutVal.Value.Binary("10") == MutVal.Value.Binary("1")) {
-                                            nextAddress += MutVal.Value.Binary("1")
+                                        val sizeOfOne = MutVal.Value.Hex(resizedValues.first().size.byteCount.toString(16))
+                                        val rest = nextAddress % sizeOfOne
+                                        if (rest != MutVal.Value.Binary("0")) {
+                                            nextAddress += sizeOfOne - rest
                                         }
+                                        val memAllocEntry = MemAllocEntry(entry.label, nextAddress.toHex(), resizedValues.first().size, *resizedValues)
+                                        dataAllocList.add(memAllocEntry)
+                                        nextAddress += length
                                     }
                                 }
                             }
@@ -366,11 +371,14 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                             console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} resized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} allocating at ${nextAddress.toHex().getRawHexStr()}")
                                         }
 
-                                        dataAllocList.add(MemAllocEntry(entry.label, nextAddress.toHex(), resizedValues.first().size, *resizedValues))
-                                        nextAddress += length
-                                        if (nextAddress % MutVal.Value.Binary("10") == MutVal.Value.Binary("1")) {
-                                            nextAddress += MutVal.Value.Binary("1")
+                                        val sizeOfOne = MutVal.Value.Hex(resizedValues.first().size.byteCount.toString(16))
+                                        val rest = nextAddress % sizeOfOne
+                                        if (rest != MutVal.Value.Binary("0")) {
+                                            nextAddress += sizeOfOne - rest
                                         }
+                                        val memAllocEntry = MemAllocEntry(entry.label, nextAddress.toHex(), resizedValues.first().size, *resizedValues)
+                                        dataAllocList.add(memAllocEntry)
+                                        nextAddress += length
                                     }
 
 
@@ -403,11 +411,13 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                         console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tallocating at ${nextAddress.toHex().getRawHexStr()}")
                                     }
 
-                                    dataAllocList.add(MemAllocEntry(entry.label, nextAddress.toHex(), originalValue.size, originalValue))
-                                    nextAddress += MutVal.Value.Dec(originalValue.size.byteCount.toString())
-                                    if (nextAddress % MutVal.Value.Binary("10") == MutVal.Value.Binary("1")) {
-                                        nextAddress += MutVal.Value.Binary("1")
+                                    val sizeOfOne = MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
+                                    val rest = nextAddress % sizeOfOne
+                                    if (rest != MutVal.Value.Binary("0")) {
+                                        nextAddress += sizeOfOne - rest
                                     }
+                                    dataAllocList.add(MemAllocEntry(entry.label, nextAddress.toHex(), originalValue.size, originalValue))
+                                    nextAddress += MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
                                 }
                             }
                         }

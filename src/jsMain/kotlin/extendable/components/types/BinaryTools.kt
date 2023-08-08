@@ -81,30 +81,69 @@ object BinaryTools {
         val paddedA = a.padStart(maxLength, '0')
         val paddedB = b.padStart(maxLength, '0')
 
-        var carry = 0
+        var borrow = '0'
 
-        val result = StringBuilder()
+        var result = ""
 
         for (i in maxLength - 1 downTo 0) {
-            val digitA = paddedA[i].digitToInt() - '0'.digitToInt()
-            val digitB = paddedB[i].digitToInt() - '0'.digitToInt()
+            val digitA = paddedA[i]
+            val digitB = paddedB[i]
 
-            val diff = digitA - digitB - carry
+            val diff = when {
+                digitA == '0' && digitB == '0' && borrow == '0' -> {
+                    borrow = '0'
+                    '0'
+                }
 
-            if (diff >= 0) {
-                result.append(diff)
-                carry = 0
-            } else {
-                result.append(diff + 2)
-                carry = 1
+                digitA == '1' && digitB == '0' && borrow == '0' -> {
+                    borrow = '0'
+                    '1'
+                }
+
+                digitA == '1' && digitB == '1' && borrow == '0' -> {
+                    borrow = '0'
+                    '0'
+                }
+
+                digitA == '0' && digitB == '1' && borrow == '0' -> {
+                    borrow = '1'
+                    '1'
+                }
+
+                digitA == '0' && digitB == '0' && borrow == '1' -> {
+                    borrow = '1'
+                    '1'
+                }
+
+                digitA == '1' && digitB == '0' && borrow == '1' -> {
+                    borrow = '0'
+                    '0'
+                }
+
+                digitA == '1' && digitB == '1' && borrow == '1' -> {
+                    borrow = '1'
+                    '1'
+                }
+
+                digitA == '0' && digitB == '1' && borrow == '1' -> {
+                    borrow = '1'
+                    '0'
+                }
+
+                else -> {
+                    console.error("$digitA or $digitB is not a '1' or '0'!")
+                    '0'
+                }
             }
+
+            result =  diff.toString() + result
         }
 
         if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
-            console.info("BinaryTools: sub($aBin, $bBin) -> result: ${result.trimStart('0')}")
+            console.info("BinaryTools: sub($a, $b) -> result: ${result.trimStart('0')} should be: ${(a.toLong(2) - b.toLong(2)).toString(2)}")
         }
 
-        return checkEmpty(result.reverse().toString().trimStart('0'))
+        return checkEmpty(result.trimStart('0'))
     }
 
     fun multiply(aBin: String, bBin: String): String {
@@ -168,7 +207,7 @@ object BinaryTools {
             }
         }
         if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
-            console.log("BinaryTools: , divide($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${comparison + remainingDividend}")
+            console.log("BinaryTools: divide($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${comparison + remainingDividend}")
         }
 
         return DivisionResult(checkEmpty(result.trimStart('0')), (comparison + remainingDividend).trimStart('0'))
@@ -198,11 +237,11 @@ object BinaryTools {
         return checkEmpty(result)
     }
 
-    fun xor(aBin: String, bBin: String): String{
+    fun xor(aBin: String, bBin: String): String {
         val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
 
-        val maxLength = maxOf(a.length,b.length)
+        val maxLength = maxOf(a.length, b.length)
 
         val paddedA = a.padStart(maxLength, '0')
         val paddedB = b.padStart(maxLength, '0')
@@ -219,18 +258,18 @@ object BinaryTools {
         return result
     }
 
-    fun or(aBin: String, bBin: String): String{
+    fun or(aBin: String, bBin: String): String {
         val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
 
-        val maxLength = maxOf(a.length,b.length)
+        val maxLength = maxOf(a.length, b.length)
 
         val paddedA = a.padStart(maxLength, '0')
         val paddedB = b.padStart(maxLength, '0')
 
         var result = ""
         for (id in paddedA.indices) {
-            if (paddedA[id] == '1'  || paddedB[id] == '1') {
+            if (paddedA[id] == '1' || paddedB[id] == '1') {
                 result += "1"
             } else {
                 result += "0"
@@ -240,18 +279,18 @@ object BinaryTools {
         return result
     }
 
-    fun and(aBin: String, bBin: String): String{
+    fun and(aBin: String, bBin: String): String {
         val a = aBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(ArchConst.PRESTRING_BINARY)
 
-        val maxLength = maxOf(a.length,b.length)
+        val maxLength = maxOf(a.length, b.length)
 
         val paddedA = a.padStart(maxLength, '0')
         val paddedB = b.padStart(maxLength, '0')
 
         var result = ""
         for (id in paddedA.indices) {
-            if (paddedA[id] == '1'  && paddedB[id] == '1') {
+            if (paddedA[id] == '1' && paddedB[id] == '1') {
                 result += "1"
             } else {
                 result += "0"

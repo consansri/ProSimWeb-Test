@@ -33,6 +33,7 @@
     font-family: 'JetBrains Mono', sans-serif;
     font-size: 1rem;
     box-sizing: border-box;
+    resize: none;
     scrollbar-color: #515151 transparent !important;
 }
 
