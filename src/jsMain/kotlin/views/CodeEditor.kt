@@ -126,7 +126,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun updateUndoRedoButton() {
-        if (appLogic.getArch().getFileHandler().getCurrUndoLength() > 0) {
+        if (appLogic.getArch().getFileHandler().getCurrUndoLength() > 1) {
             btnUndoRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         } else {
             btnUndoRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
@@ -204,7 +204,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        checkCode(false)
+        checkCode(true)
         setTaValueUpdate(!taValueUpdate)
     }
 
@@ -218,7 +218,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        checkCode(false)
+        checkCode(true)
         setTaValueUpdate(!taValueUpdate)
     }
 
@@ -350,12 +350,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 img {
                     src = StyleConst.Icons.info
                 }
-
             }
 
             a {
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
-                className = ClassName(StyleConst.Main.CLASS_DELETE)
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL + " " + StyleConst.Main.CLASS_DELETE)
                 ref = btnClearRef
                 title = "Clear"
 

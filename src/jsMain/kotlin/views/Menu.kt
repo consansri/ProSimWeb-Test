@@ -127,11 +127,11 @@ val Menu = FC<MenuProps>() { props ->
                     className = ClassName("nav-img")
                     alt = "Upload"
                     src = StyleConst.Icons.import
-
                 }
 
                 onClick = {
                     setImportHidden(!importHidden)
+                    setExportHidden(true)
                 }
             }
 
@@ -145,6 +145,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 onClick = {
                     setExportHidden(!exportHidden)
+                    setImportHidden(true)
                 }
             }
 
@@ -218,7 +219,6 @@ val Menu = FC<MenuProps>() { props ->
                 img {
                     className = ClassName("nav-img")
                     src = "icons/times.svg"
-
                 }
             }
         }

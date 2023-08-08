@@ -319,7 +319,7 @@ val AppStyle = FC<Props> {
                 }
 
                 ".${StyleConst.Main.CLASS_DELETE}" {
-                    backgroundColor = StyleConst.Main.DeleteColor
+                    backgroundColor = important(StyleConst.Main.DeleteColor)
                 }
             }
         }

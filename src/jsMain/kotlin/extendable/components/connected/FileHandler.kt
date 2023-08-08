@@ -5,7 +5,9 @@ import extendable.ArchConst
 import extendable.components.assembly.Grammar
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.*
+import react.MutableRefObject
 import tools.DebugTools
+import web.html.HTMLTextAreaElement
 
 class FileHandler(val fileEnding: String) {
 
@@ -55,7 +57,6 @@ class FileHandler(val fileEnding: String) {
             refreshLocalStorage(true)
             true
         }
-
     }
 
     fun undoCurr() {
@@ -103,9 +104,9 @@ class FileHandler(val fileEnding: String) {
             for (fileID in 0 until fileCount) {
                 val filename = localStorage.getItem("$fileID" + StorageKey.FILE_NAME)
                 val filecontent = localStorage.getItem("$fileID" + StorageKey.FILE_CONTENT)
-                val fileUndoLength = localStorage.getItem("$fileID" + StorageKey.FILE_UNDO_LENGTH)?.toIntOrNull() ?: 0
+                val fileUndoLength = localStorage.getItem("$fileID" + StorageKey.FILE_UNDO_LENGTH)?.toIntOrNull() ?: 1
                 val fileRedoLength = localStorage.getItem("$fileID" + StorageKey.FILE_REDO_LENGTH)?.toIntOrNull() ?: 0
-                val fileUndoStates = mutableListOf<String>()
+                val fileUndoStates = mutableListOf<String>("")
                 val fileRedoStates = mutableListOf<String>()
                 for (undoID in 0 until fileUndoLength) {
                     fileUndoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$undoID") ?: "")
@@ -191,8 +192,8 @@ class FileHandler(val fileEnding: String) {
                 if (this.redoStates.size > ArchConst.REDO_STATE_COUNT) {
                     this.redoStates.removeLast()
                 }
-                this.content = undoStates.first()
                 undoStates.removeFirst()
+                this.content = undoStates.first()
             }
         }
 
@@ -232,11 +233,13 @@ class FileHandler(val fileEnding: String) {
             job = GlobalScope.launch {
                 try {
                     delay(ArchConst.UNDO_DELAY_MILLIS)
+
                     undoStates.add(0, content)
                     if (undoStates.size > ArchConst.UNDO_STATE_COUNT) {
                         undoStates.removeLast()
                     }
                     fileHandler.refreshLocalStorage(true)
+
                 } catch (e: CancellationException) {
 
                 } finally {
