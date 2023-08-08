@@ -44,6 +44,10 @@ main *::-webkit-scrollbar {
     transition: all 0.1s ease;
 }
 
+main *::-webkit-scrollbar-corner{
+    background: transparent;
+}
+
 /* Track */
 main *::-webkit-scrollbar-track {
     background: transparent;

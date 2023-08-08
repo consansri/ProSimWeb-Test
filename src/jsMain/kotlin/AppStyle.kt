@@ -249,36 +249,37 @@ val AppStyle = FC<Props> {
                                 position = Position.relative
                                 display = Display.flex
                                 flexGrow = number(1.0)
+
                             }
 
                             ".${StyleConst.Main.Editor.TextField.CLASS_AREA}" {
                                 position = Position.absolute
                                 display = Display.block
-                                overflow = Overflow.hidden
                                 top = 0.rem
                                 left = 0.rem
                                 minWidth = 100.pct
                                 minHeight = 100.pct
+                                overflowX = Overflow.clip
                                 zIndex = StyleConst.Main.Editor.TextField.IndexArea
-                                resize = Resize.block
                                 color = StyleConst.transparent
                                 tabSize = StyleConst.Main.Editor.TextField.tabSize.ch
                                 lineHeight = StyleConst.Main.Editor.TextField.lineHeight.px
-                                overflowWrap = OverflowWrap.normal
                                 paddingLeft = StyleConst.paddingSize
                                 background = StyleConst.transparent
+                                whiteSpace = WhiteSpace.pre
+                                overflowWrap = OverflowWrap.normal
                             }
 
                             ".${StyleConst.Main.Editor.TextField.CLASS_HIGHLIGHTING}" {
                                 position = Position.absolute
                                 display = Display.block
-                                overflow = Overflow.hidden
                                 top = 0.rem
                                 left = 0.rem
                                 minWidth = 100.pct
                                 minHeight = 100.pct
                                 zIndex = StyleConst.Main.Editor.TextField.IndexHL
                                 whiteSpace = WhiteSpace.preWrap
+                                overflowWrap = important(OverflowWrap.normal)
                             }
                         }
                     }

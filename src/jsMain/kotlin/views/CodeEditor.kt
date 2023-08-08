@@ -100,12 +100,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun updateTAResize() {
         var height = 0
+        var width = 0
 
         textareaRef.current?.let {
             val lineCount = it.value.split("\n").size + 1
+            width = it.value.split("\n").map { it.length }.max()
             height = lineCount * StyleConst.Main.Editor.TextField.lineHeight
             it.style.height = "auto"
             it.style.height = "${height}px"
+            it.style.width = "auto"
+            it.style.width = "${width + 1}ch"
         }
         inputDivRef.current?.let {
             it.style.height = "auto"
@@ -709,8 +713,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     tabSize = StyleConst.Main.Editor.TextField.tabSize.ch
                                     lineHeight = StyleConst.Main.Editor.TextField.lineHeight.px
                                     whiteSpace = WhiteSpace.pre
-                                    overflowX = Overflow.clip
-                                    overflowWrap = OverflowWrap.normal
                                     paddingLeft = StyleConst.paddingSize
                                     border = Border(0.px, LineStyle.hidden)
                                     background = StyleConst.transparent
