@@ -8,6 +8,7 @@ table {
     transition: 0.3s;
     tab-size: 6;
     white-space: pre;
+    cursor: text;
 }
 
 th {
@@ -124,7 +125,7 @@ th {
 .dcf-control select {
     height: calc(var(--icon-size) + 2 * var(--icon-padding));
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7em!important;
+    font-size: 0.7em !important;
     font-weight: lighter;
 }
 

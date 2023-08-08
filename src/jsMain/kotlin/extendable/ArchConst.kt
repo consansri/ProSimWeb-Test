@@ -1,6 +1,7 @@
 package extendable
 
 import StyleConst
+import StyleConst.Main.Editor.HL
 
 object ArchConst {
     /*
@@ -13,23 +14,22 @@ object ArchConst {
 
     // Architecture Assembly Constructor
     object StandardHL {
-        val comment = StyleConst.HLCLASS_B05
-        val register = StyleConst.HLCLASS_orange
-        val word = StyleConst.HLCLASS_magenta
-        val alphaNum = StyleConst.HLCLASS_violet
-        val instruction = StyleConst.HLCLASS_blue
-        val symbol = StyleConst.HLCLASS_cyan
+        val comment = HL.base05.getFlag()
+        val register = HL.orange.getFlag()
+        val word = HL.magenta.getFlag()
+        val alphaNum = HL.violet.getFlag()
+        val instruction = HL.blue.getFlag()
+        val symbol = HL.cyan.getFlag()
 
-        val bin = StyleConst.HLCLASS_blue
-        val hex = StyleConst.HLCLASS_blue
-        val dec = StyleConst.HLCLASS_blue
-        val udec = StyleConst.HLCLASS_blue
-        val ascii = StyleConst.HLCLASS_green
-        val string = StyleConst.HLCLASS_green
+        val bin = HL.blue.getFlag()
+        val hex = HL.blue.getFlag()
+        val dec = HL.blue.getFlag()
+        val udec =HL.blue.getFlag()
+        val ascii = HL.green.getFlag()
+        val string = HL.green.getFlag()
 
-        val error = StyleConst.HLCLASS_red
-
-        val whiteSpace = StyleConst.HLCLASS_WHITESPACE
+        val error = HL.red.getFlag()
+        val whiteSpace = HL.whitespace.getFlag()
     }
 
     // GLOBAL

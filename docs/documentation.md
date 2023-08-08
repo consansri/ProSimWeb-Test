@@ -1,5 +1,21 @@
 # Documentation #
 
+## Design ##
+
+### Rules ###
+
+- > **CSSRule:** Apply Variable Elements such as (Colors) in kotlin emotion and every other css style in a css file!
+
+### z-Axis ###
+
+| INDEX | ITEM                    |
+|:-----:|:------------------------|
+|  21   | **Menu Nav Dropdown**   |
+|  20   | **Menu Mobile Nav**     |
+|   2   | **Editor Area**         |
+|   1   | **Editor Highlighting** |
+|   0   | **normal**              |
+
 ## Performance Improvement ##
 
 ### RiscV Program Execution ###

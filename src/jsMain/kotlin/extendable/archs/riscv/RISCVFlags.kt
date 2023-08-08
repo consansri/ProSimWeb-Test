@@ -1,22 +1,23 @@
 package extendable.archs.riscv
 
 import StyleConst
+import StyleConst.Main.Editor.HL
 
 object RISCVFlags {
 
-    val offset = StyleConst.HLCLASS_green
-    val register = StyleConst.HLCLASS_magenta
-    val constant = StyleConst.HLCLASS_blue
+    val offset = HL.magenta.getFlag()
+    val register = HL.yellow.getFlag()
+    val constant = HL.blue.getFlag()
 
-    val label = StyleConst.HLCLASS_cyan
-    val directive = StyleConst.HLCLASS_yellow
-    val instruction = StyleConst.HLCLASS_violet
+    val label = HL.cyan.getFlag()
+    val directive = HL.orange.getFlag()
+    val instruction = HL.violet.getFlag()
 
-    val pre_import = StyleConst.HLCLASS_orange
-    val comment = StyleConst.HLCLASS_B05
-    val pre_equ = StyleConst.HLCLASS_B03
-    val pre_option = StyleConst.HLCLASS_B04
-    val pre_macro = StyleConst.HLCLASS_B03
-    val pre_attribute = StyleConst.HLCLASS_B04
+    val pre_import = HL.green.getFlag()
+    val comment = HL.base05.getFlag()
+    val pre_equ = HL.base03.getFlag()
+    val pre_option = HL.base04.getFlag()
+    val pre_macro = HL.base03.getFlag()
+    val pre_attribute = HL.base04.getFlag()
 
 }

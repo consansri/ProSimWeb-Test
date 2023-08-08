@@ -1,5 +1,4 @@
-import web.cssom.Color
-import web.cssom.rem
+import web.cssom.*
 
 object StyleConst {
 
@@ -9,38 +8,184 @@ object StyleConst {
      * CSSOM
      */
 
-    // COLORS
-    val appControlBgColor = Color("#717171")
+    // GLOBAL
+    val transparent = Color("#00000000")
+    val layoutSwitchMediaQuery = "@media (max-width: 1200px)"
 
-    val mainAccColor = Color("#29335C")
-    val mainAccColorSec = Color("#EA5455")
-    val mainAccColorThird = Color("#6D8AF5")
-    val mainBgColor = ModeColor("#F1F1E6", "#515151")
-    val mainFgColor = ModeColor("#454545", "#D5D5D5")
 
-    val editorBgColor = ModeColor("#EEEEEE", "#313131")
-    val editorFgColor = ModeColor("#313131", "#AABACA")
+    const val CLASS_LOGO = "logo"
 
-    val tableRegBgColor = ModeColor("#E3E3E2", "#4D628F")
-    val tableMemBgColor = ModeColor("#E3E3E2","#29335C")
+    object Header {
+        // COLORS
+        val BgColor = Color("#29335C")
+        val BgColorSec = Color("#5767aa")
+        val BgColorThird = Color("#DB2B39")
+        val FgColor = Color("#EEE")
 
-    val containerRight = ModeColor("#091A40")
+        val IndexNavMobile = integer(20)
+        val IndexNavDropDown = integer(21)
+
+        const val CLASS_DROPDOWN = "menu-dropdown"
+        const val CLASS_MOBILE_OPEN = "menu-mobile-open"
+        const val CLASS_OVERLAY = "menu-overlay"
+        const val CLASS_OVERLAY_LABELEDINPUT = "menu-overlay-items"
+    }
+
+    object Main {
+        val appControlBgColor = Color("#717171")
+        val AccColor = Color("#29335C")
+        val AccColorSec = Color("#EA5455")
+        val AccColorThird = Color("#6D8AF5")
+        val DeleteColor = Color("#EE2222FF")
+        val BgColor = ModeColor("#F1F1E6", "#515151")
+        val FgColor = ModeColor("#454545", "#D5D5D5")
+        val tableRegBgColor = ModeColor("#E3E3E2", "#4D628F")
+        val tableMemBgColor = ModeColor("#E3E3E2", "#29335C")
+
+        val lPercentage = 40
+        val rPercentage = 100 - lPercentage
+
+        object Editor {
+            val BgColor = ModeColor("#EEEEEE", "#222222")
+            val FgColor = ModeColor("#313131", "#AABACA")
+            val Font = "font-family: 'JetBrains Mono', monospace !important;"
+            val FontSize = 16.px
+
+            object Controls {
+                val BgColor = Color("#29335c")
+                val BgHoverColor = Color("#7983Ac")
+
+                val iconSize = 1.8.rem
+                val iconPadding = 0.1.rem
+                val controlSize = 2.0.rem
+                val borderRadius = 0.4.rem
+
+                const val CLASS = "controls"
+                const val CLASS_CONTROL = "control"
+                const val CLASS_ACTIVE = "active"
+                const val CLASS_INFOPANEL = "info-panel"
+            }
+
+            object Transcript {
+                val FgColor = ModeColor("#313131", "#AABACA")
+                const val CLASS = "transcript"
+                const val CLASS_TABLE = "ts-table"
+                const val CLASS_TITLE = "ts-title"
+            }
+
+            object TextField {
+                val TabBorderColor = Color("#717171")
+                val TabFgColor = Color("#717171")
+                val TabActiveBgColor = Color("#71717131")
+                val TabIconSize = 1.4.rem
+                val LineNumbersBorderColor = ModeColor("#B5B5B5")
+                val LineNumbersColor = ModeColor("#999999")
+                val LineActiveColor = ModeColor("#00FF00")
+                val minLineNumWidth = 35.px
+                val tabSize = 6
+                val lineHeight = 21
+                val IndexArea = integer(2)
+                val IndexHL = integer(1)
+
+                const val CLASS = "textfield"
+
+                const val CLASS_TABS = "editor-tabs"
+                const val CLASS_TAB = "editor-tab"
+                const val CLASS_TAB_ACTIVE = "editor-tab-active"
+
+                const val CLASS_SCROLL_CONTAINER = "editor-scroll-container"
+
+                const val CLASS_LINE_ACTIVE = "line-active"
+                const val CLASS_LINE_NUMBERS = "editor-line-numbers"
+
+                const val CLASS_INPUT_DIV = "editor-input-div"
+                const val CLASS_AREA = "editor-area"
+                const val CLASS_HIGHLIGHTING = "editor-highlighting"
+                const val CLASS_HIGHLIGHTING_CONTENT = "editor-highlighting-content"
+            }
+
+            enum class HL(val color: ModeColor, val appendsOn: On = On.Color) {
+                base00(ModeColor("#202746")),
+                base01(ModeColor("#293256")),
+                base02(ModeColor("#5e6687")),
+                base03(ModeColor("#6b7394")),
+                base04(ModeColor("#898ea4")),
+                base05(ModeColor("#979db4")),
+                base06(ModeColor("#dfe2f1")),
+                base07(ModeColor("#f5f7ff")),
+                red(ModeColor("#c94922")),
+                orange(ModeColor("#c76b29")),
+                yellow(ModeColor("#c08b30")),
+                greenOld(ModeColor("#ac9739")),
+                green(ModeColor("#008b19")),
+                cyan(ModeColor("#22a2c9")),
+                blue(ModeColor("#3d8fd1")),
+                violet(ModeColor("#6679cc")),
+                magenta(ModeColor("#9c637a")),
+                whitespace(ModeColor("#B0C4DEFF"), On.BackgroundColor);
+
+                fun getFlag(): String {
+                    return this.name
+                }
+            }
+
+            enum class On {
+                BackgroundColor,
+                Color
+            }
+
+            // MAIN
+            const val CLASS = "editor"
+
+
+        }
+
+        object Processor {
+            val BgColor = ModeColor("#091A40")
+
+            const val CLASS = "processor"
+        }
+
+        object AppControls {
+            const val CLASS = "controls"
+
+            val iconSize = 1.8.rem
+            val iconPadding = 0.1.rem
+            val size = iconSize + 2 * iconPadding
+        }
+
+        object Console {
+            const val CLASS = "console"
+        }
+
+        const val CLASS_DELETE = "delete"
+        const val CLASS_ANIM_ROTATION = "anim-rotation"
+        const val CLASS_ANIM_SHAKERED = "anim-shakered"
+        const val CLASS_ANIM_BLINKGREEN = "anim-blinkgreen"
+        const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
+    }
+
+    object Footer {
+        val BgColor = ModeColor("#905356")
+        val FgColor = ModeColor("#FFF")
+        var iconSize = 4.rem
+    }
+
 
     // NUMBERS
     val paddingSize = 0.4.rem
     val borderRadius = 0.3.rem
+
+    val iconSizeNav = 1.8.rem
+    val iconFilter = invert(1).also { sepia(0.2) }.also { saturate(1.278) }.also { hueRotate(202.deg) }.also { brightness(1.20) }.also { contrast(0.87) }
+    val iconActiveFilter = invert(71.pct).also { sepia(54.pct) }.also { saturate(429.pct) }.also { hueRotate(83.deg) }.also { brightness(89.pct) }.also { contrast(87.pct) }
 
     val iconSize = 1.8.rem
     val iconPadding = 0.1.rem
     val iconBorderRadius = 0.4.rem
 
     // FONTS
-    val logoFont = "'Bungee Shade', cursive"
-
-
-    // OBJECTS
-
-
+    val logoFont = "font-family: 'Bungee Shade', cursive"
 
 
     /**
@@ -48,56 +193,7 @@ object StyleConst {
      */
 
 
-    /* HIGHLIGHTING */
-
-    val HLCLASS_WHITESPACE = "whitespace"
-
-    val HLCLASS_B00 = "base00"
-    val HLCLASS_B01 = "base01"
-    val HLCLASS_B02 = "base02"
-    val HLCLASS_B03 = "base03"
-    val HLCLASS_B04 = "base04"
-    val HLCLASS_B05 = "base05"
-    val HLCLASS_B06 = "base06"
-    val HLCLASS_B07 = "base07"
-
-    val HLCLASS_red = "red"
-    val HLCLASS_orange = "orange"
-    val HLCLASS_yellow = "yellow"
-    val HLCLASS_green = "green"
-    val HLCLASS_cyan = "cyan"
-    val HLCLASS_blue = "blue"
-    val HLCLASS_violet = "violet"
-    val HLCLASS_magenta = "magenta"
-
-    /* CODE EDITOR */
-
-    // MAIN
-    val CLASS_EDITOR = "editor"
-    val CLASS_EDITOR_CONTROL = "editor-control"
-    val CLASS_EDITOR_CONTROL_ACTIVE = "editor-control-active"
-    val CLASS_EDITOR_CONTROLS = "editor-controls"
-    val CLASS_EDITOR_LINE_ACTIVE = "line-active"
-    val CLASS_EDITOR_HIGHLIGHTING_LANGUAGE = "highlighting-html"
-    val CLASS_EDITOR_CONTAINER = "editor-container"
-    val CLASS_EDITOR_TABS = "editor-tabs"
-    val CLASS_EDITOR_TAB = "editor-tab"
-    val CLASS_EDITOR_TAB_ACTIVE = "editor-tab-active"
-    val CLASS_EDITOR_SCROLL_CONTAINER = "editor-scroll-container"
-    val CLASS_EDITOR_LINE_NUMBERS = "editor-line-numbers"
-    val CLASS_EDITOR_INPUT_DIV = "editor-input-div"
-    val CLASS_EDITOR_AREA = "editor-area"
-    val CLASS_EDITOR_HIGHLIGHTING = "editor-highlighting"
-    val CLASS_EDITOR_HIGHLIGHTING_CONTENT = "editor-highlighting-content"
-    val CLASS_EDITOR_DARKMODE = "editor-dark"
-
-    const val CLASS_TRANSCRIPT = "transcript"
-    const val CLASS_TRANSCRIPT_TABLE = "ts-table"
-    const val CLASS_TRANSCRIPT_TITLE = "ts-title"
-
-    const val CLASS_ANIM_ROTATION = "anim-rotation"
-    const val CLASS_ANIM_HOVER = "anim-hover"
-    const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
+    // MENU
 
 
     // PROCESSOR

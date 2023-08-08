@@ -28,6 +28,8 @@
 * {
     margin: 0;
     padding: 0;
+    outline: none;
+    border: none;
     font-family: 'JetBrains Mono', sans-serif;
     font-size: 1rem;
     box-sizing: border-box;
@@ -50,7 +52,7 @@ main *::-webkit-scrollbar-track {
 main *::-webkit-scrollbar-thumb {
     background: #00000033;
     border-radius: 3px;
-    cursor: pointer!important;
+    cursor: pointer !important;
 }
 
 /* Handle on hover */

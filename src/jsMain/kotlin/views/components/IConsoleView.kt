@@ -79,7 +79,6 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             } else {
                 borderRadius = 0.3.rem
                 position = Position.relative
-
             }
         }
 

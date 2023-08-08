@@ -61,9 +61,9 @@ val Menu = FC<MenuProps>() { props ->
     fun showNavbar(state: Boolean) {
         navRef.current?.let {
             if (state) {
-                it.classList.add("responsive_nav")
+                it.classList.add(StyleConst.Header.CLASS_MOBILE_OPEN)
             } else {
-                it.classList.remove("responsive_nav")
+                it.classList.remove(StyleConst.Header.CLASS_MOBILE_OPEN)
             }
             setNavHidden(!state)
         }
@@ -133,8 +133,6 @@ val Menu = FC<MenuProps>() { props ->
                 onClick = {
                     setImportHidden(!importHidden)
                 }
-
-
             }
 
             a {
@@ -152,7 +150,7 @@ val Menu = FC<MenuProps>() { props ->
 
             button {
                 className = ClassName("nav-btn nav-close-btn")
-
+                title = "close nav"
                 onClick = {
                     showNavbar(false)
                 }
@@ -166,8 +164,8 @@ val Menu = FC<MenuProps>() { props ->
         }
 
         button {
-
             className = ClassName("nav-btn")
+            title = "open nav"
 
             onClick = {
                 showNavbar(true)
@@ -181,8 +179,17 @@ val Menu = FC<MenuProps>() { props ->
         }
 
         div {
-            className = ClassName("nav-dropdown")
             ref = archsRef
+
+            css(ClassName(StyleConst.Header.CLASS_DROPDOWN)) {
+                if (archsHidden) {
+                    visibility = Visibility.hidden
+                    transform = translatey(-100.vh)
+                } else {
+                    visibility = Visibility.visible
+                    transform = translatey(0.vh)
+                }
+            }
 
             for (id in data.getArchList().indices) {
                 a {
@@ -218,20 +225,7 @@ val Menu = FC<MenuProps>() { props ->
 
         if (!exportHidden) {
             div {
-                css {
-                    position = Position.fixed
-                    bottom = 0.px
-                    left = 0.px
-                    width = 100.vw
-                    zIndex = integer(1000)
-                    padding = 1.rem
-                    backgroundColor = Color("#5767aa")
-
-                    display = Display.flex
-                    justifyContent = JustifyContent.center
-                    gap = 2.rem
-                    alignItems = AlignItems.center
-                }
+                className = ClassName(StyleConst.Header.CLASS_OVERLAY)
 
                 a {
 
@@ -273,14 +267,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 if (selFormat != FileBuilder.ExportFormat.CURRENT_FILE) {
                     div {
-
-                        css {
-                            display = Display.flex
-                            flexDirection = FlexDirection.column
-                            justifyContent = JustifyContent.center
-                            alignItems = AlignItems.center
-                        }
-
+                        className = ClassName(StyleConst.Header.CLASS_OVERLAY_LABELEDINPUT)
                         label {
                             htmlFor = "vhdlAddrInput"
                             +"Address Width [Bits]"
@@ -300,13 +287,7 @@ val Menu = FC<MenuProps>() { props ->
                     }
 
                     div {
-
-                        css {
-                            display = Display.flex
-                            flexDirection = FlexDirection.column
-                            justifyContent = JustifyContent.center
-                            alignItems = AlignItems.center
-                        }
+                        className = ClassName(StyleConst.Header.CLASS_OVERLAY_LABELEDINPUT)
                         label {
                             htmlFor = "vhdlDataInput"
                             +"Data Width [Bits]"
@@ -364,7 +345,6 @@ val Menu = FC<MenuProps>() { props ->
 
             }
         }
-
 
         if (!importHidden) {
             div {

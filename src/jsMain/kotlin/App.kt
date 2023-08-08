@@ -1,4 +1,3 @@
-import emotion.css.cx
 import emotion.react.css
 import kotlinx.browser.localStorage
 import web.html.*
@@ -14,6 +13,10 @@ import web.cssom.*
 
 
 val App = FC<Props> { props ->
+
+    AppStyle {
+
+    }
 
     val (appLogic, setAppLogic) = useState<AppLogic>(AppLogic())
     val (mode, setMode) = useState<StyleConst.Mode>(StyleConst.mode)
@@ -36,90 +39,162 @@ val App = FC<Props> { props ->
         setReloadUI(!reloadUI)
     }
 
-    div {
+    Menu {
+        this.appLogic = appLogic
+        update = useState(reloadUI)
+        updateParent = ::updateApp
+    }
 
-
-
-        Menu {
-            this.appLogic = appLogic
-            update = useState(reloadUI)
-            updateParent = ::updateApp
+    ReactHTML.main {
+        ref = mainRef
+        css {
+            backgroundColor = StyleConst.Main.BgColor.get()
+            color = StyleConst.Main.FgColor.get()
         }
 
-        ReactHTML.main {
-            ref = mainRef
+        div {
+            id = "tcontainer"
             css {
-                backgroundColor = StyleConst.mainBgColor.get()
-                color = StyleConst.mainFgColor.get()
+                display = Display.flex
+                position = Position.relative
+                gap = StyleConst.paddingSize
+                flexWrap = FlexWrap.nowrap
+                padding = StyleConst.paddingSize
+                flexDirection = FlexDirection.row
+                justifyContent = JustifyContent.stretch
+                alignItems = AlignItems.stretch
+
+                StyleConst.layoutSwitchMediaQuery {
+                    flexDirection = FlexDirection.column
+                }
             }
 
             div {
-                id = "tcontainer"
-                div {
-                    id = "lcontainer"
-                    CodeEditor {
-                        this.appLogic = appLogic
-                        update = useState(reloadUI)
-                        updateParent = ::updateApp
+                id = "lcontainer"
+                css {
+                    flex = StyleConst.Main.lPercentage.pct
+                    position = Position.relative
+
+                    StyleConst.layoutSwitchMediaQuery {
+                        flex = 100.pct
+                        display = Display.block
+                        minHeight = max(50.vh, (StyleConst.Main.Editor.TextField.lineHeight * 10).px)
                     }
                 }
+                CodeEditor {
+                    this.appLogic = appLogic
+                    update = useState(reloadUI)
+                    updateParent = ::updateApp
+                }
+            }
 
-                div {
-                    id = "rcontainer"
-                    ProcessorView {
-                        this.appLogic = appLogic
-                        update = useState(reloadUI)
-                        updateAppLogic = ::updateApp
+            div {
+                id = "rcontainer"
+                css {
+                    flex = StyleConst.Main.rPercentage.pct
+                    position = Position.relative
+                    backgroundColor = StyleConst.Main.Processor.BgColor.get()
+                    boxShadow = BoxShadow(0.px, 3.px, 6.px, rgb(0, 0, 0, 0.23))
+                    borderRadius = StyleConst.borderRadius
+                    padding = StyleConst.paddingSize
+
+                    StyleConst.layoutSwitchMediaQuery {
+                        flex = 100.pct
+                        display = Display.block
                     }
                 }
+                ProcessorView {
+                    this.appLogic = appLogic
+                    update = useState(reloadUI)
+                    updateAppLogic = ::updateApp
+                }
+            }
 
-                div {
-                    id = "controlsContainer"
+            div {
+                id = "controlsContainer"
+
+                css {
+                    display = Display.flex
+                    flexDirection = FlexDirection.column
+                    gap = StyleConst.paddingSize
+                    justifyContent = JustifyContent.start
+                    alignItems = AlignItems.start
+
+                    StyleConst.layoutSwitchMediaQuery {
+                        flexDirection = FlexDirection.row
+                    }
 
                     a {
-                        img {
-                            src = when (StyleConst.mode) {
-                                StyleConst.Mode.LIGHT -> {
-                                    StyleConst.Icons.lightmode
-                                }
+                        backgroundColor = StyleConst.Main.AccColor
+                        padding = StyleConst.Main.AppControls.iconPadding
+                        borderRadius = StyleConst.borderRadius
+                        boxShadow = BoxShadow(0.px, 0.px, 0.5.rem, Color("#000000A0"))
+                        height = StyleConst.Main.AppControls.size
+                        width = StyleConst.Main.AppControls.size
+                        cursor = Cursor.pointer
 
-                                StyleConst.Mode.DARK -> {
-                                    StyleConst.Icons.darkmode
-                                }
-                            }
-                        }
-                        onClick = {
-                            val newMode = if (mode.ordinal < StyleConst.Mode.entries.size - 1) {
-                                StyleConst.Mode.entries[mode.ordinal + 1]
-                            } else {
-                                StyleConst.Mode.entries[0]
-                            }
-                            StyleConst.mode = newMode
-                            setMode(newMode)
+                        img {
+                            height = StyleConst.Main.AppControls.iconSize
+                            width = StyleConst.Main.AppControls.iconSize
+                            filter = StyleConst.iconFilter
                         }
                     }
                 }
-            }
-            div {
-                id = "bcontainer"
-                InfoView {
-                    this.appLogic = appLogic
-                    this.update = useState(reloadUI)
-                    this.updateParent = ::updateApp
-                    this.footerRef = footerRef
+
+                a {
+                    img {
+                        src = when (StyleConst.mode) {
+                            StyleConst.Mode.LIGHT -> {
+                                StyleConst.Icons.lightmode
+                            }
+
+                            StyleConst.Mode.DARK -> {
+                                StyleConst.Icons.darkmode
+                            }
+                        }
+                    }
+                    onClick = {
+                        val newMode = if (mode.ordinal < StyleConst.Mode.entries.size - 1) {
+                            StyleConst.Mode.entries[mode.ordinal + 1]
+                        } else {
+                            StyleConst.Mode.entries[0]
+                        }
+                        StyleConst.mode = newMode
+                        setMode(newMode)
+                    }
                 }
             }
-
-
         }
-
-        footer {
-            ref = footerRef
-            FooterView {
-
+        div {
+            id = "bcontainer"
+            css {
+                display = Display.flex
+                flexDirection = FlexDirection.column
+                position = Position.relative
+                gap = StyleConst.paddingSize
+                flexWrap = FlexWrap.nowrap
+                padding = StyleConst.paddingSize
+            }
+            InfoView {
+                this.appLogic = appLogic
+                this.update = useState(reloadUI)
+                this.updateParent = ::updateApp
+                this.footerRef = footerRef
             }
         }
     }
+
+    footer {
+        ref = footerRef
+        css {
+            backgroundColor = StyleConst.Footer.BgColor.get()
+            color = StyleConst.Footer.FgColor.get()
+        }
+        FooterView {
+
+        }
+    }
+
 
     useEffect(reloadUI) {
         if (DebugTools.REACT_showUpdateInfo) {

@@ -107,7 +107,7 @@ val MemoryView = FC<MemViewProps> { props ->
             overflowY = Overflow.scroll
             maxHeight = 40.vh
             display = Display.block
-            backgroundColor = StyleConst.tableMemBgColor.get()
+            backgroundColor = StyleConst.Main.tableMemBgColor.get()
         }
 
         div {

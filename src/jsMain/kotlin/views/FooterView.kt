@@ -2,6 +2,7 @@ package views
 
 import AppLogic
 import emotion.react.css
+import extendable.ArchConst
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
@@ -20,14 +21,12 @@ external interface FooterViewProps : Props{
 val FooterView = FC<FooterViewProps>{
 
     div{
-
         css {
             backgroundColor = Color("#905356")
             textAlign = TextAlign.center
             color = Color("#FFFFFF")
             padding = 1.0.rem
             textDecoration = null
-
         }
 
         p{
@@ -47,9 +46,8 @@ val FooterView = FC<FooterViewProps>{
             }
         }
         h3{
-            className = ClassName("logo")
-
-            +"ProSimWeb"
+            className = ClassName(StyleConst.CLASS_LOGO)
+            +ArchConst.PROSIMNAME
         }
         p{
             +"Copyright © 2023 Universität Stuttgart IKR"

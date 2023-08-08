@@ -2,6 +2,7 @@ package views.components
 
 import AppLogic
 import StyleConst
+import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.Transcript
 import react.FC
@@ -18,7 +19,6 @@ import react.useRef
 import react.useState
 import tools.DebugTools
 
-import web.html.*
 import web.timers.*
 import web.cssom.*
 
@@ -33,9 +33,8 @@ val TranscriptView = FC<TranscriptProps> { props ->
     val executionPointInterval = useRef<Timeout>(null)
 
     val appLogic by useState(props.appLogic)
-    val ta_val = props.ta_val
     val transcript by useState(props.transcript)
-    val (currExeAddr, setCurrExeAddr) = useState<String>("0")
+    val (currExeAddr, setCurrExeAddr) = useState("0")
 
     executionPointInterval.current?.let {
         clearInterval(it)
@@ -48,10 +47,25 @@ val TranscriptView = FC<TranscriptProps> { props ->
     }
 
     div {
-        className = ClassName(StyleConst.CLASS_TRANSCRIPT)
+
+        css(ClassName(StyleConst.Main.Editor.Transcript.CLASS)) {
+            color = StyleConst.Main.Editor.Transcript.FgColor.get()
+        }
 
         div {
-            className = ClassName(StyleConst.CLASS_TRANSCRIPT_TITLE)
+            css(ClassName(StyleConst.Main.Editor.Transcript.CLASS_TITLE)) {
+                flexBasis = 5.pct
+                height = 100.pct
+                display = Display.flex
+                justifyContent = JustifyContent.spaceBetween
+                alignItems = AlignItems.center
+                flexDirection = FlexDirection.column
+
+                a {
+                    flex = 100.pct
+                    padding = StyleConst.paddingSize
+                }
+            }
             a {
                 +"T"
             }
@@ -85,7 +99,13 @@ val TranscriptView = FC<TranscriptProps> { props ->
         }
 
         div {
-            className = ClassName(StyleConst.CLASS_TRANSCRIPT_TABLE)
+            css(ClassName(StyleConst.Main.Editor.Transcript.CLASS_TABLE)) {
+                flex = 95.pct
+                overflowY = Overflow.scroll
+                maxHeight = 100.pct
+                borderRadius = StyleConst.borderRadius
+                boxShadow = BoxShadow(0.px, 2.px, 2.px, rgb(0, 0, 0, 0.12))
+            }
 
             table {
                 className = ClassName("dcf-table dcf-w-100%")
@@ -108,7 +128,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
                                 className = ClassName("dcf-mark-green")
                             }
 
-                            for (header in ArchConst.TranscriptHeaders.values()) {
+                            for (header in ArchConst.TranscriptHeaders.entries) {
                                 if (header == ArchConst.TranscriptHeaders.PARAMS) {
                                     val content = row.content[header]
                                     content?.let {

@@ -2,7 +2,6 @@ package views
 
 import AppLogic
 import StyleConst
-import emotion.css.cx
 import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.FileHandler
@@ -16,14 +15,17 @@ import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.mark
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import react.dom.html.TableRules.Companion.all
 import tools.DebugTools
 import views.components.TranscriptView
 import web.cssom.ClassName
 import web.timers.*
 import web.cssom.*
+import web.cssom.LineStyle.Companion.solid
 
 external interface CodeEditorProps : Props {
     var appLogic: AppLogic
@@ -31,12 +33,7 @@ external interface CodeEditorProps : Props {
     var updateParent: () -> Unit
 }
 
-
 val CodeEditor = FC<CodeEditorProps> { props ->
-
-    /* ----------------- STATIC VARIABLES ----------------- */
-
-    val lineHeight = 21
 
     /* ----------------- REACT REFERENCES ----------------- */
 
@@ -106,7 +103,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         textareaRef.current?.let {
             val lineCount = it.value.split("\n").size + 1
-            height = lineCount * lineHeight
+            height = lineCount * StyleConst.Main.Editor.TextField.lineHeight
             it.style.height = "auto"
             it.style.height = "${height}px"
         }
@@ -121,23 +118,23 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     fun updateClearButton() {
         textareaRef.current?.let {
             if (it.value != "") {
-                btnClearRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
+                btnClearRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
             } else {
-                btnClearRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
+                btnClearRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
             }
         }
     }
 
     fun updateUndoRedoButton() {
         if (appLogic.getArch().getFileHandler().getCurrUndoLength() > 0) {
-            btnUndoRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
+            btnUndoRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         } else {
-            btnUndoRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
+            btnUndoRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         }
         if (appLogic.getArch().getFileHandler().getCurrRedoLength() > 0) {
-            btnRedoRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
+            btnRedoRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         } else {
-            btnRedoRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
+            btnRedoRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         }
     }
 
@@ -228,14 +225,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- DOM ----------------- */
 
     div {
-        className = ClassName(StyleConst.CLASS_EDITOR)
+        className = ClassName(StyleConst.Main.Editor.CLASS)
 
         div {
-            className = ClassName(StyleConst.CLASS_EDITOR_CONTROLS)
+            className = ClassName(StyleConst.Main.Editor.Controls.CLASS)
 
             a {
                 id = "switch"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
                 ref = btnSwitchRef
                 title = "Transcript Switch"
                 ReactHTML.img {
@@ -248,7 +245,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL)
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
 
                 onClick = {
                     checkCode(true)
@@ -258,7 +255,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     ArchConst.STATE_UNCHECKED -> {
                         title = "Status: loading..."
                         img {
-                            className = ClassName(StyleConst.CLASS_ANIM_ROTATION)
+                            className = ClassName(StyleConst.Main.CLASS_ANIM_ROTATION)
                             src = StyleConst.Icons.status_loading
                         }
                     }
@@ -287,7 +284,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     else -> {
                         title = "Status: loading..."
                         img {
-                            className = ClassName(StyleConst.CLASS_ANIM_ROTATION)
+                            className = ClassName(StyleConst.Main.CLASS_ANIM_ROTATION)
                             src = StyleConst.Icons.status_loading
                         }
                     }
@@ -296,7 +293,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 id = "undo"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
                 ref = btnUndoRef
                 title = "Undo"
 
@@ -311,7 +308,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 id = "redo"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
                 ref = btnRedoRef
                 title = "Redo"
 
@@ -326,7 +323,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 id = "info"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
 
                 title = """
                     Code Editor Info
@@ -357,8 +354,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
-                id = "editor-clear"
-                className = ClassName(StyleConst.CLASS_EDITOR_CONTROL + " " + StyleConst.CLASS_ANIM_HOVER)
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
+                className = ClassName(StyleConst.Main.CLASS_DELETE)
                 ref = btnClearRef
                 title = "Clear"
 
@@ -372,8 +369,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
-                id = "editor-info-panel"
                 ref = infoPanelRef
+                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_INFOPANEL)
 
                 title = "{$infoPanelText}"
 
@@ -388,26 +385,22 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 onClick = {
                     setShowInfoPanel(!showInfoPanel)
                 }
-
-
             }
 
         }
 
         div {
-            className = ClassName(StyleConst.CLASS_EDITOR_CONTAINER)
-
-            css {
+            css(ClassName(StyleConst.Main.Editor.TextField.CLASS)) {
                 overflow = Overflow.hidden
                 display = Display.flex
                 flexDirection = FlexDirection.column
                 maxHeight = 100.pc
                 width = 100.pc
-                this.lineHeight = lineHeight.px
+                this.lineHeight = StyleConst.Main.Editor.TextField.lineHeight.px
                 fontFamily = FontFamily.monospace
-                backgroundColor = StyleConst.editorBgColor.get()
-                color = StyleConst.editorFgColor.get()
-                caretColor = important(StyleConst.editorFgColor.get())
+                backgroundColor = StyleConst.Main.Editor.BgColor.get()
+                color = StyleConst.Main.Editor.FgColor.get()
+                caretColor = important(StyleConst.Main.Editor.FgColor.get())
                 borderRadius = 2.px
                 padding = 1.pc
                 boxShadow = BoxShadow(0.px, 3.px, 6.px, Color("#000000F7"))
@@ -425,13 +418,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                 div {
 
-                    className = ClassName(StyleConst.CLASS_EDITOR_TABS)
+                    className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TABS)
 
                     for (fileID in appLogic.getArch().getFileHandler().getAllFiles().indices) {
                         val file = appLogic.getArch().getFileHandler().getAllFiles()[fileID]
                         div {
 
-                            className = ClassName(StyleConst.CLASS_EDITOR_TAB + if (file == appLogic.getArch().getFileHandler().getCurrent()) " ${StyleConst.CLASS_EDITOR_TAB_ACTIVE}" else "")
+                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TAB + if (file == appLogic.getArch().getFileHandler().getCurrent()) " ${StyleConst.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
 
                             if (file == appLogic.getArch().getFileHandler().getCurrent()) {
                                 if (!showRenameTab) {
@@ -509,7 +502,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                     if (showAddTab) {
                         div {
-                            className = ClassName(StyleConst.CLASS_EDITOR_TAB)
+                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TAB)
 
                             input {
                                 ref = addtabinput
@@ -564,7 +557,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
                     } else {
                         a {
-                            className = ClassName(StyleConst.CLASS_EDITOR_TAB)
+                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TAB)
 
                             +"+"
 
@@ -575,12 +568,29 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     }
                 }
 
-
                 div {
-                    className = ClassName(StyleConst.CLASS_EDITOR_SCROLL_CONTAINER)
+                    className = ClassName(StyleConst.Main.Editor.TextField.CLASS_SCROLL_CONTAINER)
 
                     div {
-                        className = ClassName(StyleConst.CLASS_EDITOR_LINE_NUMBERS)
+                        css(ClassName(StyleConst.Main.Editor.TextField.CLASS_LINE_NUMBERS)) {
+                            display = Display.flex
+                            flexDirection = FlexDirection.column
+                            alignItems = AlignItems.flexEnd
+                            minWidth = StyleConst.Main.Editor.TextField.minLineNumWidth
+                            textAlign = TextAlign.right
+
+                            span {
+                                cursor = Cursor.pointer
+                                paddingRight = StyleConst.paddingSize
+                                fontFamily = FontFamily.monospace
+                                borderRight = Border(1.px, LineStyle.solid, StyleConst.Main.Editor.TextField.LineNumbersBorderColor.get())
+                                color = StyleConst.Main.Editor.TextField.LineNumbersColor.get()
+
+                                ".${StyleConst.Main.Editor.TextField.CLASS_LINE_ACTIVE}" {
+                                    color = important(StyleConst.Main.Editor.TextField.LineActiveColor.get())
+                                }
+                            }
+                        }
                         ref = lineNumbersRef
 
                         for (lineNumber in 1..lineNumbers) {
@@ -591,7 +601,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
 
                                 if (lineNumber == currExeLine) {
-                                    className = ClassName(StyleConst.CLASS_EDITOR_LINE_ACTIVE)
+                                    className = ClassName(StyleConst.Main.Editor.TextField.CLASS_LINE_ACTIVE)
                                     +"► $lineNumber"
 
                                 } else {
@@ -603,11 +613,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     }
 
                     div {
-                        className = ClassName(StyleConst.CLASS_EDITOR_INPUT_DIV)
+                        className = ClassName(StyleConst.Main.Editor.TextField.CLASS_INPUT_DIV)
                         ref = inputDivRef
 
                         textarea {
-                            className = ClassName(StyleConst.CLASS_EDITOR_AREA)
+                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_AREA)
                             ref = textareaRef
                             autoComplete = AutoComplete.off
                             autoCorrect = "off"
@@ -688,14 +698,40 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
 
                         pre {
-                            className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING)
+                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_HIGHLIGHTING)
                             ariaHidden = true
 
                             code {
-                                className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_LANGUAGE)
-                                className = ClassName(StyleConst.CLASS_EDITOR_HIGHLIGHTING_CONTENT)
-                                style?.caretColor = StyleConst.editorFgColor.get()
-                                style?.color = StyleConst.editorFgColor.get()
+                                css(ClassName(StyleConst.Main.Editor.TextField.CLASS_HIGHLIGHTING_CONTENT)) {
+                                    caretColor = StyleConst.Main.Editor.FgColor.get()
+                                    color = StyleConst.Main.Editor.FgColor.get()
+                                    display = Display.block
+                                    width = 100.pct
+                                    height = 100.pct
+                                    tabSize = StyleConst.Main.Editor.TextField.tabSize.ch
+                                    lineHeight = StyleConst.Main.Editor.TextField.lineHeight.px
+                                    whiteSpace = WhiteSpace.pre
+                                    overflowX = Overflow.clip
+                                    overflowWrap = OverflowWrap.normal
+                                    paddingLeft = StyleConst.paddingSize
+                                    border = Border(0.px, LineStyle.hidden)
+                                    background = StyleConst.transparent
+                                    resize = Resize.block
+
+                                    for (entry in StyleConst.Main.Editor.HL.entries) {
+                                        ".${entry.getFlag()}" {
+                                            when (entry.appendsOn) {
+                                                StyleConst.Main.Editor.On.BackgroundColor -> {
+                                                    backgroundColor = important(entry.color.get())
+                                                }
+
+                                                StyleConst.Main.Editor.On.Color -> {
+                                                    color = important(entry.color.get())
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
 
                                 ref = codeAreaRef
 
@@ -736,11 +772,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     useEffect(checkState) {
         when (checkState) {
             ArchConst.STATE_EXECUTABLE -> {
-                btnSwitchRef.current?.classList?.remove(StyleConst.CLASS_ANIM_DEACTIVATED)
+                btnSwitchRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
             }
 
             else -> {
-                btnSwitchRef.current?.classList?.add(StyleConst.CLASS_ANIM_DEACTIVATED)
+                btnSwitchRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
             }
         }
     }
@@ -752,9 +788,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
         btnSwitchRef.current?.let {
             if (transcriptView) {
-                it.classList.add(StyleConst.CLASS_EDITOR_CONTROL_ACTIVE)
+                it.classList.add(StyleConst.Main.Editor.Controls.CLASS_ACTIVE)
             } else {
-                it.classList.remove(StyleConst.CLASS_EDITOR_CONTROL_ACTIVE)
+                it.classList.remove(StyleConst.Main.Editor.Controls.CLASS_ACTIVE)
             }
         }
         updateTAResize()

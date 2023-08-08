@@ -56,10 +56,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
             maxHeight = 40.vh
 
             table {
-                backgroundColor = StyleConst.tableRegBgColor.get()
+                backgroundColor = StyleConst.Main.tableRegBgColor.get()
 
                 input {
-                    color = StyleConst.mainFgColor.get()
+                    color = StyleConst.Main.FgColor.get()
                 }
 
                 "dcf-tabs" {
@@ -91,10 +91,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 a {
                     if (currRegFileIndex == regFileList.indexOf(regFile)) {
                         css {
-                            backgroundColor = important(StyleConst.tableRegBgColor.get())
+                            backgroundColor = important(StyleConst.Main.tableRegBgColor.get())
                             boxShadow = important(BoxShadow(0.px, 0.px, 0.px, Color("#FFF")))
                             padding = important(Padding(0.2.rem,0.5.rem))
-                            color = important(StyleConst.mainFgColor.get())
+                            color = important(StyleConst.Main.FgColor.get())
                         }
                     }
 
