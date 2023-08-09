@@ -1,5 +1,6 @@
 import emotion.react.css
 import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import web.html.*
 import react.*
 import react.dom.html.ReactHTML
@@ -142,6 +143,7 @@ val App = FC<Props> { props ->
                 }
 
                 a {
+                    title = "Switch between ${StyleConst.Mode.entries.joinToString(" ") { it.name }}"
                     img {
                         src = when (StyleConst.mode) {
                             StyleConst.Mode.LIGHT -> {
@@ -161,6 +163,20 @@ val App = FC<Props> { props ->
                         }
                         StyleConst.mode = newMode
                         setMode(newMode)
+                    }
+                }
+                a {
+                    title = "clear localStorage"
+                    img {
+                        alt = "clear local storage"
+                        src = "icons/eraser.svg"
+                    }
+                    onClick = {
+                        val response = window.confirm("Do you really want to delete your entire local storage?\nThis will result in the loss of all settings as well as assembler files!")
+                        if (response) {
+                            localStorage.clear()
+                            console.log("localStorage cleared!")
+                        }
                     }
                 }
             }

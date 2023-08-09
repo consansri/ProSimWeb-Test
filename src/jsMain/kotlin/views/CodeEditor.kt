@@ -5,6 +5,7 @@ import StyleConst
 import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.FileHandler
+import kotlinx.browser.window
 import web.html.*
 import react.*
 import react.dom.aria.ariaHidden
@@ -68,6 +69,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
     val (infoPanelText, setInfoPanelText) = useState("")
 
+    val (undoActive, setUndoActive) = useState(false)
+    val (redoActive, setRedoActive) = useState(false)
     /* ----------------- localStorage Sync Objects ----------------- */
 
     val (vc_rows, setvc_rows) = useState<List<String>>(emptyList())
@@ -132,12 +135,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     fun updateUndoRedoButton() {
         if (appLogic.getArch().getFileHandler().getCurrUndoLength() > 1) {
             btnUndoRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+            setUndoActive(true)
         } else {
+            setUndoActive(false)
             btnUndoRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         }
         if (appLogic.getArch().getFileHandler().getCurrRedoLength() > 0) {
+            setRedoActive(true)
             btnRedoRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         } else {
+            setRedoActive(false)
             btnRedoRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
         }
     }
@@ -243,8 +250,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     src = StyleConst.Icons.disassembler
                 }
 
-                onClick = {
-                    setTranscriptView(!transcriptView)
+                if(checkState == ArchConst.STATE_EXECUTABLE) {
+                    onClick = {
+                        setTranscriptView(!transcriptView)
+                    }
                 }
             }
 
@@ -304,9 +313,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 img {
                     src = StyleConst.Icons.backwards
                 }
-
-                onClick = {
-                    undo()
+                if(undoActive) {
+                    onClick = {
+                        undo()
+                    }
                 }
             }
 
@@ -319,9 +329,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 img {
                     src = StyleConst.Icons.forwards
                 }
-
-                onClick = {
-                    redo()
+                if(redoActive) {
+                    onClick = {
+                        redo()
+                    }
                 }
             }
 
@@ -480,10 +491,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     src = StyleConst.Icons.delete
 
                                     onClick = {
-                                        appLogic.getArch().getFileHandler().remove(file)
-                                        edit(appLogic.getArch().getFileHandler().getCurrContent(), false)
-                                        setShowAddTab(false)
-                                        setTaValueUpdate(!taValueUpdate)
+                                        val response = window.confirm("Do you really want to delete the file '${file.getName()}'?\nThis can't be undone!")
+                                        if (response) {
+                                            appLogic.getArch().getFileHandler().remove(file)
+                                            edit(appLogic.getArch().getFileHandler().getCurrContent(), false)
+                                            setShowAddTab(false)
+                                            setTaValueUpdate(!taValueUpdate)
+                                        }
                                     }
                                 }
                             } else {
@@ -811,6 +825,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         setFiles(appLogic.getArch().getFileHandler().getAllFiles())
     }
 
+    useEffect(StyleConst.mode) {
+        checkCode(false)
+    }
 }
 
 object Formatter {

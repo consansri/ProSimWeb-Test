@@ -5,9 +5,11 @@ import extendable.ArchConst
 import extendable.components.assembly.Grammar
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope.coroutineContext
 import react.MutableRefObject
 import tools.DebugTools
 import web.html.HTMLTextAreaElement
+import kotlin.coroutines.coroutineContext
 
 class FileHandler(val fileEnding: String) {
 
@@ -228,22 +230,23 @@ class FileHandler(val fileEnding: String) {
             return redoStates
         }
 
-        fun addUndoState(fileHandler: FileHandler, content: String) {
-            job?.cancel()
-            job = GlobalScope.launch {
-                try {
-                    delay(ArchConst.UNDO_DELAY_MILLIS)
+        private fun addUndoState(fileHandler: FileHandler, content: String) {
+            if (content.isNotEmpty() && content != undoStates.firstOrNull()) {
+                job?.cancel()
+                job = GlobalScope.launch {
+                    try {
+                        delay(ArchConst.UNDO_DELAY_MILLIS)
+                        undoStates.add(0, content)
+                        if (undoStates.size > ArchConst.UNDO_STATE_COUNT) {
+                            undoStates.removeLast()
+                        }
+                        fileHandler.refreshLocalStorage(true)
 
-                    undoStates.add(0, content)
-                    if (undoStates.size > ArchConst.UNDO_STATE_COUNT) {
-                        undoStates.removeLast()
+                    } catch (e: CancellationException) {
+
+                    } finally {
+
                     }
-                    fileHandler.refreshLocalStorage(true)
-
-                } catch (e: CancellationException) {
-
-                } finally {
-
                 }
             }
         }

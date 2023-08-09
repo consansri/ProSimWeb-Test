@@ -4,7 +4,7 @@ import StyleConst
 import extendable.components.types.MutVal
 import tools.DebugTools
 
-class Memory(private val addressSize: MutVal.Size, private val initBin: String, private val wordSize: MutVal.Size, private var endianess: Endianess) {
+class Memory(private val addressSize: MutVal.Size, private val initBin: String, private val wordSize: MutVal.Size, var endianess: Endianess) {
     private var memMap: MutableMap<String, MemInstance> = mutableMapOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
 
