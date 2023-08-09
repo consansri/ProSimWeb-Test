@@ -1,7 +1,6 @@
 package extendable.archs.riscv
 
 import StyleConst
-import extendable.ArchConst
 import extendable.Architecture
 import extendable.archs.riscv.RISCVGrammar.E_DIRECTIVE.DirType.*
 import extendable.archs.riscv.RISCVGrammar.R_INSTR.InstrType.*
@@ -15,7 +14,7 @@ import tools.DebugTools
 class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: MutVal.Value) : Assembly() {
 
     val labelBinAddrMap = mutableMapOf<RISCVGrammar.E_LABEL, String>()
-    val transcriptEntrys = mutableListOf<Transcript.TranscriptEntry>()
+    val transcriptEntrys = mutableListOf<RVDisassembledRow>()
     val binarys = mutableListOf<MutVal.Value.Binary>()
 
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
@@ -24,46 +23,29 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             console.log("RISCVAssembly.generateTranscript(): labelMap -> ${labelBinAddrMap.entries.joinToString("") { "\n\t${it.key.wholeName}: ${it.value}" }}")
         }
 
-        for (entryID in transcriptEntrys.indices) {
-            val entry = transcriptEntrys[entryID]
-            val binary = architecture.getMemory().load(entry.memoryAddress, 4).get().toBin()
+        for (rowID in transcriptEntrys.indices) {
+            val row = transcriptEntrys[rowID]
+            val binary = architecture.getMemory().load(row.getAddresses().first(), 4).get().toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
-                if (MutVal.Value.Binary(labels.value) == entry.memoryAddress.toBin()) {
+                if (MutVal.Value.Binary(labels.value) == row.getAddresses().first().toBin()) {
                     labelString += "${labels.key.wholeName} "
                 }
             }
-            entry.addContent(ArchConst.TranscriptHeaders.label, labelString)
+            row.addLabel(labelString)
 
             val result = binaryMapper.getInstrFromBinary(binary)
             if (result != null) {
                 var branchOffset5: String = ""
                 var branchOffset7: String = ""
                 var jalOffset20: String = ""
-                val paramString = result.binaryMap.entries.joinToString(ArchConst.TRANSCRIPT_PARAMSPLIT) {
+                result.binaryMap.entries.forEach {
                     /*"${it.key.name.lowercase()}\t${*/
                     when (it.key) {
-                        RISCVBinMapper.MaskLabel.RD -> {
-                            architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
-                        }
-
-                        RISCVBinMapper.MaskLabel.RS1 -> {
-                            architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
-                        }
-
-                        RISCVBinMapper.MaskLabel.RS2 -> {
-                            architecture.getRegisterContainer().getRegister(it.value)?.names?.first() ?: it.value.toHex().getHexStr()
-                        }
-
-                        RISCVBinMapper.MaskLabel.SHAMT -> {
-                            it.value.toDec().getDecStr()
-                        }
-
                         RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.IMM20 -> {
                             when (result.type) {
                                 JAL -> {
                                     jalOffset20 = it.value.getRawBinaryStr()
-
                                 }
 
                                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
@@ -92,12 +74,13 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
                     /* }"*/
                 }
+                var labelstring = ""
                 when (result.type) {
                     JAL -> {
                         val shiftedImm = MutVal.Value.Binary(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), MutVal.Size.Bit20()).getResized(MutVal.Size.Bit32()) shl 1
                         for (label in labelBinAddrMap) {
-                            if (MutVal.Value.Binary(label.value) == (entry.memoryAddress.toBin() + shiftedImm).toBin()) {
-                                entry.addContent(ArchConst.TranscriptHeaders.instr, result.type.id + " to ${label.key.wholeName}")
+                            if (MutVal.Value.Binary(label.value) == (row.getAddresses().first().toBin() + shiftedImm).toBin()) {
+                                labelstring = label.key.wholeName
                             }
                         }
                     }
@@ -106,25 +89,24 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                         val imm12 = MutVal.Value.Binary(branchOffset7[0].toString() + branchOffset5[4] + branchOffset7.substring(1) + branchOffset5.substring(0, 4), MutVal.Size.Bit12())
                         val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                         for (label in labelBinAddrMap) {
-                            if (MutVal.Value.Binary(label.value) == (entry.memoryAddress.toBin() + offset).toBin()) {
-                                entry.addContent(ArchConst.TranscriptHeaders.instr, result.type.id + " to ${label.key.wholeName}")
+                            if (MutVal.Value.Binary(label.value) == (row.getAddresses().first().toBin() + offset).toBin()) {
+                                labelstring = label.key.wholeName
                             }
                         }
                     }
 
-                    else -> {
-                        entry.addContent(ArchConst.TranscriptHeaders.instr, result.type.id)
-                    }
+                    else -> {}
                 }
-                entry.addContent(ArchConst.TranscriptHeaders.params, paramString)
+                row.addInstr(architecture, result, labelstring)
             }
-
         }
+
         if (DebugTools.RISCV_showAsmInfo) {
-            console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> \n${transcriptEntrys.joinToString { "\n\t" + it.content.values.joinToString { it } }}")
+            console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> \n${transcriptEntrys.joinToString { "\n\t" + it.getContent().joinToString("\t") { it.content } }}")
         }
 
-        transcript.setContent(transcriptEntrys)
+        transcript.addContent(Transcript.Type.COMPILED, emptyList())
+        architecture.getTranscript().addContent(Transcript.Type.DISASSEMBLED, transcriptEntrys)
     }
 
     override fun generateByteCode(architecture: Architecture, grammarTree: Grammar.GrammarTree): AssemblyMap {
@@ -456,23 +438,21 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                 for (wordID in binary.indices) {
                     instrIDMap.set(MutVal.Value.Hex(((binarys.size + wordID) * 4).toString(16), MutVal.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
                 }
-
                 binarys.addAll(binary)
             }
 
+            var address = MutVal.Value.Hex("0", MutVal.Size.Bit32())
             for (binaryID in binarys.indices) {
-
                 val binary = binarys[binaryID]
                 if (DebugTools.RISCV_showAsmInfo) {
                     console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
                 }
-                val address = MutVal.Value.Hex((binaryID * 4).toString(16), MutVal.Size.Bit32())
-                transcriptEntrys.add(Transcript.TranscriptEntry(address))
+                address = MutVal.Value.Hex((binaryID * 4).toString(16), MutVal.Size.Bit32())
+                transcriptEntrys.add(RVDisassembledRow(address))
                 memory.save(address, binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)
             }
-
+            transcriptEntrys.add(RVDisassembledRow((address + MutVal.Value.Hex("4")).toHex()))
             architecture.getRegisterContainer().pc.value.set(pcStartAddress)
-
             assemblyMap = AssemblyMap(instrIDMap)
         }
 
@@ -480,5 +460,27 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
     }
 
     class MemAllocEntry(val label: RISCVGrammar.E_LABEL, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
+
+    class RVDisassembledRow(address: MutVal.Value.Hex) : Transcript.Row(address) {
+
+        val content = RISCV.TS_DISASSEMBLED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+        init {
+            content[RISCV.TS_DISASSEMBLED_HEADERS.addr] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
+        }
+        fun addInstr(architecture: Architecture, instrResult: RISCVBinMapper.InstrResult, labelName: String) {
+            val instrName = instrResult.type.id
+            content[RISCV.TS_DISASSEMBLED_HEADERS.instr] = Entry(Orientation.LEFT, instrName)
+            content[RISCV.TS_DISASSEMBLED_HEADERS.params] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binaryMap.toMutableMap(), labelName))
+        }
+
+        fun addLabel(labelName: String) {
+            content[RISCV.TS_DISASSEMBLED_HEADERS.label] = Entry(Orientation.CENTER, labelName)
+        }
+
+        override fun getContent(): List<Entry> {
+            return RISCV.TS_DISASSEMBLED_HEADERS.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
+        }
+    }
+
 
 }

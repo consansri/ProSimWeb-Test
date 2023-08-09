@@ -13,6 +13,19 @@ object RISCV {
     val REG_SIZE = MutVal.Size.Bit32()
     val REG_ADDRESS_SIZE = MutVal.Size.Bit8()
 
+    enum class TS_COMPILED_HEADERS {
+        addr,
+        label,
+        instr,
+        params
+    }
+
+    enum class TS_DISASSEMBLED_HEADERS {
+        addr,
+        label,
+        instr,
+        params
+    }
 
     // Assembler CONFIG
     val asmConfig = AsmConfig(
@@ -66,7 +79,7 @@ object RISCV {
             pcSize = MutVal.Size.Bit32()
         ),
         Memory(MutVal.Size.Bit32(), MEM_INIT, MutVal.Size.Bit8(), Memory.Endianess.LittleEndian),
-        Transcript()
+        Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name })
     )
 
     // EDITOR

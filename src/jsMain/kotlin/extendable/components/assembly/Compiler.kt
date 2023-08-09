@@ -3,6 +3,7 @@ package extendable.components.assembly
 import extendable.ArchConst
 import extendable.Architecture
 import extendable.components.connected.RegisterContainer
+import extendable.components.connected.Transcript
 import extendable.components.types.MutVal
 import tools.HTMLTools
 
@@ -24,11 +25,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         dryLines = dryContent.split(*ArchConst.LINEBREAKS.toTypedArray())
         hlLines = dryLines?.toMutableList()
     }
-
     fun isBuildable(): Boolean = isBuildable
-
     fun getAssemblyMap(): Assembly.AssemblyMap = assemblyMap
-
     fun setCode(code: String, shouldHighlight: Boolean): Boolean {
         initCode(code)
         analyze()
@@ -39,11 +37,9 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         compile()
         return isBuildable
     }
-
     fun recompile() {
         compile()
     }
-
     private fun analyze() {
 
         dryLines?.let {
@@ -174,10 +170,10 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             }
         }
     }
-
     private fun parse() {
+        architecture.getTranscript().clear()
         grammar.clear()
-        grammarTree = grammar.check(this, tokenLines, architecture.getFileHandler().getAllFiles())
+        grammarTree = grammar.check(this, tokenLines, architecture.getFileHandler().getAllFiles(), architecture.getTranscript())
         architecture.getConsole().clear()
         grammarTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
@@ -210,7 +206,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
 
     }
-
     private fun highlight() {
 
         for (lineID in tokenLines.indices) {
@@ -319,7 +314,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             }
         }
     }
-
     private fun compile() {
         architecture.getMemory().clear()
         architecture.getRegisterContainer().pc.reset()
@@ -337,7 +331,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
 
     }
-
     fun pseudoAnalyze(content: String): List<Token> {
         val tokens = mutableListOf<Token>()
         var remaining = content
@@ -451,7 +444,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         return tokens
     }
-
     fun getHLContent(): String {
         val stringBuilder = StringBuilder()
         hlLines?.let {
@@ -466,7 +458,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             dryContent
         }
     }
-
     fun getGrammarTree(): Grammar.GrammarTree? = grammarTree
 
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {

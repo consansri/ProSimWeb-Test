@@ -684,7 +684,6 @@ class RISCVBinMapper {
 
         return binaryArray.toTypedArray()
     }
-
     fun getInstrFromBinary(binary: MutVal.Value.Binary): InstrResult? {
         for (instrType in entries) {
             val checkResult = instrType.opCode?.checkOpCode(binary)
@@ -696,9 +695,7 @@ class RISCVBinMapper {
         }
         return null
     }
-
     data class InstrResult(val type: RISCVGrammar.R_INSTR.InstrType, val binaryMap: Map<MaskLabel, MutVal.Value.Binary> = mapOf())
-
     class OpCode(val opMask: String, val maskLabels: Array<MaskLabel>) {
 
         val opMaskList = opMask.removePrefix(ArchConst.PRESTRING_BINARY).split(" ")

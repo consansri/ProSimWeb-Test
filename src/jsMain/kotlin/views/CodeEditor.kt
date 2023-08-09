@@ -772,7 +772,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     useEffect(checkState) {
         when (checkState) {
             ArchConst.STATE_EXECUTABLE -> {
-                btnSwitchRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+                if (!appLogic.getArch().getTranscript().deactivated()) {
+                    btnSwitchRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+                }
             }
 
             else -> {

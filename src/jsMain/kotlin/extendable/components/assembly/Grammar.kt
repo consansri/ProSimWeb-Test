@@ -1,6 +1,7 @@
 package extendable.components.assembly
 
 import extendable.components.connected.FileHandler
+import extendable.components.connected.Transcript
 
 abstract class Grammar {
 
@@ -8,7 +9,7 @@ abstract class Grammar {
 
     abstract fun clear()
 
-    abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>): GrammarTree
+    abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): GrammarTree
 
     class GrammarTree(val rootNode: TreeNode.RootNode? = null) {
         fun contains(token: Compiler.Token): SearchResult? {

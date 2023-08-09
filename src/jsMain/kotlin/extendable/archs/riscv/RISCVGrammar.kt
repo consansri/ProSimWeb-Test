@@ -5,6 +5,8 @@ import extendable.archs.riscv.RISCVGrammar.E_DIRECTIVE.DirType.*
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
 import extendable.components.connected.FileHandler
+import extendable.components.connected.RegisterContainer
+import extendable.components.connected.Transcript
 import extendable.components.types.MutVal
 import tools.DebugTools
 
@@ -16,12 +18,13 @@ class RISCVGrammar() : Grammar() {
 
     }
 
-    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, files: List<FileHandler.File>): GrammarTree {
+    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): GrammarTree {
 
         /**
          *  -------------------------------------------------------------- GLOBAL LISTS --------------------------------------------------------------
          *  usage:
          */
+
 
         // List which holds the actual state after the actuall scans
         val remainingLines = tokenLines.toMutableList()
@@ -54,7 +57,7 @@ class RISCVGrammar() : Grammar() {
                 val filename = it.groupValues[2]
                 var linkedFile: FileHandler.File? = null
                 var linkedTree: GrammarTree? = null
-                for (file in files) {
+                for (file in others) {
                     if (file.getName() == filename) {
                         linkedFile = file
                         linkedTree = file.getLinkedTree()
@@ -989,6 +992,43 @@ class RISCVGrammar() : Grammar() {
          * FINISH CONTAINER SCAN
          */
 
+        /**
+         * Pass Instructions and JLabels to Transcript
+         */
+        val compiledTSRows = mutableListOf<RVCompiledRow>()
+        var address: MutVal.Value = MutVal.Value.Hex("0", MutVal.Size.Bit32())
+        var compiledRow = RVCompiledRow(address.toHex())
+        for (section in sections + imports) {
+            when (section) {
+                is S_TEXT -> {
+                    for (row in section.sectionContent) {
+                        when (row) {
+                            is R_JLBL -> {
+                                compiledRow.addLabel(row)
+                            }
+
+                            is R_INSTR -> {
+                                compiledRow.addInstr(row)
+                                compiledTSRows.add(compiledRow)
+                                when (row.instrType.memWords) {
+                                    2 -> {
+                                        compiledRow.addAddresses(address + MutVal.Value.Hex(4.toString(16)))
+                                    }
+                                }
+                                address += MutVal.Value.Hex((row.instrType.memWords * 4).toString(16))
+                                compiledRow = RVCompiledRow(address.toHex())
+                            }
+                        }
+
+                    }
+                }
+
+                else -> {}
+            }
+        }
+        compiledTSRows.add(compiledRow)
+        transcript.addContent(Transcript.Type.COMPILED, compiledTSRows)
+
         val rootNode = TreeNode.RootNode(errors, warnings, c_sections, c_pres)
 
         return GrammarTree(rootNode)
@@ -1023,8 +1063,7 @@ class RISCVGrammar() : Grammar() {
 
     object SyntaxInfo {
         val pre_map = mapOf<String, String>(
-            ".equ" to ".equ [name], [value]",
-            ".macro" to "\n.macro [name] [attr1, ..., attrn]\n\t[macro usage referencing attribs with starting '\\']\n\t...\n.endm\n"
+            ".equ" to ".equ [name], [value]", ".macro" to "\n.macro [name] [attr1, ..., attrn]\n\t[macro usage referencing attribs with starting '\\']\n\t...\n.endm\n"
         )
     }
 
@@ -1091,8 +1130,7 @@ class RISCVGrammar() : Grammar() {
 
                     R_INSTR.ParamType.RD_Off12 -> {
                         matches = if (params.size == 2) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Offset
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Offset
                         } else {
                             false
                         }
@@ -1100,8 +1138,7 @@ class RISCVGrammar() : Grammar() {
 
                     R_INSTR.ParamType.RS2_Off5 -> {
                         matches = if (params.size == 2) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Offset
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Offset
                         } else {
                             false
                         }
@@ -1109,9 +1146,7 @@ class RISCVGrammar() : Grammar() {
 
                     R_INSTR.ParamType.RD_RS1_RS1 -> {
                         matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.Register
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Register && params[2] is E_PARAM.Register
                         } else {
                             false
                         }
@@ -1119,9 +1154,7 @@ class RISCVGrammar() : Grammar() {
 
                     R_INSTR.ParamType.RD_RS1_I12 -> {
                         matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.Constant
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Register && params[2] is E_PARAM.Constant
                         } else {
                             false
                         }
@@ -1129,9 +1162,7 @@ class RISCVGrammar() : Grammar() {
 
                     R_INSTR.ParamType.RD_RS1_I5 -> {
                         matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.Constant
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Register && params[2] is E_PARAM.Constant
                         } else {
                             false
                         }
@@ -1139,9 +1170,7 @@ class RISCVGrammar() : Grammar() {
 
                     R_INSTR.ParamType.RS1_RS2_I12 -> {
                         matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    params[2] is E_PARAM.Constant
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Register && params[2] is E_PARAM.Constant
                         } else {
                             false
                         }
@@ -1149,9 +1178,7 @@ class RISCVGrammar() : Grammar() {
 
                     R_INSTR.ParamType.PS_RS1_RS2_Jlbl -> {
                         matches = if (params.size == 3) {
-                            params[0] is E_PARAM.Register &&
-                                    params[1] is E_PARAM.Register &&
-                                    (params[2] is E_PARAM.Link && params[2].ifLinkGetLinkType() == E_PARAM.Link.LinkTypes.JLBL)
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Register && (params[2] is E_PARAM.Link && params[2].ifLinkGetLinkType() == E_PARAM.Link.LinkTypes.JLBL)
                         } else {
                             false
                         }
@@ -1391,9 +1418,7 @@ class RISCVGrammar() : Grammar() {
             }
 
             enum class LinkTypes {
-                JLBL,
-                ULBL,
-                ILBL
+                JLBL, ULBL, ILBL
             }
 
         }
@@ -1424,27 +1449,15 @@ class RISCVGrammar() : Grammar() {
         }
 
         enum class MajorType {
-            SECTIONSTART,
-            DE_ALIGNED,
-            DE_UNALIGNED
+            SECTIONSTART, DE_ALIGNED, DE_UNALIGNED
         }
 
         enum class DirType(val dirname: String, val majorType: MajorType) {
-            TEXT("text", MajorType.SECTIONSTART),
-            DATA("data", MajorType.SECTIONSTART),
-            RODATA("rodata", MajorType.SECTIONSTART),
-            BSS("bss", MajorType.SECTIONSTART),
+            TEXT("text", MajorType.SECTIONSTART), DATA("data", MajorType.SECTIONSTART), RODATA("rodata", MajorType.SECTIONSTART), BSS("bss", MajorType.SECTIONSTART),
 
-            BYTE("byte", MajorType.DE_ALIGNED),
-            HALF("half", MajorType.DE_ALIGNED),
-            WORD("word", MajorType.DE_ALIGNED),
-            DWORD("dword", MajorType.DE_ALIGNED),
-            ASCIZ("asciz", MajorType.DE_ALIGNED),
-            STRING("string", MajorType.DE_ALIGNED),
+            BYTE("byte", MajorType.DE_ALIGNED), HALF("half", MajorType.DE_ALIGNED), WORD("word", MajorType.DE_ALIGNED), DWORD("dword", MajorType.DE_ALIGNED), ASCIZ("asciz", MajorType.DE_ALIGNED), STRING("string", MajorType.DE_ALIGNED),
 
-            BYTE_2("2byte", MajorType.DE_UNALIGNED),
-            BYTE_4("4byte", MajorType.DE_UNALIGNED),
-            BYTE_8("8byte", MajorType.DE_UNALIGNED),
+            BYTE_2("2byte", MajorType.DE_UNALIGNED), BYTE_4("4byte", MajorType.DE_UNALIGNED), BYTE_8("8byte", MajorType.DE_UNALIGNED),
         }
     }
 
@@ -1456,17 +1469,106 @@ class RISCVGrammar() : Grammar() {
     class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
         enum class ParamType(val pseudo: Boolean, val exampleString: String) {
             // NORMAL INSTRUCTIONS
-            RD_I20(false, "rd, imm20"), // rd, imm
-            RD_Off12(false, "rd, imm12(rs)"), // rd, imm12(rs)
-            RS2_Off5(false, "rs2, imm5(rs1)"), // rs2, imm5(rs1)
-            RD_RS1_RS1(false, "rd, rs1, rs2"), // rd, rs1, rs2
-            RD_RS1_I12(false, "rd, rs1, imm12"), // rd, rs, imm
-            RD_RS1_I5(false, "rd, rs1, shamt5"), // rd, rs, shamt
-            RS1_RS2_I12(false, "rs1, rs2, imm12"), // rs1, rs2, imm
+            RD_I20(false, "rd, imm20") {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                    val rd = paramMap.get(RISCVBinMapper.MaskLabel.RD)
+                    return if (rd != null) {
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RD)
+                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        "${registerContainer.getRegister(rd)?.aliases?.first()},\t$immString"
+                    } else {
+                        "param missing"
+                    }
+                }
+            }, // rd, imm
+            RD_Off12(false, "rd, imm12(rs)") {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                    val rd = paramMap.get(RISCVBinMapper.MaskLabel.RD)
+                    val rs1 = paramMap.get(RISCVBinMapper.MaskLabel.RS1)
+                    return if (rd != null && rs1 != null) {
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RD)
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
+                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        "${registerContainer.getRegister(rd)?.aliases?.first()},\t$immString(${registerContainer.getRegister(rs1)?.aliases?.first()})"
+                    } else {
+                        "param missing"
+                    }
+                }
+            }, // rd, imm12(rs)
+            RS2_Off5(false, "rs2, imm5(rs1)") {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                    val rs2 = paramMap.get(RISCVBinMapper.MaskLabel.RS2)
+                    val rs1 = paramMap.get(RISCVBinMapper.MaskLabel.RS1)
+                    return if (rs2 != null && rs1 != null) {
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS2)
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
+                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        "${registerContainer.getRegister(rs2)?.aliases?.first()},\t$immString(${registerContainer.getRegister(rs1)?.aliases?.first()})"
+                    } else {
+                        "param missing"
+                    }
+                }
+            }, // rs2, imm5(rs1)
+            RD_RS1_RS1(false, "rd, rs1, rs2") {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                    val rd = paramMap.get(RISCVBinMapper.MaskLabel.RD)
+                    val rs1 = paramMap.get(RISCVBinMapper.MaskLabel.RS1)
+                    val rs2 = paramMap.get(RISCVBinMapper.MaskLabel.RS2)
+                    return if (rd != null && rs2 != null && rs1 != null) {
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RD)
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS2)
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
+                        "${registerContainer.getRegister(rd)?.aliases?.first()},\t${registerContainer.getRegister(rs1)?.aliases?.first()},\t${registerContainer.getRegister(rs2)?.aliases?.first()}"
+                    } else {
+                        "param missing"
+                    }
+                }
+            }, // rd, rs1, rs2
+            RD_RS1_I12(false, "rd, rs1, imm12") {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                    val rd = paramMap.get(RISCVBinMapper.MaskLabel.RD)
+                    val rs1 = paramMap.get(RISCVBinMapper.MaskLabel.RS1)
+                    return if (rd != null && rs1 != null) {
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RD)
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
+                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        "${registerContainer.getRegister(rd)?.aliases?.first()},\t${registerContainer.getRegister(rs1)?.aliases?.first()},\t$immString"
+                    } else {
+                        "param missing"
+                    }
+                }
+            }, // rd, rs, imm
+            RD_RS1_I5(false, "rd, rs1, shamt5") {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                    val rd = paramMap.get(RISCVBinMapper.MaskLabel.RD)
+                    val rs1 = paramMap.get(RISCVBinMapper.MaskLabel.RS1)
+                    return if (rd != null && rs1 != null) {
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RD)
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
+                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        "${registerContainer.getRegister(rd)?.aliases?.first()},\t${registerContainer.getRegister(rs1)?.aliases?.first()},\t$immString"
+                    } else {
+                        "param missing"
+                    }
+                }
+            }, // rd, rs, shamt
+            RS1_RS2_I12(false, "rs1, rs2, imm12") {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                    val rs2 = paramMap.get(RISCVBinMapper.MaskLabel.RS2)
+                    val rs1 = paramMap.get(RISCVBinMapper.MaskLabel.RS1)
+                    return if (rs2 != null && rs1 != null) {
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS2)
+                        paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
+                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        "${registerContainer.getRegister(rs1)?.aliases?.first()},\t${registerContainer.getRegister(rs2)?.aliases?.first()},\t$immString"
+                    } else {
+                        "param missing"
+                    }
+                }
+            }, // rs1, rs2, imm
 
             // PSEUDO INSTRUCTIONS
-            PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
-            PS_RD_I32(true, "rd, imm32"), // rd, imm
+            PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"), PS_RD_I32(true, "rd, imm32"), // rd, imm
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
             PS_Jlbl(true, "jlabel"),  // label
@@ -1474,8 +1576,11 @@ class RISCVGrammar() : Grammar() {
             PS_RS1(true, "rs1"),
 
             // NONE PARAM INSTR
-            NONE(false, "none"),
-            PS_NONE(true, "none")
+            NONE(false, "none"), PS_NONE(true, "none");
+
+            open fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                return "pseudo param type"
+            }
         }
 
         enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: RISCVBinMapper.OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null) {
@@ -1537,12 +1642,7 @@ class RISCVGrammar() : Grammar() {
                     }
                 }
             },
-            JALR(
-                "JALR",
-                false,
-                ParamType.RD_Off12,
-                RISCVBinMapper.OpCode("000000000000 00000 000 00000 1100111", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
-            ) {
+            JALR("JALR", false, ParamType.RD_Off12, RISCVBinMapper.OpCode("000000000000 00000 000 00000 1100111", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RISCVBinMapper.MaskLabel.RD)
@@ -1560,18 +1660,11 @@ class RISCVGrammar() : Grammar() {
                     }
                 }
             },
-            ECALL(
-                "ECALL", false,
-                ParamType.NONE,
-                RISCVBinMapper.OpCode("000000000000 00000 000 00000 1110011", arrayOf(RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.OPCODE))
-            ),
-            EBREAK(
-                "EBREAK", false,
-                ParamType.NONE,
-                RISCVBinMapper.OpCode("000000000001 00000 000 00000 1110011", arrayOf(RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.OPCODE))
-            ),
+            ECALL("ECALL", false, ParamType.NONE, RISCVBinMapper.OpCode("000000000000 00000 000 00000 1110011", arrayOf(RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.OPCODE))),
+            EBREAK("EBREAK", false, ParamType.NONE, RISCVBinMapper.OpCode("000000000001 00000 000 00000 1110011", arrayOf(RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.NONE, RISCVBinMapper.MaskLabel.OPCODE))),
             BEQ(
-                "BEQ", false,
+                "BEQ",
+                false,
                 ParamType.RS1_RS2_I12,
                 RISCVBinMapper.OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1601,7 +1694,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             BNE(
-                "BNE", false,
+                "BNE",
+                false,
                 ParamType.RS1_RS2_I12,
                 RISCVBinMapper.OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1630,7 +1724,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             BLT(
-                "BLT", false,
+                "BLT",
+                false,
                 ParamType.RS1_RS2_I12,
                 RISCVBinMapper.OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1659,7 +1754,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             BGE(
-                "BGE", false,
+                "BGE",
+                false,
                 ParamType.RS1_RS2_I12,
                 RISCVBinMapper.OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1688,7 +1784,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             BLTU(
-                "BLTU", false,
+                "BLTU",
+                false,
                 ParamType.RS1_RS2_I12,
                 RISCVBinMapper.OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1717,7 +1814,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             BGEU(
-                "BGEU", false,
+                "BGEU",
+                false,
                 ParamType.RS1_RS2_I12,
                 RISCVBinMapper.OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1745,16 +1843,11 @@ class RISCVGrammar() : Grammar() {
                     }
                 }
             },
-            BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ),
-            BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE),
-            BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT),
-            BGE1("BGE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGE),
-            BLTU1("BLTU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLTU),
-            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU),
-            LB(
-                "LB", false,
-                ParamType.RD_Off12,
-                RISCVBinMapper.OpCode("000000000000 00000 000 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+            BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ), BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE), BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT), BGE1("BGE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGE), BLTU1(
+                "BLTU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLTU
+            ),
+            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU), LB(
+                "LB", false, ParamType.RD_Off12, RISCVBinMapper.OpCode("000000000000 00000 000 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1775,9 +1868,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             LH(
-                "LH", false,
-                ParamType.RD_Off12,
-                RISCVBinMapper.OpCode("000000000000 00000 001 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "LH", false, ParamType.RD_Off12, RISCVBinMapper.OpCode("000000000000 00000 001 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1798,9 +1889,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             LW(
-                "LW", false,
-                ParamType.RD_Off12,
-                RISCVBinMapper.OpCode("000000000000 00000 010 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "LW", false, ParamType.RD_Off12, RISCVBinMapper.OpCode("000000000000 00000 010 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1821,9 +1910,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             LBU(
-                "LBU", false,
-                ParamType.RD_Off12,
-                RISCVBinMapper.OpCode("000000000000 00000 100 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "LBU", false, ParamType.RD_Off12, RISCVBinMapper.OpCode("000000000000 00000 100 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1844,9 +1931,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             LHU(
-                "LHU", false,
-                ParamType.RD_Off12,
-                RISCVBinMapper.OpCode("000000000000 00000 101 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "LHU", false, ParamType.RD_Off12, RISCVBinMapper.OpCode("000000000000 00000 101 00000 0000011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1867,7 +1952,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SB(
-                "SB", false,
+                "SB",
+                false,
                 ParamType.RS2_Off5,
                 RISCVBinMapper.OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1889,7 +1975,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SH(
-                "SH", false,
+                "SH",
+                false,
                 ParamType.RS2_Off5,
                 RISCVBinMapper.OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1911,7 +1998,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SW(
-                "SW", false,
+                "SW",
+                false,
                 ParamType.RS2_Off5,
                 RISCVBinMapper.OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -1933,9 +2021,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             ADDI(
-                "ADDI", false,
-                ParamType.RD_RS1_I12,
-                RISCVBinMapper.OpCode("000000000000 00000 000 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "ADDI", false, ParamType.RD_RS1_I12, RISCVBinMapper.OpCode("000000000000 00000 000 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1956,9 +2042,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SLTI(
-                "SLTI", false,
-                ParamType.RD_RS1_I12,
-                RISCVBinMapper.OpCode("000000000000 00000 010 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "SLTI", false, ParamType.RD_RS1_I12, RISCVBinMapper.OpCode("000000000000 00000 010 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -1978,9 +2062,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SLTIU(
-                "SLTIU", false,
-                ParamType.RD_RS1_I12,
-                RISCVBinMapper.OpCode("000000000000 00000 011 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "SLTIU", false, ParamType.RD_RS1_I12, RISCVBinMapper.OpCode("000000000000 00000 011 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -2000,9 +2082,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             XORI(
-                "XORI", false,
-                ParamType.RD_RS1_I12,
-                RISCVBinMapper.OpCode("000000000000 00000 100 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "XORI", false, ParamType.RD_RS1_I12, RISCVBinMapper.OpCode("000000000000 00000 100 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -2022,9 +2102,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             ORI(
-                "ORI", false,
-                ParamType.RD_RS1_I12,
-                RISCVBinMapper.OpCode("000000000000 00000 110 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "ORI", false, ParamType.RD_RS1_I12, RISCVBinMapper.OpCode("000000000000 00000 110 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -2044,9 +2122,7 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             ANDI(
-                "ANDI", false,
-                ParamType.RD_RS1_I12,
-                RISCVBinMapper.OpCode("000000000000 00000 111 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
+                "ANDI", false, ParamType.RD_RS1_I12, RISCVBinMapper.OpCode("000000000000 00000 111 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
                 override fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                     super.execute(architecture, paramMap)
@@ -2066,7 +2142,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SLLI(
-                "SLLI", false,
+                "SLLI",
+                false,
                 ParamType.RD_RS1_I5,
                 RISCVBinMapper.OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.SHAMT, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2087,7 +2164,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SRLI(
-                "SRLI", false,
+                "SRLI",
+                false,
                 ParamType.RD_RS1_I5,
                 RISCVBinMapper.OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.SHAMT, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2108,7 +2186,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SRAI(
-                "SRAI", false,
+                "SRAI",
+                false,
                 ParamType.RD_RS1_I5,
                 RISCVBinMapper.OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.SHAMT, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2129,7 +2208,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             ADD(
-                "ADD", false,
+                "ADD",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2151,7 +2231,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SUB(
-                "SUB", false,
+                "SUB",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2173,7 +2254,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SLL(
-                "SLL", false,
+                "SLL",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2195,7 +2277,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SLT(
-                "SLT", false,
+                "SLT",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2217,7 +2300,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SLTU(
-                "SLTU", false,
+                "SLTU",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2239,7 +2323,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             XOR(
-                "XOR", false,
+                "XOR",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2261,7 +2346,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SRL(
-                "SRL", false,
+                "SRL",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2283,7 +2369,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             SRA(
-                "SRA", false,
+                "SRA",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2305,7 +2392,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             OR(
-                "OR", false,
+                "OR",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2327,7 +2415,8 @@ class RISCVGrammar() : Grammar() {
                 }
             },
             AND(
-                "AND", false,
+                "AND",
+                false,
                 ParamType.RD_RS1_RS1,
                 RISCVBinMapper.OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(RISCVBinMapper.MaskLabel.FUNCT7, RISCVBinMapper.MaskLabel.RS2, RISCVBinMapper.MaskLabel.RS1, RISCVBinMapper.MaskLabel.FUNCT3, RISCVBinMapper.MaskLabel.RD, RISCVBinMapper.MaskLabel.OPCODE))
             ) {
@@ -2348,34 +2437,18 @@ class RISCVGrammar() : Grammar() {
                     }
                 }
             },
-            Nop("NOP", true, ParamType.PS_NONE),
-            Mv("MV", true, ParamType.PS_RD_RS1),
-            Li("LI", true, ParamType.PS_RD_I32, memWords = 2),
-            La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
-            Not("NOT", true, ParamType.PS_RD_RS1),
-            Neg("NEG", true, ParamType.PS_RD_RS1),
-            Seqz("SEQZ", true, ParamType.PS_RD_RS1),
-            Snez("SNEZ", true, ParamType.PS_RD_RS1),
-            Sltz("SLTZ", true, ParamType.PS_RD_RS1),
-            Sgtz("SGTZ", true, ParamType.PS_RD_RS1),
-            Beqz("BEQZ", true, ParamType.PS_RS1_Jlbl),
-            Bnez("BNEZ", true, ParamType.PS_RS1_Jlbl),
-            Blez("BLEZ", true, ParamType.PS_RS1_Jlbl),
-            Bgez("BGEZ", true, ParamType.PS_RS1_Jlbl),
-            Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl),
-            BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl),
-            Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl),
-            Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl),
-            Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl),
-            Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl),
-            J("J", true, ParamType.PS_Jlbl),
-            JAL1("JAL", true, ParamType.PS_RS1_Jlbl),
-            JAL2("JAL", true, ParamType.PS_Jlbl),
-            Jr("JR", true, ParamType.PS_RS1),
-            JALR1("JALR", true, ParamType.PS_RS1),
-            Ret("RET", true, ParamType.PS_NONE),
-            Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
-            Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
+            Nop("NOP", true, ParamType.PS_NONE), Mv("MV", true, ParamType.PS_RD_RS1), Li("LI", true, ParamType.PS_RD_I32, memWords = 2), La("LA", true, ParamType.PS_RD_Albl, memWords = 2), Not("NOT", true, ParamType.PS_RD_RS1), Neg("NEG", true, ParamType.PS_RD_RS1), Seqz(
+                "SEQZ", true, ParamType.PS_RD_RS1
+            ),
+            Snez("SNEZ", true, ParamType.PS_RD_RS1), Sltz("SLTZ", true, ParamType.PS_RD_RS1), Sgtz("SGTZ", true, ParamType.PS_RD_RS1), Beqz("BEQZ", true, ParamType.PS_RS1_Jlbl), Bnez("BNEZ", true, ParamType.PS_RS1_Jlbl), Blez("BLEZ", true, ParamType.PS_RS1_Jlbl), Bgez(
+                "BGEZ", true, ParamType.PS_RS1_Jlbl
+            ),
+            Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl), BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl), Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl), Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl), Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl), Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl), J(
+                "J", true, ParamType.PS_Jlbl
+            ),
+            JAL1("JAL", true, ParamType.PS_RS1_Jlbl), JAL2("JAL", true, ParamType.PS_Jlbl), Jr("JR", true, ParamType.PS_RS1), JALR1("JALR", true, ParamType.PS_RS1), Ret("RET", true, ParamType.PS_NONE), Call("CALL", true, ParamType.PS_Jlbl, memWords = 2), Tail(
+                "TAIL", true, ParamType.PS_Jlbl, memWords = 2
+            );
 
             open fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                 architecture.getConsole().info("executing $id ...")
@@ -2396,5 +2469,30 @@ class RISCVGrammar() : Grammar() {
     /* -------------------------------------------------------------- PRE DATA CLASSES -------------------------------------------------------------- */
     data class EquDefinition(val name: Compiler.Token, val constant: Compiler.Token)
     data class MacroDefinition(val name: String, val arguments: List<String>, val replacementLines: List<String>)
+
+    /**
+     * FOR TRANSCRIPT
+     */
+    class RVCompiledRow(addr: MutVal.Value.Hex) : Transcript.Row(addr) {
+        val content = RISCV.TS_COMPILED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+
+        init {
+            content[RISCV.TS_COMPILED_HEADERS.addr] = Entry(Orientation.LEFT, getAddresses().first().toHex().getRawHexStr())
+        }
+
+        fun addLabel(label: R_JLBL) {
+            content[RISCV.TS_COMPILED_HEADERS.label] = Entry(Orientation.LEFT, label.label.wholeName)
+        }
+
+        fun addInstr(instr: R_INSTR) {
+            content[RISCV.TS_COMPILED_HEADERS.instr] = Entry(Orientation.LEFT, instr.instrType.id)
+            content[RISCV.TS_COMPILED_HEADERS.params] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") { it.paramTokens.joinToString("") { it.content } } ?: "")
+        }
+
+        override fun getContent(): List<Entry> {
+            return RISCV.TS_COMPILED_HEADERS.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
+        }
+
+    }
 
 }

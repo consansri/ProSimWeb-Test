@@ -3,8 +3,8 @@ package views.components
 import AppLogic
 import StyleConst
 import emotion.react.css
-import extendable.ArchConst
 import extendable.components.connected.Transcript
+import extendable.components.types.MutVal
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
@@ -34,7 +34,8 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val transcript by useState(props.transcript)
-    val (currExeAddr, setCurrExeAddr) = useState("0")
+    val (currExeAddr, setCurrExeAddr) = useState<MutVal.Value.Hex>(MutVal.Value.Hex("0"))
+    val (currType, setCurrType) = useState<Transcript.Type>(Transcript.Type.DISASSEMBLED)
 
     executionPointInterval.current?.let {
         clearInterval(it)
@@ -42,8 +43,17 @@ val TranscriptView = FC<TranscriptProps> { props ->
     if (!DebugTools.REACT_deactivateAutoRefreshs) {
         executionPointInterval.current = setInterval({
             val pcValue = appLogic.getArch().getRegisterContainer().pc.value.get()
-            setCurrExeAddr(pcValue.toHex().getRawHexStr())
+            setCurrExeAddr(pcValue.toHex())
         }, 50)
+    }
+
+    fun switchCurrType() {
+        val currIndex = currType.ordinal
+        if (currIndex < Transcript.Type.entries.size - 1) {
+            setCurrType(Transcript.Type.entries[currIndex + 1])
+        } else {
+            setCurrType(Transcript.Type.entries.first())
+        }
     }
 
     div {
@@ -60,41 +70,22 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 justifyContent = JustifyContent.spaceBetween
                 alignItems = AlignItems.center
                 flexDirection = FlexDirection.column
+                cursor = Cursor.pointer
 
                 a {
                     flex = 100.pct
                     padding = StyleConst.paddingSize
                 }
             }
-            a {
-                +"T"
+
+            currType.name.forEach {
+                a {
+                    +it
+                }
             }
-            a {
-                +"R"
-            }
-            a {
-                +"A"
-            }
-            a {
-                +"N"
-            }
-            a {
-                +"S"
-            }
-            a {
-                +"C"
-            }
-            a {
-                +"R"
-            }
-            a {
-                +"I"
-            }
-            a {
-                +"P"
-            }
-            a {
-                +"T"
+
+            onClick = {
+                switchCurrType()
             }
         }
 
@@ -112,7 +103,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
                 thead {
                     tr {
-                        for (header in transcript.getHeaders()) {
+                        for (header in transcript.getHeaders(currType)) {
                             th {
                                 className = ClassName("dcf-txt-center")
                                 scope = "col"
@@ -122,28 +113,22 @@ val TranscriptView = FC<TranscriptProps> { props ->
                     }
                 }
                 tbody {
-                    for (row in transcript.getContent()) {
+                    for (row in transcript.getContent(currType)) {
                         tr {
-                            if (row.memoryAddress.getRawHexStr() == currExeAddr) {
-                                className = ClassName("dcf-mark-green")
+                            for (address in row.getAddresses()) {
+                                if (address == currExeAddr) {
+                                    className = ClassName("dcf-mark-green")
+                                }
                             }
 
-                            for (header in ArchConst.TranscriptHeaders.entries) {
-                                if (header == ArchConst.TranscriptHeaders.params) {
-                                    val content = row.content[header]
-                                    content?.let {
-                                        for (param in it.split(ArchConst.TRANSCRIPT_PARAMSPLIT)) {
-                                            td {
-                                                className = ClassName("dcf-txt-left")
-                                                +param
-                                            }
-                                        }
+                            for (entry in row.getContent()) {
+                                td {
+                                    className = when (entry.orientation) {
+                                        Transcript.Row.Orientation.LEFT -> ClassName("dcf-txt-left")
+                                        Transcript.Row.Orientation.CENTER -> ClassName("dcf-txt-center")
+                                        Transcript.Row.Orientation.RIGHT -> ClassName("dcf-txt-right")
                                     }
-                                } else {
-                                    td {
-                                        className = ClassName("dcf-txt-center")
-                                        +(row.content[header] ?: "")
-                                    }
+                                    +entry.content
                                 }
                             }
                         }

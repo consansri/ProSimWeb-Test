@@ -8,9 +8,9 @@
 - **(done)** reinvent Grammar and Assembler for advanced assembly syntax
 - **(done)** export MIF, HEX DUMP, ...
 - **(done)** change alignment of RiscV memory allocation variables
-- \Program Counter import bug/custom start .globl start
+- **(done)** Program Counter import bug/custom start .globl start
 - Transcript Pre/Post View, Parameter order like in instruction syntax (label offset...)
-- \RegView Registername RegisterAlias
+- **(done)** RegView Registername RegisterAlias
 - 
 
  

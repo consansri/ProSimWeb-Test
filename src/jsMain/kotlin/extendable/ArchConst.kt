@@ -51,15 +51,7 @@ object ArchConst {
     // ADDRESS
     const val hex = 0b10111001
 
-    // EXTENSION, OPLABE and REGEX TYPES
-    const val EXTYPE_LABEL = "[label]"
-    const val EXTYPE_REGISTER = "[reg]"
-    const val EXTYPE_IMMEDIATE = "[imm]"
-    const val EXTYPE_ADDRESS = "[addr]"
-    const val EXTYPE_SHIFT = "[shift]"
-
     // TYPE IDENTIFICATION
-    const val PRESTRING_COMMENT = "#"
     const val PRESTRING_HEX = "0x"
     const val PRESTRING_BINARY = "0b"
     const val PRESTRING_DECIMAL = ""
