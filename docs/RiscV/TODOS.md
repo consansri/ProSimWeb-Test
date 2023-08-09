@@ -8,7 +8,12 @@
 - **(done)** reinvent Grammar and Assembler for advanced assembly syntax
 - **(done)** export MIF, HEX DUMP, ...
 - change alignment of RiscV memory allocation variables
+- Program Counter import bug/custom start .globl start
+- Transcript Pre/Post View, Parameter order like in instruction syntax (label offset...)
+- RegView Registername RegisterAlias
+- 
 
  
 ## PERFORMANCE ##
   - replace DecTools cause they are taking pretty long every calculation should happen in binary!
+  - 
