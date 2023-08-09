@@ -135,7 +135,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                             startIndex += regRes.value.length
                             remainingLine = line.substring(startIndex)
                             continue
-
                         }
                     }
 

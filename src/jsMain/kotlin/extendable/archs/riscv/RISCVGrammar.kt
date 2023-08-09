@@ -32,6 +32,7 @@ class RISCVGrammar() : Grammar() {
         val warnings: MutableList<Warning> = mutableListOf()
 
         val imports: MutableList<TreeNode.SectionNode> = mutableListOf()
+        var globalStart: Pre_GLOBAL? = null
 
         val c_sections: C_SECTIONS
         val c_pres: C_PRES
@@ -111,6 +112,25 @@ class RISCVGrammar() : Grammar() {
                 remainingLines[lineID] = emptyList()
             }
         }
+
+        // define global start
+        for (lineID in remainingLines.indices) {
+            val lineStr = remainingLines[lineID].joinToString("") { it.content }
+            SyntaxRegex.pre_globalStart.matchEntire(lineStr)?.let {
+                val labelName = it.groups[SyntaxRegex.pre_globalStart_contentgroup]?.value ?: ""
+                if (globalStart == null && labelName.isNotEmpty()) {
+                    globalStart = Pre_GLOBAL(*remainingLines[lineID].toTypedArray(), labelName = labelName)
+                } else {
+                    if (globalStart != null) {
+                        errors.add(Error("global start is already defined in line ${(globalStart?.tokens?.first()?.lineLoc?.lineID ?: -1) + 1}!", *remainingLines[lineID].toTypedArray()))
+                    } else {
+                        errors.add(Error("global start is missing label name!", *remainingLines[lineID].toTypedArray()))
+                    }
+                }
+                remainingLines[lineID] = emptyList()
+            }
+        }
+
         // ----------------- replace equ constants
         // find definitions
         val equs = mutableListOf<EquDefinition>()
@@ -139,6 +159,7 @@ class RISCVGrammar() : Grammar() {
                 remainingLines[lineID] = emptyList()
             }
         }
+
         // resolve definitions
         for (lineID in remainingLines.indices) {
             val tokenList = remainingLines[lineID].toMutableList()
@@ -153,6 +174,7 @@ class RISCVGrammar() : Grammar() {
             }
             remainingLines[lineID] = tokenList
         }
+
 
         // ----------------- replace macros
         // define macros
@@ -259,6 +281,7 @@ class RISCVGrammar() : Grammar() {
                 }
             }
         }
+
 
         /**
          * FIND UNRESOLVED
@@ -621,7 +644,14 @@ class RISCVGrammar() : Grammar() {
             if (result.matches) {
                 if (result.matchingTreeNodes.size == 1) {
                     val eLabel = result.matchingTreeNodes[0] as E_LABEL
-                    rowNode = R_JLBL(eLabel, !eLabel.isSubLabel)
+                    val isGlobalStart = (eLabel.wholeName == globalStart?.labelName) ?: false
+                    if (isGlobalStart) {
+                        globalStart?.let {
+                            pres.add(it)
+                            globalStart = null
+                        }
+                    }
+                    rowNode = R_JLBL(eLabel, !eLabel.isSubLabel, isGlobalStart)
                     rows[lineID] = rowNode
                     result.error?.let {
                         errors.add(it)
@@ -827,6 +857,10 @@ class RISCVGrammar() : Grammar() {
             }
         }
 
+
+        globalStart?.let {
+            errors.add(Error("Global start '${it.labelName}' label not found!", it))
+        }
         /**
          * FINISH ROW SCAN
          */
@@ -972,6 +1006,8 @@ class RISCVGrammar() : Grammar() {
         val pre_equ_def = Regex("""^\s*(\.equ\s+(.+)\s*,\s*(.+))\s*?""")
         val pre_option = Regex("""^\s*(\.option\s+.+)\s*?""")
         val pre_attribute = Regex("""^\s*(\.attribute\s+.+)\s*?""")
+        val pre_globalStart = Regex("""^\s*(\.global\s+(?<labelName>.+))\s*?""")
+        val pre_globalStart_contentgroup = "labelName"
     }
 
     object RowSeqs {
@@ -996,6 +1032,7 @@ class RISCVGrammar() : Grammar() {
         val REF_PRE_IMPORT = "PRE_import"
         val REF_PRE_COMMENT = "PRE_comment"
         val REF_PRE_OPTION = "PRE_option"
+        val REF_PRE_GLOBAL = "PRE_global"
         val REF_PRE_ATTRIBUTE = "PRE_attribute"
         val REF_PRE_MACRO = "PRE_macro"
         val REF_PRE_EQU = "PRE_equ"
@@ -1031,6 +1068,7 @@ class RISCVGrammar() : Grammar() {
     class Pre_COMMENT(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.comment), REFS.REF_PRE_COMMENT, *tokens)
     class Pre_OPTION(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_option), REFS.REF_PRE_OPTION, *tokens)
     class Pre_ATTRIBUTE(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_attribute), REFS.REF_PRE_ATTRIBUTE, *tokens)
+    class Pre_GLOBAL(vararg tokens: Compiler.Token, val labelName: String) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_global), REFS.REF_PRE_GLOBAL, *tokens)
     class Pre_MACRO(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_macro), REFS.REF_PRE_MACRO, *tokens)
     class Pre_EQU(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_equ), REFS.REF_PRE_EQU, *tokens)
 
@@ -1412,7 +1450,7 @@ class RISCVGrammar() : Grammar() {
 
     /* -------------------------------------------------------------- ROWS -------------------------------------------------------------- */
     class R_SECSTART(val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_SECSTART, directive)
-    class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
+    class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean, val isGlobalStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
     class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label, directive)
     class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label, directive, paramcoll)
     class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {

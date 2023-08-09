@@ -34,6 +34,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
     val bodyRef = useRef<HTMLTableSectionElement>()
     val pcRef = useRef<HTMLButtonElement>()
+    val pcRefreshInterval = useRef<Timeout>()
 
     val appLogic by useState(props.appLogic)
     val name by useState(props.name)
@@ -42,9 +43,22 @@ val RegisterView = FC<RegisterViewProps> { props ->
     val (currRegTypeIndex, setCurrRegTypeIndex) = useState<Int>(1)
     val (update, setUpdate) = useState(false)
     val change = props.update
-    val theaders = ArchConst.REGISTER_HEADERS
 
     val registerContainer = appLogic.getArch().getRegisterContainer()
+
+    // INTERVALS
+
+    pcRefreshInterval.current?.let {
+        clearInterval(it)
+    }
+    if (!DebugTools.REACT_deactivateAutoRefreshs) {
+        pcRefreshInterval.current = setInterval({
+            pcRef.current?.let {
+                it.innerText = "PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
+            }
+        }, 100)
+    }
+
 
     /* DOM */
 
@@ -65,8 +79,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 "dcf-tabs" {
                     border = Border(0.px, LineStyle.hidden)
                 }
-
-
             }
         }
 
@@ -139,35 +151,38 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                 thead {
                     tr {
-                        for (header in theaders) {
-                            if (header != ArchConst.RegHeaders.VALUE) {
-                                th {
-                                    className = ClassName("dcf-txt-center")
-                                    scope = "col"
-                                    +header.toString()
-                                }
-                            } else {
-                                th {
-                                    className = ClassName("dcf-txt-center dcf-button")
-                                    scope = "col"
-
-                                    span {
-                                        +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
-                                    }
-
-                                    onClick = { event ->
-                                        setTimeout({
-                                            if (currRegTypeIndex < ArchConst.REGISTER_VALUETYPES.size - 1) {
-                                                setCurrRegTypeIndex(currRegTypeIndex + 1)
-                                            } else {
-                                                setCurrRegTypeIndex(0)
-                                            }
-                                        }, 0)
-                                    }
-
-                                }
-                            }
+                        th {
+                            className = ClassName("dcf-txt-center")
+                            scope = "col"
+                            colSpan = 2
+                            +"Registers"
                         }
+
+                        th {
+                            className = ClassName("dcf-txt-center dcf-button")
+                            scope = "col"
+
+                            span {
+                                +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
+                            }
+
+                            onClick = { event ->
+                                setTimeout({
+                                    if (currRegTypeIndex < ArchConst.REGISTER_VALUETYPES.size - 1) {
+                                        setCurrRegTypeIndex(currRegTypeIndex + 1)
+                                    } else {
+                                        setCurrRegTypeIndex(0)
+                                    }
+                                }, 0)
+                            }
+
+                        }
+                        th {
+                            className = ClassName("dcf-txt-center")
+                            scope = "col"
+                            +"Description"
+                        }
+
                     }
                 }
 
@@ -182,8 +197,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 tr {
 
                                     td {
-                                        className = ClassName("dcf-txt-left")
-                                        +(" " + reg.names.joinToString("\t") { it })
+                                        className = ClassName("dcf-txt-center")
+                                        +reg.names.joinToString("\\") { it }
+                                    }
+                                    td{
+                                        className  = ClassName("dcf-txt-center")
+                                        +reg.aliases.joinToString("\\") { it }
                                     }
                                     td {
                                         className = ClassName("value-col dcf-txt-center")
@@ -342,7 +361,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             reg.mutVal.get().toUDec().getRawUDecStr()
                         }
                     }
-                    /*regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                   /* regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                         HEX -> {
                             "${reg.mutVal.size.byteCount * 2}ch;"
                         }

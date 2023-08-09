@@ -1,6 +1,5 @@
 package extendable
 
-import StyleConst
 import StyleConst.Main.Editor.HL
 
 object ArchConst {
@@ -44,7 +43,6 @@ object ArchConst {
     const val COMPILER_TOKEN_PSEUDOID = -100
 
     // REGISTER
-    val REGISTER_HEADERS = arrayOf(RegHeaders.NAMES, RegHeaders.VALUE, RegHeaders.DESCRIPTION)
     val REGISTER_VALUETYPES = arrayOf(RegTypes.BIN, RegTypes.HEX, RegTypes.UDEC, RegTypes.DEC)
 
     // TRANSCRIPT PARAM SPLIT SYMBOL
@@ -76,17 +74,11 @@ object ArchConst {
     const val STATE_EXECUTABLE = "buildable"
     const val STATE_EXECUTION = "execution"
 
-    enum class RegHeaders {
-        NAMES,
-        VALUE,
-        DESCRIPTION
-    }
-
     enum class TranscriptHeaders{
-        ADDRESS,
-        LABELS,
-        INSTRUCTION,
-        PARAMS
+        addr,
+        label,
+        instr,
+        params
     }
 
     enum class RegTypes {

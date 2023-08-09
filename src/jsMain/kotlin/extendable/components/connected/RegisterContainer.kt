@@ -20,6 +20,9 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
                 if (reg.names.contains(name)) {
                     return reg
                 }
+                if (reg.aliases.contains(name)) {
+                    return reg
+                }
             }
         }
         return null
@@ -40,7 +43,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return registerFileList
     }
 
-    data class Register(val address: MutVal.Value, val names: List<String>, val mutVal: MutVal, val description: String, val hardwire: Boolean = false) {
+    data class Register(val address: MutVal.Value, val names: List<String>, val aliases: List<String>, val mutVal: MutVal, val description: String, val hardwire: Boolean = false) {
         fun get(): MutVal.Value {
             return mutVal.get()
         }

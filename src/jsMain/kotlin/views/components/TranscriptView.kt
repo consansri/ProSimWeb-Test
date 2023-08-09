@@ -129,7 +129,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
                             }
 
                             for (header in ArchConst.TranscriptHeaders.entries) {
-                                if (header == ArchConst.TranscriptHeaders.PARAMS) {
+                                if (header == ArchConst.TranscriptHeaders.params) {
                                     val content = row.content[header]
                                     content?.let {
                                         for (param in it.split(ArchConst.TRANSCRIPT_PARAMSPLIT)) {

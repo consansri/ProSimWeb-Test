@@ -15,6 +15,7 @@ object RISCVFlags {
 
     val pre_import = HL.green.getFlag()
     val comment = HL.base05.getFlag()
+    val pre_global = HL.base02.getFlag()
     val pre_equ = HL.base03.getFlag()
     val pre_option = HL.base04.getFlag()
     val pre_macro = HL.base03.getFlag()

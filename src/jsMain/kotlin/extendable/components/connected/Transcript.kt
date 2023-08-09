@@ -39,7 +39,7 @@ class Transcript {
 
     class TranscriptEntry(val memoryAddress: MutVal.Value.Hex) {
 
-        val content = mutableMapOf<ArchConst.TranscriptHeaders, String>(ArchConst.TranscriptHeaders.ADDRESS to memoryAddress.getRawHexStr())
+        val content = mutableMapOf<ArchConst.TranscriptHeaders, String>(ArchConst.TranscriptHeaders.addr to memoryAddress.getRawHexStr())
 
         fun addContent(header: ArchConst.TranscriptHeaders, value: String) {
             content[header] = value

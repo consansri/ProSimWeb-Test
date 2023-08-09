@@ -33,7 +33,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                     labelString += "${labels.key.wholeName} "
                 }
             }
-            entry.addContent(ArchConst.TranscriptHeaders.LABELS, labelString)
+            entry.addContent(ArchConst.TranscriptHeaders.label, labelString)
 
             val result = binaryMapper.getInstrFromBinary(binary)
             if (result != null) {
@@ -97,7 +97,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                         val shiftedImm = MutVal.Value.Binary(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), MutVal.Size.Bit20()).getResized(MutVal.Size.Bit32()) shl 1
                         for (label in labelBinAddrMap) {
                             if (MutVal.Value.Binary(label.value) == (entry.memoryAddress.toBin() + shiftedImm).toBin()) {
-                                entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id + " to ${label.key.wholeName}")
+                                entry.addContent(ArchConst.TranscriptHeaders.instr, result.type.id + " to ${label.key.wholeName}")
                             }
                         }
                     }
@@ -107,16 +107,16 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                         val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
                         for (label in labelBinAddrMap) {
                             if (MutVal.Value.Binary(label.value) == (entry.memoryAddress.toBin() + offset).toBin()) {
-                                entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id + " to ${label.key.wholeName}")
+                                entry.addContent(ArchConst.TranscriptHeaders.instr, result.type.id + " to ${label.key.wholeName}")
                             }
                         }
                     }
 
                     else -> {
-                        entry.addContent(ArchConst.TranscriptHeaders.INSTRUCTION, result.type.id)
+                        entry.addContent(ArchConst.TranscriptHeaders.instr, result.type.id)
                     }
                 }
-                entry.addContent(ArchConst.TranscriptHeaders.PARAMS, paramString)
+                entry.addContent(ArchConst.TranscriptHeaders.params, paramString)
             }
 
         }
@@ -151,17 +151,16 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                             when (entry) {
                                 is RISCVGrammar.R_INSTR -> {
                                     instructionMapList.set(instrID, entry)
-                                    if (entry.globlStart) {
-                                        pcStartAddress = (MutVal.Value.Hex(instrID.toString(16), MutVal.Size.Bit32()) * MutVal.Value.Hex("4")).toHex()
-                                    }
                                     instrID += entry.instrType.memWords
-
                                 }
 
                                 is RISCVGrammar.R_JLBL -> {
                                     val address = (instrID * 4).toString(2)
                                     if (DebugTools.RISCV_showAsmInfo) {
                                         console.log("RISCVAssembly.generateByteCode(): found Label ${entry.label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
+                                    }
+                                    if (entry.isGlobalStart) {
+                                        pcStartAddress = MutVal.Value.Binary(address, MutVal.Size.Bit32()).toHex()
                                     }
                                     labelBinAddrMap.set(entry.label, address)
                                 }
@@ -380,8 +379,6 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                         dataAllocList.add(memAllocEntry)
                                         nextAddress += length
                                     }
-
-
                                 }
                             }
                         }
