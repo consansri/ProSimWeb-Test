@@ -10,12 +10,23 @@ import react.dom.html.ReactHTML.body
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.header
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.pre
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.code
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.ul
 import web.cssom.*
 
 val AppStyle = FC<Props> {
@@ -292,6 +303,59 @@ val AppStyle = FC<Props> {
                         alignItems = AlignItems.start
                         height = 100.pct
                         transition = Transition(TransitionProperty.all, 0.1.s, TransitionTimingFunction.easeInOut)
+                    }
+
+                    ".${StyleConst.Main.InfoView.CLASS_MD_STYLE}" {
+                        whiteSpace = WhiteSpace.pre
+
+                        h1 {
+                            fontSize = StyleConst.Main.InfoView.fontSizeH1
+                            marginTop = important(StyleConst.Main.InfoView.marginTop)
+                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
+                        }
+                        h2 {
+                            fontSize = StyleConst.Main.InfoView.fontSizeH2
+                            marginTop = important(StyleConst.Main.InfoView.marginTop)
+                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
+                        }
+                        h3 {
+                            fontSize = StyleConst.Main.InfoView.fontSizeH3
+                            marginTop = important(StyleConst.Main.InfoView.marginTop)
+                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
+                        }
+                        h4 {
+                            fontSize = StyleConst.Main.InfoView.fontSizeH4
+                            marginTop = important(StyleConst.Main.InfoView.marginTop)
+                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
+                        }
+                        ul {
+                            marginTop = important(StyleConst.Main.InfoView.marginTop)
+                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
+                        }
+
+                        p {
+                            fontWeight = FontWeight.lighter
+                        }
+
+                        pre{
+                            background = important(StyleConst.Main.InfoView.Colors.Bg.get())
+                            borderRadius = StyleConst.borderRadius
+                            padding = StyleConst.paddingSize
+                        }
+
+
+                        code {
+                            StyleConst.codeFont
+                        }
+
+                        table {
+                            td {
+                                padding = StyleConst.paddingSize
+                            }
+                            th {
+                                paddingRight = StyleConst.paddingSize
+                            }
+                        }
                     }
 
                 }

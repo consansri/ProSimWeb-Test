@@ -422,7 +422,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             }
 
             // Getting binary and store binary in memory
-            val instrIDMap = mutableMapOf<String, Int>()
+            val instrIDMap = mutableMapOf<String, AssemblyMap.MapEntry>()
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
                 val binary = binaryMapper.getBinaryFromInstrDef(instr.value, MutVal.Value.Hex((binarys.size * 4).toString(16), MutVal.Size.Bit32()))
@@ -436,7 +436,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                     )
                 }
                 for (wordID in binary.indices) {
-                    instrIDMap.set(MutVal.Value.Hex(((binarys.size + wordID) * 4).toString(16), MutVal.Size.Bit32()).getRawHexStr(), instr.value.getAllTokens().first().lineLoc.lineID)
+                    instrIDMap.set(MutVal.Value.Hex(((binarys.size + wordID) * 4).toString(16), MutVal.Size.Bit32()).getRawHexStr(), AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID))
                 }
                 binarys.addAll(binary)
             }
@@ -464,9 +464,11 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
     class RVDisassembledRow(address: MutVal.Value.Hex) : Transcript.Row(address) {
 
         val content = RISCV.TS_DISASSEMBLED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+
         init {
             content[RISCV.TS_DISASSEMBLED_HEADERS.addr] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
+
         fun addInstr(architecture: Architecture, instrResult: RISCVBinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
             content[RISCV.TS_DISASSEMBLED_HEADERS.instr] = Entry(Orientation.LEFT, instrName)

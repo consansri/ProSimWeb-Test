@@ -301,7 +301,6 @@ class RISCVGrammar() : Grammar() {
         /**
          * FINISH PRE SCAN
          */
-        c_pres = C_PRES(*pres.toTypedArray())
         if (DebugTools.RISCV_showGrammarScanTiers) {
             console.log("Grammar: PRE Scan -> ${
                 remainingLines.filter { it.isNotEmpty() }.joinToString("") { tokenList ->
@@ -985,7 +984,7 @@ class RISCVGrammar() : Grammar() {
          *  -------------------------------------------------------------- CONTAINER SCAN --------------------------------------------------------------
          *  usage:
          */
-
+        c_pres = C_PRES(*pres.toTypedArray())
         c_sections = C_SECTIONS(*sections.toTypedArray(), *imports.toTypedArray())
 
         /**

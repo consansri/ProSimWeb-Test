@@ -12,7 +12,7 @@ object StyleConst {
     val transparent = Color("#00000000")
     val layoutSwitchMediaQuery = "@media (max-width: 1200px)"
 
-
+    const val codeFont = "font-family: 'JetBrains Mono', monospace !important;"
     const val CLASS_LOGO = "logo"
 
     object Header {
@@ -48,8 +48,10 @@ object StyleConst {
         object Editor {
             val BgColor = ModeColor("#EEEEEE", "#222222")
             val FgColor = ModeColor("#313131", "#AABACA")
-            val Font = "font-family: 'JetBrains Mono', monospace !important;"
+            val Font = codeFont
             val FontSize = 16.px
+            val iconGreenFilter = invert(21.pct).also { sepia(100.pct) }.also { saturate(3197.pct) }.also { hueRotate(137.deg) }.also { brightness(95.pct) }.also { contrast(105.pct) }
+            val activeLineColor = ModeColor("#00FF00")
 
             object Controls {
                 val BgColor = Color("#29335c")
@@ -105,14 +107,14 @@ object StyleConst {
             }
 
             enum class HL(val color: ModeColor, val appendsOn: On = On.Color) {
-                base00(ModeColor("#202746")),
-                base01(ModeColor("#293256")),
-                base02(ModeColor("#5e6687")),
-                base03(ModeColor("#6b7394")),
-                base04(ModeColor("#898ea4")),
-                base05(ModeColor("#979db4")),
-                base06(ModeColor("#dfe2f1")),
-                base07(ModeColor("#f5f7ff")),
+                base00(ModeColor("#202746", "#f5f7ff")),
+                base01(ModeColor("#293256", "#dfe2f1")),
+                base02(ModeColor("#5e6687", "#979db4")),
+                base03(ModeColor("#6b7394", "#898ea4")),
+                base04(ModeColor("#898ea4", "#6b7394")),
+                base05(ModeColor("#979db4", "#5e6687")),
+                base06(ModeColor("#dfe2f1", "#293256")),
+                base07(ModeColor("#f5f7ff", "#202746")),
                 red(ModeColor("#c94922")),
                 orange(ModeColor("#c76b29")),
                 yellow(ModeColor("#c08b30")),
@@ -158,6 +160,47 @@ object StyleConst {
             const val CLASS = "console"
         }
 
+        object InfoView {
+            const val CLASS_MD_STYLE = "standard_md_style"
+
+            val marginTop = 0.5.rem
+            val marginBottom = 0.1.rem
+
+            val tabSize = 1.rem
+
+            val fontSizeH1 = 2.rem
+            val fontSizeH2 = 1.7.rem
+            val fontSizeH3 = 1.4.rem
+            val fontSizeH4 = 1.1.rem
+            val fontSizeStandard = 1.0.rem
+
+            enum class Colors(val color: ModeColor ) {
+                Bg(ModeColor("#77777731")),
+                base00(ModeColor("#202746", "#f5f7ff")),
+                base01(ModeColor("#293256", "#dfe2f1")),
+                base02(ModeColor("#5e6687", "#979db4")),
+                base03(ModeColor("#6b7394", "#898ea4")),
+                base04(ModeColor("#898ea4", "#6b7394")),
+                base05(ModeColor("#979db4", "#5e6687")),
+                base06(ModeColor("#dfe2f1", "#293256")),
+                base07(ModeColor("#f5f7ff", "#202746")),
+                red(ModeColor("#c94922")),
+                orange(ModeColor("#c76b29")),
+                yellow(ModeColor("#c08b30")),
+                greenOld(ModeColor("#ac9739")),
+                green(ModeColor("#008b19")),
+                cyan(ModeColor("#22a2c9")),
+                blue(ModeColor("#3d8fd1")),
+                violet(ModeColor("#6679cc")),
+                magenta(ModeColor("#9c637a")),
+                whitespace(ModeColor("#B0C4DEFF"));
+
+                fun get(): Color{
+                    return this.color.get()
+                }
+            }
+        }
+
         const val CLASS_DELETE = "delete"
         const val CLASS_ANIM_ROTATION = "anim-rotation"
         const val CLASS_ANIM_SHAKERED = "anim-shakered"
@@ -178,7 +221,7 @@ object StyleConst {
 
     val iconSizeNav = 1.8.rem
     val iconFilter = invert(1).also { sepia(0.2) }.also { saturate(1.278) }.also { hueRotate(202.deg) }.also { brightness(1.20) }.also { contrast(0.87) }
-    val iconActiveFilter = invert(71.pct).also { sepia(54.pct) }.also { saturate(429.pct) }.also { hueRotate(83.deg) }.also { brightness(89.pct) }.also { contrast(87.pct) }
+    val iconActiveFilter = invert(71).also { sepia(54) }.also { saturate(429) }.also { hueRotate(83.deg) }.also { brightness(89) }.also { contrast(87) }
 
     val iconSize = 1.8.rem
     val iconPadding = 0.1.rem

@@ -16,17 +16,14 @@ import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.mark
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
-import react.dom.html.TableRules.Companion.all
 import tools.DebugTools
 import views.components.TranscriptView
 import web.cssom.ClassName
 import web.timers.*
 import web.cssom.*
-import web.cssom.LineStyle.Companion.solid
 
 external interface CodeEditorProps : Props {
     var appLogic: AppLogic
@@ -60,7 +57,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val appLogic by useState(props.appLogic)
     val (update, setUpdate) = props.update
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
-    val (currExeLine, setCurrExeLine) = useState(1)
+    val (currExeLine, setCurrExeLine) = useState(-1)
+    val (exeFile, setExeFile) = useState<FileHandler.File>()
     val (taValueUpdate, setTaValueUpdate) = useState(false)
 
     val (showRenameTab, setShowRenameTab) = useState(false)
@@ -86,9 +84,18 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         executionPointInterval.current = setInterval({
             val lineAddressMap = appLogic.getArch().getAssembly().getAssemblyMap().lineAddressMap
             val pcValue = appLogic.getArch().getRegisterContainer().pc.value.get()
-            val lineID = lineAddressMap.get(pcValue.toHex().getRawHexStr())
-            lineID?.let {
-                setCurrExeLine(it + 1)
+            val entry = lineAddressMap.get(pcValue.toHex().getRawHexStr())
+
+            if (entry != null) {
+                setExeFile(entry.file)
+                if (entry.file == appLogic.getArch().getFileHandler().getCurrent()) {
+                    setCurrExeLine(entry.lineID + 1)
+                } else {
+                    setCurrExeLine(-1)
+                }
+            } else {
+                setCurrExeLine(-1)
+                setExeFile(null)
             }
         }, 50)
     }
@@ -250,7 +257,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     src = StyleConst.Icons.disassembler
                 }
 
-                if(checkState == ArchConst.STATE_EXECUTABLE) {
+                if (checkState == ArchConst.STATE_EXECUTABLE) {
                     onClick = {
                         setTranscriptView(!transcriptView)
                     }
@@ -313,7 +320,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 img {
                     src = StyleConst.Icons.backwards
                 }
-                if(undoActive) {
+                if (undoActive) {
                     onClick = {
                         undo()
                     }
@@ -329,7 +336,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 img {
                     src = StyleConst.Icons.forwards
                 }
-                if(redoActive) {
+                if (redoActive) {
                     onClick = {
                         redo()
                     }
@@ -356,9 +363,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         - Undo History
                         - Clear Button
                         - Code Highlighting
-                        - Transcript Switch
                         - Start of Program (click on linenumber)
                         
+                        - Transcript (switch type by click on the left vertical title)
+                            - Compiled (generated from code compilation)
+                            - Disassembled (generated from memory)                        
                     
                 """.trimIndent()
 
@@ -439,9 +448,22 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                             className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TAB + if (file == appLogic.getArch().getFileHandler().getCurrent()) " ${StyleConst.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
 
+                            img {
+                                src = if (file.getLinkedTree() != null) {
+                                    "icons/file-check-alt.svg"
+                                } else {
+                                    "icons/file-question-alt.svg"
+                                }
+                            }
+
                             if (file == appLogic.getArch().getFileHandler().getCurrent()) {
                                 if (!showRenameTab) {
                                     a {
+                                        css {
+                                            if (file == exeFile) {
+                                                color = important(StyleConst.Main.Editor.HL.green.color.get())
+                                            }
+                                        }
                                         +file.getName()
 
                                         onClick = {
@@ -502,7 +524,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                             } else {
                                 a {
-
+                                    css {
+                                        if (file == exeFile) {
+                                            color = important(StyleConst.Main.Editor.HL.green.color.get())
+                                        }
+                                    }
                                     +file.getName()
 
                                     onClick = {
@@ -526,25 +552,25 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 placeholder = "name"
 
                                 onBlur = {
-                                    val input = addtabinput.current
-                                    input?.let {
-                                        val success = appLogic.getArch().getFileHandler().import(FileHandler.File(it.value, ""))
-                                        if (success) {
-                                            edit(appLogic.getArch().getFileHandler().getCurrContent(), false)
-                                            setTaValueUpdate(!taValueUpdate)
-                                            setShowAddTab(false)
-                                        } else {
-                                            input.classList.add(StyleConst.ANIM_SHAKERED)
-                                            setTimeout({
-                                                input.classList.remove(StyleConst.ANIM_SHAKERED)
-                                            }, 300)
-                                        }
-                                    }
+                                    setShowAddTab(false)
                                 }
 
                                 onKeyDown = { event ->
                                     if (event.key == "Enter") {
-                                        event.currentTarget.blur()
+                                        val input = addtabinput.current
+                                        input?.let {
+                                            val success = appLogic.getArch().getFileHandler().import(FileHandler.File(it.value, ""))
+                                            if (success) {
+                                                edit(appLogic.getArch().getFileHandler().getCurrContent(), false)
+                                                setTaValueUpdate(!taValueUpdate)
+                                                setShowAddTab(false)
+                                            } else {
+                                                input.classList.add(StyleConst.ANIM_SHAKERED)
+                                                setTimeout({
+                                                    input.classList.remove(StyleConst.ANIM_SHAKERED)
+                                                }, 300)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -615,13 +641,15 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     appLogic.getArch().exeUntilLine(lineNumber - 1)
                                     props.updateParent()
                                 }
+                                css {
+                                    if (currExeLine == lineNumber) {
+                                        color = important(StyleConst.Main.Editor.HL.green.color.get())
+                                    }
+                                }
 
                                 if (lineNumber == currExeLine) {
-                                    className = ClassName(StyleConst.Main.Editor.TextField.CLASS_LINE_ACTIVE)
                                     +"► $lineNumber"
-
                                 } else {
-
                                     +"$lineNumber"
                                 }
                             }

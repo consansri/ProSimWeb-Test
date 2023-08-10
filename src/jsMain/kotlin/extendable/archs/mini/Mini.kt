@@ -11,7 +11,8 @@ object Mini {
 
     val config = Config(
         "IKR Minimalprozessor",
-        FileHandler("miniasm"),
+        Docs(),
+        FileHandler("s"),
         RegisterContainer(
             listOf(
                 RegisterContainer.RegisterFile( "R0", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("0", RISCV.REG_ADDRESS_SIZE), listOf("x0"),listOf("r0"), MutVal("0", MutVal.Size.Bit32()), "")))

@@ -146,13 +146,13 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             val lineAddressMap = getAssembly().getAssemblyMap().lineAddressMap.map { it.value to it.key }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
-                if (entry.first > lineID) {
+                if (entry.first.lineID > lineID) {
                     if (closestID != null) {
-                        if (entry.first < closestID) {
-                            closestID = entry.first
+                        if (entry.first.lineID < closestID) {
+                            closestID = entry.first.lineID
                         }
                     } else {
-                        closestID = entry.first
+                        closestID = entry.first.lineID
                     }
                 }
             }

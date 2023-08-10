@@ -33,10 +33,655 @@ object RISCV {
         RISCVAssembly(RISCVBinMapper(), MutVal.Value.Hex("00001000", MutVal.Size.Bit32()))
     )
 
+    val riscVDocs = Docs(
+        Docs.HtmlFile(
+            "Risc-V Handbook",
+            """
+                <h1 id="risc-v-handbook">RISC-V Handbook</h1>
+                <h2 id="available-syntax">Available Syntax</h2>
+                <h3 id="directives">Directives</h3>
+                <p><em>(starting with \ means is recognized but not executed)</em></p>
+                <h4 id="included">INCLUDED</h4>
+                <ul>
+                <li><p><strong>global</strong></p>
+                <p><em>defines start of pc</em></p>
+                <p><code>.global [jlabelname]</code></p>
+                </li>
+                <li><p><strong>data emmitting</strong></p>
+                <p><em>comma seperated words [UNALIGNED or ALIGNED]</em></p>
+                <ul>
+                <li><strong>unaligned</strong><pre><code><span class="hljs-number">.2</span><span class="hljs-keyword">byte</span>          <span class="hljs-keyword">value</span>
+                <span class="hljs-number">.4</span><span class="hljs-keyword">byte</span>          <span class="hljs-keyword">value</span>
+                <span class="hljs-number">.8</span><span class="hljs-keyword">byte</span>          <span class="hljs-keyword">value</span>
+                </code></pre></li>
+                <li><p><strong>aligned</strong></p>
+                <pre><code><span class="hljs-selector-class">.byte</span>           value 
+                <span class="hljs-selector-class">.half</span>           value
+                <span class="hljs-selector-class">.word</span>           value
+                <span class="hljs-selector-class">.dword</span>          value
+                <span class="hljs-selector-class">.asciz</span>          value
+                <span class="hljs-selector-class">.string</span>         value
+                
+                \<span class="hljs-selector-class">.dtprelword</span>    value
+                \<span class="hljs-selector-class">.dtpreldword</span>   value
+                
+                \<span class="hljs-selector-class">.uleb128</span>       value
+                \<span class="hljs-selector-class">.sleb128</span>       value
+                </code></pre></li>
+                </ul>
+                </li>
+                <li><p><strong>attributes</strong></p>
+                <pre><code>.attribute tag, value
+                
+                tag = {
+                Tag_RISCV_arch<span class="hljs-comment">;</span>
+                Tag_RISCV_stack_align<span class="hljs-comment">;</span>
+                Tag_RISCV_unaligned_access<span class="hljs-comment">;</span>
+                Tag_RISCV_priv_spec<span class="hljs-comment">;</span>
+                Tag_RISCV_priv_spec_minor<span class="hljs-comment">;</span>
+                Tag_RISCV_priv_spec_revision<span class="hljs-comment">;</span>
+                }
+                </code></pre></li>
+                <li><p><strong>options</strong></p>
+                <pre><code>.option argument
+                
+                argument = { 
+                    push<span class="hljs-comment">; </span>
+                    pop<span class="hljs-comment">; </span>
+                    \rvc<span class="hljs-comment">; </span>
+                    \<span class="hljs-keyword">norvc; </span>
+                    \pic<span class="hljs-comment">; </span>
+                    \<span class="hljs-keyword">nopic; </span>
+                    \relax<span class="hljs-comment">; </span>
+                    \<span class="hljs-keyword">norelax; </span>
+                    \csr-check<span class="hljs-comment">; </span>
+                    \no-csr-check<span class="hljs-comment">; </span>
+                    \arch, +<span class="hljs-keyword">extension[version] </span>[,...,+<span class="hljs-keyword">extension_n[version_n]];
+                </span>    \arch, -<span class="hljs-keyword">extension </span>[,...,-<span class="hljs-keyword">extension_n];
+                </span>    \arch, =ISA<span class="hljs-comment">;</span>
+                }
+                </code></pre></li>
+                <li><p><strong>macros</strong></p>
+                <pre><code><span class="hljs-selector-class">.macro</span> <span class="hljs-selector-tag">arg1</span> <span class="hljs-selector-attr">[,...,argn]</span>
+                  <span class="hljs-selector-attr">[instructions which can take argn as parameters]</span>
+                  ...  
+                <span class="hljs-selector-class">.endm</span>
+                </code></pre></li>
+                </ul>
+                <ul>
+                <li><p><strong>sections</strong></p>
+                <p>On Every Position in any section a <strong>label</strong> can stand which <strong>holds the address</strong> of the <strong>next element</strong></p>
+                <p>Sections are written chronological to the memory</p>
+                <ul>
+                <li><p><strong>text</strong></p>
+                <pre><code>.<span class="hljs-built_in">text</span>
+                    <span class="hljs-comment"># Read Only Section containing executable code</span>
+                </code></pre></li>
+                <li><p><strong>data</strong></p>
+                <pre><code>.data
+                    # Initialized <span class="hljs-keyword">Read</span> <span class="hljs-keyword">Write</span> <span class="hljs-keyword">Static</span> Variables
+                </code></pre></li>
+                <li><p><strong>rodata</strong></p>
+                <pre><code>.rodata
+                    # Initialized <span class="hljs-keyword">Read</span> Only <span class="hljs-keyword">Const</span> Variables
+                </code></pre><ul>
+                <li><strong>bss</strong><pre><code>.bss
+                # Uninitialized <span class="hljs-keyword">Read</span> <span class="hljs-keyword">Write</span> Data
+                </code></pre></li>
+                </ul>
+                </li>
+                </ul>
+                </li>
+                </ul>
+                <h4 id="not-included">NOT INCLUDED</h4>
+                <pre><code><span class="hljs-selector-class">.insn</span> type, operand [,...,operand_n]
+                <span class="hljs-selector-class">.insn</span> insn_length, value
+                <span class="hljs-selector-class">.insn</span> value
+                </code></pre><pre><code>\.<span class="hljs-keyword">align</span> <span class="hljs-keyword">size</span>-<span class="hljs-keyword">log</span><span class="hljs-number">-2</span>
+                </code></pre><h3 id="global-syntax">Global Syntax</h3>
+                <ul>
+                <li>Text Sections (standard if no section start is defined)</li>
+                </ul>
+                <pre><code><span class="hljs-selector-class">.text</span>
+                    ..<span class="hljs-selector-class">.EQU</span> Constant Definitions (const)...
+                    ..<span class="hljs-selector-class">.Jump</span> Label Definitions (jlabel)...
+                    ..<span class="hljs-selector-class">.Instruction</span> Definitions...
+                </code></pre><ul>
+                <li>Data Sections</li>
+                </ul>
+                <pre><code><span class="hljs-selector-class">.data</span>
+                    ..<span class="hljs-selector-class">.Initialized</span> Address Labels (alabel)...
+                </code></pre><ul>
+                <li>RoData Sections</li>
+                </ul>
+                <pre><code><span class="hljs-selector-class">.rodata</span>
+                    ..<span class="hljs-selector-class">.Initialized</span> Read-Only Address Labels (alabel)...
+                </code></pre><ul>
+                <li>BSS Sections</li>
+                </ul>
+                <pre><code><span class="hljs-selector-class">.bss</span>
+                    ..<span class="hljs-selector-class">.Uninitialized</span> Address Labels (alabel)...
+                </code></pre><ul>
+                <li>Macro Definition</li>
+                </ul>
+                <pre><code># <span class="hljs-selector-tag">definition</span>
+                <span class="hljs-selector-class">.macro</span> <span class="hljs-selector-attr">[macroname]</span> <span class="hljs-selector-attr">[attr1, ..., attrn]</span>
+                    <span class="hljs-selector-attr">[instructions with \attrn links]</span>    
+                    ...
+                <span class="hljs-selector-class">.endm</span>
+                
+                # <span class="hljs-selector-tag">replacement</span>
+                <span class="hljs-selector-class">.text</span>
+                    <span class="hljs-selector-attr">[macroname]</span> <span class="hljs-selector-attr">[attributes]</span>
+                </code></pre><ul>
+                <li>EQU Constant Definition (constant)</li>
+                </ul>
+                <pre><code>    <span class="hljs-selector-class">.equ</span> [constantname], <span class="hljs-number">0</span>xCAFEAFFE
+                
+                <span class="hljs-selector-class">.text</span>
+                    <span class="hljs-selector-tag">li</span> t0, [constantname]
+                </code></pre><ul>
+                <li>Jump Label Definition (jlabel)<code>[jlabel]:</code></li>
+                </ul>
+                <pre><code>.<span class="hljs-built_in">text</span>
+                main:
+                    ...
+                    jal     <span class="hljs-built_in">loop</span>
+                    ...
+                
+                .<span class="hljs-built_in">loop</span>:
+                    ...
+                    beqz    t0, <span class="hljs-built_in">end</span>
+                    j       main.<span class="hljs-built_in">loop</span> 
+                
+                <span class="hljs-built_in">end</span>:
+                </code></pre><ul>
+                <li>Instruction Definition <code>[instr] [parameters]</code></li>
+                </ul>
+                <pre><code>.text
+                     lui    t0, <span class="hljs-number">0xCAFEA</span>
+                     addi   t0, t0, <span class="hljs-number">0b111111111110</span>
+                     <span class="hljs-built_in">li</span>     t1, -<span class="hljs-number">4000</span>
+                     sltz   t2, t1
+                     ...
+                </code></pre><ul>
+                <li>Initialized Address Labels <code>[alabel] [type directive] [constant]</code></li>
+                </ul>
+                <pre><code><span class="hljs-selector-class">.data</span>
+                    lbl1: <span class="hljs-selector-class">.word</span>     <span class="hljs-string">"jklm"</span>
+                    lbl2: <span class="hljs-selector-class">.half</span>     -<span class="hljs-number">34</span>
+                    lbl3: <span class="hljs-selector-class">.byte</span>     <span class="hljs-number">0</span>b11111011
+                    lbl4: <span class="hljs-selector-class">.asciz</span>    <span class="hljs-string">'['</span>
+                    lbl5: <span class="hljs-selector-class">.string</span>   <span class="hljs-string">"hello world"</span>
+                </code></pre><h2 id="implemented-instructions">Implemented Instructions</h2>
+                <table>
+                <thead>
+                <tr>
+                <th style="text-align:center">name</th>
+                <th style="text-align:center">pseudo usage</th>
+                <th style="text-align:left">original params</th>
+                <th>pseudo params</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                <td style="text-align:center"><code>lui</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, imm20</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>auipc</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, imm20</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>jal</code></td>
+                <td style="text-align:center"><code>jal [ra], jlabel</code></td>
+                <td style="text-align:left"><code>rd, imm20</code></td>
+                <td><code>rd, jlabel</code>, <code>jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>jalr</code></td>
+                <td style="text-align:center"><code>jalr [ra], [0](rs1)</code></td>
+                <td style="text-align:left"><code>rd, imm12(rs1)</code></td>
+                <td><code>rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>ecall</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>ebreak</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>beq</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs1, rs2, imm12</code></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bne</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs1, rs2, imm12</code></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>blt</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs1, rs2, imm12</code></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bge</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs1, rs2, imm12</code></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bltu</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs1, rs2, imm12</code></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bgeu</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs1, rs2, imm12</code></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>lb</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, imm12(rs)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>lh</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, imm12(rs)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>lw</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, imm12(rs)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>lbu</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, imm12(rs)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>lhu</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, imm12(rs)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sb</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs2, imm5(rs1)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sh</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs2, imm5(rs1)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sw</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rs2, imm5(rs1)</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>addi</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, imm12</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>slti</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, imm12</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sltiu</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, imm12</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>xori</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, imm12</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>ori</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, imm12</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>andi</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, imm12</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>slli</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, shamt5</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>srli</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, shamt5</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>srai</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, shamt5</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>add</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sub</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sll</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>slt</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sltu</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>xor</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>srl</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sra</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>or</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>and</code></td>
+                <td style="text-align:center">-</td>
+                <td style="text-align:left"><code>rd, rs1, rs2</code></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>nop</code></td>
+                <td style="text-align:center"><code>add [zero], [zero], [zero]</code></td>
+                <td style="text-align:left"></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>mv</code></td>
+                <td style="text-align:center"><code>addi rd, rs1, [0]</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>li</code></td>
+                <td style="text-align:center"><code>lui rd, %hi20(imm32)</code><br><code>addi rd, %low12(imm32)</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, imm32</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>la</code></td>
+                <td style="text-align:center"><code>lui rd, %hi20(alabel)</code><br><code>addi rd, %low12(alabel)</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, alabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>not</code></td>
+                <td style="text-align:center"><code>xori rd, rs1, [0b111111111111]</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>neg</code></td>
+                <td style="text-align:center"><code>sub rd, [zero], rs1</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>seqz</code></td>
+                <td style="text-align:center"><code>sltiu rd, rs1, [1]</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>snez</code></td>
+                <td style="text-align:center"><code>sltu rd, [zero], rs1</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sltz</code></td>
+                <td style="text-align:center"><code>slt rd, rs1, [zero]</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>sgtz</code></td>
+                <td style="text-align:center"><code>slt rd, [zero], rs1</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rd, rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>beqz</code></td>
+                <td style="text-align:center"><code>beq rs1, [zero], jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bnez</code></td>
+                <td style="text-align:center"><code>bne rs1, [zero], jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>blez</code></td>
+                <td style="text-align:center"><code>bge [zero], rs1, jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bgez</code></td>
+                <td style="text-align:center"><code>bge rs1, [zero], jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bltz</code></td>
+                <td style="text-align:center"><code>blt rs1, [zero], jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bgtz</code></td>
+                <td style="text-align:center"><code>blt [zero], rs1, jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bgt</code></td>
+                <td style="text-align:center"><code>blt rs2, rs1, jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>ble</code></td>
+                <td style="text-align:center"><code>bge rs2, rs1, jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bgtu</code></td>
+                <td style="text-align:center"><code>bltu rs2, rs1, jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>bleu</code></td>
+                <td style="text-align:center"><code>bgeu rs2, rs1, jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1, rs2, jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>j</code></td>
+                <td style="text-align:center"><code>jal [zero], jlabel</code></td>
+                <td style="text-align:left"></td>
+                <td><code>jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>jr</code></td>
+                <td style="text-align:center"><code>jalr [zero], [0](rs1)</code></td>
+                <td style="text-align:left"></td>
+                <td><code>rs1</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>ret</code></td>
+                <td style="text-align:center"><code>jalr [zero], [0]([ra])</code></td>
+                <td style="text-align:left"></td>
+                <td></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>call</code></td>
+                <td style="text-align:center"><code>auipc x1, %hi20(jlabel)</code> <br/> <code>jalr x1, %low12(jlabel)(x1)</code></td>
+                <td style="text-align:left"></td>
+                <td><code>jlabel</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:center"><code>tail</code></td>
+                <td style="text-align:center"><code>auipc x6, %hi20(jlabel)</code> <br/> <code>jalr x0, %low12(jlabel)(x6)</code></td>
+                <td style="text-align:left"></td>
+                <td><code>jlabel</code></td>
+                </tr>
+                </tbody>
+                </table>
+                <h2 id="value-input-sizes-and-types">Value Input Sizes and Types</h2>
+                <ul>
+                <li>Values will <strong>automatically resize to 32 Bit, if value fits in less than 32 Bit</strong> (32Bit, 64Bit, 128Bit).</li>
+                <li>On Compilation every value will <strong>first</strong> be converted <strong>to binary</strong>.</li>
+                <li>If the input value was a <strong>decimal number</strong> it will be upsized <strong>signed</strong> in <strong>other cases</strong> it will be resized <em>
+                </em>unsigned**.</li>
+                </ul>
+                <table>
+                <thead>
+                <tr>
+                <th style="text-align:left">type</th>
+                <th style="text-align:center">examples</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                <td style="text-align:left">binary</td>
+                <td style="text-align:center"><code>0b10011101</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:left">hex</td>
+                <td style="text-align:center"><code>0x9D</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:left">decimal</td>
+                <td style="text-align:center"><code>-99</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:left">unsigned decimal</td>
+                <td style="text-align:center"><code>u157</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:left">ascii</td>
+                <td style="text-align:center"><code>&#39;a&#39;</code></td>
+                </tr>
+                <tr>
+                <td style="text-align:left">string</td>
+                <td style="text-align:center"><code>&quot;hello world&quot;</code></td>
+                </tr>
+                </tbody>
+                </table>
+                <p><strong>Tips</strong></p>
+                <ul>
+                <li>The Value of 64 Bit and 128 Bit can only be stored as an array to fulfill that you can use the .data directive and
+                initialize an array like this <code>lbl1: .string 0x0123456789ABCDEF</code></li>
+                </ul>
+                <h3 id="assembly-resize-behaviour">Assembly Resize Behaviour</h3>
+                <p>When will my coded value be resized if the size of expected and found values aren&#39;t matching?</p>
+                <ul>
+                <li><strong>(text-section)</strong> on writing binary into opcodes (<code>32 Bit</code>, <code>20 Bit</code>, <code>12 Bit</code>, <code>5 Bit</code>) see
+                implemented instructions for further details</li>
+                </ul>
+                <ul>
+                <li><strong>(data-section)</strong> on writing initiated values to memory
+                [<code>.byte -&gt; 8 Bit</code>, <code>.half -&gt; 16 Bit</code>, <code>.word -&gt; 32 Bit</code>, <code>.asciz -&gt; 8 Bit</code>, <code>.string -&gt; 8 Bit Array (unlimited)</code>]</li>
+                </ul>
+                <h3 id="notes">Notes</h3>
+                <ul>
+                <li>writing a <code>imm32</code> value <strong>into</strong> a smaller immediate size place (e.g. <code>imm20</code>, <code>imm12</code>)
+                leads to <strong>resizing</strong> which can result in a <strong>loss of information</strong>.
+                The written value </li>
+                </ul>
+                
+            """.trimIndent()
+        )
+    )
+
     // PROCESSOR CONFIG
     val config = Config(
         """RISC-V""",
-        FileHandler("rvasm"),
+        riscVDocs,
+        FileHandler("s"),
         RegisterContainer(
             listOf(
                 RegisterContainer.RegisterFile(
@@ -86,5 +731,6 @@ object RISCV {
 
     val FileExtension = "rvasm"
     val FileTypeDescription = "RISC-V Assembler"
+
 
 }

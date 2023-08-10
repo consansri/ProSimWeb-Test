@@ -11,6 +11,7 @@ import web.buffer.Blob
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     private val name: String
+    private val docs: Docs
     private val fileHandler: FileHandler
     private val registerContainer: RegisterContainer
     private val memory: Memory
@@ -24,6 +25,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     init {
         this.name = config.name
+        this.docs = config.docs
         this.fileHandler = config.fileHandler
         this.registerContainer = config.registerContainer
         this.memory = config.memory
@@ -68,6 +70,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     fun getName(): String {
         return name
+    }
+
+    fun getDocs(): Docs {
+        return docs
     }
 
     fun getFileHandler(): FileHandler {

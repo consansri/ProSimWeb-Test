@@ -13,7 +13,7 @@ class FileBuilder {
 
     fun build(architecture: Architecture, format: ExportFormat, vararg settings: Setting): Blob {
 
-        when(format){
+        when (format) {
             ExportFormat.VHDL, ExportFormat.MIF, ExportFormat.HEXDUMP -> {
                 val content = mutableListOf<String>("Empty...")
 
@@ -35,7 +35,7 @@ class FileBuilder {
                         }
                     }
                 }
-                val depth = addrWidth * dataWidth
+                val depth = 2.0.pow(addrWidth) * dataWidth
                 val memInstances = architecture.getMemory().getMemMap().map { it.value }.sortedBy { it.address.getRawHexStr() }.toMutableList()
 
                 val vhdlItems = mutableListOf<VHDLItem>()
@@ -177,6 +177,7 @@ class FileBuilder {
 
                                 content.add(contentString)
                             }
+
                             else -> {}
                         }
                     } catch (ne: NumberFormatException) {
@@ -189,6 +190,7 @@ class FileBuilder {
 
                 return Blob(content.toTypedArray())
             }
+
             ExportFormat.CURRENT_FILE -> {
                 return Blob(arrayOf(architecture.getFileHandler().getCurrContent()))
             }

@@ -105,31 +105,29 @@ border-radius: 0.2rem;
 
 ### general tokens ###
 
-<div class="general">
 
 | general type | contains                     | 
 |--------------|------------------------------|
 | `constant`   | minimum 32 Bit binary values |
 
-</div>
 
 ### pre ###
 
-<div class="pre">
 
-| pre type        | format                         | example | execution usage                                                                    |
-|-----------------|--------------------------------|---------|------------------------------------------------------------------------------------|
-| `pre_comment`   | `#[.]+`                        |         |                                                                                    |
-| `pre_option`    | `.option [argument]`           |         |                                                                                    |
-| `pre_attr_def`  | `.attribute [tag], [constant]` |         |                                                                                    |
-| `pre_macro_def` |                                |         |                                                                                    |
-| `pre_equ_def`   | `.equ equname, [constant]`     |         | should replace all places where the equ name is referenced with the given constant |   
+| pre type           | format                                                                                                                   | example                                                              | execution usage                                                                    |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| `pre_import`       | `#import "[filename]"`                                                                                                   | `#import "math.s"`                                                   | imports content of another file                                       |
+| `pre_comment`      | `#[.]+`                                                                                                                  |                                                                      | nothing                                                                            |
+| `pre_option`       | `.option [argument]`                                                                                                     |                                                                      | nothing                                                                            |
+| `pre_attr_def`     | `.attribute [tag], [constant]`                                                                                           |                                                                      | nothing                                                                            |
+| `pre_global_start` | `.global [label]`                                                                                                        | `.global main`                                                       | pc will be set to jump label address                                               |
+| `pre_macro_def`    | `.macro [name] [attr1, ..., attrn]` <br/>`[instr] [parameters attributes supplied with \attr]` <br/> `...` <br/> `.endm` | `.macro jump address` <br/> `li ra, \address` <br/> `jr ra` <br/> `.endm` | defines a macro which then can be inserted                                         |
+| `pre_macro_insert` | `[macroname] [attributes]`                                                                                               | `jump 0x10000000`                                                    | inserts macro with certain attributes                                              |
+| `pre_equ_def`      | `.equ [equname], [constant]`                                                                                             | `.equ const1, u142`                                                  | should replace all places where the equ name is referenced with the given constant |   
 
-</div>
 
 ### tier 1 (elements) ###
 
-<div class="e">
 
 | element type  | format            | conditions                                                | examples                          | types                                                        | val and fun                       | usage |
 |---------------|-------------------|-----------------------------------------------------------|-----------------------------------|--------------------------------------------------------------|-----------------------------------|-------|
@@ -139,14 +137,12 @@ border-radius: 0.2rem;
 | `e_label`     | `[.]+: `          |                                                           | `main:`, `.loop:`, `var1:`        |                                                              |                                   |       |
 | `e_directive` | `.[.]+`           | must have type **DE** (Data Emitting) or **SectionStart** |                                   | `[DirTypes]`                                                 |                                   |       |
 
-</div>
 
 ### tier 2 (rows) ###
 
 1. link all labels
 2. check instruction param_colls and linked labels
 
-<div class="r">
 
 | row type         | element sequence                                               | conditions                                                                                           | example  | usage |
 |------------------|----------------------------------------------------------------|------------------------------------------------------------------------------------------------------|----------|-------|
@@ -166,11 +162,9 @@ border-radius: 0.2rem;
 | *bss section*    |                                                                |                                                                                                      |          |       |
 | `r_ulbl_rw`      | <span class="e">`[e_label] [e_directive]`</span>               | **1.** Type of `e_directive` is `DE` (Data Emitting)                                                 |          |       |
 
-</div>
 
 ### tier 3 (sections) ###
 
-<div class="s">
 
 | section type | allowed rows                                                            | conditions                                           | usage |
 |--------------|-------------------------------------------------------------------------|------------------------------------------------------|-------|
@@ -179,16 +173,12 @@ border-radius: 0.2rem;
 | `s_rodata`   | <span class="r">`r_sectionstart` `r_ilbl_r`                             | **1.** `r_sectionstart` must be rodata section start |
 | `s_bss`      | <span class="r">`r_sectionstart` `r_ulbl_rw`                            | **1.** `r_sectionstart` must be bss section start    |
 
-</div>
 
 ### tier 4 (container) ###
 
-<div class="c">
 
 | container name | containing content of type   | usage |
 |----------------|------------------------------|-------|
 | `c_sections`   | <span class="s">`[sections]` |       |
 | `c_pres`       | <span class="pre">`[pres]`   |       |
 | `c_errors`     |                              |       |
-
-</div>
