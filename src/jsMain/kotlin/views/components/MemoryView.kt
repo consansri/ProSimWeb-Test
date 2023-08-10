@@ -44,6 +44,7 @@ val MemoryView = FC<MemViewProps> { props ->
     val tbody = useRef<HTMLTableSectionElement>()
     val inputLengthRef = useRef<HTMLInputElement>()
     val contentIVRef = useRef<Timeout>()
+    val pcIVRef = useRef<Timeout>()
     val asciiRef = useRef<HTMLElement>()
 
     val appLogic by useState(props.appLogic)
@@ -58,6 +59,7 @@ val MemoryView = FC<MemViewProps> { props ->
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (showAddMem, setShowAddMem) = useState(false)
     val (showAddRow, setShowAddRow) = useState(false)
+    val (currExeAddr, setCurrExeAddr) = useState<String>()
 
     contentIVRef.current?.let {
         clearInterval(it)
@@ -66,6 +68,15 @@ val MemoryView = FC<MemViewProps> { props ->
         contentIVRef.current = setInterval({
             setIUpdate(!internalUpdate)
         }, 2000)
+    }
+
+    pcIVRef.current?.let {
+        clearInterval(it)
+    }
+    if (!DebugTools.REACT_deactivateAutoRefreshs) {
+        pcIVRef.current = setInterval({
+            setCurrExeAddr(appLogic.getArch().getRegisterContainer().pc.value.get().toHex().getRawHexStr())
+        }, 100)
     }
 
     fun calcMemTable() {
@@ -98,7 +109,6 @@ val MemoryView = FC<MemViewProps> { props ->
             } catch (e: ClassCastException) {
                 console.warn("ClassCastException")
             }
-
         }
     }
 
@@ -111,12 +121,10 @@ val MemoryView = FC<MemViewProps> { props ->
         }
 
         div {
-            className = ClassName("dcf-overflow-x-auto")
+            className = ClassName(StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL)
             tabIndex = 0
 
             table {
-                className = ClassName("dcf-table dcf-w-100% dcf-darkbg")
-
                 caption {
                     a {
                         +"Memory"
@@ -128,20 +136,20 @@ val MemoryView = FC<MemViewProps> { props ->
                     tr {
 
                         th {
-                            className = ClassName("dcf-txt-center")
+                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             +"Address"
                         }
 
                         for (columnID in 0 until memLength) {
                             th {
-                                className = ClassName("dcf-txt-center")
+                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                                 scope = "col"
                                 +"$columnID"
                             }
                         }
                         th {
-                            className = ClassName("dcf-txt-center")
+                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             +"ASCII"
                         }
@@ -151,7 +159,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
                 tbody {
                     ref = tbody
-
 
                     var nextAddress: MutVal.Value = appLogic.getArch().getMemory().getInitialBinary().setBin("0").get()
                     val memLengthValue = MutVal.Value.Dec("$memLength", MutVal.Size.Bit8()).toHex()
@@ -168,8 +175,10 @@ val MemoryView = FC<MemViewProps> { props ->
                         if (nextAddress != MutVal.Value.Hex(memRowKey) && memRowKey != sortedKeys.first()) {
                             tr {
                                 th {
+                                    css {
+                                        color = important(StyleConst.Main.Table.Mark.NOTUSED.get())
+                                    }
                                     colSpan = 2 + memLength
-                                    className = ClassName("dcf-txt-center dcf-mark-notused dcf-darkbg")
                                     scope = "row"
                                     title = "only zeros in addresses between"
                                     +"..."
@@ -179,7 +188,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         tr {
                             th {
-                                className = ClassName("dcf-txt-center dcf-darkbg dcf-mark-address")
+                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                                 scope = "row"
                                 +memRowKey
                             }
@@ -188,8 +197,17 @@ val MemoryView = FC<MemViewProps> { props ->
                                 val memInstance = memRow?.get(column)
                                 if (memInstance != null) {
                                     td {
-                                        className = ClassName("dcf-txt-center dcf-darkbg ${memInstance.mark}")
-                                        title = "[${memInstance.address.getRawHexStr()}] [${memInstance.mark.removePrefix("dcf-mark-")}]"
+                                        css {
+                                            textAlign = TextAlign.center
+                                            if (memInstance.address.getRawHexStr() == currExeAddr) {
+                                                color = important(StyleConst.Main.Table.FgPC)
+                                                fontWeight = important(FontWeight.bold)
+                                            } else {
+                                                color = important(memInstance.mark.get())
+                                            }
+                                        }
+
+                                        title = "[${memInstance.address.getRawHexStr()}] [${memInstance.mark.name}]"
 
                                         if (memInstance is Memory.MemInstance.EditableValue) {
                                             if (memInstance.name.isNotEmpty()) {
@@ -205,7 +223,10 @@ val MemoryView = FC<MemViewProps> { props ->
                                     }
                                 } else {
                                     td {
-                                        className = ClassName("dcf-txt-center dcf-mark-notused dcf-darkbg")
+                                        css {
+                                            color = important(StyleConst.Main.Table.Mark.NOTUSED.get())
+                                            fontWeight = important(FontWeight.lighter)
+                                        }
                                         title = "unused"
                                         +appLogic.getArch().getMemory().getInitialBinary().get().toHex().getRawHexStr()
                                     }
@@ -213,7 +234,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             td {
-                                className = ClassName("dcf-txt-center dcf-monospace dcf-darkbg")
+                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER + " " + StyleConst.Main.Table.CLASS_MONOSPACE)
                                 ref = asciiRef
                                 var asciiString = ""
                                 val emptyAscii = appLogic.getArch().getMemory().getInitialBinary().get().toASCII()
@@ -243,7 +264,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                     tr {
                         td {
-                            className = ClassName("dcf-control")
+                            className = ClassName(StyleConst.Main.Table.CLASS_CONTROL)
                             colSpan = 2 + memLength
 
                             button {

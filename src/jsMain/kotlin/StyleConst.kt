@@ -118,8 +118,8 @@ object StyleConst {
                 red(ModeColor("#c94922")),
                 orange(ModeColor("#c76b29")),
                 yellow(ModeColor("#c08b30")),
-                greenOld(ModeColor("#ac9739")),
-                green(ModeColor("#008b19")),
+                green(ModeColor("#ac9739")),
+                greenPCMark(ModeColor("#008b19")),
                 cyan(ModeColor("#22a2c9")),
                 blue(ModeColor("#3d8fd1")),
                 violet(ModeColor("#6679cc")),
@@ -174,7 +174,7 @@ object StyleConst {
             val fontSizeH4 = 1.1.rem
             val fontSizeStandard = 1.0.rem
 
-            enum class Colors(val color: ModeColor ) {
+            enum class Colors(val color: ModeColor) {
                 Bg(ModeColor("#77777731")),
                 base00(ModeColor("#202746", "#f5f7ff")),
                 base01(ModeColor("#293256", "#dfe2f1")),
@@ -195,11 +195,62 @@ object StyleConst {
                 magenta(ModeColor("#9c637a")),
                 whitespace(ModeColor("#B0C4DEFF"));
 
-                fun get(): Color{
+                fun get(): Color {
                     return this.color.get()
                 }
             }
         }
+
+        object Table {
+            val BgPC = Color("#008b1966")
+            val FgPC = Color("#008b19")
+
+            val BgColor = Color("#091A40")
+            val FgColor = Color("#EEEEEE")
+            val BorderColor = Color("#E3E3E2FF")
+            val StripeColor = Color("#FFFFFF19")
+
+            val RangeWidth = 5.rem
+
+            val IconSize = 1.8.rem
+            val IconPadding = 0.1.rem
+
+            val FontSizeCaption = 1.13.em
+            val FontSizeHead = 0.84.em
+            val FontSizeBody = 0.84.em
+            val FontSizeSelect = 0.7.em
+
+            const val CLASS_TXT_CENTER = "txt-center"
+            const val CLASS_TXT_LEFT = "txt-left"
+            const val CLASS_TXT_RIGHT = "txt-right"
+            const val CLASS_MONOSPACE = "txt-monospace"
+
+            const val CLASS_CONTROL = "table-control"
+            const val CLASS_TINPUT = "table-input"
+            const val CLASS_TBUTTON = "table-button"
+
+            const val CLASS_BORDERED = "table-bordered"
+            const val CLASS_STRIPED = "table-striped"
+
+            const val CLASS_OVERFLOWXSCROLL = "overflow-x-scroll"
+
+            enum class Mark(val color: ModeColor) {
+                PROGRAM(ModeColor("#800080")),
+                DATA(ModeColor("#008080")),
+                EDITABLE(ModeColor("#000000")),
+                NOTUSED(ModeColor("#77777731")),
+                ELSE(ModeColor("#808000"));
+
+                fun get(): Color {
+                    return this.color.get()
+                }
+            }
+        }
+
+        object Window {
+            const val CLASS = "window"
+        }
+
 
         const val CLASS_DELETE = "delete"
         const val CLASS_ANIM_ROTATION = "anim-rotation"
@@ -242,7 +293,7 @@ object StyleConst {
     // PROCESSOR
     val CLASS_EXEC_PROGRESS = "exec-progress"
     val CLASS_EXEC_PROGRESS_BAR = "exec-progress-bar"
-    val CLASS_TABLE_INPUT = "dcf-input"
+    /* val CLASS_TABLE_INPUT = "dcf-input"*/
 
 
     // PROCESSOR.FLAGSCONDSVIEW

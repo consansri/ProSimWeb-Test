@@ -461,7 +461,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     a {
                                         css {
                                             if (file == exeFile) {
-                                                color = important(StyleConst.Main.Editor.HL.green.color.get())
+                                                color = important(StyleConst.Main.Editor.HL.greenPCMark.color.get())
                                             }
                                         }
                                         +file.getName()
@@ -526,7 +526,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 a {
                                     css {
                                         if (file == exeFile) {
-                                            color = important(StyleConst.Main.Editor.HL.green.color.get())
+                                            color = important(StyleConst.Main.Editor.HL.greenPCMark.color.get())
                                         }
                                     }
                                     +file.getName()
@@ -643,7 +643,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                                 css {
                                     if (currExeLine == lineNumber) {
-                                        color = important(StyleConst.Main.Editor.HL.green.color.get())
+                                        color = important(StyleConst.Main.Editor.HL.greenPCMark.color.get())
                                     }
                                 }
 

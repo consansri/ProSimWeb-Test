@@ -106,3 +106,7 @@ select {
     padding: var(--padding-size);
     border-radius: var(--border-radius);
 }
+
+button {
+    appearance: none;
+}

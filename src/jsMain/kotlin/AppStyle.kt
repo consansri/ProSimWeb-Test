@@ -1,8 +1,5 @@
-import StyleConst
 import emotion.react.Global
 import emotion.react.styles
-import extendable.ArchConst
-import js.import.import
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
@@ -20,12 +17,19 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.pre
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.caption
+import react.dom.html.ReactHTML.center
 import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.select
+import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.tfoot
 import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.thead
+import react.dom.html.ReactHTML.tr
 import react.dom.html.ReactHTML.ul
 import web.cssom.*
 
@@ -337,12 +341,11 @@ val AppStyle = FC<Props> {
                             fontWeight = FontWeight.lighter
                         }
 
-                        pre{
+                        pre {
                             background = important(StyleConst.Main.InfoView.Colors.Bg.get())
                             borderRadius = StyleConst.borderRadius
                             padding = StyleConst.paddingSize
                         }
-
 
                         code {
                             StyleConst.codeFont
@@ -356,6 +359,214 @@ val AppStyle = FC<Props> {
                                 paddingRight = StyleConst.paddingSize
                             }
                         }
+                    }
+
+                    table {
+                        width = important(100.pct)
+                        borderCollapse = BorderCollapse.collapse
+                        transition = 0.3.s
+                        tabSize = 6.ch
+                        whiteSpace = WhiteSpace.pre
+                        cursor = Cursor.text
+
+                        caption {
+                            position = Position.relative
+                            fontSize = StyleConst.Main.Table.FontSizeCaption
+                            fontWeight = FontWeight.bold
+                            padding = 0.56.em
+
+                            a {
+                                fontSize = StyleConst.Main.Table.FontSizeCaption
+                                fontWeight = FontWeight.bold
+                                textAlign = TextAlign.center
+                            }
+                        }
+
+                        thead {
+                            fontSize = StyleConst.Main.Table.FontSizeHead
+
+                            th {
+                                textAlign = TextAlign.left
+                                /*paddingTop = 1.33.em*/
+                                paddingRight = 0.2.em
+                                paddingBottom = 0.25.em
+                                verticalAlign = VerticalAlign.bottom
+                            }
+
+                            td {
+                                paddingBottom = 0.25.em
+                                verticalAlign = VerticalAlign.bottom
+                            }
+
+                            button {
+                                cursor = Cursor.pointer
+                                backgroundColor = StyleConst.Main.Table.BgColor
+                                boxShadow = BoxShadow(BoxShadowInset.inset, 0.px, 2.rem, 50.px, -30.px, StyleConst.Main.AccColor)
+                                color = StyleConst.Main.Table.FgColor
+                                padding = Padding(0.2.rem, 0.5.rem)
+                                borderBottomLeftRadius = StyleConst.borderRadius
+                                borderBottomRightRadius = StyleConst.borderRadius
+
+                                span {
+                                    margin = Margin(0.rem, 4.ch)
+                                }
+                                hover {
+                                    filter = brightness(120.pct)
+
+                                    "> span" {
+                                        margin = Margin(0.rem, 3.ch)
+                                        before {
+                                            content = Content("[")
+                                        }
+                                        after {
+                                            content = Content("]")
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+
+                        tbody {
+                            fontSize = StyleConst.Main.Table.FontSizeBody
+
+                            th {
+                                paddingTop = 0.25.em
+                                paddingBottom = 0.25.em
+                                verticalAlign = VerticalAlign.top
+                            }
+
+                            td {
+                                paddingTop = 0.25.em
+                                paddingBottom = 0.25.em
+                                verticalAlign = VerticalAlign.top
+                                textAlign = TextAlign.center
+                                paddingRight = 0.2.em
+                            }
+
+                            input {
+                                width = 100.pct
+                                borderRadius = StyleConst.borderRadius
+                                backgroundColor = StyleConst.transparent
+                                textAlign = TextAlign.center
+                            }
+                        }
+
+                        tfoot {
+                            position = Position.absolute
+                            fontSize = StyleConst.Main.Table.FontSizeBody
+                            height = 4.rem
+                            top = 0.px
+                            width = 100.pct
+
+                            tr {
+                                width = 100.pct
+                            }
+                        }
+
+                        ".${StyleConst.Main.Table.CLASS_TXT_LEFT}" {
+                            textAlign = important(TextAlign.left)
+                        }
+                        ".${StyleConst.Main.Table.CLASS_TXT_CENTER}" {
+                            textAlign = important(TextAlign.center)
+                        }
+                        ".${StyleConst.Main.Table.CLASS_TXT_RIGHT}" {
+                            textAlign = important(TextAlign.right)
+                        }
+                        ".${StyleConst.Main.Table.CLASS_MONOSPACE}" {
+                            StyleConst.codeFont
+                        }
+
+                        ".${StyleConst.Main.Table.CLASS_CONTROL}" {
+                            display = Display.flex
+                            flexDirection = FlexDirection.row
+                            flexWrap = FlexWrap.nowrap
+                            justifyContent = JustifyContent.end
+                            padding = StyleConst.paddingSize
+                            alignItems = AlignItems.center
+                            gap = StyleConst.paddingSize
+
+                            "input[type=range]" {
+                                display = Display.inlineBlock
+                                cursor = Cursor.pointer
+                                border = Border(0.px, LineStyle.hidden)
+                                height = StyleConst.iconSize + 2 * StyleConst.iconPadding
+                                width = StyleConst.Main.Table.RangeWidth
+                                float = Float.left
+                                minHeight = 1.em
+                                borderRadius = StyleConst.iconBorderRadius
+                                verticalAlign = VerticalAlign.middle
+                                accentColor = StyleConst.Main.Table.BgColor
+                            }
+
+                            select {
+                                height = StyleConst.Main.Table.IconSize + 2 * StyleConst.Main.Table.IconPadding
+                                fontSize = important(StyleConst.Main.Table.FontSizeSelect)
+                                fontWeight = FontWeight.lighter
+                            }
+
+                            button {
+                                display = Display.inlineBlock
+                                cursor = Cursor.pointer
+                                padding = StyleConst.Main.Table.IconPadding
+                                float = Float.left
+                                color = StyleConst.Main.Table.FgColor
+                                backgroundColor = StyleConst.Main.Table.BgColor
+                                borderRadius = StyleConst.iconBorderRadius
+                                transition = Transition(TransitionProperty.all, 0.2.s, TransitionTimingFunction.ease)
+
+                                a {
+                                    padding = StyleConst.paddingSize
+                                }
+
+                                img {
+                                    display = Display.block
+                                    height = StyleConst.Main.Table.IconSize
+                                    width = StyleConst.Main.Table.IconSize
+                                    filter = invert(100.pct)
+                                }
+                            }
+                        }
+                    }
+
+                    ".${StyleConst.Main.Table.CLASS_BORDERED}" {
+                        border = Border(1.px, LineStyle.solid, StyleConst.Main.Table.BorderColor)
+                        td {
+                            border = Border(1.px, LineStyle.solid, StyleConst.Main.Table.BorderColor)
+                            paddingLeft = 0.2.em
+                            paddingRight = 0.2.em
+                        }
+                        th {
+                            border = Border(1.px, LineStyle.solid, StyleConst.Main.Table.BorderColor)
+                            paddingLeft = 0.2.em
+                            paddingRight = 0.2.em
+                        }
+                        "tr:not(:last-child)" {
+                            borderBottom = Border(1.px, LineStyle.solid, StyleConst.Main.Table.BorderColor)
+                        }
+                    }
+
+                    ".${StyleConst.Main.Table.CLASS_STRIPED}" {
+                        td {
+                            paddingLeft = 0.2.em
+                            paddingRight = 0.2.em
+                        }
+                        th {
+                            paddingLeft = 0.2.em
+                            paddingRight = 0.2.em
+                        }
+                        "tr:not(:last-child)" {
+                            borderBottom = Border(1.px, LineStyle.solid, StyleConst.Main.Table.BorderColor)
+                        }
+                        tbody {
+                            "tr:nth-of-type(2n)" {
+                                backgroundColor = StyleConst.Main.Table.StripeColor
+                            }
+                        }
+                    }
+
+                    ".${StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL}" {
+                        overflowX = important(Overflow.scroll)
                     }
 
                 }

@@ -75,16 +75,21 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 input {
                     color = StyleConst.Main.FgColor.get()
                 }
-
-                "dcf-tabs" {
-                    border = Border(0.px, LineStyle.hidden)
-                }
             }
         }
 
         div {
+            css(ClassName("dcf-tabs")) {
+                border = Border(0.px, LineStyle.hidden)
+                position = Position.relative
+                display = Display.block
+                alignContent = AlignContent.center
+                backgroundColor = StyleConst.Main.Processor.BgColor.get()
 
-            className = ClassName("dcf-tabs")
+                button {
+                    paddingTop = 0.5.rem
+                }
+            }
 
 
             button {
@@ -94,6 +99,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     paddingLeft = 1.rem
                     paddingRight = 1.rem
                     border = Border(0.px, LineStyle.hidden)
+                    paddingTop = 0.5.rem
                 }
 
                 +"Register"
@@ -101,11 +107,24 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
             for (regFile in regFileList) {
                 a {
-                    if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                        css {
+
+                    css {
+                        display = Display.inlineBlock
+                        cursor = Cursor.pointer
+                        borderTopLeftRadius = StyleConst.borderRadius
+                        borderTopRightRadius = StyleConst.borderRadius
+                        marginRight = 0.5.rem
+                        transition = Transition(TransitionProperty.all, 0.05.s, TransitionTimingFunction.ease)
+
+                        backgroundColor = StyleConst.Main.AccColorSec
+                        boxShadow = BoxShadow(0.px, 0.1.rem, 0.1.rem, 0.px, StyleConst.Main.AccColorSec)
+                        padding = Padding(0.1.rem, 0.5.rem)
+                        color = StyleConst.Main.Table.FgColor
+
+                        if (currRegFileIndex == regFileList.indexOf(regFile)) {
                             backgroundColor = important(StyleConst.Main.tableRegBgColor.get())
                             boxShadow = important(BoxShadow(0.px, 0.px, 0.px, Color("#FFF")))
-                            padding = important(Padding(0.2.rem,0.5.rem))
+                            padding = important(Padding(0.2.rem, 0.5.rem))
                             color = important(StyleConst.Main.FgColor.get())
                         }
                     }
@@ -129,6 +148,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     paddingRight = 1.rem
                     float = Float.right
                     border = Border(0.px, LineStyle.hidden)
+                    paddingTop = 0.5.rem
                 }
 
                 +"PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
@@ -141,44 +161,44 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
 
         div {
-            className = ClassName("dcf-overflow-x-auto")
+            className = ClassName(StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL)
             tabIndex = 0
 
             table {
-                className = ClassName("dcf-table dcf-w-100%")
-
                 val registerArray = registerContainer.getRegisterFileList()[currRegFileIndex]
 
                 thead {
                     tr {
                         th {
-                            className = ClassName("dcf-txt-center")
+                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             colSpan = 2
                             +"Registers"
                         }
 
                         th {
-                            className = ClassName("dcf-txt-center dcf-button")
+                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
 
-                            span {
-                                +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
-                            }
+                            button {
+                                span {
+                                    +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
+                                }
 
-                            onClick = { event ->
-                                setTimeout({
-                                    if (currRegTypeIndex < ArchConst.REGISTER_VALUETYPES.size - 1) {
-                                        setCurrRegTypeIndex(currRegTypeIndex + 1)
-                                    } else {
-                                        setCurrRegTypeIndex(0)
-                                    }
-                                }, 0)
+                                onClick = { event ->
+                                    setTimeout({
+                                        if (currRegTypeIndex < ArchConst.REGISTER_VALUETYPES.size - 1) {
+                                            setCurrRegTypeIndex(currRegTypeIndex + 1)
+                                        } else {
+                                            setCurrRegTypeIndex(0)
+                                        }
+                                    }, 0)
+                                }
                             }
 
                         }
                         th {
-                            className = ClassName("dcf-txt-center")
+                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             +"Description"
                         }
@@ -197,19 +217,18 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 tr {
 
                                     td {
-                                        className = ClassName("dcf-txt-center")
+                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                                         +reg.names.joinToString("\\") { it }
                                     }
-                                    td{
-                                        className  = ClassName("dcf-txt-center")
+                                    td {
+                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                                         +reg.aliases.joinToString("\\") { it }
                                     }
                                     td {
-                                        className = ClassName("value-col dcf-txt-center")
+                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
 
                                         input {
                                             id = "reg0${regID}"
-                                            className = ClassName(StyleConst.CLASS_TABLE_INPUT)
                                             readOnly = false
                                             setTimeout({
                                                 when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
@@ -314,7 +333,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         }
                                     }
                                     td {
-                                        className = ClassName("dcf-txt-left")
+                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_LEFT)
                                         +reg.description
                                     }
                                 }
@@ -361,23 +380,23 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             reg.mutVal.get().toUDec().getRawUDecStr()
                         }
                     }
-                   /* regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                        HEX -> {
-                            "${reg.mutVal.size.byteCount * 2}ch;"
-                        }
+                    /* regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                         HEX -> {
+                             "${reg.mutVal.size.byteCount * 2}ch;"
+                         }
 
-                        BIN -> {
-                            "${reg.mutVal.size.bitWidth}ch;"
-                        }
+                         BIN -> {
+                             "${reg.mutVal.size.bitWidth}ch;"
+                         }
 
-                        DEC -> {
-                            "auto;"
-                        }
+                         DEC -> {
+                             "auto;"
+                         }
 
-                        UDEC -> {
-                            "auto;"
-                        }
-                    }*/
+                         UDEC -> {
+                             "auto;"
+                         }
+                     }*/
 
                 } catch (e: NumberFormatException) {
                     console.warn("RegisterView useEffect(currRegTypeIndex): NumberFormatException")

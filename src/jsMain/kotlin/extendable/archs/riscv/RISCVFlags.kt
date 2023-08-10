@@ -1,6 +1,5 @@
 package extendable.archs.riscv
 
-import StyleConst
 import StyleConst.Main.Editor.HL
 
 object RISCVFlags {

@@ -417,7 +417,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                     if (DebugTools.RISCV_showAsmInfo) {
                         console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
                     }
-                    memory.save(address, value, StyleConst.CLASS_TABLE_MARK_DATA)
+                    memory.save(address, value, StyleConst.Main.Table.Mark.DATA)
                 }
             }
 
@@ -449,7 +449,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                 }
                 address = MutVal.Value.Hex((binaryID * 4).toString(16), MutVal.Size.Bit32())
                 transcriptEntrys.add(RVDisassembledRow(address))
-                memory.save(address, binary, StyleConst.CLASS_TABLE_MARK_PROGRAM)
+                memory.save(address, binary, StyleConst.Main.Table.Mark.PROGRAM)
             }
             transcriptEntrys.add(RVDisassembledRow((address + MutVal.Value.Hex("4")).toHex()))
             architecture.getRegisterContainer().pc.value.set(pcStartAddress)

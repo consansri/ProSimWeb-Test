@@ -99,13 +99,12 @@ val TranscriptView = FC<TranscriptProps> { props ->
             }
 
             table {
-                className = ClassName("dcf-table dcf-w-100%")
 
                 thead {
                     tr {
                         for (header in transcript.getHeaders(currType)) {
                             th {
-                                className = ClassName("dcf-txt-center")
+                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                                 scope = "col"
                                 +header
                             }
@@ -117,16 +116,18 @@ val TranscriptView = FC<TranscriptProps> { props ->
                         tr {
                             for (address in row.getAddresses()) {
                                 if (address == currExeAddr) {
-                                    className = ClassName("dcf-mark-green")
+                                    css {
+                                        backgroundColor = important(StyleConst.Main.Table.BgPC)
+                                    }
                                 }
                             }
 
                             for (entry in row.getContent()) {
                                 td {
                                     className = when (entry.orientation) {
-                                        Transcript.Row.Orientation.LEFT -> ClassName("dcf-txt-left")
-                                        Transcript.Row.Orientation.CENTER -> ClassName("dcf-txt-center")
-                                        Transcript.Row.Orientation.RIGHT -> ClassName("dcf-txt-right")
+                                        Transcript.Row.Orientation.LEFT -> ClassName(StyleConst.Main.Table.CLASS_TXT_LEFT)
+                                        Transcript.Row.Orientation.CENTER -> ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                        Transcript.Row.Orientation.RIGHT -> ClassName(StyleConst.Main.Table.CLASS_TXT_RIGHT)
                                     }
                                     +entry.content
                                 }

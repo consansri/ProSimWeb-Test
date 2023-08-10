@@ -17,7 +17,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun getEndianess(): Endianess = endianess
 
-    fun save(address: MutVal.Value, mutVal: MutVal, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
+    fun save(address: MutVal.Value, mutVal: MutVal, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE) {
         // Little Endian
         var wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
@@ -35,7 +35,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
             if (instance != null) {
                 instance.mutVal.setHex(word.toString())
-                if (mark != StyleConst.CLASS_TABLE_MARK_ELSE) {
+                if (mark != StyleConst.Main.Table.Mark.ELSE) {
                     instance.mark = mark
                 }
             } else {
@@ -46,7 +46,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         }
     }
 
-    fun save(address: MutVal.Value, value: MutVal.Value, mark: String = StyleConst.CLASS_TABLE_MARK_ELSE) {
+    fun save(address: MutVal.Value, value: MutVal.Value, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE) {
         // Little Endian
         var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
@@ -63,7 +63,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
             val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {
                 instance.mutVal.setHex(word.toString())
-                if (mark != StyleConst.CLASS_TABLE_MARK_ELSE) {
+                if (mark != StyleConst.Main.Table.Mark.ELSE) {
                     instance.mark = mark
                 }
             } else {
@@ -153,8 +153,8 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         return wordSize
     }
 
-    open class MemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: String = "") {
-        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : MemInstance(address, MutVal(value), "dcf-mark-editable")
+    open class MemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE) {
+        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : MemInstance(address, MutVal(value), StyleConst.Main.Table.Mark.EDITABLE)
 
     }
 
