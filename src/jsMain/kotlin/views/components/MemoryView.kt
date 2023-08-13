@@ -166,7 +166,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                 select {
                     background = StyleConst.Main.Processor.BtnBgColor.get()
-                    color = StyleConst.Main.Processor.FgColor.get()
+                    color = StyleConst.Main.Processor.BtnFgColor.get()
                     height = StyleConst.iconSize + 2 * StyleConst.iconPadding
                     fontSize = important(StyleConst.Main.Table.FontSizeSelect)
                     fontWeight = FontWeight.lighter
@@ -177,7 +177,7 @@ val MemoryView = FC<MemViewProps> { props ->
                     cursor = Cursor.pointer
                     padding = StyleConst.Main.Table.IconPadding
                     float = Float.left
-                    color = StyleConst.Main.Processor.FgColor.get()
+                    color = StyleConst.Main.Processor.BtnFgColor.get()
                     backgroundColor = StyleConst.Main.Processor.BtnBgColor.get()
                     borderRadius = StyleConst.iconBorderRadius
                     transition = Transition(TransitionProperty.all, 0.2.s, TransitionTimingFunction.ease)

@@ -38,8 +38,7 @@ val AppStyle = FC<Props> {
             body {
                 // LAYOUT
                 header {
-                    backgroundColor = StyleConst.Header.BgColor
-                    color = StyleConst.Header.FgColor
+
 
                     display = Display.flex
                     alignItems = AlignItems.center
@@ -52,7 +51,6 @@ val AppStyle = FC<Props> {
                         margin = Margin(0.rem, 2.rem)
                         textDecoration = TextDecoration.solid
                         transition = Transition(TransitionProperty.all, 0.1.s, TransitionTimingFunction.ease)
-                        color = StyleConst.Header.FgColor
                         cursor = Cursor.pointer
                         hover {
                             filter = brightness(0.9)
@@ -78,10 +76,6 @@ val AppStyle = FC<Props> {
                         }
                     }
 
-                    nav {
-                        backgroundColor = StyleConst.Header.BgColor
-                    }
-
                     ".${StyleConst.Header.CLASS_DROPDOWN}" {
                         position = Position.fixed
                         top = 0.rem
@@ -95,7 +89,7 @@ val AppStyle = FC<Props> {
                         gap = 1.5.rem
                         transitionDuration = 1.s
                         zIndex = StyleConst.Header.IndexNavDropDown
-                        backgroundColor = StyleConst.Header.BgColorSec
+                        backgroundColor = StyleConst.Header.BgColorSec.get()
                     }
 
                     ".${StyleConst.Header.CLASS_OVERLAY}" {
@@ -110,7 +104,7 @@ val AppStyle = FC<Props> {
                         gap = 2.rem
                         alignItems = AlignItems.center
 
-                        backgroundColor = StyleConst.Header.BgColorSec
+                        backgroundColor = StyleConst.Header.BgColorSec.get()
                     }
 
                     ".${StyleConst.Header.CLASS_OVERLAY_LABELEDINPUT}" {

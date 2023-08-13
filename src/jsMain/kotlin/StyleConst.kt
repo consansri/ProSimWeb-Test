@@ -18,10 +18,9 @@ object StyleConst {
 
     object Header {
         // COLORS
-        val BgColor = Color("#29335C")
-        val BgColorSec = Color("#5767aa")
-        val BgColorThird = Color("#DB2B39")
-        val FgColor = Color("#EEE")
+        val BgColor = ModeColor("#1B3C60","#272732")
+        val BgColorSec = ModeColor("#5767aa")
+        val FgColor = ModeColor("#EEE")
 
         val IndexNavMobile = integer(20)
         val IndexNavDropDown = integer(21)
@@ -33,12 +32,8 @@ object StyleConst {
     }
 
     object Main {
-        val appControlBgColor = Color("#717171")
-        val AccColor = Color("#29335C")
-        val AccColorSec = Color("#EA5455")
-        val AccColorThird = Color("#6D8AF5")
         val DeleteColor = Color("#EE2222FF")
-        val BgColor = ModeColor("#F1F1E6", "#515151")
+        val BgColor = ModeColor("#F1F1E6", "#575767")
         val FgColor = ModeColor("#454545", "#D5D5D5")
 
         val lPercentage = 40
@@ -57,9 +52,8 @@ object StyleConst {
             val activeLineColor = ModeColor("#00FF00")
 
             object Controls {
-                val BgColor = ModeColor("#29335C", "#6D8AF5")
+                val BgColor = ModeColor("#1B3C60", "#272737")
                 val FgColor = ModeColor("#EEE")
-                val BgHoverColor = Color("#7983Ac")
 
                 val iconSize = 1.8.rem
                 val iconPadding = 0.1.rem
@@ -143,18 +137,19 @@ object StyleConst {
         }
 
         object Processor {
-            val BgColor = ModeColor("#2F4858", "#222222")
+            val BgColor = ModeColor("#1B3C60", "#272732")
             val FgColor = ModeColor("#EEEEEE", "#CCCCCC")
             val iconFilter = important(invert(100.pct))
-            val TableBgColor = ModeColor("#EEEEEE", "#313131")
+            val TableBgColor = ModeColor("#EEEEEE", "#313141")
             val TableFgColor = ModeColor("#182147", "#AAAAAA")
             val TabBgColor = ModeColor("#FFFFFF31", "#00000031")
             val TabFgColor = ModeColor("#EEEEEE", "#777777")
 
             val BgColorTransparent = ModeColor("#77777731","#11111151")
 
-            val BtnFgFilter = ModeFilter(invert(100.pct), invert(60.pct))
-            val BtnBgColor = ModeColor("#29335C", "#111")
+            val BtnFgFilter = ModeFilter(invert(10.pct), invert(90.pct))
+            val BtnBgColor = ModeColor("#EEEEEE", "#111")
+            val BtnFgColor = ModeColor("#272737", "#EEEEEE")
 
             val MaxHeightMem = 40.vh
             val MaxHeightReg = 40.vh
@@ -186,7 +181,7 @@ object StyleConst {
         }
 
         object AppControls {
-            val BgColor = ModeColor("#29335C", "#6D8AF5")
+            val BgColor = ModeColor("#1B3C60", "#272732")
 
             val iconSize = 1.8.rem
             val iconPadding = 0.1.rem
@@ -352,12 +347,6 @@ object StyleConst {
     val CLASS_PROC_FC_FLAG = "proc-fc-flag"
     val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
     val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
-
-    // PROCESSOR.MEMORY
-    val CLASS_TABLE_MARK_PROGRAM = "dcf-mark-program"
-    val CLASS_TABLE_MARK_DATA = "dcf-mark-data"
-    val CLASS_TABLE_MARK_ELSE = "dcf-mark-else"
-    val CLASS_TABLE_MARK_EDITABLE = "dcf-mark-editable"
 
     // INFO
 

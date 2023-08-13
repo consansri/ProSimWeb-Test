@@ -91,6 +91,18 @@ val Menu = FC<MenuProps>() { props ->
     }
 
     header {
+        css {
+            backgroundColor = StyleConst.Header.BgColor.get()
+            color = StyleConst.Header.FgColor.get()
+
+            a {
+                color = StyleConst.Header.FgColor.get()
+            }
+            nav {
+                backgroundColor = StyleConst.Header.BgColor.get()
+            }
+        }
+
         h3 {
             +"ProSimWeb"
         }
