@@ -106,14 +106,14 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 height = 1.8.rem
                 marginLeft = 0.4.rem
                 borderRadius = 5.px
-                backgroundColor = Color("#11dddd")
-                filter = invert(100)
+                backgroundColor = Color("#515151")
+                filter = StyleConst.Main.DeleteFilter
                 transitionProperty = TransitionProperty.all
                 transitionDuration = 0.2.s
                 transitionTimingFunction = TransitionTimingFunction.easeInOut
 
                 hover {
-                    backgroundColor = Color("#00AAAA")
+                    backgroundColor = Color("#717171")
                 }
             }
 

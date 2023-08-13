@@ -93,15 +93,18 @@ val App = FC<Props> { props ->
                 id = "rcontainer"
                 css {
                     flex = StyleConst.Main.rPercentage.pct
+                    display = Display.flex
+                    flexDirection = FlexDirection.column
+                    gap = StyleConst.paddingSize
+                    padding = StyleConst.paddingSize
                     position = Position.relative
                     backgroundColor = StyleConst.Main.Processor.BgColor.get()
-                    boxShadow = BoxShadow(0.px, 3.px, 6.px, rgb(0, 0, 0, 0.23))
+                    color = StyleConst.Main.Processor.FgColor.get()
+                    boxShadow = StyleConst.Main.elementShadow
                     borderRadius = StyleConst.borderRadius
-                    padding = StyleConst.paddingSize
 
                     StyleConst.layoutSwitchMediaQuery {
                         flex = 100.pct
-                        display = Display.block
                     }
                 }
                 ProcessorView {
@@ -126,7 +129,7 @@ val App = FC<Props> { props ->
                     }
 
                     a {
-                        backgroundColor = StyleConst.Main.AccColor
+                        backgroundColor = StyleConst.Main.AppControls.BgColor.get()
                         padding = StyleConst.Main.AppControls.iconPadding
                         borderRadius = StyleConst.borderRadius
                         boxShadow = BoxShadow(0.px, 0.px, 0.5.rem, Color("#000000A0"))

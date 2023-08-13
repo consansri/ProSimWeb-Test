@@ -6,7 +6,6 @@ import web.html.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.html
 import tools.DebugTools
 import views.components.IConsoleView
 import web.cssom.*
@@ -77,7 +76,13 @@ val InfoView = FC<InfoViewProps> { props ->
                 flexDirection = FlexDirection.column
                 justifyContent = JustifyContent.start
                 alignItems = AlignItems.center
+                flexWrap = FlexWrap.wrap
                 padding = StyleConst.paddingSize
+                overflowX = Overflow.scroll
+
+                media(StyleConst.responsiveQuery, {
+                    alignItems = AlignItems.start
+                })
             }
             div {
                 className = ClassName(InfoView.CLASS_MD_STYLE)

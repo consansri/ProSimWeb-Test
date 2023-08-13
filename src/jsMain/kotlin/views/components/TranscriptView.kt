@@ -101,7 +101,11 @@ val TranscriptView = FC<TranscriptProps> { props ->
             table {
 
                 thead {
+
                     tr {
+                        css {
+                            backgroundColor = important(StyleConst.Main.Editor.BgColor.get())
+                        }
                         for (header in transcript.getHeaders(currType)) {
                             th {
                                 className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)

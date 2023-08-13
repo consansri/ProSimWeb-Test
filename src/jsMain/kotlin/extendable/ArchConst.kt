@@ -19,7 +19,6 @@ object ArchConst {
         val alphaNum = HL.violet.getFlag()
         val instruction = HL.blue.getFlag()
         val symbol = HL.cyan.getFlag()
-
         val bin = HL.blue.getFlag()
         val hex = HL.blue.getFlag()
         val dec = HL.blue.getFlag()

@@ -55,14 +55,14 @@ main *::-webkit-scrollbar-track {
 
 /* Handle */
 main *::-webkit-scrollbar-thumb {
-    background: #00000033;
+    background: #00000055;
     border-radius: 3px;
     cursor: pointer !important;
 }
 
 /* Handle on hover */
 main *::-webkit-scrollbar-thumb:hover {
-    background: #00000055;
+    background: #00000077;
 }
 
 .logo {
@@ -96,6 +96,7 @@ input[type="file"]::file-selector-button:active {
 
 input[type=number] {
     padding: var(--padding-size);
+    width: 16ch;
     text-align: center;
     border-radius: var(--border-radius);
 }

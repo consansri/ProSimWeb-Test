@@ -246,11 +246,40 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         className = ClassName(StyleConst.Main.Editor.CLASS)
 
         div {
-            className = ClassName(StyleConst.Main.Editor.Controls.CLASS)
+            css {
+                display = Display.flex
+                flexDirection = FlexDirection.column
+                justifyContent = JustifyContent.start
+                alignItems = AlignItems.start
+                gap = StyleConst.paddingSize
+                minWidth = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+
+                a {
+                    width = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    boxShadow = BoxShadow(0.px, 3.px, 8.px, rgb(0, 0, 0, 0.24))
+                    padding = StyleConst.Main.Editor.Controls.iconPadding
+                    borderRadius = StyleConst.Main.Editor.Controls.borderRadius
+                    background = StyleConst.Main.Editor.Controls.BgColor.get()
+                    color = StyleConst.Main.Editor.Controls.FgColor.get()
+                    transition = Transition(TransitionProperty.all, 0.1.s, TransitionTimingFunction.ease)
+                }
+                img {
+                    width = StyleConst.Main.Editor.Controls.iconSize
+                    height = StyleConst.Main.Editor.Controls.iconSize
+                    filter = StyleConst.Main.Editor.Controls.iconFilter
+                }
+            }
 
             a {
+                css {
+                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    cursor = Cursor.pointer
+                    if (transcriptView) {
+                        filter = important(StyleConst.iconActiveFilter)
+                    }
+                }
+
                 id = "switch"
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
                 ref = btnSwitchRef
                 title = "Transcript Switch"
                 ReactHTML.img {
@@ -265,7 +294,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
+                css {
+                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    cursor = Cursor.pointer
+                }
 
                 onClick = {
                     checkCode(true)
@@ -312,8 +344,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
+                css {
+                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    cursor = Cursor.pointer
+                }
                 id = "undo"
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
                 ref = btnUndoRef
                 title = "Undo"
 
@@ -328,8 +363,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
+                css {
+                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    cursor = Cursor.pointer
+                }
                 id = "redo"
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
                 ref = btnRedoRef
                 title = "Redo"
 
@@ -344,8 +382,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
+                css {
+                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    cursor = Cursor.pointer
+                }
                 id = "info"
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL)
 
                 title = """
                     Code Editor Info
@@ -377,12 +418,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
 
             a {
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_CONTROL + " " + StyleConst.Main.CLASS_DELETE)
+                css {
+                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    background = StyleConst.Main.DeleteColor
+                    cursor = Cursor.pointer
+                }
                 ref = btnClearRef
                 title = "Clear"
 
                 img {
-                    src = StyleConst.Icons.delete
+                    src = StyleConst.Icons.deleteBlack
                 }
 
                 onClick = {
@@ -392,7 +437,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 ref = infoPanelRef
-                className = ClassName(StyleConst.Main.Editor.Controls.CLASS_INFOPANEL)
+                css {
+                    cursor = Cursor.pointer
+                    position = Position.absolute
+                    bottom = 0.rem
+                    display = Display.block
+                    writingMode = WritingMode.verticalRl
+                }
 
                 title = "{$infoPanelText}"
 
@@ -425,7 +476,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 caretColor = important(StyleConst.Main.Editor.FgColor.get())
                 borderRadius = 2.px
                 padding = 1.pc
-                boxShadow = BoxShadow(0.px, 3.px, 6.px, Color("#000000F7"))
+                boxShadow = StyleConst.Main.elementShadow
             }
 
             ref = editorContainerRef
@@ -510,6 +561,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
 
                                 img {
+                                    css {
+                                        filter = StyleConst.Main.DeleteFilter
+                                    }
+
                                     src = StyleConst.Icons.delete
 
                                     onClick = {
@@ -829,13 +884,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         textareaRef.current?.let {
             it.value = appLogic.getArch().getFileHandler().getCurrContent()
             edit(it.value, false)
-        }
-        btnSwitchRef.current?.let {
-            if (transcriptView) {
-                it.classList.add(StyleConst.Main.Editor.Controls.CLASS_ACTIVE)
-            } else {
-                it.classList.remove(StyleConst.Main.Editor.Controls.CLASS_ACTIVE)
-            }
         }
         updateTAResize()
         updateClearButton()

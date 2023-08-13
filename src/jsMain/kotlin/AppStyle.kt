@@ -18,7 +18,6 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.caption
-import react.dom.html.ReactHTML.center
 import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.select
@@ -161,55 +160,6 @@ val AppStyle = FC<Props> {
                         gap = StyleConst.paddingSize
                     }
 
-                    ".${StyleConst.Main.Editor.Controls.CLASS}" {
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        justifyContent = JustifyContent.start
-                        alignItems = AlignItems.start
-                        gap = StyleConst.paddingSize
-                        minWidth = StyleConst.Main.Editor.Controls.controlSize
-
-                        img {
-                            width = StyleConst.Main.Editor.Controls.iconSize
-                            height = StyleConst.Main.Editor.Controls.iconSize
-                            filter = StyleConst.iconFilter
-                        }
-
-                        a {
-                            width = StyleConst.Main.Editor.Controls.controlSize
-                            boxShadow = BoxShadow(0.px, 3.px, 8.px, rgb(0, 0, 0, 0.24))
-                            padding = StyleConst.Main.Editor.Controls.iconPadding
-                            borderRadius = StyleConst.Main.Editor.Controls.borderRadius
-                            background = StyleConst.Main.Editor.Controls.BgColor
-                            transition = Transition(TransitionProperty.all, 0.1.s, TransitionTimingFunction.ease)
-                        }
-
-                        ".${StyleConst.Main.Editor.Controls.CLASS_CONTROL}" {
-                            height = StyleConst.Main.Editor.Controls.controlSize
-                            cursor = Cursor.pointer
-                        }
-
-                        ".${StyleConst.Main.Editor.Controls.CLASS_ACTIVE}" {
-                            img {
-                                filter = important(StyleConst.iconActiveFilter)
-                            }
-                        }
-
-                        ".${StyleConst.Main.Editor.Controls.CLASS_INFOPANEL}" {
-                            cursor = Cursor.pointer
-                            position = Position.absolute
-                            bottom = 0.rem
-                            writingMode = WritingMode.verticalLr
-                            display = Display.block
-                            color = StyleConst.Main.Editor.Controls.BgHoverColor
-                            backgroundColor = StyleConst.Main.Editor.Controls.BgColor
-
-                            img {
-                                position = Position.relative
-                            }
-                        }
-                    }
-
                     ".${StyleConst.Main.Editor.TextField.CLASS}" {
 
                         StyleConst.Main.Editor.Font
@@ -306,11 +256,92 @@ val AppStyle = FC<Props> {
                         justifyContent = JustifyContent.center
                         alignItems = AlignItems.start
                         height = 100.pct
-                        transition = Transition(TransitionProperty.all, 0.1.s, TransitionTimingFunction.easeInOut)
+                    }
+
+                    ".${StyleConst.Main.Processor.CLASS_EXE}" {
+                        width = 100.pct
+                        display = Display.flex
+                        flexDirection = FlexDirection.column
+                        gap = StyleConst.paddingSize
+                        background = StyleConst.transparent
+
+                        div {
+                            display = Display.flex
+                            position = Position.relative
+                            flex = 100.pct
+                            flexDirection = FlexDirection.row
+                            justifyContent = JustifyContent.spaceBetween
+                            alignItems = AlignItems.center
+                            gap = StyleConst.paddingSize
+
+                            a {
+                                flexGrow = number(1.0)
+                                textAlign = TextAlign.center
+                            }
+
+                            p {
+                                cursor = Cursor.pointer
+                                display = Display.inlineBlock
+                                position = Position.relative
+                                flexGrow = number(1.0)
+                                textAlign = TextAlign.center
+                            }
+
+                            button {
+                                cursor = Cursor.pointer
+                                flexGrow = number(1.0)
+                                borderRadius = StyleConst.borderRadius
+                                padding = StyleConst.paddingSize
+                                height = 2 * StyleConst.paddingSize + StyleConst.iconSize
+                            }
+
+                            span {
+                                position = Position.relative
+                                display = Display.flex
+                                flexGrow = number(0.5)
+                                flexDirection = FlexDirection.row
+                                gap = StyleConst.paddingSize
+                                cursor = Cursor.pointer
+                                borderRadius = StyleConst.borderRadius
+                                padding = StyleConst.paddingSize
+                                height = 2 * StyleConst.paddingSize + StyleConst.iconSize
+                            }
+
+                            input {
+                                display = Display.block
+                                maxWidth = 10.ch
+                            }
+
+                            img {
+                                filter = StyleConst.Main.Processor.iconFilter
+                                width = StyleConst.iconSize
+                                height = StyleConst.iconSize
+                            }
+
+
+                        }
+                    }
+
+                    ".${StyleConst.Main.Processor.CLASS_REG}" {
+                        width = 100.pct
+                        display = Display.block
+                        position = Position.relative
+                        borderRadius = StyleConst.borderRadius
+                        background = StyleConst.transparent
+                    }
+
+                    ".${StyleConst.Main.Processor.CLASS_MEM}" {
+                        width = 100.pct
+                        display = Display.block
+                        position = Position.relative
+                        borderRadius = StyleConst.borderRadius
+                        background = StyleConst.transparent
+
                     }
 
                     ".${StyleConst.Main.InfoView.CLASS_MD_STYLE}" {
                         whiteSpace = WhiteSpace.pre
+                        overflowX = Overflow.scroll
 
                         h1 {
                             fontSize = StyleConst.Main.InfoView.fontSizeH1
@@ -359,37 +390,35 @@ val AppStyle = FC<Props> {
                                 paddingRight = StyleConst.paddingSize
                             }
                         }
+
+                        StyleConst.layoutSwitchMediaQuery {
+
+                        }
                     }
 
                     table {
                         width = important(100.pct)
                         borderCollapse = BorderCollapse.collapse
-                        transition = 0.3.s
+                        borderRadius = StyleConst.borderRadius
                         tabSize = 6.ch
                         whiteSpace = WhiteSpace.pre
                         cursor = Cursor.text
 
                         caption {
                             position = Position.relative
-                            fontSize = StyleConst.Main.Table.FontSizeCaption
-                            fontWeight = FontWeight.bold
-                            padding = 0.56.em
-
-                            a {
-                                fontSize = StyleConst.Main.Table.FontSizeCaption
-                                fontWeight = FontWeight.bold
-                                textAlign = TextAlign.center
-                            }
+                            paddingBottom = StyleConst.paddingSize
+                            textAlign = TextAlign.center
                         }
 
                         thead {
                             fontSize = StyleConst.Main.Table.FontSizeHead
 
                             th {
+                                position = Position.sticky
+                                top = 0.rem
                                 textAlign = TextAlign.left
                                 /*paddingTop = 1.33.em*/
-                                paddingRight = 0.2.em
-                                paddingBottom = 0.25.em
+                                padding = StyleConst.paddingSize
                                 verticalAlign = VerticalAlign.bottom
                             }
 
@@ -400,12 +429,9 @@ val AppStyle = FC<Props> {
 
                             button {
                                 cursor = Cursor.pointer
-                                backgroundColor = StyleConst.Main.Table.BgColor
-                                boxShadow = BoxShadow(BoxShadowInset.inset, 0.px, 2.rem, 50.px, -30.px, StyleConst.Main.AccColor)
-                                color = StyleConst.Main.Table.FgColor
+
                                 padding = Padding(0.2.rem, 0.5.rem)
-                                borderBottomLeftRadius = StyleConst.borderRadius
-                                borderBottomRightRadius = StyleConst.borderRadius
+                                borderRadius = StyleConst.borderRadius
 
                                 span {
                                     margin = Margin(0.rem, 4.ch)
@@ -453,14 +479,13 @@ val AppStyle = FC<Props> {
                         }
 
                         tfoot {
-                            position = Position.absolute
                             fontSize = StyleConst.Main.Table.FontSizeBody
-                            height = 4.rem
-                            top = 0.px
                             width = 100.pct
 
                             tr {
                                 width = 100.pct
+                                display = Display.block
+
                             }
                         }
 
@@ -475,57 +500,6 @@ val AppStyle = FC<Props> {
                         }
                         ".${StyleConst.Main.Table.CLASS_MONOSPACE}" {
                             StyleConst.codeFont
-                        }
-
-                        ".${StyleConst.Main.Table.CLASS_CONTROL}" {
-                            display = Display.flex
-                            flexDirection = FlexDirection.row
-                            flexWrap = FlexWrap.nowrap
-                            justifyContent = JustifyContent.end
-                            padding = StyleConst.paddingSize
-                            alignItems = AlignItems.center
-                            gap = StyleConst.paddingSize
-
-                            "input[type=range]" {
-                                display = Display.inlineBlock
-                                cursor = Cursor.pointer
-                                border = Border(0.px, LineStyle.hidden)
-                                height = StyleConst.iconSize + 2 * StyleConst.iconPadding
-                                width = StyleConst.Main.Table.RangeWidth
-                                float = Float.left
-                                minHeight = 1.em
-                                borderRadius = StyleConst.iconBorderRadius
-                                verticalAlign = VerticalAlign.middle
-                                accentColor = StyleConst.Main.Table.BgColor
-                            }
-
-                            select {
-                                height = StyleConst.Main.Table.IconSize + 2 * StyleConst.Main.Table.IconPadding
-                                fontSize = important(StyleConst.Main.Table.FontSizeSelect)
-                                fontWeight = FontWeight.lighter
-                            }
-
-                            button {
-                                display = Display.inlineBlock
-                                cursor = Cursor.pointer
-                                padding = StyleConst.Main.Table.IconPadding
-                                float = Float.left
-                                color = StyleConst.Main.Table.FgColor
-                                backgroundColor = StyleConst.Main.Table.BgColor
-                                borderRadius = StyleConst.iconBorderRadius
-                                transition = Transition(TransitionProperty.all, 0.2.s, TransitionTimingFunction.ease)
-
-                                a {
-                                    padding = StyleConst.paddingSize
-                                }
-
-                                img {
-                                    display = Display.block
-                                    height = StyleConst.Main.Table.IconSize
-                                    width = StyleConst.Main.Table.IconSize
-                                    filter = invert(100.pct)
-                                }
-                            }
                         }
                     }
 
@@ -565,8 +539,120 @@ val AppStyle = FC<Props> {
                         }
                     }
 
-                    ".${StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL}" {
-                        overflowX = important(Overflow.scroll)
+                    ".${StyleConst.Main.Window.CLASS}" {
+
+                        display = Display.flex
+                        flexDirection = FlexDirection.column
+                        position = Position.fixed
+                        zIndex = StyleConst.Main.Window.ZIndex
+                        top = 0.rem
+                        left = 0.rem
+                        minWidth = 30.rem
+                        height = important(100.vh)
+                        boxShadow = BoxShadow(0.px, 5.px, 15.px, rgb(0, 0, 0, 0.35))
+
+                        color = StyleConst.Main.Window.FgColor
+                        background = StyleConst.Main.Window.BgColor
+
+                        div {
+                            whiteSpace = WhiteSpace.nowrap
+                            height = important(Length.fitContent)
+                        }
+
+                        ".${StyleConst.Main.Window.CLASS_HEADER}" {
+                            display = Display.flex
+                            position = Position.relative
+                            justifyContent = JustifyContent.normal
+                            alignItems = AlignItems.center
+                            width = 100.pct
+                            padding = StyleConst.Main.Window.paddingHeader
+
+                            button {
+                                background = StyleConst.transparent
+                                cursor = Cursor.pointer
+                                padding = StyleConst.Main.Window.IconPadding
+                                borderRadius = StyleConst.Main.Window.IconBorderRadius
+                                float = Float.right
+
+                                img {
+                                    width = StyleConst.Main.Window.IconSize
+                                    height = StyleConst.Main.Window.IconSize
+                                    filter = invert(100.pct)
+                                }
+                            }
+
+                            a {
+                                float = Float.left
+                            }
+                        }
+
+                        ".${StyleConst.Main.Window.CLASS_INFO}" {
+                            display = Display.block
+                            padding = StyleConst.Main.Window.paddingInfo
+                        }
+
+                        ".${StyleConst.Main.Window.CLASS_CONTENT}" {
+                            display = Display.flex
+                            flexDirection = FlexDirection.column
+                            justifyContent = JustifyContent.start
+                            gap = StyleConst.Main.Window.paddingContent
+                            alignItems = AlignItems.stretch
+                            padding = StyleConst.Main.Window.paddingContent
+                            boxShadow = BoxShadow(BoxShadowInset.inset, 0.px, 11.px, 8.px, -10.px, StyleConst.Main.Window.FgColor)
+                            overflowY = Overflow.scroll
+                            flexGrow = number(1.0)
+
+                            div {
+                                display = Display.flex
+                                flexDirection = FlexDirection.row
+                                justifyContent = JustifyContent.spaceEvenly
+                                flexWrap = FlexWrap.nowrap
+                                alignItems = AlignItems.center
+                                padding = StyleConst.Main.Window.paddingContentItems
+                                borderRadius = StyleConst.borderRadius
+                                gap = StyleConst.Main.Window.paddingContentItems
+                                color = StyleConst.Main.Window.FgColor
+                                backgroundColor = StyleConst.Main.Window.BgColorSec
+
+                                button {
+                                    background = StyleConst.transparent
+                                    cursor = Cursor.pointer
+                                    padding = StyleConst.Main.Window.IconPadding
+                                    borderRadius = StyleConst.Main.Window.IconBorderRadius
+                                    textAlign = TextAlign.center
+                                    height = StyleConst.Main.Window.IconSize + 2 * StyleConst.Main.Window.IconPadding
+
+                                    img {
+                                        filter = StyleConst.Main.Window.IconFilter
+                                        width = StyleConst.Main.Window.IconSize
+                                        height = StyleConst.Main.Window.IconSize
+                                    }
+                                }
+
+                                input {
+                                    background = StyleConst.transparent
+                                    cursor = Cursor.pointer
+                                    padding = StyleConst.Main.Window.IconPadding
+                                    borderRadius = StyleConst.Main.Window.IconBorderRadius
+                                    color = StyleConst.Main.Window.FgColor
+                                    textAlign = TextAlign.center
+                                    width = 100.px
+                                    cursor = important(Cursor.text)
+                                    placeholder {
+                                        color = StyleConst.Main.Window.FgColor
+                                    }
+                                }
+
+                                a {
+                                    textAlign = TextAlign.center
+                                    flexGrow = number(1.0)
+                                }
+                            }
+                        }
+
+                        StyleConst.layoutSwitchMediaQuery {
+                            width = 100.vw
+                        }
                     }
 
                 }

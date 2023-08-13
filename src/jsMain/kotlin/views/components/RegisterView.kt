@@ -65,15 +65,17 @@ val RegisterView = FC<RegisterViewProps> { props ->
     div {
 
         css {
-            display = Display.block
-            overflowY = Overflow.scroll
-            maxHeight = 40.vh
+            display = Display.flex
+            flexDirection = FlexDirection.column
+            position = Position.relative
+            /*overflowY = Overflow.scroll*/
 
             table {
-                backgroundColor = StyleConst.Main.tableRegBgColor.get()
+                backgroundColor = StyleConst.Main.Processor.TableBgColor.get()
+                color = StyleConst.Main.Processor.TableFgColor.get()
 
                 input {
-                    color = StyleConst.Main.FgColor.get()
+                    color = StyleConst.Main.Processor.TableFgColor.get()
                 }
             }
         }
@@ -94,8 +96,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
             button {
                 css {
-                    color = Color("#FFFFFF")
-                    backgroundColor = Color("#AAAAAA00")
+                    color = StyleConst.Main.Processor.FgColor.get()
+                    backgroundColor = StyleConst.transparent
                     paddingLeft = 1.rem
                     paddingRight = 1.rem
                     border = Border(0.px, LineStyle.hidden)
@@ -116,16 +118,16 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         marginRight = 0.5.rem
                         transition = Transition(TransitionProperty.all, 0.05.s, TransitionTimingFunction.ease)
 
-                        backgroundColor = StyleConst.Main.AccColorSec
-                        boxShadow = BoxShadow(0.px, 0.1.rem, 0.1.rem, 0.px, StyleConst.Main.AccColorSec)
+                        backgroundColor = StyleConst.Main.Processor.TabBgColor.get()
+                        boxShadow = BoxShadow(0.px, 0.1.rem, 0.1.rem, 0.px, StyleConst.Main.Processor.TabBgColor.get())
                         padding = Padding(0.1.rem, 0.5.rem)
-                        color = StyleConst.Main.Table.FgColor
+                        color = StyleConst.Main.Processor.TabFgColor.get()
 
                         if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                            backgroundColor = important(StyleConst.Main.tableRegBgColor.get())
+                            backgroundColor = important(StyleConst.Main.Processor.TableBgColor.get())
                             boxShadow = important(BoxShadow(0.px, 0.px, 0.px, Color("#FFF")))
                             padding = important(Padding(0.2.rem, 0.5.rem))
-                            color = important(StyleConst.Main.FgColor.get())
+                            color = important(StyleConst.Main.Processor.TableFgColor.get())
                         }
                     }
 
@@ -142,8 +144,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 ref = pcRef
 
                 css {
-                    color = Color("#FFFFFF")
-                    backgroundColor = Color("#AAAAAA00")
+                    color = StyleConst.Main.Processor.FgColor.get()
+                    backgroundColor = StyleConst.transparent
                     paddingLeft = 1.rem
                     paddingRight = 1.rem
                     float = Float.right
@@ -161,14 +163,20 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
 
         div {
-            className = ClassName(StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL)
+            /*className = ClassName(StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL)*/
+            css{
+                overflowY = Overflow.scroll
+                maxHeight = StyleConst.Main.Processor.MaxHeightReg
+                borderRadius = StyleConst.borderRadius
+                paddingLeft = 12.px // center with scrollbar on the right
+            }
             tabIndex = 0
 
             table {
                 val registerArray = registerContainer.getRegisterFileList()[currRegFileIndex]
-
                 thead {
                     tr {
+
                         th {
                             className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
@@ -181,6 +189,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             scope = "col"
 
                             button {
+                                css {
+                                    background = StyleConst.Main.Processor.BgColor.get()
+                                    color = StyleConst.Main.Processor.FgColor.get()
+                                }
+
                                 span {
                                     +ArchConst.REGISTER_VALUETYPES[currRegTypeIndex].toString()
                                 }

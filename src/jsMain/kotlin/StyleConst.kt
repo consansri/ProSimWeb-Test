@@ -11,6 +11,7 @@ object StyleConst {
     // GLOBAL
     val transparent = Color("#00000000")
     val layoutSwitchMediaQuery = "@media (max-width: 1200px)"
+    val responsiveQuery = "max-width: 1200px"
 
     const val codeFont = "font-family: 'JetBrains Mono', monospace !important;"
     const val CLASS_LOGO = "logo"
@@ -39,11 +40,13 @@ object StyleConst {
         val DeleteColor = Color("#EE2222FF")
         val BgColor = ModeColor("#F1F1E6", "#515151")
         val FgColor = ModeColor("#454545", "#D5D5D5")
-        val tableRegBgColor = ModeColor("#E3E3E2", "#4D628F")
-        val tableMemBgColor = ModeColor("#E3E3E2", "#29335C")
 
         val lPercentage = 40
         val rPercentage = 100 - lPercentage
+
+        val elementShadow = BoxShadow(0.px, 3.px, 6.px, rgb(0, 0, 0, 0.77))
+
+        val DeleteFilter = important(invert(0.pct))
 
         object Editor {
             val BgColor = ModeColor("#EEEEEE", "#222222")
@@ -54,18 +57,15 @@ object StyleConst {
             val activeLineColor = ModeColor("#00FF00")
 
             object Controls {
-                val BgColor = Color("#29335c")
+                val BgColor = ModeColor("#29335C", "#6D8AF5")
+                val FgColor = ModeColor("#EEE")
                 val BgHoverColor = Color("#7983Ac")
 
                 val iconSize = 1.8.rem
                 val iconPadding = 0.1.rem
+                val iconFilter = invert(100.pct)
                 val controlSize = 2.0.rem
                 val borderRadius = 0.4.rem
-
-                const val CLASS = "controls"
-                const val CLASS_CONTROL = "control"
-                const val CLASS_ACTIVE = "active"
-                const val CLASS_INFOPANEL = "info-panel"
             }
 
             object Transcript {
@@ -143,21 +143,54 @@ object StyleConst {
         }
 
         object Processor {
-            val BgColor = ModeColor("#091A40")
+            val BgColor = ModeColor("#2F4858", "#222222")
+            val FgColor = ModeColor("#EEEEEE", "#CCCCCC")
+            val iconFilter = important(invert(100.pct))
+            val TableBgColor = ModeColor("#EEEEEE", "#313131")
+            val TableFgColor = ModeColor("#182147", "#AAAAAA")
+            val TabBgColor = ModeColor("#FFFFFF31", "#00000031")
+            val TabFgColor = ModeColor("#EEEEEE", "#777777")
+
+            val BgColorTransparent = ModeColor("#77777731","#11111151")
+
+            val BtnFgFilter = ModeFilter(invert(100.pct), invert(60.pct))
+            val BtnBgColor = ModeColor("#29335C", "#111")
+
+            val MaxHeightMem = 40.vh
+            val MaxHeightReg = 40.vh
+
+            enum class BtnBg(val modeColor: ModeColor) {
+                CONTINUOUS(ModeColor("#58CC79", "#19A744")),
+                SSTEP(ModeColor("#98D8AA", "#41A05A")),
+                MSTEP(ModeColor("#E2B124", "#B68B0F")),
+                SOVER(ModeColor("#549FD8", "#126EB4")),
+                ESUB(ModeColor("#549FD8", "#126EB4")),
+                RESET(ModeColor("#EE9955", "#AC5916")),
+                CLEAR(ModeColor("#EE2222", "#9A0000"))
+                ;
+
+                fun get(): Color {
+                    return this.modeColor.get()
+                }
+            }
+
+            val fontSizeTitle = 1.2.rem
+            val fontWeight = FontWeight.bold
+            val fontStyle = FontStyle.normal
+
 
             const val CLASS = "processor"
+            const val CLASS_EXE = "processor-exediv"
+            const val CLASS_REG = "processor-regdiv"
+            const val CLASS_MEM = "processor-memdiv"
         }
 
         object AppControls {
-            const val CLASS = "controls"
+            val BgColor = ModeColor("#29335C", "#6D8AF5")
 
             val iconSize = 1.8.rem
             val iconPadding = 0.1.rem
             val size = iconSize + 2 * iconPadding
-        }
-
-        object Console {
-            const val CLASS = "console"
         }
 
         object InfoView {
@@ -205,8 +238,6 @@ object StyleConst {
             val BgPC = Color("#008b1966")
             val FgPC = Color("#008b19")
 
-            val BgColor = Color("#091A40")
-            val FgColor = Color("#EEEEEE")
             val BorderColor = Color("#E3E3E2FF")
             val StripeColor = Color("#FFFFFF19")
 
@@ -225,21 +256,15 @@ object StyleConst {
             const val CLASS_TXT_RIGHT = "txt-right"
             const val CLASS_MONOSPACE = "txt-monospace"
 
-            const val CLASS_CONTROL = "table-control"
-            const val CLASS_TINPUT = "table-input"
-            const val CLASS_TBUTTON = "table-button"
-
             const val CLASS_BORDERED = "table-bordered"
             const val CLASS_STRIPED = "table-striped"
 
-            const val CLASS_OVERFLOWXSCROLL = "overflow-x-scroll"
-
             enum class Mark(val color: ModeColor) {
-                PROGRAM(ModeColor("#800080")),
-                DATA(ModeColor("#008080")),
-                EDITABLE(ModeColor("#000000")),
+                PROGRAM(ModeColor("#A040A0")),
+                DATA(ModeColor("#40A0A0")),
+                EDITABLE(ModeColor("#222222", "#A0A0A0")),
                 NOTUSED(ModeColor("#77777731")),
-                ELSE(ModeColor("#808000"));
+                ELSE(ModeColor("#A0A040"));
 
                 fun get(): Color {
                     return this.color.get()
@@ -249,8 +274,31 @@ object StyleConst {
 
         object Window {
             const val CLASS = "window"
-        }
+            const val CLASS_HEADER = "window-header"
+            const val CLASS_INFO = "window-info"
+            const val CLASS_CONTENT = "window-content"
 
+            const val CLASS_CLEAR = "window-clear-btn"
+            const val CLASS_CLOSE = "window-close-btn"
+            const val CLASS_TITLE = "window-title"
+
+            val FgColor = Color("#EEEEEE")
+            val BgColor = Color("#222222EE")
+            val BgColorSec = Color("#777777")
+
+            val IconFilter = invert(90.pct)
+            val IconSize = 1.8.rem
+            val IconPadding = 0.1.rem
+            val IconBorderRadius = 0.3.rem
+
+            val ZIndex = integer(10)
+
+            val paddingHeader = 0.5.rem
+            val paddingInfo = 1.0.rem
+            val paddingContent = 1.0.rem
+            val paddingContentItems = 0.2.rem
+
+        }
 
         const val CLASS_DELETE = "delete"
         const val CLASS_ANIM_ROTATION = "anim-rotation"
@@ -347,7 +395,20 @@ object StyleConst {
         const val status_fine = "benicons/ver3/status_fine.svg"
         const val status_loading = "benicons/ver3/status_loading.svg"
         const val delete = "benicons/ver3/delete.svg"
+        const val deleteBlack = "benicons/ver3/delete_black.svg"
         const val tag = "benicons/ver3/tag.svg"
+
+        object Exe {
+            const val continuous = "benicons/exec/continuous-exe.svg"
+            const val sstep = "benicons/exec/single_exe.svg"
+            const val mstep = "benicons/exec/step_multiple.svg"
+            const val skipsub = "benicons/exec/step_over.svg"
+            const val retsub = "benicons/exec/step_into.svg"
+            const val recompile = "benicons/ver3/backwards.svg"
+            const val clear = "benicons/ver3/delete_black.svg"
+        }
+
+
     }
 
     class ModeColor(light: String, dark: String? = null) {
@@ -360,6 +421,15 @@ object StyleConst {
         }
 
         fun get(): Color {
+            return when (mode) {
+                Mode.LIGHT -> light
+                Mode.DARK -> dark ?: light
+            }
+        }
+    }
+
+    class ModeFilter(val light: FilterFunction, val dark: FilterFunction?) {
+        fun get(): FilterFunction {
             return when (mode) {
                 Mode.LIGHT -> light
                 Mode.DARK -> dark ?: light

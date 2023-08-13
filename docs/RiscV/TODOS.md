@@ -11,6 +11,7 @@
 - **(done)** Program Counter import bug/custom start .globl start
 - Transcript Pre/Post View, Parameter order like in instruction syntax (label offset...)
 - **(done)** RegView Registername RegisterAlias
+- check import behaviour of data, rodata and bss sections
 - 
 
  

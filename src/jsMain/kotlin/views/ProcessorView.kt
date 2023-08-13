@@ -1,6 +1,7 @@
 package views
 
 import AppLogic
+import emotion.react.css
 import web.html.*
 import web.timers.*
 import web.cssom.*
@@ -93,27 +94,34 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     }
 
     div {
-        className = ClassName("exeControlDiv")
+        className = ClassName(StyleConst.Main.Processor.CLASS_EXE)
 
         div {
+            css {
+                color = StyleConst.Main.Processor.FgColor.get()
+                fontWeight = StyleConst.Main.Processor.fontWeight
+                fontSize = StyleConst.Main.Processor.fontSizeTitle
+                fontStyle = StyleConst.Main.Processor.fontStyle
+            }
             a {
                 ref = titleRef
-                id = "arch-title"
                 +appLogic.getArch().getName()
             }
         }
 
         div {
-
+            css {
+                color = StyleConst.Main.Processor.FgColor.get()
+            }
             button {
-                className = ClassName("button")
-                id = "continuous"
+                css {
+                    background = StyleConst.Main.Processor.BtnBg.CONTINUOUS.get()
+                }
                 title = "Continuous Execution"
                 disabled = !allowExe
-                p {
-                    img {
-                        src = "benicons/exec/continuous-exe.svg"
-                    }
+
+                img {
+                    src = StyleConst.Icons.Exe.continuous
                 }
 
                 onClick = {
@@ -122,14 +130,15 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
 
             button {
-                className = ClassName("button")
-                id = "sstep"
+                css {
+                    background = StyleConst.Main.Processor.BtnBg.SSTEP.get()
+                }
                 title = "Single Step"
                 disabled = !allowExe
 
                 p {
                     img {
-                        src = "benicons/exec/single_exe.svg"
+                        src = StyleConst.Icons.Exe.sstep
                     }
                 }
                 onClick = {
@@ -138,32 +147,37 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
 
             span {
-                className = ClassName("input-button")
-                id = "mstep"
+                css {
+                    background = StyleConst.Main.Processor.BtnBg.MSTEP.get()
+                }
                 title = "Multi Step"
-                a {
-                    href = "#"
 
-                    p {
-                        img {
-                            src = "benicons/exec/step_multiple.svg"
-                        }
+                input {
+                    ref = mStepInputRef
+                    placeholder = "Steps"
+                    type = InputType.number
+                    name = "Steps"
+                    min = 1.0
+                    step = 1.0
+
+                    css{
+                        background =StyleConst.Main.Processor.BgColorTransparent.get()
+                        color = StyleConst.Main.Processor.FgColor.get()
                     }
 
-                    input {
-                        ref = mStepInputRef
-                        placeholder = "Steps"
-                        type = InputType.number
-                        name = "Steps"
-                        min = 1.0
-                        step = 1.0
-
-                        onChange = {
-                            localStorage.setItem(StorageKey.MSTEP_VALUE, it.currentTarget.value)
-                        }
-
+                    onChange = {
+                        localStorage.setItem(StorageKey.MSTEP_VALUE, it.currentTarget.value)
                     }
                 }
+
+                p {
+                    img {
+                        src = StyleConst.Icons.Exe.mstep
+                    }
+                }
+
+
+
                 onClick = {
                     if (allowExe) {
                         mStepInputRef.current?.let {
@@ -178,13 +192,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
 
             button {
-                className = ClassName("button")
-                id = "sover"
+                css {
+                    background = StyleConst.Main.Processor.BtnBg.SOVER.get()
+                }
                 title = "Skip Subroutine"
                 disabled = !allowExe
                 p {
                     img {
-                        src = "benicons/exec/step_over.svg"
+                        src = StyleConst.Icons.Exe.skipsub
                     }
                 }
                 onClick = {
@@ -193,13 +208,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
 
             button {
-                className = ClassName("button")
-                id = "esub"
+                css {
+                    background = StyleConst.Main.Processor.BtnBg.ESUB.get()
+                }
                 title = "Return From Subroutine"
                 disabled = !allowExe
                 p {
                     img {
-                        src = "benicons/exec/step_into.svg"
+                        src = StyleConst.Icons.Exe.retsub
                     }
                 }
                 onClick = {
@@ -208,13 +224,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
 
             button {
-                className = ClassName("button")
-                id = "reset"
-                title = "Reset"
+                css {
+                    background = StyleConst.Main.Processor.BtnBg.RESET.get()
+                }
+                title = "Reset and Recompile"
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.backwards
+                        src =StyleConst.Icons.Exe.recompile
                     }
                 }
                 onClick = {
@@ -223,24 +240,25 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             }
 
             button {
-                className = ClassName("button")
-                id = "clear"
+                css {
+                    background = StyleConst.Main.Processor.BtnBg.CLEAR.get()
+                }
                 title = "Clear"
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.delete
+                        src = StyleConst.Icons.Exe.clear
                     }
                 }
                 onClick = {
-                    queueExecution(ExecutionType.ClearAll)
+                    queueExecution(ClearAll)
                 }
             }
         }
     }
 
     div {
-        className = ClassName("processorDiv")
+        className = ClassName(StyleConst.Main.Processor.CLASS_REG)
 
         RegisterView {
             this.name = "Register"
@@ -258,7 +276,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     }
 
     div {
-        className = ClassName("memoryDiv")
+        className = ClassName(StyleConst.Main.Processor.CLASS_MEM)
 
         MemoryView {
             this.name = "Memory"
