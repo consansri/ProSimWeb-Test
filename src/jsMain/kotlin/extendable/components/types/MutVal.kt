@@ -21,7 +21,6 @@ class MutVal {
         this.initialBinary = value.toBin().getBinaryStr()
     }
 
-
     /* GETTER SETTER */
     fun get(): Value {
         return value

@@ -17,7 +17,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun getEndianess(): Endianess = endianess
 
-    fun save(address: MutVal.Value, mutVal: MutVal, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE) {
+    fun save(address: MutVal.Value, mutVal: MutVal, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
@@ -34,19 +34,24 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
             val instance = memMap[hexAddress.getRawHexStr()]
 
             if (instance != null) {
-                instance.mutVal.setHex(word.toString())
-                if (mark != StyleConst.Main.Table.Mark.ELSE) {
-                    instance.mark = mark
+                if (!instance.readonly) {
+                    instance.mutVal.setHex(word.toString())
+                    if (mark != StyleConst.Main.Table.Mark.ELSE) {
+                        instance.mark = mark
+                    }
+                } else {
+                    console.warn("Denied writing data (address: ${address.toHex().getHexStr()}, value: ${mutVal.get().toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
-                val newInstance = MemInstance(hexAddress, MutVal(initBin, wordSize), mark)
-                newInstance.mutVal.setHex(word.toString())
+                val mutVal = MutVal(initBin, wordSize)
+                mutVal.setHex(word.toString())
+                val newInstance = MemInstance(hexAddress, mutVal, mark, readonly)
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
         }
     }
 
-    fun save(address: MutVal.Value, value: MutVal.Value, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE) {
+    fun save(address: MutVal.Value, value: MutVal.Value, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
@@ -59,16 +64,22 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         if (DebugTools.ARCH_showMemoryInfo) {
             console.log("saving... ${endianess.name} ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
+
         for (word in wordList) {
             val instance = memMap[hexAddress.getRawHexStr()]
             if (instance != null) {
-                instance.mutVal.setHex(word.toString())
-                if (mark != StyleConst.Main.Table.Mark.ELSE) {
-                    instance.mark = mark
+                if (!instance.readonly) {
+                    instance.mutVal.setHex(word.toString())
+                    if (mark != StyleConst.Main.Table.Mark.ELSE) {
+                        instance.mark = mark
+                    }
+                } else {
+                    console.warn("Denied writing data (address: ${address.toHex().getHexStr()}, value: ${value.toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
-                val newInstance = MemInstance(hexAddress, MutVal(initBin, wordSize), mark)
-                newInstance.mutVal.setHex(word.toString())
+                val mutVal = MutVal(initBin, wordSize)
+                mutVal.setHex(word.toString())
+                val newInstance = MemInstance(hexAddress, mutVal, mark, readonly)
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
             hexAddress = (hexAddress + MutVal.Value.Hex("1")).toHex()
@@ -153,7 +164,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         return wordSize
     }
 
-    open class MemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE) {
+    open class MemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, val readonly: Boolean = false) {
         class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : MemInstance(address, MutVal(value), StyleConst.Main.Table.Mark.EDITABLE)
 
     }

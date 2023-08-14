@@ -2476,16 +2476,16 @@ class RISCVGrammar() : Grammar() {
         val content = RISCV.TS_COMPILED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
 
         init {
-            content[RISCV.TS_COMPILED_HEADERS.addr] = Entry(Orientation.LEFT, getAddresses().first().toHex().getRawHexStr())
+            content[RISCV.TS_COMPILED_HEADERS.Address] = Entry(Orientation.LEFT, getAddresses().first().toHex().getRawHexStr())
         }
 
         fun addLabel(label: R_JLBL) {
-            content[RISCV.TS_COMPILED_HEADERS.label] = Entry(Orientation.LEFT, label.label.wholeName)
+            content[RISCV.TS_COMPILED_HEADERS.Label] = Entry(Orientation.LEFT, label.label.wholeName)
         }
 
         fun addInstr(instr: R_INSTR) {
-            content[RISCV.TS_COMPILED_HEADERS.instr] = Entry(Orientation.LEFT, instr.instrType.id)
-            content[RISCV.TS_COMPILED_HEADERS.params] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") { it.paramTokens.joinToString("") { it.content } } ?: "")
+            content[RISCV.TS_COMPILED_HEADERS.Instruction] = Entry(Orientation.LEFT, instr.instrType.id)
+            content[RISCV.TS_COMPILED_HEADERS.Parameters] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") { it.paramTokens.joinToString("") { it.content } } ?: "")
         }
 
         override fun getContent(): List<Entry> {

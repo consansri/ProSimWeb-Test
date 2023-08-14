@@ -11,7 +11,7 @@ import extendable.components.connected.Transcript
 import extendable.components.types.MutVal
 import tools.DebugTools
 
-class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: MutVal.Value) : Assembly() {
+class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.Value, val rodataSecStart: MutVal.Value, val bssSecStart: MutVal.Value) : Assembly() {
 
     val labelBinAddrMap = mutableMapOf<RISCVGrammar.E_LABEL, String>()
     val transcriptEntrys = mutableListOf<RVDisassembledRow>()
@@ -117,11 +117,15 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
             transcriptEntrys.clear()
             binarys.clear()
             val instructionMapList = mutableMapOf<Long, RISCVGrammar.R_INSTR>()
-            val dataAllocList = mutableListOf<MemAllocEntry>()
+            val dataList = mutableListOf<DataEntry>()
+            val rodataList = mutableListOf<DataEntry>()
+            val bssList = mutableListOf<DataEntry>()
             var instrID: Long = 0
             var pcStartAddress = MutVal.Value.Hex("0", MutVal.Size.Bit32())
 
-            var nextAddress = allocStartAddress
+            var nextDataAddress = dataSecStart
+            var nextRoDataAddress = rodataSecStart
+            var nextBssAddress = bssSecStart
             // Resolving Sections
 
             val sections = rootNode.containers.filter { it is RISCVGrammar.C_SECTIONS }.flatMap { it.nodes.toList() }
@@ -241,17 +245,17 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                         }
 
                                         if (DebugTools.RISCV_showAsmInfo) {
-                                            console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tresized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} \n\tallocating at ${nextAddress.toHex().getRawHexStr()}")
+                                            console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tresized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} \n\tallocating at ${nextDataAddress.toHex().getRawHexStr()}")
                                         }
 
                                         val sizeOfOne = MutVal.Value.Hex(resizedValues.first().size.byteCount.toString(16))
-                                        val rest = nextAddress % sizeOfOne
+                                        val rest = nextDataAddress % sizeOfOne
                                         if (rest != MutVal.Value.Binary("0")) {
-                                            nextAddress += sizeOfOne - rest
+                                            nextDataAddress += sizeOfOne - rest
                                         }
-                                        val memAllocEntry = MemAllocEntry(entry.label, nextAddress.toHex(), resizedValues.first().size, *resizedValues)
-                                        dataAllocList.add(memAllocEntry)
-                                        nextAddress += length
+                                        val dataEntry = DataEntry(entry.label, nextDataAddress.toHex(), resizedValues.first().size, *resizedValues)
+                                        dataList.add(dataEntry)
+                                        nextDataAddress += length
                                     }
                                 }
                             }
@@ -349,17 +353,17 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                         }
 
                                         if (DebugTools.RISCV_showAsmInfo) {
-                                            console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} resized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} allocating at ${nextAddress.toHex().getRawHexStr()}")
+                                            console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} resized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} allocating at ${nextRoDataAddress.toHex().getRawHexStr()}")
                                         }
 
                                         val sizeOfOne = MutVal.Value.Hex(resizedValues.first().size.byteCount.toString(16))
-                                        val rest = nextAddress % sizeOfOne
+                                        val rest = nextRoDataAddress % sizeOfOne
                                         if (rest != MutVal.Value.Binary("0")) {
-                                            nextAddress += sizeOfOne - rest
+                                            nextRoDataAddress += sizeOfOne - rest
                                         }
-                                        val memAllocEntry = MemAllocEntry(entry.label, nextAddress.toHex(), resizedValues.first().size, *resizedValues)
-                                        dataAllocList.add(memAllocEntry)
-                                        nextAddress += length
+                                        val dataEntry = DataEntry(entry.label, nextRoDataAddress.toHex(), resizedValues.first().size, *resizedValues)
+                                        rodataList.add(dataEntry)
+                                        nextRoDataAddress += length
                                     }
                                 }
                             }
@@ -387,16 +391,16 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
                                     }
 
                                     if (DebugTools.RISCV_showAsmInfo) {
-                                        console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tallocating at ${nextAddress.toHex().getRawHexStr()}")
+                                        console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tallocating at ${nextBssAddress.toHex().getRawHexStr()}")
                                     }
 
                                     val sizeOfOne = MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
-                                    val rest = nextAddress % sizeOfOne
+                                    val rest = nextBssAddress % sizeOfOne
                                     if (rest != MutVal.Value.Binary("0")) {
-                                        nextAddress += sizeOfOne - rest
+                                        nextBssAddress += sizeOfOne - rest
                                     }
-                                    dataAllocList.add(MemAllocEntry(entry.label, nextAddress.toHex(), originalValue.size, originalValue))
-                                    nextAddress += MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
+                                    dataList.add(DataEntry(entry.label, nextBssAddress.toHex(), originalValue.size, originalValue))
+                                    nextBssAddress += MutVal.Value.Hex(originalValue.size.byteCount.toString(16))
                                 }
                             }
                         }
@@ -408,8 +412,35 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
 
             val memory = architecture.getMemory()
 
+            // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
+            for (alloc in bssList) {
+                labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
+                for (valueID in alloc.values.indices) {
+                    val value = alloc.values[valueID]
+                    val address = alloc.address + MutVal.Value.Hex(valueID.toString(16)) * MutVal.Value.Hex(alloc.sizeOfOne.byteCount.toString(16))
+                    if (DebugTools.RISCV_showAsmInfo) {
+                        console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
+                    }
+                    memory.save(address, value, StyleConst.Main.Table.Mark.DATA, true)
+                }
+            }
+
+            // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
+            for (alloc in rodataList) {
+                labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
+                for (valueID in alloc.values.indices) {
+                    val value = alloc.values[valueID]
+                    val address = alloc.address + MutVal.Value.Hex(valueID.toString(16)) * MutVal.Value.Hex(alloc.sizeOfOne.byteCount.toString(16))
+                    if (DebugTools.RISCV_showAsmInfo) {
+                        console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
+                    }
+                    memory.save(address, value, StyleConst.Main.Table.Mark.DATA, true)
+                }
+            }
+
+
             // adding data alloc addresses and labels to labelLink Map and storing alloc constants to memory
-            for (alloc in dataAllocList) {
+            for (alloc in dataList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
                 for (valueID in alloc.values.indices) {
                     val value = alloc.values[valueID]
@@ -459,24 +490,24 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val allocStartAddress: Mut
         return assemblyMap ?: AssemblyMap()
     }
 
-    class MemAllocEntry(val label: RISCVGrammar.E_LABEL, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
+    class DataEntry(val label: RISCVGrammar.E_LABEL, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
 
     class RVDisassembledRow(address: MutVal.Value.Hex) : Transcript.Row(address) {
 
         val content = RISCV.TS_DISASSEMBLED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
 
         init {
-            content[RISCV.TS_DISASSEMBLED_HEADERS.addr] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
+            content[RISCV.TS_DISASSEMBLED_HEADERS.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
 
         fun addInstr(architecture: Architecture, instrResult: RISCVBinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
-            content[RISCV.TS_DISASSEMBLED_HEADERS.instr] = Entry(Orientation.LEFT, instrName)
-            content[RISCV.TS_DISASSEMBLED_HEADERS.params] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binaryMap.toMutableMap(), labelName))
+            content[RISCV.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
+            content[RISCV.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binaryMap.toMutableMap(), labelName))
         }
 
         fun addLabel(labelName: String) {
-            content[RISCV.TS_DISASSEMBLED_HEADERS.label] = Entry(Orientation.CENTER, labelName)
+            content[RISCV.TS_DISASSEMBLED_HEADERS.Label] = Entry(Orientation.CENTER, labelName)
         }
 
         override fun getContent(): List<Entry> {

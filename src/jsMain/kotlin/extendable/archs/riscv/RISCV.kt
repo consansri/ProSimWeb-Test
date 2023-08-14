@@ -14,23 +14,23 @@ object RISCV {
     val REG_ADDRESS_SIZE = MutVal.Size.Bit8()
 
     enum class TS_COMPILED_HEADERS {
-        addr,
-        label,
-        instr,
-        params
+        Address,
+        Label,
+        Instruction,
+        Parameters
     }
 
     enum class TS_DISASSEMBLED_HEADERS {
-        addr,
-        label,
-        instr,
-        params
+        Address,
+        Label,
+        Instruction,
+        Parameters
     }
 
     // Assembler CONFIG
     val asmConfig = AsmConfig(
         RISCVGrammar(),
-        RISCVAssembly(RISCVBinMapper(), MutVal.Value.Hex("00001000", MutVal.Size.Bit32()))
+        RISCVAssembly(RISCVBinMapper(), MutVal.Value.Hex("00001000", MutVal.Size.Bit32()),MutVal.Value.Hex("00002000", MutVal.Size.Bit32()),MutVal.Value.Hex("00003000", MutVal.Size.Bit32()))
     )
 
     val riscVDocs = Docs(
