@@ -36,18 +36,14 @@ object RISCV {
     val riscVDocs = Docs(
         Docs.HtmlFile(
             "Risc-V Handbook",
-           """
+            """
 <h1 id="risc-v-handbook">RISC-V Handbook</h1>
 <h2 id="available-syntax">Available Syntax</h2>
 <h3 id="directives">Directives</h3>
 <ul>
     <li>global</li>
     <p>define start of pc</p>
-    <pre>
-        <code>
-            .global [jlabelname]
-        </code>
-    </pre>
+    <pre><code>.global [jlabelname]</code></pre>
     <li>data emitting unaligned</li>
         <pre><code><span class="hljs-number">.2</span><span class="hljs-keyword">byte</span>          <span
                 class="hljs-keyword">value</span>
@@ -679,7 +675,7 @@ object RISCV {
 <ul>
     <li>writing a imm32 value into a smaller immediate size place (e.g. imm20, imm12) <br>leads to resizing which can result in a loss of information</li>
 </ul>
-""".trimIndent()
+"""
         )
     )
 
