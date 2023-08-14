@@ -48,8 +48,6 @@ object StyleConst {
             val FgColor = ModeColor("#313131", "#AABACA")
             val Font = codeFont
             val FontSize = 16.px
-            val iconGreenFilter = invert(21.pct).also { sepia(100.pct) }.also { saturate(3197.pct) }.also { hueRotate(137.deg) }.also { brightness(95.pct) }.also { contrast(105.pct) }
-            val activeLineColor = ModeColor("#00FF00")
 
             object Controls {
                 val BgColor = ModeColor("#1B3C60", "#272737")
@@ -135,7 +133,6 @@ object StyleConst {
 
 
         }
-
         object Processor {
             val BgColor = ModeColor("#1B3C60", "#272732")
             val FgColor = ModeColor("#EEEEEE", "#CCCCCC")
@@ -179,7 +176,6 @@ object StyleConst {
             const val CLASS_REG = "processor-regdiv"
             const val CLASS_MEM = "processor-memdiv"
         }
-
         object AppControls {
             val BgColor = ModeColor("#1B3C60", "#272732")
 
@@ -187,11 +183,8 @@ object StyleConst {
             val iconPadding = 0.1.rem
             val size = iconSize + 2 * iconPadding
         }
-
         object InfoView {
-            const val CLASS_MD_STYLE = "standard_md_style"
-
-            val marginTop = 0.5.rem
+            val marginTop = 0.2.rem
             val marginBottom = 0.1.rem
 
             val tabSize = 1.rem
@@ -202,8 +195,11 @@ object StyleConst {
             val fontSizeH4 = 1.1.rem
             val fontSizeStandard = 1.0.rem
 
+            val iconFilter = ModeFilter(invert(0.pct), invert(90.pct))
+
             enum class Colors(val color: ModeColor) {
-                Bg(ModeColor("#77777731")),
+                Bg(ModeColor("#77778731")),
+                TableBg(ModeColor("#9797A731","#27273731")),
                 base00(ModeColor("#202746", "#f5f7ff")),
                 base01(ModeColor("#293256", "#dfe2f1")),
                 base02(ModeColor("#5e6687", "#979db4")),
@@ -228,7 +224,6 @@ object StyleConst {
                 }
             }
         }
-
         object Table {
             val BgPC = Color("#008b1966")
             val FgPC = Color("#008b19")
@@ -266,7 +261,6 @@ object StyleConst {
                 }
             }
         }
-
         object Window {
             const val CLASS = "window"
             const val CLASS_HEADER = "window-header"

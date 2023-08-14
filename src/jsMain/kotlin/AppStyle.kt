@@ -38,8 +38,6 @@ val AppStyle = FC<Props> {
             body {
                 // LAYOUT
                 header {
-
-
                     display = Display.flex
                     alignItems = AlignItems.center
                     justifyContent = JustifyContent.spaceBetween
@@ -331,63 +329,6 @@ val AppStyle = FC<Props> {
                         borderRadius = StyleConst.borderRadius
                         background = StyleConst.transparent
 
-                    }
-
-                    ".${StyleConst.Main.InfoView.CLASS_MD_STYLE}" {
-                        whiteSpace = WhiteSpace.pre
-                        overflowX = Overflow.scroll
-
-                        h1 {
-                            fontSize = StyleConst.Main.InfoView.fontSizeH1
-                            marginTop = important(StyleConst.Main.InfoView.marginTop)
-                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
-                        }
-                        h2 {
-                            fontSize = StyleConst.Main.InfoView.fontSizeH2
-                            marginTop = important(StyleConst.Main.InfoView.marginTop)
-                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
-                        }
-                        h3 {
-                            fontSize = StyleConst.Main.InfoView.fontSizeH3
-                            marginTop = important(StyleConst.Main.InfoView.marginTop)
-                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
-                        }
-                        h4 {
-                            fontSize = StyleConst.Main.InfoView.fontSizeH4
-                            marginTop = important(StyleConst.Main.InfoView.marginTop)
-                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
-                        }
-                        ul {
-                            marginTop = important(StyleConst.Main.InfoView.marginTop)
-                            marginBottom = important(StyleConst.Main.InfoView.marginBottom)
-                        }
-
-                        p {
-                            fontWeight = FontWeight.lighter
-                        }
-
-                        pre {
-                            background = important(StyleConst.Main.InfoView.Colors.Bg.get())
-                            borderRadius = StyleConst.borderRadius
-                            padding = StyleConst.paddingSize
-                        }
-
-                        code {
-                            StyleConst.codeFont
-                        }
-
-                        table {
-                            td {
-                                padding = StyleConst.paddingSize
-                            }
-                            th {
-                                paddingRight = StyleConst.paddingSize
-                            }
-                        }
-
-                        StyleConst.layoutSwitchMediaQuery {
-
-                        }
                     }
 
                     table {

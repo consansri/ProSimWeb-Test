@@ -10,6 +10,12 @@ import tools.DebugTools
 import views.components.IConsoleView
 import web.cssom.*
 import StyleConst.Main.InfoView
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.pre
+import react.dom.html.ReactHTML.ul
 
 external interface InfoViewProps : Props {
     var appLogic: AppLogic
@@ -85,7 +91,95 @@ val InfoView = FC<InfoViewProps> { props ->
                 })
             }
             div {
-                className = ClassName(InfoView.CLASS_MD_STYLE)
+                css {
+                    whiteSpace = WhiteSpace.pre
+                    overflowX = Overflow.scroll
+
+                    ReactHTML.h1 {
+                        fontSize = InfoView.fontSizeH1
+                        marginTop = important(InfoView.marginTop)
+                        marginBottom = important(InfoView.marginBottom)
+                        marginLeft = important(0.rem)
+                    }
+                    ReactHTML.h2 {
+                        fontSize = InfoView.fontSizeH2
+                        marginTop = important(InfoView.marginTop)
+                        marginBottom = important(InfoView.marginBottom)
+                        marginLeft = important(0.rem)
+                    }
+                    ReactHTML.h3 {
+                        fontSize = InfoView.fontSizeH3
+                        marginTop = important(InfoView.marginTop)
+                        marginBottom = important(InfoView.marginBottom)
+                        marginLeft = important(0.rem)
+                    }
+                    ReactHTML.h4 {
+                        fontSize = InfoView.fontSizeH4
+                        marginTop = important(InfoView.marginTop)
+                        marginBottom = important(InfoView.marginBottom)
+                        marginLeft = important(0.rem)
+                    }
+                    ReactHTML.ul {
+                        display = Display.flex
+                        flexDirection = FlexDirection.column
+                        justifyContent = JustifyContent.spaceEvenly
+                        alignItems = AlignItems.stretch
+                        gap = StyleConst.paddingSize
+                        paddingLeft = InfoView.tabSize
+
+                        li {
+                            display = Display.flex
+                            flexDirection = FlexDirection.row
+                            alignItems = AlignItems.center
+                            justifyContent = JustifyContent.start
+                            gap = StyleConst.paddingSize
+                            marginLeft = important(-InfoView.tabSize)
+
+                            before {
+                                content = Content("•")
+                            }
+                        }
+                    }
+
+                    ReactHTML.p {
+                        fontWeight = FontWeight.lighter
+                    }
+
+                    ReactHTML.pre {
+                        background = important(InfoView.Colors.Bg.get())
+                        borderRadius = StyleConst.borderRadius
+                        padding = StyleConst.paddingSize
+                    }
+
+                    ReactHTML.code {
+                        StyleConst.codeFont
+                    }
+
+                    ReactHTML.table {
+                        background = important(InfoView.Colors.TableBg.get())
+                        color = StyleConst.Main.FgColor.get()
+                        width = important(Length.maxContent)
+
+                        ReactHTML.td {
+                            padding = StyleConst.paddingSize
+                        }
+                        ReactHTML.th {
+                            paddingRight = StyleConst.paddingSize
+                        }
+                    }
+
+                    img {
+                        width = StyleConst.iconSize
+                        height = StyleConst.iconSize
+                        borderRadius = StyleConst.borderRadius
+                        filter = important(InfoView.iconFilter.get())
+                    }
+
+                    "> *" {
+                        marginLeft = InfoView.tabSize
+                    }
+
+                }
                 ref = docDiv
             }
         }

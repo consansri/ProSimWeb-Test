@@ -231,7 +231,7 @@ class FileHandler(val fileEnding: String) {
         }
 
         private fun addUndoState(fileHandler: FileHandler, content: String) {
-            if (content.isNotEmpty() && content != undoStates.firstOrNull()) {
+            if (content != undoStates.firstOrNull()) {
                 job?.cancel()
                 job = GlobalScope.launch {
                     try {

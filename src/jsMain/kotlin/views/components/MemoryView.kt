@@ -143,6 +143,8 @@ val MemoryView = FC<MemViewProps> { props ->
                 justifyContent = JustifyContent.stretch
                 alignItems = AlignItems.center
                 gap = StyleConst.paddingSize
+                paddingLeft = 12.px
+                paddingRight = 12.px
 
                 "input[type=range]" {
                     display = Display.inlineBlock
@@ -262,8 +264,6 @@ val MemoryView = FC<MemViewProps> { props ->
                     src = "icons/direction.svg"
                 }
             }
-
-
 
 
         }

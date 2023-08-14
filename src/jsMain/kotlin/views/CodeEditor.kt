@@ -420,7 +420,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             a {
                 css {
                     height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
-                    background = StyleConst.Main.DeleteColor
+                    background = important(StyleConst.Main.DeleteColor)
                     cursor = Cursor.pointer
                 }
                 ref = btnClearRef
