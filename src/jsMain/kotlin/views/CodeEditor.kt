@@ -404,7 +404,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         - Undo History
                         - Clear Button
                         - Code Highlighting
-                        - Execute until (click on linenumber)
+                        - Execute until (click on linenumber or address)
                         
                         - Transcript (switch type by click on the left vertical title)
                             - Compiled (generated from code compilation)
@@ -486,6 +486,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     this.ta_val = ta_val ?: ""
                     this.transcript = appLogic.getArch().getTranscript()
                     this.appLogic = appLogic
+                    this.updateParent = props.updateParent
                 }
             } else {
 
@@ -883,7 +884,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     useEffect(transcriptView) {
         textareaRef.current?.let {
             it.value = appLogic.getArch().getFileHandler().getCurrContent()
-            edit(it.value, false)
         }
         updateTAResize()
         updateClearButton()

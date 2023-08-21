@@ -179,7 +179,6 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
                 getConsole().log("--exe_until_line finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
             } else {
                 getConsole().info("--exe_continuous")
-
                 val measuredTime = measureTime {
                     while (instrCount < 1000) {
                         val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
@@ -196,6 +195,29 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
                 getConsole().log("--exe_continuous finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
             }
         }
+    }
+
+    override fun exeUntilAddress(address: MutVal.Value.Hex) {
+        super.exeUntilAddress(address)
+        var instrCount = 0
+        val binMapper = RISCVBinMapper()
+        getConsole().info("--exe_until_line executing until address ${address.getHexStr()}")
+        val measuredTime = measureTime {
+            while (instrCount < 1000) {
+                val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
+                val result = binMapper.getInstrFromBinary(binary.get().toBin())
+                if (address == getRegisterContainer().pc.value.get()) {
+                    break
+                }
+                if (result != null) {
+                    result.type.execute(this, result.binaryMap)
+                    instrCount++
+                } else {
+                    break
+                }
+            }
+        }
+        getConsole().log("--exe_until_address finishing... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
     }
 
     override fun exeClear() {

@@ -1,6 +1,7 @@
 package extendable
 
 import StyleConst.Main.Editor.HL
+import extendable.components.assembly.Compiler
 
 object ArchConst {
     /*
@@ -28,7 +29,25 @@ object ArchConst {
 
         val error = HL.red.getFlag()
         val whiteSpace = HL.whitespace.getFlag()
+
+        val COMPILER_COLL = Compiler.HLFlagCollection(
+            alphaNum = alphaNum,
+            word = word,
+            const_hex = hex,
+            const_bin = bin,
+            const_dec = dec,
+            const_udec = udec,
+            const_ascii = ascii,
+            const_string = string,
+            register = register,
+            symbol = symbol,
+            instruction = instruction,
+            comment = comment,
+            //whitespace = whiteSpace
+        )
     }
+
+
 
     // GLOBAL
     const val PROSIMNAME = "ProSimWeb"
@@ -64,6 +83,19 @@ object ArchConst {
     const val STATE_HASERRORS = "hasErrors"
     const val STATE_EXECUTABLE = "buildable"
     const val STATE_EXECUTION = "execution"
+
+    val COMPILER_REGEX = Compiler.RegexCollection(
+        Regex("""^\s+"""),
+        Regex("""^[^0-9A-Za-z]"""),
+        Regex("""^${PRESTRING_BINARY}[01]+"""),
+        Regex("""^${PRESTRING_HEX}[0-9a-f]+""", RegexOption.IGNORE_CASE),
+        Regex("""^${PRESTRING_DECIMAL}(-)?[0-9]+"""),
+        Regex("""^${PRESTRING_UDECIMAL}[0-9]+"""),
+        Regex("""^'.'"""),
+        Regex("""^".+""""),
+        Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
+        Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
+    )
 
     enum class TranscriptHeaders{
         addr,

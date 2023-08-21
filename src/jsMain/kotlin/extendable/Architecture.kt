@@ -3,6 +3,7 @@ package extendable
 import extendable.components.*
 import extendable.components.assembly.Compiler
 import extendable.components.connected.*
+import extendable.components.types.MutVal
 
 import tools.DebugTools
 import tools.HTMLTools
@@ -38,33 +39,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             this,
             asmConfig.grammar,
             asmConfig.assembly,
-            Compiler.RegexCollection(
-                Regex("""^\s+"""),
-                Regex("""^[^0-9A-Za-z]"""),
-                Regex("""^${ArchConst.PRESTRING_BINARY}[01]+"""),
-                Regex("""^${ArchConst.PRESTRING_HEX}[0-9a-f]+""", RegexOption.IGNORE_CASE),
-                Regex("""^${ArchConst.PRESTRING_DECIMAL}(-)?[0-9]+"""),
-                Regex("""^${ArchConst.PRESTRING_UDECIMAL}[0-9]+"""),
-                Regex("""^'.'"""),
-                Regex("""^".+""""),
-                Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
-                Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
-            ),
-            Compiler.HLFlagCollection(
-                alphaNum = ArchConst.StandardHL.alphaNum,
-                word = ArchConst.StandardHL.word,
-                const_hex = ArchConst.StandardHL.hex,
-                const_bin = ArchConst.StandardHL.bin,
-                const_dec = ArchConst.StandardHL.dec,
-                const_udec = ArchConst.StandardHL.udec,
-                const_ascii = ArchConst.StandardHL.ascii,
-                const_string = ArchConst.StandardHL.string,
-                register = ArchConst.StandardHL.register,
-                symbol = ArchConst.StandardHL.symbol,
-                instruction = ArchConst.StandardHL.instruction,
-                comment = ArchConst.StandardHL.comment,
-                //whitespace = ArchConst.StandardHL.whiteSpace
-            )
+            ArchConst.COMPILER_REGEX,
+            ArchConst.StandardHL.COMPILER_COLL
         )
     }
 
@@ -134,6 +110,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     open fun exeUntilLine(lineID: Int) {
+        getConsole().clear()
+    }
+
+    open fun exeUntilAddress(address: MutVal.Value.Hex){
         getConsole().clear()
     }
 

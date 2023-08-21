@@ -26,6 +26,7 @@ external interface TranscriptProps : Props {
     var ta_val: String
     var transcript: Transcript
     var appLogic: AppLogic
+    var updateParent: () -> Unit
 }
 
 val TranscriptView = FC<TranscriptProps> { props ->
@@ -118,6 +119,9 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 tbody {
                     for (row in transcript.getContent(currType)) {
                         tr {
+                            css{
+                                cursor = Cursor.pointer
+                            }
                             for (address in row.getAddresses()) {
                                 if (address == currExeAddr) {
                                     css {
@@ -134,6 +138,13 @@ val TranscriptView = FC<TranscriptProps> { props ->
                                         Transcript.Row.Orientation.RIGHT -> ClassName(StyleConst.Main.Table.CLASS_TXT_RIGHT)
                                     }
                                     +entry.content
+                                }
+                            }
+
+                            onClick = {
+                                row.getAddresses().firstOrNull()?.let{
+                                    appLogic.getArch().exeUntilAddress(it.toHex())
+                                    props.updateParent()
                                 }
                             }
                         }
