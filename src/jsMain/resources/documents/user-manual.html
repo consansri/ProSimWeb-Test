@@ -1,16 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<style>
-    img{
-        width: 1rem;
-        height: 1rem;
-    }
-</style>
 <h1>User Manual</h1>
 <h2>General</h2>
 <ul>
     <li><img alt="sun" src="../benicons/ver3/lightmode.svg"/><img alt="sun" src="../benicons/ver3/darkmode.svg"/>switches theme of whole site</li>
-    <li><img alt="eraser" src="../icons/eraser.svg"/>deletes every value in browser localstorage which was used by this site</li>
+    <li><img alt="eraser" src="../icons/eraser.svg"/>(deprecated icon) deletes every value in browser localstorage which was used by this site</li>
+    <li><img alt="bug" src="../icons/bug-infinite.gif"/>(deprecated icon) report bug</li>
+</ul>
+<h2>Menu</h2>
+<ul>
+    <li><img alt="home" src="../benicons/ver3/home.svg"/>home</li>
+    <li><img alt="arch" src="../benicons/ver3/processor.svg"/>select processor architecture</li>
+    <li><img alt="import" src="../benicons/ver3/import.svg"/>open/close import window</li>
+    <ul>
+        <li><img alt="cancel" src="../icons/cancel.svg"/>(deprecated icon) cancel</li>
+        <li><img alt="import" src="../icons/upload.svg"/>(deprecated icon) imports selected files</li>
+    </ul>
+    <li><img alt="export" src="../benicons/ver3/export.svg"/>open/close export window (selectable types: assembly, hexdump, vhdl or memory initialization file)</li>
+    <ul>
+        <li><img alt="cancel" src="../icons/cancel.svg"/>(deprecated icon) cancel</li>
+        <li><img alt="export" src="../icons/download.svg"/>(deprecated icon) downloads file</li>
+    </ul>
 </ul>
 <h2>Code Editor</h2>
 <ul>
@@ -18,15 +26,37 @@
     <li><img alt="error" src="../benicons/ver3/status_error.svg"/><img alt="fine" src="../benicons/ver3/status_fine.svg"/><img alt="loading" src="../benicons/ver3/status_loading.svg"/>shows the compilation state of the current file<br>recompiles on click</li>
     <li><img alt="undo" src="../benicons/ver3/backwards.svg"/>undo current changes in current file</li>
     <li><img alt="redo" src="../benicons/ver3/forwards.svg"/>redo current changes in current file</li>
-    <li><img alt="redo" src="../benicons/ver3/info.svg"/>shows code editor info on hover</li>
-    <li><img alt="clear" src="../benicons/ver3/delete_black.svg"/>cleares current file content</li>
+    <li><img alt="redo" src="../benicons/ver3/info.svg"/>shows code editor info and shortcuts on hover</li>
+    <li><img alt="clear" src="../benicons/ver3/delete.svg"/>cleares current file content</li>
     <li><img alt="tag" src="../benicons/ver3/tag.svg"/>shows grammartree information of selected element in code for debugging</li>
-    <ul>
-        <li>unterelement</li>
-    </ul>
 </ul>
 <h2>Execution Control</h2>
+<ul>
+    <li><img alt="continuous" src="../benicons/exec/continuous-exe.svg"/>continuous program execution (limit at 1000 instructions)</li>
+    <li><img alt="single step" src="../benicons/exec/single_exe.svg"/>executes next instruction</li>
+    <li><img alt="multi step" src="../benicons/exec/step_multiple.svg"/>executes certain amount of instructions</li>
+    <li><img alt="skip subroutine" src="../benicons/exec/step_over.svg"/>executes the upcoming subroutine (behaves as a single step if the next instruction is not a jump)</li>
+    <li><img alt="return from subroutine" src="../benicons/exec/step_out.svg"/>(deprecated icon) return subroutine until a certain return instruction</li>
+    <li><img alt="reset and recompile" src="../benicons/ver3/backwards.svg"/>(deprecated icon) recompiles and stores current program</li>
+    <li><img alt="reset registers" src="../benicons/ver3/delete.svg"/>resets all register values to zero</li>
+</ul>
 <h2>Registers</h2>
+<ul>
+    <li>access multiple register files by switching between the tabs right beside "Register"</li>
+    <li>switch binary interpretation between BIN (binary), HEX (hexadecimal), UDEC (unsigned decimal) and DEC (signed decimal)<br>by click at the type name in the table head</li>
+    <li>edit values</li>
+    <li>names and aliases both can be used as a register reference in code editor</li>
+</ul>
 <h2>Memory</h2>
-<h2>Settings</h2>
-</html>
+<ul>
+    <li><img alt="edit" src="../icons/editable.svg"/>(deprecated icon) opens the edit window where you can add several addresses which you can then edit to simulate memory mapped io</li>
+    <li>change between Little Endian and Big Endian<br>recompilation will be necessary before execution!</li>
+    <li>change amount of memory instances which should be shown in one row instead of directly remapping the instances on each change<br>(could lead to a performance issue on fast changes) rows will be remapped every few seconds</li>
+    <li><img alt="direction" src="../icons/direction.svg"/>(deprecated icon) reverse row address sorting (big to little, little to big)</li>
+</ul>
+<h2>Console</h2>
+<ul>
+    <li><img alt="scrolldown" src="../benicons/ver3/autoscroll.svg"/>activate/deactivate automatic scroll to newest console message</li>
+    <li><img alt="pin" src="../benicons/ver3/pin.svg"/>pin/unpin console</li>
+    <li><img alt="clear" src="../benicons/ver3/delete.svg"/>cleares console</li>
+</ul>

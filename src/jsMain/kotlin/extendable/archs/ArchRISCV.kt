@@ -143,10 +143,10 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             super.exeUntilLine(lineID)
             var instrCount = 0
             val binMapper = RISCVBinMapper()
-            val lineAddressMap = getAssembly().getAssemblyMap().lineAddressMap.map { it.value to it.key }
+            val lineAddressMap = getAssembly().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.file == getFileHandler().getCurrent() }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
-                if (entry.first.lineID > lineID) {
+                if (entry.first.lineID >= lineID) {
                     if (closestID != null) {
                         if (entry.first.lineID < closestID) {
                             closestID = entry.first.lineID
@@ -156,14 +156,12 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
                     }
                 }
             }
-
-            if (closestID != null) {
-                val destAddr = MutVal.Value.Hex(lineAddressMap.get(closestID).second)
+            val destAddrString = lineAddressMap.associate { it.first.lineID to it.second }.get(closestID) ?: ""
+            if (destAddrString.isNotEmpty() && closestID != null) {
+                val destAddr = MutVal.Value.Hex(destAddrString)
                 getConsole().info("--exe_until_line executing until line ${closestID + 1} or address ${destAddr.getHexStr()}")
                 val measuredTime = measureTime {
-                    super.exeSkipSubroutine()
-
-                    while (instrCount < 10000) {
+                    while (instrCount < 1000) {
                         val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                         val result = binMapper.getInstrFromBinary(binary.get().toBin())
                         if (destAddr == getRegisterContainer().pc.value.get()) {
@@ -183,7 +181,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
                 getConsole().info("--exe_continuous")
 
                 val measuredTime = measureTime {
-                    while (true) {
+                    while (instrCount < 1000) {
                         val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                         val result = binMapper.getInstrFromBinary(binary.get().toBin())
                         if (result != null) {

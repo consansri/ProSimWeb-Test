@@ -404,7 +404,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         - Undo History
                         - Clear Button
                         - Code Highlighting
-                        - Start of Program (click on linenumber)
+                        - Execute until (click on linenumber)
                         
                         - Transcript (switch type by click on the left vertical title)
                             - Compiled (generated from code compilation)

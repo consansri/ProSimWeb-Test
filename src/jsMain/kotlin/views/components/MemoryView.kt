@@ -172,6 +172,8 @@ val MemoryView = FC<MemViewProps> { props ->
                     height = StyleConst.iconSize + 2 * StyleConst.iconPadding
                     fontSize = important(StyleConst.Main.Table.FontSizeSelect)
                     fontWeight = FontWeight.lighter
+                    cursor = Cursor.pointer
+
                 }
 
                 button {

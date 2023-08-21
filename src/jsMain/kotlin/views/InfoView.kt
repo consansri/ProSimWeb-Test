@@ -10,12 +10,22 @@ import tools.DebugTools
 import views.components.IConsoleView
 import web.cssom.*
 import StyleConst.Main.InfoView
+import js.promise.await
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.html
+import react.dom.html.ReactHTML.iframe
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.ul
+import web.dom.document
+import web.http.fetch
 
 external interface InfoViewProps : Props {
     var appLogic: AppLogic
@@ -29,10 +39,10 @@ val InfoView = FC<InfoViewProps> { props ->
     val docDiv = useRef<HTMLDivElement>()
 
     val appLogic by useState(props.appLogic)
-    var (update, setUpdate) = useState(props.update)
-    var (internalUpdate, setIUpdate) = useState(false)
+    val (update, setUpdate) = useState(props.update)
     val (currMDID, setCurrMDID) = useState<Int>()
 
+    var job: Job? = null
 
     div {
         IConsoleView {
@@ -78,6 +88,7 @@ val InfoView = FC<InfoViewProps> { props ->
 
         div {
             css {
+                position = Position.relative
                 display = Display.flex
                 flexDirection = FlexDirection.column
                 justifyContent = JustifyContent.start
@@ -90,10 +101,9 @@ val InfoView = FC<InfoViewProps> { props ->
                     alignItems = AlignItems.start
                 })
             }
-            div {
+            ReactHTML.div {
                 css {
                     whiteSpace = WhiteSpace.pre
-                    overflowX = Overflow.scroll
 
                     ReactHTML.h1 {
                         fontSize = InfoView.fontSizeH1
@@ -134,6 +144,7 @@ val InfoView = FC<InfoViewProps> { props ->
                             justifyContent = JustifyContent.start
                             gap = StyleConst.paddingSize
                             marginLeft = important(-InfoView.tabSize)
+                            flexWrap = FlexWrap.nowrap
 
                             before {
                                 content = Content("•")
@@ -179,8 +190,14 @@ val InfoView = FC<InfoViewProps> { props ->
                         marginLeft = InfoView.tabSize
                     }
 
+                    StyleConst.layoutSwitchMediaQuery {
+                        width = 100.pct
+                        flexWrap = FlexWrap.wrap
+                        overflowWrap = OverflowWrap.breakWord
+                    }
                 }
                 ref = docDiv
+
             }
         }
     }
@@ -192,13 +209,20 @@ val InfoView = FC<InfoViewProps> { props ->
     }
 
     useEffect(currMDID) {
-        docDiv.current?.let {
-            if (currMDID != null) {
-                it.innerHTML = appLogic.getArch().getDocs().files[currMDID].htmlContent
-            } else {
+
+        if (currMDID != null) {
+            job = GlobalScope.launch {
+                val snippet = fetch(appLogic.getArch().getDocs().files[currMDID].src).text()
+                docDiv.current?.let {
+                    it.innerHTML = snippet.await()
+                }
+            }
+        } else {
+            docDiv.current?.let {
                 it.innerHTML = ""
             }
         }
+
     }
 
 }
