@@ -50,16 +50,24 @@ class Transcript(private val compiledHeaders: List<String> = listOf(), private v
 
     abstract class Row(vararg addresses: MutVal.Value) {
         private val addresses = addresses.toMutableList()
-
-        fun addAddresses(vararg addresses: MutVal.Value){
+        private var height = 1
+        fun addAddresses(vararg addresses: MutVal.Value) {
             this.addresses.addAll(addresses)
         }
-        fun getAddresses():List<MutVal.Value>{
-            return addresses
+
+        fun changeHeight(height: Int) {
+            if (height > 1) {
+                this.height = height
+            }
         }
+
+        fun getAddresses(): List<MutVal.Value> = addresses
+
+        fun getHeight(): Int = height
+
         abstract fun getContent(): List<Entry>
         data class Entry(val orientation: Orientation, val content: String)
-        enum class Orientation{
+        enum class Orientation {
             LEFT,
             CENTER,
             RIGHT
@@ -70,8 +78,6 @@ class Transcript(private val compiledHeaders: List<String> = listOf(), private v
         COMPILED,
         DISASSEMBLED
     }
-
-
 
 
 }

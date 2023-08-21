@@ -1008,12 +1008,13 @@ class RISCVGrammar() : Grammar() {
 
                             is R_INSTR -> {
                                 compiledRow.addInstr(row)
-                                compiledTSRows.add(compiledRow)
                                 when (row.instrType.memWords) {
                                     2 -> {
                                         compiledRow.addAddresses(address + MutVal.Value.Hex(4.toString(16)))
                                     }
                                 }
+                                compiledRow.changeHeight(row.instrType.memWords)
+                                compiledTSRows.add(compiledRow)
                                 address += MutVal.Value.Hex((row.instrType.memWords * 4).toString(16))
                                 compiledRow = RVCompiledRow(address.toHex())
                             }
@@ -2476,7 +2477,7 @@ class RISCVGrammar() : Grammar() {
         val content = RISCV.TS_COMPILED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
 
         init {
-            content[RISCV.TS_COMPILED_HEADERS.Address] = Entry(Orientation.LEFT, getAddresses().first().toHex().getRawHexStr())
+            content[RISCV.TS_COMPILED_HEADERS.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
 
         fun addLabel(label: R_JLBL) {
@@ -2491,7 +2492,6 @@ class RISCVGrammar() : Grammar() {
         override fun getContent(): List<Entry> {
             return RISCV.TS_COMPILED_HEADERS.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
         }
-
     }
 
 }

@@ -7,6 +7,7 @@ import extendable.components.connected.Transcript
 import extendable.components.types.MutVal
 import react.FC
 import react.Props
+import react.dom.aria.ariaRowSpan
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.table
@@ -119,12 +120,10 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 tbody {
                     for (row in transcript.getContent(currType)) {
                         tr {
-                            css{
+                            css {
                                 cursor = Cursor.pointer
-                            }
-                            for (address in row.getAddresses()) {
-                                if (address == currExeAddr) {
-                                    css {
+                                for (address in row.getAddresses()) {
+                                    if (address == currExeAddr) {
                                         backgroundColor = important(StyleConst.Main.Table.BgPC)
                                     }
                                 }
@@ -142,9 +141,34 @@ val TranscriptView = FC<TranscriptProps> { props ->
                             }
 
                             onClick = {
-                                row.getAddresses().firstOrNull()?.let{
+                                row.getAddresses().firstOrNull()?.let {
                                     appLogic.getArch().exeUntilAddress(it.toHex())
                                     props.updateParent()
+                                }
+                            }
+                        }
+                        repeat(row.getHeight() - 1) {
+                            tr {
+                                css {
+                                    cursor = Cursor.pointer
+                                    for (address in row.getAddresses()) {
+                                        if (address == currExeAddr) {
+                                            backgroundColor = important(StyleConst.Main.Table.BgPC)
+                                        }
+                                    }
+                                }
+
+                                repeat(row.getContent().size) {
+                                    td {
+                                        +"-"
+                                    }
+                                }
+
+                                onClick = {
+                                    row.getAddresses().firstOrNull()?.let {
+                                        appLogic.getArch().exeUntilAddress(it.toHex())
+                                        props.updateParent()
+                                    }
                                 }
                             }
                         }
