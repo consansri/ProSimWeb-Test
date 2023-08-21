@@ -552,7 +552,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         input {
                             id = "dv-address"
-                            pattern = "[0-9A-Fa-f]+"
                             placeholder = ArchConst.PRESTRING_HEX + "[address]"
                             maxLength = appLogic.getArch().getMemory().getAddressSize().byteCount * 2
                             prefix = "addr: "
@@ -566,7 +565,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         input {
                             id = "dv-value"
-                            pattern = "[0-9A-Fa-f]+"
                             placeholder = ArchConst.PRESTRING_HEX + "[value]"
                             maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
                             prefix = "value: "
@@ -627,7 +625,6 @@ val MemoryView = FC<MemViewProps> { props ->
                         input {
                             id = "dr-name"
                             placeholder = "[row name]"
-                            prefix = "name: "
 
                             onKeyDown = { event ->
                                 if (event.key == "Enter") {
@@ -641,7 +638,6 @@ val MemoryView = FC<MemViewProps> { props ->
                             pattern = "[0-9A-Fa-f]+"
                             placeholder = ArchConst.PRESTRING_HEX + "[start address]"
                             maxLength = appLogic.getArch().getMemory().getAddressSize().byteCount * 2
-                            prefix = "addr: "
                             defaultValue = "1".padEnd(appLogic.getArch().getMemory().getWordSize().bitWidth, '0')
                             onKeyDown = { event ->
                                 if (event.key == "Enter") {
@@ -655,7 +651,6 @@ val MemoryView = FC<MemViewProps> { props ->
                             pattern = "[0-9A-Fa-f]+"
                             placeholder = ArchConst.PRESTRING_HEX + "[initial]"
                             maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
-                            prefix = "value: "
                             defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().byteCount * 2)
 
                             onKeyDown = { event ->
@@ -663,16 +658,12 @@ val MemoryView = FC<MemViewProps> { props ->
                                     event.currentTarget.blur()
                                 }
                             }
-
                         }
-
-
 
                         input {
                             id = "dr-amount"
                             type = InputType.number
                             placeholder = "[amount]"
-                            prefix = "amount: "
                             defaultValue = memLength.toString()
 
                             onKeyDown = { event ->
@@ -696,6 +687,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                             address = (address + MutVal.Value.Hex("1")).toHex()
                                         }
                                         appLogic.getArch().getMemory().refreshEditableValues()
+                                        getEditableValues()
                                         setShowAddRow(false)
                                     } catch (e: NumberFormatException) {
                                         console.warn("NumberFormatException!")

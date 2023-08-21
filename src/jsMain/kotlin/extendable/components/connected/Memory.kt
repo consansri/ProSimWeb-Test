@@ -118,6 +118,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
     }
 
     fun addEditableValue(name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) {
+        editableValues.removeAll(editableValues.filter { it.address == address })
         editableValues.add(MemInstance.EditableValue(name, address, value))
         editableValues.sortBy { it.address.getRawHexStr() }
     }

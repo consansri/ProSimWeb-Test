@@ -386,7 +386,7 @@ object StyleConst {
             const val sstep = "benicons/exec/single_exe.svg"
             const val mstep = "benicons/exec/step_multiple.svg"
             const val skipsub = "benicons/exec/step_over.svg"
-            const val retsub = "benicons/exec/step_into.svg"
+            const val retsub = "benicons/exec/step_out.svg"
             const val recompile = "benicons/ver3/backwards.svg"
             const val clear = "benicons/ver3/delete_black.svg"
         }

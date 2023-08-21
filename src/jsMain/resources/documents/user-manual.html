@@ -21,6 +21,7 @@
     </ul>
 </ul>
 <h2>Code Editor</h2>
+<h3>Controls</h3>
 <ul>
     <li><img alt="transcript" src="../benicons/ver3/disassembler.svg"/>switches to transcript view<br>click on horizontal name to switch between compiled and disassembled transcript</li>
     <li><img alt="error" src="../benicons/ver3/status_error.svg"/><img alt="fine" src="../benicons/ver3/status_fine.svg"/><img alt="loading" src="../benicons/ver3/status_loading.svg"/>shows the compilation state of the current file<br>recompiles on click</li>
@@ -29,6 +30,12 @@
     <li><img alt="redo" src="../benicons/ver3/info.svg"/>shows code editor info and shortcuts on hover</li>
     <li><img alt="clear" src="../benicons/ver3/delete.svg"/>cleares current file content</li>
     <li><img alt="tag" src="../benicons/ver3/tag.svg"/>shows grammartree information of selected element in code for debugging</li>
+</ul>
+<h3>Files</h3>
+<ul>
+    <li><img alt="not compiled" src="../icons/file-question-alt.svg"/>(deprecated icon) file is not compiled</li>
+    <li><img alt="compiled" src="../icons/file-check-alt.svg"/>(deprecated icon) file is compiled</li>
+    <li><img alt="delete" src="../benicons/ver3/delete.svg"/>delete file</li>
 </ul>
 <h2>Execution Control</h2>
 <ul>
@@ -50,6 +57,9 @@
 <h2>Memory</h2>
 <ul>
     <li><img alt="edit" src="../icons/editable.svg"/>(deprecated icon) opens the edit window where you can add several addresses which you can then edit to simulate memory mapped io</li>
+    <ul>
+        <li><img alt="add" src="../icons/add-circle.svg"/>(deprecated icon) adds one or multiple editable addresses to memory</li>
+    </ul>
     <li>change between Little Endian and Big Endian<br>recompilation will be necessary before execution!</li>
     <li>change amount of memory instances which should be shown in one row instead of directly remapping the instances on each change<br>(could lead to a performance issue on fast changes) rows will be remapped every few seconds</li>
     <li><img alt="direction" src="../icons/direction.svg"/>(deprecated icon) reverse row address sorting (big to little, little to big)</li>
@@ -59,4 +69,9 @@
     <li><img alt="scrolldown" src="../benicons/ver3/autoscroll.svg"/>activate/deactivate automatic scroll to newest console message</li>
     <li><img alt="pin" src="../benicons/ver3/pin.svg"/>pin/unpin console</li>
     <li><img alt="clear" src="../benicons/ver3/delete.svg"/>cleares console</li>
+</ul>
+
+<h2>Bugs</h2>
+<ul>
+    <li>editable memory window isn't showing the right initiated default value right after adding it<br>reopen memory window to resolve this bug</li>
 </ul>

@@ -1,6 +1,7 @@
 package views
 
 import AppLogic
+import StorageKey
 import emotion.react.css
 import web.html.*
 import web.timers.*
@@ -35,6 +36,8 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     val titleRef = useRef<HTMLAnchorElement>()
     val mStepInputRef = useRef<HTMLInputElement>()
     val executionQueue = useRef<Timeout>(null)
+
+    val (mStepAmount, setMStepAmount) = useState(localStorage.getItem(StorageKey.MSTEP_VALUE) ?: 10)
 
     val (allowExe, setAllowExe) = useState(true)
     val appLogic by useState(props.appLogic)
@@ -154,19 +157,21 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
                 input {
                     ref = mStepInputRef
-                    placeholder = "Steps"
+                    placeholder = "steps"
                     type = InputType.number
                     name = "Steps"
                     min = 1.0
                     step = 1.0
 
-                    css{
-                        background =StyleConst.Main.Processor.BgColorTransparent.get()
+                    value = mStepAmount
+
+                    css {
+                        background = StyleConst.Main.Processor.BgColorTransparent.get()
                         color = StyleConst.Main.Processor.FgColor.get()
                     }
 
                     onChange = {
-                        localStorage.setItem(StorageKey.MSTEP_VALUE, it.currentTarget.value)
+                        setMStepAmount(it.currentTarget.valueAsNumber.toInt())
                     }
                 }
 
@@ -174,17 +179,15 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     img {
                         src = StyleConst.Icons.Exe.mstep
                     }
-                }
 
-
-
-                onClick = {
-                    if (allowExe) {
-                        mStepInputRef.current?.let {
-                            try {
-                                queueExecution(MultiStep, steps = it.value.toInt())
-                            } catch (e: NumberFormatException) {
-                                console.log("(info) steps input value isn't valid!")
+                    onClick = {
+                        if (allowExe) {
+                            mStepInputRef.current?.let {
+                                try {
+                                    queueExecution(MultiStep, steps = it.value.toInt())
+                                } catch (e: NumberFormatException) {
+                                    console.log("(info) steps input value isn't valid!")
+                                }
                             }
                         }
                     }
@@ -231,7 +234,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 disabled = !allowExe
                 p {
                     img {
-                        src =StyleConst.Icons.Exe.recompile
+                        src = StyleConst.Icons.Exe.recompile
                     }
                 }
                 onClick = {
@@ -295,6 +298,9 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             val value = localStorage.getItem(StorageKey.MSTEP_VALUE) ?: ""
             it.value = value
         }
+    }
+    useEffect(mStepAmount) {
+        localStorage.setItem(StorageKey.MSTEP_VALUE, mStepAmount.toString())
     }
 }
 
