@@ -227,7 +227,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                                                 if (isString) {
                                                     val content = constToken.content.substring(1, constToken.content.length - 1)
                                                     val valueList = mutableListOf<MutVal.Value.Hex>()
-                                                    for (char in content.reversed()) {
+                                                    for (char in content) {
                                                         valueList.add(MutVal.Value.Hex(char.code.toString(16), MutVal.Size.Bit8()))
                                                     }
                                                     resizedValues = valueList.toTypedArray()
@@ -335,7 +335,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                                                 if (isString) {
                                                     val content = constToken.content.substring(1, constToken.content.length - 1)
                                                     val valueList = mutableListOf<MutVal.Value.Hex>()
-                                                    for (char in content.reversed()) {
+                                                    for (char in content) {
                                                         valueList.add(MutVal.Value.Hex(char.code.toString(16), MutVal.Size.Bit8()))
                                                     }
                                                     resizedValues = valueList.toTypedArray()
@@ -412,44 +412,22 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
 
             val memory = architecture.getMemory()
 
-            // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
+            // adding bss addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in bssList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                for (valueID in alloc.values.indices) {
-                    val value = alloc.values[valueID]
-                    val address = alloc.address + MutVal.Value.Hex(valueID.toString(16)) * MutVal.Value.Hex(alloc.sizeOfOne.byteCount.toString(16))
-                    if (DebugTools.RISCV_showAsmInfo) {
-                        console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
-                    }
-                    memory.save(address, value, StyleConst.Main.Table.Mark.DATA, true)
-                }
+                memory.saveArray(address = alloc.address, values = alloc.values, StyleConst.Main.Table.Mark.DATA)
             }
 
             // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in rodataList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                for (valueID in alloc.values.indices) {
-                    val value = alloc.values[valueID]
-                    val address = alloc.address + MutVal.Value.Hex(valueID.toString(16)) * MutVal.Value.Hex(alloc.sizeOfOne.byteCount.toString(16))
-                    if (DebugTools.RISCV_showAsmInfo) {
-                        console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
-                    }
-                    memory.save(address, value, StyleConst.Main.Table.Mark.DATA, true)
-                }
+                memory.saveArray(address = alloc.address, values = alloc.values, StyleConst.Main.Table.Mark.DATA, true)
             }
-
 
             // adding data alloc addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in dataList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                for (valueID in alloc.values.indices) {
-                    val value = alloc.values[valueID]
-                    val address = alloc.address + MutVal.Value.Hex(valueID.toString(16)) * MutVal.Value.Hex(alloc.sizeOfOne.byteCount.toString(16))
-                    if (DebugTools.RISCV_showAsmInfo) {
-                        console.log("Assembly.generateByteCode(): ASM-STORE DATA ${value.toHex().getRawHexStr()} at ${address.toHex().getRawHexStr()}")
-                    }
-                    memory.save(address, value, StyleConst.Main.Table.Mark.DATA)
-                }
+                memory.saveArray(address = alloc.address, values = alloc.values, StyleConst.Main.Table.Mark.DATA)
             }
 
             // Getting binary and store binary in memory

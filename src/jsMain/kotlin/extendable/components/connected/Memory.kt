@@ -51,6 +51,41 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         }
     }
 
+    fun saveArray(address: MutVal.Value, vararg values: MutVal.Value, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, readonly: Boolean = false) {
+        // Little Endian
+        var wordList = values.map {value -> value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() } }.reversed().flatten()
+
+        if (endianess == Endianess.BigEndian) {
+            // Big Endian
+            wordList = wordList.reversed()
+        }
+
+        var hexAddress = address.toBin().getUResized(addressSize).toHex()
+        if (DebugTools.ARCH_showMemoryInfo) {
+            console.log("saving... ${endianess.name} {${values.joinToString(" ") { it.toHex().getHexStr() }}}, $wordList to ${hexAddress.getRawHexStr()}")
+        }
+
+        for (word in wordList) {
+            val instance = memMap[hexAddress.getRawHexStr()]
+            if (instance != null) {
+                if (!instance.readonly) {
+                    instance.mutVal.setHex(word.toString())
+                    if (mark != StyleConst.Main.Table.Mark.ELSE) {
+                        instance.mark = mark
+                    }
+                } else {
+                    console.warn("Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
+                }
+            } else {
+                val mutVal = MutVal(initBin, wordSize)
+                mutVal.setHex(word.toString())
+                val newInstance = MemInstance(hexAddress, mutVal, mark, readonly)
+                memMap[hexAddress.getRawHexStr()] = newInstance
+            }
+            hexAddress = (hexAddress + MutVal.Value.Hex("1")).toHex()
+        }
+    }
+
     fun save(address: MutVal.Value, value: MutVal.Value, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
