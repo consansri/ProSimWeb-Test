@@ -35,6 +35,12 @@ abstract class Grammar {
 
     class TokenSequence(vararg val components: Component, val ignoreSpaces: Boolean = false) {
 
+        init {
+            if (components.isEmpty()) {
+                console.warn("Empty TokenSequence Defined!")
+            }
+        }
+
         fun getLength(): Int {
             return components.size
         }
@@ -48,18 +54,19 @@ abstract class Grammar {
                     }
                 }
             }
-
-            return if (components.size != trimmedTokens.size) {
-                SeqMatchResult(false, emptyList())
-            } else {
-                val sequenceResult = match(*trimmedTokens.toTypedArray())
-
-                if (sequenceResult.size == components.size) {
-                    SeqMatchResult(true, sequenceResult)
-                } else {
-                    SeqMatchResult(false, sequenceResult)
+            if (components.size != trimmedTokens.size) {
+                return SeqMatchResult(false, emptyList())
+            }
+            val sequenceMap = mutableListOf<SeqMap>()
+            for (component in components) {
+                val index = components.indexOf(component)
+                val token = trimmedTokens[index]
+                sequenceMap.add(SeqMap(component, token))
+                if (!component.matches(token)) {
+                    return SeqMatchResult(false, emptyList())
                 }
             }
+            return SeqMatchResult(true, sequenceMap)
         }
 
         fun matches(vararg tokens: Compiler.Token): SeqMatchResult {
@@ -72,76 +79,65 @@ abstract class Grammar {
                 }
             }
 
+            console.log("checking: ${tokens.joinToString("") { it.content }}")
+
             if (trimmedTokens.size < components.size) {
+                console.log("result: emtpy trimmedTokens < components")
                 return SeqMatchResult(false, emptyList())
             }
 
-            val sequenceResult = match(*trimmedTokens.toTypedArray())
-
-            return if (sequenceResult.size == components.size) {
-                SeqMatchResult(true, sequenceResult)
-            } else {
-                SeqMatchResult(false, sequenceResult)
-            }
-
-        }
-
-        private fun match(vararg tokens: Compiler.Token): List<SeqMap> {
-            val sequenceResult = mutableListOf<SeqMap>()
-            for (component in components) {
-                val index = components.indexOf(component)
-                val token = tokens[index]
-
-
-                when (component) {
-                    is Component.InSpecific -> {
-                        when (component) {
-                            is Component.InSpecific.Symbol -> {
-                                if (token is Compiler.Token.Symbol) {
-                                    sequenceResult.add(SeqMap(component, token))
-                                }
-                            }
-
-                            is Component.InSpecific.Word -> {
-                                if (token is Compiler.Token.Word) {
-                                    sequenceResult.add(SeqMap(component, token))
-                                }
-                            }
-
-                            is Component.InSpecific.AlphaNum -> {
-                                if (token is Compiler.Token.AlphaNum) {
-                                    sequenceResult.add(SeqMap(component, token))
-                                }
-                            }
-
-                            is Component.InSpecific.Constant -> {
-                                if (token is Compiler.Token.Constant) {
-                                    sequenceResult.add(SeqMap(component, token))
-                                }
-                            }
-
-                            is Component.InSpecific.Register -> {
-                                if (token is Compiler.Token.Register) {
-                                    sequenceResult.add(SeqMap(component, token))
-                                }
-                            }
-
-                            is Component.InSpecific.Space -> {
-                                if (token is Compiler.Token.Space) {
-                                    sequenceResult.add(SeqMap(component, token))
-                                }
-                            }
+            var foundStart = false
+            var startIndex = -1
+            val sequenceList = mutableListOf<SeqMap>()
+            for (token in trimmedTokens) {
+                if (components.first().matches(token) && !foundStart) {
+                    foundStart = true
+                    startIndex = trimmedTokens.indexOf(token)
+                }
+                if (foundStart) {
+                    val compID = trimmedTokens.indexOf(token) - startIndex
+                    if (compID < components.size) {
+                        if (components[compID].matches(token)) {
+                            sequenceList.add(SeqMap(components[compID], token))
+                        } else {
+                            foundStart = false
+                            sequenceList.clear()
                         }
-                    }
-
-                    is Component.Specific -> {
-                        if (token.content == component.content) {
-                            sequenceResult.add(SeqMap(component, token))
-                        }
+                    } else {
+                        break
                     }
                 }
             }
-            return sequenceResult
+            console.log("result: ${sequenceList.joinToString("") { it.token.content }}")
+            if (sequenceList.size == components.size) {
+                return SeqMatchResult(true, sequenceList)
+            } else {
+                return SeqMatchResult(false, emptyList())
+            }
+        }
+
+        fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
+            val trimmedTokens = tokens.toMutableList()
+            if (ignoreSpaces) {
+                for (token in trimmedTokens) {
+                    if (token is Compiler.Token.Space) {
+                        trimmedTokens.remove(token)
+                    }
+                }
+            }
+            if (components.size > trimmedTokens.size) {
+                return SeqMatchResult(false, emptyList())
+            }
+            val sequenceMap = mutableListOf<SeqMap>()
+            for (component in components) {
+                val index = components.indexOf(component)
+                val token = trimmedTokens[index]
+                sequenceMap.add(SeqMap(component, token))
+                if (!component.matches(token)) {
+                    return SeqMatchResult(false, emptyList())
+                }
+            }
+            return SeqMatchResult(true, sequenceMap)
         }
 
         data class SeqMap(val component: Component, val token: Compiler.Token)
@@ -149,23 +145,37 @@ abstract class Grammar {
         data class SeqMatchResult(val matches: Boolean, val sequenceMap: List<SeqMap>)
 
         sealed class Component {
-            class Specific(val content: String) : Component() {
+            abstract fun matches(token: Compiler.Token): Boolean
 
+            class Specific(val content: String) : Component() {
+                override fun matches(token: Compiler.Token): Boolean = content == token.content
             }
 
             sealed class InSpecific : Component() {
 
-                class Symbol : InSpecific()
+                class Symbol : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.SYMBOL
+                }
 
-                class Word : InSpecific()
+                class Word : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.WORD
+                }
 
-                class AlphaNum : InSpecific()
+                class AlphaNum : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.ALPHANUM
+                }
 
-                class Constant : InSpecific()
+                class Constant : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.CONSTANT
+                }
 
-                class Register : InSpecific()
+                class Register : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.REGISTER
+                }
 
-                class Space : InSpecific()
+                class Space : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.SPACE
+                }
 
             }
         }
@@ -187,6 +197,7 @@ abstract class Grammar {
                 }
             }
         }
+
         open class RowNode(name: String, vararg val nullableElementNodes: ElementNode?) : TreeNode(name) {
             val elementNodes: Array<out ElementNode>
 
@@ -210,6 +221,7 @@ abstract class Grammar {
                 return null
             }
         }
+
         open class SectionNode(name: String, vararg val collNodes: RowNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
@@ -227,6 +239,7 @@ abstract class Grammar {
                 return null
             }
         }
+
         open class ContainerNode(name: String, vararg val nodes: TreeNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
@@ -236,7 +249,7 @@ abstract class Grammar {
 
             override fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult? {
                 nodes.forEach {
-                    val result = it.searchTokenNode(token,"$prevPath/${this.name}")
+                    val result = it.searchTokenNode(token, "$prevPath/${this.name}")
                     if (result != null) {
                         return result
                     }
@@ -244,6 +257,7 @@ abstract class Grammar {
                 return null
             }
         }
+
         open class RootNode(allErrors: List<Error>, allWarnings: List<Warning>, vararg val containers: ContainerNode) : TreeNode("root") {
 
             val allErrors: List<Error>
@@ -276,7 +290,7 @@ abstract class Grammar {
 
             override fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult? {
                 containers.forEach {
-                    val result = it.searchTokenNode(token,"$prevPath/${this.name}")
+                    val result = it.searchTokenNode(token, "$prevPath/${this.name}")
                     if (result != null) {
                         return result
                     }

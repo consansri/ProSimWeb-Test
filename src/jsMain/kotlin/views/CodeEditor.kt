@@ -6,6 +6,7 @@ import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.FileHandler
 import kotlinx.browser.window
+import kotlinx.coroutines.*
 import web.html.*
 import react.*
 import react.dom.aria.ariaHidden
@@ -51,6 +52,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val preHLTimeoutRef = useRef<Timeout>(null)
     val checkTimeOutRef = useRef<Timeout>(null)
     val executionPointInterval = useRef<Timeout>(null)
+
+    var job: Job? = null
 
     /* ----------------- REACT STATES ----------------- */
 

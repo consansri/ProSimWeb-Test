@@ -92,11 +92,20 @@ class RISCVGrammar() : Grammar() {
 
         // ----------------- remove Comments
         for (lineID in remainingLines.indices) {
-            val lineStr = remainingLines[lineID].joinToString("") { it.content }
-            SyntaxRegex.pre_comment.matchEntire(lineStr)?.let {
-                pres.add(Pre_COMMENT(*remainingLines[lineID].toTypedArray()))
-                remainingLines[lineID] = emptyList()
+            val lineContent = remainingLines[lineID].toMutableList()
+            val removedComment = mutableListOf<Compiler.Token>()
+            for (tokenID in lineContent.indices) {
+                val token = lineContent[tokenID]
+                if (token.content == "#") {
+                    removedComment.addAll(lineContent.subList(tokenID, lineContent.size))
+                    lineContent.removeAll(removedComment)
+                    break
+                }
             }
+            if (removedComment.isNotEmpty()) {
+                pres.add(Pre_COMMENT(*removedComment.toTypedArray()))
+            }
+            remainingLines[lineID] = lineContent
         }
 
         // ----------------- remove options
@@ -143,21 +152,14 @@ class RISCVGrammar() : Grammar() {
                 val name = compiler.pseudoAnalyze(it.groupValues[2])
                 val const = compiler.pseudoAnalyze(it.groupValues[3])
 
-                val nameMatch = (name.size == 1 && (name.first() is Compiler.Token.Word || name.first() is Compiler.Token.AlphaNum))
                 val constMatch = (const.size == 1 && const.first() is Compiler.Token.Constant)
 
-                if (nameMatch && constMatch) {
-                    equs.add(EquDefinition(name.first(), const.first()))
+                if (constMatch) {
+                    equs.add(EquDefinition(name, const.first()))
                     pres.add(Pre_EQU(*remainingLines[lineID].toTypedArray()))
                 } else {
-                    var message = ""
-                    if (!nameMatch) {
-                        message += "{name: ${it.groupValues[2]}} is not a valid name for an equ definition! "
-                    }
-                    if (!constMatch) {
-                        message += "{constant: ${it.groupValues[3]}} is not a valid constant for an equ definition! "
-                    }
-                    errors.add(Grammar.Error(message, *remainingLines[lineID].toTypedArray()))
+                    val message = "{constant: ${it.groupValues[3]}} is not a valid constant for an equ definition! "
+                    errors.add(Error(message, *remainingLines[lineID].toTypedArray()))
                 }
                 remainingLines[lineID] = emptyList()
             }
@@ -166,15 +168,17 @@ class RISCVGrammar() : Grammar() {
         // resolve definitions
         for (lineID in remainingLines.indices) {
             val tokenList = remainingLines[lineID].toMutableList()
-            for (tokenID in tokenList.indices) {
-                val token = tokenList[tokenID]
-                for (equ in equs) {
-                    if (token.content == equ.name.content) {
-                        pres.add(Pre_EQU(token))
-                        tokenList[tokenID] = equ.constant
-                    }
+            for (equ in equs) {
+                val result = equ.nameSequence.matches(*tokenList.toTypedArray())
+                if (result.matches) {
+                    val nametokens = result.sequenceMap.map { it.token }
+                    val firstID = tokenList.indexOf(nametokens.first())
+                    tokenList.removeAll(nametokens)
+                    pres.add(Pre_EQU(*nametokens.toTypedArray()))
+                    tokenList.add(firstID, equ.constant)
                 }
             }
+
             remainingLines[lineID] = tokenList
         }
 
@@ -184,8 +188,8 @@ class RISCVGrammar() : Grammar() {
         val macros = mutableListOf<MacroDefinition>()
         var foundStart = false
         var name = ""
-        val arguments = mutableListOf<String>()
-        val replacementLines = mutableListOf<String>()
+        var arguments = mutableListOf<String>()
+        var replacementLines = mutableListOf<String>()
         val macroTokens = mutableListOf<Compiler.Token>()
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
@@ -243,6 +247,8 @@ class RISCVGrammar() : Grammar() {
                         }
                     }
                     macroTokens.clear()
+                    replacementLines = mutableListOf()
+                    arguments = mutableListOf()
                 } else {
                     replacementLines.add(lineStr)
                     macroTokens.addAll(remainingLines[lineID])
@@ -251,12 +257,14 @@ class RISCVGrammar() : Grammar() {
             }
         }
         if (foundStart) {
-            errors.add(Grammar.Error("Macro definition has no ending (.endm)!", *macroTokens.toTypedArray()))
+            errors.add(Error("Macro definition has no ending (.endm)!", *macroTokens.toTypedArray()))
         }
 
         // resolve macros
-        for (lineID in remainingLines.indices) {
-            val lineStr = remainingLines[lineID].joinToString("") { it.content }
+        var macroLineID = 0
+        while (macroLineID < remainingLines.size) {
+            var skipLines = 1
+            val lineStr = remainingLines[macroLineID].joinToString("") { it.content }
             SyntaxRegex.pre_macro_line.matchEntire(lineStr)?.let { matchResult ->
                 val resultName = matchResult.groupValues[1]
                 val argumentContent = mutableListOf<String>()
@@ -264,27 +272,31 @@ class RISCVGrammar() : Grammar() {
                     argumentContent.add(it.trimStart().trimEnd())
                 }
 
-                for (macro in macros) {
-                    if (resultName == macro.name && argumentContent.size == macro.arguments.size) {
-                        pres.add(Pre_MACRO(*remainingLines[lineID].toTypedArray()))
-                        remainingLines.removeAt(lineID)
+                val matchingMacros = macros.filter { it.name == resultName }
+                if (matchingMacros.size == 1) {
 
-                        // actual replacement
+                    val macro = matchingMacros.first()
+                    if (macro.arguments.size == argumentContent.size) {
+                        pres.add(Pre_MACRO(*remainingLines[macroLineID].toTypedArray()))
+                        remainingLines.removeAt(macroLineID)
+
                         for (macroLine in macro.replacementLines.reversed()) {
                             var replacedLine = macroLine
                             for (attrID in macro.arguments.indices) {
                                 replacedLine = replacedLine.replace("""\""" + macro.arguments[attrID], argumentContent[attrID])
                             }
                             if (DebugTools.RISCV_showGrammarScanTiers) {
-                                console.log("\tmacro insert line ${lineID + 1}: $replacedLine")
+                                console.log("\tmacro insert line ${macroLineID + 1}: $replacedLine")
                             }
-                            remainingLines.add(lineID, compiler.pseudoAnalyze(replacedLine))
+                            remainingLines.add(macroLineID, compiler.pseudoAnalyze(replacedLine))
                         }
+                        skipLines = macro.replacementLines.size
                     }
                 }
             }
-        }
 
+            macroLineID += skipLines
+        }
 
         /**
          * FIND UNRESOLVED
@@ -506,7 +518,7 @@ class RISCVGrammar() : Grammar() {
                 if (parameterList.isEmpty() || parameterList.last() is E_PARAM.SplitSymbol) {
 
                     // OFFSET
-                    val offsetResult = E_PARAM.Offset.Syntax.tokenSequence.matches(*paramBuffer.toTypedArray())
+                    val offsetResult = E_PARAM.Offset.Syntax.tokenSequence.matchStart(*paramBuffer.toTypedArray())
                     if (offsetResult.matches) {
                         val constant = offsetResult.sequenceMap.get(0)
                         val lParan = offsetResult.sequenceMap.get(1)
@@ -2467,8 +2479,20 @@ class RISCVGrammar() : Grammar() {
     class C_PRES(vararg val preElements: ElementNode) : TreeNode.ContainerNode(REFS.REF_C_PRES, *preElements)
 
     /* -------------------------------------------------------------- PRE DATA CLASSES -------------------------------------------------------------- */
-    data class EquDefinition(val name: Compiler.Token, val constant: Compiler.Token)
-    data class MacroDefinition(val name: String, val arguments: List<String>, val replacementLines: List<String>)
+    data class EquDefinition(val name: List<Compiler.Token>, val constant: Compiler.Token) {
+        val nameSequence: TokenSequence
+
+        init {
+            val sequenceComponents = name.map { TokenSequence.Component.Specific(it.content) }
+            nameSequence = TokenSequence(*sequenceComponents.toTypedArray())
+        }
+    }
+
+    data class MacroDefinition(val name: String, val arguments: List<String>, val replacementLines: List<String>) {
+        init {
+            console.log("$name $arguments\n$replacementLines")
+        }
+    }
 
     /**
      * FOR TRANSCRIPT
