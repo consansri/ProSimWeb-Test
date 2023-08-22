@@ -1,4 +1,5 @@
 import emotion.react.css
+import js.errors.TypeError
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import web.html.*
@@ -8,6 +9,7 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.input
 import tools.DebugTools
 import views.*
 import web.cssom.*
@@ -15,12 +17,14 @@ import web.cssom.*
 
 val App = FC<Props> { props ->
 
-    AppStyle {
-
-    }
+    val navRef = useRef<HTMLDivElement>()
+    val mainRef = useRef<HTMLElement>()
+    val footerRef = useRef<HTMLElement>()
 
     val (appLogic, setAppLogic) = useState<AppLogic>(AppLogic())
     val (mode, setMode) = useState<StyleConst.Mode>(StyleConst.mode)
+    val (reloadUI, setReloadUI) = useState(false)
+    val (lPercentage, setLPct) = useState<Int>(40)
 
     localStorage.getItem(StorageKey.ARCH_TYPE)?.let {
         val loaded = it.toInt()
@@ -29,11 +33,7 @@ val App = FC<Props> { props ->
         }
     }
 
-    val (reloadUI, setReloadUI) = useState(false)
-
-    val navRef = useRef<HTMLDivElement>()
-    val mainRef = useRef<HTMLElement>()
-    val footerRef = useRef<HTMLElement>()
+    AppStyle {}
 
     fun updateApp() {
         console.log("update App from Child Component")
@@ -73,9 +73,11 @@ val App = FC<Props> { props ->
             div {
                 id = "lcontainer"
                 css {
-                    flex = StyleConst.Main.lPercentage.pct
+                    flex = lPercentage.pct
                     position = Position.relative
-
+                    if (lPercentage == 0) {
+                        visibility = Visibility.hidden
+                    }
                     StyleConst.layoutSwitchMediaQuery {
                         flex = 100.pct
                         display = Display.block
@@ -87,12 +89,16 @@ val App = FC<Props> { props ->
                     update = useState(reloadUI)
                     updateParent = ::updateApp
                 }
+
             }
 
             div {
                 id = "rcontainer"
                 css {
-                    flex = StyleConst.Main.rPercentage.pct
+                    flex = (100 - lPercentage).pct
+                    if (100 - lPercentage == 0) {
+                        visibility = Visibility.hidden
+                    }
                     display = Display.flex
                     flexDirection = FlexDirection.column
                     gap = StyleConst.paddingSize
@@ -107,6 +113,7 @@ val App = FC<Props> { props ->
                         flex = 100.pct
                     }
                 }
+
                 ProcessorView {
                     this.appLogic = appLogic
                     update = useState(reloadUI)
@@ -182,6 +189,8 @@ val App = FC<Props> { props ->
                         }
                     }
                 }
+
+
             }
         }
         div {
@@ -194,6 +203,27 @@ val App = FC<Props> { props ->
                 flexWrap = FlexWrap.nowrap
                 padding = StyleConst.paddingSize
             }
+
+            input {
+                type = InputType.range
+
+                css {
+                    accentColor = StyleConst.Main.AppControls.BgColor.get()
+                    StyleConst.layoutSwitchMediaQuery {
+                        visibility = Visibility.hidden
+                    }
+                }
+
+                min = 0.0
+                max = 100.0
+                defaultValue = 40.0
+                step = 10.0
+
+                onChange = { event ->
+                    setLPct(event.currentTarget.valueAsNumber.toInt())
+                }
+            }
+
             InfoView {
                 this.appLogic = appLogic
                 this.update = useState(reloadUI)

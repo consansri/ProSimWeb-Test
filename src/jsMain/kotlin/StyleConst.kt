@@ -36,9 +36,6 @@ object StyleConst {
         val BgColor = ModeColor("#F1F1E6", "#575767")
         val FgColor = ModeColor("#454545", "#D5D5D5")
 
-        val lPercentage = 40
-        val rPercentage = 100 - lPercentage
-
         val elementShadow = BoxShadow(0.px, 3.px, 6.px, rgb(0, 0, 0, 0.77))
 
         val DeleteFilter = important(invert(0.pct))

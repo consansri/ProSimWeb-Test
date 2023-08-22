@@ -163,26 +163,23 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun checkCode(immediate: Boolean) {
         val valueToCheck = appLogic.getArch().getFileHandler().getCurrContent()
-        val delay: Int
-        val size = valueToCheck.split("\n").size
-
-        delay = when {
-            size < 500 -> 1000
-            size > 3000 -> 3000
-            else -> size
-        }
+        val delay = 3000
 
         if (immediate) {
             setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
             setCheckState(appLogic.getArch().getState().getState())
         } else {
-            checkTimeOutRef.current?.let {
-                clearTimeout(it)
+            val size = valueToCheck.split("\n").size
+            if(size < 250){
+                checkTimeOutRef.current?.let {
+                    clearTimeout(it)
+                }
+                checkTimeOutRef.current = setTimeout({
+                    setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
+                    setCheckState(appLogic.getArch().getState().getState())
+                }, delay)
             }
-            checkTimeOutRef.current = setTimeout({
-                setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
-                setCheckState(appLogic.getArch().getState().getState())
-            }, delay)
+
         }
     }
 
@@ -300,6 +297,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 css {
                     height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
+
+                    hover {
+                        filter = brightness(0.8)
+                    }
                 }
 
                 onClick = {
@@ -470,15 +471,15 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 overflow = Overflow.hidden
                 display = Display.flex
                 flexDirection = FlexDirection.column
-                maxHeight = 100.pc
-                width = 100.pc
+                maxHeight = 100.pct
+                width = 100.pct
                 this.lineHeight = StyleConst.Main.Editor.TextField.lineHeight.px
                 fontFamily = FontFamily.monospace
                 backgroundColor = StyleConst.Main.Editor.BgColor.get()
                 color = StyleConst.Main.Editor.FgColor.get()
                 caretColor = important(StyleConst.Main.Editor.FgColor.get())
-                borderRadius = 2.px
-                padding = 1.pc
+                borderRadius = StyleConst.borderRadius
+                padding = StyleConst.paddingSize
                 boxShadow = StyleConst.Main.elementShadow
             }
 
