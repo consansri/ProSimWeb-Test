@@ -324,6 +324,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private fun compile() {
         architecture.getMemory().clear()
         architecture.getRegisterContainer().pc.reset()
+        architecture.getTranscript().clear(Transcript.Type.DISASSEMBLED)
         if (isBuildable) {
             grammarTree?.let {
                 assemblyMap = assembly.generateByteCode(architecture, it)
@@ -334,7 +335,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             grammarTree?.let {
                 architecture.getFileHandler().getCurrent().linkGrammarTree(it)
             }
-
         }
 
     }
