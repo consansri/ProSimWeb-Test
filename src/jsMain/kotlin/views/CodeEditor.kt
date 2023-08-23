@@ -163,7 +163,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun checkCode(immediate: Boolean) {
         val valueToCheck = appLogic.getArch().getFileHandler().getCurrContent()
-        val delay = 3000
+        val delay = 1000
 
         if (immediate) {
             setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
