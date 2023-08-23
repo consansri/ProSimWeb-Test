@@ -170,7 +170,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             setCheckState(appLogic.getArch().getState().getState())
         } else {
             val size = valueToCheck.split("\n").size
-            if(size < 250){
+            if (size < 250) {
                 checkTimeOutRef.current?.let {
                     clearTimeout(it)
                 }
@@ -297,14 +297,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 css {
                     height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
-
-                    hover {
-                        filter = brightness(0.8)
-                    }
-                }
-
-                onClick = {
-                    checkCode(true)
                 }
 
                 when (checkState) {
@@ -382,6 +374,26 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     onClick = {
                         redo()
                     }
+                }
+            }
+
+            a {
+                css {
+                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    cursor = Cursor.pointer
+
+                    hover {
+                        filter = important(StyleConst.iconActiveFilter)
+                    }
+                }
+                id = "build"
+                title = "build"
+
+                img {
+                    src = StyleConst.Icons.build
+                }
+                onClick = {
+                    checkCode(true)
                 }
             }
 

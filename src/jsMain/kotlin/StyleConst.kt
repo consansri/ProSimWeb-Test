@@ -361,6 +361,7 @@ object StyleConst {
     object Icons {
         const val autoscroll = "benicons/ver3/autoscroll.svg"
         const val backwards = "benicons/ver3/backwards.svg"
+        const val build = "icons/editor/build.svg"
         const val darkmode = "benicons/ver3/darkmode.svg"
         const val disassembler = "benicons/ver3/disassembler.svg"
         const val export = "benicons/ver3/export.svg"

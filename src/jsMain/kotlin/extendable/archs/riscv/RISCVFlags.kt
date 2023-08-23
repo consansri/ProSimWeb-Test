@@ -20,4 +20,6 @@ object RISCVFlags {
     val pre_macro = HL.base03.getFlag()
     val pre_attribute = HL.base04.getFlag()
 
+    val pre_unresolved = HL.base05.getFlag()
+
 }

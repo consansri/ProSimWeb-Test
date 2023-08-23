@@ -303,6 +303,19 @@ class RISCVGrammar() : Grammar() {
          */
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
+            for (regex in SyntaxRegex.pre_unresolvedList) {
+                regex.matchEntire(lineStr)?.let {matchResult ->
+                    pres.add(Pre_UNRESOLVED(*remainingLines[lineID].toTypedArray()))
+                    remainingLines[lineID] = emptyList()
+                }
+            }
+        }
+
+        /**
+         * FIND REMAINING ERRORS
+         */
+        for (lineID in remainingLines.indices) {
+            val lineStr = remainingLines[lineID].joinToString("") { it.content }
             for (entry in SyntaxInfo.pre_map) {
                 if (lineStr.contains(entry.key)) {
                     warnings.add(Warning("${entry.key} element doesn't match right Syntax! ${entry.value}", *remainingLines[lineID].toTypedArray()))
@@ -1060,6 +1073,8 @@ class RISCVGrammar() : Grammar() {
         val pre_attribute = Regex("""^\s*(\.attribute\s+.+)\s*?""")
         val pre_globalStart = Regex("""^\s*(\.global\s+(?<labelName>.+))\s*?""")
         val pre_globalStart_contentgroup = "labelName"
+
+        val pre_unresolvedList = listOf(Regex("""^\s*(fence\.i)\s*?"""))
     }
 
     object RowSeqs {
@@ -1082,6 +1097,7 @@ class RISCVGrammar() : Grammar() {
     object REFS {
         val REF_PRE_IMPORT = "PRE_import"
         val REF_PRE_COMMENT = "PRE_comment"
+        val REF_PRE_UNRESOLVED = "PRE_unresolved"
         val REF_PRE_OPTION = "PRE_option"
         val REF_PRE_GLOBAL = "PRE_global"
         val REF_PRE_ATTRIBUTE = "PRE_attribute"
@@ -1122,6 +1138,7 @@ class RISCVGrammar() : Grammar() {
     class Pre_GLOBAL(vararg tokens: Compiler.Token, val labelName: String) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_global), REFS.REF_PRE_GLOBAL, *tokens)
     class Pre_MACRO(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_macro), REFS.REF_PRE_MACRO, *tokens)
     class Pre_EQU(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_equ), REFS.REF_PRE_EQU, *tokens)
+    class Pre_UNRESOLVED(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.pre_unresolved), REFS.REF_PRE_UNRESOLVED, *tokens)
 
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RISCVFlags.instruction), REFS.REF_E_INSTRNAME, insToken) {
