@@ -10,11 +10,9 @@ import tools.DebugTools
 import views.components.IConsoleView
 import web.cssom.*
 import StyleConst.Main.InfoView
+import extendable.components.connected.Docs
 import js.promise.await
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.html
@@ -34,6 +32,7 @@ external interface InfoViewProps : Props {
     var footerRef: MutableRefObject<HTMLElement>
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 val InfoView = FC<InfoViewProps> { props ->
 
     val docDiv = useRef<HTMLDivElement>()
@@ -198,6 +197,15 @@ val InfoView = FC<InfoViewProps> { props ->
                 }
                 ref = docDiv
 
+                currMDID?.let{ id ->
+                    appLogic.getArch().getDocs().files.getOrNull(id)?.let{file ->
+                        if (file is Docs.HtmlFile.DefinedFile) {
+                            file.fc{
+
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -211,10 +219,13 @@ val InfoView = FC<InfoViewProps> { props ->
     useEffect(currMDID) {
 
         if (currMDID != null) {
-            job = GlobalScope.launch {
-                val snippet = fetch(appLogic.getArch().getDocs().files[currMDID].src).text()
-                docDiv.current?.let {
-                    it.innerHTML = snippet.await()
+            val file = appLogic.getArch().getDocs().files[currMDID]
+            if (file is Docs.HtmlFile.SourceFile) {
+                job = GlobalScope.launch {
+                    val snippet = fetch(file.src).text()
+                    docDiv.current?.let {
+                        it.innerHTML = snippet.await()
+                    }
                 }
             }
         } else {

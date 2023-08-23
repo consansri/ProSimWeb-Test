@@ -7,8 +7,6 @@ import extendable.components.connected.Memory
 import extendable.components.types.MutVal
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -401,20 +399,20 @@ val MemoryView = FC<MemViewProps> { props ->
                                 val emptyAscii = appLogic.getArch().getMemory().getInitialBinary().get().toASCII()
                                 for (column in 0 until memLength) {
                                     val memInstance = memRow?.get(column)
-                                    if (memInstance != null) {
-                                        asciiString += memInstance.mutVal.get().toASCII()
+                                    asciiString += if (memInstance != null) {
+                                        memInstance.mutVal.get().toASCII()
                                     } else {
-                                        asciiString += emptyAscii
+                                        emptyAscii
                                     }
                                 }
 
                                 +asciiString
                             }
                         }
-                        if (lowFirst) {
-                            nextAddress = (MutVal.Value.Hex(memRowKey) + memLengthValue)
+                        nextAddress = if (lowFirst) {
+                            (MutVal.Value.Hex(memRowKey) + memLengthValue)
                         } else {
-                            nextAddress = (MutVal.Value.Hex(memRowKey) - memLengthValue)
+                            (MutVal.Value.Hex(memRowKey) - memLengthValue)
                         }
                     }
                 }

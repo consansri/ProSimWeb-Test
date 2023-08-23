@@ -427,12 +427,15 @@ val AppStyle = FC<Props> {
 
                         ".${StyleConst.Main.Table.CLASS_TXT_LEFT}" {
                             textAlign = important(TextAlign.left)
+                            verticalAlign = important(VerticalAlign.middle)
                         }
                         ".${StyleConst.Main.Table.CLASS_TXT_CENTER}" {
                             textAlign = important(TextAlign.center)
+                            verticalAlign = important(VerticalAlign.middle)
                         }
                         ".${StyleConst.Main.Table.CLASS_TXT_RIGHT}" {
                             textAlign = important(TextAlign.right)
+                            verticalAlign = important(VerticalAlign.middle)
                         }
                         ".${StyleConst.Main.Table.CLASS_MONOSPACE}" {
                             StyleConst.codeFont
