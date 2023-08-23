@@ -164,7 +164,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
         div {
             /*className = ClassName(StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL)*/
-            css{
+            css {
                 overflowY = Overflow.scroll
                 maxHeight = StyleConst.Main.Processor.MaxHeightReg
                 borderRadius = StyleConst.borderRadius
@@ -176,6 +176,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 val registerArray = registerContainer.getRegisterFileList()[currRegFileIndex]
                 thead {
                     tr {
+
+                        css {
+                            th {
+                                background = important(StyleConst.Main.Processor.TableBgColor.get())
+                            }
+                        }
 
                         th {
                             className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
@@ -375,8 +381,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             for (reg in it.registers) {
                 val regID = it.registers.indexOf(reg)
                 try {
-                    val regRef = document.getElementById("reg0$regID") as HTMLInputElement
-                    regRef.value = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
+                    val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
+                    regRef?.value = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                         HEX -> {
                             reg.mutVal.get().toHex().getRawHexStr()
                         }

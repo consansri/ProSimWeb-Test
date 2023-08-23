@@ -228,12 +228,9 @@ object StyleConst {
             val BorderColor = Color("#E3E3E2FF")
             val StripeColor = Color("#FFFFFF19")
 
-            val RangeWidth = 5.rem
-
             val IconSize = 1.8.rem
             val IconPadding = 0.1.rem
 
-            val FontSizeCaption = 1.13.em
             val FontSizeHead = 0.84.em
             val FontSizeBody = 0.84.em
             val FontSizeSelect = 0.7.em

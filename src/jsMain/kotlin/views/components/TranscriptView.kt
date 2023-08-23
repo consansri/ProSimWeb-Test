@@ -106,7 +106,9 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
                     tr {
                         css {
-                            backgroundColor = important(StyleConst.Main.Editor.BgColor.get())
+                            th {
+                                background = important(StyleConst.Main.Editor.BgColor.get())
+                            }
                         }
                         for (header in transcript.getHeaders(currType)) {
                             th {

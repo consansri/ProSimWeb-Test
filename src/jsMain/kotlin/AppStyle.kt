@@ -348,6 +348,7 @@ val AppStyle = FC<Props> {
                         thead {
                             fontSize = StyleConst.Main.Table.FontSizeHead
 
+
                             th {
                                 position = Position.sticky
                                 top = 0.rem
