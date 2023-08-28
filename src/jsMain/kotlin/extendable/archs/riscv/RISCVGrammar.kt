@@ -304,7 +304,7 @@ class RISCVGrammar() : Grammar() {
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
             for (regex in SyntaxRegex.pre_unresolvedList) {
-                regex.matchEntire(lineStr)?.let {matchResult ->
+                regex.matchEntire(lineStr)?.let { matchResult ->
                     pres.add(Pre_UNRESOLVED(*remainingLines[lineID].toTypedArray()))
                     remainingLines[lineID] = emptyList()
                 }
@@ -2475,9 +2475,13 @@ class RISCVGrammar() : Grammar() {
             Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl), BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl), Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl), Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl), Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl), Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl), J(
                 "J", true, ParamType.PS_Jlbl
             ),
-            JAL1("JAL", true, ParamType.PS_RS1_Jlbl), JAL2("JAL", true, ParamType.PS_Jlbl), Jr("JR", true, ParamType.PS_RS1), JALR1("JALR", true, ParamType.PS_RS1), Ret("RET", true, ParamType.PS_NONE), Call("CALL", true, ParamType.PS_Jlbl, memWords = 2), Tail(
-                "TAIL", true, ParamType.PS_Jlbl, memWords = 2
-            );
+            JAL1("JAL", true, ParamType.PS_RS1_Jlbl, relative = JAL),
+            JAL2("JAL", true, ParamType.PS_Jlbl, relative = JAL),
+            Jr("JR", true, ParamType.PS_RS1),
+            JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
+            Ret("RET", true, ParamType.PS_NONE),
+            Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
+            Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
 
             open fun execute(architecture: Architecture, paramMap: Map<RISCVBinMapper.MaskLabel, MutVal.Value.Binary>) {
                 architecture.getConsole().info("executing $id ...")
@@ -2526,7 +2530,7 @@ class RISCVGrammar() : Grammar() {
         }
 
         fun addInstr(instr: R_INSTR) {
-            content[RISCV.TS_COMPILED_HEADERS.Instruction] = Entry(Orientation.LEFT, instr.instrType.id)
+            content[RISCV.TS_COMPILED_HEADERS.Instruction] = Entry(Orientation.LEFT, "${instr.instrType.id}${if (instr.instrType.pseudo && instr.instrType.relative == null) "\t(pseudo)" else ""}")
             content[RISCV.TS_COMPILED_HEADERS.Parameters] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") { it.paramTokens.joinToString("") { it.content } } ?: "")
         }
 

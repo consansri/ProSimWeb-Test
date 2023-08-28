@@ -162,7 +162,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
                                 repeat(row.getContent().size) {
                                     td {
-                                        +"-"
+                                        +" "
                                     }
                                 }
 
