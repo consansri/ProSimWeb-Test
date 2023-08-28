@@ -262,6 +262,7 @@ val AppStyle = FC<Props> {
                             position = Position.relative
                             flex = 100.pct
                             flexDirection = FlexDirection.row
+                            flexWrap = FlexWrap.wrap
                             justifyContent = JustifyContent.spaceBetween
                             alignItems = AlignItems.center
                             gap = StyleConst.paddingSize
@@ -604,6 +605,7 @@ val AppStyle = FC<Props> {
                     textAlign = TextAlign.center
                     padding = 1.rem
                     gap = StyleConst.paddingSize
+                    overflowX = Overflow.hidden
 
                     div {
                         img {

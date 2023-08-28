@@ -135,7 +135,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 display = Display.flex
                 width = 100.pct
                 flexDirection = FlexDirection.row
-                flexWrap = FlexWrap.nowrap
+                flexWrap = FlexWrap.wrap
                 justifyContent = JustifyContent.stretch
                 alignItems = AlignItems.center
                 gap = StyleConst.paddingSize
@@ -214,7 +214,9 @@ val MemoryView = FC<MemViewProps> { props ->
                     calcMemTable(true)
                 }
 
-                +"refresh"
+                img {
+                    src = "icons/refresh.svg"
+                }
             }
 
             select {
