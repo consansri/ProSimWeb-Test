@@ -128,18 +128,20 @@ class RISCVGrammar() : Grammar() {
         // define global start
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
-            SyntaxRegex.pre_globalStart.matchEntire(lineStr)?.let {
-                val labelName = it.groups[SyntaxRegex.pre_globalStart_contentgroup]?.value ?: ""
-                if (globalStart == null && labelName.isNotEmpty()) {
-                    globalStart = Pre_GLOBAL(*remainingLines[lineID].toTypedArray(), labelName = labelName)
-                } else {
-                    if (globalStart != null) {
-                        errors.add(Error("global start is already defined in line ${(globalStart?.tokens?.first()?.lineLoc?.lineID ?: -1) + 1}!", *remainingLines[lineID].toTypedArray()))
+            SyntaxRegex.pre_globalStart.forEach {
+                it.matchEntire(lineStr)?.let {
+                    val labelName = it.groups[SyntaxRegex.pre_globalStart_contentgroup]?.value ?: ""
+                    if (globalStart == null && labelName.isNotEmpty()) {
+                        globalStart = Pre_GLOBAL(*remainingLines[lineID].toTypedArray(), labelName = labelName)
                     } else {
-                        errors.add(Error("global start is missing label name!", *remainingLines[lineID].toTypedArray()))
+                        if (globalStart != null) {
+                            errors.add(Error("global start is already defined in line ${(globalStart?.tokens?.first()?.lineLoc?.lineID ?: -1) + 1}!", *remainingLines[lineID].toTypedArray()))
+                        } else {
+                            errors.add(Error("global start is missing label name!", *remainingLines[lineID].toTypedArray()))
+                        }
                     }
+                    remainingLines[lineID] = emptyList()
                 }
-                remainingLines[lineID] = emptyList()
             }
         }
 
@@ -1071,7 +1073,7 @@ class RISCVGrammar() : Grammar() {
         val pre_equ_def = Regex("""^\s*(\.equ\s+(.+)\s*,\s*(.+))\s*?""")
         val pre_option = Regex("""^\s*(\.option\s+.+)\s*?""")
         val pre_attribute = Regex("""^\s*(\.attribute\s+.+)\s*?""")
-        val pre_globalStart = Regex("""^\s*(\.global\s+(?<labelName>.+))\s*?""")
+        val pre_globalStart = listOf(Regex("""^\s*(\.global\s+(?<labelName>.+))\s*?"""), Regex("""^\s*(\.globl\s+(?<labelName>.+))\s*?"""))
         val pre_globalStart_contentgroup = "labelName"
 
         val pre_unresolvedList = listOf(Regex("""^\s*(fence\.i)\s*?"""))
@@ -1503,7 +1505,7 @@ class RISCVGrammar() : Grammar() {
                     val rd = paramMap.get(RISCVBinMapper.MaskLabel.RD)
                     return if (rd != null) {
                         paramMap.remove(RISCVBinMapper.MaskLabel.RD)
-                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
                         "${registerContainer.getRegister(rd)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"
@@ -1517,7 +1519,7 @@ class RISCVGrammar() : Grammar() {
                     return if (rd != null && rs1 != null) {
                         paramMap.remove(RISCVBinMapper.MaskLabel.RD)
                         paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
-                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
                         "${registerContainer.getRegister(rd)?.aliases?.first()},\t$immString(${registerContainer.getRegister(rs1)?.aliases?.first()})"
                     } else {
                         "param missing"
@@ -1531,7 +1533,7 @@ class RISCVGrammar() : Grammar() {
                     return if (rs2 != null && rs1 != null) {
                         paramMap.remove(RISCVBinMapper.MaskLabel.RS2)
                         paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
-                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
                         "${registerContainer.getRegister(rs2)?.aliases?.first()},\t$immString(${registerContainer.getRegister(rs1)?.aliases?.first()})"
                     } else {
                         "param missing"
@@ -1560,7 +1562,7 @@ class RISCVGrammar() : Grammar() {
                     return if (rd != null && rs1 != null) {
                         paramMap.remove(RISCVBinMapper.MaskLabel.RD)
                         paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
-                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
                         "${registerContainer.getRegister(rd)?.aliases?.first()},\t${registerContainer.getRegister(rs1)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"
@@ -1574,7 +1576,7 @@ class RISCVGrammar() : Grammar() {
                     return if (rd != null && rs1 != null) {
                         paramMap.remove(RISCVBinMapper.MaskLabel.RD)
                         paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
-                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
                         "${registerContainer.getRegister(rd)?.aliases?.first()},\t${registerContainer.getRegister(rs1)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"
@@ -1588,7 +1590,7 @@ class RISCVGrammar() : Grammar() {
                     return if (rs2 != null && rs1 != null) {
                         paramMap.remove(RISCVBinMapper.MaskLabel.RS2)
                         paramMap.remove(RISCVBinMapper.MaskLabel.RS1)
-                        val immString = if (labelName.isEmpty()) "0b${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.getRawBinaryStr() }}" else labelName
+                        val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
                         "${registerContainer.getRegister(rs1)?.aliases?.first()},\t${registerContainer.getRegister(rs2)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"

@@ -485,7 +485,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
         }
 
         fun addLabel(labelName: String) {
-            content[RISCV.TS_DISASSEMBLED_HEADERS.Label] = Entry(Orientation.CENTER, labelName)
+            content[RISCV.TS_DISASSEMBLED_HEADERS.Label] = Entry(Orientation.LEFT, labelName)
         }
 
         override fun getContent(): List<Entry> {
