@@ -14,7 +14,7 @@ object DebugTools {
     const val RISCV_showAsmInfo = false
     const val RISCV_showBinMapperInfo = false
     const val RISCV_showOpCodeInfo = false
-    const val RISCV_showGrammarScanTiers = true
+    const val RISCV_showGrammarScanTiers = false
 
     //      RISCII
 
@@ -34,7 +34,6 @@ object DebugTools {
 
     //      Memory
     const val ARCH_showMemoryInfo = false
-
 
     //      ByteValue
     val ARCH_BVDivisionLoopLimit: Long? = null

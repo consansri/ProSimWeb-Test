@@ -357,8 +357,6 @@ class MutVal {
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
                 var formatted = string.trim().removePrefix(ArchConst.PRESTRING_HEX).padStart(size.byteCount * 2, '0').uppercase()
 
-
-
                 if (regex.matches(formatted)) {
                     if (formatted.length <= size.byteCount * 2) {
                         formatted = formatted.padStart(size.byteCount * 2, '0')

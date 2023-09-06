@@ -174,23 +174,8 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                                                 isString = true
                                             }
 
-                                            is Compiler.Token.Constant.Binary -> {
-                                                originalValue = MutVal.Value.Binary(constToken.content).toHex()
-                                                isString = false
-                                            }
-
-                                            is Compiler.Token.Constant.Dec -> {
-                                                originalValue = MutVal.Value.Dec(constToken.content).toHex()
-                                                isString = false
-                                            }
-
-                                            is Compiler.Token.Constant.Hex -> {
-                                                originalValue = MutVal.Value.Hex(constToken.content)
-                                                isString = false
-                                            }
-
-                                            is Compiler.Token.Constant.UDec -> {
-                                                originalValue = MutVal.Value.UDec(constToken.content).toHex()
+                                            else -> {
+                                                originalValue = constToken.getValue().toHex()
                                                 isString = false
                                             }
                                         }
@@ -282,23 +267,8 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                                                 isString = true
                                             }
 
-                                            is Compiler.Token.Constant.Binary -> {
-                                                originalValue = MutVal.Value.Binary(constToken.content).toHex()
-                                                isString = false
-                                            }
-
-                                            is Compiler.Token.Constant.Dec -> {
-                                                originalValue = MutVal.Value.Dec(constToken.content).toHex()
-                                                isString = false
-                                            }
-
-                                            is Compiler.Token.Constant.Hex -> {
-                                                originalValue = MutVal.Value.Hex(constToken.content)
-                                                isString = false
-                                            }
-
-                                            is Compiler.Token.Constant.UDec -> {
-                                                originalValue = MutVal.Value.UDec(constToken.content).toHex()
+                                            else -> {
+                                                originalValue = constToken.getValue().toHex()
                                                 isString = false
                                             }
                                         }

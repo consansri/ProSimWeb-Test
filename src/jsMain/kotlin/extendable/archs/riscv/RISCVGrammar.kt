@@ -170,18 +170,37 @@ class RISCVGrammar() : Grammar() {
         // resolve definitions
         for (lineID in remainingLines.indices) {
             val tokenList = remainingLines[lineID].toMutableList()
-            for (equ in equs) {
-                val result = equ.nameSequence.matches(*tokenList.toTypedArray())
-                if (result.matches) {
-                    val nametokens = result.sequenceMap.map { it.token }
-                    val firstID = tokenList.indexOf(nametokens.first())
-                    tokenList.removeAll(nametokens)
-                    pres.add(Pre_EQU(*nametokens.toTypedArray()))
-                    tokenList.add(firstID, equ.constant)
+            if (tokenList.isNotEmpty()) {
+                val tokenLineID = tokenList.first().lineLoc.lineID
+                var replacementHappened = false
+                for (equ in equs) {
+                    val lineContent = tokenList.joinToString("") { it.content }
+                    val result = equ.nameSequence.matches(*tokenList.toTypedArray())
+                    val nameTokens = result.sequenceMap.map { it.token }
+                    val equName = equ.name.joinToString("") { it.content }
+                    if (lineContent.contains(equName)) {
+                        val newLineContent = lineContent.replace(equName, equ.constant.content)
+                        val newLineTokens = compiler.pseudoAnalyze(newLineContent, tokenLineID)
+                        tokenList.clear()
+                        tokenList.addAll(newLineTokens)
+                        pres.add(Pre_EQU(*nameTokens.toTypedArray()))
+                        replacementHappened = true
+                    }
+                }
+                // replace redundant pseudo analyzed tokens with original tokens to enable highlighting of the unchanged part
+                if (replacementHappened) {
+                    val originalTokens = remainingLines[lineID].toMutableList()
+                    for (tokenID in tokenList.indices) {
+                        val token = tokenList[tokenID]
+                        val originalToken = originalTokens.find { it.content == token.content }
+                        if (originalToken != null) {
+                            tokenList[tokenID] = originalToken
+                        }
+                    }
+                    remainingLines[lineID] = tokenList
                 }
             }
 
-            remainingLines[lineID] = tokenList
         }
 
 
@@ -1292,12 +1311,12 @@ class RISCVGrammar() : Grammar() {
                         var value = it.getValue()
                         if (value.size.byteCount < MutVal.Size.Bit32().byteCount) {
                             value = when (it.constant) {
-                                is Compiler.Token.Constant.Dec -> {
-                                    value.getResized(MutVal.Size.Bit32())
+                                is Compiler.Token.Constant.UDec -> {
+                                    value.getUResized(MutVal.Size.Bit32())
                                 }
 
                                 else -> {
-                                    value.getUResized(MutVal.Size.Bit32())
+                                    value.getResized(MutVal.Size.Bit32())
                                 }
                             }
                         }

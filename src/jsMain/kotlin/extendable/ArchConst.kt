@@ -87,9 +87,9 @@ object ArchConst {
     val COMPILER_REGEX = Compiler.RegexCollection(
         Regex("""^\s+"""),
         Regex("""^[^0-9A-Za-z]"""),
-        Regex("""^${PRESTRING_BINARY}[01]+"""),
-        Regex("""^${PRESTRING_HEX}[0-9a-f]+""", RegexOption.IGNORE_CASE),
-        Regex("""^${PRESTRING_DECIMAL}(-)?[0-9]+"""),
+        Regex("""^(-)?${PRESTRING_BINARY}[01]+"""),
+        Regex("""^(-)?${PRESTRING_HEX}[0-9a-f]+""", RegexOption.IGNORE_CASE),
+        Regex("""^(-)?${PRESTRING_DECIMAL}[0-9]+"""),
         Regex("""^${PRESTRING_UDECIMAL}[0-9]+"""),
         Regex("""^'.'"""),
         Regex("""^".+""""),

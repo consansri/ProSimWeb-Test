@@ -57,7 +57,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                     val space = regexCollection.space.find(remainingLine)
                     if (space != null) {
                         tokenList += Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, tokenList.size)
-                        tempTokenList += Token.Space(LineLoc(file,lineID, startIndex, startIndex + space.value.length), space.value, tokenList.size)
+                        tempTokenList += Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, tokenList.size)
                         startIndex += space.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -65,8 +65,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     val binary = regexCollection.binary.find(remainingLine)
                     if (binary != null) {
-                        tokenList += Token.Constant.Binary(LineLoc(file,lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
-                        tempTokenList += Token.Constant.Binary(LineLoc(file,lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
+                        tokenList += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
+                        tempTokenList += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
                         startIndex += binary.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -74,8 +74,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     val hex = regexCollection.hex.find(remainingLine)
                     if (hex != null) {
-                        tokenList += Token.Constant.Hex(LineLoc(file,lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
-                        tempTokenList += Token.Constant.Hex(LineLoc(file,lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
+                        tokenList += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
+                        tempTokenList += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
                         startIndex += hex.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -83,8 +83,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     val dec = regexCollection.dec.find(remainingLine)
                     if (dec != null) {
-                        tokenList += Token.Constant.Dec(LineLoc(file,lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
-                        tempTokenList += Token.Constant.Dec(LineLoc(file,lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
+                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
+                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
                         startIndex += dec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -92,8 +92,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     val udec = regexCollection.udec.find(remainingLine)
                     if (udec != null) {
-                        tokenList += Token.Constant.UDec(LineLoc(file,lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
-                        tempTokenList += Token.Constant.UDec(LineLoc(file,lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
+                        tokenList += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
+                        tempTokenList += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
                         startIndex += udec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -101,8 +101,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     val ascii = regexCollection.ascii.find(remainingLine)
                     if (ascii != null) {
-                        tokenList += Token.Constant.Ascii(LineLoc(file,lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
-                        tempTokenList += Token.Constant.Ascii(LineLoc(file,lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
+                        tokenList += Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
+                        tempTokenList += Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
                         startIndex += ascii.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -110,8 +110,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     val string = regexCollection.string.find(remainingLine)
                     if (string != null) {
-                        tokenList += Token.Constant.String(LineLoc(file,lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
-                        tempTokenList += Token.Constant.String(LineLoc(file,lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
+                        tokenList += Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
+                        tempTokenList += Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
                         startIndex += string.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -119,8 +119,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     val symbol = regexCollection.symbol.find(remainingLine)
                     if (symbol != null) {
-                        tokenList += Token.Symbol(LineLoc(file,lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
-                        tempTokenList += Token.Symbol(LineLoc(file,lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
+                        tokenList += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
+                        tempTokenList += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
                         startIndex += symbol.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -130,8 +130,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                     if (regRes != null) {
                         val reg = architecture.getRegisterContainer().getRegister(regRes.value)
                         if (reg != null) {
-                            tokenList += Token.Register(LineLoc(file,lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
-                            tempTokenList += Token.Register(LineLoc(file,lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
+                            tokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
+                            tempTokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
                             startIndex += regRes.value.length
                             remainingLine = line.substring(startIndex)
                             continue
@@ -144,22 +144,22 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
                     if (alphaNumeric != null && word != null) {
                         if (alphaNumeric.value.length == word.value.length) {
-                            tokenList += Token.Word(LineLoc(file,lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
-                            tempTokenList += Token.Word(LineLoc(file,lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
+                            tokenList += Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
+                            tempTokenList += Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
                             startIndex += word.value.length
                             remainingLine = line.substring(startIndex)
                             continue
                         } else {
-                            tokenList += Token.AlphaNum(LineLoc(file,lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
-                            tempTokenList += Token.AlphaNum(LineLoc(file,lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
+                            tokenList += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
+                            tempTokenList += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
                             startIndex += alphaNumeric.value.length
                             remainingLine = line.substring(startIndex)
                             continue
                         }
                     } else {
                         if (alphaNumeric != null) {
-                            tokenList += Token.AlphaNum(LineLoc(file,lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
-                            tempTokenList += Token.AlphaNum(LineLoc(file,lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
+                            tokenList += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
+                            tempTokenList += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
                             startIndex += alphaNumeric.value.length
                             remainingLine = line.substring(startIndex)
                             continue
@@ -170,7 +170,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                     break;
                 }
                 tokenLines.add(lineID, tempTokenList)
-                tokenList += Token.NewLine(LineLoc(file,lineID, line.length, line.length + 2), "\n", tokenList.size)
+                tokenList += Token.NewLine(LineLoc(file, lineID, line.length, line.length + 2), "\n", tokenList.size)
             }
         }
     }
@@ -339,7 +339,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
     }
 
-    fun pseudoAnalyze(content: String): List<Token> {
+    fun pseudoAnalyze(content: String, lineID: Int = ArchConst.COMPILER_TOKEN_PSEUDOID): List<Token> {
         val tokens = mutableListOf<Token>()
         var remaining = content
         var startIndex = 0
@@ -347,7 +347,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         while (remaining.isNotEmpty()) {
             val space = regexCollection.space.find(remaining)
             if (space != null) {
-                tokens += Token.Space(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + space.value.length), space.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, lineID)
                 startIndex += space.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -355,7 +355,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val binary = regexCollection.binary.find(remaining)
             if (binary != null) {
-                tokens += Token.Constant.Binary(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + binary.value.length), binary.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), binary.value, lineID)
                 startIndex += binary.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -363,7 +363,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val hex = regexCollection.hex.find(remaining)
             if (hex != null) {
-                tokens += Token.Constant.Hex(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + hex.value.length), hex.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), hex.value, lineID)
                 startIndex += hex.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -371,7 +371,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                tokens += Token.Constant.Dec(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + dec.value.length), dec.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -379,7 +379,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val udec = regexCollection.udec.find(remaining)
             if (udec != null) {
-                tokens += Token.Constant.UDec(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + udec.value.length), udec.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), udec.value, lineID)
                 startIndex += udec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -387,7 +387,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val ascii = regexCollection.ascii.find(remaining)
             if (ascii != null) {
-                tokens += Token.Constant.Ascii(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + ascii.value.length), ascii.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, lineID)
                 startIndex += ascii.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -395,7 +395,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val string = regexCollection.string.find(remaining)
             if (string != null) {
-                tokens += Token.Constant.String(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + string.value.length), string.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, lineID)
                 startIndex += string.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -403,7 +403,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             val symbol = regexCollection.symbol.find(remaining)
             if (symbol != null) {
-                tokens += Token.Symbol(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + symbol.value.length), symbol.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                tokens += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, lineID)
                 startIndex += symbol.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -413,7 +413,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
             if (regRes != null) {
                 val reg = architecture.getRegisterContainer().getRegister(regRes.value)
                 if (reg != null) {
-                    tokens += Token.Register(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + regRes.value.length), regRes.value, reg, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                    tokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, lineID)
                     startIndex += regRes.value.length
                     remaining = content.substring(startIndex)
                     continue
@@ -427,19 +427,19 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             if (alphaNumeric != null && word != null) {
                 if (alphaNumeric.value.length == word.value.length) {
-                    tokens += Token.Word(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + word.value.length), word.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                    tokens += Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, lineID)
                     startIndex += word.value.length
                     remaining = content.substring(startIndex)
                     continue
                 } else {
-                    tokens += Token.AlphaNum(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                    tokens += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, lineID)
                     startIndex += alphaNumeric.value.length
                     remaining = content.substring(startIndex)
                     continue
                 }
             } else {
                 if (alphaNumeric != null) {
-                    tokens += Token.AlphaNum(LineLoc(file,ArchConst.COMPILER_TOKEN_PSEUDOID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, ArchConst.COMPILER_TOKEN_PSEUDOID)
+                    tokens += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, lineID)
                     startIndex += alphaNumeric.value.length
                     remaining = content.substring(startIndex)
                     continue
@@ -476,7 +476,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         abstract val type: TokenType
 
         fun isPseudo(): Boolean {
-            return id == ArchConst.COMPILER_TOKEN_PSEUDOID
+            return id == ArchConst.COMPILER_TOKEN_PSEUDOID && lineLoc.lineID == ArchConst.COMPILER_TOKEN_PSEUDOID
         }
 
         fun hl(architecture: Architecture, hlFlag: String, title: String = "") {
@@ -527,13 +527,13 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
-                    return MutVal.Value.Binary(content)
+                    return if (content.contains('-')) -MutVal.Value.Binary(content.trimStart('-'), MutVal.Size.Bit32()) else MutVal.Value.Binary(content)
                 }
             }
 
             class Hex(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
-                    return MutVal.Value.Hex(content).toBin()
+                    return if (content.contains('-')) -MutVal.Value.Hex(content.trimStart('-'), MutVal.Size.Bit32()) else MutVal.Value.Hex(content)
                 }
             }
 
@@ -545,7 +545,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class UDec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): MutVal.Value {
-
                     return MutVal.Value.UDec(content)
                 }
             }
@@ -606,7 +605,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         val word: Regex,
     )
 
-    data class LineLoc(val file: FileHandler.File, val lineID: Int, val startIndex: Int, val endIndex: Int)
+    data class LineLoc(val file: FileHandler.File, var lineID: Int, val startIndex: Int, val endIndex: Int)
     // endIndex means index after last Character
 
 }
