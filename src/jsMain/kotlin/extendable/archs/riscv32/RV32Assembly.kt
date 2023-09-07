@@ -1,9 +1,9 @@
-package extendable.archs.riscv
+package extendable.archs.riscv32
 
 import StyleConst
 import extendable.Architecture
-import extendable.archs.riscv.RISCVGrammar.E_DIRECTIVE.DirType.*
-import extendable.archs.riscv.RISCVGrammar.R_INSTR.InstrType.*
+import extendable.archs.riscv32.RV32Grammar.E_DIRECTIVE.DirType.*
+import extendable.archs.riscv32.RV32Grammar.R_INSTR.InstrType.*
 import extendable.components.assembly.Assembly
 import extendable.components.assembly.Compiler
 import extendable.components.assembly.Grammar
@@ -11,9 +11,9 @@ import extendable.components.connected.Transcript
 import extendable.components.types.MutVal
 import tools.DebugTools
 
-class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.Value, val rodataSecStart: MutVal.Value, val bssSecStart: MutVal.Value) : Assembly() {
+class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: MutVal.Value, val rodataSecStart: MutVal.Value, val bssSecStart: MutVal.Value) : Assembly() {
 
-    val labelBinAddrMap = mutableMapOf<RISCVGrammar.E_LABEL, String>()
+    val labelBinAddrMap = mutableMapOf<RV32Grammar.E_LABEL, String>()
     val transcriptEntrys = mutableListOf<RVDisassembledRow>()
     val binarys = mutableListOf<MutVal.Value.Binary>()
 
@@ -42,7 +42,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                 result.binaryMap.entries.forEach {
                     /*"${it.key.name.lowercase()}\t${*/
                     when (it.key) {
-                        RISCVBinMapper.MaskLabel.IMM5, RISCVBinMapper.MaskLabel.IMM7, RISCVBinMapper.MaskLabel.IMM12, RISCVBinMapper.MaskLabel.IMM20 -> {
+                        RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.IMM20 -> {
                             when (result.type) {
                                 JAL -> {
                                     jalOffset20 = it.value.getRawBinaryStr()
@@ -50,11 +50,11 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
 
                                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
                                     when (it.key) {
-                                        RISCVBinMapper.MaskLabel.IMM5 -> {
+                                        RV32BinMapper.MaskLabel.IMM5 -> {
                                             branchOffset5 = it.value.getRawBinaryStr()
                                         }
 
-                                        RISCVBinMapper.MaskLabel.IMM7 -> {
+                                        RV32BinMapper.MaskLabel.IMM7 -> {
                                             branchOffset7 = it.value.getRawBinaryStr()
                                         }
 
@@ -116,7 +116,7 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
             labelBinAddrMap.clear()
             transcriptEntrys.clear()
             binarys.clear()
-            val instructionMapList = mutableMapOf<Long, RISCVGrammar.R_INSTR>()
+            val instructionMapList = mutableMapOf<Long, RV32Grammar.R_INSTR>()
             val dataList = mutableListOf<DataEntry>()
             val rodataList = mutableListOf<DataEntry>()
             val bssList = mutableListOf<DataEntry>()
@@ -128,19 +128,19 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
             var nextBssAddress = bssSecStart
             // Resolving Sections
 
-            val sections = rootNode.containers.filter { it is RISCVGrammar.C_SECTIONS }.flatMap { it.nodes.toList() }
+            val sections = rootNode.containers.filter { it is RV32Grammar.C_SECTIONS }.flatMap { it.nodes.toList() }
 
             for (section in sections) {
                 when (section) {
-                    is RISCVGrammar.S_TEXT -> {
+                    is RV32Grammar.S_TEXT -> {
                         for (entry in section.collNodes) {
                             when (entry) {
-                                is RISCVGrammar.R_INSTR -> {
+                                is RV32Grammar.R_INSTR -> {
                                     instructionMapList.set(instrID, entry)
                                     instrID += entry.instrType.memWords
                                 }
 
-                                is RISCVGrammar.R_JLBL -> {
+                                is RV32Grammar.R_JLBL -> {
                                     val address = (instrID * 4).toString(2)
                                     if (DebugTools.RISCV_showAsmInfo) {
                                         console.log("RISCVAssembly.generateByteCode(): found Label ${entry.label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
@@ -154,12 +154,12 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                         }
                     }
 
-                    is RISCVGrammar.S_DATA -> {
+                    is RV32Grammar.S_DATA -> {
                         for (entry in section.sectionContent) {
                             when (entry) {
-                                is RISCVGrammar.R_ILBL -> {
+                                is RV32Grammar.R_ILBL -> {
                                     val param = entry.paramcoll.paramsWithOutSplitSymbols.first()
-                                    if (param is RISCVGrammar.E_PARAM.Constant) {
+                                    if (param is RV32Grammar.E_PARAM.Constant) {
                                         val originalValue: MutVal.Value.Hex
                                         val constToken = param.constant
                                         val isString: Boolean
@@ -247,12 +247,12 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                         }
                     }
 
-                    is RISCVGrammar.S_RODATA -> {
+                    is RV32Grammar.S_RODATA -> {
                         for (entry in section.sectionContent) {
                             when (entry) {
-                                is RISCVGrammar.R_ILBL -> {
+                                is RV32Grammar.R_ILBL -> {
                                     val param = entry.paramcoll.paramsWithOutSplitSymbols.first()
-                                    if (param is RISCVGrammar.E_PARAM.Constant) {
+                                    if (param is RV32Grammar.E_PARAM.Constant) {
                                         val originalValue: MutVal.Value.Hex
                                         val constToken = param.constant
                                         val isString: Boolean
@@ -340,10 +340,10 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
                         }
                     }
 
-                    is RISCVGrammar.S_BSS -> {
+                    is RV32Grammar.S_BSS -> {
                         for (entry in section.sectionContent) {
                             when (entry) {
-                                is RISCVGrammar.R_ULBL -> {
+                                is RV32Grammar.R_ULBL -> {
                                     val dirType = entry.directive.type
                                     val originalValue: MutVal.Value.Hex = when (dirType) {
                                         BYTE -> MutVal.Value.Hex("", MutVal.Size.Bit8())
@@ -438,28 +438,28 @@ class RISCVAssembly(val binaryMapper: RISCVBinMapper, val dataSecStart: MutVal.V
         return assemblyMap ?: AssemblyMap()
     }
 
-    class DataEntry(val label: RISCVGrammar.E_LABEL, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
+    class DataEntry(val label: RV32Grammar.E_LABEL, val address: MutVal.Value.Hex, val sizeOfOne: MutVal.Size, vararg val values: MutVal.Value)
 
     class RVDisassembledRow(address: MutVal.Value.Hex) : Transcript.Row(address) {
 
-        val content = RISCV.TS_DISASSEMBLED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+        val content = RV32.TS_DISASSEMBLED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
 
         init {
-            content[RISCV.TS_DISASSEMBLED_HEADERS.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
+            content[RV32.TS_DISASSEMBLED_HEADERS.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
 
-        fun addInstr(architecture: Architecture, instrResult: RISCVBinMapper.InstrResult, labelName: String) {
+        fun addInstr(architecture: Architecture, instrResult: RV32BinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
-            content[RISCV.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
-            content[RISCV.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binaryMap.toMutableMap(), labelName))
+            content[RV32.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
+            content[RV32.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binaryMap.toMutableMap(), labelName))
         }
 
         fun addLabel(labelName: String) {
-            content[RISCV.TS_DISASSEMBLED_HEADERS.Label] = Entry(Orientation.LEFT, labelName)
+            content[RV32.TS_DISASSEMBLED_HEADERS.Label] = Entry(Orientation.LEFT, labelName)
         }
 
         override fun getContent(): List<Entry> {
-            return RISCV.TS_DISASSEMBLED_HEADERS.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
+            return RV32.TS_DISASSEMBLED_HEADERS.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
         }
     }
 

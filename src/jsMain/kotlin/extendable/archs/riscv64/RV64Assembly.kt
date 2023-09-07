@@ -1,10 +1,10 @@
-package extendable.archs.mini
+package extendable.archs.riscv64
 
 import extendable.Architecture
 import extendable.components.assembly.Assembly
 import extendable.components.assembly.Grammar
 
-class MiniAssembly: Assembly() {
+class RV64Assembly:Assembly() {
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
         TODO("Not yet implemented")
     }

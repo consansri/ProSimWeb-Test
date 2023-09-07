@@ -1,4 +1,4 @@
-package extendable.archs.riscv
+package extendable.archs.riscv32
 
 import StyleConst
 import emotion.react.css
@@ -7,15 +7,9 @@ import extendable.components.connected.*
 import extendable.components.types.*
 import react.FC
 import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -26,7 +20,7 @@ import react.dom.html.ReactHTML.ul
 import web.cssom.ClassName
 import web.cssom.Float
 
-object RISCV {
+object RV32 {
 
     // PROCESSOR
     val MEM_INIT: String = "0"
@@ -54,8 +48,8 @@ object RISCV {
 
     // Assembler CONFIG
     val asmConfig = AsmConfig(
-        RISCVGrammar(),
-        RISCVAssembly(RISCVBinMapper(), MutVal.Value.Hex("00001000", MutVal.Size.Bit32()), MutVal.Value.Hex("00002000", MutVal.Size.Bit32()), MutVal.Value.Hex("00003000", MutVal.Size.Bit32()))
+        RV32Grammar(),
+        RV32Assembly(RV32BinMapper(), MutVal.Value.Hex("00001000", MutVal.Size.Bit32()), MutVal.Value.Hex("00002000", MutVal.Size.Bit32()), MutVal.Value.Hex("00003000", MutVal.Size.Bit32()))
     )
 
     val riscVDocs = Docs(
@@ -113,7 +107,7 @@ object RISCV {
                         }
                     }
                     tbody {
-                        for (instr in RISCVGrammar.R_INSTR.InstrType.entries) {
+                        for (instr in RV32Grammar.R_INSTR.InstrType.entries) {
                             tr {
 
                                 td {
@@ -166,7 +160,7 @@ object RISCV {
 
     // PROCESSOR CONFIG
     val config = Config(
-        """RISC-V""",
+        """RV32I""",
         riscVDocs,
         FileHandler("s"),
         RegisterContainer(

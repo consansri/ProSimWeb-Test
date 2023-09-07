@@ -1,26 +1,20 @@
 import extendable.Architecture
-import extendable.cisc.ArchCISC
-import extendable.cisc.ArchMini
-import extendable.cisc.ArchRISCII
-import extendable.cisc.ArchRISCV
+import extendable.cisc.ArchRV64
+import extendable.cisc.ArchRV32
 
 class AppLogic() {
 
     var selID = -1
 
-    val archCISC: ArchCISC
-    val archRISCII: ArchRISCII
-    var archRISCV: ArchRISCV
-    val archMini: ArchMini
+    val archRV64: ArchRV64
+    var archRV32: ArchRV32
 
     private val archList: List<Architecture>
 
     init {
-        archRISCV = ArchRISCV()
-        archCISC = ArchCISC()
-        archRISCII = ArchRISCII()
-        archMini = ArchMini()
-        archList = listOf<Architecture>(archRISCV, archMini, archCISC, archRISCII)
+        archRV32 = ArchRV32()
+        archRV64 = ArchRV64()
+        archList = listOf<Architecture>(archRV32, archRV64)
     }
 
     fun getArchList(): List<Architecture> {

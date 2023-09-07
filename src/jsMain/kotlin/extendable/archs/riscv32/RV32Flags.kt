@@ -1,8 +1,8 @@
-package extendable.archs.riscv
+package extendable.archs.riscv32
 
 import StyleConst.Main.Editor.HL
 
-object RISCVFlags {
+object RV32Flags {
 
     val offset = HL.magenta.getFlag()
     val register = HL.yellow.getFlag()

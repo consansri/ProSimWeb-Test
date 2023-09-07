@@ -1,13 +1,13 @@
 package extendable.cisc
 
 import extendable.Architecture
-import extendable.archs.riscv.RISCV
-import extendable.archs.riscv.RISCVBinMapper
-import extendable.archs.riscv.RISCVGrammar
+import extendable.archs.riscv32.RV32
+import extendable.archs.riscv32.RV32BinMapper
+import extendable.archs.riscv32.RV32Grammar
 import extendable.components.types.MutVal
 import kotlin.time.measureTime
 
-class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
+class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
 
     override fun exeContinuous() {
         if (this.getAssembly().isBuildable()) {
@@ -15,7 +15,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             val measuredTime = measureTime {
                 super.exeContinuous()
 
-                val binMapper = RISCVBinMapper()
+                val binMapper = RV32BinMapper()
                 var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
 
@@ -37,7 +37,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             val measuredTime = measureTime {
                 super.exeSingleStep()
 
-                val binMapper = RISCVBinMapper()
+                val binMapper = RV32BinMapper()
                 val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 val result = binMapper.getInstrFromBinary(binary.get().toBin())
                 if (result != null) {
@@ -57,7 +57,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             val measuredTime = measureTime {
                 super.exeMultiStep(steps)
 
-                val binMapper = RISCVBinMapper()
+                val binMapper = RV32BinMapper()
                 var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
 
@@ -85,11 +85,11 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
 
             val measuredTime = measureTime {
                 super.exeSkipSubroutine()
-                val binMapper = RISCVBinMapper()
+                val binMapper = RV32BinMapper()
                 var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
                 if (result != null) {
-                    if (result.type == RISCVGrammar.R_INSTR.InstrType.JAL || result.type == RISCVGrammar.R_INSTR.InstrType.JALR) {
+                    if (result.type == RV32Grammar.R_INSTR.InstrType.JAL || result.type == RV32Grammar.R_INSTR.InstrType.JALR) {
                         val returnAddress = getRegisterContainer().pc.value.get() + MutVal.Value.Hex("4")
                         while (getRegisterContainer().pc.value.get() != returnAddress) {
                             if (result != null) {
@@ -118,11 +118,11 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
             super.exeReturnFromSubroutine()
             var instrCount = 0
             val measuredTime = measureTime {
-                val binMapper = RISCVBinMapper()
+                val binMapper = RV32BinMapper()
                 var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
 
-                val returnTypeList = listOf(RISCVGrammar.R_INSTR.InstrType.JALR, RISCVGrammar.R_INSTR.InstrType.JAL)
+                val returnTypeList = listOf(RV32Grammar.R_INSTR.InstrType.JALR, RV32Grammar.R_INSTR.InstrType.JAL)
 
                 while (result != null && !returnTypeList.contains(result.type)) {
                     result.type.execute(this, result.binaryMap)
@@ -142,7 +142,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
         if (this.getAssembly().isBuildable()) {
             super.exeUntilLine(lineID)
             var instrCount = 0
-            val binMapper = RISCVBinMapper()
+            val binMapper = RV32BinMapper()
             val lineAddressMap = getAssembly().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.file == getFileHandler().getCurrent() }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
@@ -200,7 +200,7 @@ class ArchRISCV() : Architecture(RISCV.config, RISCV.asmConfig) {
     override fun exeUntilAddress(address: MutVal.Value.Hex) {
         super.exeUntilAddress(address)
         var instrCount = 0
-        val binMapper = RISCVBinMapper()
+        val binMapper = RV32BinMapper()
         getConsole().info("--exe_until_line executing until address ${address.getHexStr()}")
         val measuredTime = measureTime {
             while (instrCount < 1000) {
