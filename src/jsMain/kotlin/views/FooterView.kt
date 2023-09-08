@@ -1,6 +1,5 @@
 package views
 
-import AppLogic
 import emotion.react.css
 import extendable.ArchConst
 import react.FC
@@ -35,14 +34,14 @@ val FooterView = FC<FooterViewProps>{
                     width = 4.rem
                     height = 4.rem
                     cursor = Cursor.pointer
+                    filter = invert(90.pct)
                 }
 
                 onClick = {event ->
 
-
                 }
 
-                src = "icons/system-outline-21-bug.gif"
+                src = StyleConst.Icons.report_bug
             }
         }
         h3{

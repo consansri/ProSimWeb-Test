@@ -103,6 +103,12 @@ val AppStyle = FC<Props> {
                         alignItems = AlignItems.center
 
                         backgroundColor = StyleConst.Header.BgColorSec.get()
+
+                        a{
+                            padding = StyleConst.paddingSize
+                            background = Color("#00000033")
+                            borderRadius = StyleConst.borderRadius
+                        }
                     }
 
                     ".${StyleConst.Header.CLASS_OVERLAY_LABELEDINPUT}" {

@@ -170,7 +170,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 img {
                     className = ClassName("nav-img")
-                    src = "icons/times.svg"
+                    src = StyleConst.Icons.cancel
 
                 }
             }
@@ -186,7 +186,7 @@ val Menu = FC<MenuProps>() { props ->
 
             img {
                 className = ClassName("nav-img")
-                src = "icons/bars.svg"
+                src = StyleConst.Icons.bars
 
             }
         }
@@ -229,8 +229,7 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 img {
-                    className = ClassName("nav-img")
-                    src = "icons/times.svg"
+                    src = StyleConst.Icons.cancel
                 }
             }
         }
@@ -239,12 +238,8 @@ val Menu = FC<MenuProps>() { props ->
             div {
                 className = ClassName(StyleConst.Header.CLASS_OVERLAY)
 
-                a {
-
-                    img {
-                        className = ClassName("nav-img")
-                        src = "icons/cancel.svg"
-                    }
+                img {
+                    src = StyleConst.Icons.cancel
                     onClick = {
                         setExportHidden(true)
                     }
@@ -320,10 +315,8 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 a {
-                    img {
-                        className = ClassName("nav-img")
-                        src = "icons/download.svg"
-                    }
+
+                    +"Export"
 
                     onClick = {
                         downloadAsyncRef.current?.let {
@@ -360,27 +353,11 @@ val Menu = FC<MenuProps>() { props ->
 
         if (!importHidden) {
             div {
-                css {
-                    position = Position.fixed
-                    bottom = 0.px
-                    left = 0.px
-                    width = 100.vw
-                    zIndex = integer(1000)
-                    padding = 1.rem
-                    backgroundColor = Color("#5767aa")
+                className = ClassName(StyleConst.Header.CLASS_OVERLAY)
 
-                    display = Display.flex
-                    justifyContent = JustifyContent.center
-                    gap = 2.rem
-                    alignContent = AlignContent.spaceEvenly
-                }
+                img {
+                    src = StyleConst.Icons.cancel
 
-                a {
-
-                    img {
-                        className = ClassName("nav-img")
-                        src = "icons/cancel.svg"
-                    }
                     onClick = {
                         setImportHidden(true)
                     }
@@ -394,10 +371,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 a {
 
-                    img {
-                        className = ClassName("nav-img")
-                        src = "icons/upload.svg"
-                    }
+                    +"Import"
                     onClick = {
                         val files = importRef.current?.files?.asList() ?: emptyList<File>()
 

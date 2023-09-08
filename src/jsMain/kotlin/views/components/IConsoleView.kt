@@ -106,14 +106,14 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 height = 1.8.rem
                 marginLeft = 0.4.rem
                 borderRadius = 5.px
-                backgroundColor = Color("#515151")
-                filter = StyleConst.Main.DeleteFilter
+                backgroundColor = Color("#AAAAAA")
+                filter = invert(100)
                 transitionProperty = TransitionProperty.all
                 transitionDuration = 0.2.s
                 transitionTimingFunction = TransitionTimingFunction.easeInOut
 
                 hover {
-                    backgroundColor = Color("#717171")
+                    backgroundColor = Color("#999999")
                 }
             }
 
@@ -121,7 +121,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 appLogic.getArch().getConsole().clear()
             }
 
-            src = StyleConst.Icons.delete
+            src = StyleConst.Icons.delete_black
         }
 
         img {
@@ -138,7 +138,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 filter = invert(100)
 
                 backgroundColor = if (pin) {
-                    Color("#777777")
+                    Color("#999999")
                 } else {
                     Color("#AAAAAA")
                 }
@@ -165,7 +165,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 filter = invert(100)
 
                 backgroundColor = if (scrollDown) {
-                    Color("#777777")
+                    Color("#999999")
                 } else {
                     Color("#AAAAAA")
                 }
@@ -214,11 +214,11 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                             whiteSpace = WhiteSpace.pre
                             when (message.type) {
                                 StyleConst.MESSAGE_TYPE_INFO -> {
-                                    color = Color("#777777")
+                                    color = Color("#AAAAAA")
                                 }
 
                                 StyleConst.MESSAGE_TYPE_LOG -> {
-                                    color = Color("#AAAAAA")
+                                    color = Color("#888888")
                                 }
 
                                 StyleConst.MESSAGE_TYPE_WARN -> {

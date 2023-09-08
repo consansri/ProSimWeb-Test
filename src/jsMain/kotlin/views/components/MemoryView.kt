@@ -203,7 +203,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
 
                 img {
-                    src = "icons/editable.svg"
+                    src = StyleConst.Icons.edit
                 }
             }
 
@@ -215,7 +215,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
 
                 img {
-                    src = "icons/refresh.svg"
+                    src = StyleConst.Icons.refresh
                 }
             }
 
@@ -244,6 +244,9 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
             }
             input {
+                css{
+                    filter = invert(100.pct)
+                }
                 ref = inputLengthRef
                 placeholder = "values per row"
                 type = InputType.range
@@ -271,7 +274,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
 
                 img {
-                    src = "icons/direction.svg"
+                    src = StyleConst.Icons.reverse
                 }
             }
 
@@ -430,7 +433,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 className = ClassName(StyleConst.Main.Window.CLASS_HEADER)
                 button {
                     img {
-                        src = "icons/clear.svg"
+                        src = StyleConst.Icons.cancel
                     }
 
                     onClick = {
@@ -442,10 +445,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                 button {
                     img {
-                        css {
-                            filter = StyleConst.Main.DeleteFilter
-                        }
-                        src = StyleConst.Icons.delete
+                        src = StyleConst.Icons.delete_black
                     }
 
                     onClick = {
@@ -521,7 +521,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 css {
                                     filter = StyleConst.Main.DeleteFilter
                                 }
-                                src = StyleConst.Icons.delete
+                                src = StyleConst.Icons.delete_black
                             }
 
                             onClick = { event ->
@@ -597,7 +597,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             img {
-                                src = "icons/add-circle.svg"
+                                src = StyleConst.Icons.add
                             }
                         }
 
@@ -699,7 +699,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             img {
-                                src = "icons/add-circle.svg"
+                                src = StyleConst.Icons.add
                             }
                         }
 

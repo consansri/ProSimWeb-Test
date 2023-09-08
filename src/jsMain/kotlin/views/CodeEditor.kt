@@ -443,7 +443,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 title = "Clear"
 
                 img {
-                    src = StyleConst.Icons.deleteBlack
+                    src = StyleConst.Icons.delete_black
                 }
 
                 onClick = {
@@ -518,9 +518,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                             img {
                                 src = if (file.getLinkedTree() != null) {
-                                    "icons/file-check-alt.svg"
+                                    StyleConst.Icons.file_compiled
                                 } else {
-                                    "icons/file-question-alt.svg"
+                                    StyleConst.Icons.file_not_compiled
                                 }
                             }
 
@@ -582,7 +582,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         filter = StyleConst.Main.DeleteFilter
                                     }
 
-                                    src = StyleConst.Icons.delete
+                                    src = StyleConst.Icons.delete_black
 
                                     onClick = {
                                         val response = window.confirm("Do you really want to delete the file '${file.getName()}'?\nThis can't be undone!")

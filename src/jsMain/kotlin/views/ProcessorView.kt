@@ -124,7 +124,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 disabled = !allowExe
 
                 img {
-                    src = StyleConst.Icons.Exe.continuous
+                    src = StyleConst.Icons.continuous_exe
                 }
 
                 onClick = {
@@ -141,7 +141,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
                 p {
                     img {
-                        src = StyleConst.Icons.Exe.sstep
+                        src = StyleConst.Icons.single_exe
                     }
                 }
                 onClick = {
@@ -177,7 +177,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
                 p {
                     img {
-                        src = StyleConst.Icons.Exe.mstep
+                        src = StyleConst.Icons.step_multiple
                     }
 
                     onClick = {
@@ -202,7 +202,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.Exe.skipsub
+                        src = StyleConst.Icons.step_over
                     }
                 }
                 onClick = {
@@ -218,7 +218,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.Exe.retsub
+                        src = StyleConst.Icons.return_subroutine
                     }
                 }
                 onClick = {
@@ -234,7 +234,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.Exe.recompile
+                        src = StyleConst.Icons.recompile
                     }
                 }
                 onClick = {
@@ -250,7 +250,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.Exe.clear
+                        src = StyleConst.Icons.delete_black
                     }
                 }
                 onClick = {

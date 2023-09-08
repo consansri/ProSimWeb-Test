@@ -179,7 +179,7 @@ val App = FC<Props> { props ->
                     title = "clear localStorage"
                     img {
                         alt = "clear local storage"
-                        src = "icons/eraser.svg"
+                        src = StyleConst.Icons.clear_storage
                     }
                     onClick = {
                         val response = window.confirm("Do you really want to delete your entire local storage?\nThis will result in the loss of all settings as well as assembler files!")
