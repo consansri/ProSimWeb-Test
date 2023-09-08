@@ -152,6 +152,10 @@ object RV32 {
                         }
                     }
                 }
+                h2 {
+                    +"Syntax Examples"
+                }
+
 
 
             }

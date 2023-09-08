@@ -28,7 +28,7 @@ import web.cssom.*
 
 external interface CodeEditorProps : Props {
     var appLogic: AppLogic
-    var update: StateInstance<Boolean>
+    var update: Boolean
     var updateParent: () -> Unit
 }
 
@@ -58,7 +58,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- REACT STATES ----------------- */
 
     val appLogic by useState(props.appLogic)
-    val (update, setUpdate) = props.update
     val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
     val (currExeLine, setCurrExeLine) = useState(-1)
     val (exeFile, setExeFile) = useState<FileHandler.File>()
@@ -869,7 +868,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
-    useEffect(update) {
+    useEffect(props.update) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) CodeEditor")
         }

@@ -86,7 +86,7 @@ val App = FC<Props> { props ->
                 }
                 CodeEditor {
                     this.appLogic = appLogic
-                    update = useState(reloadUI)
+                    update = reloadUI
                     updateParent = ::updateApp
                 }
 

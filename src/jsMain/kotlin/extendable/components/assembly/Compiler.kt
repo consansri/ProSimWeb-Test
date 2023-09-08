@@ -178,7 +178,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
     private fun parse() {
         architecture.getTranscript().clear()
         grammar.clear()
-        grammarTree = grammar.check(this, tokenLines, architecture.getFileHandler().getAllFiles(), architecture.getTranscript())
+        grammarTree = grammar.check(this, tokenLines, architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() }, architecture.getTranscript())
         architecture.getConsole().clear()
         grammarTree?.rootNode?.allWarnings?.let {
             for (warning in it) {

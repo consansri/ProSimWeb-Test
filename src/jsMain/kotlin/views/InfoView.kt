@@ -11,8 +11,11 @@ import views.components.IConsoleView
 import web.cssom.*
 import StyleConst.Main.InfoView
 import extendable.components.connected.Docs
+import extendable.components.connected.FileHandler
+import js.core.asList
 import js.promise.await
 import kotlinx.coroutines.*
+import org.w3c.dom.ScrollBehavior
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.html
@@ -23,7 +26,10 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.ul
 import web.dom.document
+import web.events.EventType
 import web.http.fetch
+import web.scroll.ScrollToOptions
+import web.window.window
 
 external interface InfoViewProps : Props {
     var appLogic: AppLogic
@@ -163,6 +169,7 @@ val InfoView = FC<InfoViewProps> { props ->
 
                     ReactHTML.code {
                         StyleConst.codeFont
+                        cursor = Cursor.pointer
                     }
 
                     ReactHTML.table {
@@ -197,10 +204,10 @@ val InfoView = FC<InfoViewProps> { props ->
                 }
                 ref = docDiv
 
-                currMDID?.let{ id ->
-                    appLogic.getArch().getDocs().files.getOrNull(id)?.let{file ->
+                currMDID?.let { id ->
+                    appLogic.getArch().getDocs().files.getOrNull(id)?.let { file ->
                         if (file is Docs.HtmlFile.DefinedFile) {
-                            file.fc{
+                            file.fc {
 
                             }
                         }
@@ -217,7 +224,6 @@ val InfoView = FC<InfoViewProps> { props ->
     }
 
     useEffect(currMDID) {
-
         if (currMDID != null) {
             val file = appLogic.getArch().getDocs().files[currMDID]
             if (file is Docs.HtmlFile.SourceFile) {
@@ -225,6 +231,25 @@ val InfoView = FC<InfoViewProps> { props ->
                     val snippet = fetch(file.src).text()
                     docDiv.current?.let {
                         it.innerHTML = snippet.await()
+                        val codeChilds = it.getElementsByTagName("code").asList()
+                        for (child in codeChilds) {
+                            child.addEventListener(EventType("click"), { event ->
+                                child.textContent?.let { text ->
+                                    if (appLogic.getArch().getFileHandler().getAllFiles().filter { it.getName() == "example" }.isEmpty()) {
+                                        appLogic.getArch().getFileHandler().import(FileHandler.File("example", text))
+                                        window.scrollTo(0, 0)
+                                        props.updateParent()
+                                        appLogic.getArch().getConsole().info("Successfully imported 'example'!")
+                                    } else {
+                                        child.classList.add(StyleConst.ANIM_SHAKERED)
+                                        web.timers.setTimeout({
+                                            child.classList.remove(StyleConst.ANIM_SHAKERED)
+                                        }, 100)
+                                        appLogic.getArch().getConsole().warn("Documentation couldn't import code example cause filename 'example' already exists!")
+                                    }
+                                }
+                            })
+                        }
                     }
                 }
             }

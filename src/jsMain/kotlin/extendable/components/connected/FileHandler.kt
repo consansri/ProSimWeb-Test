@@ -26,6 +26,7 @@ class FileHandler(val fileEnding: String) {
             false
         } else {
             this.files.add(file)
+            this.currentID = this.files.indexOf(file)
             if (DebugTools.ARCH_showFileHandlerInfo) {
                 console.log("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
             }
@@ -86,6 +87,7 @@ class FileHandler(val fileEnding: String) {
         }
     }
 
+    fun getCurrID(): Int = currentID
     fun getCurrUndoLength(): Int = files[currentID].getUndoStates().size
 
     fun getCurrRedoLength(): Int = files[currentID].getRedoStates().size
@@ -101,6 +103,7 @@ class FileHandler(val fileEnding: String) {
     fun getAllFiles(): List<File> = files
 
     fun getFromLocalStorage() {
+        files.clear()
         val fileCount = localStorage.getItem(StorageKey.FILE_COUNT)?.toIntOrNull() ?: 0
         if (fileCount > 0) {
             for (fileID in 0 until fileCount) {
