@@ -87,7 +87,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 setAllowExe(true)
             }, 0)
 
-            ExecutionType.ClearAll -> executionQueue.current = setTimeout({
+            ClearAll -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeClear()
                 setUpdate(!change)

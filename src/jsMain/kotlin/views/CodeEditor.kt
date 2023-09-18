@@ -178,7 +178,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     setCheckState(appLogic.getArch().getState().getState())
                 }, delay)
             }
-
         }
     }
 
@@ -192,9 +191,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         preHLTimeoutRef.current = setTimeout({
             val hlTaList = appLogic.getArch().getPreHighlighting(value).split("\n")
             setvc_rows(hlTaList)
-        }, 300)
+        }, 30)
     }
-
 
     /* ----------------- CHANGE EVENTS ----------------- */
     fun edit(content: String, immediate: Boolean) {
@@ -710,7 +708,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             span {
                                 onClick = { event ->
                                     appLogic.getArch().exeUntilLine(lineNumber - 1)
-                                    props.updateParent()
                                 }
                                 css {
                                     if (currExeLine == lineNumber) {
@@ -864,7 +861,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
         }
     }
-
 
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 

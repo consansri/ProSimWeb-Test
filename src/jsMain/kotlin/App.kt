@@ -42,7 +42,7 @@ val App = FC<Props> { props ->
 
     Menu {
         this.appLogic = appLogic
-        update = useState(reloadUI)
+        update = reloadUI
         updateParent = ::updateApp
     }
 
