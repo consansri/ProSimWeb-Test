@@ -1,6 +1,6 @@
 package extendable.archs.riscv32
 
-import StyleConst
+import StyleAttr
 import emotion.react.css
 import extendable.components.*
 import extendable.components.connected.*
@@ -96,12 +96,12 @@ object RV32 {
                         tr {
 
                             th {
-                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                 colSpan = 2
                                 +"instruction"
                             }
                             th {
-                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                 +"opcode"
                             }
                         }
@@ -111,11 +111,11 @@ object RV32 {
                             tr {
 
                                 td {
-                                    className = ClassName(StyleConst.Main.Table.CLASS_TXT_LEFT)
+                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
                                     +instr.id
                                 }
                                 td {
-                                    className = ClassName(StyleConst.Main.Table.CLASS_TXT_LEFT)
+                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
                                     +"${instr.paramType.exampleString}\t"
                                 }
                                 td {
@@ -128,7 +128,7 @@ object RV32 {
                                                 tr {
                                                     for (mask in it.maskLabels) {
                                                         th {
-                                                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                                             +mask.name
                                                         }
                                                     }
@@ -138,7 +138,7 @@ object RV32 {
                                                 tr {
                                                     for (opcode in it.opMaskList) {
                                                         td {
-                                                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                                             +opcode
                                                         }
                                                     }

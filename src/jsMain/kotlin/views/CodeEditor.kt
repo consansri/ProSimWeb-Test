@@ -1,7 +1,7 @@
 package views
 
 import AppLogic
-import StyleConst
+import StyleAttr
 import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.FileHandler
@@ -117,7 +117,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         textareaRef.current?.let {
             val lineCount = it.value.split("\n").size + 1
             width = it.value.split("\n").map { it.length }.max()
-            height = lineCount * StyleConst.Main.Editor.TextField.lineHeight
+            height = lineCount * StyleAttr.Main.Editor.TextField.lineHeight
             it.style.height = "auto"
             it.style.height = "${height}px"
             it.style.width = "auto"
@@ -134,27 +134,27 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     fun updateClearButton() {
         textareaRef.current?.let {
             if (it.value != "") {
-                btnClearRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+                btnClearRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             } else {
-                btnClearRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+                btnClearRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             }
         }
     }
 
     fun updateUndoRedoButton() {
         if (appLogic.getArch().getFileHandler().getCurrUndoLength() > 1) {
-            btnUndoRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+            btnUndoRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             setUndoActive(true)
         } else {
             setUndoActive(false)
-            btnUndoRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+            btnUndoRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
         }
         if (appLogic.getArch().getFileHandler().getCurrRedoLength() > 0) {
             setRedoActive(true)
-            btnRedoRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+            btnRedoRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
         } else {
             setRedoActive(false)
-            btnRedoRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+            btnRedoRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
         }
     }
 
@@ -240,7 +240,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- DOM ----------------- */
 
     div {
-        className = ClassName(StyleConst.Main.Editor.CLASS)
+        className = ClassName(StyleAttr.Main.Editor.CLASS)
 
         div {
             css {
@@ -248,31 +248,31 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 flexDirection = FlexDirection.column
                 justifyContent = JustifyContent.start
                 alignItems = AlignItems.start
-                gap = StyleConst.paddingSize
-                minWidth = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                gap = StyleAttr.paddingSize
+                minWidth = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
 
                 a {
-                    width = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    width = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                     boxShadow = BoxShadow(0.px, 3.px, 8.px, rgb(0, 0, 0, 0.24))
-                    padding = StyleConst.Main.Editor.Controls.iconPadding
-                    borderRadius = StyleConst.Main.Editor.Controls.borderRadius
-                    background = StyleConst.Main.Editor.Controls.BgColor.get()
-                    color = StyleConst.Main.Editor.Controls.FgColor.get()
+                    padding = StyleAttr.Main.Editor.Controls.iconPadding
+                    borderRadius = StyleAttr.Main.Editor.Controls.borderRadius
+                    background = StyleAttr.Main.Editor.Controls.BgColor.get()
+                    color = StyleAttr.Main.Editor.Controls.FgColor.get()
                     transition = Transition(TransitionProperty.all, 0.1.s, TransitionTimingFunction.ease)
                 }
                 img {
-                    width = StyleConst.Main.Editor.Controls.iconSize
-                    height = StyleConst.Main.Editor.Controls.iconSize
-                    filter = StyleConst.Main.Editor.Controls.iconFilter
+                    width = StyleAttr.Main.Editor.Controls.iconSize
+                    height = StyleAttr.Main.Editor.Controls.iconSize
+                    filter = StyleAttr.Main.Editor.Controls.iconFilter
                 }
             }
 
             a {
                 css {
-                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
                     if (transcriptView) {
-                        filter = important(StyleConst.iconActiveFilter)
+                        filter = important(StyleAttr.iconActiveFilter)
                     }
                 }
 
@@ -280,7 +280,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 ref = btnSwitchRef
                 title = "Transcript Switch"
                 ReactHTML.img {
-                    src = StyleConst.Icons.disassembler
+                    src = StyleAttr.Icons.disassembler
                 }
 
                 if (checkState == ArchConst.STATE_EXECUTABLE) {
@@ -292,7 +292,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 css {
-                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
                 }
 
@@ -300,37 +300,37 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     ArchConst.STATE_UNCHECKED -> {
                         title = "Status: loading..."
                         img {
-                            className = ClassName(StyleConst.Main.CLASS_ANIM_ROTATION)
-                            src = StyleConst.Icons.status_loading
+                            className = ClassName(StyleAttr.Main.CLASS_ANIM_ROTATION)
+                            src = StyleAttr.Icons.status_loading
                         }
                     }
 
                     ArchConst.STATE_EXECUTABLE -> {
                         title = "Status: ready to build"
                         img {
-                            src = StyleConst.Icons.status_fine
+                            src = StyleAttr.Icons.status_fine
                         }
                     }
 
                     ArchConst.STATE_HASERRORS -> {
                         title = "Status: fix errors!"
                         img {
-                            src = StyleConst.Icons.status_error
+                            src = StyleAttr.Icons.status_error
                         }
                     }
 
                     ArchConst.STATE_EXECUTION -> {
                         title = "Status: executing..."
                         img {
-                            src = StyleConst.Icons.status_fine
+                            src = StyleAttr.Icons.status_fine
                         }
                     }
 
                     else -> {
                         title = "Status: loading..."
                         img {
-                            className = ClassName(StyleConst.Main.CLASS_ANIM_ROTATION)
-                            src = StyleConst.Icons.status_loading
+                            className = ClassName(StyleAttr.Main.CLASS_ANIM_ROTATION)
+                            src = StyleAttr.Icons.status_loading
                         }
                     }
                 }
@@ -338,7 +338,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 css {
-                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
                 }
                 id = "undo"
@@ -346,7 +346,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 title = "Undo"
 
                 img {
-                    src = StyleConst.Icons.backwards
+                    src = StyleAttr.Icons.backwards
                 }
                 if (undoActive) {
                     onClick = {
@@ -357,7 +357,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 css {
-                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
                 }
                 id = "redo"
@@ -365,7 +365,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 title = "Redo"
 
                 img {
-                    src = StyleConst.Icons.forwards
+                    src = StyleAttr.Icons.forwards
                 }
                 if (redoActive) {
                     onClick = {
@@ -376,18 +376,18 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 css {
-                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
 
                     hover {
-                        filter = important(StyleConst.iconActiveFilter)
+                        filter = important(StyleAttr.iconActiveFilter)
                     }
                 }
                 id = "build"
                 title = "build"
 
                 img {
-                    src = StyleConst.Icons.build
+                    src = StyleAttr.Icons.build
                 }
                 onClick = {
                     checkCode(true)
@@ -396,7 +396,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             a {
                 css {
-                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
+                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                     cursor = Cursor.pointer
                 }
                 id = "info"
@@ -426,21 +426,21 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 """.trimIndent()
 
                 img {
-                    src = StyleConst.Icons.info
+                    src = StyleAttr.Icons.info
                 }
             }
 
             a {
                 css {
-                    height = StyleConst.Main.Editor.Controls.iconSize + 2 * StyleConst.Main.Editor.Controls.iconPadding
-                    background = important(StyleConst.Main.DeleteColor)
+                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
+                    background = important(StyleAttr.Main.DeleteColor)
                     cursor = Cursor.pointer
                 }
                 ref = btnClearRef
                 title = "Clear"
 
                 img {
-                    src = StyleConst.Icons.delete_black
+                    src = StyleAttr.Icons.delete_black
                 }
 
                 onClick = {
@@ -465,7 +465,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
 
                 img {
-                    src = StyleConst.Icons.tag
+                    src = StyleAttr.Icons.tag
                 }
 
                 onClick = {
@@ -476,20 +476,20 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         div {
-            css(ClassName(StyleConst.Main.Editor.TextField.CLASS)) {
+            css(ClassName(StyleAttr.Main.Editor.TextField.CLASS)) {
                 overflow = Overflow.hidden
                 display = Display.flex
                 flexDirection = FlexDirection.column
                 maxHeight = 100.pct
                 width = 100.pct
-                this.lineHeight = StyleConst.Main.Editor.TextField.lineHeight.px
+                this.lineHeight = StyleAttr.Main.Editor.TextField.lineHeight.px
                 fontFamily = FontFamily.monospace
-                backgroundColor = StyleConst.Main.Editor.BgColor.get()
-                color = StyleConst.Main.Editor.FgColor.get()
-                caretColor = important(StyleConst.Main.Editor.FgColor.get())
-                borderRadius = StyleConst.borderRadius
-                padding = StyleConst.paddingSize
-                boxShadow = StyleConst.Main.elementShadow
+                backgroundColor = StyleAttr.Main.Editor.BgColor.get()
+                color = StyleAttr.Main.Editor.FgColor.get()
+                caretColor = important(StyleAttr.Main.Editor.FgColor.get())
+                borderRadius = StyleAttr.borderRadius
+                padding = StyleAttr.paddingSize
+                boxShadow = StyleAttr.Main.elementShadow
             }
 
             ref = editorContainerRef
@@ -505,19 +505,19 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                 div {
 
-                    className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TABS)
+                    className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TABS)
 
                     for (fileID in appLogic.getArch().getFileHandler().getAllFiles().indices) {
                         val file = appLogic.getArch().getFileHandler().getAllFiles()[fileID]
                         div {
 
-                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TAB + if (file == appLogic.getArch().getFileHandler().getCurrent()) " ${StyleConst.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
+                            className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB + if (file == appLogic.getArch().getFileHandler().getCurrent()) " ${StyleAttr.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
 
                             img {
                                 src = if (file.getLinkedTree() != null) {
-                                    StyleConst.Icons.file_compiled
+                                    StyleAttr.Icons.file_compiled
                                 } else {
-                                    StyleConst.Icons.file_not_compiled
+                                    StyleAttr.Icons.file_not_compiled
                                 }
                             }
 
@@ -526,7 +526,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     a {
                                         css {
                                             if (file == exeFile) {
-                                                color = important(StyleConst.Main.Editor.HL.greenPCMark.color.get())
+                                                color = important(StyleAttr.Main.Editor.HL.greenPCMark.color.get())
                                             }
                                         }
                                         +file.getName()
@@ -557,14 +557,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                             val success = appLogic.getArch().getFileHandler().renameCurrent(it.currentTarget.value)
                                             renameinput.current?.let {
                                                 if (success) {
-                                                    it.classList.add(StyleConst.ANIM_BLINKGREEN)
+                                                    it.classList.add(StyleAttr.ANIM_BLINKGREEN)
                                                     setTimeout({
-                                                        it.classList.remove(StyleConst.ANIM_BLINKGREEN)
+                                                        it.classList.remove(StyleAttr.ANIM_BLINKGREEN)
                                                     }, 500)
                                                 } else {
-                                                    it.classList.add(StyleConst.ANIM_SHAKERED)
+                                                    it.classList.add(StyleAttr.ANIM_SHAKERED)
                                                     setTimeout({
-                                                        it.classList.remove(StyleConst.ANIM_SHAKERED)
+                                                        it.classList.remove(StyleAttr.ANIM_SHAKERED)
                                                     }, 500)
                                                 }
                                             }
@@ -576,10 +576,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                 img {
                                     css {
-                                        filter = StyleConst.Main.DeleteFilter
+                                        filter = StyleAttr.Main.DeleteFilter
                                     }
 
-                                    src = StyleConst.Icons.delete_black
+                                    src = StyleAttr.Icons.delete_black
 
                                     onClick = {
                                         val response = window.confirm("Do you really want to delete the file '${file.getName()}'?\nThis can't be undone!")
@@ -595,7 +595,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 a {
                                     css {
                                         if (file == exeFile) {
-                                            color = important(StyleConst.Main.Editor.HL.greenPCMark.color.get())
+                                            color = important(StyleAttr.Main.Editor.HL.greenPCMark.color.get())
                                         }
                                     }
                                     +file.getName()
@@ -613,7 +613,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                     if (showAddTab) {
                         div {
-                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TAB)
+                            className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB)
 
                             input {
                                 ref = addtabinput
@@ -634,9 +634,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                                 setTaValueUpdate(!taValueUpdate)
                                                 setShowAddTab(false)
                                             } else {
-                                                input.classList.add(StyleConst.ANIM_SHAKERED)
+                                                input.classList.add(StyleAttr.ANIM_SHAKERED)
                                                 setTimeout({
-                                                    input.classList.remove(StyleConst.ANIM_SHAKERED)
+                                                    input.classList.remove(StyleAttr.ANIM_SHAKERED)
                                                 }, 300)
                                             }
                                         }
@@ -656,9 +656,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                             setTaValueUpdate(!taValueUpdate)
                                             setShowAddTab(false)
                                         } else {
-                                            input.classList.add(StyleConst.ANIM_SHAKERED)
+                                            input.classList.add(StyleAttr.ANIM_SHAKERED)
                                             setTimeout({
-                                                input.classList.remove(StyleConst.ANIM_SHAKERED)
+                                                input.classList.remove(StyleAttr.ANIM_SHAKERED)
                                             }, 300)
                                         }
                                     }
@@ -668,7 +668,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
                     } else {
                         a {
-                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_TAB)
+                            className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB)
 
                             +"+"
 
@@ -680,25 +680,25 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
 
                 div {
-                    className = ClassName(StyleConst.Main.Editor.TextField.CLASS_SCROLL_CONTAINER)
+                    className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_SCROLL_CONTAINER)
 
                     div {
-                        css(ClassName(StyleConst.Main.Editor.TextField.CLASS_LINE_NUMBERS)) {
+                        css(ClassName(StyleAttr.Main.Editor.TextField.CLASS_LINE_NUMBERS)) {
                             display = Display.flex
                             flexDirection = FlexDirection.column
                             alignItems = AlignItems.flexEnd
-                            minWidth = StyleConst.Main.Editor.TextField.minLineNumWidth
+                            minWidth = StyleAttr.Main.Editor.TextField.minLineNumWidth
                             textAlign = TextAlign.right
 
                             span {
                                 cursor = Cursor.pointer
-                                paddingRight = StyleConst.paddingSize
+                                paddingRight = StyleAttr.paddingSize
                                 fontFamily = FontFamily.monospace
-                                borderRight = Border(1.px, LineStyle.solid, StyleConst.Main.Editor.TextField.LineNumbersBorderColor.get())
-                                color = StyleConst.Main.Editor.TextField.LineNumbersColor.get()
+                                borderRight = Border(1.px, LineStyle.solid, StyleAttr.Main.Editor.TextField.LineNumbersBorderColor.get())
+                                color = StyleAttr.Main.Editor.TextField.LineNumbersColor.get()
 
-                                ".${StyleConst.Main.Editor.TextField.CLASS_LINE_ACTIVE}" {
-                                    color = important(StyleConst.Main.Editor.TextField.LineActiveColor.get())
+                                ".${StyleAttr.Main.Editor.TextField.CLASS_LINE_ACTIVE}" {
+                                    color = important(StyleAttr.Main.Editor.TextField.LineActiveColor.get())
                                 }
                             }
                         }
@@ -711,7 +711,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                                 css {
                                     if (currExeLine == lineNumber) {
-                                        color = important(StyleConst.Main.Editor.HL.greenPCMark.color.get())
+                                        color = important(StyleAttr.Main.Editor.HL.greenPCMark.color.get())
                                     }
                                 }
 
@@ -725,11 +725,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     }
 
                     div {
-                        className = ClassName(StyleConst.Main.Editor.TextField.CLASS_INPUT_DIV)
+                        className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_INPUT_DIV)
                         ref = inputDivRef
 
                         textarea {
-                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_AREA)
+                            className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_AREA)
                             ref = textareaRef
                             autoComplete = AutoComplete.off
                             autoCorrect = "off"
@@ -810,32 +810,32 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
 
                         pre {
-                            className = ClassName(StyleConst.Main.Editor.TextField.CLASS_HIGHLIGHTING)
+                            className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_HIGHLIGHTING)
                             ariaHidden = true
 
                             code {
-                                css(ClassName(StyleConst.Main.Editor.TextField.CLASS_HIGHLIGHTING_CONTENT)) {
-                                    caretColor = StyleConst.Main.Editor.FgColor.get()
-                                    color = StyleConst.Main.Editor.FgColor.get()
+                                css(ClassName(StyleAttr.Main.Editor.TextField.CLASS_HIGHLIGHTING_CONTENT)) {
+                                    caretColor = StyleAttr.Main.Editor.FgColor.get()
+                                    color = StyleAttr.Main.Editor.FgColor.get()
                                     display = Display.block
                                     width = 100.pct
                                     height = 100.pct
-                                    tabSize = StyleConst.Main.Editor.TextField.tabSize.ch
-                                    lineHeight = StyleConst.Main.Editor.TextField.lineHeight.px
+                                    tabSize = StyleAttr.Main.Editor.TextField.tabSize.ch
+                                    lineHeight = StyleAttr.Main.Editor.TextField.lineHeight.px
                                     whiteSpace = WhiteSpace.pre
-                                    paddingLeft = StyleConst.paddingSize
+                                    paddingLeft = StyleAttr.paddingSize
                                     border = Border(0.px, LineStyle.hidden)
-                                    background = StyleConst.transparent
+                                    background = StyleAttr.transparent
                                     resize = Resize.block
 
-                                    for (entry in StyleConst.Main.Editor.HL.entries) {
+                                    for (entry in StyleAttr.Main.Editor.HL.entries) {
                                         ".${entry.getFlag()}" {
                                             when (entry.appendsOn) {
-                                                StyleConst.Main.Editor.On.BackgroundColor -> {
+                                                StyleAttr.Main.Editor.On.BackgroundColor -> {
                                                     backgroundColor = important(entry.color.get())
                                                 }
 
-                                                StyleConst.Main.Editor.On.Color -> {
+                                                StyleAttr.Main.Editor.On.Color -> {
                                                     color = important(entry.color.get())
                                                 }
                                             }
@@ -882,12 +882,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         when (checkState) {
             ArchConst.STATE_EXECUTABLE -> {
                 if (!appLogic.getArch().getTranscript().deactivated()) {
-                    btnSwitchRef.current?.classList?.remove(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+                    btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
                 }
             }
 
             else -> {
-                btnSwitchRef.current?.classList?.add(StyleConst.Main.CLASS_ANIM_DEACTIVATED)
+                btnSwitchRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             }
         }
     }
@@ -912,7 +912,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         setFiles(appLogic.getArch().getFileHandler().getAllFiles())
     }
 
-    useEffect(StyleConst.mode) {
+    useEffect(StyleAttr.mode) {
         checkCode(false)
     }
 }

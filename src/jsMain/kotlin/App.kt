@@ -1,5 +1,4 @@
 import emotion.react.css
-import js.errors.TypeError
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import web.html.*
@@ -22,7 +21,7 @@ val App = FC<Props> { props ->
     val footerRef = useRef<HTMLElement>()
 
     val (appLogic, setAppLogic) = useState<AppLogic>(AppLogic())
-    val (mode, setMode) = useState<StyleConst.Mode>(StyleConst.mode)
+    val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.mode)
     val (reloadUI, setReloadUI) = useState(false)
     val (lPercentage, setLPct) = useState<Int>(40)
 
@@ -49,8 +48,8 @@ val App = FC<Props> { props ->
     ReactHTML.main {
         ref = mainRef
         css {
-            backgroundColor = StyleConst.Main.BgColor.get()
-            color = StyleConst.Main.FgColor.get()
+            backgroundColor = StyleAttr.Main.BgColor.get()
+            color = StyleAttr.Main.FgColor.get()
         }
 
         div {
@@ -58,14 +57,14 @@ val App = FC<Props> { props ->
             css {
                 display = Display.flex
                 position = Position.relative
-                gap = StyleConst.paddingSize
+                gap = StyleAttr.paddingSize
                 flexWrap = FlexWrap.nowrap
-                padding = StyleConst.paddingSize
+                padding = StyleAttr.paddingSize
                 flexDirection = FlexDirection.row
                 justifyContent = JustifyContent.stretch
                 alignItems = AlignItems.stretch
 
-                StyleConst.layoutSwitchMediaQuery {
+                StyleAttr.layoutSwitchMediaQuery {
                     flexDirection = FlexDirection.column
                 }
             }
@@ -78,10 +77,10 @@ val App = FC<Props> { props ->
                     if (lPercentage == 0) {
                         visibility = Visibility.hidden
                     }
-                    StyleConst.layoutSwitchMediaQuery {
+                    StyleAttr.layoutSwitchMediaQuery {
                         flex = 100.pct
                         display = Display.block
-                        minHeight = max(50.vh, (StyleConst.Main.Editor.TextField.lineHeight * 10).px)
+                        minHeight = max(50.vh, (StyleAttr.Main.Editor.TextField.lineHeight * 10).px)
                     }
                 }
                 CodeEditor {
@@ -101,15 +100,15 @@ val App = FC<Props> { props ->
                     }
                     display = Display.flex
                     flexDirection = FlexDirection.column
-                    gap = StyleConst.paddingSize
-                    padding = StyleConst.paddingSize
+                    gap = StyleAttr.paddingSize
+                    padding = StyleAttr.paddingSize
                     position = Position.relative
-                    backgroundColor = StyleConst.Main.Processor.BgColor.get()
-                    color = StyleConst.Main.Processor.FgColor.get()
-                    boxShadow = StyleConst.Main.elementShadow
-                    borderRadius = StyleConst.borderRadius
+                    backgroundColor = StyleAttr.Main.Processor.BgColor.get()
+                    color = StyleAttr.Main.Processor.FgColor.get()
+                    boxShadow = StyleAttr.Main.elementShadow
+                    borderRadius = StyleAttr.borderRadius
 
-                    StyleConst.layoutSwitchMediaQuery {
+                    StyleAttr.layoutSwitchMediaQuery {
                         flex = 100.pct
                     }
                 }
@@ -127,51 +126,51 @@ val App = FC<Props> { props ->
                 css {
                     display = Display.flex
                     flexDirection = FlexDirection.column
-                    gap = StyleConst.paddingSize
+                    gap = StyleAttr.paddingSize
                     justifyContent = JustifyContent.start
                     alignItems = AlignItems.start
 
-                    StyleConst.layoutSwitchMediaQuery {
+                    StyleAttr.layoutSwitchMediaQuery {
                         flexDirection = FlexDirection.row
                     }
 
                     a {
-                        backgroundColor = StyleConst.Main.AppControls.BgColor.get()
-                        padding = StyleConst.Main.AppControls.iconPadding
-                        borderRadius = StyleConst.borderRadius
+                        backgroundColor = StyleAttr.Main.AppControls.BgColor.get()
+                        padding = StyleAttr.Main.AppControls.iconPadding
+                        borderRadius = StyleAttr.borderRadius
                         boxShadow = BoxShadow(0.px, 0.px, 0.5.rem, Color("#000000A0"))
-                        height = StyleConst.Main.AppControls.size
-                        width = StyleConst.Main.AppControls.size
+                        height = StyleAttr.Main.AppControls.size
+                        width = StyleAttr.Main.AppControls.size
                         cursor = Cursor.pointer
 
                         img {
-                            height = StyleConst.Main.AppControls.iconSize
-                            width = StyleConst.Main.AppControls.iconSize
-                            filter = StyleConst.iconFilter
+                            height = StyleAttr.Main.AppControls.iconSize
+                            width = StyleAttr.Main.AppControls.iconSize
+                            filter = StyleAttr.iconFilter
                         }
                     }
                 }
 
                 a {
-                    title = "Switch between ${StyleConst.Mode.entries.joinToString(" ") { it.name }}"
+                    title = "Switch between ${StyleAttr.Mode.entries.joinToString(" ") { it.name }}"
                     img {
-                        src = when (StyleConst.mode) {
-                            StyleConst.Mode.LIGHT -> {
-                                StyleConst.Icons.lightmode
+                        src = when (StyleAttr.mode) {
+                            StyleAttr.Mode.LIGHT -> {
+                                StyleAttr.Icons.lightmode
                             }
 
-                            StyleConst.Mode.DARK -> {
-                                StyleConst.Icons.darkmode
+                            StyleAttr.Mode.DARK -> {
+                                StyleAttr.Icons.darkmode
                             }
                         }
                     }
                     onClick = {
-                        val newMode = if (mode.ordinal < StyleConst.Mode.entries.size - 1) {
-                            StyleConst.Mode.entries[mode.ordinal + 1]
+                        val newMode = if (mode.ordinal < StyleAttr.Mode.entries.size - 1) {
+                            StyleAttr.Mode.entries[mode.ordinal + 1]
                         } else {
-                            StyleConst.Mode.entries[0]
+                            StyleAttr.Mode.entries[0]
                         }
-                        StyleConst.mode = newMode
+                        StyleAttr.mode = newMode
                         setMode(newMode)
                     }
                 }
@@ -179,7 +178,7 @@ val App = FC<Props> { props ->
                     title = "clear localStorage"
                     img {
                         alt = "clear local storage"
-                        src = StyleConst.Icons.clear_storage
+                        src = StyleAttr.Icons.clear_storage
                     }
                     onClick = {
                         val response = window.confirm("Do you really want to delete your entire local storage?\nThis will result in the loss of all settings as well as assembler files!")
@@ -199,17 +198,17 @@ val App = FC<Props> { props ->
                 display = Display.flex
                 flexDirection = FlexDirection.column
                 position = Position.relative
-                gap = StyleConst.paddingSize
+                gap = StyleAttr.paddingSize
                 flexWrap = FlexWrap.nowrap
-                padding = StyleConst.paddingSize
+                padding = StyleAttr.paddingSize
             }
 
             input {
                 type = InputType.range
 
                 css {
-                    accentColor = StyleConst.Main.AppControls.BgColor.get()
-                    StyleConst.layoutSwitchMediaQuery {
+                    accentColor = StyleAttr.Main.AppControls.BgColor.get()
+                    StyleAttr.layoutSwitchMediaQuery {
                         visibility = Visibility.hidden
                     }
                 }
@@ -236,8 +235,8 @@ val App = FC<Props> { props ->
     footer {
         ref = footerRef
         css {
-            backgroundColor = StyleConst.Footer.BgColor.get()
-            color = StyleConst.Footer.FgColor.get()
+            backgroundColor = StyleAttr.Footer.BgColor.get()
+            color = StyleAttr.Footer.FgColor.get()
         }
         FooterView {
 

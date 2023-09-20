@@ -1,13 +1,12 @@
 package views.components
 
 import AppLogic
-import StyleConst
+import StyleAttr
 import emotion.react.css
 import extendable.components.connected.Transcript
 import extendable.components.types.MutVal
 import react.FC
 import react.Props
-import react.dom.aria.ariaRowSpan
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.table
@@ -60,12 +59,12 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
     div {
 
-        css(ClassName(StyleConst.Main.Editor.Transcript.CLASS)) {
-            color = StyleConst.Main.Editor.Transcript.FgColor.get()
+        css(ClassName(StyleAttr.Main.Editor.Transcript.CLASS)) {
+            color = StyleAttr.Main.Editor.Transcript.FgColor.get()
         }
 
         div {
-            css(ClassName(StyleConst.Main.Editor.Transcript.CLASS_TITLE)) {
+            css(ClassName(StyleAttr.Main.Editor.Transcript.CLASS_TITLE)) {
                 flexBasis = 5.pct
                 height = 100.pct
                 display = Display.flex
@@ -76,7 +75,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
                 a {
                     flex = 100.pct
-                    padding = StyleConst.paddingSize
+                    padding = StyleAttr.paddingSize
                 }
             }
 
@@ -92,33 +91,34 @@ val TranscriptView = FC<TranscriptProps> { props ->
         }
 
         div {
-            css(ClassName(StyleConst.Main.Editor.Transcript.CLASS_TABLE)) {
+            css(ClassName(StyleAttr.Main.Editor.Transcript.CLASS_TABLE)) {
                 flex = 95.pct
                 overflowY = Overflow.scroll
                 maxHeight = 100.pct
-                borderRadius = StyleConst.borderRadius
+                borderRadius = StyleAttr.borderRadius
                 boxShadow = BoxShadow(0.px, 2.px, 2.px, rgb(0, 0, 0, 0.12))
             }
 
             table {
-
                 thead {
-
                     tr {
                         css {
                             th {
-                                background = important(StyleConst.Main.Editor.BgColor.get())
+                                background = important(StyleAttr.Main.Editor.BgColor.get())
                             }
                         }
                         for (header in transcript.getHeaders(currType)) {
                             th {
-                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                 scope = "col"
                                 +header
                             }
                         }
                     }
                 }
+
+                // ...
+
                 tbody {
                     for (row in transcript.getContent(currType)) {
                         tr {
@@ -126,7 +126,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
                                 cursor = Cursor.pointer
                                 for (address in row.getAddresses()) {
                                     if (address == currExeAddr) {
-                                        backgroundColor = important(StyleConst.Main.Table.BgPC)
+                                        backgroundColor = important(StyleAttr.Main.Table.BgPC)
                                     }
                                 }
                             }
@@ -134,9 +134,9 @@ val TranscriptView = FC<TranscriptProps> { props ->
                             for (entry in row.getContent()) {
                                 td {
                                     className = when (entry.orientation) {
-                                        Transcript.Row.Orientation.LEFT -> ClassName(StyleConst.Main.Table.CLASS_TXT_LEFT)
-                                        Transcript.Row.Orientation.CENTER -> ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
-                                        Transcript.Row.Orientation.RIGHT -> ClassName(StyleConst.Main.Table.CLASS_TXT_RIGHT)
+                                        Transcript.Row.Orientation.LEFT -> ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
+                                        Transcript.Row.Orientation.CENTER -> ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                        Transcript.Row.Orientation.RIGHT -> ClassName(StyleAttr.Main.Table.CLASS_TXT_RIGHT)
                                     }
                                     +entry.content
                                 }
@@ -155,7 +155,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
                                     cursor = Cursor.pointer
                                     for (address in row.getAddresses()) {
                                         if (address == currExeAddr) {
-                                            backgroundColor = important(StyleConst.Main.Table.BgPC)
+                                            backgroundColor = important(StyleAttr.Main.Table.BgPC)
                                         }
                                     }
                                 }

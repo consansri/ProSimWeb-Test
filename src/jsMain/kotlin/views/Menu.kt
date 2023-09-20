@@ -1,7 +1,7 @@
 package views
 
 import AppLogic
-import StyleConst
+import StyleAttr
 import emotion.react.css
 import extendable.components.connected.FileBuilder
 import extendable.components.connected.FileHandler
@@ -61,9 +61,9 @@ val Menu = FC<MenuProps>() { props ->
     fun showNavbar(state: Boolean) {
         navRef.current?.let {
             if (state) {
-                it.classList.add(StyleConst.Header.CLASS_MOBILE_OPEN)
+                it.classList.add(StyleAttr.Header.CLASS_MOBILE_OPEN)
             } else {
-                it.classList.remove(StyleConst.Header.CLASS_MOBILE_OPEN)
+                it.classList.remove(StyleAttr.Header.CLASS_MOBILE_OPEN)
             }
             setNavHidden(!state)
         }
@@ -92,14 +92,14 @@ val Menu = FC<MenuProps>() { props ->
 
     header {
         css {
-            backgroundColor = StyleConst.Header.BgColor.get()
-            color = StyleConst.Header.FgColor.get()
+            backgroundColor = StyleAttr.Header.BgColor.get()
+            color = StyleAttr.Header.FgColor.get()
 
             a {
-                color = StyleConst.Header.FgColor.get()
+                color = StyleAttr.Header.FgColor.get()
             }
             nav {
-                backgroundColor = StyleConst.Header.BgColor.get()
+                backgroundColor = StyleAttr.Header.BgColor.get()
             }
         }
 
@@ -117,7 +117,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 img {
                     className = ClassName("nav-img")
-                    src = StyleConst.Icons.home
+                    src = StyleAttr.Icons.home
 
                 }
             }
@@ -129,7 +129,7 @@ val Menu = FC<MenuProps>() { props ->
                 }
                 img {
                     className = ClassName("nav-img")
-                    src = StyleConst.Icons.processor
+                    src = StyleAttr.Icons.processor
                 }
             }
 
@@ -138,7 +138,7 @@ val Menu = FC<MenuProps>() { props ->
                 img {
                     className = ClassName("nav-img")
                     alt = "Upload"
-                    src = StyleConst.Icons.import
+                    src = StyleAttr.Icons.import
                 }
 
                 onClick = {
@@ -152,7 +152,7 @@ val Menu = FC<MenuProps>() { props ->
                 img {
                     className = ClassName("nav-img")
                     alt = "Download"
-                    src = StyleConst.Icons.export
+                    src = StyleAttr.Icons.export
                 }
 
                 onClick = {
@@ -170,7 +170,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 img {
                     className = ClassName("nav-img")
-                    src = StyleConst.Icons.cancel
+                    src = StyleAttr.Icons.cancel
 
                 }
             }
@@ -186,7 +186,7 @@ val Menu = FC<MenuProps>() { props ->
 
             img {
                 className = ClassName("nav-img")
-                src = StyleConst.Icons.bars
+                src = StyleAttr.Icons.bars
 
             }
         }
@@ -194,7 +194,7 @@ val Menu = FC<MenuProps>() { props ->
         div {
             ref = archsRef
 
-            css(ClassName(StyleConst.Header.CLASS_DROPDOWN)) {
+            css(ClassName(StyleAttr.Header.CLASS_DROPDOWN)) {
                 if (archsHidden) {
                     visibility = Visibility.hidden
                     transform = translatey(-100.vh)
@@ -229,17 +229,17 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 img {
-                    src = StyleConst.Icons.cancel
+                    src = StyleAttr.Icons.cancel
                 }
             }
         }
 
         if (!exportHidden) {
             div {
-                className = ClassName(StyleConst.Header.CLASS_OVERLAY)
+                className = ClassName(StyleAttr.Header.CLASS_OVERLAY)
 
                 img {
-                    src = StyleConst.Icons.cancel
+                    src = StyleAttr.Icons.cancel
                     onClick = {
                         setExportHidden(true)
                     }
@@ -274,7 +274,7 @@ val Menu = FC<MenuProps>() { props ->
 
                 if (selFormat != FileBuilder.ExportFormat.CURRENT_FILE) {
                     div {
-                        className = ClassName(StyleConst.Header.CLASS_OVERLAY_LABELEDINPUT)
+                        className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
                         label {
                             htmlFor = "vhdlAddrInput"
                             +"Address Width [Bits]"
@@ -294,7 +294,7 @@ val Menu = FC<MenuProps>() { props ->
                     }
 
                     div {
-                        className = ClassName(StyleConst.Header.CLASS_OVERLAY_LABELEDINPUT)
+                        className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
                         label {
                             htmlFor = "vhdlDataInput"
                             +"Data Width [Bits]"
@@ -353,10 +353,10 @@ val Menu = FC<MenuProps>() { props ->
 
         if (!importHidden) {
             div {
-                className = ClassName(StyleConst.Header.CLASS_OVERLAY)
+                className = ClassName(StyleAttr.Header.CLASS_OVERLAY)
 
                 img {
-                    src = StyleConst.Icons.cancel
+                    src = StyleAttr.Icons.cancel
 
                     onClick = {
                         setImportHidden(true)

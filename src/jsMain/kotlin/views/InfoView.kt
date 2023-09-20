@@ -9,26 +9,17 @@ import react.dom.html.ReactHTML.div
 import tools.DebugTools
 import views.components.IConsoleView
 import web.cssom.*
-import StyleConst.Main.InfoView
+import StyleAttr.Main.InfoView
 import extendable.components.connected.Docs
 import extendable.components.connected.FileHandler
 import js.core.asList
 import js.promise.await
 import kotlinx.coroutines.*
-import org.w3c.dom.ScrollBehavior
 import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.br
-import react.dom.html.ReactHTML.html
-import react.dom.html.ReactHTML.iframe
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.pre
-import react.dom.html.ReactHTML.ul
-import web.dom.document
 import web.events.EventType
 import web.http.fetch
-import web.scroll.ScrollToOptions
 import web.window.window
 
 external interface InfoViewProps : Props {
@@ -60,19 +51,19 @@ val InfoView = FC<InfoViewProps> { props ->
             css {
                 display = Display.flex
                 flexDirection = FlexDirection.row
-                padding = StyleConst.paddingSize
+                padding = StyleAttr.paddingSize
                 justifyContent = JustifyContent.center
                 alignItems = AlignItems.center
-                gap = StyleConst.paddingSize
+                gap = StyleAttr.paddingSize
             }
             for (docID in appLogic.getArch().getDocs().files.indices) {
                 val doc = appLogic.getArch().getDocs().files[docID]
                 a {
                     css {
                         cursor = Cursor.pointer
-                        borderRadius = StyleConst.borderRadius
+                        borderRadius = StyleAttr.borderRadius
                         background = InfoView.Colors.base06.get()
-                        padding = StyleConst.paddingSize
+                        padding = StyleAttr.paddingSize
                         color = important(InfoView.Colors.base00.get())
                     }
 
@@ -99,10 +90,10 @@ val InfoView = FC<InfoViewProps> { props ->
                 justifyContent = JustifyContent.start
                 alignItems = AlignItems.center
                 flexWrap = FlexWrap.wrap
-                padding = StyleConst.paddingSize
+                padding = StyleAttr.paddingSize
                 overflowX = Overflow.scroll
 
-                media(StyleConst.responsiveQuery, {
+                media(StyleAttr.responsiveQuery, {
                     alignItems = AlignItems.start
                 })
             }
@@ -139,7 +130,7 @@ val InfoView = FC<InfoViewProps> { props ->
                         flexDirection = FlexDirection.column
                         justifyContent = JustifyContent.spaceEvenly
                         alignItems = AlignItems.stretch
-                        gap = StyleConst.paddingSize
+                        gap = StyleAttr.paddingSize
                         paddingLeft = InfoView.tabSize
 
                         li {
@@ -147,7 +138,7 @@ val InfoView = FC<InfoViewProps> { props ->
                             flexDirection = FlexDirection.row
                             alignItems = AlignItems.center
                             justifyContent = JustifyContent.start
-                            gap = StyleConst.paddingSize
+                            gap = StyleAttr.paddingSize
                             marginLeft = important(-InfoView.tabSize)
                             flexWrap = FlexWrap.nowrap
 
@@ -163,32 +154,32 @@ val InfoView = FC<InfoViewProps> { props ->
 
                     ReactHTML.pre {
                         background = important(InfoView.Colors.Bg.get())
-                        borderRadius = StyleConst.borderRadius
-                        padding = StyleConst.paddingSize
+                        borderRadius = StyleAttr.borderRadius
+                        padding = StyleAttr.paddingSize
                     }
 
                     ReactHTML.code {
-                        StyleConst.codeFont
+                        StyleAttr.codeFont
                         cursor = Cursor.pointer
                     }
 
                     ReactHTML.table {
                         background = important(InfoView.Colors.TableBg.get())
-                        color = StyleConst.Main.FgColor.get()
+                        color = StyleAttr.Main.FgColor.get()
                         width = important(Length.maxContent)
 
                         ReactHTML.td {
-                            padding = StyleConst.paddingSize
+                            padding = StyleAttr.paddingSize
                         }
                         ReactHTML.th {
-                            paddingRight = StyleConst.paddingSize
+                            paddingRight = StyleAttr.paddingSize
                         }
                     }
 
                     img {
-                        width = StyleConst.iconSize
-                        height = StyleConst.iconSize
-                        borderRadius = StyleConst.borderRadius
+                        width = StyleAttr.iconSize
+                        height = StyleAttr.iconSize
+                        borderRadius = StyleAttr.borderRadius
                         filter = important(InfoView.iconFilter.get())
                     }
 
@@ -196,7 +187,7 @@ val InfoView = FC<InfoViewProps> { props ->
                         marginLeft = InfoView.tabSize
                     }
 
-                    StyleConst.layoutSwitchMediaQuery {
+                    StyleAttr.layoutSwitchMediaQuery {
                         width = 100.pct
                         flexWrap = FlexWrap.wrap
                         overflowWrap = OverflowWrap.breakWord
@@ -241,9 +232,9 @@ val InfoView = FC<InfoViewProps> { props ->
                                         props.updateParent()
                                         appLogic.getArch().getConsole().info("Successfully imported 'example'!")
                                     } else {
-                                        child.classList.add(StyleConst.ANIM_SHAKERED)
+                                        child.classList.add(StyleAttr.ANIM_SHAKERED)
                                         web.timers.setTimeout({
-                                            child.classList.remove(StyleConst.ANIM_SHAKERED)
+                                            child.classList.remove(StyleAttr.ANIM_SHAKERED)
                                         }, 100)
                                         appLogic.getArch().getConsole().warn("Documentation couldn't import code example cause filename 'example' already exists!")
                                     }

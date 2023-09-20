@@ -97,14 +97,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     }
 
     div {
-        className = ClassName(StyleConst.Main.Processor.CLASS_EXE)
+        className = ClassName(StyleAttr.Main.Processor.CLASS_EXE)
 
         div {
             css {
-                color = StyleConst.Main.Processor.FgColor.get()
-                fontWeight = StyleConst.Main.Processor.fontWeight
-                fontSize = StyleConst.Main.Processor.fontSizeTitle
-                fontStyle = StyleConst.Main.Processor.fontStyle
+                color = StyleAttr.Main.Processor.FgColor.get()
+                fontWeight = StyleAttr.Main.Processor.fontWeight
+                fontSize = StyleAttr.Main.Processor.fontSizeTitle
+                fontStyle = StyleAttr.Main.Processor.fontStyle
             }
             a {
                 ref = titleRef
@@ -114,17 +114,17 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         div {
             css {
-                color = StyleConst.Main.Processor.FgColor.get()
+                color = StyleAttr.Main.Processor.FgColor.get()
             }
             button {
                 css {
-                    background = StyleConst.Main.Processor.BtnBg.CONTINUOUS.get()
+                    background = StyleAttr.Main.Processor.BtnBg.CONTINUOUS.get()
                 }
                 title = "Continuous Execution"
                 disabled = !allowExe
 
                 img {
-                    src = StyleConst.Icons.continuous_exe
+                    src = StyleAttr.Icons.continuous_exe
                 }
 
                 onClick = {
@@ -134,14 +134,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
             button {
                 css {
-                    background = StyleConst.Main.Processor.BtnBg.SSTEP.get()
+                    background = StyleAttr.Main.Processor.BtnBg.SSTEP.get()
                 }
                 title = "Single Step"
                 disabled = !allowExe
 
                 p {
                     img {
-                        src = StyleConst.Icons.single_exe
+                        src = StyleAttr.Icons.single_exe
                     }
                 }
                 onClick = {
@@ -151,7 +151,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
             span {
                 css {
-                    background = StyleConst.Main.Processor.BtnBg.MSTEP.get()
+                    background = StyleAttr.Main.Processor.BtnBg.MSTEP.get()
                 }
                 title = "Multi Step"
 
@@ -166,8 +166,8 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     value = mStepAmount
 
                     css {
-                        background = StyleConst.Main.Processor.BgColorTransparent.get()
-                        color = StyleConst.Main.Processor.FgColor.get()
+                        background = StyleAttr.Main.Processor.BgColorTransparent.get()
+                        color = StyleAttr.Main.Processor.FgColor.get()
                     }
 
                     onChange = {
@@ -177,7 +177,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
                 p {
                     img {
-                        src = StyleConst.Icons.step_multiple
+                        src = StyleAttr.Icons.step_multiple
                     }
 
                     onClick = {
@@ -196,13 +196,13 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
             button {
                 css {
-                    background = StyleConst.Main.Processor.BtnBg.SOVER.get()
+                    background = StyleAttr.Main.Processor.BtnBg.SOVER.get()
                 }
                 title = "Skip Subroutine"
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.step_over
+                        src = StyleAttr.Icons.step_over
                     }
                 }
                 onClick = {
@@ -212,13 +212,13 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
             button {
                 css {
-                    background = StyleConst.Main.Processor.BtnBg.ESUB.get()
+                    background = StyleAttr.Main.Processor.BtnBg.ESUB.get()
                 }
                 title = "Return From Subroutine"
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.return_subroutine
+                        src = StyleAttr.Icons.return_subroutine
                     }
                 }
                 onClick = {
@@ -228,13 +228,13 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
             button {
                 css {
-                    background = StyleConst.Main.Processor.BtnBg.RESET.get()
+                    background = StyleAttr.Main.Processor.BtnBg.RESET.get()
                 }
                 title = "Reset and Recompile"
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.recompile
+                        src = StyleAttr.Icons.recompile
                     }
                 }
                 onClick = {
@@ -244,13 +244,13 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
             button {
                 css {
-                    background = StyleConst.Main.Processor.BtnBg.CLEAR.get()
+                    background = StyleAttr.Main.Processor.BtnBg.CLEAR.get()
                 }
                 title = "Clear"
                 disabled = !allowExe
                 p {
                     img {
-                        src = StyleConst.Icons.delete_black
+                        src = StyleAttr.Icons.delete_black
                     }
                 }
                 onClick = {
@@ -261,7 +261,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     }
 
     div {
-        className = ClassName(StyleConst.Main.Processor.CLASS_REG)
+        className = ClassName(StyleAttr.Main.Processor.CLASS_REG)
 
         RegisterView {
             this.name = "Register"
@@ -279,7 +279,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     }
 
     div {
-        className = ClassName(StyleConst.Main.Processor.CLASS_MEM)
+        className = ClassName(StyleAttr.Main.Processor.CLASS_MEM)
 
         MemoryView {
             this.name = "Memory"

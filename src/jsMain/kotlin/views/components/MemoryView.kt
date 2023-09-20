@@ -108,24 +108,22 @@ val MemoryView = FC<MemViewProps> { props ->
     }
 
     div {
-
         css {
             display = Display.flex
             flexDirection = FlexDirection.column
             position = Position.relative
-            /*overflowY = Overflow.scroll*/
-            gap = StyleConst.paddingSize
+            gap = StyleAttr.paddingSize
 
             table {
-                backgroundColor = StyleConst.Main.Processor.TableBgColor.get()
-                color = StyleConst.Main.Processor.TableFgColor.get()
+                backgroundColor = StyleAttr.Main.Processor.TableBgColor.get()
+                color = StyleAttr.Main.Processor.TableFgColor.get()
 
                 caption {
-                    color = StyleConst.Main.Processor.FgColor.get()
+                    color = StyleAttr.Main.Processor.FgColor.get()
                 }
 
                 input {
-                    color = StyleConst.Main.Processor.TableFgColor.get()
+                    color = StyleAttr.Main.Processor.TableFgColor.get()
                 }
             }
         }
@@ -138,7 +136,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 flexWrap = FlexWrap.wrap
                 justifyContent = JustifyContent.stretch
                 alignItems = AlignItems.center
-                gap = StyleConst.paddingSize
+                gap = StyleAttr.paddingSize
                 paddingLeft = 12.px
                 paddingRight = 12.px
 
@@ -146,27 +144,27 @@ val MemoryView = FC<MemViewProps> { props ->
                     display = Display.inlineBlock
                     cursor = Cursor.pointer
                     border = Border(0.px, LineStyle.hidden)
-                    height = StyleConst.iconSize + 2 * StyleConst.iconPadding
+                    height = StyleAttr.iconSize + 2 * StyleAttr.iconPadding
                     flexGrow = number(1.0)
                     float = Float.left
                     minHeight = 1.em
-                    borderRadius = StyleConst.iconBorderRadius
+                    borderRadius = StyleAttr.iconBorderRadius
                     verticalAlign = VerticalAlign.middle
-                    accentColor = StyleConst.Main.Processor.BtnBgColor.get()
+                    accentColor = StyleAttr.Main.Processor.BtnBgColor.get()
 
                     webkitSliderThumb {
-                        borderRadius = StyleConst.iconBorderRadius
+                        borderRadius = StyleAttr.iconBorderRadius
                     }
                     mozRangeThumb {
-                        borderRadius = StyleConst.iconBorderRadius
+                        borderRadius = StyleAttr.iconBorderRadius
                     }
                 }
 
                 select {
-                    background = StyleConst.Main.Processor.BtnBgColor.get()
-                    color = StyleConst.Main.Processor.BtnFgColor.get()
-                    height = StyleConst.iconSize + 2 * StyleConst.iconPadding
-                    fontSize = important(StyleConst.Main.Table.FontSizeSelect)
+                    background = StyleAttr.Main.Processor.BtnBgColor.get()
+                    color = StyleAttr.Main.Processor.BtnFgColor.get()
+                    height = StyleAttr.iconSize + 2 * StyleAttr.iconPadding
+                    fontSize = important(StyleAttr.Main.Table.FontSizeSelect)
                     fontWeight = FontWeight.lighter
                     cursor = Cursor.pointer
 
@@ -175,22 +173,22 @@ val MemoryView = FC<MemViewProps> { props ->
                 button {
                     display = Display.inlineBlock
                     cursor = Cursor.pointer
-                    padding = StyleConst.Main.Table.IconPadding
+                    padding = StyleAttr.Main.Table.IconPadding
                     float = Float.left
-                    color = StyleConst.Main.Processor.BtnFgColor.get()
-                    backgroundColor = StyleConst.Main.Processor.BtnBgColor.get()
-                    borderRadius = StyleConst.iconBorderRadius
+                    color = StyleAttr.Main.Processor.BtnFgColor.get()
+                    backgroundColor = StyleAttr.Main.Processor.BtnBgColor.get()
+                    borderRadius = StyleAttr.iconBorderRadius
                     transition = Transition(TransitionProperty.all, 0.2.s, TransitionTimingFunction.ease)
 
                     a {
-                        padding = StyleConst.paddingSize
+                        padding = StyleAttr.paddingSize
                     }
 
                     img {
                         display = Display.block
-                        height = StyleConst.Main.Table.IconSize
-                        width = StyleConst.Main.Table.IconSize
-                        filter = important(StyleConst.Main.Processor.BtnFgFilter.get())
+                        height = StyleAttr.Main.Table.IconSize
+                        width = StyleAttr.Main.Table.IconSize
+                        filter = important(StyleAttr.Main.Processor.BtnFgFilter.get())
                     }
                 }
             }
@@ -203,7 +201,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
 
                 img {
-                    src = StyleConst.Icons.edit
+                    src = StyleAttr.Icons.edit
                 }
             }
 
@@ -215,7 +213,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
 
                 img {
-                    src = StyleConst.Icons.refresh
+                    src = StyleAttr.Icons.refresh
                 }
             }
 
@@ -244,7 +242,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
             }
             input {
-                css{
+                css {
                     filter = invert(100.pct)
                 }
                 ref = inputLengthRef
@@ -274,7 +272,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
 
                 img {
-                    src = StyleConst.Icons.reverse
+                    src = StyleAttr.Icons.reverse
                 }
             }
 
@@ -284,8 +282,8 @@ val MemoryView = FC<MemViewProps> { props ->
         div {
             css {
                 overflowY = Overflow.scroll
-                maxHeight = StyleConst.Main.Processor.MaxHeightMem
-                borderRadius = StyleConst.borderRadius
+                maxHeight = StyleAttr.Main.Processor.MaxHeightMem
+                borderRadius = StyleAttr.borderRadius
                 paddingLeft = 12.px // center with scrollbar on the right
             }
             tabIndex = 0
@@ -295,24 +293,24 @@ val MemoryView = FC<MemViewProps> { props ->
                     tr {
                         css {
                             th {
-                                background = important(StyleConst.Main.Processor.TableBgColor.get())
+                                background = important(StyleAttr.Main.Processor.TableBgColor.get())
                             }
                         }
                         th {
-                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             +"Address"
                         }
 
                         for (columnID in 0 until memLength) {
                             th {
-                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                 scope = "col"
                                 +"$columnID"
                             }
                         }
                         th {
-                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             +"ASCII"
                         }
@@ -339,7 +337,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             tr {
                                 th {
                                     css {
-                                        color = important(StyleConst.Main.Table.Mark.NOTUSED.get())
+                                        color = important(StyleAttr.Main.Table.Mark.NOTUSED.get())
                                     }
                                     colSpan = 2 + memLength
                                     scope = "row"
@@ -351,7 +349,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         tr {
                             th {
-                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                 scope = "row"
                                 +memRowKey
                             }
@@ -363,7 +361,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                         css {
                                             textAlign = TextAlign.center
                                             if (memInstance.address.getRawHexStr() == currExeAddr) {
-                                                color = important(StyleConst.Main.Table.FgPC)
+                                                color = important(StyleAttr.Main.Table.FgPC)
                                                 fontWeight = important(FontWeight.bold)
                                             } else {
                                                 color = important(memInstance.mark.get())
@@ -388,7 +386,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 } else {
                                     td {
                                         css {
-                                            color = important(StyleConst.Main.Table.Mark.NOTUSED.get())
+                                            color = important(StyleAttr.Main.Table.Mark.NOTUSED.get())
                                             fontWeight = important(FontWeight.lighter)
                                         }
                                         title = "unused"
@@ -398,7 +396,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             td {
-                                className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER + " " + StyleConst.Main.Table.CLASS_MONOSPACE)
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
                                 ref = asciiRef
                                 var asciiString = ""
                                 val emptyAscii = appLogic.getArch().getMemory().getInitialBinary().get().toASCII()
@@ -427,13 +425,13 @@ val MemoryView = FC<MemViewProps> { props ->
 
     if (showDefMemSettings) {
         div {
-            className = ClassName(StyleConst.Main.Window.CLASS)
+            className = ClassName(StyleAttr.Main.Window.CLASS)
 
             div {
-                className = ClassName(StyleConst.Main.Window.CLASS_HEADER)
+                className = ClassName(StyleAttr.Main.Window.CLASS_HEADER)
                 button {
                     img {
-                        src = StyleConst.Icons.cancel
+                        src = StyleAttr.Icons.cancel
                     }
 
                     onClick = {
@@ -445,7 +443,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                 button {
                     img {
-                        src = StyleConst.Icons.delete_black
+                        src = StyleAttr.Icons.delete_black
                     }
 
                     onClick = {
@@ -462,7 +460,7 @@ val MemoryView = FC<MemViewProps> { props ->
             }
 
             div {
-                className = ClassName(StyleConst.Main.Window.CLASS_INFO)
+                className = ClassName(StyleAttr.Main.Window.CLASS_INFO)
                 p {
                     +"Values in this section will be written in Memory before compilation!"
                 }
@@ -473,7 +471,7 @@ val MemoryView = FC<MemViewProps> { props ->
             }
 
             div {
-                className = ClassName(StyleConst.Main.Window.CLASS_CONTENT)
+                className = ClassName(StyleAttr.Main.Window.CLASS_CONTENT)
 
                 for (dValue in appLogic.getArch().getMemory().getEditableInstances()) {
                     div {
@@ -519,9 +517,9 @@ val MemoryView = FC<MemViewProps> { props ->
                         button {
                             img {
                                 css {
-                                    filter = StyleConst.Main.DeleteFilter
+                                    filter = StyleAttr.Main.DeleteFilter
                                 }
-                                src = StyleConst.Icons.delete_black
+                                src = StyleAttr.Icons.delete_black
                             }
 
                             onClick = { event ->
@@ -597,7 +595,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             img {
-                                src = StyleConst.Icons.add
+                                src = StyleAttr.Icons.add
                             }
                         }
 
@@ -699,7 +697,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
 
                             img {
-                                src = StyleConst.Icons.add
+                                src = StyleAttr.Icons.add
                             }
                         }
 

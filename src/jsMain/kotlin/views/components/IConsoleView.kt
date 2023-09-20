@@ -2,7 +2,7 @@ package views.components
 
 import AppLogic
 import StorageKey
-import StyleConst
+import StyleAttr
 import emotion.react.css
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
@@ -121,7 +121,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 appLogic.getArch().getConsole().clear()
             }
 
-            src = StyleConst.Icons.delete_black
+            src = StyleAttr.Icons.delete_black
         }
 
         img {
@@ -148,7 +148,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 setPin(!pin)
             }
 
-            src = StyleConst.Icons.pin
+            src = StyleAttr.Icons.pin
         }
 
         img {
@@ -175,7 +175,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 setScrollDown(!scrollDown)
             }
 
-            src = StyleConst.Icons.autoscroll
+            src = StyleAttr.Icons.autoscroll
         }
 
 
@@ -213,19 +213,19 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                             fontFamily = FontFamily.monospace
                             whiteSpace = WhiteSpace.pre
                             when (message.type) {
-                                StyleConst.MESSAGE_TYPE_INFO -> {
+                                StyleAttr.MESSAGE_TYPE_INFO -> {
                                     color = Color("#AAAAAA")
                                 }
 
-                                StyleConst.MESSAGE_TYPE_LOG -> {
+                                StyleAttr.MESSAGE_TYPE_LOG -> {
                                     color = Color("#888888")
                                 }
 
-                                StyleConst.MESSAGE_TYPE_WARN -> {
+                                StyleAttr.MESSAGE_TYPE_WARN -> {
                                     color = Color("#FDDA0D")
                                 }
 
-                                StyleConst.MESSAGE_TYPE_ERROR -> {
+                                StyleAttr.MESSAGE_TYPE_ERROR -> {
                                     color = Color("#FF5733")
                                 }
 

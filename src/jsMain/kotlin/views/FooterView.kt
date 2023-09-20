@@ -7,9 +7,7 @@ import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.ul
 import web.cssom.*
 
 
@@ -41,11 +39,11 @@ val FooterView = FC<FooterViewProps>{
 
                 }
 
-                src = StyleConst.Icons.report_bug
+                src = StyleAttr.Icons.report_bug
             }
         }
         h3{
-            className = ClassName(StyleConst.CLASS_LOGO)
+            className = ClassName(StyleAttr.CLASS_LOGO)
             +ArchConst.PROSIMNAME
         }
         p{

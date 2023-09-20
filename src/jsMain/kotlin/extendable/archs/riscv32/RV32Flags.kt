@@ -1,6 +1,6 @@
 package extendable.archs.riscv32
 
-import StyleConst.Main.Editor.HL
+import StyleAttr.Main.Editor.HL
 
 object RV32Flags {
 

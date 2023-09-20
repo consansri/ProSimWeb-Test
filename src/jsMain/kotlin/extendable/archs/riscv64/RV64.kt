@@ -9,7 +9,6 @@ object RV64 {
 
     val asmConfig = AsmConfig(RV64Grammar(), RV64Assembly())
 
-
     val config = Config(
         "RV64I",
         Docs(),

@@ -1,6 +1,6 @@
 package extendable
 
-import StyleConst.Main.Editor.HL
+import StyleAttr.Main.Editor.HL
 import extendable.components.assembly.Compiler
 
 object ArchConst {

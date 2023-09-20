@@ -1,6 +1,6 @@
 package extendable.components.connected
 
-import StyleConst
+import StyleAttr
 import extendable.components.types.MutVal
 import tools.DebugTools
 
@@ -17,7 +17,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
 
     fun getEndianess(): Endianess = endianess
 
-    fun save(address: MutVal.Value, mutVal: MutVal, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, readonly: Boolean = false) {
+    fun save(address: MutVal.Value, mutVal: MutVal, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = mutVal.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
@@ -36,7 +36,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
             if (instance != null) {
                 if (!instance.readonly) {
                     instance.mutVal.setHex(word.toString())
-                    if (mark != StyleConst.Main.Table.Mark.ELSE) {
+                    if (mark != StyleAttr.Main.Table.Mark.ELSE) {
                         instance.mark = mark
                     }
                 } else {
@@ -51,7 +51,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         }
     }
 
-    fun saveArray(address: MutVal.Value, vararg values: MutVal.Value, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, readonly: Boolean = false) {
+    fun saveArray(address: MutVal.Value, vararg values: MutVal.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = values.map {value -> value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() } }.reversed().flatten()
 
@@ -70,7 +70,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
             if (instance != null) {
                 if (!instance.readonly) {
                     instance.mutVal.setHex(word.toString())
-                    if (mark != StyleConst.Main.Table.Mark.ELSE) {
+                    if (mark != StyleAttr.Main.Table.Mark.ELSE) {
                         instance.mark = mark
                     }
                 } else {
@@ -86,7 +86,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         }
     }
 
-    fun save(address: MutVal.Value, value: MutVal.Value, mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, readonly: Boolean = false) {
+    fun save(address: MutVal.Value, value: MutVal.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
 
@@ -105,7 +105,7 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
             if (instance != null) {
                 if (!instance.readonly) {
                     instance.mutVal.setHex(word.toString())
-                    if (mark != StyleConst.Main.Table.Mark.ELSE) {
+                    if (mark != StyleAttr.Main.Table.Mark.ELSE) {
                         instance.mark = mark
                     }
                 } else {
@@ -200,8 +200,8 @@ class Memory(private val addressSize: MutVal.Size, private val initBin: String, 
         return wordSize
     }
 
-    open class MemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: StyleConst.Main.Table.Mark = StyleConst.Main.Table.Mark.ELSE, val readonly: Boolean = false) {
-        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : MemInstance(address, MutVal(value), StyleConst.Main.Table.Mark.EDITABLE)
+    open class MemInstance(val address: MutVal.Value.Hex, var mutVal: MutVal, var mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, val readonly: Boolean = false) {
+        class EditableValue(val name: String, address: MutVal.Value.Hex, value: MutVal.Value.Hex) : MemInstance(address, MutVal(value), StyleAttr.Main.Table.Mark.EDITABLE)
 
     }
 

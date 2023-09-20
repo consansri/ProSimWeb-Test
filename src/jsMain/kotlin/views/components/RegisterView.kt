@@ -71,11 +71,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
             /*overflowY = Overflow.scroll*/
 
             table {
-                backgroundColor = StyleConst.Main.Processor.TableBgColor.get()
-                color = StyleConst.Main.Processor.TableFgColor.get()
+                backgroundColor = StyleAttr.Main.Processor.TableBgColor.get()
+                color = StyleAttr.Main.Processor.TableFgColor.get()
 
                 input {
-                    color = StyleConst.Main.Processor.TableFgColor.get()
+                    color = StyleAttr.Main.Processor.TableFgColor.get()
                 }
             }
         }
@@ -86,7 +86,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 position = Position.relative
                 display = Display.block
                 alignContent = AlignContent.center
-                backgroundColor = StyleConst.Main.Processor.BgColor.get()
+                backgroundColor = StyleAttr.Main.Processor.BgColor.get()
 
                 button {
                     paddingTop = 0.5.rem
@@ -96,8 +96,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
             button {
                 css {
-                    color = StyleConst.Main.Processor.FgColor.get()
-                    backgroundColor = StyleConst.transparent
+                    color = StyleAttr.Main.Processor.FgColor.get()
+                    backgroundColor = StyleAttr.transparent
                     paddingLeft = 1.rem
                     paddingRight = 1.rem
                     border = Border(0.px, LineStyle.hidden)
@@ -113,21 +113,21 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     css {
                         display = Display.inlineBlock
                         cursor = Cursor.pointer
-                        borderTopLeftRadius = StyleConst.borderRadius
-                        borderTopRightRadius = StyleConst.borderRadius
+                        borderTopLeftRadius = StyleAttr.borderRadius
+                        borderTopRightRadius = StyleAttr.borderRadius
                         marginRight = 0.5.rem
                         transition = Transition(TransitionProperty.all, 0.05.s, TransitionTimingFunction.ease)
 
-                        backgroundColor = StyleConst.Main.Processor.TabBgColor.get()
-                        boxShadow = BoxShadow(0.px, 0.1.rem, 0.1.rem, 0.px, StyleConst.Main.Processor.TabBgColor.get())
+                        backgroundColor = StyleAttr.Main.Processor.TabBgColor.get()
+                        boxShadow = BoxShadow(0.px, 0.1.rem, 0.1.rem, 0.px, StyleAttr.Main.Processor.TabBgColor.get())
                         padding = Padding(0.1.rem, 0.5.rem)
-                        color = StyleConst.Main.Processor.TabFgColor.get()
+                        color = StyleAttr.Main.Processor.TabFgColor.get()
 
                         if (currRegFileIndex == regFileList.indexOf(regFile)) {
-                            backgroundColor = important(StyleConst.Main.Processor.TableBgColor.get())
+                            backgroundColor = important(StyleAttr.Main.Processor.TableBgColor.get())
                             boxShadow = important(BoxShadow(0.px, 0.px, 0.px, Color("#FFF")))
                             padding = important(Padding(0.2.rem, 0.5.rem))
-                            color = important(StyleConst.Main.Processor.TableFgColor.get())
+                            color = important(StyleAttr.Main.Processor.TableFgColor.get())
                         }
                     }
 
@@ -144,8 +144,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 ref = pcRef
 
                 css {
-                    color = StyleConst.Main.Processor.FgColor.get()
-                    backgroundColor = StyleConst.transparent
+                    color = StyleAttr.Main.Processor.FgColor.get()
+                    backgroundColor = StyleAttr.transparent
                     paddingLeft = 1.rem
                     paddingRight = 1.rem
                     float = Float.right
@@ -166,8 +166,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             /*className = ClassName(StyleConst.Main.Table.CLASS_OVERFLOWXSCROLL)*/
             css {
                 overflowY = Overflow.scroll
-                maxHeight = StyleConst.Main.Processor.MaxHeightReg
-                borderRadius = StyleConst.borderRadius
+                maxHeight = StyleAttr.Main.Processor.MaxHeightReg
+                borderRadius = StyleAttr.borderRadius
                 paddingLeft = 12.px // center with scrollbar on the right
             }
             tabIndex = 0
@@ -179,25 +179,25 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                         css {
                             th {
-                                background = important(StyleConst.Main.Processor.TableBgColor.get())
+                                background = important(StyleAttr.Main.Processor.TableBgColor.get())
                             }
                         }
 
                         th {
-                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             colSpan = 2
                             +"Registers"
                         }
 
                         th {
-                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
 
                             button {
                                 css {
-                                    background = StyleConst.Main.Processor.BgColor.get()
-                                    color = StyleConst.Main.Processor.FgColor.get()
+                                    background = StyleAttr.Main.Processor.BgColor.get()
+                                    color = StyleAttr.Main.Processor.FgColor.get()
                                 }
 
                                 span {
@@ -217,7 +217,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                         }
                         th {
-                            className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
                             +"Description"
                         }
@@ -236,15 +236,15 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 tr {
 
                                     td {
-                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                         +reg.names.joinToString("\\") { it }
                                     }
                                     td {
-                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                         +reg.aliases.joinToString("\\") { it }
                                     }
                                     td {
-                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_CENTER)
+                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
 
                                         input {
                                             id = "reg0${regID}"
@@ -352,7 +352,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         }
                                     }
                                     td {
-                                        className = ClassName(StyleConst.Main.Table.CLASS_TXT_LEFT)
+                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
                                         +reg.description
                                     }
                                 }

@@ -1,7 +1,7 @@
 package views.components
 
 import AppLogic
-import StyleConst
+import StyleAttr
 import extendable.components.connected.FlagsConditions
 import react.*
 import react.dom.html.ReactHTML
@@ -27,39 +27,39 @@ val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
 
     fun refresh(element: HTMLButtonElement, flag: FlagsConditions.Flag) {
         if (flag.getValue()) {
-            element.classList.add(StyleConst.CLASS_PROC_FC_FLAG_ACTIVE)
+            element.classList.add(StyleAttr.CLASS_PROC_FC_FLAG_ACTIVE)
         } else {
-            element.classList.remove(StyleConst.CLASS_PROC_FC_FLAG_ACTIVE)
+            element.classList.remove(StyleAttr.CLASS_PROC_FC_FLAG_ACTIVE)
         }
     }
 
     fun refresh(element: HTMLButtonElement, condition: FlagsConditions.Condition) {
         if (condition.getValue()) {
-            element.classList.add(StyleConst.CLASS_PROC_FC_FLAG_ACTIVE)
+            element.classList.add(StyleAttr.CLASS_PROC_FC_FLAG_ACTIVE)
         } else {
-            element.classList.remove(StyleConst.CLASS_PROC_FC_FLAG_ACTIVE)
+            element.classList.remove(StyleAttr.CLASS_PROC_FC_FLAG_ACTIVE)
         }
     }
 
 
     appLogic.getArch().getFlagsConditions()?.let {
         div {
-            className = ClassName(StyleConst.CLASS_PROC_FC_CONTAINER)
+            className = ClassName(StyleAttr.CLASS_PROC_FC_CONTAINER)
             div {
-                className = ClassName(StyleConst.CLASS_PROC_FC_CONTAINER)
+                className = ClassName(StyleAttr.CLASS_PROC_FC_CONTAINER)
 
                 for (flag in it.flags) {
                     ReactHTML.button {
-                        className = ClassName(StyleConst.CLASS_PROC_FC_FLAG)
+                        className = ClassName(StyleAttr.CLASS_PROC_FC_FLAG)
                         type = ButtonType.button
                         +flag.name
 
                         onClick = { event ->
                             it.setFlag(flag, !flag.getValue())
                             if (flag.getValue()) {
-                                event.currentTarget.classList.add(StyleConst.CLASS_PROC_FC_FLAG_ACTIVE)
+                                event.currentTarget.classList.add(StyleAttr.CLASS_PROC_FC_FLAG_ACTIVE)
                             } else {
-                                event.currentTarget.classList.remove(StyleConst.CLASS_PROC_FC_FLAG_ACTIVE)
+                                event.currentTarget.classList.remove(StyleAttr.CLASS_PROC_FC_FLAG_ACTIVE)
                             }
                         }
                     }
@@ -74,9 +74,9 @@ val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
                 for (cond in it.conditions) {
                     button {
                         if (cond.getValue()) {
-                            className = ClassName(StyleConst.CLASS_PROC_FC_COND + " " + StyleConst.CLASS_PROC_FC_COND_ACTIVE)
+                            className = ClassName(StyleAttr.CLASS_PROC_FC_COND + " " + StyleAttr.CLASS_PROC_FC_COND_ACTIVE)
                         } else {
-                            className = ClassName(StyleConst.CLASS_PROC_FC_COND)
+                            className = ClassName(StyleAttr.CLASS_PROC_FC_COND)
                         }
 
                         +cond.name

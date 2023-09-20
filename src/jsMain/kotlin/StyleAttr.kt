@@ -1,17 +1,13 @@
 import web.cssom.*
 
-object StyleConst {
-
-    var mode: Mode = Mode.LIGHT
-
-    /**
-     * CSSOM
-     */
+object StyleAttr {
 
     // GLOBAL
     val transparent = Color("#00000000")
     val layoutSwitchMediaQuery = "@media (max-width: 1200px)"
     val responsiveQuery = "max-width: 1200px"
+
+    var mode: Mode = Mode.LIGHT
 
     const val codeFont = "font-family: 'JetBrains Mono', monospace !important;"
     const val CLASS_LOGO = "logo"
@@ -30,7 +26,6 @@ object StyleConst {
         const val CLASS_OVERLAY = "menu-overlay"
         const val CLASS_OVERLAY_LABELEDINPUT = "menu-overlay-items"
     }
-
     object Main {
         val DeleteColor = Color("#EE2222FF")
         val BgColor = ModeColor("#F1F1E6", "#575767")
@@ -289,13 +284,13 @@ object StyleConst {
         const val CLASS_ANIM_BLINKGREEN = "anim-blinkgreen"
         const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
     }
-
     object Footer {
         val BgColor = ModeColor("#905356")
         val FgColor = ModeColor("#FFF")
         var iconSize = 4.rem
     }
 
+    // ...
 
     // NUMBERS
     val paddingSize = 0.4.rem
@@ -312,32 +307,12 @@ object StyleConst {
     // FONTS
     val logoFont = "font-family: 'Bungee Shade', cursive"
 
-
-    /**
-     *
-     */
-
-
-    // MENU
-
-
-    // PROCESSOR
-    val CLASS_EXEC_PROGRESS = "exec-progress"
-    val CLASS_EXEC_PROGRESS_BAR = "exec-progress-bar"
-    /* val CLASS_TABLE_INPUT = "dcf-input"*/
-
-
     // PROCESSOR.FLAGSCONDSVIEW
     val CLASS_PROC_FC_CONTAINER = "proc-fc-container"
-    val CLASS_PROC_FC_COND_CONTAINER = "proc-fc-cond-container"
-    val CLASS_PROC_FC_FLAG_CONTAINER = "proc-fc-flag-container"
     val CLASS_PROC_FC_COND = "proc-fc-cond"
     val CLASS_PROC_FC_FLAG = "proc-fc-flag"
     val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
     val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
-
-    // INFO
-
 
     // CONSOLE
     val MESSAGE_TYPE_INFO = 0
@@ -345,15 +320,9 @@ object StyleConst {
     val MESSAGE_TYPE_WARN = 2
     val MESSAGE_TYPE_ERROR = 3
 
-
-    // FOOTER
-
-
     // ANIM
     val ANIM_SHAKERED = "anim-shakered"
     val ANIM_BLINKGREEN = "anim-blinkgreen"
-
-    /*  */
 
     object Icons {
         const val add = "benicons/add.svg"
@@ -397,7 +366,6 @@ object StyleConst {
         const val step_over = "benicons/step_over.svg"
         const val tag = "benicons/tag.svg"
     }
-
     class ModeColor(light: String, dark: String? = null) {
         val light: Color
         val dark: Color?
@@ -414,7 +382,6 @@ object StyleConst {
             }
         }
     }
-
     class ModeFilter(val light: FilterFunction, val dark: FilterFunction?) {
         fun get(): FilterFunction {
             return when (mode) {
@@ -423,7 +390,6 @@ object StyleConst {
             }
         }
     }
-
     enum class Mode {
         LIGHT,
         DARK

@@ -1,6 +1,6 @@
 package extendable.archs.riscv32
 
-import StyleConst
+import StyleAttr
 import extendable.Architecture
 import extendable.archs.riscv32.RV32Grammar.E_DIRECTIVE.DirType.*
 import extendable.archs.riscv32.RV32Grammar.R_INSTR.InstrType.*
@@ -385,19 +385,19 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: MutVal.Val
             // adding bss addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in bssList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                memory.saveArray(address = alloc.address, values = alloc.values, StyleConst.Main.Table.Mark.DATA)
+                memory.saveArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
 
             // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in rodataList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                memory.saveArray(address = alloc.address, values = alloc.values, StyleConst.Main.Table.Mark.DATA, true)
+                memory.saveArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA, true)
             }
 
             // adding data alloc addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in dataList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                memory.saveArray(address = alloc.address, values = alloc.values, StyleConst.Main.Table.Mark.DATA)
+                memory.saveArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
 
             // Getting binary and store binary in memory
@@ -428,7 +428,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: MutVal.Val
                 }
                 address = MutVal.Value.Hex((binaryID * 4).toString(16), MutVal.Size.Bit32())
                 transcriptEntrys.add(RVDisassembledRow(address))
-                memory.save(address, binary, StyleConst.Main.Table.Mark.PROGRAM)
+                memory.save(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
             }
             transcriptEntrys.add(RVDisassembledRow((address + MutVal.Value.Hex("4")).toHex()))
             architecture.getRegisterContainer().pc.value.set(pcStartAddress)
