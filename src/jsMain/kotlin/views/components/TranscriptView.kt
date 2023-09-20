@@ -4,7 +4,7 @@ import AppLogic
 import StyleAttr
 import emotion.react.css
 import extendable.components.connected.Transcript
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
@@ -35,7 +35,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
     val appLogic by useState(props.appLogic)
     val transcript by useState(props.transcript)
-    val (currExeAddr, setCurrExeAddr) = useState<MutVal.Value.Hex>(MutVal.Value.Hex("0"))
+    val (currExeAddr, setCurrExeAddr) = useState<extendable.components.types.MutVal.Value.Variable.Value.Hex>(Variable.Value.Hex("0"))
     val (currType, setCurrType) = useState<Transcript.Type>(Transcript.Type.DISASSEMBLED)
 
     executionPointInterval.current?.let {

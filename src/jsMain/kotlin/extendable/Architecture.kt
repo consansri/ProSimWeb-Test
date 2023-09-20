@@ -3,19 +3,39 @@ package extendable
 import extendable.components.*
 import extendable.components.assembly.Compiler
 import extendable.components.connected.*
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 
 import tools.DebugTools
 import tools.HTMLTools
 import web.buffer.Blob
 
 /**
- *  Architecture blueprint
+ *  Architecture Blueprint
  *
- *  additional architectures need to build of this class
+ *  Additional architectures need to build of this class.
+ *  This Architecture gets a lot of it's logic through the constructor. To get the Processor in another State this architecture contains the main execution and syntax events.
+ *  While the compilation process is fully integrated if the Syntax Logic is given through an abstracted Grammar and Assembly Class. The Execution Process needs to be implemented in the events.
+ *  To make Debugging simpler i would recommend to implement a binary mapper which maps a certain instruction with it's parameters to a binary representation and the other way around.
+ *  I would recommend you to look at integration of RV32I Assembler, Grammar and Binary Mapper as an example.
  *
- *  @param config every Architecture needs a specific config "file" which should be defined in an object which contains all configuration constants of the architecture.
- *  @param asmConfig every Architecture needs a specific Grammar and Assembler class which is then given the Architecture through the asmConfig "file"
+ *  @param config Specific config "file" which should be defined in an object which contains all configuration constants of the architecture.
+ *  @param asmConfig Specific Grammar and Assembler class which is then given the Architecture through the asmConfig "file"
+ *
+ *  Essential Features
+ *  @property name Essential: Given by Config
+ *  @property docs Essential: Given by Config
+ *  @property fileHandler Essential: Given by Config
+ *  @property registerContainer Essential: Given by Config
+ *  @property memory Essential: Given by Config
+ *  @property transcript Essential: Given by Config
+ *
+ *  @property iConsole Instantiated with Config name
+ *  @property archState Instantiated
+ *  @property compiler Instantiated with AsmConfig grammar and assembly and ArchConst COMPILER_REGEX and StandardHL
+ *
+ *  Possible Features
+ *  @property flagsConditions Not Essential: Possibly given by Config
+ *  @property cache Not Essential: Possibly given by Config
  *
  */
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
@@ -25,7 +45,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val fileHandler: FileHandler
     private val registerContainer: RegisterContainer
     private val memory: Memory
-    private val IConsole: IConsole
+    private val iConsole: IConsole
     private val archState = ArchState()
     private val compiler: Compiler
     private val transcript: Transcript
@@ -41,14 +61,14 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.transcript = config.transcript
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
-        this.IConsole = IConsole("${config.name} Console")
+        this.iConsole = IConsole("${config.name} Console")
 
         this.compiler = Compiler(
             this,
             asmConfig.grammar,
             asmConfig.assembly,
             ArchConst.COMPILER_REGEX,
-            ArchConst.StandardHL.COMPILER_COLL
+            ArchConst.COMPILER_HLCOLL
         )
     }
 
@@ -81,7 +101,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     fun getConsole(): IConsole {
-        return IConsole
+        return iConsole
     }
 
     fun getState(): ArchState {
@@ -96,8 +116,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
 
     /**
-     * continuous execution event
-     *
+     * Execution Event: continuous
      * should be implemented by specific archs
      */
     open fun exeContinuous() {
@@ -105,8 +124,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * single step execution event
-     *
+     * Execution Event: single step
      * should be implemented by specific archs
      */
     open fun exeSingleStep() {
@@ -114,8 +132,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * multi step execution event
-     *
+     * Execution Event: multi step
      * should be implemented by specific archs
      */
     open fun exeMultiStep(steps: Int) {
@@ -124,8 +141,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * skip subroutine execution event
-     *
+     * Execution Event: skip subroutine
      * should be implemented by specific archs
      */
     open fun exeSkipSubroutine() {
@@ -133,8 +149,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * return from subroutine execution event
-     *
+     * Execution Event: return from subroutine
      * should be implemented by specific archs
      */
     open fun exeReturnFromSubroutine() {
@@ -142,8 +157,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * until line execution event
-     *
+     * Execution Event: until line
      * should be implemented by specific archs
      */
     open fun exeUntilLine(lineID: Int) {
@@ -151,17 +165,15 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * until address execution event
-     *
+     * Execution Event: until address
      * should be implemented by specific archs
      */
-    open fun exeUntilAddress(address: MutVal.Value.Hex){
+    open fun exeUntilAddress(address: Variable.Value.Hex){
         getConsole().clear()
     }
 
     /**
-     * reset event
-     *
+     * Reset Event
      * don't need to but could be implemented by specific archs
      */
     open fun exeReset() {
@@ -171,8 +183,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * clear event
-     *
+     * Clear Event
      * don't need to but could be implemented by specific archs
      */
     open fun exeClear() {
@@ -181,8 +192,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * prehighlighting event
-     *
+     * PreHighlight Event
      * needs to be implemented by specific architectures if prehighlighting of certain keywords is wished
      */
     open fun getPreHighlighting(line: String): String {
@@ -191,7 +201,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * compilation event
+     * Compilation Event
+     * already implemented
      */
     fun check(input: String, startAtLine: Int): String {
         if (DebugTools.ARCH_showCheckCodeEvents) {
@@ -203,7 +214,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * tool for surrounding a input with a certain highlighting html tag
+     * Tool
+     * for surrounding a input with a certain highlighting html tag
      */
     fun highlight(input: String, id: Int, title: String, flag: String, vararg classNames: String): String {
         val tag = "span"

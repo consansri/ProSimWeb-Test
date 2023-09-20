@@ -1,6 +1,6 @@
 package extendable.components.connected
 
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 
 class Transcript(private val compiledHeaders: List<String> = listOf(), private val disassembledHeaders: List<String> = listOf()) {
 
@@ -48,10 +48,10 @@ class Transcript(private val compiledHeaders: List<String> = listOf(), private v
         }
     }
 
-    abstract class Row(vararg addresses: MutVal.Value) {
+    abstract class Row(vararg addresses: Variable.Value) {
         private val addresses = addresses.toMutableList()
         private var height = 1
-        fun addAddresses(vararg addresses: MutVal.Value) {
+        fun addAddresses(vararg addresses: Variable.Value) {
             this.addresses.addAll(addresses)
         }
 
@@ -61,7 +61,7 @@ class Transcript(private val compiledHeaders: List<String> = listOf(), private v
             }
         }
 
-        fun getAddresses(): List<MutVal.Value> = addresses
+        fun getAddresses(): List<Variable.Value> = addresses
 
         fun getHeight(): Int = height
 

@@ -7,7 +7,7 @@ import extendable.components.assembly.Grammar
 import extendable.components.connected.FileHandler
 import extendable.components.connected.RegisterContainer
 import extendable.components.connected.Transcript
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 import tools.DebugTools
 
 class RV32Grammar() : Grammar() {
@@ -1041,7 +1041,7 @@ class RV32Grammar() : Grammar() {
          * Pass Instructions and JLabels to Transcript
          */
         val compiledTSRows = mutableListOf<RVCompiledRow>()
-        var address: MutVal.Value = MutVal.Value.Hex("0", MutVal.Size.Bit32())
+        var address: Variable.Value = Variable.Value.Hex("0", Variable.Size.Bit32())
         var compiledRow = RVCompiledRow(address.toHex())
         for (section in sections + imports) {
             when (section) {
@@ -1056,12 +1056,12 @@ class RV32Grammar() : Grammar() {
                                 compiledRow.addInstr(row)
                                 when (row.instrType.memWords) {
                                     2 -> {
-                                        compiledRow.addAddresses(address + MutVal.Value.Hex(4.toString(16)))
+                                        compiledRow.addAddresses(address + Variable.Value.Hex(4.toString(16)))
                                     }
                                 }
                                 compiledRow.changeHeight(row.instrType.memWords)
                                 compiledTSRows.add(compiledRow)
-                                address += MutVal.Value.Hex((row.instrType.memWords * 4).toString(16))
+                                address += Variable.Value.Hex((row.instrType.memWords * 4).toString(16))
                                 compiledRow = RVCompiledRow(address.toHex())
                             }
                         }
@@ -1303,20 +1303,20 @@ class RV32Grammar() : Grammar() {
             paramsWithOutSplitSymbols = parameterList.toTypedArray()
         }
 
-        fun getValues(): Array<MutVal.Value.Binary> {
-            val values = mutableListOf<MutVal.Value.Binary>()
+        fun getValues(): Array<Variable.Value.Binary> {
+            val values = mutableListOf<Variable.Value.Binary>()
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is E_PARAM.Constant -> {
                         var value = it.getValue()
-                        if (value.size.byteCount < MutVal.Size.Bit32().byteCount) {
+                        if (value.size.byteCount < Variable.Size.Bit32().byteCount) {
                             value = when (it.constant) {
                                 is Compiler.Token.Constant.UDec -> {
-                                    value.getUResized(MutVal.Size.Bit32())
+                                    value.getUResized(Variable.Size.Bit32())
                                 }
 
                                 else -> {
-                                    value.getResized(MutVal.Size.Bit32())
+                                    value.getResized(Variable.Size.Bit32())
                                 }
                             }
                         }
@@ -1396,7 +1396,7 @@ class RV32Grammar() : Grammar() {
         }
 
         class Offset(val offset: Compiler.Token.Constant, openParan: Compiler.Token, val register: Compiler.Token.Register, closeParan: Compiler.Token) : E_PARAM(REFS.REF_E_PARAM_OFFSET, RV32Flags.offset, offset, openParan, register, closeParan) {
-            fun getValueArray(): Array<MutVal.Value.Binary> {
+            fun getValueArray(): Array<Variable.Value.Binary> {
                 return arrayOf(offset.getValue().toBin(), register.reg.address.toBin())
             }
 
@@ -1406,13 +1406,13 @@ class RV32Grammar() : Grammar() {
         }
 
         class Constant(val constant: Compiler.Token.Constant) : E_PARAM(REFS.REF_E_PARAM_CONSTANT, RV32Flags.constant, constant) {
-            fun getValue(): MutVal.Value.Binary {
+            fun getValue(): Variable.Value.Binary {
                 return constant.getValue().toBin()
             }
         }
 
         class Register(val register: Compiler.Token.Register) : E_PARAM(REFS.REF_E_PARAM_REGISTER, RV32Flags.register, register) {
-            fun getAddress(): MutVal.Value.Binary {
+            fun getAddress(): Variable.Value.Binary {
                 return register.reg.address.toBin()
             }
         }
@@ -1520,7 +1520,7 @@ class RV32Grammar() : Grammar() {
         enum class ParamType(val pseudo: Boolean, val exampleString: String) {
             // NORMAL INSTRUCTIONS
             RD_I20(false, "rd, imm20") {
-                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     return if (rd != null) {
                         paramMap.remove(RV32BinMapper.MaskLabel.RD)
@@ -1532,7 +1532,7 @@ class RV32Grammar() : Grammar() {
                 }
             }, // rd, imm
             RD_Off12(false, "rd, imm12(rs)") {
-                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     return if (rd != null && rs1 != null) {
@@ -1546,7 +1546,7 @@ class RV32Grammar() : Grammar() {
                 }
             }, // rd, imm12(rs)
             RS2_Off5(false, "rs2, imm5(rs1)") {
-                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                     val rs2 = paramMap.get(RV32BinMapper.MaskLabel.RS2)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     return if (rs2 != null && rs1 != null) {
@@ -1560,7 +1560,7 @@ class RV32Grammar() : Grammar() {
                 }
             }, // rs2, imm5(rs1)
             RD_RS1_RS1(false, "rd, rs1, rs2") {
-                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2 = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -1575,7 +1575,7 @@ class RV32Grammar() : Grammar() {
                 }
             }, // rd, rs1, rs2
             RD_RS1_I12(false, "rd, rs1, imm12") {
-                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     return if (rd != null && rs1 != null) {
@@ -1589,7 +1589,7 @@ class RV32Grammar() : Grammar() {
                 }
             }, // rd, rs, imm
             RD_RS1_I5(false, "rd, rs1, shamt5") {
-                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     return if (rd != null && rs1 != null) {
@@ -1603,7 +1603,7 @@ class RV32Grammar() : Grammar() {
                 }
             }, // rd, rs, shamt
             RS1_RS2_I12(false, "rs1, rs2, imm12") {
-                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+                override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                     val rs2 = paramMap.get(RV32BinMapper.MaskLabel.RS2)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     return if (rs2 != null && rs1 != null) {
@@ -1628,14 +1628,14 @@ class RV32Grammar() : Grammar() {
             // NONE PARAM INSTR
             NONE(false, "none"), PS_NONE(true, "none");
 
-            open fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, MutVal.Value.Binary>, labelName: String): String {
+            open fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Binary>, labelName: String): String {
                 return "pseudo param type"
             }
         }
 
         enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: RV32BinMapper.OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null) {
             LUI("LUI", false, ParamType.RD_I20, RV32BinMapper.OpCode("00000000000000000000 00000 0110111", arrayOf(RV32BinMapper.MaskLabel.IMM20, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     if (rdAddr != null) {
@@ -1643,15 +1643,15 @@ class RV32Grammar() : Grammar() {
                         val imm20 = paramMap.get(RV32BinMapper.MaskLabel.IMM20)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedIMM32 = imm20.getUResized(MutVal.Size.Bit32()) shl 12
+                            val shiftedIMM32 = imm20.getUResized(Variable.Size.Bit32()) shl 12
                             rd.set(shiftedIMM32)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
             },
             AUIPC("AUIPC", false, ParamType.RD_I20, RV32BinMapper.OpCode("00000000000000000000 00000 0010111", arrayOf(RV32BinMapper.MaskLabel.IMM20, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     if (rdAddr != null) {
@@ -1659,16 +1659,16 @@ class RV32Grammar() : Grammar() {
                         val imm20 = paramMap.get(RV32BinMapper.MaskLabel.IMM20)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedIMM32 = imm20.getUResized(MutVal.Size.Bit32()) shl 12
+                            val shiftedIMM32 = imm20.getUResized(Variable.Size.Bit32()) shl 12
                             val sum = pc.value.get() + shiftedIMM32
                             rd.set(sum)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
             },
             JAL("JAL", false, ParamType.RD_I20, RV32BinMapper.OpCode("00000000000000000000 00000 1101111", arrayOf(RV32BinMapper.MaskLabel.IMM20, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     if (rdAddr != null) {
@@ -1684,16 +1684,16 @@ class RV32Grammar() : Grammar() {
                              *        Location       20 [      10 : 1               ] 11 [ 19 : 12             ]
                              */
 
-                            val shiftedImm = MutVal.Value.Binary(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), MutVal.Size.Bit20()).getResized(MutVal.Size.Bit32()) shl 1
+                            val shiftedImm = Variable.Value.Binary(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), Variable.Size.Bit20()).getResized(Variable.Size.Bit32()) shl 1
 
-                            rd.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            rd.set(pc.value.get() + Variable.Value.Hex("4"))
                             pc.value.set(pc.value.get() + shiftedImm)
                         }
                     }
                 }
             },
             JALR("JALR", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 000 00000 1100111", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1703,8 +1703,8 @@ class RV32Grammar() : Grammar() {
                         val imm12 = paramMap.get(RV32BinMapper.MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val jumpAddr = rs1.get() + imm12.getResized(MutVal.Size.Bit32())
-                            rd.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            val jumpAddr = rs1.get() + imm12.getResized(Variable.Size.Bit32())
+                            rd.set(pc.value.get() + Variable.Value.Hex("4"))
                             pc.value.set(jumpAddr)
                         }
                     }
@@ -1718,7 +1718,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS1_RS2_I12,
                 RV32BinMapper.OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -1729,15 +1729,15 @@ class RV32Grammar() : Grammar() {
                         val imm5 = paramMap.get(RV32BinMapper.MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
-                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
-                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
+                            val imm7str = imm7.getResized(Variable.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(Variable.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = Variable.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12())
 
-                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
+                            val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
                             if (rs1.get().toDec() == rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                                pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                             }
                         }
                     }
@@ -1749,7 +1749,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS1_RS2_I12,
                 RV32BinMapper.OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -1760,14 +1760,14 @@ class RV32Grammar() : Grammar() {
                         val imm5 = paramMap.get(RV32BinMapper.MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
-                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
-                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
-                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
+                            val imm7str = imm7.getResized(Variable.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(Variable.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = Variable.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12())
+                            val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
                             if (rs1.get().toDec() != rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                                pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                             }
                         }
                     }
@@ -1779,7 +1779,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS1_RS2_I12,
                 RV32BinMapper.OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -1790,14 +1790,14 @@ class RV32Grammar() : Grammar() {
                         val imm5 = paramMap.get(RV32BinMapper.MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
-                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
-                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
-                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
+                            val imm7str = imm7.getResized(Variable.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(Variable.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = Variable.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12())
+                            val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
                             if (rs1.get().toDec() < rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                                pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                             }
                         }
                     }
@@ -1809,7 +1809,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS1_RS2_I12,
                 RV32BinMapper.OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -1820,14 +1820,14 @@ class RV32Grammar() : Grammar() {
                         val imm5 = paramMap.get(RV32BinMapper.MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
-                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
-                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
-                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
+                            val imm7str = imm7.getResized(Variable.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(Variable.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = Variable.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12())
+                            val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
                             if (rs1.get().toDec() >= rs2.get().toDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                                pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                             }
                         }
                     }
@@ -1839,7 +1839,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS1_RS2_I12,
                 RV32BinMapper.OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -1850,14 +1850,14 @@ class RV32Grammar() : Grammar() {
                         val imm5 = paramMap.get(RV32BinMapper.MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
-                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
-                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
-                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
+                            val imm7str = imm7.getResized(Variable.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(Variable.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = Variable.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12())
+                            val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
                             if (rs1.get().toUDec() < rs2.get().toUDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                                pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                             }
                         }
                     }
@@ -1869,7 +1869,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS1_RS2_I12,
                 RV32BinMapper.OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -1880,14 +1880,14 @@ class RV32Grammar() : Grammar() {
                         val imm5 = paramMap.get(RV32BinMapper.MaskLabel.IMM5)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                            val imm7str = imm7.getResized(MutVal.Size.Bit7()).getRawBinaryStr()
-                            val imm5str = imm5.getResized(MutVal.Size.Bit5()).getRawBinaryStr()
-                            val imm12 = MutVal.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), MutVal.Size.Bit12())
-                            val offset = imm12.toBin().getResized(MutVal.Size.Bit32()) shl 1
+                            val imm7str = imm7.getResized(Variable.Size.Bit7()).getRawBinaryStr()
+                            val imm5str = imm5.getResized(Variable.Size.Bit5()).getRawBinaryStr()
+                            val imm12 = Variable.Value.Binary(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12())
+                            val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
                             if (rs1.get().toUDec() >= rs2.get().toUDec()) {
                                 pc.value.set(pc.value.get() + offset)
                             } else {
-                                pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                                pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                             }
                         }
                     }
@@ -1899,7 +1899,7 @@ class RV32Grammar() : Grammar() {
             BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU), LB(
                 "LB", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 000 00000 0000011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1910,9 +1910,9 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
-                            val loadedByte = architecture.getMemory().load(memAddr).get().toBin().getResized(MutVal.Size.Bit32())
+                            val loadedByte = architecture.getMemory().load(memAddr).get().toBin().getResized(Variable.Size.Bit32())
                             rd.set(loadedByte)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -1920,7 +1920,7 @@ class RV32Grammar() : Grammar() {
             LH(
                 "LH", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 001 00000 0000011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1931,9 +1931,9 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
-                            val loadedByte = architecture.getMemory().load(memAddr, 2).get().toBin().getResized(MutVal.Size.Bit32())
+                            val loadedByte = architecture.getMemory().load(memAddr, 2).get().toBin().getResized(Variable.Size.Bit32())
                             rd.set(loadedByte)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -1941,7 +1941,7 @@ class RV32Grammar() : Grammar() {
             LW(
                 "LW", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 010 00000 0000011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1954,7 +1954,7 @@ class RV32Grammar() : Grammar() {
                             val memAddr = rs1.get().toBin() + imm12
                             val loadedByte = architecture.getMemory().load(memAddr, 4)
                             rd.set(loadedByte.get())
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -1962,7 +1962,7 @@ class RV32Grammar() : Grammar() {
             LBU(
                 "LBU", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 100 00000 0000011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1974,8 +1974,8 @@ class RV32Grammar() : Grammar() {
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
                             val loadedByte = architecture.getMemory().load(memAddr)
-                            rd.set(MutVal.Value.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 24) + loadedByte.get().toBin().getRawBinaryStr(), MutVal.Size.Bit32()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            rd.set(Variable.Value.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 24) + loadedByte.get().toBin().getRawBinaryStr(), Variable.Size.Bit32()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -1983,7 +1983,7 @@ class RV32Grammar() : Grammar() {
             LHU(
                 "LHU", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 101 00000 0000011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1995,8 +1995,8 @@ class RV32Grammar() : Grammar() {
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12
                             val loadedByte = architecture.getMemory().load(memAddr, 2)
-                            rd.set(MutVal.Value.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 16) + loadedByte.get().toBin().getRawBinaryStr(), MutVal.Size.Bit32()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            rd.set(Variable.Value.Binary(rd.get().toBin().getRawBinaryStr().substring(0, 16) + loadedByte.get().toBin().getRawBinaryStr(), Variable.Size.Bit32()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2007,7 +2007,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS2_Off5,
                 RV32BinMapper.OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -2017,9 +2017,9 @@ class RV32Grammar() : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.get().toBin().getResized(MutVal.Size.Bit32()) + imm5
-                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(MutVal.Size.Bit8()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            val memAddr = rs1.get().toBin().getResized(Variable.Size.Bit32()) + imm5
+                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(Variable.Size.Bit8()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2030,7 +2030,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS2_Off5,
                 RV32BinMapper.OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -2040,9 +2040,9 @@ class RV32Grammar() : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.get().toBin().getResized(MutVal.Size.Bit32()) + imm5
-                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(MutVal.Size.Bit16()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            val memAddr = rs1.get().toBin().getResized(Variable.Size.Bit32()) + imm5
+                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(Variable.Size.Bit16()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2053,7 +2053,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RS2_Off5,
                 RV32BinMapper.OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
                     val rs2Addr = paramMap.get(RV32BinMapper.MaskLabel.RS2)
@@ -2063,9 +2063,9 @@ class RV32Grammar() : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.mutVal.get().toBin().getResized(MutVal.Size.Bit32()) + imm5
-                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(MutVal.Size.Bit32()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            val memAddr = rs1.variable.get().toBin().getResized(Variable.Size.Bit32()) + imm5
+                            architecture.getMemory().save(memAddr, rs2.get().toBin().getResized(Variable.Size.Bit32()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2073,7 +2073,7 @@ class RV32Grammar() : Grammar() {
             ADDI(
                 "ADDI", false, ParamType.RD_RS1_I12, RV32BinMapper.OpCode("000000000000 00000 000 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2083,10 +2083,10 @@ class RV32Grammar() : Grammar() {
                         val imm12 = paramMap.get(RV32BinMapper.MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getResized(MutVal.Size.Bit32())
+                            val paddedImm32 = imm12.getResized(Variable.Size.Bit32())
                             val sum = rs1.get().toBin() + paddedImm32
                             rd.set(sum)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2094,7 +2094,7 @@ class RV32Grammar() : Grammar() {
             SLTI(
                 "SLTI", false, ParamType.RD_RS1_I12, RV32BinMapper.OpCode("000000000000 00000 010 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2104,9 +2104,9 @@ class RV32Grammar() : Grammar() {
                         val imm12 = paramMap.get(RV32BinMapper.MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getResized(MutVal.Size.Bit32())
-                            rd.set(if (rs1.get().toDec() < paddedImm32.toDec()) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            val paddedImm32 = imm12.getResized(Variable.Size.Bit32())
+                            rd.set(if (rs1.get().toDec() < paddedImm32.toDec()) Variable.Value.Binary("1", Variable.Size.Bit32()) else Variable.Value.Binary("0", Variable.Size.Bit32()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2114,7 +2114,7 @@ class RV32Grammar() : Grammar() {
             SLTIU(
                 "SLTIU", false, ParamType.RD_RS1_I12, RV32BinMapper.OpCode("000000000000 00000 011 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2124,9 +2124,9 @@ class RV32Grammar() : Grammar() {
                         val imm12 = paramMap.get(RV32BinMapper.MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
-                            rd.set(if (rs1.get().toBin() < paddedImm32) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            val paddedImm32 = imm12.getUResized(Variable.Size.Bit32())
+                            rd.set(if (rs1.get().toBin() < paddedImm32) Variable.Value.Binary("1", Variable.Size.Bit32()) else Variable.Value.Binary("0", Variable.Size.Bit32()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2134,7 +2134,7 @@ class RV32Grammar() : Grammar() {
             XORI(
                 "XORI", false, ParamType.RD_RS1_I12, RV32BinMapper.OpCode("000000000000 00000 100 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2144,9 +2144,9 @@ class RV32Grammar() : Grammar() {
                         val imm12 = paramMap.get(RV32BinMapper.MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
+                            val paddedImm32 = imm12.getUResized(Variable.Size.Bit32())
                             rd.set(rs1.get().toBin() xor paddedImm32)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2154,7 +2154,7 @@ class RV32Grammar() : Grammar() {
             ORI(
                 "ORI", false, ParamType.RD_RS1_I12, RV32BinMapper.OpCode("000000000000 00000 110 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2164,9 +2164,9 @@ class RV32Grammar() : Grammar() {
                         val imm12 = paramMap.get(RV32BinMapper.MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
+                            val paddedImm32 = imm12.getUResized(Variable.Size.Bit32())
                             rd.set(rs1.get().toBin() or paddedImm32)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2174,7 +2174,7 @@ class RV32Grammar() : Grammar() {
             ANDI(
                 "ANDI", false, ParamType.RD_RS1_I12, RV32BinMapper.OpCode("000000000000 00000 111 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2184,9 +2184,9 @@ class RV32Grammar() : Grammar() {
                         val imm12 = paramMap.get(RV32BinMapper.MaskLabel.IMM12)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm32 = imm12.getUResized(MutVal.Size.Bit32())
+                            val paddedImm32 = imm12.getUResized(Variable.Size.Bit32())
                             rd.set(rs1.get().toBin() and paddedImm32)
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2197,7 +2197,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_I5,
                 RV32BinMapper.OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.SHAMT, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2208,7 +2208,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
                             rd.set(rs1.get().toBin() ushl shamt.getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2219,7 +2219,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_I5,
                 RV32BinMapper.OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.SHAMT, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2230,7 +2230,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
                             rd.set(rs1.get().toBin() ushr shamt.getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2241,7 +2241,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_I5,
                 RV32BinMapper.OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.SHAMT, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2252,7 +2252,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
                             rd.set(rs1.get().toBin() shr shamt.getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2263,7 +2263,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2275,7 +2275,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() + rs2.get().toBin())
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2286,7 +2286,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2298,7 +2298,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() - rs2.get().toBin())
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2309,7 +2309,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2321,7 +2321,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() ushl rs2.get().toBin().getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2332,7 +2332,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2343,8 +2343,8 @@ class RV32Grammar() : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
-                            rd.set(if (rs1.get().toDec() < rs2.get().toDec()) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            rd.set(if (rs1.get().toDec() < rs2.get().toDec()) Variable.Value.Binary("1", Variable.Size.Bit32()) else Variable.Value.Binary("0", Variable.Size.Bit32()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2355,7 +2355,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2366,8 +2366,8 @@ class RV32Grammar() : Grammar() {
                         val rs2 = architecture.getRegisterContainer().getRegister(rs2Addr)
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
-                            rd.set(if (rs1.get().toBin() < rs2.get().toBin()) MutVal.Value.Binary("1", MutVal.Size.Bit32()) else MutVal.Value.Binary("0", MutVal.Size.Bit32()))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            rd.set(if (rs1.get().toBin() < rs2.get().toBin()) Variable.Value.Binary("1", Variable.Size.Bit32()) else Variable.Value.Binary("0", Variable.Size.Bit32()))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2378,7 +2378,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2390,7 +2390,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() xor rs2.get().toBin())
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2401,7 +2401,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2413,7 +2413,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() ushr rs2.get().toBin().getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2424,7 +2424,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2436,7 +2436,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() shr rs2.get().toBin().getRawBinaryStr().toInt(2))
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2447,7 +2447,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2459,7 +2459,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() or rs2.get().toBin())
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2470,7 +2470,7 @@ class RV32Grammar() : Grammar() {
                 ParamType.RD_RS1_RS1,
                 RV32BinMapper.OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(RV32BinMapper.MaskLabel.FUNCT7, RV32BinMapper.MaskLabel.RS2, RV32BinMapper.MaskLabel.RS1, RV32BinMapper.MaskLabel.FUNCT3, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))
             ) {
-                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+                override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                     super.execute(architecture, paramMap)
                     val rdAddr = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1Addr = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -2482,7 +2482,7 @@ class RV32Grammar() : Grammar() {
                         val pc = architecture.getRegisterContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() and rs2.get().toBin())
-                            pc.value.set(pc.value.get() + MutVal.Value.Hex("4"))
+                            pc.value.set(pc.value.get() + Variable.Value.Hex("4"))
                         }
                     }
                 }
@@ -2504,7 +2504,7 @@ class RV32Grammar() : Grammar() {
             Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
             Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
 
-            open fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, MutVal.Value.Binary>) {
+            open fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Binary>) {
                 architecture.getConsole().info("executing $id ...")
             }
         }
@@ -2539,7 +2539,7 @@ class RV32Grammar() : Grammar() {
     /**
      * FOR TRANSCRIPT
      */
-    class RVCompiledRow(addr: MutVal.Value.Hex) : Transcript.Row(addr) {
+    class RVCompiledRow(addr: Variable.Value.Hex) : Transcript.Row(addr) {
         val content = RV32.TS_COMPILED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
 
         init {

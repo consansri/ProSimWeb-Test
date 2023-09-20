@@ -2,7 +2,7 @@ package tools
 
 import extendable.components.connected.IConsole
 import extendable.components.types.BinaryTools
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 import extendable.components.types.DecTools
 
 object DebugTools {
@@ -70,16 +70,16 @@ object DebugTools {
 
         iConsole.log("BinaryTools.sub(): ${bin1} - ${bin2} = ${BinaryTools.sub(bin1, bin2)}")
         iConsole.log("BinaryTools.div(): ${bin1} - ${bin2} = ${BinaryTools.divide(bin1, bin2)}")
-        iConsole.log("BinaryTools.inv(): ${bin1} = ${BinaryTools.inv(bin1)} | ${MutVal.Value.Conversion.getDec(MutVal.Value.Binary(BinaryTools.inv(bin1), MutVal.Size.Bit8())).getDecStr()}")
+        iConsole.log("BinaryTools.inv(): ${bin1} = ${BinaryTools.inv(bin1)} | ${Variable.Value.Conversion.getDec(Variable.Value.Binary(BinaryTools.inv(bin1), Variable.Size.Bit8())).getDecStr()}")
         iConsole.log(
-            "BinaryTools.addWithCarry(): ${bin1} + ${bin2} = ${BinaryTools.addWithCarry(bin1, bin2)} | ${MutVal.Value.Conversion.getDec(MutVal.Value.Binary(BinaryTools.addWithCarry(bin1, bin2).result, MutVal.Size.Bit8())).getDecStr()} carry: ${
+            "BinaryTools.addWithCarry(): ${bin1} + ${bin2} = ${BinaryTools.addWithCarry(bin1, bin2)} | ${Variable.Value.Conversion.getDec(Variable.Value.Binary(BinaryTools.addWithCarry(bin1, bin2).result, Variable.Size.Bit8())).getDecStr()} carry: ${
                 BinaryTools.addWithCarry(
                     bin1,
                     bin2
                 ).carry
             }"
         )
-        iConsole.log("BinaryTools.multiply(): ${bin1} * ${bin2} = ${BinaryTools.multiply(bin1, bin2)} | ${MutVal.Value.Conversion.getDec(MutVal.Value.Binary(BinaryTools.multiply(bin1, bin2), MutVal.Size.Bit8())).getDecStr()} ")
+        iConsole.log("BinaryTools.multiply(): ${bin1} * ${bin2} = ${BinaryTools.multiply(bin1, bin2)} | ${Variable.Value.Conversion.getDec(Variable.Value.Binary(BinaryTools.multiply(bin1, bin2), Variable.Size.Bit8())).getDecStr()} ")
     }
 
 

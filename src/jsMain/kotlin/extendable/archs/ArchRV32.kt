@@ -4,7 +4,7 @@ import extendable.Architecture
 import extendable.archs.riscv32.RV32
 import extendable.archs.riscv32.RV32BinMapper
 import extendable.archs.riscv32.RV32Grammar
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 import kotlin.time.measureTime
 
 class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
@@ -90,7 +90,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
                 if (result != null) {
                     if (result.type == RV32Grammar.R_INSTR.InstrType.JAL || result.type == RV32Grammar.R_INSTR.InstrType.JALR) {
-                        val returnAddress = getRegisterContainer().pc.value.get() + MutVal.Value.Hex("4")
+                        val returnAddress = getRegisterContainer().pc.value.get() + Variable.Value.Hex("4")
                         while (getRegisterContainer().pc.value.get() != returnAddress) {
                             if (result != null) {
                                 result.type.execute(this, result.binaryMap)
@@ -158,7 +158,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
             }
             val destAddrString = lineAddressMap.associate { it.first.lineID to it.second }.get(closestID) ?: ""
             if (destAddrString.isNotEmpty() && closestID != null) {
-                val destAddr = MutVal.Value.Hex(destAddrString)
+                val destAddr = Variable.Value.Hex(destAddrString)
                 getConsole().info("--exe_until_line executing until line ${closestID + 1} or address ${destAddr.getHexStr()}")
                 val measuredTime = measureTime {
                     while (instrCount < 1000) {
@@ -197,7 +197,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
         }
     }
 
-    override fun exeUntilAddress(address: MutVal.Value.Hex) {
+    override fun exeUntilAddress(address: Variable.Value.Hex) {
         super.exeUntilAddress(address)
         var instrCount = 0
         val binMapper = RV32BinMapper()

@@ -9,7 +9,7 @@ object DecTools {
     val negRegex = Regex("-[0-9]+")
     val posRegex = Regex("[0-9]+")
     val zeroRegex = Regex("(-)?0+")
-    val binaryWeights: List<BinaryWeight> = List(MutVal.Size.Bit128().bitWidth) { BinaryWeight(it, pow("2", it.toString())) }
+    val binaryWeights: List<BinaryWeight> = List(Variable.Size.Bit128().bitWidth) { BinaryWeight(it, pow("2", it.toString())) }
 
     fun add(a: String, b: String): String {
         val aTrimmed = a.trim().removePrefix(ArchConst.PRESTRING_DECIMAL)

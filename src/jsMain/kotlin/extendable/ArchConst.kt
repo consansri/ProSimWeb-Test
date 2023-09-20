@@ -4,14 +4,6 @@ import StyleAttr.Main.Editor.HL
 import extendable.components.assembly.Compiler
 
 object ArchConst {
-    /*
-     *    !! use this Object only in Development Phase to test instances even if other Instances are not integrated yet !!
-     */
-
-    /*
-        NOT OVERRIDABLE!
-     */
-
     // Architecture Assembly Constructor
     object StandardHL {
         val comment = HL.base05.getFlag()
@@ -30,24 +22,8 @@ object ArchConst {
         val error = HL.red.getFlag()
         val whiteSpace = HL.whitespace.getFlag()
 
-        val COMPILER_COLL = Compiler.HLFlagCollection(
-            alphaNum = alphaNum,
-            word = word,
-            const_hex = hex,
-            const_bin = bin,
-            const_dec = dec,
-            const_udec = udec,
-            const_ascii = ascii,
-            const_string = string,
-            register = register,
-            symbol = symbol,
-            instruction = instruction,
-            comment = comment,
-            //whitespace = whiteSpace
-        )
+
     }
-
-
 
     // GLOBAL
     const val PROSIMNAME = "ProSimWeb"
@@ -62,12 +38,6 @@ object ArchConst {
 
     // REGISTER
     val REGISTER_VALUETYPES = arrayOf(RegTypes.BIN, RegTypes.HEX, RegTypes.UDEC, RegTypes.DEC)
-
-    // TRANSCRIPT PARAM SPLIT SYMBOL
-    val TRANSCRIPT_PARAMSPLIT = ",\t"
-
-    // ADDRESS
-    const val hex = 0b10111001
 
     // TYPE IDENTIFICATION
     const val PRESTRING_HEX = "0x"
@@ -97,12 +67,21 @@ object ArchConst {
         Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
     )
 
-    enum class TranscriptHeaders{
-        addr,
-        label,
-        instr,
-        params
-    }
+    val COMPILER_HLCOLL = Compiler.HLFlagCollection(
+        alphaNum = StandardHL.alphaNum,
+        word = StandardHL.word,
+        const_hex = StandardHL.hex,
+        const_bin = StandardHL.bin,
+        const_dec = StandardHL.dec,
+        const_udec = StandardHL.udec,
+        const_ascii = StandardHL.ascii,
+        const_string = StandardHL.string,
+        register = StandardHL.register,
+        symbol = StandardHL.symbol,
+        instruction = StandardHL.instruction,
+        comment = StandardHL.comment,
+        //whitespace = whiteSpace
+    )
 
     enum class RegTypes {
         HEX,

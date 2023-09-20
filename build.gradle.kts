@@ -1,9 +1,10 @@
 plugins {
     kotlin("multiplatform") version "1.9.0"
+    id("org.jetbrains.dokka") version "1.9.0"
 }
 
 group = "me.c3"
-version = "0.1-SNAPSHOT"
+version = "0.0.11"
 
 repositories {
     mavenCentral()

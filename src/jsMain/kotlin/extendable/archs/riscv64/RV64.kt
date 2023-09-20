@@ -3,7 +3,7 @@ package extendable.archs.riscv64
 import extendable.archs.riscv32.RV32
 import extendable.components.*
 import extendable.components.connected.*
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 
 object RV64 {
 
@@ -15,11 +15,11 @@ object RV64 {
         FileHandler("s"),
         RegisterContainer(
             listOf(
-                RegisterContainer.RegisterFile( "R0", arrayOf(RegisterContainer.Register(MutVal.Value.Dec("0", RV32.REG_ADDRESS_SIZE), listOf("x0"), listOf("r0"), MutVal("0", MutVal.Size.Bit32()), "")))
+                RegisterContainer.RegisterFile( "R0", arrayOf(RegisterContainer.Register(Variable.Value.Dec("0", RV32.REG_ADDRESS_SIZE), listOf("x0"), listOf("r0"), Variable("0", Variable.Size.Bit32()), "")))
             ),
-            pcSize = MutVal.Size.Bit32()
+            pcSize = Variable.Size.Bit32()
         ),
-        Memory(MutVal.Size.Bit32(), "0", MutVal.Size.Bit8(), Memory.Endianess.LittleEndian),
+        Memory(Variable.Size.Bit32(), "0", Variable.Size.Bit8(), Memory.Endianess.LittleEndian),
         Transcript()
     )
 

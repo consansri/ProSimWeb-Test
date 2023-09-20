@@ -4,7 +4,7 @@ import AppLogic
 import emotion.react.css
 import extendable.ArchConst
 import extendable.components.connected.Memory
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import react.*
@@ -75,8 +75,8 @@ val MemoryView = FC<MemViewProps> { props ->
             calcMemTableTimeout.current = setTimeout({
                 val memRowsList: MutableMap<String, MutableMap<Int, Memory.MemInstance>> = mutableMapOf()
                 for (entry in appLogic.getArch().getMemory().getMemMap()) {
-                    val offset = (entry.value.address % MutVal.Value.Dec("$memLength", MutVal.Size.Bit8())).toHex().getRawHexStr().toInt(16)
-                    val rowAddress = (entry.value.address - MutVal.Value.Dec("$offset", MutVal.Size.Bit8())).toHex()
+                    val offset = (entry.value.address % Variable.Value.Dec("$memLength", Variable.Size.Bit8())).toHex().getRawHexStr().toInt(16)
+                    val rowAddress = (entry.value.address - Variable.Value.Dec("$offset", Variable.Size.Bit8())).toHex()
                     val rowResult = memRowsList.get(rowAddress.getRawHexStr())
 
                     if (rowResult != null) {
@@ -321,8 +321,8 @@ val MemoryView = FC<MemViewProps> { props ->
                 tbody {
                     ref = tbody
 
-                    var nextAddress: MutVal.Value = appLogic.getArch().getMemory().getInitialBinary().setBin("0").get()
-                    val memLengthValue = MutVal.Value.Dec("$memLength", MutVal.Size.Bit8()).toHex()
+                    var nextAddress: extendable.components.types.Variable.Value = appLogic.getArch().getMemory().getInitialBinary().setBin("0").get()
+                    val memLengthValue = Variable.Value.Dec("$memLength", Variable.Size.Bit8()).toHex()
 
                     var sortedKeys = memRows.keys.sorted()
 
@@ -333,7 +333,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                     for (memRowKey in sortedKeys) {
                         val memRow = memRows[memRowKey]
-                        if (nextAddress != MutVal.Value.Hex(memRowKey) && memRowKey != sortedKeys.first()) {
+                        if (nextAddress != Variable.Value.Hex(memRowKey) && memRowKey != sortedKeys.first()) {
                             tr {
                                 th {
                                     css {
@@ -377,9 +377,9 @@ val MemoryView = FC<MemViewProps> { props ->
                                                     +memInstance.name
                                                 }
                                             }
-                                            +("[" + memInstance.mutVal.get().toHex().getRawHexStr() + "]")
+                                            +("[" + memInstance.variable.get().toHex().getRawHexStr() + "]")
                                         } else {
-                                            +memInstance.mutVal.get().toHex().getRawHexStr()
+                                            +memInstance.variable.get().toHex().getRawHexStr()
                                         }
 
                                     }
@@ -403,7 +403,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 for (column in 0 until memLength) {
                                     val memInstance = memRow?.get(column)
                                     asciiString += if (memInstance != null) {
-                                        memInstance.mutVal.get().toASCII()
+                                        memInstance.variable.get().toASCII()
                                     } else {
                                         emptyAscii
                                     }
@@ -413,9 +413,9 @@ val MemoryView = FC<MemViewProps> { props ->
                             }
                         }
                         nextAddress = if (lowFirst) {
-                            (MutVal.Value.Hex(memRowKey) + memLengthValue)
+                            (Variable.Value.Hex(memRowKey) + memLengthValue)
                         } else {
-                            (MutVal.Value.Hex(memRowKey) - memLengthValue)
+                            (Variable.Value.Hex(memRowKey) - memLengthValue)
                         }
                     }
                 }
@@ -496,11 +496,11 @@ val MemoryView = FC<MemViewProps> { props ->
                             placeholder = ArchConst.PRESTRING_HEX
                             maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
                             prefix = "value: "
-                            defaultValue = dValue.mutVal.get().toHex().getRawHexStr()
+                            defaultValue = dValue.variable.get().toHex().getRawHexStr()
                             onBlur = { event ->
                                 try {
-                                    dValue.mutVal.setHex(event.currentTarget.value)
-                                    event.currentTarget.value = dValue.mutVal.get().toHex().getRawHexStr()
+                                    dValue.variable.setHex(event.currentTarget.value)
+                                    event.currentTarget.value = dValue.variable.get().toHex().getRawHexStr()
                                     appLogic.getArch().getMemory().refreshEditableValues()
                                 } catch (e: NumberFormatException) {
                                     event.currentTarget.value = "0"
@@ -585,7 +585,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                     val dvaddr = (document.getElementById("dv-address") as HTMLInputElement?)?.value ?: ""
                                     val dvvalue = (document.getElementById("dv-value") as HTMLInputElement?)?.value ?: ""
                                     try {
-                                        appLogic.getArch().getMemory().addEditableValue(dvname, MutVal.Value.Hex(dvaddr, appLogic.getArch().getMemory().getAddressSize()), MutVal.Value.Hex(dvvalue, appLogic.getArch().getMemory().getWordSize()))
+                                        appLogic.getArch().getMemory().addEditableValue(dvname, Variable.Value.Hex(dvaddr, appLogic.getArch().getMemory().getAddressSize()), Variable.Value.Hex(dvvalue, appLogic.getArch().getMemory().getWordSize()))
                                         appLogic.getArch().getMemory().refreshEditableValues()
                                         setShowAddMem(false)
                                     } catch (e: NumberFormatException) {
@@ -682,10 +682,10 @@ val MemoryView = FC<MemViewProps> { props ->
                                     val drvalue = (document.getElementById("dr-value") as HTMLInputElement?)?.value ?: ""
                                     val dramount = (document.getElementById("dr-amount") as HTMLInputElement?)?.value?.toIntOrNull() ?: memLength
                                     try {
-                                        var address = MutVal.Value.Hex(draddr, appLogic.getArch().getMemory().getAddressSize())
+                                        var address = Variable.Value.Hex(draddr, appLogic.getArch().getMemory().getAddressSize())
                                         for (id in 0 until dramount) {
-                                            appLogic.getArch().getMemory().addEditableValue(if (drname.isNotEmpty()) "$drname$id" else "", address, MutVal.Value.Hex(drvalue, appLogic.getArch().getMemory().getWordSize()))
-                                            address = (address + MutVal.Value.Hex("1")).toHex()
+                                            appLogic.getArch().getMemory().addEditableValue(if (drname.isNotEmpty()) "$drname$id" else "", address, Variable.Value.Hex(drvalue, appLogic.getArch().getMemory().getWordSize()))
+                                            address = (address + Variable.Value.Hex("1")).toHex()
                                         }
                                         appLogic.getArch().getMemory().refreshEditableValues()
                                         getEditableValues()
@@ -727,7 +727,7 @@ val MemoryView = FC<MemViewProps> { props ->
         for (instance in appLogic.getArch().getMemory().getMemMap()) {
             val memInstance = instance.value
             val td = web.dom.document.getElementById("mem${memInstance.address.getRawHexStr()}") as HTMLTableCellElement?
-            td?.innerText = memInstance.mutVal.get().toHex().getRawHexStr()
+            td?.innerText = memInstance.variable.get().toHex().getRawHexStr()
         }
     }
 

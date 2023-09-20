@@ -2,9 +2,8 @@ package extendable.components.connected
 
 import extendable.ArchConst
 import extendable.Architecture
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 import web.buffer.Blob
-import web.buffer.BlobPropertyBag
 import kotlin.js.Date
 import kotlin.math.pow
 import kotlin.math.roundToLong
@@ -39,16 +38,16 @@ class FileBuilder {
                 val memInstances = architecture.getMemory().getMemMap().map { it.value }.sortedBy { it.address.getRawHexStr() }.toMutableList()
 
                 val vhdlItems = mutableListOf<VHDLItem>()
-                var itemsPerRow = MutVal.Value.Dec((dataWidth / 8).toString()).getRawDecStr().toLongOrNull()
+                var itemsPerRow = Variable.Value.Dec((dataWidth / 8).toString()).getRawDecStr().toLongOrNull()
                 if (itemsPerRow == null) {
                     itemsPerRow = 1
                 }
 
                 for (instance in memInstances) {
                     val rowAddr = instance.address.getRawHexStr().toLong(16) / itemsPerRow
-                    val id = (instance.address % MutVal.Value.Dec((dataWidth / 8).toString())).toHex().getRawHexStr().toIntOrNull(16)
+                    val id = (instance.address % Variable.Value.Dec((dataWidth / 8).toString())).toHex().getRawHexStr().toIntOrNull(16)
                     if (id != null) {
-                        vhdlItems.add(VHDLItem(rowAddr, id, instance.mutVal.get().toHex().getRawHexStr()))
+                        vhdlItems.add(VHDLItem(rowAddr, id, instance.variable.get().toHex().getRawHexStr()))
                     } else {
                         architecture.getConsole().error("FileBuilder: problems by calculating instance id from address ${rowAddr}!")
                         return Blob(content.toTypedArray())

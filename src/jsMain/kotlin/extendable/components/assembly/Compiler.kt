@@ -5,7 +5,7 @@ import extendable.Architecture
 import extendable.components.connected.FileHandler
 import extendable.components.connected.RegisterContainer
 import extendable.components.connected.Transcript
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 import tools.HTMLTools
 
 class Compiler(private val architecture: Architecture, private val grammar: Grammar, private val assembly: Assembly, private val regexCollection: RegexCollection, private val hlFlagCollection: HLFlagCollection) {
@@ -499,53 +499,53 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
         sealed class Constant(lineLoc: LineLoc, content: kotlin.String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.CONSTANT
-            abstract fun getValue(): MutVal.Value
+            abstract fun getValue(): Variable.Value
 
             class Ascii(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): MutVal.Value {
+                override fun getValue(): Variable.Value {
                     val binChars = StringBuilder()
                     val byteArray = content.substring(1, content.length - 1).encodeToByteArray()
                     for (byte in byteArray) {
                         val bin = byte.toInt().toString(2)
                         binChars.append(bin)
                     }
-                    return MutVal.Value.Binary(binChars.toString())
+                    return Variable.Value.Binary(binChars.toString())
                 }
             }
 
             class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): MutVal.Value {
+                override fun getValue(): Variable.Value {
                     val hexStr = StringBuilder()
                     val trimmedContent = content.substring(1, content.length - 1)
                     for (char in trimmedContent) {
                         val hexChar = char.code.toString(16)
                         hexStr.append(hexChar)
                     }
-                    return MutVal.Value.Hex(hexStr.toString())
+                    return Variable.Value.Hex(hexStr.toString())
                 }
             }
 
             class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): MutVal.Value {
-                    return if (content.contains('-')) -MutVal.Value.Binary(content.trimStart('-'), MutVal.Size.Bit32()) else MutVal.Value.Binary(content)
+                override fun getValue(): Variable.Value {
+                    return if (content.contains('-')) -Variable.Value.Binary(content.trimStart('-'), Variable.Size.Bit32()) else Variable.Value.Binary(content)
                 }
             }
 
             class Hex(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): MutVal.Value {
-                    return if (content.contains('-')) -MutVal.Value.Hex(content.trimStart('-'), MutVal.Size.Bit32()) else MutVal.Value.Hex(content)
+                override fun getValue(): Variable.Value {
+                    return if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-'), Variable.Size.Bit32()) else Variable.Value.Hex(content)
                 }
             }
 
             class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): MutVal.Value {
-                    return MutVal.Value.Dec(content)
+                override fun getValue(): Variable.Value {
+                    return Variable.Value.Dec(content)
                 }
             }
 
             class UDec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): MutVal.Value {
-                    return MutVal.Value.UDec(content)
+                override fun getValue(): Variable.Value {
+                    return Variable.Value.UDec(content)
                 }
             }
 

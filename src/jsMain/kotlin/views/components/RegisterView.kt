@@ -255,29 +255,29 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                         type = InputType.text
                                                         pattern = "[0-9a-fA-F]+"
                                                         placeholder = ArchConst.PRESTRING_HEX
-                                                        maxLength = reg.mutVal.size.byteCount * 2
-                                                        defaultValue = reg.mutVal.get().toHex().getRawHexStr()
+                                                        maxLength = reg.variable.size.byteCount * 2
+                                                        defaultValue = reg.variable.get().toHex().getRawHexStr()
                                                     }
 
                                                     BIN -> {
                                                         type = InputType.text
                                                         pattern = "[01]+"
                                                         placeholder = ArchConst.PRESTRING_BINARY
-                                                        maxLength = reg.mutVal.size.bitWidth
-                                                        defaultValue = reg.mutVal.get().toBin().getRawBinaryStr()
+                                                        maxLength = reg.variable.size.bitWidth
+                                                        defaultValue = reg.variable.get().toBin().getRawBinaryStr()
                                                     }
 
                                                     DEC -> {
                                                         type = InputType.number
                                                         pattern = "-?\\d+"
                                                         placeholder = ArchConst.PRESTRING_DECIMAL
-                                                        defaultValue = reg.mutVal.get().toDec().getRawDecStr()
+                                                        defaultValue = reg.variable.get().toDec().getRawDecStr()
                                                     }
 
                                                     UDEC -> {
                                                         type = InputType.number
                                                         placeholder = ArchConst.PRESTRING_DECIMAL
-                                                        defaultValue = reg.mutVal.get().toUDec().getRawUDecStr()
+                                                        defaultValue = reg.variable.get().toUDec().getRawUDecStr()
                                                     }
                                                 }
                                             }, 0)
@@ -294,23 +294,23 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                                                             when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                                                                 HEX -> {
-                                                                    reg.mutVal.setHex(newValue)
+                                                                    reg.variable.setHex(newValue)
                                                                 }
 
                                                                 BIN -> {
-                                                                    reg.mutVal.setBin(newValue)
+                                                                    reg.variable.setBin(newValue)
                                                                 }
 
                                                                 DEC -> {
-                                                                    reg.mutVal.setDec(newValue)
+                                                                    reg.variable.setDec(newValue)
                                                                 }
 
                                                                 UDEC -> {
-                                                                    reg.mutVal.setUDec(newValue)
+                                                                    reg.variable.setUDec(newValue)
                                                                 }
                                                             }
                                                             setUpdate(!update)
-                                                            appLogic.getArch().getConsole().info("Register setValue: [${reg.mutVal.get().toDec().getDecStr()}|${reg.mutVal.get().toUDec().getUDecStr()}|${reg.mutVal.get().toHex().getHexStr()}|${reg.mutVal.get().toBin().getBinaryStr()}]")
+                                                            appLogic.getArch().getConsole().info("Register setValue: [${reg.variable.get().toDec().getDecStr()}|${reg.variable.get().toUDec().getUDecStr()}|${reg.variable.get().toHex().getHexStr()}|${reg.variable.get().toBin().getBinaryStr()}]")
                                                         } catch (e: NumberFormatException) {
                                                             console.warn("RegisterView reg onBlur: NumberFormatException")
                                                         }
@@ -319,19 +319,19 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                         try {
                                                             when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                                                                 HEX -> {
-                                                                    currentTarget.value = reg.mutVal.get().toHex().getRawHexStr()
+                                                                    currentTarget.value = reg.variable.get().toHex().getRawHexStr()
                                                                 }
 
                                                                 BIN -> {
-                                                                    currentTarget.value = reg.mutVal.get().toBin().getRawBinaryStr()
+                                                                    currentTarget.value = reg.variable.get().toBin().getRawBinaryStr()
                                                                 }
 
                                                                 DEC -> {
-                                                                    currentTarget.value = reg.mutVal.get().toDec().getRawDecStr()
+                                                                    currentTarget.value = reg.variable.get().toDec().getRawDecStr()
                                                                 }
 
                                                                 UDEC -> {
-                                                                    currentTarget.value = reg.mutVal.get().toUDec().getRawUDecStr()
+                                                                    currentTarget.value = reg.variable.get().toUDec().getRawUDecStr()
                                                                 }
                                                             }
                                                         } catch (e: NumberFormatException) {
@@ -384,19 +384,19 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
                     regRef?.value = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
                         HEX -> {
-                            reg.mutVal.get().toHex().getRawHexStr()
+                            reg.variable.get().toHex().getRawHexStr()
                         }
 
                         BIN -> {
-                            reg.mutVal.get().toBin().getRawBinaryStr()
+                            reg.variable.get().toBin().getRawBinaryStr()
                         }
 
                         DEC -> {
-                            reg.mutVal.get().toDec().getRawDecStr()
+                            reg.variable.get().toDec().getRawDecStr()
                         }
 
                         UDEC -> {
-                            reg.mutVal.get().toUDec().getRawUDecStr()
+                            reg.variable.get().toUDec().getRawUDecStr()
                         }
                     }
                     /* regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {

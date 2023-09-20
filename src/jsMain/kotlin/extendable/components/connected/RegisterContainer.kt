@@ -1,15 +1,15 @@
 package extendable.components.connected
 
-import extendable.components.types.MutVal
+import extendable.components.types.Variable
 
-class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: MutVal.Size) {
+class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size) {
 
-    val pc = PC(MutVal("0", pcSize), MutVal.Value.Binary("0"))
+    val pc = PC(Variable("0", pcSize), Variable.Value.Binary("0"))
 
     fun clear() {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
-                reg.mutVal.clear()
+                reg.variable.clear()
             }
         }
     }
@@ -28,7 +28,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return null
     }
 
-    fun getRegister(address: MutVal.Value): Register? {
+    fun getRegister(address: Variable.Value): Register? {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
                 if (reg.address == address) {
@@ -43,19 +43,19 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return registerFileList
     }
 
-    data class Register(val address: MutVal.Value, val names: List<String>, val aliases: List<String>, val mutVal: MutVal, val description: String, val hardwire: Boolean = false) {
-        fun get(): MutVal.Value {
-            return mutVal.get()
+    data class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val description: String, val hardwire: Boolean = false) {
+        fun get(): Variable.Value {
+            return variable.get()
         }
 
-        fun set(value: MutVal.Value) {
+        fun set(value: Variable.Value) {
             if (!hardwire) {
-                mutVal.set(value)
+                variable.set(value)
             }
         }
     }
 
-    data class PC(val value: MutVal, val initial: MutVal.Value) {
+    data class PC(val value: Variable, val initial: Variable.Value) {
         val name = "program counter"
         val shortName = "pc"
 

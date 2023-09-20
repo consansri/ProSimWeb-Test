@@ -3,7 +3,7 @@ package extendable.components.types
 import extendable.ArchConst
 import tools.DebugTools
 
-class MutVal {
+class Variable {
 
     val initialBinary: String
     val size: Size
@@ -30,27 +30,27 @@ class MutVal {
         return Bounds(size)
     }
 
-    fun set(value: Value): MutVal {
+    fun set(value: Value): Variable {
         this.value = value.toBin().getResized(size)
         return this
     }
 
-    fun setHex(hexString: String): MutVal {
+    fun setHex(hexString: String): Variable {
         value = Value.Hex(hexString, size)
         return this
     }
 
-    fun setDec(decString: String): MutVal {
+    fun setDec(decString: String): Variable {
         value = Value.Dec(decString, size)
         return this
     }
 
-    fun setUDec(udecString: String): MutVal {
+    fun setUDec(udecString: String): Variable {
         value = Value.UDec(udecString, size)
         return this
     }
 
-    fun setBin(binString: String): MutVal {
+    fun setBin(binString: String): Variable {
         value = Value.Binary(binString, size)
         return this
     }
@@ -60,33 +60,33 @@ class MutVal {
     }
 
     /* operator */
-    operator fun plus(operand: MutVal): MutVal {
-        return MutVal(value + operand.get())
+    operator fun plus(operand: Variable): Variable {
+        return Variable(value + operand.get())
     }
 
-    operator fun minus(operand: MutVal): MutVal {
-        return MutVal(value - operand.get())
+    operator fun minus(operand: Variable): Variable {
+        return Variable(value - operand.get())
     }
 
-    operator fun times(operand: MutVal): MutVal {
-        return MutVal(value * operand.get())
+    operator fun times(operand: Variable): Variable {
+        return Variable(value * operand.get())
     }
 
-    operator fun div(operand: MutVal): MutVal {
-        return MutVal(value / operand.get())
+    operator fun div(operand: Variable): Variable {
+        return Variable(value / operand.get())
     }
 
-    operator fun rem(operand: MutVal): MutVal {
-        return MutVal(value % operand.get())
+    operator fun rem(operand: Variable): Variable {
+        return Variable(value % operand.get())
     }
 
-    operator fun unaryMinus(): MutVal {
-        return MutVal(-value)
+    operator fun unaryMinus(): Variable {
+        return Variable(-value)
     }
 
     override fun equals(other: Any?): Boolean {
         when (other) {
-            is MutVal -> {
+            is Variable -> {
                 return (this.size == other.size && this.value == other.value)
             }
 
@@ -99,14 +99,14 @@ class MutVal {
         return super.equals(other)
     }
 
-    operator fun inc(): MutVal {
+    operator fun inc(): Variable {
         this.value = this.value++
-        return MutVal(++value)
+        return Variable(++value)
     }
 
-    operator fun dec(): MutVal {
+    operator fun dec(): Variable {
         this.value = this.value--
-        return MutVal(--value)
+        return Variable(--value)
     }
 
     sealed class Value(val size: Size) {
