@@ -4,7 +4,7 @@ import extendable.components.types.Variable
 
 class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size) {
 
-    val pc = PC(Variable("0", pcSize), Variable.Value.Binary("0"))
+    val pc = PC(Variable("0", pcSize), Variable.Value.Bin("0"))
 
     fun clear() {
         for (registerFile in registerFileList) {

@@ -15,7 +15,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
     val labelBinAddrMap = mutableMapOf<RV32Grammar.E_LABEL, String>()
     val transcriptEntrys = mutableListOf<RVDisassembledRow>()
-    val binarys = mutableListOf<Variable.Value.Binary>()
+    val bins = mutableListOf<Variable.Value.Bin>()
 
     override fun generateTranscript(architecture: Architecture, grammarTree: Grammar.GrammarTree) {
         val transcript = architecture.getTranscript()
@@ -28,7 +28,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             val binary = architecture.getMemory().load(row.getAddresses().first(), 4).get().toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
-                if (Variable.Value.Binary(labels.value) == row.getAddresses().first().toBin()) {
+                if (Variable.Value.Bin(labels.value) == row.getAddresses().first().toBin()) {
                     labelString += "${labels.key.wholeName} "
                 }
             }
@@ -39,7 +39,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                 var branchOffset5: String = ""
                 var branchOffset7: String = ""
                 var jalOffset20: String = ""
-                result.binaryMap.entries.forEach {
+                result.binMap.entries.forEach {
                     /*"${it.key.name.lowercase()}\t${*/
                     when (it.key) {
                         RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.IMM20 -> {
@@ -77,19 +77,19 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                 var labelstring = ""
                 when (result.type) {
                     JAL -> {
-                        val shiftedImm = Variable.Value.Binary(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), Variable.Size.Bit20()).getResized(Variable.Size.Bit32()) shl 1
+                        val shiftedImm = Variable.Value.Bin(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), Variable.Size.Bit20()).getResized(Variable.Size.Bit32()) shl 1
                         for (label in labelBinAddrMap) {
-                            if (Variable.Value.Binary(label.value) == (row.getAddresses().first().toBin() + shiftedImm).toBin()) {
+                            if (Variable.Value.Bin(label.value) == (row.getAddresses().first().toBin() + shiftedImm).toBin()) {
                                 labelstring = label.key.wholeName
                             }
                         }
                     }
 
                     BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
-                        val imm12 = Variable.Value.Binary(branchOffset7[0].toString() + branchOffset5[4] + branchOffset7.substring(1) + branchOffset5.substring(0, 4), Variable.Size.Bit12())
+                        val imm12 = Variable.Value.Bin(branchOffset7[0].toString() + branchOffset5[4] + branchOffset7.substring(1) + branchOffset5.substring(0, 4), Variable.Size.Bit12())
                         val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
                         for (label in labelBinAddrMap) {
-                            if (Variable.Value.Binary(label.value) == (row.getAddresses().first().toBin() + offset).toBin()) {
+                            if (Variable.Value.Bin(label.value) == (row.getAddresses().first().toBin() + offset).toBin()) {
                                 labelstring = label.key.wholeName
                             }
                         }
@@ -115,7 +115,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
         rootNode?.let {
             labelBinAddrMap.clear()
             transcriptEntrys.clear()
-            binarys.clear()
+            bins.clear()
             val instructionMapList = mutableMapOf<Long, RV32Grammar.R_INSTR>()
             val dataList = mutableListOf<DataEntry>()
             val rodataList = mutableListOf<DataEntry>()
@@ -146,7 +146,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                         console.log("RISCVAssembly.generateByteCode(): found Label ${entry.label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
                                     }
                                     if (entry.isGlobalStart) {
-                                        pcStartAddress = Variable.Value.Binary(address, Variable.Size.Bit32()).toHex()
+                                        pcStartAddress = Variable.Value.Bin(address, Variable.Size.Bit32()).toHex()
                                     }
                                     labelBinAddrMap.set(entry.label, address)
                                 }
@@ -235,7 +235,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
                                         val sizeOfOne = Variable.Value.Hex(resizedValues.first().size.byteCount.toString(16))
                                         val rest = nextDataAddress % sizeOfOne
-                                        if (rest != Variable.Value.Binary("0")) {
+                                        if (rest != Variable.Value.Bin("0")) {
                                             nextDataAddress += sizeOfOne - rest
                                         }
                                         val dataEntry = DataEntry(entry.label, nextDataAddress.toHex(), resizedValues.first().size, *resizedValues)
@@ -328,7 +328,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
                                         val sizeOfOne = Variable.Value.Hex(resizedValues.first().size.byteCount.toString(16))
                                         val rest = nextRoDataAddress % sizeOfOne
-                                        if (rest != Variable.Value.Binary("0")) {
+                                        if (rest != Variable.Value.Bin("0")) {
                                             nextRoDataAddress += sizeOfOne - rest
                                         }
                                         val dataEntry = DataEntry(entry.label, nextRoDataAddress.toHex(), resizedValues.first().size, *resizedValues)
@@ -366,7 +366,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
                                     val sizeOfOne = Variable.Value.Hex(originalValue.size.byteCount.toString(16))
                                     val rest = nextBssAddress % sizeOfOne
-                                    if (rest != Variable.Value.Binary("0")) {
+                                    if (rest != Variable.Value.Bin("0")) {
                                         nextBssAddress += sizeOfOne - rest
                                     }
                                     dataList.add(DataEntry(entry.label, nextBssAddress.toHex(), originalValue.size, originalValue))
@@ -404,7 +404,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             val instrIDMap = mutableMapOf<String, AssemblyMap.MapEntry>()
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
-                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((binarys.size * 4).toString(16), Variable.Size.Bit32()))
+                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), Variable.Size.Bit32()))
                 if (DebugTools.RISCV_showAsmInfo) {
                     console.log(
                         "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.instrname.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.instrType.id},  \n\t${
@@ -415,14 +415,14 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                     )
                 }
                 for (wordID in binary.indices) {
-                    instrIDMap.set(Variable.Value.Hex(((binarys.size + wordID) * 4).toString(16), Variable.Size.Bit32()).getRawHexStr(), AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID))
+                    instrIDMap.set(Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), Variable.Size.Bit32()).getRawHexStr(), AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID))
                 }
-                binarys.addAll(binary)
+                bins.addAll(binary)
             }
 
             var address = Variable.Value.Hex("0", Variable.Size.Bit32())
-            for (binaryID in binarys.indices) {
-                val binary = binarys[binaryID]
+            for (binaryID in bins.indices) {
+                val binary = bins[binaryID]
                 if (DebugTools.RISCV_showAsmInfo) {
                     console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
                 }
@@ -451,7 +451,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
         fun addInstr(architecture: Architecture, instrResult: RV32BinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
             content[RV32.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
-            content[RV32.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binaryMap.toMutableMap(), labelName))
+            content[RV32.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binMap.toMutableMap(), labelName))
         }
 
         fun addLabel(labelName: String) {

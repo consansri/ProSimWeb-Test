@@ -509,7 +509,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                         val bin = byte.toInt().toString(2)
                         binChars.append(bin)
                     }
-                    return Variable.Value.Binary(binChars.toString())
+                    return Variable.Value.Bin(binChars.toString())
                 }
             }
 
@@ -527,7 +527,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
 
             class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): Variable.Value {
-                    return if (content.contains('-')) -Variable.Value.Binary(content.trimStart('-'), Variable.Size.Bit32()) else Variable.Value.Binary(content)
+                    return if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-'), Variable.Size.Bit32()) else Variable.Value.Bin(content)
                 }
             }
 

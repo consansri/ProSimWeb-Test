@@ -3,7 +3,6 @@ package extendable.components.types
 import extendable.ArchConst
 import tools.DebugTools
 
-
 object DecTools {
 
     val negRegex = Regex("-[0-9]+")

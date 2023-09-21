@@ -212,10 +212,7 @@ object RV32 {
         Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name })
     )
 
-    // EDITOR
 
-    val FileExtension = "rvasm"
-    val FileTypeDescription = "RISC-V Assembler"
 
 
 }

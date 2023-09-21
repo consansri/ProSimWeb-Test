@@ -21,7 +21,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
 
                 while (result != null && instrCount < 1000) {
                     instrCount++
-                    result.type.execute(this, result.binaryMap)
+                    result.type.execute(this, result.binMap)
 
                     // Load next Instruction
                     binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
@@ -41,7 +41,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 val result = binMapper.getInstrFromBinary(binary.get().toBin())
                 if (result != null) {
-                    result.type.execute(this, result.binaryMap)
+                    result.type.execute(this, result.binMap)
                 }
             }
 
@@ -64,7 +64,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 for (step in 0 until steps) {
                     if (result != null) {
                         instrCount++
-                        result.type.execute(this, result.binaryMap)
+                        result.type.execute(this, result.binMap)
 
                         // Load next Instruction
                         binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
@@ -93,7 +93,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                         val returnAddress = getRegisterContainer().pc.value.get() + Variable.Value.Hex("4")
                         while (getRegisterContainer().pc.value.get() != returnAddress) {
                             if (result != null) {
-                                result.type.execute(this, result.binaryMap)
+                                result.type.execute(this, result.binMap)
                                 instrCount++
                             } else {
                                 break
@@ -103,7 +103,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                         }
 
                     } else {
-                        result.type.execute(this, result.binaryMap)
+                        result.type.execute(this, result.binMap)
                         instrCount++
                     }
                 }
@@ -125,7 +125,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 val returnTypeList = listOf(RV32Grammar.R_INSTR.InstrType.JALR, RV32Grammar.R_INSTR.InstrType.JAL)
 
                 while (result != null && !returnTypeList.contains(result.type)) {
-                    result.type.execute(this, result.binaryMap)
+                    result.type.execute(this, result.binMap)
 
                     binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                     result = binMapper.getInstrFromBinary(binary.get().toBin())
@@ -168,7 +168,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                             break
                         }
                         if (result != null) {
-                            result.type.execute(this, result.binaryMap)
+                            result.type.execute(this, result.binMap)
                             instrCount++
                         } else {
                             break
@@ -184,7 +184,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                         val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                         val result = binMapper.getInstrFromBinary(binary.get().toBin())
                         if (result != null) {
-                            result.type.execute(this, result.binaryMap)
+                            result.type.execute(this, result.binMap)
                             instrCount++
                         } else {
                             break
@@ -210,7 +210,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                     break
                 }
                 if (result != null) {
-                    result.type.execute(this, result.binaryMap)
+                    result.type.execute(this, result.binMap)
                     instrCount++
                 } else {
                     break

@@ -137,7 +137,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
         for (i in 0 until amount) {
             val instance = load(instanceAddress)
             instances.add(instance.get().toBin().getRawBinaryStr())
-            instanceAddress = (instanceAddress + Variable.Value.Binary("1", addressSize)).toBin()
+            instanceAddress = (instanceAddress + Variable.Value.Bin("1", addressSize)).toBin()
         }
 
         if (endianess == Endianess.LittleEndian) {
