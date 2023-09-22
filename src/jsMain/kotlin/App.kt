@@ -1,4 +1,5 @@
 import emotion.react.css
+import emulator.Emulator
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import web.html.*
@@ -10,7 +11,8 @@ import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import tools.DebugTools
-import views.*
+import visual.*
+import visual.ProcessorView
 import web.cssom.*
 
 
@@ -20,7 +22,7 @@ val App = FC<Props> { props ->
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
 
-    val (appLogic, setAppLogic) = useState<AppLogic>(AppLogic())
+    val (appLogic, setAppLogic) = useState<Emulator>(Emulator())
     val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.mode)
     val (reloadUI, setReloadUI) = useState(false)
     val (lPercentage, setLPct) = useState<Int>(40)
@@ -32,6 +34,8 @@ val App = FC<Props> { props ->
         }
     }
 
+
+
     AppStyle {}
 
     fun updateApp() {
@@ -40,7 +44,7 @@ val App = FC<Props> { props ->
     }
 
     Menu {
-        this.appLogic = appLogic
+        this.emulator = appLogic
         update = reloadUI
         updateParent = ::updateApp
     }
@@ -84,7 +88,7 @@ val App = FC<Props> { props ->
                     }
                 }
                 CodeEditor {
-                    this.appLogic = appLogic
+                    this.emulator = appLogic
                     update = reloadUI
                     updateParent = ::updateApp
                 }
@@ -114,7 +118,7 @@ val App = FC<Props> { props ->
                 }
 
                 ProcessorView {
-                    this.appLogic = appLogic
+                    this.emulator = appLogic
                     update = useState(reloadUI)
                     updateAppLogic = ::updateApp
                 }
@@ -224,7 +228,7 @@ val App = FC<Props> { props ->
             }
 
             InfoView {
-                this.appLogic = appLogic
+                this.emulator = appLogic
                 this.update = useState(reloadUI)
                 this.updateParent = ::updateApp
                 this.footerRef = footerRef

@@ -1,9 +1,9 @@
 package tools
 
-import extendable.components.connected.IConsole
-import extendable.components.types.BinaryTools
-import extendable.components.types.Variable
-import extendable.components.types.DecTools
+import emulator.kit.common.IConsole
+import emulator.kit.types.BinaryTools
+import emulator.kit.types.Variable
+import emulator.kit.types.DecTools
 
 object DebugTools {
 
