@@ -14,9 +14,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             console.log("switched Endianess to ${endianess.name}")
         }
     }
-
     fun getEndianess(): Endianess = endianess
-
     fun save(address: Variable.Value, variable: Variable, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = variable.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
@@ -50,7 +48,6 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             }
         }
     }
-
     fun saveArray(address: Variable.Value, vararg values: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = values.map {value -> value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() } }.reversed().flatten()
@@ -85,7 +82,6 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             hexAddress = (hexAddress + Variable.Value.Hex("1")).toHex()
         }
     }
-
     fun save(address: Variable.Value, value: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
         var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
@@ -120,7 +116,6 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             hexAddress = (hexAddress + Variable.Value.Hex("1")).toHex()
         }
     }
-
     fun load(address: Variable.Value): Variable {
         val value = memMap.get(address.toHex().getRawHexStr())?.variable
         if (value != null) {
@@ -129,7 +124,6 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             return getInitialBinary()
         }
     }
-
     fun load(address: Variable.Value, amount: Int): Variable {
         val instances = mutableListOf<String>()
 
@@ -146,18 +140,15 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
 
         return Variable(instances.joinToString("") { it }, Variable.Tools.getNearestSize(amount * wordSize.bitWidth))
     }
-
     fun clear() {
         this.memMap.clear()
         refreshEditableValues()
     }
-
     fun addEditableValue(name: String, address: Variable.Value.Hex, value: Variable.Value.Hex) {
         editableValues.removeAll(editableValues.filter { it.address == address })
         editableValues.add(MemInstance.EditableValue(name, address, value))
         editableValues.sortBy { it.address.getRawHexStr() }
     }
-
     fun refreshEditableValues() {
         for (value in editableValues) {
             val key = value.address.getUResized(addressSize).getRawHexStr()
@@ -167,35 +158,27 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             memMap[key] = value
         }
     }
-
     fun removeEditableValue(editableValue: MemInstance.EditableValue) {
         editableValues.remove(editableValue)
     }
-
     fun clearEditableValues() {
         editableValues.clear()
     }
-
     fun getMemMap(): Map<String, MemInstance> {
         return memMap
     }
-
     fun getAddressMax(): Variable.Value {
         return Variable.Value.Hex("0", addressSize).getBiggest()
     }
-
     fun getEditableInstances(): List<MemInstance.EditableValue> {
         return editableValues
     }
-
     fun getInitialBinary(): Variable {
         return Variable(initBin, wordSize)
     }
-
     fun getAddressSize(): Variable.Size {
         return addressSize
     }
-
     fun getWordSize(): Variable.Size {
         return wordSize
     }
@@ -204,7 +187,6 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
         class EditableValue(val name: String, address: Variable.Value.Hex, value: Variable.Value.Hex) : MemInstance(address, Variable(value), StyleAttr.Main.Table.Mark.EDITABLE)
 
     }
-
     enum class Endianess(val uiName: String) {
         LittleEndian("Little Endian"),
         BigEndian("Big Endian")

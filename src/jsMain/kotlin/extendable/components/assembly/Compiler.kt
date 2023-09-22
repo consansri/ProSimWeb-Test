@@ -8,7 +8,13 @@ import extendable.components.connected.Transcript
 import extendable.components.types.Variable
 import tools.HTMLTools
 
-class Compiler(private val architecture: Architecture, private val grammar: Grammar, private val assembly: Assembly, private val regexCollection: RegexCollection, private val hlFlagCollection: HLFlagCollection) {
+class Compiler(
+    private val architecture: Architecture,
+    private val grammar: Grammar,
+    private val assembly: Assembly,
+    private val regexCollection: RegexCollection,
+    private val hlFlagCollection: HLFlagCollection
+) {
 
     private var tokenList: MutableList<Token> = mutableListOf()
     private var tokenLines: MutableList<MutableList<Token>> = mutableListOf()
@@ -36,12 +42,12 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         if (shouldHighlight) {
             highlight()
         }
-        compile()
+        assemble()
         return isBuildable
     }
 
-    fun recompile() {
-        compile()
+    fun reassemble() {
+        assemble()
     }
 
     private fun analyze() {
@@ -321,7 +327,7 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         }
     }
 
-    private fun compile() {
+    private fun assemble() {
         architecture.getMemory().clear()
         architecture.getRegisterContainer().pc.reset()
         architecture.getTranscript().clear(Transcript.Type.DISASSEMBLED)
@@ -336,7 +342,6 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
                 architecture.getFileHandler().getCurrent().linkGrammarTree(it)
             }
         }
-
     }
 
     fun pseudoAnalyze(content: String, lineID: Int = ArchConst.COMPILER_TOKEN_PSEUDOID): List<Token> {
@@ -570,10 +575,8 @@ class Compiler(private val architecture: Architecture, private val grammar: Gram
         SYMBOL,
         CONSTANT,
         REGISTER,
-        INSTRUCTION,
         ALPHANUM,
-        WORD,
-        ANY
+        WORD
     }
 
     data class HLFlagCollection(

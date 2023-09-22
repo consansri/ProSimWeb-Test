@@ -179,7 +179,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     open fun exeReset() {
         getConsole().clear()
         getConsole().log("--reset ...")
-        compiler.recompile()
+        compiler.reassemble()
     }
 
     /**

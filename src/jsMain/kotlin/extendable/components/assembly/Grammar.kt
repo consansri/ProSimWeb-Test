@@ -4,13 +4,9 @@ import extendable.components.connected.FileHandler
 import extendable.components.connected.Transcript
 
 abstract class Grammar {
-
     abstract val applyStandardHLForRest: Boolean
-
     abstract fun clear()
-
     abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): GrammarTree
-
     class GrammarTree(val rootNode: TreeNode.RootNode? = null) {
         fun contains(token: Compiler.Token): SearchResult? {
             rootNode?.let {
@@ -32,7 +28,6 @@ abstract class Grammar {
             return false
         }
     }
-
     class TokenSequence(vararg val components: Component, val ignoreSpaces: Boolean = false) {
 
         init {
@@ -109,10 +104,10 @@ abstract class Grammar {
                 }
             }
             console.log("result: ${sequenceList.joinToString("") { it.token.content }}")
-            if (sequenceList.size == components.size) {
-                return SeqMatchResult(true, sequenceList)
+            return if (sequenceList.size == components.size) {
+                SeqMatchResult(true, sequenceList)
             } else {
-                return SeqMatchResult(false, emptyList())
+                SeqMatchResult(false, emptyList())
             }
         }
 
@@ -180,7 +175,6 @@ abstract class Grammar {
             }
         }
     }
-
     sealed class TreeNode(val name: String) {
         abstract fun getAllTokens(): Array<out Compiler.Token>
         abstract fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult?
@@ -299,21 +293,18 @@ abstract class Grammar {
             }
         }
     }
-
     class Error(val message: String, val linkedTreeNode: TreeNode) {
         constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode(ConnectedHL(), "unidentified", *tokens))
         constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
         constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
         constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
     }
-
     class Warning(val message: String, val linkedTreeNode: TreeNode) {
         constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode(ConnectedHL(), "unidentified", *tokens))
         constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
         constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
         constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
     }
-
     class RowSeq(vararg val components: Component) {
 
         fun exacltyMatches(vararg elementNodes: TreeNode.ElementNode): RowSeqResult {
@@ -421,7 +412,6 @@ abstract class Grammar {
         class Component(vararg val treeNodeNames: String, val repeatable: Boolean = false)
         data class RowSeqResult(val matches: Boolean, val matchingTreeNodes: List<TreeNode.ElementNode>, val error: Error? = null, val remainingTreeNodes: List<TreeNode.ElementNode>? = null)
     }
-
     class ConnectedHL(vararg val hlPairs: Pair<String, List<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
 
         val hlTokenMap: MutableMap<String, MutableList<Compiler.Token>>
@@ -466,7 +456,5 @@ abstract class Grammar {
 
 
     }
-
     data class SearchResult(val elementNode: TreeNode.ElementNode, val path: String = "")
-
 }
