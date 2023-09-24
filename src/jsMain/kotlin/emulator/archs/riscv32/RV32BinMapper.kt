@@ -6,13 +6,10 @@ import emulator.kit.types.Variable
 import tools.DebugTools
 
 class RV32BinMapper {
-
     var labelAddrMap = mapOf<RV32Syntax.E_LABEL, String>()
-
     fun setLabelLinks(labelAddrMap: Map<RV32Syntax.E_LABEL, String>) {
         this.labelAddrMap = labelAddrMap
     }
-
     fun getBinaryFromInstrDef(instrDef: RV32Syntax.R_INSTR, instrStartAddress: Variable.Value.Hex): Array<Variable.Value.Bin> {
         val binArray = mutableListOf<Variable.Value.Bin>()
         val values = instrDef.paramcoll?.getValues()
@@ -807,7 +804,6 @@ class RV32BinMapper {
 
         data class CheckResult(val matches: Boolean, val binMap: Map<MaskLabel, Variable.Value.Bin> = mapOf())
     }
-
     enum class MaskLabel(val static: Boolean, val maxSize: Variable.Size? = null) {
         OPCODE(true, Variable.Size.Bit7()),
         RD(false, Variable.Size.Bit5()),
@@ -822,6 +818,4 @@ class RV32BinMapper {
         IMM20(false, Variable.Size.Bit20()),
         NONE(true)
     }
-
-
 }

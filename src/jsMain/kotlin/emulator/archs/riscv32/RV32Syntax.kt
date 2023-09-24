@@ -1632,8 +1632,14 @@ class RV32Syntax() : Syntax() {
                 return "pseudo param type"
             }
         }
-
-        enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: RV32BinMapper.OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null) {
+        enum class InstrType(
+            val id: String,
+            val pseudo: Boolean,
+            val paramType: ParamType,
+            val opCode: RV32BinMapper.OpCode? = null,
+            val memWords: Int = 1,
+            val relative: InstrType? = null
+        ) {
             LUI("LUI", false, ParamType.RD_I20, RV32BinMapper.OpCode("00000000000000000000 00000 0110111", arrayOf(RV32BinMapper.MaskLabel.IMM20, RV32BinMapper.MaskLabel.RD, RV32BinMapper.MaskLabel.OPCODE))) {
                 override fun execute(architecture: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
                     super.execute(architecture, paramMap)

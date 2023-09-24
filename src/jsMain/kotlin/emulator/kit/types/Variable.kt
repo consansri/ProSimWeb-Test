@@ -125,7 +125,7 @@ class Variable {
 
                 if (regexWithPreString.matches(formattedInput)) {
                     // bin string with prestring
-                    return if (formattedInput.length <= size.bitWidth + 2) {
+                    return if (formattedInput.length <= size.bitWidth + Settings.PRESTRING_BINARY.length) {
                         if (string.length < size.bitWidth) {
                             CheckResult(true, Settings.PRESTRING_BINARY + formattedInput.removePrefix(Settings.PRESTRING_BINARY).padStart(size.bitWidth, '0'))
                         } else {
@@ -258,6 +258,10 @@ class Variable {
                 } else {
                     return -1
                 }
+            }
+
+            override fun toString(): String {
+                return this.binString
             }
 
             infix fun shl(bitCount: Int): Bin {
@@ -421,6 +425,9 @@ class Variable {
                     return -1
                 }
             }
+            override fun toString(): String {
+                return this.hexString
+            }
 
             override fun toHex(): Hex {
                 return this
@@ -565,6 +572,9 @@ class Variable {
                 } else {
                     return -1
                 }
+            }
+            override fun toString(): String {
+                return this.decString
             }
 
         }
@@ -713,6 +723,10 @@ class Variable {
                 } else {
                     return -1
                 }
+            }
+
+            override fun toString(): String {
+                return this.udecString
             }
         }
 
