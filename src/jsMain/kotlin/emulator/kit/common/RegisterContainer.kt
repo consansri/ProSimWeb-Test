@@ -39,11 +39,27 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return null
     }
 
+    fun getAllRegisters(): List<Register> {
+        val allRegs = mutableListOf<Register>()
+        registerFileList.forEach { allRegs.addAll(it.registers) }
+        return allRegs
+    }
+
     fun getRegisterFileList(): List<RegisterFile> {
         return registerFileList
     }
 
     data class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val description: String, val hardwire: Boolean = false) {
+
+        private val regexList: List<Regex>
+
+        init {
+            val mutableRegexList: MutableList<Regex> = mutableListOf()
+            names.forEach { mutableRegexList.add(Regex("""\b(${Regex.escape(it)})\b""")) }
+            aliases.forEach { mutableRegexList.add(Regex("""\b(${Regex.escape(it)})\b""")) }
+            regexList = mutableRegexList
+        }
+
         fun get(): Variable.Value {
             return variable.get()
         }
@@ -52,6 +68,10 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
             if (!hardwire) {
                 variable.set(value)
             }
+        }
+
+        fun getRegexList(): List<Regex> {
+            return regexList
         }
     }
 

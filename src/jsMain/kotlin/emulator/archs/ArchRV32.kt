@@ -3,11 +3,18 @@ package emulator.cisc
 import emulator.kit.Architecture
 import emulator.archs.riscv32.RV32
 import emulator.archs.riscv32.RV32BinMapper
+import emulator.archs.riscv32.RV32Flags
 import emulator.archs.riscv32.RV32Syntax
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
 class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
+
+    val instrnames = RV32Syntax.R_INSTR.InstrType.entries.map { Regex("""\b(${Regex.escape(it.id)})\b""", RegexOption.IGNORE_CASE) }
+    val registers = getRegisterContainer().getAllRegisters().map { it.getRegexList() }.flatMap { it }
+    val labels = listOf(Regex("""(^|\s+)(.+:)(\s+|$)"""))
+    val directive = listOf(Regex("""(^|\s+)(\.[a-zA-Z]+)(\s+|$)"""))
+    val consts = listOf(Regex("""(0x[0-9A-Fa-f]+)"""), Regex("""(0b[01]+)"""), Regex("""((-)?[0-9]+)"""), Regex("""(u[0-9]+)"""),Regex("""('.')"""), Regex("\".+\""))
 
     override fun exeContinuous() {
         if (this.getAssembly().isBuildable()) {
@@ -232,6 +239,15 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
             super.exeReset()
         }
         getConsole().log("--reset finishing... \ntook ${measuredTime.inWholeMicroseconds} μs")
+    }
+
+    override fun getPreHighlighting(line: String): String {
+        var preline: String = hlText(line, instrnames, "instr", RV32Flags.instruction)
+        preline = hlText(preline, labels, "lbl", RV32Flags.label)
+        preline = hlText(preline, directive, "dir", RV32Flags.directive)
+        preline = hlText(preline, consts, "const", RV32Flags.constant)
+        preline = hlText(preline, registers, "reg", RV32Flags.register)
+        return preline
     }
 
 }

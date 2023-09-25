@@ -22,4 +22,10 @@ object RV32Flags {
 
     val pre_unresolved = HL.base05.getFlag()
 
+    object PreHLRegex {
+
+
+
+    }
+
 }

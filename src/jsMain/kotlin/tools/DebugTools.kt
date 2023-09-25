@@ -42,8 +42,8 @@ object DebugTools {
     //      ByteValue
     val ARCH_BVDivisionLoopLimit: Long? = null
 
-    const val ARCH_showBVCheckWarnings = true
-    const val ARCH_showBVTypeConversionInfo = true
+    const val ARCH_showBVCheckWarnings = false
+    const val ARCH_showBVTypeConversionInfo = false
     const val ARCH_showBVOperatorCalculations = false
     const val ARCH_showBVBinaryToolsCalculations = false
     const val ARCH_showBVBinaryToolsCalculationDetails = false

@@ -190,7 +190,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         preHLTimeoutRef.current = setTimeout({
             val hlTaList = appLogic.getArch().getPreHighlighting(value).split("\n")
             setvc_rows(hlTaList)
-        }, 30)
+        }, 1000)
     }
 
     /* ----------------- CHANGE EVENTS ----------------- */

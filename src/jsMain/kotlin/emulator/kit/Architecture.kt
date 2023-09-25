@@ -1,5 +1,6 @@
 package emulator.kit
 
+import emulator.archs.riscv32.RV32Flags
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
@@ -186,9 +187,26 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Tool
      * for surrounding a input with a certain highlighting html tag
      */
-    fun highlight(input: String, id: Int, title: String, flag: String, vararg classNames: String): String {
+    fun highlight(input: String, id: Int? = null, title: String, flag: String, vararg classNames: String): String {
         val tag = "span"
-        return "<$tag class='$flag ${classNames.joinToString(" ") { it }}' id='$id'>$input</$tag>"
+        return "<$tag class='$flag ${classNames.joinToString(" ") { it }}' ${id?.let { "id='$id'" }}>$input</$tag>"
     }
 
+    fun hlText(input: String, hlPatterns: List<Regex>, title: String, flag: String): String {
+        var result = input
+        for (pattern in hlPatterns) {
+            result = result.replace(pattern) {
+                val match = if(it.groupValues.size == 3){
+                    it.groupValues[1]
+                }else{
+                    it.groupValues.first()
+                }
+                highlight(match, title = title, flag = flag)
+
+            }
+        }
+        return result
+    }
+
+    data class PreHLRepl(val element: String, val replacement: String)
 }
