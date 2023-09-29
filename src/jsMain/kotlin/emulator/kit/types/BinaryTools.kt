@@ -1,7 +1,7 @@
 package emulator.kit.types
 
 import emulator.kit.Settings
-import tools.DebugTools
+import debug.DebugTools
 
 object BinaryTools {
     fun negotiate(aBin: String): String {

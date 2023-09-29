@@ -11,7 +11,7 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
-import tools.DebugTools
+import debug.DebugTools
 
 import web.html.*
 import web.timers.*

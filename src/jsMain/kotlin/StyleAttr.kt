@@ -167,6 +167,11 @@ object StyleAttr {
             const val CLASS_EXE = "processor-exediv"
             const val CLASS_REG = "processor-regdiv"
             const val CLASS_MEM = "processor-memdiv"
+
+            object Memory{
+                const val emptyPlaceholderRows = 10
+            }
+
         }
         object AppControls {
             val BgColor = ModeColor("#1B3C60", "#272732")

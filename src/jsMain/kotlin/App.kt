@@ -10,7 +10,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
-import tools.DebugTools
+import debug.DebugTools
 import visual.*
 import visual.ProcessorView
 import web.cssom.*

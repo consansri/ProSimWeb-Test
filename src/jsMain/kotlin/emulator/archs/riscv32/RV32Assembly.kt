@@ -9,7 +9,7 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
-import tools.DebugTools
+import debug.DebugTools
 
 class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.Value, val rodataSecStart: Variable.Value, val bssSecStart: Variable.Value) : Assembly() {
 

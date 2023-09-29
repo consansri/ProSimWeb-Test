@@ -1,6 +1,5 @@
 package emulator.kit
 
-import emulator.archs.riscv32.RV32Flags
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
@@ -9,8 +8,8 @@ import emulator.kit.optional.Cache
 import emulator.kit.optional.FlagsConditions
 import emulator.kit.types.Variable
 
-import tools.DebugTools
-import tools.HTMLTools
+import debug.DebugTools
+import emulator.kit.types.HTMLTools
 import web.buffer.Blob
 
 /**
@@ -165,8 +164,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * PreHighlight Event
      * needs to be implemented by specific architectures if prehighlighting of certain keywords is wished
      */
-    open fun getPreHighlighting(line: String): String {
-        val encodedLine = HTMLTools.encodeHTML(line)
+    open fun getPreHighlighting(text: String): String {
+        val encodedLine = HTMLTools.encodeHTML(text)
         return encodedLine
     }
 
@@ -192,17 +191,11 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         return "<$tag class='$flag ${classNames.joinToString(" ") { it }}' ${id?.let { "id='$id'" }}>$input</$tag>"
     }
 
-    fun hlText(input: String, hlPatterns: List<Regex>, title: String, flag: String): String {
+    fun hlText(input: String, hlPatterns: List<Regex>, title: String, flag: String, onlyOne: Boolean = false): String {
         var result = input
         for (pattern in hlPatterns) {
             result = result.replace(pattern) {
-                val match = if(it.groupValues.size == 3){
-                    it.groupValues[1]
-                }else{
-                    it.groupValues.first()
-                }
-                highlight(match, title = title, flag = flag)
-
+                highlight(it.value, title = title, flag = flag)
             }
         }
         return result

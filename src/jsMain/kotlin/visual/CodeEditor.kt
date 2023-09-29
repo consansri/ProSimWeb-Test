@@ -20,7 +20,7 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
-import tools.DebugTools
+import debug.DebugTools
 import web.cssom.ClassName
 import web.timers.*
 import web.cssom.*

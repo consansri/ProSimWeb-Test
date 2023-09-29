@@ -23,7 +23,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import tools.DebugTools
+import debug.DebugTools
 
 import web.html.*
 import web.timers.*

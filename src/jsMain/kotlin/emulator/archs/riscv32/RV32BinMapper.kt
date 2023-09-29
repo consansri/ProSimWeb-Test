@@ -3,7 +3,7 @@ package emulator.archs.riscv32
 import emulator.kit.Settings
 import emulator.archs.riscv32.RV32Syntax.R_INSTR.InstrType.*
 import emulator.kit.types.Variable
-import tools.DebugTools
+import debug.DebugTools
 
 class RV32BinMapper {
     var labelAddrMap = mapOf<RV32Syntax.E_LABEL, String>()

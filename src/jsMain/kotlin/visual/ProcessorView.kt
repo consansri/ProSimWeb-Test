@@ -15,7 +15,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
-import tools.DebugTools
+import debug.DebugTools
 import visual.ExecutionType.*
 
 import web.html.HTMLAnchorElement

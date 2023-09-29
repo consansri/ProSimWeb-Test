@@ -2,11 +2,16 @@ package emulator.kit.common
 
 import StyleAttr
 import emulator.kit.types.Variable
-import tools.DebugTools
+import debug.DebugTools
 
 class Memory(private val addressSize: Variable.Size, private val initBin: String, private val wordSize: Variable.Size, var endianess: Endianess) {
     private var memMap: MutableMap<String, MemInstance> = mutableMapOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
+
+    init {
+        save(Variable.Value.Bin("0"), Variable(wordSize))
+        save(getAddressMax(), Variable(wordSize))
+    }
 
     fun setEndianess(endianess: Endianess) {
         this.endianess = endianess
@@ -142,6 +147,8 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
     }
     fun clear() {
         this.memMap.clear()
+        save(Variable.Value.Bin("0"), Variable(wordSize))
+        save(getAddressMax(), Variable(wordSize))
         refreshEditableValues()
     }
     fun addEditableValue(name: String, address: Variable.Value.Hex, value: Variable.Value.Hex) {

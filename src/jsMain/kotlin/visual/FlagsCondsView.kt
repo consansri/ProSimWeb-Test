@@ -7,7 +7,7 @@ import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import tools.DebugTools
+import debug.DebugTools
 import web.html.*
 import web.cssom.*
 

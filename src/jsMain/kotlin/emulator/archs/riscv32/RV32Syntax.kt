@@ -8,7 +8,7 @@ import emulator.kit.common.FileHandler
 import emulator.kit.common.RegisterContainer
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
-import tools.DebugTools
+import debug.DebugTools
 
 class RV32Syntax() : Syntax() {
 

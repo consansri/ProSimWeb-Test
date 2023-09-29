@@ -17,7 +17,7 @@ import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import react.useRef
 import react.useState
-import tools.DebugTools
+import debug.DebugTools
 
 import web.timers.*
 import web.cssom.*

@@ -8,9 +8,11 @@ import emulator.kit.configs.Config
 import emulator.kit.types.*
 import react.FC
 import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -58,6 +60,29 @@ object RV32 {
             "Handbook",
             "../documents/riscv/handbook.html"
         ),
+        Docs.HtmlFile.DefinedFile("Examples",
+            FC {
+                h1 {
+                    +"Examples"
+                }
+                h2 {
+                    +"Text Section Example"
+                }
+                pre {
+                    +"""
+                        main:
+                            li	t0, 333
+                        loop:
+                            beq 	t0,t1,end
+                            addi	t1,t1,1
+                            j 	loop
+                        
+                        end:
+                            li 	t2, 0xCAFEAFFE
+                        """.trimIndent()
+                }
+
+            }),
         Docs.HtmlFile.DefinedFile(
             "Implemented",
             FC {
@@ -158,7 +183,6 @@ object RV32 {
                 }
 
 
-
             }
         )
     )
@@ -211,8 +235,6 @@ object RV32 {
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
         Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name })
     )
-
-
 
 
 }

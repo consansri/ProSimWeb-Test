@@ -1,4 +1,4 @@
-package tools
+package debug
 
 import emulator.kit.common.IConsole
 import emulator.kit.types.BinaryTools

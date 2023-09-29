@@ -4,17 +4,20 @@ import emulator.kit.Architecture
 import emulator.archs.riscv32.RV32
 import emulator.archs.riscv32.RV32BinMapper
 import emulator.archs.riscv32.RV32Flags
-import emulator.archs.riscv32.RV32Syntax
+import emulator.archs.riscv32.RV32Syntax.*
+import emulator.kit.types.HTMLTools
+import emulator.kit.types.StringTools
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
 class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
 
-    val instrnames = RV32Syntax.R_INSTR.InstrType.entries.map { Regex("""\b(${Regex.escape(it.id)})\b""", RegexOption.IGNORE_CASE) }
+    val instrnames = R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
     val registers = getRegisterContainer().getAllRegisters().map { it.getRegexList() }.flatMap { it }
-    val labels = listOf(Regex("""(^|\s+)(.+:)(\s+|$)"""))
-    val directive = listOf(Regex("""(^|\s+)(\.[a-zA-Z]+)(\s+|$)"""))
-    val consts = listOf(Regex("""(0x[0-9A-Fa-f]+)"""), Regex("""(0b[01]+)"""), Regex("""((-)?[0-9]+)"""), Regex("""(u[0-9]+)"""),Regex("""('.')"""), Regex("\".+\""))
+    val labels = listOf(Regex("""(?<=\s|^)(.+:)(?=\s|$)"""))
+    val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
+    val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }
+    val consts = listOf(Regex("""(?<=\s|^)(0x[0-9A-Fa-f]+)"""), Regex("""(?<=\s|^)(0b[01]+)"""), Regex("""(?<=\s|^)((-)?[0-9]+)"""), Regex("""(?<=\s|^)(u[0-9]+)"""), Regex("""('.')"""), Regex("\".+\""))
 
     override fun exeContinuous() {
         if (this.getAssembly().isBuildable()) {
@@ -96,7 +99,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
                 if (result != null) {
-                    if (result.type == RV32Syntax.R_INSTR.InstrType.JAL || result.type == RV32Syntax.R_INSTR.InstrType.JALR) {
+                    if (result.type == R_INSTR.InstrType.JAL || result.type == R_INSTR.InstrType.JALR) {
                         val returnAddress = getRegisterContainer().pc.value.get() + Variable.Value.Hex("4")
                         while (getRegisterContainer().pc.value.get() != returnAddress) {
                             if (result != null) {
@@ -129,7 +132,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
 
-                val returnTypeList = listOf(RV32Syntax.R_INSTR.InstrType.JALR, RV32Syntax.R_INSTR.InstrType.JAL)
+                val returnTypeList = listOf(R_INSTR.InstrType.JALR, R_INSTR.InstrType.JAL)
 
                 while (result != null && !returnTypeList.contains(result.type)) {
                     result.type.execute(this, result.binMap)
@@ -241,13 +244,24 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
         getConsole().log("--reset finishing... \ntook ${measuredTime.inWholeMicroseconds} μs")
     }
 
-    override fun getPreHighlighting(line: String): String {
-        var preline: String = hlText(line, instrnames, "instr", RV32Flags.instruction)
-        preline = hlText(preline, labels, "lbl", RV32Flags.label)
-        preline = hlText(preline, directive, "dir", RV32Flags.directive)
-        preline = hlText(preline, consts, "const", RV32Flags.constant)
-        preline = hlText(preline, registers, "reg", RV32Flags.register)
-        return preline
+    override fun getPreHighlighting(text: String): String {
+        val lines = HTMLTools.encodeHTML(text).split("\n").toMutableList()
+        for (lineID in lines.indices) {
+            // REMOVE COMMENTS
+            val splitted = StringTools.splitStringAtFirstOccurrence(lines[lineID], '#')
+            val comment = highlight(splitted.second, title = "comment", flag = RV32Flags.comment)
+
+            // PREHIGHLIGHT ANYTHING ELSE
+            var preline: String = hlText(splitted.first, instrnames, "instr", RV32Flags.instruction)
+            preline = hlText(preline, labels, "lbl", RV32Flags.label)
+            preline = hlText(preline, directive, "dir", RV32Flags.directive)
+            preline = hlText(preline, registers, "reg", RV32Flags.register)
+            preline = hlText(preline, consts, "const", RV32Flags.constant)
+
+            lines[lineID] = preline + comment
+        }
+
+        return lines.joinToString("\n") { it }
     }
 
 }

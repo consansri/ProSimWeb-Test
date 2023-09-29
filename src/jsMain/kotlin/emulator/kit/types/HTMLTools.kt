@@ -1,4 +1,4 @@
-package tools
+package emulator.kit.types
 
 object HTMLTools {
     fun encodeBeforeHTML(value: String): String {

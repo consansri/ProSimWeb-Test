@@ -6,7 +6,7 @@ import web.html.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-import tools.DebugTools
+import debug.DebugTools
 import web.cssom.*
 import StyleAttr.Main.InfoView
 import emulator.kit.common.Docs

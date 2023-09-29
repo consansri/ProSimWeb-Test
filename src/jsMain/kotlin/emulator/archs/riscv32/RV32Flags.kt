@@ -4,11 +4,11 @@ import StyleAttr.Main.Editor.HL
 
 object RV32Flags {
 
-    val offset = HL.magenta.getFlag()
+    val offset = HL.cyan.getFlag()
     val register = HL.yellow.getFlag()
     val constant = HL.blue.getFlag()
 
-    val label = HL.cyan.getFlag()
+    val label = HL.magenta.getFlag()
     val directive = HL.orange.getFlag()
     val instruction = HL.violet.getFlag()
 
@@ -21,11 +21,5 @@ object RV32Flags {
     val pre_attribute = HL.base04.getFlag()
 
     val pre_unresolved = HL.base05.getFlag()
-
-    object PreHLRegex {
-
-
-
-    }
 
 }

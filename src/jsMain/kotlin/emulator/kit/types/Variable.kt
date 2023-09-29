@@ -1,7 +1,7 @@
 package emulator.kit.types
 
 import emulator.kit.Settings
-import tools.DebugTools
+import debug.DebugTools
 
 class Variable {
 
@@ -17,6 +17,11 @@ class Variable {
     constructor(value: Value) {
         this.value = value
         this.size = value.size
+        this.initialBinary = value.toBin().getBinaryStr()
+    }
+    constructor(size: Size){
+        this.value = Value.Bin("0", size)
+        this.size = size
         this.initialBinary = value.toBin().getBinaryStr()
     }
 

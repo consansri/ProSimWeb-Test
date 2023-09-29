@@ -2,7 +2,7 @@ package emulator.kit.assembly
 
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
-import tools.DebugTools
+import debug.DebugTools
 
 abstract class Assembly {
     abstract fun generateTranscript(architecture: Architecture, syntaxTree: Syntax.SyntaxTree)

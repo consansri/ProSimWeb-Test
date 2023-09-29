@@ -5,7 +5,7 @@ import emulator.kit.Settings
 import emulator.kit.assembly.Syntax
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.*
-import tools.DebugTools
+import debug.DebugTools
 
 class FileHandler(val fileEnding: String) {
 

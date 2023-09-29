@@ -19,7 +19,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import tools.DebugTools
+import debug.DebugTools
 import web.buffer.Blob
 import web.cssom.*
 import web.storage.localStorage
