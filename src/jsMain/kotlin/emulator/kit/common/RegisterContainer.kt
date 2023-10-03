@@ -2,6 +2,10 @@ package emulator.kit.common
 
 import emulator.kit.types.Variable
 
+/**
+ * The [RegisterContainer] is making all [RegisterFile]s besides the [PC] accessible.
+ * It contains searching functions to find a register by name or alias ([getRegister]).
+ */
 class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size) {
 
     val pc = PC(Variable("0", pcSize), Variable.Value.Bin("0"))
@@ -49,6 +53,11 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return registerFileList
     }
 
+    /**
+     * A [Register] is identified by [address], [names] or [aliases] it contains a [variable] to hold the current state.
+     * You can [hardwire] it to disallow changeability.
+     * To identify registers more easily a [description] is needed in the constructor.
+     */
     data class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val description: String, val hardwire: Boolean = false) {
 
         private val regexList: List<Regex>

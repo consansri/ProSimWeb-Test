@@ -1,23 +1,27 @@
 package emulator.kit.common
 
+
+/**
+ * The usage of [IConsole] is mainly to hold messages from architecture components on runtime. It's used to resolve assembler errors and warnings.
+ */
 class IConsole(val name: String) {
 
     private val messageArray: MutableList<Message> = mutableListOf()
 
     fun info(message: String) {
-        messageArray.add(Message(StyleAttr.MESSAGE_TYPE_INFO, message))
+        messageArray.add(Message(MSGType.INFO, message))
     }
 
     fun log(message: String) {
-        messageArray.add(Message(StyleAttr.MESSAGE_TYPE_LOG, message))
+        messageArray.add(Message(MSGType.LOG, message))
     }
 
     fun warn(message: String) {
-        messageArray.add(Message(StyleAttr.MESSAGE_TYPE_WARN, message))
+        messageArray.add(Message(MSGType.WARNING, message))
     }
 
     fun error(message: String) {
-        messageArray.add(Message(StyleAttr.MESSAGE_TYPE_ERROR, message))
+        messageArray.add(Message(MSGType.ERROR, message))
     }
 
     fun clear() {
@@ -28,8 +32,13 @@ class IConsole(val name: String) {
         return messageArray
     }
 
-    class Message(val type: Int, val message: String) {
+    data class Message(val type: MSGType, val message: String)
 
+    enum class MSGType {
+        LOG,
+        INFO,
+        WARNING,
+        ERROR
     }
 
 }

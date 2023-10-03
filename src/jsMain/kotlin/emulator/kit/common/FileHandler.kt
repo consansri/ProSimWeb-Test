@@ -8,7 +8,7 @@ import kotlinx.coroutines.*
 import debug.DebugTools
 
 /**
- * [FileHandler]
+ * [FileHandler] loads and saves [File]s to memory and holds undo/redo states.
  */
 class FileHandler(val fileEnding: String) {
 

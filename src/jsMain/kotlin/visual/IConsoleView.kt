@@ -12,6 +12,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import debug.DebugTools
+import emulator.kit.common.IConsole
 
 import web.html.*
 import web.timers.*
@@ -213,19 +214,19 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                             fontFamily = FontFamily.monospace
                             whiteSpace = WhiteSpace.pre
                             when (message.type) {
-                                StyleAttr.MESSAGE_TYPE_INFO -> {
+                                IConsole.MSGType.INFO -> {
                                     color = Color("#AAAAAA")
                                 }
 
-                                StyleAttr.MESSAGE_TYPE_LOG -> {
+                                IConsole.MSGType.LOG -> {
                                     color = Color("#888888")
                                 }
 
-                                StyleAttr.MESSAGE_TYPE_WARN -> {
+                                IConsole.MSGType.WARNING -> {
                                     color = Color("#FDDA0D")
                                 }
 
-                                StyleAttr.MESSAGE_TYPE_ERROR -> {
+                                IConsole.MSGType.ERROR -> {
                                     color = Color("#FF5733")
                                 }
 

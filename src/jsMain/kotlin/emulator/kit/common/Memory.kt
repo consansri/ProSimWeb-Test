@@ -4,6 +4,13 @@ import StyleAttr
 import emulator.kit.types.Variable
 import debug.DebugTools
 
+/**
+ * For emulating the [Memory] of architectures, this class is used. [save] and [load] functions are already implemented which depend on the [endianess].
+ * Beside the normal not directly editable values there are [MemInstance.EditableValue]s to allow memory mapped i/o emulation.
+ *
+ * @constructor expecting a [addressSize] and [wordSize] such as initial binary values ([initBin]) and the [endianess] of the memory.
+ *
+ */
 class Memory(private val addressSize: Variable.Size, private val initBin: String, private val wordSize: Variable.Size, var endianess: Endianess) {
     private var memMap: MutableMap<String, MemInstance> = mutableMapOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
@@ -16,7 +23,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
     fun setEndianess(endianess: Endianess) {
         this.endianess = endianess
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("switched Endianess to ${endianess.name}")
+            console.log("Memory: switched Endianess to ${endianess.name}")
         }
     }
     fun getEndianess(): Endianess = endianess
@@ -43,7 +50,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
                         instance.mark = mark
                     }
                 } else {
-                    console.warn("Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
+                    console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, wordSize)
@@ -64,7 +71,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
 
         var hexAddress = address.toBin().getUResized(addressSize).toHex()
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("saving... ${endianess.name} {${values.joinToString(" ") { it.toHex().getHexStr() }}}, $wordList to ${hexAddress.getRawHexStr()}")
+            console.log("Memory: saving... ${endianess.name} {${values.joinToString(" ") { it.toHex().getHexStr() }}}, $wordList to ${hexAddress.getRawHexStr()}")
         }
 
         for (word in wordList) {
@@ -76,7 +83,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
                         instance.mark = mark
                     }
                 } else {
-                    console.warn("Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
+                    console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, wordSize)
@@ -110,7 +117,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
                         instance.mark = mark
                     }
                 } else {
-                    console.warn("Denied writing data (address: ${address.toHex().getHexStr()}, value: ${value.toHex().getHexStr()}) in readonly Memory!")
+                    console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${value.toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, wordSize)

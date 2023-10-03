@@ -2,6 +2,12 @@ package emulator.kit.common
 
 import emulator.kit.types.Variable
 
+/**
+ * The [Transcript] contains two separate views of the program. The [compiled] and [disassembled] content.
+ * To add content with custom formatting the [Row] class can be specified by each architecture.
+ *
+ * @constructor the headers ([compiledHeaders] and [disassembledHeaders]) of both views need to be defined in the constructor.
+ */
 class Transcript(private val compiledHeaders: List<String> = listOf(), private val disassembledHeaders: List<String> = listOf()) {
 
     val disassembled = mutableListOf<Row>()
