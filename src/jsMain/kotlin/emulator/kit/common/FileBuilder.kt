@@ -8,6 +8,11 @@ import kotlin.js.Date
 import kotlin.math.pow
 import kotlin.math.roundToLong
 
+/**
+ * The [FileBuilder] can [build] [ExportFormat]'s which then will be returned as a [Blob]. In addition to that the [FileBuilder] can receive [Setting]'s which allow to control the fileoutput in certain aspects.
+ *
+ *
+ */
 class FileBuilder {
 
     fun build(architecture: Architecture, format: ExportFormat, vararg settings: Setting): Blob {
@@ -195,7 +200,6 @@ class FileBuilder {
             }
         }
     }
-
 
     enum class ExportFormat(val uiName: String, val ending: String) {
         VHDL("VHDL", "_pkg.vhd"),

@@ -7,6 +7,9 @@ import kotlinx.browser.localStorage
 import kotlinx.coroutines.*
 import debug.DebugTools
 
+/**
+ * [FileHandler]
+ */
 class FileHandler(val fileEnding: String) {
 
     private val files = mutableListOf<File>()
@@ -23,7 +26,7 @@ class FileHandler(val fileEnding: String) {
         } else {
             this.files.add(file)
             this.currentID = this.files.indexOf(file)
-            if (DebugTools.ARCH_showFileHandlerInfo) {
+            if (DebugTools.KIT_showFileHandlerInfo) {
                 console.log("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
             }
             refreshLocalStorage(true)
@@ -49,7 +52,7 @@ class FileHandler(val fileEnding: String) {
             console.warn("couldn't import file cause filename is empty!")
             false
         } else {
-            if (DebugTools.ARCH_showFileHandlerInfo) {
+            if (DebugTools.KIT_showFileHandlerInfo) {
                 console.log("FileHandler: rename file ${files[currentID].getName()} to ${newName}")
             }
             files[currentID].rename(newName)
@@ -117,7 +120,7 @@ class FileHandler(val fileEnding: String) {
                 }
 
                 if (filename != null && filecontent != null) {
-                    if (DebugTools.ARCH_showFileHandlerInfo) {
+                    if (DebugTools.KIT_showFileHandlerInfo) {
                         console.log("found file: $filename $filecontent")
                     }
                     files.add(File(filename, filecontent, fileUndoStates, fileRedoStates))
@@ -127,7 +130,7 @@ class FileHandler(val fileEnding: String) {
             files.add(File("main.$fileEnding", ""))
         }
         setCurrent(localStorage.getItem(StorageKey.FILE_CURR)?.toIntOrNull() ?: 0)
-        if (DebugTools.ARCH_showFileHandlerInfo) {
+        if (DebugTools.KIT_showFileHandlerInfo) {
             console.log("FileHandler.init(): ${files.joinToString { "\n\t" + it.getName() }}")
         }
     }

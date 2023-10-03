@@ -3,6 +3,12 @@ package emulator.kit.assembly
 import emulator.kit.common.FileHandler
 import emulator.kit.common.Transcript
 
+/**
+ * This template solves as an interface for specific architecture syntax implementations. It has one main function [check] in which the whole syntax should be analyzed and a corresponding syntax tree should be build.
+ * To build that tree [TreeNode] gives a collection of possible nodes. It is assumed that each specific syntax has it's own tree construction, for which own treenodes should be build, from the given [TreeNode] alternatives.
+ * The root of each tree should always contain errors and warnings, which are already templated by the classes [Error] and [Warning].
+ * In addition to that basic functionality [RowSeq] and [TokenSeq] are tools to recognize certain common token patterns. [ConnectedHL] delivers a tool which can be used to apply different highlighting to each token in a specific TreeNode.
+ */
 abstract class Syntax {
     abstract val applyStandardHLForRest: Boolean
     abstract fun clear()

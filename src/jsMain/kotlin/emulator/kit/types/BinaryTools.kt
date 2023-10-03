@@ -15,7 +15,7 @@ object BinaryTools {
             result = add(inv(a), "1")
         }
 
-        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
+        if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.info("BinaryTools: negotiate($aBin) -> $result")
         }
 
@@ -57,7 +57,7 @@ object BinaryTools {
             carryChar = '0'
         }
 
-        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
+        if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.info("BinaryTools: addWithCarry($aBin, $bBin) -> result: ${result.trimStart('0')}, carry: $carryChar")
         }
 
@@ -121,7 +121,7 @@ object BinaryTools {
             result =  diff.toString() + result
         }
 
-        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
+        if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.info("BinaryTools: sub($a, $b) -> result: ${result.trimStart('0')} should be: ${(a.toLong(2) - b.toLong(2)).toString(2)}")
         }
         return checkEmpty(result.trimStart('0'))
@@ -155,7 +155,7 @@ object BinaryTools {
             }
         }
 
-        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
+        if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.info("BinaryTools: multiply($aBin, $bBin) -> ${result.trimStart('0')}")
         }
 
@@ -185,7 +185,7 @@ object BinaryTools {
                 result += "0"
             }
         }
-        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
+        if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.log("BinaryTools: divide($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${comparison + remainingDividend}")
         }
 
@@ -209,7 +209,7 @@ object BinaryTools {
             }
         }
 
-        if (DebugTools.ARCH_showBVBinaryToolsCalculations) {
+        if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.info("BinaryTools: inv($aBin) -> $result")
         }
         return checkEmpty(result)

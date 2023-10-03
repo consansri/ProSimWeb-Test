@@ -2,6 +2,9 @@ package emulator.archs.riscv32
 
 import StyleAttr.Main.Editor.HL
 
+/**
+ * This object maps colors to the rv32 specific assembler elements.
+ */
 object RV32Flags {
 
     val offset = HL.cyan.getFlag()

@@ -11,15 +11,32 @@ import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import debug.DebugTools
 
+
+/**
+ * Contains the **RV32 assembly logic**.
+ *
+ * @property binaryMapper is needed for the exact mapping of instructions in text and binary format.
+ * @property dataSecStart defines the starting address of the data section.
+ * @property rodataSecStart defines the starting address of the rodata section.
+ * @property bssSecStart defines the starting address of the bss section.
+ *
+ * @property labelBinAddrMap temporary contains all address mapped labels. This addresses will be mapped in [generateByteCode].
+ * @property transcriptEntrys temporary contains the [RVDisassembledRow]'s which are generated in [generateTranscript].
+ * @property bins temporary contains all binary representations from the instructions.
+ *
+ */
 class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.Value, val rodataSecStart: Variable.Value, val bssSecStart: Variable.Value) : Assembly() {
 
     val labelBinAddrMap = mutableMapOf<RV32Syntax.E_LABEL, String>()
     val transcriptEntrys = mutableListOf<RVDisassembledRow>()
     val bins = mutableListOf<Variable.Value.Bin>()
 
+    /**
+     * Disassembles the content of the memory and builds the [RVDisassembledRow]'s from it which are then added to the disassembled transcript view.
+     */
     override fun generateTranscript(architecture: Architecture, syntaxTree: Syntax.SyntaxTree) {
         val transcript = architecture.getTranscript()
-        if (DebugTools.RISCV_showAsmInfo) {
+        if (DebugTools.RV32_showAsmInfo) {
             console.log("RISCVAssembly.generateTranscript(): labelMap -> ${labelBinAddrMap.entries.joinToString("") { "\n\t${it.key.wholeName}: ${it.value}" }}")
         }
 
@@ -67,9 +84,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                             it.value.toHex().getHexStr()
                         }
 
-                        else -> {
-                            ""
-                        }
+                        else -> {}
                     }
 
                     /* }"*/
@@ -101,7 +116,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             }
         }
 
-        if (DebugTools.RISCV_showAsmInfo) {
+        if (DebugTools.RV32_showAsmInfo) {
             console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> \n${transcriptEntrys.joinToString { "\n\t" + it.getContent().joinToString("\t") { it.content } }}")
         }
 
@@ -109,6 +124,9 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
         architecture.getTranscript().addContent(Transcript.Type.DISASSEMBLED, transcriptEntrys)
     }
 
+    /**
+     * Extracts all relevant information from the [syntaxTree] and stores it at certain points in memory.
+     */
     override fun generateByteCode(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
         val rootNode = syntaxTree.rootNode
         var assemblyMap: AssemblyMap? = null
@@ -142,7 +160,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
                                 is RV32Syntax.R_JLBL -> {
                                     val address = (instrID * 4).toString(2)
-                                    if (DebugTools.RISCV_showAsmInfo) {
+                                    if (DebugTools.RV32_showAsmInfo) {
                                         console.log("RISCVAssembly.generateByteCode(): found Label ${entry.label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
                                     }
                                     if (entry.isGlobalStart) {
@@ -229,7 +247,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                             }
                                         }
 
-                                        if (DebugTools.RISCV_showAsmInfo) {
+                                        if (DebugTools.RV32_showAsmInfo) {
                                             console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tresized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} \n\tallocating at ${nextDataAddress.toHex().getRawHexStr()}")
                                         }
 
@@ -322,7 +340,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                             }
                                         }
 
-                                        if (DebugTools.RISCV_showAsmInfo) {
+                                        if (DebugTools.RV32_showAsmInfo) {
                                             console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} resized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} allocating at ${nextRoDataAddress.toHex().getRawHexStr()}")
                                         }
 
@@ -360,7 +378,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                         }
                                     }
 
-                                    if (DebugTools.RISCV_showAsmInfo) {
+                                    if (DebugTools.RV32_showAsmInfo) {
                                         console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tallocating at ${nextBssAddress.toHex().getRawHexStr()}")
                                     }
 
@@ -405,7 +423,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
                 val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), Variable.Size.Bit32()))
-                if (DebugTools.RISCV_showAsmInfo) {
+                if (DebugTools.RV32_showAsmInfo) {
                     console.log(
                         "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.instrname.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.instrType.id},  \n\t${
                             instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") {
@@ -423,7 +441,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             var address = Variable.Value.Hex("0", Variable.Size.Bit32())
             for (binaryID in bins.indices) {
                 val binary = bins[binaryID]
-                if (DebugTools.RISCV_showAsmInfo) {
+                if (DebugTools.RV32_showAsmInfo) {
                     console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
                 }
                 address = Variable.Value.Hex((binaryID * 4).toString(16), Variable.Size.Bit32())
@@ -438,8 +456,14 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
         return assemblyMap ?: AssemblyMap()
     }
 
+    /**
+     * Is used by [generateByteCode] to temporarily hold up all important information before it is actually saved to memory.
+     */
     class DataEntry(val label: RV32Syntax.E_LABEL, val address: Variable.Value.Hex, val sizeOfOne: Variable.Size, vararg val values: Variable.Value)
 
+    /**
+     * Is used to do the flexible formatting of the [Transcript.Row] which is expected by the transcript.
+     */
     class RVDisassembledRow(address: Variable.Value.Hex) : Transcript.Row(address) {
 
         val content = RV32.TS_DISASSEMBLED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()

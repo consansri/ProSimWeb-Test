@@ -10,6 +10,9 @@ import emulator.kit.types.StringTools
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
+/**
+ * This class connects the used custom and kit components, for a fully functional emulator and assembly process.
+ */
 class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
 
     val instrnames = R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }

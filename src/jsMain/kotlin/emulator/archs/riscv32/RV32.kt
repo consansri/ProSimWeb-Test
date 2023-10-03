@@ -1,6 +1,7 @@
 package emulator.archs.riscv32
 
 import StyleAttr
+import emulator.kit.configs.Config.*
 import emotion.react.css
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
@@ -23,15 +24,24 @@ import react.dom.html.ReactHTML.ul
 import web.cssom.ClassName
 import web.cssom.Float
 
+
+/**
+ * Stores and defines **RV32 configurations**.
+ *
+ *
+ * The implemented docs are generated in [riscVDocs].
+ *
+ * [RV32Syntax] and [RV32Assembly] are linked through the [asmConfig], while every other architecture configuration is defined in [config] such as the name, [Description], [FileHandler], [RegisterContainer], [Memory] and [Transcript].
+ *
+ * Transcript Header References are defined through [TS_COMPILED_HEADERS] and [TS_DISASSEMBLED_HEADERS].
+ *
+ */
 object RV32 {
 
-    // PROCESSOR
     val MEM_INIT: String = "0"
-
     val REG_INIT: String = "0"
     val REG_VALUE_SIZE = Variable.Size.Bit32()
     val REG_ADDRESS_SIZE = Variable.Size.Bit5()
-
     val MEM_VALUE_WIDTH = Variable.Size.Bit8()
     val MEM_ADDRESS_WIDTH = Variable.Size.Bit32()
 
@@ -49,11 +59,6 @@ object RV32 {
         Parameters
     }
 
-    // Assembler CONFIG
-    val asmConfig = AsmConfig(
-        RV32Syntax(),
-        RV32Assembly(RV32BinMapper(), Variable.Value.Hex("00001000", Variable.Size.Bit32()), Variable.Value.Hex("00002000", Variable.Size.Bit32()), Variable.Value.Hex("00003000", Variable.Size.Bit32()))
-    )
 
     val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
@@ -187,9 +192,13 @@ object RV32 {
         )
     )
 
-    // PROCESSOR CONFIG
+    val asmConfig = AsmConfig(
+        RV32Syntax(),
+        RV32Assembly(RV32BinMapper(), Variable.Value.Hex("00001000", Variable.Size.Bit32()), Variable.Value.Hex("00002000", Variable.Size.Bit32()), Variable.Value.Hex("00003000", Variable.Size.Bit32()))
+    )
+
     val config = Config(
-        Config.Description("RV32I", "RISC-V 32Bit", riscVDocs),
+        Description("RV32I", "RISC-V 32Bit", riscVDocs),
         FileHandler("s"),
         RegisterContainer(
             listOf(

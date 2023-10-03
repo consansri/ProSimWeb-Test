@@ -10,6 +10,12 @@ import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import debug.DebugTools
 
+
+/**
+ * This class implements the RV32 Syntax.
+ *
+ * [check] analyzes the given compiler tokens and builds a syntax tree.
+ */
 class RV32Syntax() : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
@@ -84,7 +90,7 @@ class RV32Syntax() : Syntax() {
             }
         }
 
-        if (DebugTools.RISCV_showGrammarScanTiers) {
+        if (DebugTools.RV32_showGrammarScanTiers) {
             console.log("Grammar: IMPORTS -> ${
                 imports.flatMap { it.collNodes.toList() }.filter { it is R_JLBL || it is R_ILBL || it is R_ULBL }.joinToString { "\n\t ${it.name}" }
             }")
@@ -306,7 +312,7 @@ class RV32Syntax() : Syntax() {
                             for (attrID in macro.arguments.indices) {
                                 replacedLine = replacedLine.replace("""\""" + macro.arguments[attrID], argumentContent[attrID])
                             }
-                            if (DebugTools.RISCV_showGrammarScanTiers) {
+                            if (DebugTools.RV32_showGrammarScanTiers) {
                                 console.log("\tmacro insert line ${macroLineID + 1}: $replacedLine")
                             }
                             remainingLines.add(macroLineID, compiler.pseudoAnalyze(replacedLine))
@@ -347,7 +353,7 @@ class RV32Syntax() : Syntax() {
         /**
          * FINISH PRE SCAN
          */
-        if (DebugTools.RISCV_showGrammarScanTiers) {
+        if (DebugTools.RV32_showGrammarScanTiers) {
             console.log("Grammar: PRE Scan -> ${
                 remainingLines.filter { it.isNotEmpty() }.joinToString("") { tokenList ->
                     "\n\tline ${remainingLines.indexOf(tokenList) + 1}: " + tokenList.joinToString("") { it.content }
@@ -625,7 +631,7 @@ class RV32Syntax() : Syntax() {
             elements[lineID] += lineElements
         }
 
-        if (DebugTools.RISCV_showGrammarScanTiers) {
+        if (DebugTools.RV32_showGrammarScanTiers) {
             console.log("Grammar: ELEMENTS Scan -> ${elements.filter { it.isNotEmpty() }.joinToString("") { "\n\tline ${elements.indexOf(it) + 1}: " + it.joinToString(" ") { it.name } }}")
         }
 
@@ -912,7 +918,7 @@ class RV32Syntax() : Syntax() {
         /**
          * FINISH ROW SCAN
          */
-        if (DebugTools.RISCV_showGrammarScanTiers) {
+        if (DebugTools.RV32_showGrammarScanTiers) {
             console.log("Grammar: ROWS Scan -> ${rows.filterNotNull().joinToString("") { "\n\tline ${rows.indexOf(it) + 1}: ${it.name}" }}")
         }
 
@@ -1023,7 +1029,7 @@ class RV32Syntax() : Syntax() {
         /**
          * FINISH SECTION SCAN
          */
-        if (DebugTools.RISCV_showGrammarScanTiers) {
+        if (DebugTools.RV32_showGrammarScanTiers) {
             console.log("Grammar: SECTIONS Scan -> ${sections.joinToString("") { "\n\tsection ${sections.indexOf(it) + 1}: ${it.name}" }}")
         }
         /**

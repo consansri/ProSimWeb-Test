@@ -8,6 +8,20 @@ import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.types.HTMLTools
 
+/**
+ * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. Also the [Compiler] fires the compilation events in the following order.
+ *
+ * 1. common analysis ([analyze])
+ * 2. specific analysis ([parse] which uses the given logic from [syntax])
+ * 3. highlight tokens ([highlight])
+ * 4. convert syntax tree to binary ([assemble] which uses the given logic from [assembly])
+ *
+ * @param syntax gets an object of the architecture specific [Syntax]-Class implementation from the assembler configuration through the [Architecture].
+ * @param assembly gets an object of the architecture specific [Assembly]-Class implementation from the assembler configuration through the [Architecture].
+ * @param regexCollection contains the standard token regular expressions.
+ * @param hlFlagCollection contains the standard token highlighting flags.
+ *
+ */
 class Compiler(
     private val architecture: Architecture,
     private val syntax: Syntax,

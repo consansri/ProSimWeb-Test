@@ -34,7 +34,7 @@ object DecTools {
 
             result = if (isAAbsGreater) "$aSign$resultAbs" else "$bSign$resultAbs"
         }
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.info("DecTools: ${a} + ${b} = $result")
         }
         return checkEmpty(result)
@@ -45,7 +45,7 @@ object DecTools {
         val bTrimmed = b.trim().removePrefix(Settings.PRESTRING_DECIMAL)
 
         val result = add(aTrimmed, negotiate(bTrimmed))
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.info("DecTools: ${a} - ${b} = $result")
         }
         return checkEmpty(result)
@@ -62,7 +62,7 @@ object DecTools {
         } else {
             result = multiplyUnsigned(abs(aTrimmed), abs(bTrimmed))
         }
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.info("DecTools: ${a} * ${b} = $result")
         }
         return checkEmpty(result)
@@ -81,7 +81,7 @@ object DecTools {
         } else {
             result = divideUnsigned(abs(dividendTrimmed), abs(divisorTrimmed))
         }
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.info("DecTools: ${dividend} / ${divisor} = $result")
         }
         return checkEmpty(result)
@@ -108,7 +108,7 @@ object DecTools {
             powUnsigned(absBase, absExponent)
         }
 
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.log("DecTools: $base^($exponent) -> result: ${result}")
         }
 
@@ -132,7 +132,7 @@ object DecTools {
         } else {
             throw Exception("DecTools.negotiate(): ${a} is invalid!")
         }
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.log("DecTools: negotiate($a) -> ${result}")
         }
         return checkEmpty(result)
@@ -149,7 +149,7 @@ object DecTools {
         } else {
             false
         }
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.log("DecTools: isNegative($a) -> ${result}")
         }
 
@@ -193,7 +193,7 @@ object DecTools {
 
     fun isZero(a: String): Boolean {
         val result = isEqual(a, "0")
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.log("DecTools: isZero($a) -> ${result}")
         }
         return result
@@ -204,7 +204,7 @@ object DecTools {
          * (checked)
          */
         val result = (isGreaterEqualThan(a, b) && !isEqual(a, b))
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.log("DecTools: isGreaterThan($a, $b) -> $result")
         }
         return result
@@ -258,7 +258,7 @@ object DecTools {
          * (checked)
          */
         val result = a.trim().removePrefix(Settings.PRESTRING_DECIMAL).replace("-", "")
-        if (DebugTools.ARCH_showBVDecToolsCalculations) {
+        if (DebugTools.KIT_showValDecToolsCalculations) {
             console.log("DecTools: abs($a) -> ${result}")
         }
         return result
@@ -288,7 +288,7 @@ object DecTools {
         if (carry > 0) {
             sum = carry.toString() + sum
         }
-        if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
+        if (DebugTools.KIT_showValDecToolsCalculationDetails) {
             console.log("DecTools: addUnsigned($a, $b) -> $sum")
         }
 
@@ -330,7 +330,7 @@ object DecTools {
             difference = digitDifference.toString() + difference
         }
 
-        if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
+        if (DebugTools.KIT_showValDecToolsCalculationDetails) {
             console.log("DecTools: subUnsigned($a, $b) -> $difference")
         }
 
@@ -364,7 +364,7 @@ object DecTools {
             result = addUnsigned(result, product)
         }
 
-        if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
+        if (DebugTools.KIT_showValDecToolsCalculationDetails) {
             console.log("DecTools: multiplyUnsigned($a, $b) -> ${result.trimStart('0')}")
         }
 
@@ -427,9 +427,9 @@ object DecTools {
             if (dividendBuffer.isEmpty()) {
                 dividendBuffer = "0"
             }
-            DebugTools.ARCH_BVDivisionLoopLimit?.let {
-                if (loop < DebugTools.ARCH_BVDivisionLoopLimit) {
-                    if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
+            DebugTools.KIT_ValBinaryToolsDivisionLoopLimit?.let {
+                if (loop < DebugTools.KIT_ValBinaryToolsDivisionLoopLimit) {
+                    if (DebugTools.KIT_showValDecToolsCalculationDetails) {
                         console.log("DecTools.divideUnsigned.loop$loop: dividend: ${dividendBuffer}, result: ${result}, rest: ${rest}, smallResult: ${smallResult}")
                     }
                     loop++
@@ -441,7 +441,7 @@ object DecTools {
 
         }
 
-        if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
+        if (DebugTools.KIT_showValDecToolsCalculationDetails) {
             console.log("DecTools: divideUnsigned($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: $rest")
         }
 
@@ -457,8 +457,8 @@ object DecTools {
             dividendTemp = subUnsigned(dividendTemp, divisor)
             result = addUnsigned(result, "1")
 
-            DebugTools.ARCH_BVDivisionLoopLimit?.let {
-                if (loop < DebugTools.ARCH_BVDivisionLoopLimit) {
+            DebugTools.KIT_ValBinaryToolsDivisionLoopLimit?.let {
+                if (loop < DebugTools.KIT_ValBinaryToolsDivisionLoopLimit) {
 
                     loop++
                 } else {
@@ -467,7 +467,7 @@ object DecTools {
                 }
             }
         }
-        if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
+        if (DebugTools.KIT_showValDecToolsCalculationDetails) {
             console.log("DecTools: loops needed: $loop, smallDivUnsigned($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${dividendTemp}")
         }
         return DivisionResult(result, dividendTemp)
@@ -491,7 +491,7 @@ object DecTools {
             }
         }
 
-        if (DebugTools.ARCH_showBVDecToolsCalculationDetails) {
+        if (DebugTools.KIT_showValDecToolsCalculationDetails) {
             console.log("DecTools: powUnsigned($base, $exponent) -> ${result.trimStart('0')}")
         }
 

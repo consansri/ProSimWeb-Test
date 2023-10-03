@@ -2,6 +2,9 @@ package emulator.kit.common
 
 import emulator.kit.Settings
 
+/**
+ * This class solves as a state manager for the input, in the code editor. A distinction is made between the 3 different states: [Settings.STATE_UNCHECKED], [Settings.STATE_HASERRORS] and [Settings.STATE_EXECUTABLE].
+ */
 class ArchState {
 
     private val states = listOf(Settings.STATE_UNCHECKED, Settings.STATE_HASERRORS, Settings.STATE_EXECUTABLE)

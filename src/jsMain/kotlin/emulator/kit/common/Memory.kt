@@ -15,7 +15,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
 
     fun setEndianess(endianess: Endianess) {
         this.endianess = endianess
-        if (DebugTools.ARCH_showMemoryInfo) {
+        if (DebugTools.KIT_showMemoryInfo) {
             console.log("switched Endianess to ${endianess.name}")
         }
     }
@@ -30,7 +30,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
         }
 
         val hexAddress = address.toBin().getUResized(addressSize).toHex()
-        if (DebugTools.ARCH_showMemoryInfo) {
+        if (DebugTools.KIT_showMemoryInfo) {
             console.log("saving...  ${variable.get().toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
         for (word in wordList) {
@@ -63,7 +63,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
         }
 
         var hexAddress = address.toBin().getUResized(addressSize).toHex()
-        if (DebugTools.ARCH_showMemoryInfo) {
+        if (DebugTools.KIT_showMemoryInfo) {
             console.log("saving... ${endianess.name} {${values.joinToString(" ") { it.toHex().getHexStr() }}}, $wordList to ${hexAddress.getRawHexStr()}")
         }
 
@@ -97,7 +97,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
         }
 
         var hexAddress = address.toBin().getUResized(addressSize).toHex()
-        if (DebugTools.ARCH_showMemoryInfo) {
+        if (DebugTools.KIT_showMemoryInfo) {
             console.log("saving... ${endianess.name} ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
 

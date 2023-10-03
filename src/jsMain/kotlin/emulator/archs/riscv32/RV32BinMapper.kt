@@ -5,6 +5,10 @@ import emulator.archs.riscv32.RV32Syntax.R_INSTR.InstrType.*
 import emulator.kit.types.Variable
 import debug.DebugTools
 
+
+/**
+ *  Converts instructions with its parameters between Text and binary format.
+ */
 class RV32BinMapper {
     var labelAddrMap = mapOf<RV32Syntax.E_LABEL, String>()
     fun setLabelLinks(labelAddrMap: Map<RV32Syntax.E_LABEL, String>) {
@@ -18,7 +22,7 @@ class RV32BinMapper {
         instrDef.paramcoll?.getULabels()?.forEach { labels.add(it.label) }
         instrDef.paramcoll?.getJLabels()?.forEach { labels.add(it.label) }
 
-        if (DebugTools.RISCV_showBinMapperInfo) {
+        if (DebugTools.RV32_showBinMapperInfo) {
             console.log("BinMapper.getBinaryFromInstrDef(): \t${instrDef.instrType.id} -> values: ${values?.joinToString(",") { it.toHex().getRawHexStr() }} labels: ${labels.joinToString(",") { it.wholeName }}")
         }
 
@@ -708,7 +712,7 @@ class RV32BinMapper {
                 if (binaryOpCode == originalOpCode) {
                     // check static labels
                     val binMap = mutableMapOf<MaskLabel, Variable.Value.Bin>()
-                    if (DebugTools.RISCV_showBinMapperInfo) {
+                    if (DebugTools.RV32_showBinMapperInfo) {
                         console.log("BinMapper.OpCode.checkOpCode(): found instr $binaryOpCode")
                     }
                     for (labelID in maskLabels.indices) {

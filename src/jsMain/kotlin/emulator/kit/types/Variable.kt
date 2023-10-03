@@ -122,7 +122,7 @@ class Variable {
             constructor(binString: String) : this(binString, Tools.getNearestSize(binString.trim().removePrefix(Settings.PRESTRING_BINARY).length))
 
             init {
-                this.binString = check(binString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
+                this.binString = check(binString, size, DebugTools.KIT_showValCheckWarnings).corrected
             }
 
             override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
@@ -315,7 +315,7 @@ class Variable {
             private val hexString: String
             val regex = Regex("[0-9A-Fa-f]+")
             init {
-                this.hexString = check(hexString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
+                this.hexString = check(hexString, size, DebugTools.KIT_showValCheckWarnings).corrected
             }
 
             constructor(hexString: String) : this(hexString, Tools.getNearestSize(hexString.trim().removePrefix(Settings.PRESTRING_HEX).length * 4))
@@ -444,7 +444,7 @@ class Variable {
             private val negative: Boolean
             val posRegex = Regex("[0-9]+")
             init {
-                this.decString = check(decString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
+                this.decString = check(decString, size, DebugTools.KIT_showValCheckWarnings).corrected
                 this.negative = DecTools.isNegative(this.decString)
             }
 
@@ -589,11 +589,11 @@ class Variable {
             val posRegex = Regex("[0-9]+")
             val negRegex = Regex("-[0-9]+")
             init {
-                this.udecString = check(udecString, size, DebugTools.ARCH_showBVCheckWarnings).corrected
+                this.udecString = check(udecString, size, DebugTools.KIT_showValCheckWarnings).corrected
             }
 
             constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL))) {
-                if (DebugTools.ARCH_showBVCheckWarnings) {
+                if (DebugTools.KIT_showValCheckWarnings) {
                     console.log("ByteValue.UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
                 }
             }
@@ -762,7 +762,7 @@ class Variable {
                     stringBuilder.append(int.toString(16).uppercase())
                 }
 
-                if (DebugTools.ARCH_showBVTypeConversionInfo) {
+                if (DebugTools.KIT_showValTypeConversionInfo) {
                     console.info("Conversion: ${bin.getBinaryStr()} to ${stringBuilder}")
                 }
 
@@ -777,7 +777,7 @@ class Variable {
                     val hexDigit = hexStr[i].digitToInt(16)
                     stringBuilder.append(hexDigit.toString(2).padStart(4, '0'))
                 }
-                if (DebugTools.ARCH_showBVTypeConversionInfo) {
+                if (DebugTools.KIT_showValTypeConversionInfo) {
                     console.info("Conversion: ${hex.getHexStr()} to ${stringBuilder}")
                 }
                 return Bin(stringBuilder.toString(), hex.size)
@@ -811,7 +811,7 @@ class Variable {
                     binaryStr = BinaryTools.inv(binaryStr)
                 }
 
-                if (DebugTools.ARCH_showBVTypeConversionInfo) {
+                if (DebugTools.KIT_showValTypeConversionInfo) {
                     console.info("Conversion: ${dec.getDecStr()} to ${binaryStr}")
                 }
 
@@ -837,7 +837,7 @@ class Variable {
                     console.warn("ByteValue.Type.Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to ${binaryStr}")
                 }
 
-                if (DebugTools.ARCH_showBVTypeConversionInfo) {
+                if (DebugTools.KIT_showValTypeConversionInfo) {
                     console.info("Conversion: ${udec.getUDecStr()} to ${binaryStr}")
                 }
 
@@ -873,7 +873,7 @@ class Variable {
                     decString = DecTools.negotiate(decString)
                 }
 
-                if (DebugTools.ARCH_showBVTypeConversionInfo) {
+                if (DebugTools.KIT_showValTypeConversionInfo) {
                     console.info("Conversion: ${bin.getBinaryStr()} to ${decString}")
                 }
 
@@ -894,7 +894,7 @@ class Variable {
                         }
                     }
                 }
-                if (DebugTools.ARCH_showBVTypeConversionInfo) {
+                if (DebugTools.KIT_showValTypeConversionInfo) {
                     console.info("Conversion: ${bin.getBinaryStr()} to ${udecString}")
                 }
 
@@ -923,7 +923,7 @@ class Variable {
                     }
                 }
 
-                if (DebugTools.ARCH_showBVTypeConversionInfo) {
+                if (DebugTools.KIT_showValTypeConversionInfo) {
                     console.info("Conversion: ${value.toHex().getHexStr()} to ${stringBuilder}")
                 }
 

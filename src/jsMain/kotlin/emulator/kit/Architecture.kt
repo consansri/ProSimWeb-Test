@@ -174,7 +174,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * already implemented
      */
     fun check(input: String, startAtLine: Int): String {
-        if (DebugTools.ARCH_showCheckCodeEvents) {
+        if (DebugTools.KIT_showCheckCodeEvents) {
             console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
         }
         archState.check(compiler.setCode(input, true))
