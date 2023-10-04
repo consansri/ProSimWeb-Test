@@ -546,13 +546,13 @@ class Compiler(
 
             class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): Variable.Value {
-                    return if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-'), Variable.Size.Bit32()) else Variable.Value.Bin(content)
+                    return if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-'), Variable.Tools.getNearestSize(content.trimStart('-').removePrefix(Settings.PRESTRING_BINARY).length)) else Variable.Value.Bin(content)
                 }
             }
 
             class Hex(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(): Variable.Value {
-                    return if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-'), Variable.Size.Bit32()) else Variable.Value.Hex(content)
+                    return if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-'), Variable.Tools.getNearestSize(content.trimStart('-').removePrefix(Settings.PRESTRING_HEX).length * 4)) else Variable.Value.Hex(content)
                 }
             }
 

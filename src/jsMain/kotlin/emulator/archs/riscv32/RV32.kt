@@ -194,7 +194,7 @@ object RV32 {
 
     val asmConfig = AsmConfig(
         RV32Syntax(),
-        RV32Assembly(RV32BinMapper(), Variable.Value.Hex("00001000", Variable.Size.Bit32()), Variable.Value.Hex("00002000", Variable.Size.Bit32()), Variable.Value.Hex("00003000", Variable.Size.Bit32()))
+        RV32Assembly(RV32BinMapper(), Variable.Value.Hex("00010000", Variable.Size.Bit32()), Variable.Value.Hex("00020000", Variable.Size.Bit32()), Variable.Value.Hex("00030000", Variable.Size.Bit32()))
     )
 
     val config = Config(

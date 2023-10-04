@@ -864,12 +864,24 @@ class RV32Syntax() : Syntax() {
                 // check params
                 val checkedType = eInstrName.check(eParamcoll)
                 if (checkedType != null) {
-                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
-                    startIsDefined = true
-                    rows[lineID] = rowNode
-                    result.error?.let {
-                        errors.add(it)
+                    val matchesSize = eInstrName.matchesSize(paramcoll = eParamcoll, instrType = checkedType)
+                    if (!matchesSize.toBig) {
+                        rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                        startIsDefined = true
+                        rows[lineID] = rowNode
+                        result.error?.let {
+                            errors.add(it)
+                        }
+                    } else {
+                        warnings.add(Warning("Parameter with length of ${matchesSize.valBitLength} Bits for ${checkedType.id} instruction exceeds maximum size of ${checkedType.paramType.immMaxSize?.bitWidth} Bits!", *lineElements.toTypedArray()))
+                        rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                        startIsDefined = true
+                        rows[lineID] = rowNode
+                        result.error?.let {
+                            errors.add(it)
+                        }
                     }
+
                 } else {
                     errors.add(Error("Couldn't match parameters to any instruction!\nexpected parameters: ${eInstrName.types.joinToString(" or ") { it.paramType.exampleString }}", *lineElements.toTypedArray()))
                 }
@@ -1169,6 +1181,57 @@ class RV32Syntax() : Syntax() {
 
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RV32Flags.instruction), REFS.REF_E_INSTRNAME, insToken) {
+
+        fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): MatchSizeResult {
+            try {
+                val exceedingSize: Int = when (instrType.paramType) {
+                    R_INSTR.ParamType.RD_I20 -> {
+                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
+                        if (length > 20) length else null
+                    }
+
+                    R_INSTR.ParamType.RD_Off12 -> {
+                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
+                        if (length > 12) length else null
+                    }
+                    R_INSTR.ParamType.RS2_Off5 -> {
+                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
+                        if (length > 5) length else null
+                    }
+                    R_INSTR.ParamType.RD_RS1_RS1 -> null
+                    R_INSTR.ParamType.RD_RS1_I12 -> {
+                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
+                        if (length > 12) length else null
+                    }
+                    R_INSTR.ParamType.RD_RS1_I5 -> {
+                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
+                        if (length > 5) length else null
+                    }
+                    R_INSTR.ParamType.RS1_RS2_I12 -> {
+                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
+                        if (length > 12) length else null
+                    }
+                    R_INSTR.ParamType.PS_RS1_RS2_Jlbl -> null
+                    R_INSTR.ParamType.PS_RD_I32 -> {
+                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
+                        if (length > 32) length else null
+                    }
+                    R_INSTR.ParamType.PS_RS1_Jlbl -> null
+                    R_INSTR.ParamType.PS_RD_Albl -> null
+                    R_INSTR.ParamType.PS_Jlbl -> null
+                    R_INSTR.ParamType.PS_RD_RS1 -> null
+                    R_INSTR.ParamType.PS_RS1 -> null
+                    R_INSTR.ParamType.NONE -> null
+                    R_INSTR.ParamType.PS_NONE -> null
+                } ?: return MatchSizeResult(false)
+                return MatchSizeResult(true, valBitLength = exceedingSize)
+
+            } catch (e: IndexOutOfBoundsException) {
+                console.error("RV32Syntax: Index out of bounds exception! Compare value indices with check()! Bug needs to be fixed! ($e)")
+                return MatchSizeResult(false)
+            }
+        }
+
         fun check(paramcoll: E_PARAMCOLL = E_PARAMCOLL()): R_INSTR.InstrType? {
             val params = paramcoll.paramsWithOutSplitSymbols
             var type: R_INSTR.InstrType = types.first()
@@ -1294,6 +1357,8 @@ class RV32Syntax() : Syntax() {
 
             return null
         }
+
+        data class MatchSizeResult(val toBig: Boolean, val valBitLength: Int = 0)
     }
 
     class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toList() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toList() }.toTypedArray()) {
@@ -1315,7 +1380,7 @@ class RV32Syntax() : Syntax() {
                 when (it) {
                     is E_PARAM.Constant -> {
                         var value = it.getValue()
-                        if (value.size.byteCount < Variable.Size.Bit32().byteCount) {
+                        /*if (value.size.byteCount < Variable.Size.Bit32().byteCount) {
                             value = when (it.constant) {
                                 is Compiler.Token.Constant.UDec -> {
                                     value.getUResized(Variable.Size.Bit32())
@@ -1325,7 +1390,7 @@ class RV32Syntax() : Syntax() {
                                     value.getResized(Variable.Size.Bit32())
                                 }
                             }
-                        }
+                        }*/
                         values.add(value)
                     }
 
@@ -1523,9 +1588,9 @@ class RV32Syntax() : Syntax() {
     class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label, directive)
     class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label, directive, paramcoll)
     class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
-        enum class ParamType(val pseudo: Boolean, val exampleString: String) {
+        enum class ParamType(val pseudo: Boolean, val exampleString: String, val immMaxSize: Variable.Size? = null) {
             // NORMAL INSTRUCTIONS
-            RD_I20(false, "rd, imm20") {
+            RD_I20(false, "rd, imm20", Variable.Size.Bit20()) {
                 override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     return if (rd != null) {
@@ -1537,7 +1602,7 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             }, // rd, imm
-            RD_Off12(false, "rd, imm12(rs)") {
+            RD_Off12(false, "rd, imm12(rs)", Variable.Size.Bit12()) {
                 override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1551,7 +1616,7 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             }, // rd, imm12(rs)
-            RS2_Off5(false, "rs2, imm5(rs1)") {
+            RS2_Off5(false, "rs2, imm5(rs1)", Variable.Size.Bit5()) {
                 override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>, labelName: String): String {
                     val rs2 = paramMap.get(RV32BinMapper.MaskLabel.RS2)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1580,7 +1645,7 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             }, // rd, rs1, rs2
-            RD_RS1_I12(false, "rd, rs1, imm12") {
+            RD_RS1_I12(false, "rd, rs1, imm12", Variable.Size.Bit12()) {
                 override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1594,7 +1659,7 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             }, // rd, rs, imm
-            RD_RS1_I5(false, "rd, rs1, shamt5") {
+            RD_RS1_I5(false, "rd, rs1, shamt5", Variable.Size.Bit5()) {
                 override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>, labelName: String): String {
                     val rd = paramMap.get(RV32BinMapper.MaskLabel.RD)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1608,7 +1673,7 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             }, // rd, rs, shamt
-            RS1_RS2_I12(false, "rs1, rs2, imm12") {
+            RS1_RS2_I12(false, "rs1, rs2, imm12", Variable.Size.Bit12()) {
                 override fun getTSParamString(registerContainer: RegisterContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>, labelName: String): String {
                     val rs2 = paramMap.get(RV32BinMapper.MaskLabel.RS2)
                     val rs1 = paramMap.get(RV32BinMapper.MaskLabel.RS1)
@@ -1624,7 +1689,8 @@ class RV32Syntax() : Syntax() {
             }, // rs1, rs2, imm
 
             // PSEUDO INSTRUCTIONS
-            PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"), PS_RD_I32(true, "rd, imm32"), // rd, imm
+            PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
+            PS_RD_I32(true, "rd, imm32", Variable.Size.Bit32()), // rd, imm
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
             PS_Jlbl(true, "jlabel"),  // label
@@ -1638,6 +1704,7 @@ class RV32Syntax() : Syntax() {
                 return "pseudo param type"
             }
         }
+
         enum class InstrType(
             val id: String,
             val pseudo: Boolean,

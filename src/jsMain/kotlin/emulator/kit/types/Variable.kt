@@ -2,6 +2,7 @@ package emulator.kit.types
 
 import emulator.kit.Settings
 import debug.DebugTools
+import kotlin.math.roundToInt
 
 class Variable {
 
@@ -14,12 +15,14 @@ class Variable {
         this.size = size
         value = Value.Bin(initialBinary, size)
     }
+
     constructor(value: Value) {
         this.value = value
         this.size = value.size
         this.initialBinary = value.toBin().getBinaryStr()
     }
-    constructor(size: Size){
+
+    constructor(size: Size) {
         this.value = Value.Bin("0", size)
         this.size = size
         this.initialBinary = value.toBin().getBinaryStr()
@@ -78,14 +81,21 @@ class Variable {
         }
         return super.equals(other)
     }
+
+    override fun toString(): String {
+        return this.value.toString()
+    }
+
     operator fun inc(): Variable {
         this.value = this.value++
         return Variable(++value)
     }
+
     operator fun dec(): Variable {
         this.value = this.value--
         return Variable(--value)
     }
+
     sealed class Value(val size: Size) {
         abstract fun check(string: String, size: Size, warnings: Boolean): CheckResult
         abstract fun toBin(): Bin
@@ -113,13 +123,16 @@ class Variable {
             return super.equals(other)
         }
 
+        abstract override fun toString(): String
+
         class Bin(binString: String, size: Size) : Value(size) {
             private val binString: String
             val regexWithPreString = Regex("0b[0-1]+")
             val regex = Regex("[0-1]+")
+
             constructor(size: Size) : this(Settings.PRESTRING_BINARY + "0", size)
 
-            constructor(binString: String) : this(binString, Tools.getNearestSize(binString.trim().removePrefix(Settings.PRESTRING_BINARY).length))
+            constructor(binString: String) : this(binString, Size.Original(binString.trim().removePrefix(Settings.PRESTRING_BINARY).length))
 
             init {
                 this.binString = check(binString, size, DebugTools.KIT_showValCheckWarnings).corrected
@@ -314,11 +327,12 @@ class Variable {
         class Hex(hexString: String, size: Size) : Value(size) {
             private val hexString: String
             val regex = Regex("[0-9A-Fa-f]+")
+
             init {
                 this.hexString = check(hexString, size, DebugTools.KIT_showValCheckWarnings).corrected
             }
 
-            constructor(hexString: String) : this(hexString, Tools.getNearestSize(hexString.trim().removePrefix(Settings.PRESTRING_HEX).length * 4))
+            constructor(hexString: String) : this(hexString, Size.Original(hexString.trim().removePrefix(Settings.PRESTRING_HEX).length * 4))
 
             fun getRawHexStr(): String {
                 return hexString.removePrefix(Settings.PRESTRING_HEX)
@@ -430,6 +444,7 @@ class Variable {
                     return -1
                 }
             }
+
             override fun toString(): String {
                 return this.hexString
             }
@@ -443,6 +458,7 @@ class Variable {
             private val decString: String
             private val negative: Boolean
             val posRegex = Regex("[0-9]+")
+
             init {
                 this.decString = check(decString, size, DebugTools.KIT_showValCheckWarnings).corrected
                 this.negative = DecTools.isNegative(this.decString)
@@ -578,6 +594,7 @@ class Variable {
                     return -1
                 }
             }
+
             override fun toString(): String {
                 return this.decString
             }
@@ -588,6 +605,7 @@ class Variable {
             private val udecString: String
             val posRegex = Regex("[0-9]+")
             val negRegex = Regex("-[0-9]+")
+
             init {
                 this.udecString = check(udecString, size, DebugTools.KIT_showValCheckWarnings).corrected
             }
@@ -751,6 +769,7 @@ class Variable {
                 }
                 return Dec("0", Size.Bit8())
             }
+
             fun getHex(bin: Bin): Hex {
                 val stringBuilder = StringBuilder()
 
@@ -768,6 +787,7 @@ class Variable {
 
                 return Hex(stringBuilder.toString(), bin.size)
             }
+
             fun getBinary(hex: Hex): Bin {
                 val stringBuilder = StringBuilder()
 
@@ -782,6 +802,7 @@ class Variable {
                 }
                 return Bin(stringBuilder.toString(), hex.size)
             }
+
             fun getBinary(dec: Dec): Bin {
 
                 var decString = dec.getRawDecStr()
@@ -817,6 +838,7 @@ class Variable {
 
                 return Bin(binaryStr, dec.size)
             }
+
             fun getBinary(udec: UDec): Bin {
 
                 var udecString = udec.getRawUDecStr()
@@ -843,6 +865,7 @@ class Variable {
 
                 return Bin(binaryStr, udec.size)
             }
+
             fun getDec(bin: Bin): Dec {
                 var binString = bin.getRawBinaryStr()
                 var decString = "0"
@@ -879,6 +902,7 @@ class Variable {
 
                 return Dec(decString, bin.size)
             }
+
             fun getUDec(bin: Bin): UDec {
                 val binString = bin.getRawBinaryStr()
 
@@ -900,6 +924,7 @@ class Variable {
 
                 return UDec(udecString, bin.size)
             }
+
             fun getASCII(value: Value): String {
                 val stringBuilder = StringBuilder()
 
@@ -934,7 +959,7 @@ class Variable {
 
     }
 
-    sealed class Size(val name: String, val bitWidth: kotlin.Int, val byteCount: kotlin.Int) {
+    sealed class Size(val name: String, val bitWidth: Int, val byteCount: Int) {
 
         override fun equals(other: Any?): Boolean {
             when (other) {
@@ -945,6 +970,7 @@ class Variable {
             return super.equals(other)
         }
 
+        class Original(bitWidth: Int) : Size("original", bitWidth, (bitWidth.toFloat() / 8.0f).roundToInt())
         class Bit1 : Size("1 Bit", 1, 1)
         class Bit3 : Size("3 Bit", 3, 1)
         class Bit5 : Size("5 Bit", 5, 1)
@@ -1047,6 +1073,14 @@ class Variable {
                     this.max = "524287"
                     this.umin = "0"
                     this.umax = "1048575"
+                }
+                is Size.Original -> {
+                    console.error("Variable.Bounds: Can't get bounds from original Size Type! Use getNearestSize() or getNearestDecSize() first!")
+
+                    this.min = "not identified"
+                    this.max = "not identified"
+                    this.umin = "0"
+                    this.umax = "not identified"
                 }
             }
         }
