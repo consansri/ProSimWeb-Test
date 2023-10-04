@@ -1090,7 +1090,7 @@ class RV32Syntax() : Syntax() {
     object SyntaxRegex {
         val pre_macro_start = Regex("""^\s*(\.macro\s+([a-zA-Z0-9_]+)\s+((?:[-'"a-zA-Z0-9_]+\s*,\s*)*[-'"a-zA-Z0-9_]+))\s*?""")
         val pre_macro_arg_def = Regex("""^\s*([a-zA-Z0-9_]+)\s*?""")
-        val pre_macro_line = Regex("""^\s*([a-zA-Z0-9_]+)\s+((?:[-'"a-zA-Z0-9_]+\s*,\s*)*[-'"a-zA-Z0-9_]+)\s*?""")
+        val pre_macro_line = Regex("""^\s*([a-zA-Z0-9_]+)\s+((?:[-\s'"a-zA-Z0-9_]+\s*,\s*)*[-\s'"a-zA-Z0-9_]+)\s*?""")
         val pre_macro_arg_link = Regex("""\\([a-zA-Z0-9_]+)""")
         val pre_macro_end = Regex("""^\s*(\.endm)\s*?""")
         val pre_import = Regex("""^\s*(#import\s+"(.+)")\s*?""")
