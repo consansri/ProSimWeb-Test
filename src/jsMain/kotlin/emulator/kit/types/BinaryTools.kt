@@ -3,6 +3,9 @@ package emulator.kit.types
 import emulator.kit.Settings
 import debug.DebugTools
 
+/**
+ * This Object contains all performant relevant binary calculations based on [String] representations.
+ */
 object BinaryTools {
     fun negotiate(aBin: String): String {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)

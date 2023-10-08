@@ -4,6 +4,12 @@ import emulator.kit.Settings
 import debug.DebugTools
 import kotlin.math.roundToInt
 
+
+/**
+ * [Variable] is the mutable version of [Value] which can contain several types all based on [String].
+ * Each Variable has a fixed [size] which can't be changed. When a new value will be [set] it will automatically be resized to the former [size].
+ * Operator Functions such as comparing functions are overwritten.
+ */
 class Variable {
 
     val initialBinary: String
@@ -96,7 +102,25 @@ class Variable {
         return Variable(--value)
     }
 
+    /**
+     * A [Value] can have the following types: [Bin], [Hex], [Dec] or [UDec].
+     * These Types contain the representation and behaviour of Binary, Hexadecimal, Decimal and Unsigned Decimal Values.
+     * To interact with this Values the following functions can be used:
+     *
+     * [toBin], [toHex], [toDec], [toUDec], [toASCII], [toDouble]: Converts the value to another type. This conversions base on the [Conversion] object.
+     * [getBiggest]: Returns the maximum value which is limited by the current [size].
+     * [plus], [minus], [times], [div], [rem], [unaryMinus], [inc], [dec]: Can be used to calculate with this [Value]s.
+     * This calculations are always based on the type of the first parameter, which differs between the use of [BinaryTools] or [DecTools].
+     * [compareTo], [equals]: Allow to compare values with the standard comparing syntax in kotlin.
+     * [toString]: Provides the string representation of the value with its prefixes.
+     *
+     */
     sealed class Value(val size: Size) {
+
+        /**
+         * This function implements the [String] format checks, of each specific type.
+         * This function can write errors and warnings such as applied changes to the console if any input isn't valid.
+         */
         abstract fun check(string: String, size: Size, warnings: Boolean): CheckResult
         abstract fun toBin(): Bin
         abstract fun toHex(): Hex
@@ -125,6 +149,10 @@ class Variable {
 
         abstract override fun toString(): String
 
+
+        /**
+         * Provides the binary representation of [Value].
+         */
         class Bin(binString: String, size: Size) : Value(size) {
             private val binString: String
             val regexWithPreString = Regex("0b[0-1]+")
@@ -324,6 +352,9 @@ class Variable {
 
         }
 
+        /**
+         * Provides the hexadecimal representation of [Value].
+         */
         class Hex(hexString: String, size: Size) : Value(size) {
             private val hexString: String
             val regex = Regex("[0-9A-Fa-f]+")
@@ -454,6 +485,9 @@ class Variable {
             }
         }
 
+        /**
+         * Provides the decimal representation of [Value].
+         */
         class Dec(decString: String, size: Size) : Value(size) {
             private val decString: String
             private val negative: Boolean
@@ -601,6 +635,9 @@ class Variable {
 
         }
 
+        /**
+         * Provides the unsigned decimal representation of [Value].
+         */
         class UDec(udecString: String, size: Size) : Value(size) {
             private val udecString: String
             val posRegex = Regex("[0-9]+")
@@ -753,6 +790,9 @@ class Variable {
             }
         }
 
+        /**
+         * Contains all implementations of type conversions, to switch between all Types of [Value].
+         */
         object Conversion {
             fun getType(string: String): Value {
                 var removedPrefString = string.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -957,8 +997,21 @@ class Variable {
 
         }
 
+        /**
+         * This will only be used by the visual components to get all representation types fast and allow a switch between them.
+         */
+        enum class Types(val visibleName: String){
+            Bin("BIN"),
+            Hex("HEX"),
+            Dec("DEC"),
+            UDec("UDEC")
+        }
     }
 
+    /**
+     * This class defines the [Size] of each [Value] or [Variable], custom needed sizes for specific architectures can be added.
+     * <CAN BE EXTENDED>
+     */
     sealed class Size(val name: String, val bitWidth: Int, val byteCount: Int) {
 
         override fun equals(other: Any?): Boolean {
@@ -982,13 +1035,12 @@ class Variable {
         class Bit32 : Size("32 Bit", 32, 4)
         class Bit64 : Size("64 Bit", 64, 8)
         class Bit128 : Size("128 Bit", 128, 16)
-
-        object VALUES {
-            val STANDARD = listOf(Bit8(), Bit16(), Bit32(), Bit64(), Bit128())
-            val ALL = listOf(Bit3(), Bit5(), Bit7(), Bit8(), Bit12(), Bit16(), Bit20(), Bit32(), Bit64(), Bit128())
-        }
     }
 
+    /**
+     * Bounds are used to check if a specific [Value] is in it's [Bounds]. Sizes won't need to be defined.
+     * throws an [console].[error] if the [Bounds] of a specific [Size] isn't defined.
+     */
     class Bounds {
 
         val min: String
@@ -1093,6 +1145,9 @@ class Variable {
         }
     }
 
+    /**
+     * Contains all additional needed tools for working with [Value].
+     */
     object Tools {
         fun getNearestSize(bitWidth: Int): Size {
 

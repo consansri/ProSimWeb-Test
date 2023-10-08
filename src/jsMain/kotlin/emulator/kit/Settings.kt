@@ -4,55 +4,70 @@ import Constants
 import StyleAttr.Main.Editor.HL
 import emulator.kit.assembly.Compiler
 
+
+/**
+ * Settings for the kit.
+ */
 object Settings {
-    // Architecture Assembly Constructor
-    object StandardHL {
-        val comment = HL.base05.getFlag()
-        val register = HL.orange.getFlag()
-        val word = HL.magenta.getFlag()
-        val alphaNum = HL.violet.getFlag()
-        val instruction = HL.blue.getFlag()
-        val symbol = HL.cyan.getFlag()
-        val bin = HL.blue.getFlag()
-        val hex = HL.blue.getFlag()
-        val dec = HL.blue.getFlag()
-        val udec =HL.blue.getFlag()
-        val ascii = HL.green.getFlag()
-        val string = HL.green.getFlag()
-
-        val error = HL.red.getFlag()
-        val whiteSpace = HL.whitespace.getFlag()
-    }
-
     // GLOBAL
+    /**
+     * [PROSIMNAME] defines the name of the app.
+     */
     const val PROSIMNAME = Constants.name
 
     // FILEHANDLER
+    /**
+     * [UNDO_STATE_COUNT] defines the amount of undo states which can be held until the first state will be removed.
+     */
     const val UNDO_STATE_COUNT = 32
+
+    /**
+     * [REDO_STATE_COUNT] defines the amount of redo states which can be held until the first state will be removed.
+     */
     const val REDO_STATE_COUNT = 32
+
+    /**
+     * [UNDO_DELAY_MILLIS] define the time of no edit which is needed to define a new undo state.
+     */
     const val UNDO_DELAY_MILLIS = 1000L
 
     // COMPILER
+    /**
+     * [COMPILER_TOKEN_PSEUDOID] defines the pseudo id of compiler tokens which have no real text representation.
+     * They are generated through the [Compiler.pseudoAnalyze] function which is used to analyze code which is for example generated through a macro.
+     */
     const val COMPILER_TOKEN_PSEUDOID = -100
 
-    // REGISTER
-    val REGISTER_VALUETYPES = arrayOf(RegTypes.BIN, RegTypes.HEX, RegTypes.UDEC, RegTypes.DEC)
-
     // TYPE IDENTIFICATION
+    /**
+     * [PRESTRING_HEX] defines the prefix of hexadecimal values.
+     */
     const val PRESTRING_HEX = "0x"
+
+    /**
+     * [PRESTRING_BINARY] defines the prefix of binary values.
+     */
     const val PRESTRING_BINARY = "0b"
+
+    /**
+     * [PRESTRING_DECIMAL] defines the prefix of decimal values.
+     */
     const val PRESTRING_DECIMAL = ""
+
+    /**
+     * [PRESTRING_UDECIMAL] defines the prefix of unsigned decimal values.
+     */
     const val PRESTRING_UDECIMAL = "u"
 
     // REGEX SPLITTER
+    /**
+     * [LINEBREAKS] provides all possible occuring linebreak characters.
+     */
     val LINEBREAKS = listOf("\n", "\r", "\r\n")
 
-    // STATES
-    const val STATE_UNCHECKED = "unchecked"
-    const val STATE_HASERRORS = "hasErrors"
-    const val STATE_EXECUTABLE = "buildable"
-    const val STATE_EXECUTION = "execution"
-
+    /**
+     * [COMPILER_REGEX] defines the regular expression for all [Compiler.Token].
+     */
     val COMPILER_REGEX = Compiler.RegexCollection(
         Regex("""^\s+"""),
         Regex("""^[^0-9A-Za-z]"""),
@@ -66,27 +81,25 @@ object Settings {
         Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
     )
 
+    /**
+     * [COMPILER_HLCOLL] defines common highlighting colors for each [Compiler.Token].
+     * Those will be overwritten by architecture specific Highlighting.
+     */
     val COMPILER_HLCOLL = Compiler.HLFlagCollection(
-        alphaNum = StandardHL.alphaNum,
-        word = StandardHL.word,
-        const_hex = StandardHL.hex,
-        const_bin = StandardHL.bin,
-        const_dec = StandardHL.dec,
-        const_udec = StandardHL.udec,
-        const_ascii = StandardHL.ascii,
-        const_string = StandardHL.string,
-        register = StandardHL.register,
-        symbol = StandardHL.symbol,
-        instruction = StandardHL.instruction,
-        comment = StandardHL.comment,
-        //whitespace = whiteSpace
+        alphaNum = HL.violet.getFlag(),
+        word = HL.magenta.getFlag(),
+        const_hex = HL.blue.getFlag(),
+        const_bin = HL.blue.getFlag(),
+        const_dec = HL.blue.getFlag(),
+        const_udec = HL.blue.getFlag(),
+        const_ascii = HL.green.getFlag(),
+        const_string = HL.green.getFlag(),
+        register = HL.orange.getFlag(),
+        symbol = HL.cyan.getFlag(),
+        instruction = HL.blue.getFlag(),
+        comment = HL.base05.getFlag(),
+        whitespace = HL.whitespace.getFlag(),
+        error = HL.red.getFlag()
     )
-
-    enum class RegTypes {
-        HEX,
-        BIN,
-        DEC,
-        UDEC
-    }
 
 }

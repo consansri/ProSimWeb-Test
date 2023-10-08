@@ -200,6 +200,4 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         }
         return result
     }
-
-    data class PreHLRepl(val element: String, val replacement: String)
 }

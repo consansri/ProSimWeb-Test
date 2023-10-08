@@ -1,5 +1,8 @@
 package emulator.kit.types
 
+/**
+ *  This Object contains some often needed [String] helping functions.
+ */
 object StringTools {
     fun splitStringAtFirstOccurrence(inputString: String, delimiter: Char): Pair<String, String> {
         val indexOfDelimiter = inputString.indexOf(delimiter)
@@ -8,7 +11,7 @@ object StringTools {
             val secondPart = inputString.substring(indexOfDelimiter)
             Pair(firstPart, secondPart)
         } else {
-            // Falls das Zeichen nicht gefunden wurde, gib die ursprüngliche Zeichenkette als ersten Teil zurück
+            // If the character was not found, return the original string as the first part
             Pair(inputString, "")
         }
     }

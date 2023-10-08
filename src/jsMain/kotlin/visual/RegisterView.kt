@@ -3,7 +3,6 @@ package visual
 import emulator.Emulator
 import emotion.react.css
 import emulator.kit.Settings
-import emulator.kit.Settings.RegTypes.*
 import kotlinx.browser.document
 import react.*
 import react.dom.html.ReactHTML.a
@@ -18,6 +17,8 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import debug.DebugTools
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Value.Types.*
 import kotlin.time.measureTime
 import web.html.*
 import web.timers.*
@@ -40,7 +41,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
     val name by useState(props.name)
     val regFileList = appLogic.getArch().getRegisterContainer().getRegisterFileList()
     val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(regFileList.size - 1)
-    val (currRegTypeIndex, setCurrRegTypeIndex) = useState<Int>(1)
+    val (currRegType, setCurrRegTypeIndex) = useState<Variable.Value.Types>(Variable.Value.Types.Hex)
     val (update, setUpdate) = useState(false)
     val change = props.update
 
@@ -201,15 +202,15 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 }
 
                                 span {
-                                    +Settings.REGISTER_VALUETYPES[currRegTypeIndex].toString()
+                                    +currRegType.visibleName
                                 }
 
                                 onClick = { event ->
                                     setTimeout({
-                                        if (currRegTypeIndex < Settings.REGISTER_VALUETYPES.size - 1) {
-                                            setCurrRegTypeIndex(currRegTypeIndex + 1)
+                                        if (currRegType.ordinal < Variable.Value.Types.entries.size - 1) {
+                                            setCurrRegTypeIndex(Variable.Value.Types.entries[currRegType.ordinal + 1])
                                         } else {
-                                            setCurrRegTypeIndex(0)
+                                            setCurrRegTypeIndex(Variable.Value.Types.entries[0])
                                         }
                                     }, 0)
                                 }
@@ -250,8 +251,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                             id = "reg0${regID}"
                                             readOnly = false
                                             setTimeout({
-                                                when (Settings.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                                                    HEX -> {
+                                                when (currRegType) {
+                                                    Hex -> {
                                                         type = InputType.text
                                                         pattern = "[0-9a-fA-F]+"
                                                         placeholder = Settings.PRESTRING_HEX
@@ -259,7 +260,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                         defaultValue = reg.variable.get().toHex().getRawHexStr()
                                                     }
 
-                                                    BIN -> {
+                                                    Bin -> {
                                                         type = InputType.text
                                                         pattern = "[01]+"
                                                         placeholder = Settings.PRESTRING_BINARY
@@ -267,14 +268,14 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                         defaultValue = reg.variable.get().toBin().getRawBinaryStr()
                                                     }
 
-                                                    DEC -> {
+                                                    Dec -> {
                                                         type = InputType.number
                                                         pattern = "-?\\d+"
                                                         placeholder = Settings.PRESTRING_DECIMAL
                                                         defaultValue = reg.variable.get().toDec().getRawDecStr()
                                                     }
 
-                                                    UDEC -> {
+                                                    UDec -> {
                                                         type = InputType.number
                                                         placeholder = Settings.PRESTRING_DECIMAL
                                                         defaultValue = reg.variable.get().toUDec().getRawUDecStr()
@@ -292,20 +293,20 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                     val measuredTime = measureTime {
                                                         try {
 
-                                                            when (Settings.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                                                                HEX -> {
+                                                            when (currRegType) {
+                                                                Hex -> {
                                                                     reg.variable.setHex(newValue)
                                                                 }
 
-                                                                BIN -> {
+                                                                Bin -> {
                                                                     reg.variable.setBin(newValue)
                                                                 }
 
-                                                                DEC -> {
+                                                                Dec -> {
                                                                     reg.variable.setDec(newValue)
                                                                 }
 
-                                                                UDEC -> {
+                                                                UDec -> {
                                                                     reg.variable.setUDec(newValue)
                                                                 }
                                                             }
@@ -317,20 +318,20 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                                                         // Get Actual Interpretation (for example padded binary number)
                                                         try {
-                                                            when (Settings.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                                                                HEX -> {
+                                                            when (currRegType) {
+                                                                Hex -> {
                                                                     currentTarget.value = reg.variable.get().toHex().getRawHexStr()
                                                                 }
 
-                                                                BIN -> {
+                                                                Bin -> {
                                                                     currentTarget.value = reg.variable.get().toBin().getRawBinaryStr()
                                                                 }
 
-                                                                DEC -> {
+                                                                Dec -> {
                                                                     currentTarget.value = reg.variable.get().toDec().getRawDecStr()
                                                                 }
 
-                                                                UDEC -> {
+                                                                UDec -> {
                                                                     currentTarget.value = reg.variable.get().toUDec().getRawUDecStr()
                                                                 }
                                                             }
@@ -340,7 +341,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
 
                                                     }
-                                                    console.log("Blur Event took ${measuredTime.inWholeMilliseconds} ms editing in ${Settings.REGISTER_VALUETYPES[currRegTypeIndex].name} type")
+                                                    console.log("Blur Event took ${measuredTime.inWholeMilliseconds} ms editing in ${currRegType.name} type")
                                                 }, 0)
 
                                             }
@@ -367,7 +368,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
-    useEffect(currRegTypeIndex, change) {
+    useEffect(currRegType, change) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(part-update) RegisterView")
         }
@@ -382,43 +383,25 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 val regID = it.registers.indexOf(reg)
                 try {
                     val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
-                    regRef?.value = when (Settings.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                        HEX -> {
+                    regRef?.value = when (currRegType) {
+                        Hex -> {
                             reg.variable.get().toHex().getRawHexStr()
                         }
 
-                        BIN -> {
+                        Bin -> {
                             reg.variable.get().toBin().getRawBinaryStr()
                         }
 
-                        DEC -> {
+                        Dec -> {
                             reg.variable.get().toDec().getRawDecStr()
                         }
 
-                        UDEC -> {
+                        UDec -> {
                             reg.variable.get().toUDec().getRawUDecStr()
                         }
                     }
-                    /* regRef.style.width = when (ArchConst.REGISTER_VALUETYPES[currRegTypeIndex]) {
-                         HEX -> {
-                             "${reg.mutVal.size.byteCount * 2}ch;"
-                         }
-
-                         BIN -> {
-                             "${reg.mutVal.size.bitWidth}ch;"
-                         }
-
-                         DEC -> {
-                             "auto;"
-                         }
-
-                         UDEC -> {
-                             "auto;"
-                         }
-                     }*/
-
                 } catch (e: NumberFormatException) {
-                    console.warn("RegisterView useEffect(currRegTypeIndex): NumberFormatException")
+                    console.warn("RegisterView useEffect(currRegType): NumberFormatException")
                 }
             }
         }

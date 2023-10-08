@@ -1,5 +1,8 @@
 package emulator.kit.optional
 
+/**
+ * [FlagsConditions] should soon inherit the functionality of architecutes using Flags and Conditions.
+ */
 class FlagsConditions(val flags: List<Flag>, val conditions: List<Condition>) {
 
     init {

@@ -250,7 +250,7 @@ class Compiler(
                         }
                     }
                     if (syntaxTree?.errorsContain(token) == true) {
-                        token.hl(architecture, Settings.StandardHL.error, "error")
+                        token.hl(architecture, hlFlagCollection.error ?: "", "error")
                         hlLine += token.hlContent
                         continue
                     }
@@ -606,7 +606,8 @@ class Compiler(
         val symbol: String? = null,
         val instruction: String? = null,
         val comment: String? = null,
-        val whitespace: String? = null
+        val whitespace: String? = null,
+        val error: String? = null
     )
 
     data class RegexCollection(

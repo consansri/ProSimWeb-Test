@@ -4,6 +4,9 @@ import emulator.kit.common.*
 import emulator.kit.optional.Cache
 import emulator.kit.optional.FlagsConditions
 
+/**
+ * [Config] is the configuration Class which holds all common and optional implementations for defining each specific architecture.
+ */
 data class Config(
     val description: Description,
     val fileHandler: FileHandler,

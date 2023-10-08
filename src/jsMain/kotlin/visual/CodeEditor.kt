@@ -3,7 +3,6 @@ package visual
 import emulator.Emulator
 import StyleAttr
 import emotion.react.css
-import emulator.kit.Settings
 import emulator.kit.common.FileHandler
 import kotlinx.browser.window
 import kotlinx.coroutines.*
@@ -21,6 +20,7 @@ import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import debug.DebugTools
+import emulator.kit.common.ArchState
 import web.cssom.ClassName
 import web.timers.*
 import web.cssom.*
@@ -57,7 +57,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- REACT STATES ----------------- */
 
     val appLogic by useState(props.emulator)
-    val (checkState, setCheckState) = useState(appLogic.getArch().getState().getState())
+    val (checkState, setCheckState) = useState<ArchState.State>(appLogic.getArch().getState().getState())
     val (currExeLine, setCurrExeLine) = useState(-1)
     val (exeFile, setExeFile) = useState<FileHandler.File>()
     val (taValueUpdate, setTaValueUpdate) = useState(false)
@@ -282,7 +282,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     src = StyleAttr.Icons.disassembler
                 }
 
-                if (checkState == Settings.STATE_EXECUTABLE) {
+                if (checkState == ArchState.State.EXECUTABLE) {
                     onClick = {
                         setTranscriptView(!transcriptView)
                     }
@@ -296,7 +296,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
 
                 when (checkState) {
-                    Settings.STATE_UNCHECKED -> {
+                    ArchState.State.UNCHECKED -> {
                         title = "Status: loading..."
                         img {
                             className = ClassName(StyleAttr.Main.CLASS_ANIM_ROTATION)
@@ -304,21 +304,21 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
                     }
 
-                    Settings.STATE_EXECUTABLE -> {
+                    ArchState.State.EXECUTABLE -> {
                         title = "Status: ready to build"
                         img {
                             src = StyleAttr.Icons.status_fine
                         }
                     }
 
-                    Settings.STATE_HASERRORS -> {
+                    ArchState.State.HASERRORS -> {
                         title = "Status: fix errors!"
                         img {
                             src = StyleAttr.Icons.status_error
                         }
                     }
 
-                    Settings.STATE_EXECUTION -> {
+                    ArchState.State.EXECUTION -> {
                         title = "Status: executing..."
                         img {
                             src = StyleAttr.Icons.status_fine
@@ -879,7 +879,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     useEffect(checkState) {
         when (checkState) {
-            Settings.STATE_EXECUTABLE -> {
+            ArchState.State.EXECUTABLE -> {
                 if (!appLogic.getArch().getTranscript().deactivated()) {
                     btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
                 }

@@ -10,12 +10,12 @@ import emulator.cisc.ArchRV32
 class Emulator {
 
     /**
-     *  The ID which points on the selected Architecture in the archList.
+     *  [selID] holds the ID which points on the selected Architecture in the archList.
      */
     var selID = -1
 
     /**
-     *  Contains one object of each specific Architecture.
+     * [archList] contains one object of each specific Architecture.
      */
     private val archList: List<Link> = Link.entries.toList()
 

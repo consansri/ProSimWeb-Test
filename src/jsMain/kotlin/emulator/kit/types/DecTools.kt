@@ -3,6 +3,9 @@ package emulator.kit.types
 import emulator.kit.Settings
 import debug.DebugTools
 
+/**
+ * This Object contains all performant relevant decimal calculations based on [String] representations.
+ */
 object DecTools {
 
     val negRegex = Regex("-[0-9]+")

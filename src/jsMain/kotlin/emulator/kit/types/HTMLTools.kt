@@ -1,5 +1,8 @@
 package emulator.kit.types
 
+/**
+ * This Object contains HTML encoding functions which replace certain characters with HTML symbols.
+ */
 object HTMLTools {
     fun encodeBeforeHTML(value: String): String {
         val builder = StringBuilder()
