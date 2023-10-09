@@ -494,7 +494,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         input {
                             id = "editval${dValue.address.getRawHexStr()}"
                             placeholder = Settings.PRESTRING_HEX
-                            maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
+                            maxLength = appLogic.getArch().getMemory().getWordSize().getByteCount() * 2
                             prefix = "value: "
                             defaultValue = dValue.variable.get().toHex().getRawHexStr()
                             onBlur = { event ->
@@ -555,9 +555,9 @@ val MemoryView = FC<MemViewProps> { props ->
                         input {
                             id = "dv-address"
                             placeholder = Settings.PRESTRING_HEX + "[address]"
-                            maxLength = appLogic.getArch().getMemory().getAddressSize().byteCount * 2
+                            maxLength = appLogic.getArch().getMemory().getAddressSize().getByteCount() * 2
                             prefix = "addr: "
-                            defaultValue = "F".repeat(appLogic.getArch().getMemory().getAddressSize().byteCount * 2)
+                            defaultValue = "F".repeat(appLogic.getArch().getMemory().getAddressSize().getByteCount() * 2)
                             onKeyDown = { event ->
                                 if (event.key == "Enter") {
                                     event.currentTarget.blur()
@@ -568,9 +568,9 @@ val MemoryView = FC<MemViewProps> { props ->
                         input {
                             id = "dv-value"
                             placeholder = Settings.PRESTRING_HEX + "[value]"
-                            maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
+                            maxLength = appLogic.getArch().getMemory().getWordSize().getByteCount() * 2
                             prefix = "value: "
-                            defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().byteCount * 2)
+                            defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().getByteCount() * 2)
                             onKeyDown = { event ->
                                 if (event.key == "Enter") {
                                     event.currentTarget.blur()
@@ -638,7 +638,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             id = "dr-address"
                             pattern = "[0-9A-Fa-f]+"
                             placeholder = Settings.PRESTRING_HEX + "[start address]"
-                            maxLength = appLogic.getArch().getMemory().getAddressSize().byteCount * 2
+                            maxLength = appLogic.getArch().getMemory().getAddressSize().getByteCount() * 2
                             defaultValue = "1".padEnd(appLogic.getArch().getMemory().getWordSize().bitWidth, '0')
                             onKeyDown = { event ->
                                 if (event.key == "Enter") {
@@ -651,8 +651,8 @@ val MemoryView = FC<MemViewProps> { props ->
                             id = "dr-value"
                             pattern = "[0-9A-Fa-f]+"
                             placeholder = Settings.PRESTRING_HEX + "[initial]"
-                            maxLength = appLogic.getArch().getMemory().getWordSize().byteCount * 2
-                            defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().byteCount * 2)
+                            maxLength = appLogic.getArch().getMemory().getWordSize().getByteCount() * 2
+                            defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().getByteCount() * 2)
 
                             onKeyDown = { event ->
                                 if (event.key == "Enter") {

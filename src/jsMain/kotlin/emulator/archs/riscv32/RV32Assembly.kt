@@ -10,6 +10,7 @@ import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import debug.DebugTools
+import kotlin.math.roundToInt
 
 
 /**
@@ -203,27 +204,27 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                         when (entry.directive.type) {
                                             BYTE -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1")
+                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
                                             }
 
                                             HALF -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit16()))
-                                                length = Variable.Value.Hex("2")
+                                                length = Variable.Value.Hex("2", Variable.Size.Bit8())
                                             }
 
                                             WORD -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit32()))
-                                                length = Variable.Value.Hex("4")
+                                                length = Variable.Value.Hex("4", Variable.Size.Bit8())
                                             }
 
                                             DWORD -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit64()))
-                                                length = Variable.Value.Hex("8")
+                                                length = Variable.Value.Hex("8", Variable.Size.Bit8())
                                             }
 
                                             ASCIZ -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1")
+                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
                                             }
 
                                             STRING -> {
@@ -237,13 +238,13 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                                     length = Variable.Value.Hex(content.length.toString(16))
                                                 } else {
                                                     resizedValues = arrayOf(originalValue)
-                                                    length = Variable.Value.Hex(originalValue.size.byteCount.toString(16))
+                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                                 }
                                             }
 
                                             else -> {
                                                 resizedValues = arrayOf(originalValue)
-                                                length = Variable.Value.Hex(originalValue.size.byteCount.toString(16))
+                                                length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                             }
                                         }
 
@@ -251,9 +252,9 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                             console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tresized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} \n\tallocating at ${nextDataAddress.toHex().getRawHexStr()}")
                                         }
 
-                                        val sizeOfOne = Variable.Value.Hex(resizedValues.first().size.byteCount.toString(16))
+                                        val sizeOfOne = Variable.Value.Hex((resizedValues.first().size.getByteCount()).toString(16), Variable.Size.Bit8())
                                         val rest = nextDataAddress % sizeOfOne
-                                        if (rest != Variable.Value.Bin("0")) {
+                                        if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
                                             nextDataAddress += sizeOfOne - rest
                                         }
                                         val dataEntry = DataEntry(entry.label, nextDataAddress.toHex(), resizedValues.first().size, *resizedValues)
@@ -296,27 +297,27 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                         when (entry.directive.type) {
                                             BYTE -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1")
+                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
                                             }
 
                                             HALF -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit16()))
-                                                length = Variable.Value.Hex("2")
+                                                length = Variable.Value.Hex("2", Variable.Size.Bit8())
                                             }
 
                                             WORD -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit32()))
-                                                length = Variable.Value.Hex("4")
+                                                length = Variable.Value.Hex("4", Variable.Size.Bit8())
                                             }
 
                                             DWORD -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit64()))
-                                                length = Variable.Value.Hex("8")
+                                                length = Variable.Value.Hex("8", Variable.Size.Bit8())
                                             }
 
                                             ASCIZ -> {
                                                 resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1")
+                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
                                             }
 
                                             STRING -> {
@@ -330,13 +331,13 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                                     length = Variable.Value.Hex(content.length.toString(16))
                                                 } else {
                                                     resizedValues = arrayOf(originalValue)
-                                                    length = Variable.Value.Hex(originalValue.size.byteCount.toString(16))
+                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                                 }
                                             }
 
                                             else -> {
                                                 resizedValues = arrayOf(originalValue)
-                                                length = Variable.Value.Hex(originalValue.size.byteCount.toString(16))
+                                                length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                             }
                                         }
 
@@ -344,9 +345,9 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                             console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} resized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} allocating at ${nextRoDataAddress.toHex().getRawHexStr()}")
                                         }
 
-                                        val sizeOfOne = Variable.Value.Hex(resizedValues.first().size.byteCount.toString(16))
+                                        val sizeOfOne = Variable.Value.Hex((resizedValues.first().size.getByteCount()).toString(16))
                                         val rest = nextRoDataAddress % sizeOfOne
-                                        if (rest != Variable.Value.Bin("0")) {
+                                        if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
                                             nextRoDataAddress += sizeOfOne - rest
                                         }
                                         val dataEntry = DataEntry(entry.label, nextRoDataAddress.toHex(), resizedValues.first().size, *resizedValues)
@@ -382,13 +383,13 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                         console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tallocating at ${nextBssAddress.toHex().getRawHexStr()}")
                                     }
 
-                                    val sizeOfOne = Variable.Value.Hex(originalValue.size.byteCount.toString(16))
+                                    val sizeOfOne = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                     val rest = nextBssAddress % sizeOfOne
                                     if (rest != Variable.Value.Bin("0")) {
                                         nextBssAddress += sizeOfOne - rest
                                     }
                                     dataList.add(DataEntry(entry.label, nextBssAddress.toHex(), originalValue.size, originalValue))
-                                    nextBssAddress += Variable.Value.Hex(originalValue.size.byteCount.toString(16))
+                                    nextBssAddress += Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                 }
                             }
                         }
@@ -448,7 +449,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                 transcriptEntrys.add(RVDisassembledRow(address))
                 memory.save(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
             }
-            transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4")).toHex()))
+            transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4", Variable.Size.Bit8())).toHex()))
             architecture.getRegisterContainer().pc.value.set(pcStartAddress)
             assemblyMap = AssemblyMap(instrIDMap)
         }

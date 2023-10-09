@@ -256,7 +256,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                         type = InputType.text
                                                         pattern = "[0-9a-fA-F]+"
                                                         placeholder = Settings.PRESTRING_HEX
-                                                        maxLength = reg.variable.size.byteCount * 2
+                                                        maxLength = reg.variable.size.getByteCount() * 2
                                                         defaultValue = reg.variable.get().toHex().getRawHexStr()
                                                     }
 

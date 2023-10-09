@@ -103,7 +103,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 var result = binMapper.getInstrFromBinary(binary.get().toBin())
                 if (result != null) {
                     if (result.type == R_INSTR.InstrType.JAL || result.type == R_INSTR.InstrType.JALR) {
-                        val returnAddress = getRegisterContainer().pc.value.get() + Variable.Value.Hex("4")
+                        val returnAddress = getRegisterContainer().pc.value.get() + Variable.Value.Hex("4", Variable.Size.Bit32())
                         while (getRegisterContainer().pc.value.get() != returnAddress) {
                             if (result != null) {
                                 result.type.execute(this, result.binMap)

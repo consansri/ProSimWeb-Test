@@ -1074,12 +1074,12 @@ class RV32Syntax() : Syntax() {
                                 compiledRow.addInstr(row)
                                 when (row.instrType.memWords) {
                                     2 -> {
-                                        compiledRow.addAddresses(address + Variable.Value.Hex(4.toString(16)))
+                                        compiledRow.addAddresses(address + Variable.Value.Hex("0x04", Variable.Size.Bit8()))
                                     }
                                 }
                                 compiledRow.changeHeight(row.instrType.memWords)
                                 compiledTSRows.add(compiledRow)
-                                address += Variable.Value.Hex((row.instrType.memWords * 4).toString(16))
+                                address += Variable.Value.Hex((row.instrType.memWords * 4).toString(16), Variable.Size.Bit8())
                                 compiledRow = RVCompiledRow(address.toHex())
                             }
                         }
