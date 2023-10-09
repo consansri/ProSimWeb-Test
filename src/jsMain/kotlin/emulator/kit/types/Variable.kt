@@ -154,7 +154,6 @@ class Variable {
             }
             return super.equals(other)
         }
-
         abstract override fun toString(): String
 
 
@@ -374,13 +373,13 @@ class Variable {
                         return CheckResult(true, Settings.PRESTRING_HEX + formatted)
                     } else {
                         val trimmedString = formatted.substring(formatted.length - size.bitWidth / 4)
-                        message = "Value.Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.bitWidth / 4}!"
+                        message = "Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.bitWidth / 4}!"
                         console.warn(message)
                         return CheckResult(false, Settings.PRESTRING_HEX + trimmedString, message)
                     }
                 } else {
                     val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.bitWidth / 4)
-                    message = "Value.Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.bitWidth / 4)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
+                    message = "Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.bitWidth / 4)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
                     console.error(message)
                     return CheckResult(false, zeroString, message)
                 }
@@ -508,16 +507,16 @@ class Variable {
                 val message: String
                 if (!posRegex.matches(formatted.replace("-", ""))) {
                     val zeroString = "0"
-                    message = "Value.Dec.check(): ${formatted} does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
+                    message = "Dec.check(): ${formatted} does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
                     console.error(message)
                     return CheckResult(false, Settings.PRESTRING_DECIMAL + zeroString, message)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).max)) {
-                        message = "Value.Dec.check(): ${formatted} must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}"
+                        message = "Dec.check(): ${formatted} must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}"
                         console.warn(message)
                         return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).min, formatted)) {
-                        message = "Value.Dec.check(): ${formatted} must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
+                        message = "Dec.check(): ${formatted} must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
                         console.warn(message)
                         return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min, message)
                     } else {
@@ -631,7 +630,7 @@ class Variable {
 
             constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL))) {
                 if (DebugTools.KIT_showValCheckWarnings) {
-                    console.log("ByteValue.UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
+                    console.log("UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
                 }
             }
 
@@ -652,16 +651,16 @@ class Variable {
                 val message: String
                 if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
-                    message = "Value.UDec.check(): ${formatted} does not match the udec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
+                    message = "UDec.check(): ${formatted} does not match the udec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
                     console.error(message)
                     return CheckResult(false, Settings.PRESTRING_UDECIMAL + zeroString, message)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
-                        message = "Value.UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}"
+                        message = "UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}"
                         console.warn(message)
                         return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umax, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).umin, formatted)) {
-                        message = "Value.UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}"
+                        message = "UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}"
                         console.warn(message)
                         return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umin, message)
                     } else {
@@ -836,7 +835,7 @@ class Variable {
                 }
 
                 if (binaryStr == "") {
-                    console.warn("Value.Conversion.getBinary(dec: Dec) : error in calculation ${dec.getRawDecStr()} to ${binaryStr}")
+                    console.warn("Conversion.getBinary(dec: Dec) : error in calculation ${dec.getRawDecStr()} to ${binaryStr}")
                 }
 
                 if (dec.isNegative()) {
@@ -867,7 +866,7 @@ class Variable {
                 }
 
                 if (binaryStr == "") {
-                    console.warn("Value.Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to ${binaryStr}")
+                    console.warn("Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to ${binaryStr}")
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
@@ -1149,7 +1148,7 @@ class Variable {
                 }
 
                 else -> {
-                    console.warn("ByteValue.Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128()")
+                    console.warn("Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128()")
                     return Size.Bit128()
                 }
             }
@@ -1179,7 +1178,7 @@ class Variable {
                 }
 
                 else -> {
-                    console.warn("ByteValue.Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).max}, min: ${Bounds(Size.Bit128()).min}] -> returning Size.Bit128()")
+                    console.warn("Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).max}, min: ${Bounds(Size.Bit128()).min}] -> returning Size.Bit128()")
                     return Size.Bit128()
                 }
             }
@@ -1209,7 +1208,7 @@ class Variable {
                 }
 
                 else -> {
-                    console.warn("ByteValue.Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).umax}, min: ${Bounds(Size.Bit128()).umin}] -> returning Size.Bit128()")
+                    console.warn("Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).umax}, min: ${Bounds(Size.Bit128()).umin}] -> returning Size.Bit128()")
                     return Size.Bit128()
                 }
             }
