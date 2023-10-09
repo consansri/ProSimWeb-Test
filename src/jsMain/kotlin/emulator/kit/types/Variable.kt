@@ -2,6 +2,7 @@ package emulator.kit.types
 
 import emulator.kit.Settings
 import debug.DebugTools
+import react.createContext
 import kotlin.math.roundToInt
 
 
@@ -108,20 +109,27 @@ class Variable {
      * To interact with this Values the following functions can be used:
      *
      * [toBin], [toHex], [toDec], [toUDec], [toASCII], [toDouble]: Converts the value to another type. This conversions base on the [Conversion] object.
+     *
      * [getBiggest]: Returns the maximum value which is limited by the current [size].
+     *
      * [plus], [minus], [times], [div], [rem], [unaryMinus], [inc], [dec]: Can be used to calculate with this [Value]s.
-     * This calculations are always based on the type of the first parameter, which differs between the use of [BinaryTools] or [DecTools].
+     *
+     * These calculations are always based on the type of the first parameter, which differs between the use of [BinaryTools] or [DecTools].
+     *
      * [compareTo], [equals]: Allow to compare values with the standard comparing syntax in kotlin.
+     *
      * [toString]: Provides the string representation of the value with its prefixes.
      *
      */
-    sealed class Value(val size: Size) {
+    sealed class Value(val input: String, val size: Size) {
+
+        lateinit var checkResult: CheckResult
 
         /**
          * This function implements the [String] format checks, of each specific type.
          * This function can write errors and warnings such as applied changes to the console if any input isn't valid.
          */
-        abstract fun check(string: String, size: Size, warnings: Boolean): CheckResult
+        abstract fun check(string: String, size: Size): CheckResult
         abstract fun toBin(): Bin
         abstract fun toHex(): Hex
         abstract fun toDec(): Dec
@@ -153,9 +161,8 @@ class Variable {
         /**
          * Provides the binary representation of [Value].
          */
-        class Bin(binString: String, size: Size) : Value(size) {
+        class Bin(binString: String, size: Size) : Value(binString, size) {
             private val binString: String
-            val regexWithPreString = Regex("0b[0-1]+")
             val regex = Regex("[0-1]+")
 
             constructor(size: Size) : this(Settings.PRESTRING_BINARY + "0", size)
@@ -163,48 +170,28 @@ class Variable {
             constructor(binString: String) : this(binString, Size.Original(binString.trim().removePrefix(Settings.PRESTRING_BINARY).length))
 
             init {
-                this.binString = check(binString, size, DebugTools.KIT_showValCheckWarnings).corrected
+                this.checkResult = check(input, size)
+                this.binString = checkResult.corrected
             }
 
-            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
-                val formattedInput = Settings.PRESTRING_BINARY + string.trim().removePrefix(Settings.PRESTRING_BINARY).padStart(size.bitWidth, '0')
-
-                if (regexWithPreString.matches(formattedInput)) {
-                    // bin string with prestring
-                    return if (formattedInput.length <= size.bitWidth + Settings.PRESTRING_BINARY.length) {
-                        if (string.length < size.bitWidth) {
-                            CheckResult(true, Settings.PRESTRING_BINARY + formattedInput.removePrefix(Settings.PRESTRING_BINARY).padStart(size.bitWidth, '0'))
-                        } else {
-                            CheckResult(true, formattedInput)
-                        }
-                    } else {
-                        val trimmedString = formattedInput.removePrefix(Settings.PRESTRING_BINARY).substring(formattedInput.length - 2 - size.bitWidth)
-                        if (warnings) {
-                            console.warn("ByteValue.Type.Binary.check(): ${formattedInput} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!")
-                        }
-                        CheckResult(false, trimmedString)
-                    }
-                } else if (regex.matches(formattedInput)) {
+            override fun check(string: String, size: Size): CheckResult {
+                val formattedInput = string.trim().removePrefix(Settings.PRESTRING_BINARY).padStart(size.bitWidth, '0')
+                val message: String
+                if (regex.matches(formattedInput)) {
                     // bin string without prestring
-                    return if (string.length <= size.bitWidth) {
-                        if (string.length < size.bitWidth) {
-                            CheckResult(true, formattedInput.padStart(size.bitWidth, '0'))
-                        } else {
-                            CheckResult(true, formattedInput)
-                        }
+                    return if (formattedInput.length <= size.bitWidth) {
+                        CheckResult(true, formattedInput)
                     } else {
                         val trimmedString = formattedInput.substring(formattedInput.length - size.bitWidth)
-                        if (warnings) {
-                            console.warn("ByteValue.Type.Binary.check(): ${formattedInput} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!")
-                        }
-                        CheckResult(false, trimmedString)
+                        message = "ByteValue.Type.Binary.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!"
+                        console.warn(message)
+                        CheckResult(false, trimmedString, message)
                     }
                 } else {
                     val zeroString = Settings.PRESTRING_BINARY + "0".repeat(size.bitWidth)
-                    if (warnings) {
-                        console.warn("ByteValue.Type.Binary.check(): ${formattedInput} does not match the binary Pattern (${Settings.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning ${zeroString} instead!")
-                    }
-                    return CheckResult(false, formattedInput)
+                    message = "ByteValue.Type.Binary.check(): ${string} does not match the binary Pattern (${Settings.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning ${zeroString} instead!"
+                    console.error(message)
+                    return CheckResult(false, formattedInput, message)
                 }
             }
 
@@ -256,31 +243,31 @@ class Variable {
 
             override fun plus(operand: Value): Value {
                 val result = BinaryTools.add(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize)
             }
 
             override fun minus(operand: Value): Value {
                 val result = BinaryTools.sub(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize)
             }
 
             override fun times(operand: Value): Value {
                 val result = BinaryTools.multiply(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize)
             }
 
             override fun div(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(divResult.result, biggerSize)
             }
 
             override fun rem(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(BinaryTools.checkEmpty(divResult.rest), biggerSize)
             }
 
@@ -355,12 +342,13 @@ class Variable {
         /**
          * Provides the hexadecimal representation of [Value].
          */
-        class Hex(hexString: String, size: Size) : Value(size) {
+        class Hex(hexString: String, size: Size) : Value(hexString, size) {
             private val hexString: String
             val regex = Regex("[0-9A-Fa-f]+")
 
             init {
-                this.hexString = check(hexString, size, DebugTools.KIT_showValCheckWarnings).corrected
+                this.checkResult = check(input, size)
+                this.hexString = checkResult.corrected
             }
 
             constructor(hexString: String) : this(hexString, Size.Original(hexString.trim().removePrefix(Settings.PRESTRING_HEX).length * 4))
@@ -377,26 +365,24 @@ class Variable {
                 return Hex(getRawHexStr(), size)
             }
 
-            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
-                var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.byteCount * 2, '0').uppercase()
-
+            override fun check(string: String, size: Size): CheckResult {
+                var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.bitWidth / 4, '0').uppercase()
+                val message: String
                 if (regex.matches(formatted)) {
-                    if (formatted.length <= size.byteCount * 2) {
-                        formatted = formatted.padStart(size.byteCount * 2, '0')
+                    if (formatted.length <= size.bitWidth / 4) {
+                        formatted = formatted.padStart(size.bitWidth / 4, '0')
                         return CheckResult(true, Settings.PRESTRING_HEX + formatted)
                     } else {
-                        val trimmedString = formatted.substring(formatted.length - size.byteCount * 2)
-                        if (warnings) {
-                            console.warn("ByteValue.Type.Hex.check(): ${formatted} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.byteCount * 2}!")
-                        }
-                        return CheckResult(false, Settings.PRESTRING_HEX + trimmedString)
+                        val trimmedString = formatted.substring(formatted.length - size.bitWidth / 4)
+                        message = "ByteValue.Type.Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.bitWidth / 4}!"
+                        console.warn(message)
+                        return CheckResult(false, Settings.PRESTRING_HEX + trimmedString, message)
                     }
                 } else {
-                    val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.byteCount * 2)
-                    if (warnings) {
-                        console.warn("ByteValue.Type.Hex.check(): ${formatted} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.byteCount * 2)} where X is element of [0-9,A-F]), returning ${zeroString} instead!")
-                    }
-                    return CheckResult(false, zeroString)
+                    val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.bitWidth / 4)
+                    message = "ByteValue.Type.Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.bitWidth / 4)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
+                    console.error(message)
+                    return CheckResult(false, zeroString, message)
                 }
             }
 
@@ -421,36 +407,36 @@ class Variable {
             }
 
             override fun getBiggest(): Value {
-                return Hex("F".repeat(size.byteCount * 2), size)
+                return Hex("F".repeat(size.bitWidth / 4), size)
             }
 
             override fun plus(operand: Value): Value {
                 val result = BinaryTools.add(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize).toHex()
             }
 
             override fun minus(operand: Value): Value {
                 val result = BinaryTools.sub(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize).toHex()
             }
 
             override fun times(operand: Value): Value {
                 val result = BinaryTools.multiply(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize).toHex()
             }
 
             override fun div(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(divResult.result, biggerSize).toHex()
             }
 
             override fun rem(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(BinaryTools.checkEmpty(divResult.rest), biggerSize).toHex()
             }
 
@@ -488,14 +474,15 @@ class Variable {
         /**
          * Provides the decimal representation of [Value].
          */
-        class Dec(decString: String, size: Size) : Value(size) {
+        class Dec(decString: String, size: Size) : Value(decString, size) {
             private val decString: String
             private val negative: Boolean
             val posRegex = Regex("[0-9]+")
 
             init {
-                this.decString = check(decString, size, DebugTools.KIT_showValCheckWarnings).corrected
-                this.negative = DecTools.isNegative(this.decString)
+                this.checkResult = check(input, size)
+                this.decString = checkResult.corrected
+                this.negative = DecTools.isNegative(checkResult.corrected)
             }
 
             constructor(decString: String) : this(decString, Tools.getNearestDecSize(decString.trim().removePrefix(Settings.PRESTRING_DECIMAL)))
@@ -516,28 +503,23 @@ class Variable {
                 return Dec(getRawDecStr(), size)
             }
 
-            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
+            override fun check(string: String, size: Size): CheckResult {
                 val formatted = string.trim().removePrefix(Settings.PRESTRING_DECIMAL)
-
-
-
+                val message: String
                 if (!posRegex.matches(formatted.replace("-", ""))) {
                     val zeroString = "0"
-                    if (warnings) {
-                        console.warn("ByteValue.Type.Dec.check(): ${formatted} does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
-                    }
-                    return CheckResult(false, Settings.PRESTRING_DECIMAL + zeroString)
+                    message = "ByteValue.Type.Dec.check(): ${formatted} does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
+                    console.error(message)
+                    return CheckResult(false, Settings.PRESTRING_DECIMAL + zeroString, message)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).max)) {
-                        if (warnings) {
-                            console.warn("ByteValue.Type.Dec.check(): ${formatted} must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}")
-                        }
-                        return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max)
+                        message = "ByteValue.Type.Dec.check(): ${formatted} must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}"
+                        console.warn(message)
+                        return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).min, formatted)) {
-                        if (warnings) {
-                            console.warn("ByteValue.Type.Dec.check(): ${formatted} must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}")
-                        }
-                        return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min)
+                        message = "ByteValue.Type.Dec.check(): ${formatted} must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
+                        console.warn(message)
+                        return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min, message)
                     } else {
                         return CheckResult(true, Settings.PRESTRING_DECIMAL + formatted)
                     }
@@ -579,31 +561,31 @@ class Variable {
 
             override fun plus(operand: Value): Value {
                 val result = DecTools.add(this.getRawDecStr(), operand.toDec().getRawDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Dec(result, biggerSize)
             }
 
             override fun minus(operand: Value): Value {
                 val result = DecTools.sub(this.getRawDecStr(), operand.toDec().getRawDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Dec(result, biggerSize)
             }
 
             override fun times(operand: Value): Value {
                 val result = DecTools.multiply(this.getRawDecStr(), operand.toDec().getRawDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Dec(result, biggerSize)
             }
 
             override fun div(operand: Value): Value {
                 val divResult = DecTools.divide(this.getRawDecStr(), operand.toDec().getRawDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Dec(divResult.result, biggerSize)
             }
 
             override fun rem(operand: Value): Value {
                 val divResult = DecTools.divide(this.getRawDecStr(), operand.toDec().getRawDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Dec(DecTools.checkEmpty(divResult.rest), biggerSize)
             }
 
@@ -638,13 +620,13 @@ class Variable {
         /**
          * Provides the unsigned decimal representation of [Value].
          */
-        class UDec(udecString: String, size: Size) : Value(size) {
+        class UDec(udecString: String, size: Size) : Value(udecString, size) {
             private val udecString: String
             val posRegex = Regex("[0-9]+")
-            val negRegex = Regex("-[0-9]+")
 
             init {
-                this.udecString = check(udecString, size, DebugTools.KIT_showValCheckWarnings).corrected
+                this.checkResult = check(input, size)
+                this.udecString = checkResult.corrected
             }
 
             constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL))) {
@@ -665,34 +647,23 @@ class Variable {
                 return UDec(getRawUDecStr(), size)
             }
 
-            override fun check(string: String, size: Size, warnings: Boolean): CheckResult {
+            override fun check(string: String, size: Size): CheckResult {
                 val formatted = string.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
-
-
-
-                if (negRegex.matches(formatted)) {
-                    val posValue = DecTools.abs(formatted)
-                    if (warnings) {
-                        console.warn("ByteValue.Type.UDec.check(): ${formatted} is negative! returning absolute Value instead: ${posValue}")
-                    }
-                    return CheckResult(false, Settings.PRESTRING_UDECIMAL + posValue)
-                } else if (!posRegex.matches(formatted)) {
+                val message: String
+                if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
-                    if (warnings) {
-                        console.warn("ByteValue.Type.UDec.check(): ${formatted} does not match the dec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!")
-                    }
-                    return CheckResult(false, Settings.PRESTRING_UDECIMAL + zeroString)
+                    message = "Value.UDec.check(): ${formatted} does not match the udec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
+                    console.error(message)
+                    return CheckResult(false, Settings.PRESTRING_UDECIMAL + zeroString, message)
                 } else {
                     if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
-                        if (warnings) {
-                            console.warn("ByteValue.Type.UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}")
-                        }
-                        return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umax)
+                        message = "Value.UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}"
+                        console.warn(message)
+                        return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umax, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).umin, formatted)) {
-                        if (warnings) {
-                            console.warn("ByteValue.Type.UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}")
-                        }
-                        return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umin)
+                        message = "Value.UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}"
+                        console.warn(message)
+                        return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umin, message)
                     } else {
                         return CheckResult(true, Settings.PRESTRING_UDECIMAL + formatted)
                     }
@@ -734,31 +705,31 @@ class Variable {
 
             override fun plus(operand: Value): Value {
                 val result = DecTools.add(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return UDec(result, biggerSize)
             }
 
             override fun minus(operand: Value): Value {
                 val result = DecTools.sub(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return UDec(result, biggerSize)
             }
 
             override fun times(operand: Value): Value {
                 val result = DecTools.multiply(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return UDec(result, biggerSize)
             }
 
             override fun div(operand: Value): Value {
                 val divResult = DecTools.divide(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return UDec(divResult.result, biggerSize)
             }
 
             override fun rem(operand: Value): Value {
                 val divResult = DecTools.divide(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
-                val biggerSize = if (this.size.byteCount > operand.size.byteCount) this.size else operand.size
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return UDec(DecTools.checkEmpty(divResult.rest), biggerSize)
             }
 
@@ -1000,7 +971,7 @@ class Variable {
         /**
          * This will only be used by the visual components to get all representation types fast and allow a switch between them.
          */
-        enum class Types(val visibleName: String){
+        enum class Types(val visibleName: String) {
             Bin("BIN"),
             Hex("HEX"),
             Dec("DEC"),
@@ -1012,29 +983,33 @@ class Variable {
      * This class defines the [Size] of each [Value] or [Variable], custom needed sizes for specific architectures can be added.
      * <CAN BE EXTENDED>
      */
-    sealed class Size(val name: String, val bitWidth: Int, val byteCount: Int) {
+    sealed class Size(val name: String, val bitWidth: Int) {
 
         override fun equals(other: Any?): Boolean {
             when (other) {
                 is Size -> {
-                    return this.byteCount == other.byteCount
+                    return this.bitWidth == other.bitWidth
                 }
             }
             return super.equals(other)
         }
 
-        class Original(bitWidth: Int) : Size("original", bitWidth, (bitWidth.toFloat() / 8.0f).roundToInt())
-        class Bit1 : Size("1 Bit", 1, 1)
-        class Bit3 : Size("3 Bit", 3, 1)
-        class Bit5 : Size("5 Bit", 5, 1)
-        class Bit7 : Size("7 Bit", 7, 1)
-        class Bit8 : Size("8 Bit", 8, 1)
-        class Bit12 : Size("12 Bit", 12, 2)
-        class Bit16 : Size("16 Bit", 16, 2)
-        class Bit20 : Size("20 Bit", 20, 3)
-        class Bit32 : Size("32 Bit", 32, 4)
-        class Bit64 : Size("64 Bit", 64, 8)
-        class Bit128 : Size("128 Bit", 128, 16)
+        fun getByteCount(): Int {
+            return (bitWidth.toFloat() / 8.0f).roundToInt()
+        }
+
+        class Original(bitWidth: Int) : Size("original", bitWidth)
+        class Bit1 : Size("1 Bit", 1)
+        class Bit3 : Size("3 Bit", 3)
+        class Bit5 : Size("5 Bit", 5)
+        class Bit7 : Size("7 Bit", 7)
+        class Bit8 : Size("8 Bit", 8)
+        class Bit12 : Size("12 Bit", 12)
+        class Bit16 : Size("16 Bit", 16)
+        class Bit20 : Size("20 Bit", 20)
+        class Bit32 : Size("32 Bit", 32)
+        class Bit64 : Size("64 Bit", 64)
+        class Bit128 : Size("128 Bit", 128)
     }
 
     /**
@@ -1126,6 +1101,7 @@ class Variable {
                     this.umin = "0"
                     this.umax = "1048575"
                 }
+
                 is Size.Original -> {
                     console.error("Variable.Bounds: Can't get bounds from original Size Type! Use getNearestSize() or getNearestDecSize() first!")
 
@@ -1180,24 +1156,25 @@ class Variable {
         }
 
         fun getNearestDecSize(decString: String): Size {
+            val string = decString.trim().removePrefix(Settings.PRESTRING_DECIMAL)
             when {
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit8()).min) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit8()).min) -> {
                     return Size.Bit8()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit16()).min) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit16()).min) -> {
                     return Size.Bit16()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit32()).min) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit32()).min) -> {
                     return Size.Bit32()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit64()).min) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit64()).min) -> {
                     return Size.Bit64()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).max, decString) && DecTools.isGreaterEqualThan(decString, Bounds(Size.Bit128()).min) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit128()).min) -> {
                     return Size.Bit128()
                 }
 
@@ -1209,24 +1186,25 @@ class Variable {
         }
 
         fun getNearestUDecSize(udecString: String): Size {
+            val string = udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
             when {
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).umax, udecString) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).umax, string) -> {
                     return Size.Bit8()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).umax, udecString) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).umax, string) -> {
                     return Size.Bit16()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).umax, udecString) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).umax, string) -> {
                     return Size.Bit32()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).umax, udecString) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).umax, string) -> {
                     return Size.Bit64()
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).umax, udecString) -> {
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).umax, string) -> {
                     return Size.Bit128()
                 }
 
@@ -1250,6 +1228,6 @@ class Variable {
 
     }
 
-    data class CheckResult(val valid: Boolean, val corrected: String)
+    data class CheckResult(val valid: Boolean, val corrected: String, val message: String = "")
 
 }

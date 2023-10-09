@@ -43,7 +43,6 @@ class RV32BinMapper {
 
                         val imm20 = Variable.Value.Bin(values[1].getRawBinaryStr().substring(0, 20), Variable.Size.Bit20())
                         val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
-                        console.log("imm20: $imm20, values[1]: ${values[1]}")
                         opCode?.let {
                             binArray.add(opCode)
                         }

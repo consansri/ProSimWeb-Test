@@ -29,7 +29,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
     fun getEndianess(): Endianess = endianess
     fun save(address: Variable.Value, variable: Variable, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
-        var wordList = variable.get().toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
+        var wordList = variable.get().toHex().getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() }
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
@@ -62,7 +62,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
     }
     fun saveArray(address: Variable.Value, vararg values: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
-        var wordList = values.map {value -> value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() } }.reversed().flatten()
+        var wordList = values.map {value -> value.toHex().getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() } }.reversed().flatten()
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
@@ -91,12 +91,12 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
                 val newInstance = MemInstance(hexAddress, variable, mark, readonly)
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
-            hexAddress = (hexAddress + Variable.Value.Hex("1")).toHex()
+            hexAddress = (hexAddress + Variable.Value.Hex("1", Variable.Size.Bit8())).toHex()
         }
     }
     fun save(address: Variable.Value, value: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
-        var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.byteCount * 2) { it.reversed() }
+        var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() }
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
@@ -125,7 +125,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
                 val newInstance = MemInstance(hexAddress, variable, mark, readonly)
                 memMap[hexAddress.getRawHexStr()] = newInstance
             }
-            hexAddress = (hexAddress + Variable.Value.Hex("1")).toHex()
+            hexAddress = (hexAddress + Variable.Value.Hex("01", Variable.Size.Bit8())).toHex()
         }
     }
     fun load(address: Variable.Value): Variable {
