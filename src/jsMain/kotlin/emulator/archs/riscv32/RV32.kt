@@ -63,28 +63,53 @@ object RV32 {
     val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
             "Handbook",
-            "../documents/riscv/handbook.html"
+            "../documents/rv32/syntaxexamples.html"
         ),
-        Docs.HtmlFile.DefinedFile("Examples",
+        Docs.HtmlFile.DefinedFile("Syntax",
             FC {
                 h1 {
-                    +"Examples"
+                    +"RV32 Syntax Examples"
                 }
                 h2 {
-                    +"Text Section Example"
+                    +".text, .data, .rodata, .bss"
                 }
                 pre {
-                    +"""
-                        main:
-                            li	t0, 333
-                        loop:
-                            beq 	t0,t1,end
-                            addi	t1,t1,1
-                            j 	loop
+                    +"""                       
+                        .data
+                        # allocate read/write initialized memory
+                            dataEx: .string "hello world"
                         
-                        end:
-                            li 	t2, 0xCAFEAFFE
+                        .rodata
+                        # allocate read only initialized memory
+                            rodataEx: .string "read only"
+                        
+                        .bss
+                        # allocate read/write uninitialized memory
+                            bssEx: .string
+                        
+                        .text
+                        # define instructions and jumplabels
+                        
+                            la	t0, dataEx 	# loads address of allocated memory in register t0
+
                         """.trimIndent()
+                }
+                h2 {
+                    +".macros"
+                }
+                pre{
+                    +"""
+                        
+                    """.trimIndent()
+                }
+                h2 {
+                    +".equ"
+                }
+                h2 {
+                    +".global/.globl"
+                }
+                h2 {
+                    +"#import \"file.s\""
                 }
 
             }),
@@ -92,7 +117,7 @@ object RV32 {
             "Implemented",
             FC {
                 h1 {
-                    +"Implemented"
+                    +"RV32 Implemented"
                 }
                 h2 {
                     +"General"
@@ -183,11 +208,6 @@ object RV32 {
                         }
                     }
                 }
-                h2 {
-                    +"Syntax Examples"
-                }
-
-
             }
         )
     )

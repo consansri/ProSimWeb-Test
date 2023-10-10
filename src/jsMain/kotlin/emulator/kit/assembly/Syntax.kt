@@ -2,6 +2,7 @@ package emulator.kit.assembly
 
 import emulator.kit.common.FileHandler
 import emulator.kit.common.Transcript
+import emulator.kit.types.Variable
 
 /**
  * This template solves as an interface for specific architecture syntax implementations. It has one main function [check] in which the whole syntax should be analyzed and a corresponding syntax tree should be build.
@@ -11,6 +12,7 @@ import emulator.kit.common.Transcript
  */
 abstract class Syntax {
     abstract val applyStandardHLForRest: Boolean
+    abstract val decimalValueSize: Variable.Size
     abstract fun clear()
     abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree
     class SyntaxTree(val rootNode: TreeNode.RootNode? = null) {

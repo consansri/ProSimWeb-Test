@@ -19,6 +19,7 @@ import debug.DebugTools
 class RV32Syntax() : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
+    override val decimalValueSize: Variable.Size = Variable.Size.Bit32()
 
     override fun clear() {
 

@@ -103,8 +103,8 @@ class Compiler(
 
                     val dec = regexCollection.dec.find(remainingLine)
                     if (dec != null) {
-                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
-                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
+                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize)
+                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize)
                         startIndex += dec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -390,7 +390,7 @@ class Compiler(
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID)
+                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID, syntax.decimalValueSize)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -556,9 +556,9 @@ class Compiler(
                 }
             }
 
-            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
+            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int, val size: Variable.Size) : Constant(lineLoc, content, id) {
                 override fun getValue(): Variable.Value {
-                    return Variable.Value.Dec(content)
+                    return Variable.Value.Dec(content, size)
                 }
             }
 

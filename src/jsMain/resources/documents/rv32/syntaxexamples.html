@@ -1,0 +1,28 @@
+<h1>Syntax Examples</h1>
+<h2>Sections</h2>
+<pre><code>
+.data
+# allocate read/write initialized memory
+    dataEx: .string "hello world"
+
+.rodata
+# allocate read only initialized memory
+    rodataEx: .string "read only"
+
+.bss
+# allocate read/write uninitialized memory
+    bssEx: .string
+
+.text
+# define instructions and jumplabels
+
+    la	t0, dataEx 	# loads address of allocated memory in register t0
+
+</code></pre>
+<h2>Macros</h2>
+<pre><code>
+
+</code></pre>
+<h2>Constants</h2>
+<h2>Program start definition</h2>
+<h2>File Imports</h2>
