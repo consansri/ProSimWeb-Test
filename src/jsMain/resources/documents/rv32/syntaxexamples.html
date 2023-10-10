@@ -21,8 +21,50 @@
 </code></pre>
 <h2>Macros</h2>
 <pre><code>
+.macro push reg
+    addi sp, sp, -4
+    sw \reg, 0(sp)
+.endm
+
+.macro pop reg
+    lw \reg, 0(sp)
+    addi sp, sp, 4
+.endm
+
+    li	sp, 0xFFFFFFFC	#stack pointer initialization
+prog:
+    # some program which calls a function
+    push	ra
+    call .foo1
+    pop	ra
+    call	.end
+
+.foo1:
+    # a function which calls another function
+    push	ra
+    call .foo2
+    pop	ra
+    ret
+
+.foo2:
+    # another function
+    ret
+
+.end:
 
 </code></pre>
 <h2>Constants</h2>
+<pre><code>
+.equ SP_INIT, 0xFFFFFFFC
+
+li	sp, SP_INIT
+
+</code></pre>
 <h2>Program start definition</h2>
+<pre><code>
+
+</code></pre>
 <h2>File Imports</h2>
+<pre><code>
+
+</code></pre>

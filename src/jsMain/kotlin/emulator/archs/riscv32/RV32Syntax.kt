@@ -1108,7 +1108,7 @@ class RV32Syntax() : Syntax() {
         val pre_macro_end = Regex("""^\s*(\.endm)\s*?""")
         val pre_import = Regex("""^\s*(#import\s+"(.+)")\s*?""")
         val pre_comment = Regex("""^\s*#.*?""")
-        val pre_equ_def = Regex("""^\s*(\.equ\s+(.+)\s*,\s*(.+))\s*?""")
+        val pre_equ_def = Regex("""^\s*(\.equ\s+(.+)\s*,\s*(\S+)\s*)?""")
         val pre_option = Regex("""^\s*(\.option\s+.+)\s*?""")
         val pre_attribute = Regex("""^\s*(\.attribute\s+.+)\s*?""")
         val pre_globalStart = listOf(Regex("""^\s*(\.global\s+(?<labelName>.+))\s*?"""), Regex("""^\s*(\.globl\s+(?<labelName>.+))\s*?"""))
