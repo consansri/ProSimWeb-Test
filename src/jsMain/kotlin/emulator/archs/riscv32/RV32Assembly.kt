@@ -46,7 +46,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             val binary = architecture.getMemory().load(row.getAddresses().first(), 4).get().toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
-                if (Variable.Value.Bin(labels.value) == row.getAddresses().first().toBin()) {
+                if (Variable.Value.Bin(labels.value, Variable.Size.Bit32()) == row.getAddresses().first().toBin()) {
                     labelString += "${labels.key.wholeName} "
                 }
             }
@@ -58,7 +58,6 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                 var branchOffset7: String = ""
                 var jalOffset20: String = ""
                 result.binMap.entries.forEach {
-                    /*"${it.key.name.lowercase()}\t${*/
                     when (it.key) {
                         RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.IMM20 -> {
                             when (result.type) {
@@ -87,8 +86,6 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
                         else -> {}
                     }
-
-                    /* }"*/
                 }
                 var labelstring = ""
                 when (result.type) {
@@ -235,10 +232,10 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                                                         valueList.add(Variable.Value.Hex(char.code.toString(16), Variable.Size.Bit8()))
                                                     }
                                                     resizedValues = valueList.toTypedArray()
-                                                    length = Variable.Value.Hex(content.length.toString(16))
+                                                    length = Variable.Value.Hex(content.length.toString(16), Variable.Size.Bit32())
                                                 } else {
                                                     resizedValues = arrayOf(originalValue)
-                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
+                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16), Variable.Size.Bit32())
                                                 }
                                             }
 
@@ -385,7 +382,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
                                     val sizeOfOne = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                     val rest = nextBssAddress % sizeOfOne
-                                    if (rest != Variable.Value.Bin("0")) {
+                                    if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
                                         nextBssAddress += sizeOfOne - rest
                                     }
                                     dataList.add(DataEntry(entry.label, nextBssAddress.toHex(), originalValue.size, originalValue))
@@ -423,7 +420,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             val instrIDMap = mutableMapOf<String, AssemblyMap.MapEntry>()
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
-                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), Variable.Size.Bit32()))
+                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), Variable.Size.Bit32()), architecture)
                 if (DebugTools.RV32_showAsmInfo) {
                     console.log(
                         "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.instrname.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.instrType.id},  \n\t${

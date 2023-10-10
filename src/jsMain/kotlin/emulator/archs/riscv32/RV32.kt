@@ -12,8 +12,10 @@ import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.pre
+import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -62,57 +64,9 @@ object RV32 {
 
     val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
-            "Handbook",
+            "Syntax Examples",
             "../documents/rv32/syntaxexamples.html"
         ),
-        Docs.HtmlFile.DefinedFile("Syntax",
-            FC {
-                h1 {
-                    +"RV32 Syntax Examples"
-                }
-                h2 {
-                    +".text, .data, .rodata, .bss"
-                }
-                pre {
-                    +"""                       
-                        .data
-                        # allocate read/write initialized memory
-                            dataEx: .string "hello world"
-                        
-                        .rodata
-                        # allocate read only initialized memory
-                            rodataEx: .string "read only"
-                        
-                        .bss
-                        # allocate read/write uninitialized memory
-                            bssEx: .string
-                        
-                        .text
-                        # define instructions and jumplabels
-                        
-                            la	t0, dataEx 	# loads address of allocated memory in register t0
-
-                        """.trimIndent()
-                }
-                h2 {
-                    +".macros"
-                }
-                pre{
-                    +"""
-                        
-                    """.trimIndent()
-                }
-                h2 {
-                    +".equ"
-                }
-                h2 {
-                    +".global/.globl"
-                }
-                h2 {
-                    +"#import \"file.s\""
-                }
-
-            }),
         Docs.HtmlFile.DefinedFile(
             "Implemented",
             FC {
@@ -144,6 +98,21 @@ object RV32 {
                         +"value-width: ${MEM_VALUE_WIDTH.bitWidth}bit"
                     }
                 }
+                h2 {
+                    +"Directives"
+                }
+
+                for (majorDir in RV32Syntax.E_DIRECTIVE.MajorType.entries) {
+                    ReactHTML.strong {
+                        +majorDir.docName
+                    }
+                    ul {
+                        for (dir in RV32Syntax.E_DIRECTIVE.DirType.entries.filter { it.majorType == majorDir }) {
+                            li { +".${dir.dirname}" }
+                        }
+                    }
+                }
+
                 h2 {
                     +"Instructions"
                 }

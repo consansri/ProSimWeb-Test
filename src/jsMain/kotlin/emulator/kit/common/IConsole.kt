@@ -24,6 +24,10 @@ class IConsole(val name: String) {
         messageArray.add(Message(MSGType.ERROR, message))
     }
 
+    fun compilerInfo(message: String) {
+        messageArray.add(Message(MSGType.INFO, "--Compiler: $message"))
+    }
+
     fun clear() {
         messageArray.clear()
     }

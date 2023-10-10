@@ -154,6 +154,7 @@ class Variable {
             }
             return super.equals(other)
         }
+
         abstract override fun toString(): String
 
 
@@ -204,11 +205,20 @@ class Variable {
             }
 
             fun getUResized(size: Size): Bin {
-                return Bin(getRawBinaryStr(), size)
+                val paddedBinString = if (size.bitWidth < this.size.bitWidth) {
+                    getRawBinaryStr().substring(getRawBinaryStr().length - size.bitWidth)
+                } else {
+                    getRawBinaryStr().padStart(size.bitWidth, '0')
+                }
+                return Bin(paddedBinString, size)
             }
 
             fun getResized(size: Size): Bin {
-                val paddedBinString = getRawBinaryStr().padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                val paddedBinString = if (size.bitWidth < this.size.bitWidth) {
+                    getRawBinaryStr().substring(getRawBinaryStr().length - size.bitWidth)
+                } else {
+                    getRawBinaryStr().padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                }
                 return Bin(paddedBinString, size)
             }
 
@@ -365,21 +375,21 @@ class Variable {
             }
 
             override fun check(string: String, size: Size): CheckResult {
-                var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.bitWidth / 4, '0').uppercase()
+                var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.getByteCount() * 2, '0').uppercase()
                 val message: String
                 if (regex.matches(formatted)) {
-                    if (formatted.length <= size.bitWidth / 4) {
-                        formatted = formatted.padStart(size.bitWidth / 4, '0')
+                    if (formatted.length <= size.getByteCount() * 2) {
+                        formatted = formatted.padStart(size.getByteCount() * 2, '0')
                         return CheckResult(true, Settings.PRESTRING_HEX + formatted)
                     } else {
-                        val trimmedString = formatted.substring(formatted.length - size.bitWidth / 4)
-                        message = "Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.bitWidth / 4}!"
+                        val trimmedString = formatted.substring(formatted.length - size.getByteCount() * 2)
+                        message = "Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.getByteCount() * 2}!"
                         console.warn(message)
                         return CheckResult(false, Settings.PRESTRING_HEX + trimmedString, message)
                     }
                 } else {
-                    val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.bitWidth / 4)
-                    message = "Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.bitWidth / 4)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
+                    val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.getByteCount() * 2)
+                    message = "Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.getByteCount() * 2)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
                     console.error(message)
                     return CheckResult(false, zeroString, message)
                 }
@@ -781,21 +791,21 @@ class Variable {
             }
 
             fun getHex(bin: Bin): Hex {
-                val stringBuilder = StringBuilder()
+                var hexStr = ""
 
                 val binStr = bin.getRawBinaryStr()
 
                 for (i in binStr.indices step 4) {
                     val substring = binStr.substring(i, i + 4)
                     val int = substring.toInt(2)
-                    stringBuilder.append(int.toString(16).uppercase())
+                    hexStr += int.toString(16).uppercase()
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${bin.getBinaryStr()} to ${stringBuilder}")
+                    console.info("Conversion: ${bin.getBinaryStr()} to ${hexStr}")
                 }
 
-                return Hex(stringBuilder.toString(), bin.size)
+                return Hex(hexStr, bin.size)
             }
 
             fun getBinary(hex: Hex): Bin {

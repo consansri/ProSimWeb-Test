@@ -7,6 +7,7 @@ import emulator.kit.common.RegisterContainer
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.types.HTMLTools
+import kotlin.time.measureTime
 
 /**
  * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. Also the [Compiler] fires the compilation events in the following order.
@@ -51,12 +52,23 @@ class Compiler(
     fun getAssemblyMap(): Assembly.AssemblyMap = assemblyMap
     fun setCode(code: String, shouldHighlight: Boolean): Boolean {
         initCode(code)
-        analyze()
-        parse()
-        if (shouldHighlight) {
-            highlight()
+
+        architecture.getConsole().compilerInfo("building ...")
+        val parseTime = measureTime {
+            analyze()
+            parse()
         }
+        architecture.getConsole().compilerInfo("build\ttook ${parseTime.inWholeMicroseconds}µs\t(${if (isBuildable) "success" else "has errors"})")
+
+        if (shouldHighlight) {
+            val hlTime = measureTime {
+                highlight()
+            }
+            architecture.getConsole().compilerInfo("highlight\ttook ${hlTime.inWholeMicroseconds}µs")
+        }
+
         assemble()
+
         return isBuildable
     }
 
@@ -198,7 +210,9 @@ class Compiler(
     private fun parse() {
         architecture.getTranscript().clear()
         syntax.clear()
+        architecture.getConsole().compilerInfo("building... ")
         syntaxTree = syntax.check(this, tokenLines, architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() }, architecture.getTranscript())
+
         architecture.getConsole().clear()
         syntaxTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
@@ -227,7 +241,6 @@ class Compiler(
                 }
             }
             isBuildable = it.isEmpty()
-            if (isBuildable) architecture.getConsole().log("build successful!")
         }
 
     }
@@ -347,8 +360,16 @@ class Compiler(
         architecture.getTranscript().clear(Transcript.Type.DISASSEMBLED)
         if (isBuildable) {
             syntaxTree?.let {
-                assemblyMap = assembly.generateByteCode(architecture, it)
-                assembly.generateTranscript(architecture, it)
+                val assembleTime = measureTime {
+                    assemblyMap = assembly.generateByteCode(architecture, it)
+                }
+                architecture.getConsole().compilerInfo("assembl\ttook ${assembleTime.inWholeMicroseconds}µs")
+
+                val disassembleTime = measureTime {
+                    assembly.generateTranscript(architecture, it)
+                }
+                architecture.getConsole().compilerInfo("disassembl\ttook ${disassembleTime.inWholeMicroseconds}µs")
+
                 architecture.getFileHandler().getCurrent().linkGrammarTree(it)
             }
         } else {

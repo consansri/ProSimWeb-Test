@@ -57,7 +57,6 @@ class RV32Syntax() : Syntax() {
         val pres = mutableListOf<TreeNode.ElementNode>()
 
         // ----------------- resolve imports
-        var importHasErrors: Boolean = false
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
             SyntaxRegex.pre_import.matchEntire(lineStr)?.let {
@@ -160,16 +159,19 @@ class RV32Syntax() : Syntax() {
             SyntaxRegex.pre_equ_def.matchEntire(lineStr)?.let {
                 val name = compiler.pseudoAnalyze(it.groupValues[2])
                 val const = compiler.pseudoAnalyze(it.groupValues[3])
-
-                val constMatch = (const.size == 1 && const.first() is Compiler.Token.Constant)
-
-                if (constMatch) {
-                    equs.add(EquDefinition(name, const.first()))
-                    pres.add(Pre_EQU(*remainingLines[lineID].toTypedArray()))
-                } else {
-                    val message = "{constant: ${it.groupValues[3]}} is not a valid constant for an equ definition! "
-                    errors.add(Error(message, *remainingLines[lineID].toTypedArray()))
+                try {
+                    val constMatch = (const.size == 1 && const.first() is Compiler.Token.Constant)
+                    if (constMatch) {
+                        equs.add(EquDefinition(name, const.first()))
+                        pres.add(Pre_EQU(*remainingLines[lineID].toTypedArray()))
+                    } else {
+                        val message = "{constant: ${it.groupValues[3]}} is not a valid constant for an equ definition! "
+                        errors.add(Error(message, *remainingLines[lineID].toTypedArray()))
+                    }
+                } catch (e: NoSuchElementException) {
+                    console.log(e)
                 }
+
                 remainingLines[lineID] = emptyList()
             }
         }
@@ -1038,7 +1040,6 @@ class RV32Syntax() : Syntax() {
             else -> {}
         }
 
-
         /**
          * FINISH SECTION SCAN
          */
@@ -1108,10 +1109,10 @@ class RV32Syntax() : Syntax() {
         val pre_macro_end = Regex("""^\s*(\.endm)\s*?""")
         val pre_import = Regex("""^\s*(#import\s+"(.+)")\s*?""")
         val pre_comment = Regex("""^\s*#.*?""")
-        val pre_equ_def = Regex("""^\s*(\.equ\s+(.+)\s*,\s*(\S+)\s*)?""")
+        val pre_equ_def = Regex("""^\s*(\.equ\s+(\S+)\s*,\s*(\S+))\s*?""")
         val pre_option = Regex("""^\s*(\.option\s+.+)\s*?""")
         val pre_attribute = Regex("""^\s*(\.attribute\s+.+)\s*?""")
-        val pre_globalStart = listOf(Regex("""^\s*(\.global\s+(?<labelName>.+))\s*?"""), Regex("""^\s*(\.globl\s+(?<labelName>.+))\s*?"""))
+        val pre_globalStart = listOf(Regex("""^\s*(\.global\s+(?<labelName>\S+))\s*?"""), Regex("""^\s*(\.globl\s+(?<labelName>\S+))\s*?"""))
         val pre_globalStart_contentgroup = "labelName"
 
         val pre_unresolvedList = listOf(Regex("""^\s*(fence\.i)\s*?"""))
@@ -1195,28 +1196,34 @@ class RV32Syntax() : Syntax() {
                         val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
                         if (length > 12) length else null
                     }
+
                     R_INSTR.ParamType.RS2_Off5 -> {
                         val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
                         if (length > 5) length else null
                     }
+
                     R_INSTR.ParamType.RD_RS1_RS1 -> null
                     R_INSTR.ParamType.RD_RS1_I12 -> {
                         val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
                         if (length > 12) length else null
                     }
+
                     R_INSTR.ParamType.RD_RS1_I5 -> {
                         val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
                         if (length > 5) length else null
                     }
+
                     R_INSTR.ParamType.RS1_RS2_I12 -> {
                         val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
                         if (length > 12) length else null
                     }
+
                     R_INSTR.ParamType.PS_RS1_RS2_Jlbl -> null
                     R_INSTR.ParamType.PS_RD_I32 -> {
                         val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
                         if (length > 32) length else null
                     }
+
                     R_INSTR.ParamType.PS_RS1_Jlbl -> null
                     R_INSTR.ParamType.PS_RD_Albl -> null
                     R_INSTR.ParamType.PS_Jlbl -> null
@@ -1570,8 +1577,10 @@ class RV32Syntax() : Syntax() {
             return type.majorType == MajorType.DE_ALIGNED || type.majorType == MajorType.DE_UNALIGNED
         }
 
-        enum class MajorType {
-            SECTIONSTART, DE_ALIGNED, DE_UNALIGNED
+        enum class MajorType(val docName: String) {
+            SECTIONSTART("Section identification"),
+            DE_ALIGNED("Data emitting aligned"),
+            DE_UNALIGNED("Data emitting unaligned")
         }
 
         enum class DirType(val dirname: String, val majorType: MajorType) {

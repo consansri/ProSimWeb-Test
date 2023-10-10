@@ -1,7 +1,6 @@
 <h1>Syntax Examples</h1>
 <h2>Sections</h2>
-<pre><code>
-.data
+<pre><code>.data
 # allocate read/write initialized memory
     dataEx: .string "hello world"
 
@@ -17,11 +16,9 @@
 # define instructions and jumplabels
 
     la	t0, dataEx 	# loads address of allocated memory in register t0
-
 </code></pre>
 <h2>Macros</h2>
-<pre><code>
-.macro push reg
+<pre><code>.macro push reg
     addi sp, sp, -4
     sw \reg, 0(sp)
 .endm
@@ -51,20 +48,43 @@ prog:
     ret
 
 .end:
-
 </code></pre>
 <h2>Constants</h2>
-<pre><code>
-.equ SP_INIT, 0xFFFFFFFC
+<pre><code>.equ SP_INIT, 0xFFFFFFFC
 
 li	sp, SP_INIT
-
 </code></pre>
-<h2>Program start definition</h2>
-<pre><code>
+<h2>Start of Program</h2>
+<pre><code>.globl person # defines the program start
+# instead of .globl you can also use .global
 
+eat:
+	# eat
+	ret
+
+sleep:
+	# sleep
+	ret
+
+person:
+	# program starts here
+	li	t1, 10
+
+.lives:
+	jal	eat
+	jal	sleep
+	addi	t0, t0, 1
+	beq	t0, t1, .die
+	j	.lives
+
+.die:
+	# program ends here
 </code></pre>
 <h2>File Imports</h2>
-<pre><code>
+<pre><code>#import "person.s"
+#imports the whole person syntax, use it through labels
 
+main:
+	# example usage "person:" label is defined in "person.s"
+	jal	person
 </code></pre>
