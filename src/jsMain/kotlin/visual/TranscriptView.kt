@@ -43,7 +43,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
     }
     if (!DebugTools.REACT_deactivateAutoRefreshs) {
         executionPointInterval.current = setInterval({
-            val pcValue = appLogic.getArch().getRegisterContainer().pc.value.get()
+            val pcValue = appLogic.getArch().getRegContainer().pc.variable.get()
             setCurrExeAddr(pcValue.toHex())
         }, 50)
     }

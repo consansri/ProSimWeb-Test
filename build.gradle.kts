@@ -1,12 +1,10 @@
-import org.jetbrains.kotlin.fir.declarations.builder.buildAnonymousObject
-
 plugins {
-    kotlin("multiplatform") version "1.9.0"
+    kotlin("multiplatform") version "1.9.10"
     id("org.jetbrains.dokka") version "1.9.0"
 }
 
 group = "me.c3"
-version = "0.0.11"
+version = "0.1.0"
 
 repositories {
     mavenCentral()

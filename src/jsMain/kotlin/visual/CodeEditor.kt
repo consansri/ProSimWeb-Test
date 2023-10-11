@@ -84,7 +84,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     if (!DebugTools.REACT_deactivateAutoRefreshs) {
         executionPointInterval.current = setInterval({
             val lineAddressMap = appLogic.getArch().getAssembly().getAssemblyMap().lineAddressMap
-            val pcValue = appLogic.getArch().getRegisterContainer().pc.value.get()
+            val pcValue = appLogic.getArch().getRegContainer().pc.variable.get()
             val entry = lineAddressMap.get(pcValue.toHex().getRawHexStr())
 
             if (entry != null) {

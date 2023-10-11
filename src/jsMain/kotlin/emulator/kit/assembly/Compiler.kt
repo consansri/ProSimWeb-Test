@@ -3,7 +3,7 @@ package emulator.kit.assembly
 import emulator.kit.Settings
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
-import emulator.kit.common.RegisterContainer
+import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.types.HTMLTools
@@ -160,7 +160,7 @@ class Compiler(
 
                     val regRes = regexCollection.alphaNumeric.find(remainingLine)
                     if (regRes != null) {
-                        val reg = architecture.getRegisterContainer().getRegister(regRes.value)
+                        val reg = architecture.getRegContainer().getReg(regRes.value)
                         if (reg != null) {
                             tokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
                             tempTokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
@@ -356,7 +356,7 @@ class Compiler(
 
     private fun assemble() {
         architecture.getMemory().clear()
-        architecture.getRegisterContainer().pc.reset()
+        architecture.getRegContainer().pc.reset()
         architecture.getTranscript().clear(Transcript.Type.DISASSEMBLED)
         if (isBuildable) {
             syntaxTree?.let {
@@ -451,7 +451,7 @@ class Compiler(
 
             val regRes = regexCollection.alphaNumeric.find(remaining)
             if (regRes != null) {
-                val reg = architecture.getRegisterContainer().getRegister(regRes.value)
+                val reg = architecture.getRegContainer().getReg(regRes.value)
                 if (reg != null) {
                     tokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, lineID)
                     startIndex += regRes.value.length
@@ -591,7 +591,7 @@ class Compiler(
 
         }
 
-        class Register(lineLoc: LineLoc, content: String, val reg: RegisterContainer.Register, id: Int) : Token(lineLoc, content, id) {
+        class Register(lineLoc: LineLoc, content: String, val reg: RegContainer.Register, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.REGISTER
         }
 

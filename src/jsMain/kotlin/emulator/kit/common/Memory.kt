@@ -128,21 +128,21 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             hexAddress = (hexAddress + Variable.Value.Hex("01", Variable.Size.Bit8())).toHex()
         }
     }
-    fun load(address: Variable.Value): Variable {
-        val value = memMap.get(address.toHex().getRawHexStr())?.variable
+    fun load(address: Variable.Value): Variable.Value {
+        val value = memMap.get(address.toHex().getRawHexStr())?.variable?.get()
         if (value != null) {
             return value
         } else {
-            return getInitialBinary()
+            return getInitialBinary().get()
         }
     }
-    fun load(address: Variable.Value, amount: Int): Variable {
+    fun load(address: Variable.Value, amount: Int): Variable.Value {
         val instances = mutableListOf<String>()
 
         var instanceAddress = address.toBin()
         for (i in 0 until amount) {
-            val instance = load(instanceAddress)
-            instances.add(instance.get().toBin().getRawBinaryStr())
+            val value = load(instanceAddress)
+            instances.add(value.toBin().getRawBinaryStr())
             instanceAddress = (instanceAddress + Variable.Value.Bin("1", addressSize)).toBin()
         }
 
@@ -150,7 +150,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
             instances.reverse()
         }
 
-        return Variable(instances.joinToString("") { it }, Variable.Tools.getNearestSize(amount * wordSize.bitWidth))
+        return Variable.Value.Bin(instances.joinToString("") { it }, Variable.Tools.getNearestSize(amount * wordSize.bitWidth))
     }
     fun clear() {
         this.memMap.clear()

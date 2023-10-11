@@ -9,13 +9,9 @@ import emulator.kit.configs.Config
 import emulator.kit.types.*
 import react.FC
 import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.pre
-import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
@@ -33,7 +29,7 @@ import web.cssom.Float
  *
  * The implemented docs are generated in [riscVDocs].
  *
- * [RV32Syntax] and [RV32Assembly] are linked through the [asmConfig], while every other architecture configuration is defined in [config] such as the name, [Description], [FileHandler], [RegisterContainer], [Memory] and [Transcript].
+ * [RV32Syntax] and [RV32Assembly] are linked through the [asmConfig], while every other architecture configuration is defined in [config] such as the name, [Description], [FileHandler], [RegContainer], [Memory] and [Transcript].
  *
  * Transcript Header References are defined through [TS_COMPILED_HEADERS] and [TS_DISASSEMBLED_HEADERS].
  *
@@ -189,42 +185,42 @@ object RV32 {
     val config = Config(
         Description("RV32I", "RISC-V 32Bit", riscVDocs),
         FileHandler("s"),
-        RegisterContainer(
+        RegContainer(
             listOf(
-                RegisterContainer.RegisterFile(
+                RegContainer.RegisterFile(
                     "main", arrayOf(
-                        RegisterContainer.Register(Variable.Value.UDec("0", REG_ADDRESS_SIZE), listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), "hardwired zero", hardwire = true),
-                        RegisterContainer.Register(Variable.Value.UDec("1", REG_ADDRESS_SIZE), listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), "return address"),
-                        RegisterContainer.Register(Variable.Value.UDec("2", REG_ADDRESS_SIZE), listOf("x2"), listOf("sp"), Variable(REG_INIT, REG_VALUE_SIZE), "stack pointer"),
-                        RegisterContainer.Register(Variable.Value.UDec("3", REG_ADDRESS_SIZE), listOf("x3"), listOf("gp"), Variable(REG_INIT, REG_VALUE_SIZE), "global pointer"),
-                        RegisterContainer.Register(Variable.Value.UDec("4", REG_ADDRESS_SIZE), listOf("x4"), listOf("tp"), Variable(REG_INIT, REG_VALUE_SIZE), "thread pointer"),
-                        RegisterContainer.Register(Variable.Value.UDec("5", REG_ADDRESS_SIZE), listOf("x5"), listOf("t0"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 0"),
-                        RegisterContainer.Register(Variable.Value.UDec("6", REG_ADDRESS_SIZE), listOf("x6"), listOf("t1"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 1"),
-                        RegisterContainer.Register(Variable.Value.UDec("7", REG_ADDRESS_SIZE), listOf("x7"), listOf("t2"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 2"),
-                        RegisterContainer.Register(Variable.Value.UDec("8", REG_ADDRESS_SIZE), listOf("x8"), listOf("s0", "fp"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 0 / frame pointer"),
-                        RegisterContainer.Register(Variable.Value.UDec("9", REG_ADDRESS_SIZE), listOf("x9"), listOf("s1"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 1"),
-                        RegisterContainer.Register(Variable.Value.UDec("10", REG_ADDRESS_SIZE), listOf("x10"), listOf("a0"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 0 / return value 0"),
-                        RegisterContainer.Register(Variable.Value.UDec("11", REG_ADDRESS_SIZE), listOf("x11"), listOf("a1"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 1 / return value 1"),
-                        RegisterContainer.Register(Variable.Value.UDec("12", REG_ADDRESS_SIZE), listOf("x12"), listOf("a2"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 2"),
-                        RegisterContainer.Register(Variable.Value.UDec("13", REG_ADDRESS_SIZE), listOf("x13"), listOf("a3"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 3"),
-                        RegisterContainer.Register(Variable.Value.UDec("14", REG_ADDRESS_SIZE), listOf("x14"), listOf("a4"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 4"),
-                        RegisterContainer.Register(Variable.Value.UDec("15", REG_ADDRESS_SIZE), listOf("x15"), listOf("a5"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 5"),
-                        RegisterContainer.Register(Variable.Value.UDec("16", REG_ADDRESS_SIZE), listOf("x16"), listOf("a6"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 6"),
-                        RegisterContainer.Register(Variable.Value.UDec("17", REG_ADDRESS_SIZE), listOf("x17"), listOf("a7"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 7"),
-                        RegisterContainer.Register(Variable.Value.UDec("18", REG_ADDRESS_SIZE), listOf("x18"), listOf("s2"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 2"),
-                        RegisterContainer.Register(Variable.Value.UDec("19", REG_ADDRESS_SIZE), listOf("x19"), listOf("s3"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 3"),
-                        RegisterContainer.Register(Variable.Value.UDec("20", REG_ADDRESS_SIZE), listOf("x20"), listOf("s4"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 4"),
-                        RegisterContainer.Register(Variable.Value.UDec("21", REG_ADDRESS_SIZE), listOf("x21"), listOf("s5"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 5"),
-                        RegisterContainer.Register(Variable.Value.UDec("22", REG_ADDRESS_SIZE), listOf("x22"), listOf("s6"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 6"),
-                        RegisterContainer.Register(Variable.Value.UDec("23", REG_ADDRESS_SIZE), listOf("x23"), listOf("s7"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 7"),
-                        RegisterContainer.Register(Variable.Value.UDec("24", REG_ADDRESS_SIZE), listOf("x24"), listOf("s8"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 8"),
-                        RegisterContainer.Register(Variable.Value.UDec("25", REG_ADDRESS_SIZE), listOf("x25"), listOf("s9"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 9"),
-                        RegisterContainer.Register(Variable.Value.UDec("26", REG_ADDRESS_SIZE), listOf("x26"), listOf("s10"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 10"),
-                        RegisterContainer.Register(Variable.Value.UDec("27", REG_ADDRESS_SIZE), listOf("x27"), listOf("s11"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 11"),
-                        RegisterContainer.Register(Variable.Value.UDec("28", REG_ADDRESS_SIZE), listOf("x28"), listOf("t3"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 3"),
-                        RegisterContainer.Register(Variable.Value.UDec("29", REG_ADDRESS_SIZE), listOf("x29"), listOf("t4"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 4"),
-                        RegisterContainer.Register(Variable.Value.UDec("30", REG_ADDRESS_SIZE), listOf("x30"), listOf("t5"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 5"),
-                        RegisterContainer.Register(Variable.Value.UDec("31", REG_ADDRESS_SIZE), listOf("x31"), listOf("t6"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 6")
+                        RegContainer.Register(Variable.Value.UDec("0", REG_ADDRESS_SIZE), listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), "hardwired zero", hardwire = true),
+                        RegContainer.Register(Variable.Value.UDec("1", REG_ADDRESS_SIZE), listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), "return address"),
+                        RegContainer.Register(Variable.Value.UDec("2", REG_ADDRESS_SIZE), listOf("x2"), listOf("sp"), Variable(REG_INIT, REG_VALUE_SIZE), "stack pointer"),
+                        RegContainer.Register(Variable.Value.UDec("3", REG_ADDRESS_SIZE), listOf("x3"), listOf("gp"), Variable(REG_INIT, REG_VALUE_SIZE), "global pointer"),
+                        RegContainer.Register(Variable.Value.UDec("4", REG_ADDRESS_SIZE), listOf("x4"), listOf("tp"), Variable(REG_INIT, REG_VALUE_SIZE), "thread pointer"),
+                        RegContainer.Register(Variable.Value.UDec("5", REG_ADDRESS_SIZE), listOf("x5"), listOf("t0"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 0"),
+                        RegContainer.Register(Variable.Value.UDec("6", REG_ADDRESS_SIZE), listOf("x6"), listOf("t1"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 1"),
+                        RegContainer.Register(Variable.Value.UDec("7", REG_ADDRESS_SIZE), listOf("x7"), listOf("t2"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 2"),
+                        RegContainer.Register(Variable.Value.UDec("8", REG_ADDRESS_SIZE), listOf("x8"), listOf("s0", "fp"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 0 / frame pointer"),
+                        RegContainer.Register(Variable.Value.UDec("9", REG_ADDRESS_SIZE), listOf("x9"), listOf("s1"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 1"),
+                        RegContainer.Register(Variable.Value.UDec("10", REG_ADDRESS_SIZE), listOf("x10"), listOf("a0"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 0 / return value 0"),
+                        RegContainer.Register(Variable.Value.UDec("11", REG_ADDRESS_SIZE), listOf("x11"), listOf("a1"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 1 / return value 1"),
+                        RegContainer.Register(Variable.Value.UDec("12", REG_ADDRESS_SIZE), listOf("x12"), listOf("a2"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 2"),
+                        RegContainer.Register(Variable.Value.UDec("13", REG_ADDRESS_SIZE), listOf("x13"), listOf("a3"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 3"),
+                        RegContainer.Register(Variable.Value.UDec("14", REG_ADDRESS_SIZE), listOf("x14"), listOf("a4"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 4"),
+                        RegContainer.Register(Variable.Value.UDec("15", REG_ADDRESS_SIZE), listOf("x15"), listOf("a5"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 5"),
+                        RegContainer.Register(Variable.Value.UDec("16", REG_ADDRESS_SIZE), listOf("x16"), listOf("a6"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 6"),
+                        RegContainer.Register(Variable.Value.UDec("17", REG_ADDRESS_SIZE), listOf("x17"), listOf("a7"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 7"),
+                        RegContainer.Register(Variable.Value.UDec("18", REG_ADDRESS_SIZE), listOf("x18"), listOf("s2"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 2"),
+                        RegContainer.Register(Variable.Value.UDec("19", REG_ADDRESS_SIZE), listOf("x19"), listOf("s3"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 3"),
+                        RegContainer.Register(Variable.Value.UDec("20", REG_ADDRESS_SIZE), listOf("x20"), listOf("s4"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 4"),
+                        RegContainer.Register(Variable.Value.UDec("21", REG_ADDRESS_SIZE), listOf("x21"), listOf("s5"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 5"),
+                        RegContainer.Register(Variable.Value.UDec("22", REG_ADDRESS_SIZE), listOf("x22"), listOf("s6"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 6"),
+                        RegContainer.Register(Variable.Value.UDec("23", REG_ADDRESS_SIZE), listOf("x23"), listOf("s7"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 7"),
+                        RegContainer.Register(Variable.Value.UDec("24", REG_ADDRESS_SIZE), listOf("x24"), listOf("s8"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 8"),
+                        RegContainer.Register(Variable.Value.UDec("25", REG_ADDRESS_SIZE), listOf("x25"), listOf("s9"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 9"),
+                        RegContainer.Register(Variable.Value.UDec("26", REG_ADDRESS_SIZE), listOf("x26"), listOf("s10"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 10"),
+                        RegContainer.Register(Variable.Value.UDec("27", REG_ADDRESS_SIZE), listOf("x27"), listOf("s11"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 11"),
+                        RegContainer.Register(Variable.Value.UDec("28", REG_ADDRESS_SIZE), listOf("x28"), listOf("t3"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 3"),
+                        RegContainer.Register(Variable.Value.UDec("29", REG_ADDRESS_SIZE), listOf("x29"), listOf("t4"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 4"),
+                        RegContainer.Register(Variable.Value.UDec("30", REG_ADDRESS_SIZE), listOf("x30"), listOf("t5"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 5"),
+                        RegContainer.Register(Variable.Value.UDec("31", REG_ADDRESS_SIZE), listOf("x31"), listOf("t6"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 6")
                     )
                 )
             ),

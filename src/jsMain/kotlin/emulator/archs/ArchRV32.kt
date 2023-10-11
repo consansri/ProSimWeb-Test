@@ -16,11 +16,12 @@ import kotlin.time.measureTime
 class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
 
     val instrnames = R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
-    val registers = getRegisterContainer().getAllRegisters().map { it.getRegexList() }.flatMap { it }
+    val registers = getRegContainer().getAllRegs().map { it.getRegexList() }.flatMap { it }
     val labels = listOf(Regex("""(?<=\s|^)(.+:)(?=\s|$)"""))
     val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
     val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }
     val consts = listOf(Regex("""(?<=\s|^)(0x[0-9A-Fa-f]+)"""), Regex("""(?<=\s|^)(0b[01]+)"""), Regex("""(?<=\s|^)((-)?[0-9]+)"""), Regex("""(?<=\s|^)(u[0-9]+)"""), Regex("""('.')"""), Regex("\".+\""))
+    val mapper = RV32BinMapper()
 
     override fun exeContinuous() {
         if (this.getAssembly().isBuildable()) {
@@ -28,17 +29,16 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
             val measuredTime = measureTime {
                 super.exeContinuous()
 
-                val binMapper = RV32BinMapper()
-                var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                var result = binMapper.getInstrFromBinary(binary.get().toBin())
+                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var result = mapper.getInstrFromBinary(value.toBin())
 
                 while (result != null && instrCount < 1000) {
                     instrCount++
                     result.type.execute(this, result.binMap)
 
                     // Load next Instruction
-                    binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                    result = binMapper.getInstrFromBinary(binary.get().toBin())
+                    value = getMemory().load(getRegContainer().pc.get(), 4)
+                    result = mapper.getInstrFromBinary(value.toBin())
                 }
             }
             getConsole().log("--continuous finishing... \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
@@ -46,21 +46,20 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
     }
 
     override fun exeSingleStep() {
-        if (this.getAssembly().isBuildable()) {
-            val measuredTime = measureTime {
-                super.exeSingleStep()
+        if (!this.getAssembly().isBuildable()) return
 
-                val binMapper = RV32BinMapper()
-                val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                val result = binMapper.getInstrFromBinary(binary.get().toBin())
-                if (result != null) {
-                    result.type.execute(this, result.binMap)
-                }
-            }
+        val measuredTime = measureTime {
+            super.exeSingleStep() // clears console
 
-            getConsole().log("--single_step finishing... \ntook ${measuredTime.inWholeMicroseconds} μs")
+            // load binary from memory
+            val loadedValue = getMemory().load(getRegContainer().pc.get(), 4)
+            // identify instr and opcode usages (build binary map)
+            val instrResult = mapper.getInstrFromBinary(loadedValue.toBin())
+            // execute instr
+            instrResult?.type?.execute(this, instrResult.binMap)
         }
 
+        getConsole().log("--single_step finishing... \ntook ${measuredTime.inWholeMicroseconds} μs")
     }
 
     override fun exeMultiStep(steps: Int) {
@@ -70,9 +69,8 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
             val measuredTime = measureTime {
                 super.exeMultiStep(steps)
 
-                val binMapper = RV32BinMapper()
-                var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                var result = binMapper.getInstrFromBinary(binary.get().toBin())
+                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var result = mapper.getInstrFromBinary(value.toBin())
 
                 for (step in 0 until steps) {
                     if (result != null) {
@@ -80,8 +78,8 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                         result.type.execute(this, result.binMap)
 
                         // Load next Instruction
-                        binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                        result = binMapper.getInstrFromBinary(binary.get().toBin())
+                        value = getMemory().load(getRegContainer().pc.get(), 4)
+                        result = mapper.getInstrFromBinary(value.toBin())
                     } else {
                         break
                     }
@@ -98,21 +96,21 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
 
             val measuredTime = measureTime {
                 super.exeSkipSubroutine()
-                val binMapper = RV32BinMapper()
-                var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                var result = binMapper.getInstrFromBinary(binary.get().toBin())
+
+                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var result = mapper.getInstrFromBinary(value.toBin())
                 if (result != null) {
                     if (result.type == R_INSTR.InstrType.JAL || result.type == R_INSTR.InstrType.JALR) {
-                        val returnAddress = getRegisterContainer().pc.value.get() + Variable.Value.Hex("4", Variable.Size.Bit32())
-                        while (getRegisterContainer().pc.value.get() != returnAddress) {
+                        val returnAddress = getRegContainer().pc.get() + Variable.Value.Hex("4", Variable.Size.Bit32())
+                        while (getRegContainer().pc.get() != returnAddress) {
                             if (result != null) {
                                 result.type.execute(this, result.binMap)
                                 instrCount++
                             } else {
                                 break
                             }
-                            binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                            result = binMapper.getInstrFromBinary(binary.get().toBin())
+                            value = getMemory().load(getRegContainer().pc.get(), 4)
+                            result = mapper.getInstrFromBinary(value.toBin())
                         }
 
                     } else {
@@ -131,17 +129,17 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
             super.exeReturnFromSubroutine()
             var instrCount = 0
             val measuredTime = measureTime {
-                val binMapper = RV32BinMapper()
-                var binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                var result = binMapper.getInstrFromBinary(binary.get().toBin())
+
+                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var result = mapper.getInstrFromBinary(value.toBin())
 
                 val returnTypeList = listOf(R_INSTR.InstrType.JALR, R_INSTR.InstrType.JAL)
 
                 while (result != null && !returnTypeList.contains(result.type)) {
                     result.type.execute(this, result.binMap)
 
-                    binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                    result = binMapper.getInstrFromBinary(binary.get().toBin())
+                    value = getMemory().load(getRegContainer().pc.get(), 4)
+                    result = mapper.getInstrFromBinary(value.toBin())
                     instrCount++
                 }
             }
@@ -155,7 +153,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
         if (this.getAssembly().isBuildable()) {
             super.exeUntilLine(lineID)
             var instrCount = 0
-            val binMapper = RV32BinMapper()
+
             val lineAddressMap = getAssembly().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.file == getFileHandler().getCurrent() }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
@@ -175,9 +173,9 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 getConsole().info("--exe_until_line executing until line ${closestID + 1} or address ${destAddr.getHexStr()}")
                 val measuredTime = measureTime {
                     while (instrCount < 1000) {
-                        val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                        val result = binMapper.getInstrFromBinary(binary.get().toBin())
-                        if (destAddr == getRegisterContainer().pc.value.get()) {
+                        val value = getMemory().load(getRegContainer().pc.get(), 4)
+                        val result = mapper.getInstrFromBinary(value.toBin())
+                        if (destAddr == getRegContainer().pc.get()) {
                             break
                         }
                         if (result != null) {
@@ -194,8 +192,8 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 getConsole().info("--exe_continuous")
                 val measuredTime = measureTime {
                     while (instrCount < 1000) {
-                        val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                        val result = binMapper.getInstrFromBinary(binary.get().toBin())
+                        val value = getMemory().load(getRegContainer().pc.get(), 4)
+                        val result = mapper.getInstrFromBinary(value.toBin())
                         if (result != null) {
                             result.type.execute(this, result.binMap)
                             instrCount++
@@ -213,13 +211,13 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
     override fun exeUntilAddress(address: Variable.Value.Hex) {
         super.exeUntilAddress(address)
         var instrCount = 0
-        val binMapper = RV32BinMapper()
+
         getConsole().info("--exe_until_line executing until address ${address.getHexStr()}")
         val measuredTime = measureTime {
             while (instrCount < 1000) {
-                val binary = getMemory().load(getRegisterContainer().pc.value.get(), 4)
-                val result = binMapper.getInstrFromBinary(binary.get().toBin())
-                if (address == getRegisterContainer().pc.value.get()) {
+                val value = getMemory().load(getRegContainer().pc.get(), 4)
+                val result = mapper.getInstrFromBinary(value.toBin())
+                if (address == getRegContainer().pc.get()) {
                     break
                 }
                 if (result != null) {

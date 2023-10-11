@@ -63,7 +63,7 @@ val MemoryView = FC<MemViewProps> { props ->
     }
     if (!DebugTools.REACT_deactivateAutoRefreshs) {
         pcIVRef.current = setInterval({
-            setCurrExeAddr(appLogic.getArch().getRegisterContainer().pc.value.get().toHex().getRawHexStr())
+            setCurrExeAddr(appLogic.getArch().getRegContainer().pc.variable.get().toHex().getRawHexStr())
         }, 100)
     }
 

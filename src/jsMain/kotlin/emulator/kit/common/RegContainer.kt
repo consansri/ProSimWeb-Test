@@ -3,10 +3,10 @@ package emulator.kit.common
 import emulator.kit.types.Variable
 
 /**
- * The [RegisterContainer] is making all [RegisterFile]s besides the [PC] accessible.
- * It contains searching functions to find a register by name or alias ([getRegister]).
+ * The [RegContainer] is making all [RegisterFile]s besides the [PC] accessible.
+ * It contains searching functions to find a register by name or alias ([getReg]).
  */
-class RegisterContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size) {
+class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size) {
 
     val pc = PC(Variable("0", pcSize), Variable.Value.Bin("0"))
 
@@ -18,7 +18,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         }
     }
 
-    fun getRegister(name: String): Register? {
+    fun getReg(name: String): Register? {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
                 if (reg.names.contains(name)) {
@@ -32,7 +32,7 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return null
     }
 
-    fun getRegister(address: Variable.Value): Register? {
+    fun getReg(address: Variable.Value): Register? {
         for (registerFile in registerFileList) {
             for (reg in registerFile.registers) {
                 if (reg.address == address) {
@@ -43,13 +43,13 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         return null
     }
 
-    fun getAllRegisters(): List<Register> {
+    fun getAllRegs(): List<Register> {
         val allRegs = mutableListOf<Register>()
         registerFileList.forEach { allRegs.addAll(it.registers) }
         return allRegs
     }
 
-    fun getRegisterFileList(): List<RegisterFile> {
+    fun getRegFileList(): List<RegisterFile> {
         return registerFileList
     }
 
@@ -84,12 +84,18 @@ class RegisterContainer(private val registerFileList: List<RegisterFile>, val pc
         }
     }
 
-    data class PC(val value: Variable, val initial: Variable.Value) {
+    data class PC(val variable: Variable, val initial: Variable.Value) {
         val name = "program counter"
         val shortName = "pc"
 
+        fun get(): Variable.Value = variable.get()
+
+        fun set(value: Variable.Value){
+            variable.set(value)
+        }
+
         fun reset() {
-            value.set(initial)
+            variable.set(initial)
         }
 
     }

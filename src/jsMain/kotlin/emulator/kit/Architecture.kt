@@ -28,7 +28,7 @@ import web.buffer.Blob
  *  @property name Essential: Given by Config
  *  @property docs Essential: Given by Config
  *  @property fileHandler Essential: Given by Config
- *  @property registerContainer Essential: Given by Config
+ *  @property regContainer Essential: Given by Config
  *  @property memory Essential: Given by Config
  *  @property transcript Essential: Given by Config
  *
@@ -45,7 +45,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     private val description: Config.Description
     private val fileHandler: FileHandler
-    private val registerContainer: RegisterContainer
+    private val regContainer: RegContainer
     private val memory: Memory
     private val iConsole: IConsole
     private val archState = ArchState()
@@ -57,7 +57,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     init {
         this.description = config.description
         this.fileHandler = config.fileHandler
-        this.registerContainer = config.registerContainer
+        this.regContainer = config.regContainer
         this.memory = config.memory
         this.transcript = config.transcript
         this.flagsConditions = config.flagsConditions
@@ -75,7 +75,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     fun getDescription(): Config.Description = description
     fun getFileHandler(): FileHandler = fileHandler
-    fun getRegisterContainer(): RegisterContainer = registerContainer
+    fun getRegContainer(): RegContainer = regContainer
     fun getTranscript(): Transcript = transcript
     fun getMemory(): Memory = memory
     fun getFlagsConditions(): FlagsConditions? = flagsConditions
@@ -157,7 +157,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      */
     open fun exeClear() {
         getConsole().log("--clear_registers ...")
-        registerContainer.clear()
+        regContainer.clear()
     }
 
     /**

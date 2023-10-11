@@ -39,13 +39,13 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
     val appLogic by useState(props.emulator)
     val name by useState(props.name)
-    val regFileList = appLogic.getArch().getRegisterContainer().getRegisterFileList()
+    val regFileList = appLogic.getArch().getRegContainer().getRegFileList()
     val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(regFileList.size - 1)
     val (currRegType, setCurrRegTypeIndex) = useState<Variable.Value.Types>(Variable.Value.Types.Hex)
     val (update, setUpdate) = useState(false)
     val change = props.update
 
-    val registerContainer = appLogic.getArch().getRegisterContainer()
+    val registerContainer = appLogic.getArch().getRegContainer()
 
     // INTERVALS
 
@@ -55,7 +55,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
     if (!DebugTools.REACT_deactivateAutoRefreshs) {
         pcRefreshInterval.current = setInterval({
             pcRef.current?.let {
-                it.innerText = "PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
+                it.innerText = "PC: ${registerContainer.pc.variable.get().toHex().getHexStr()}"
             }
         }, 100)
     }
@@ -154,10 +154,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     paddingTop = 0.5.rem
                 }
 
-                +"PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
+                +"PC: ${registerContainer.pc.variable.get().toHex().getHexStr()}"
 
                 onClick = { event ->
-                    appLogic.getArch().getRegisterContainer().pc
+                    appLogic.getArch().getRegContainer().pc
                     setUpdate(!update)
                 }
             }
@@ -174,7 +174,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             tabIndex = 0
 
             table {
-                val registerArray = registerContainer.getRegisterFileList()[currRegFileIndex]
+                val registerArray = registerContainer.getRegFileList()[currRegFileIndex]
                 thead {
                     tr {
 
@@ -372,11 +372,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(part-update) RegisterView")
         }
-        val registers = if (currRegFileIndex < registerContainer.getRegisterFileList().size) {
-            registerContainer.getRegisterFileList()[currRegFileIndex]
+        val registers = if (currRegFileIndex < registerContainer.getRegFileList().size) {
+            registerContainer.getRegFileList()[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
-            registerContainer.getRegisterFileList()[0]
+            registerContainer.getRegFileList()[0]
         }
         registers.let {
             for (reg in it.registers) {
@@ -412,12 +412,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) RegisterView")
         }
-        val regCont = appLogic.getArch().getRegisterContainer()
-        val registers = if (currRegFileIndex < regCont.getRegisterFileList().size) {
-            regCont.getRegisterFileList()[currRegFileIndex]
+        val regCont = appLogic.getArch().getRegContainer()
+        val registers = if (currRegFileIndex < regCont.getRegFileList().size) {
+            regCont.getRegFileList()[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
-            regCont.getRegisterFileList()[0]
+            regCont.getRegFileList()[0]
         }
     }
 
@@ -426,7 +426,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             console.log("(part-update) RegisterView")
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${registerContainer.pc.value.get().toHex().getHexStr()}"
+            it.innerText = "PC: ${registerContainer.pc.variable.get().toHex().getHexStr()}"
         }
     }
 

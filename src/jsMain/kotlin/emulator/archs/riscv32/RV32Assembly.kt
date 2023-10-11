@@ -10,7 +10,6 @@ import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import debug.DebugTools
-import kotlin.math.roundToInt
 
 
 /**
@@ -43,7 +42,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
         for (rowID in transcriptEntrys.indices) {
             val row = transcriptEntrys[rowID]
-            val binary = architecture.getMemory().load(row.getAddresses().first(), 4).get().toBin()
+            val binary = architecture.getMemory().load(row.getAddresses().first(), 4).toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
                 if (Variable.Value.Bin(labels.value, Variable.Size.Bit32()) == row.getAddresses().first().toBin()) {
@@ -447,7 +446,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                 memory.save(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
             }
             transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4", Variable.Size.Bit8())).toHex()))
-            architecture.getRegisterContainer().pc.value.set(pcStartAddress)
+            architecture.getRegContainer().pc.variable.set(pcStartAddress)
             assemblyMap = AssemblyMap(instrIDMap)
         }
 
@@ -473,7 +472,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
         fun addInstr(architecture: Architecture, instrResult: RV32BinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
             content[RV32.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
-            content[RV32.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegisterContainer(), instrResult.binMap.toMutableMap(), labelName))
+            content[RV32.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegContainer(), instrResult.binMap.toMutableMap(), labelName))
         }
 
         fun addLabel(labelName: String) {
