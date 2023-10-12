@@ -245,13 +245,16 @@ class RV32Syntax() : Syntax() {
                             }
                         }
                     }
+                    if(macros.map { it.name }.contains(name)){
+                        validArgs = false
+                    }
 
                     macroTokens.addAll(remainingLines[lineID])
 
                     if (validArgs) {
                         foundStart = true
                     } else {
-                        errors.add(Error("Macro arguments {${arguments.joinToString(",") { it }}} not alpha numeric!", *macroTokens.toTypedArray()))
+                        errors.add(Error("Macro ($name) already defined or arguments {${arguments.joinToString(",") { it }}} not alpha numeric!", *macroTokens.toTypedArray()))
                         foundStart = false
                         macroTokens.clear()
                     }
@@ -356,7 +359,7 @@ class RV32Syntax() : Syntax() {
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
             for (regex in SyntaxRegex.pre_unresolvedList) {
-                regex.matchEntire(lineStr)?.let { matchResult ->
+                regex.matchEntire(lineStr)?.let {
                     pres.add(Pre_UNRESOLVED(*remainingLines[lineID].toTypedArray()))
                     remainingLines[lineID] = emptyList()
                 }
@@ -610,7 +613,7 @@ class RV32Syntax() : Syntax() {
                     }
 
                     // LINK
-                    var link: E_PARAM.Link? = null
+                    var link: E_PARAM.Link?
                     val tokensForLabelToCheck = mutableListOf<Compiler.Token>()
                     for (possibleLabelToken in paramBuffer.dropWhile { firstToken != it }) {
                         if (possibleLabelToken is Compiler.Token.Space || (possibleLabelToken.content == ",")) {
@@ -723,7 +726,7 @@ class RV32Syntax() : Syntax() {
             if (result.matches) {
                 if (result.matchingTreeNodes.size == 1) {
                     val eLabel = result.matchingTreeNodes[0] as E_LABEL
-                    val isGlobalStart = (eLabel.wholeName == globalStart?.labelName) ?: false
+                    val isGlobalStart = (eLabel.wholeName == globalStart?.labelName)
                     if (isGlobalStart) {
                         globalStart?.let {
                             pres.add(it)
@@ -1264,7 +1267,7 @@ class RV32Syntax() : Syntax() {
 
         fun check(paramcoll: E_PARAMCOLL = E_PARAMCOLL()): R_INSTR.InstrType? {
             val params = paramcoll.paramsWithOutSplitSymbols
-            var type: R_INSTR.InstrType = types.first()
+            var type: R_INSTR.InstrType
             types.forEach {
                 val matches: Boolean
                 type = it
