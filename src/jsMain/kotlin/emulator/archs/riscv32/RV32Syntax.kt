@@ -141,7 +141,9 @@ class RV32Syntax() : Syntax() {
                 it.matchEntire(lineStr)?.let {
                     val labelName = it.groups[SyntaxRegex.pre_globalStart_contentgroup]?.value ?: ""
                     if (globalStart == null && labelName.isNotEmpty()) {
-                        globalStart = Pre_GLOBAL(*remainingLines[lineID].toTypedArray(), labelName = labelName)
+                        val directives = remainingLines[lineID].filter { it.content == "." || it.content == "global" || it.content == "globl" }
+                        val elseTokens = remainingLines[lineID] - directives
+                        globalStart = Pre_GLOBAL(ConnectedHL(Pair(RV32Flags.directive, directives), Pair(RV32Flags.pre_global, elseTokens)), *remainingLines[lineID].toTypedArray(), labelName = labelName)
                     } else {
                         if (globalStart != null) {
                             errors.add(Error("global start is already defined in line ${(globalStart?.tokens?.first()?.lineLoc?.lineID ?: -1) + 1}!", *remainingLines[lineID].toTypedArray()))
@@ -166,7 +168,10 @@ class RV32Syntax() : Syntax() {
                     val constMatch = (const.size == 1 && const.first() is Compiler.Token.Constant)
                     if (constMatch) {
                         equs.add(EquDefinition(name, const.first()))
-                        pres.add(Pre_EQU(*remainingLines[lineID].toTypedArray()))
+                        val directiveTokens = remainingLines[lineID].filter { it.content == "." || it.content == "equ" }
+                        val constant = remainingLines[lineID].filter { it.content != "." && it.content != "equ" && it is Compiler.Token.Constant }
+                        val elseTokens = remainingLines[lineID].filter { it.content != "," && !directiveTokens.contains(it) && !constant.contains(it) }
+                        pres.add(Pre_EQU(ConnectedHL(Pair(RV32Flags.directive, directiveTokens), Pair(RV32Flags.constant, constant), Pair(RV32Flags.pre_equ, elseTokens)), *remainingLines[lineID].toTypedArray()))
                     } else {
                         val message = "{constant: ${it.groupValues[3]}} is not a valid constant for an equ definition! "
                         errors.add(Error(message, *remainingLines[lineID].toTypedArray()))
@@ -195,7 +200,7 @@ class RV32Syntax() : Syntax() {
                         val newLineTokens = compiler.pseudoAnalyze(newLineContent, tokenLineID)
                         tokenList.clear()
                         tokenList.addAll(newLineTokens)
-                        pres.add(Pre_EQU(*nameTokens.toTypedArray()))
+                        pres.add(Pre_EQU(tokens = nameTokens.toTypedArray()))
                         replacementHappened = true
                     }
                 }
@@ -246,7 +251,7 @@ class RV32Syntax() : Syntax() {
                     if (validArgs) {
                         foundStart = true
                     } else {
-                        errors.add(Syntax.Error("Macro arguments {${arguments.joinToString(",") { it }}} not alpha numeric!", *macroTokens.toTypedArray()))
+                        errors.add(Error("Macro arguments {${arguments.joinToString(",") { it }}} not alpha numeric!", *macroTokens.toTypedArray()))
                         foundStart = false
                         macroTokens.clear()
                     }
@@ -269,7 +274,15 @@ class RV32Syntax() : Syntax() {
 
                     macroTokens.addAll(remainingLines[lineID])
                     macros.add(MacroDefinition(name, arguments, replacementLines))
-                    pres.add(Pre_MACRO(*macroTokens.toTypedArray()))
+
+                    // for HL
+                    val directiveTokens = macroTokens.filter { it.content == "." || it.content == "macro" || it.content == "endm" }
+                    val constants = macroTokens.filter { it is Compiler.Token.Constant }
+                    val registers = macroTokens.filter { it is Compiler.Token.Register }
+                    val instructions = macroTokens.filter { R_INSTR.InstrType.entries.map { it.id.uppercase() }.contains(it.content.uppercase()) }
+                    val elseTokens = (macroTokens - directiveTokens - constants - registers - instructions).filter { it.content != "," }
+
+                    pres.add(Pre_MACRO(ConnectedHL(Pair(RV32Flags.directive, directiveTokens), Pair(RV32Flags.constant, constants), Pair(RV32Flags.register, registers), Pair(RV32Flags.instruction, instructions), Pair(RV32Flags.pre_macro, elseTokens)), *macroTokens.toTypedArray()))
 
                     for (argusage in useMap) {
                         if (argusage.value == false) {
@@ -310,7 +323,13 @@ class RV32Syntax() : Syntax() {
 
                     val macro = matchingMacros.first()
                     if (macro.arguments.size == argumentContent.size) {
-                        pres.add(Pre_MACRO(*remainingLines[macroLineID].toTypedArray()))
+
+                        // for HL
+                        val registers = remainingLines[macroLineID].filter { it is Compiler.Token.Register }
+                        val constants = remainingLines[macroLineID].filter { it is Compiler.Token.Constant }
+                        val elseTokens = (remainingLines[macroLineID] - registers - constants).filter { it.content != "," }
+
+                        pres.add(Pre_MACRO(ConnectedHL(Pair(RV32Flags.register, registers), Pair(RV32Flags.constant, constants), Pair(RV32Flags.pre_macro, elseTokens)), *remainingLines[macroLineID].toTypedArray()))
                         remainingLines.removeAt(macroLineID)
 
                         for (macroLine in macro.replacementLines.reversed()) {
@@ -1179,9 +1198,9 @@ class RV32Syntax() : Syntax() {
     class Pre_COMMENT(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV32Flags.comment), REFS.REF_PRE_COMMENT, *tokens)
     class Pre_OPTION(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV32Flags.pre_option), REFS.REF_PRE_OPTION, *tokens)
     class Pre_ATTRIBUTE(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV32Flags.pre_attribute), REFS.REF_PRE_ATTRIBUTE, *tokens)
-    class Pre_GLOBAL(vararg tokens: Compiler.Token, val labelName: String) : TreeNode.ElementNode(ConnectedHL(RV32Flags.pre_global), REFS.REF_PRE_GLOBAL, *tokens)
-    class Pre_MACRO(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV32Flags.pre_macro), REFS.REF_PRE_MACRO, *tokens)
-    class Pre_EQU(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV32Flags.pre_equ), REFS.REF_PRE_EQU, *tokens)
+    class Pre_GLOBAL(connectedHL: ConnectedHL = ConnectedHL(RV32Flags.pre_global), vararg tokens: Compiler.Token, val labelName: String) : TreeNode.ElementNode(connectedHL, REFS.REF_PRE_GLOBAL, *tokens)
+    class Pre_MACRO(connectedHL: ConnectedHL = ConnectedHL(RV32Flags.pre_macro), vararg tokens: Compiler.Token) : TreeNode.ElementNode(connectedHL, REFS.REF_PRE_MACRO, *tokens)
+    class Pre_EQU(connectedHL: ConnectedHL = ConnectedHL(RV32Flags.pre_equ), vararg tokens: Compiler.Token) : TreeNode.ElementNode(connectedHL, REFS.REF_PRE_EQU, *tokens)
     class Pre_UNRESOLVED(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV32Flags.pre_unresolved), REFS.REF_PRE_UNRESOLVED, *tokens)
 
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */

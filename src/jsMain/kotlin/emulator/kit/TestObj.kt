@@ -22,7 +22,6 @@ object TestObj {
 
         bin1 + bin2           // bin: 0b11100110
         bin1 + (bin2 shl 1)   // bin: 0b01000110
-
     }
 
 }
