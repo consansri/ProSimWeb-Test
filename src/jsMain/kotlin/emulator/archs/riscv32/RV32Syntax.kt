@@ -1853,7 +1853,7 @@ class RV32Syntax() : Syntax() {
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
 
                             val offset = imm12.toBin().getResized(Bit32()) shl 1
-                            if (rs1.get().toDec() == rs2.get().toDec()) {
+                            if (rs1.get().toBin() == rs2.get().toBin()) {
                                 pc.set(pc.get() + offset)
                             } else {
                                 pc.set(pc.get() + Hex("4"))
@@ -1883,7 +1883,7 @@ class RV32Syntax() : Syntax() {
                             val imm5str = imm5.getResized(Bit5()).getRawBinaryStr()
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
                             val offset = imm12.toBin().getResized(Bit32()) shl 1
-                            if (rs1.get().toDec() != rs2.get().toDec()) {
+                            if (rs1.get().toBin() != rs2.get().toBin()) {
                                 pc.set(pc.get() + offset)
                             } else {
                                 pc.set(pc.get() + Hex("4"))

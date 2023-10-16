@@ -2,7 +2,6 @@ package emulator.kit.types
 
 import emulator.kit.Settings
 import debug.DebugTools
-import react.createContext
 import kotlin.math.roundToInt
 
 
@@ -277,7 +276,7 @@ class Variable {
             override fun rem(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(BinaryTools.checkEmpty(divResult.rest), biggerSize)
+                return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
             }
 
             override fun unaryMinus(): Value {
@@ -446,7 +445,7 @@ class Variable {
             override fun rem(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(BinaryTools.checkEmpty(divResult.rest), biggerSize).toHex()
+                return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize).toHex()
             }
 
             override fun unaryMinus(): Value {

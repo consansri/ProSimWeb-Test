@@ -342,5 +342,5 @@ object BinaryTools {
     }
 
     data class AdditionResult(val result: String, val carry: Char)
-    data class DivisionResult(val result: String, val rest: String)
+    data class DivisionResult(val result: String, val remainder: String)
 }
