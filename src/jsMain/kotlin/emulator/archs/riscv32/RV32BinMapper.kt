@@ -15,6 +15,7 @@ class RV32BinMapper {
     fun setLabelLinks(labelAddrMap: Map<RV32Syntax.E_LABEL, String>) {
         this.labelAddrMap = labelAddrMap
     }
+
     fun getBinaryFromInstrDef(instrDef: RV32Syntax.R_INSTR, instrStartAddress: Variable.Value.Hex, architecture: Architecture): Array<Variable.Value.Bin> {
         val binArray = mutableListOf<Variable.Value.Bin>()
         val values = instrDef.paramcoll?.getValues()
@@ -226,6 +227,7 @@ class RV32BinMapper {
                         if (lblAddr != null) {
                             val rd = values[0]
                             val imm20toWork = ((Variable.Value.Bin(lblAddr, Variable.Size.Bit32()) - instrStartAddress).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinaryStr()
+
                             /**
                              *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
                              *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
@@ -247,6 +249,7 @@ class RV32BinMapper {
                         if (lblAddr != null) {
                             val rd = Variable.Value.Bin("1", Variable.Size.Bit5())
                             val imm20toWork = ((Variable.Value.Bin(lblAddr, Variable.Size.Bit32()) - instrStartAddress).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinaryStr()
+
                             /**
                              *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
                              *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
@@ -682,6 +685,7 @@ class RV32BinMapper {
 
         return binArray.toTypedArray()
     }
+
     fun getInstrFromBinary(bin: Variable.Value.Bin): InstrResult? {
         for (instrType in entries) {
             val checkResult = instrType.opCode?.checkOpCode(bin)
@@ -693,6 +697,7 @@ class RV32BinMapper {
         }
         return null
     }
+
     data class InstrResult(val type: RV32Syntax.R_INSTR.InstrType, val binMap: Map<MaskLabel, Variable.Value.Bin> = mapOf())
     class OpCode(val opMask: String, val maskLabels: Array<MaskLabel>) {
 
@@ -740,6 +745,7 @@ class RV32BinMapper {
                 return CheckResult(false)
             }
         }
+
         fun getOpCode(parameterMap: Map<MaskLabel, Variable.Value.Bin>): Variable.Value.Bin? {
             val opCode = opMaskList.toMutableList()
             var length = 0
@@ -778,6 +784,7 @@ class RV32BinMapper {
 
             return Variable.Value.Bin(opCode.joinToString("") { it }, Variable.Size.Bit32())
         }
+
         private fun getSubString(binary: String, maskLabel: MaskLabel): String {
             var startIndex = 0
             for (maskID in opMaskList.indices) {
@@ -789,6 +796,7 @@ class RV32BinMapper {
             }
             return ""
         }
+
         private fun getMaskString(maskLabel: MaskLabel): String {
             for (labelID in maskLabels.indices) {
                 val label = maskLabels[labelID]
@@ -798,8 +806,10 @@ class RV32BinMapper {
             }
             return ""
         }
+
         data class CheckResult(val matches: Boolean, val binMap: Map<MaskLabel, Variable.Value.Bin> = mapOf())
     }
+
     enum class MaskLabel(val static: Boolean, val maxSize: Variable.Size? = null) {
         OPCODE(true, Variable.Size.Bit7()),
         RD(false, Variable.Size.Bit5()),

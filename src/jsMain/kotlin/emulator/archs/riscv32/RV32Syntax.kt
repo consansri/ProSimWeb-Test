@@ -2015,7 +2015,8 @@ class RV32Syntax() : Syntax() {
             BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ), BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE), BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT), BGE1("BGE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGE), BLTU1(
                 "BLTU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLTU
             ),
-            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU), LB(
+            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU),
+            LB(
                 "LB", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 000 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Bin>) {
@@ -2028,7 +2029,7 @@ class RV32Syntax() : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12
+                            val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
                             val loadedByte = arch.getMemory().load(memAddr).toBin().getResized(Bit32())
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
@@ -2049,7 +2050,7 @@ class RV32Syntax() : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12
+                            val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
                             val loadedByte = arch.getMemory().load(memAddr, 2).toBin().getResized(Bit32())
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
@@ -2070,7 +2071,7 @@ class RV32Syntax() : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12
+                            val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
                             val loadedByte = arch.getMemory().load(memAddr, 4)
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
@@ -2091,7 +2092,7 @@ class RV32Syntax() : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12
+                            val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
                             val loadedByte = arch.getMemory().load(memAddr)
                             rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, 24) + loadedByte.toBin().getRawBinaryStr(), Bit32()))
                             pc.set(pc.get() + Hex("4"))
@@ -2112,7 +2113,7 @@ class RV32Syntax() : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12
+                            val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
                             val loadedByte = arch.getMemory().load(memAddr, 2)
                             rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, 16) + loadedByte.toBin().getRawBinaryStr(), Bit32()))
                             pc.set(pc.get() + Hex("4"))
@@ -2131,12 +2132,14 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     val imm5 = paramMap.get(IMM5)
-                    if (rs1Addr != null && rs2Addr != null && imm5 != null) {
+                    val imm7 = paramMap.get(IMM7)
+                    if (rs1Addr != null && rs2Addr != null && imm5 != null && imm7 != null) {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.get().toBin().getResized(Bit32()) + imm5
+                            val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
+                            val memAddr = rs1.get().toBin().getResized(Bit32()) + off32
                             arch.getMemory().save(memAddr, rs2.get().toBin().getResized(Bit8()))
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2154,12 +2157,14 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     val imm5 = paramMap.get(IMM5)
-                    if (rs1Addr != null && rs2Addr != null && imm5 != null) {
+                    val imm7 = paramMap.get(IMM7)
+                    if (rs1Addr != null && rs2Addr != null && imm5 != null && imm7 != null) {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.get().toBin().getResized(Bit32()) + imm5
+                            val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
+                            val memAddr = rs1.get().toBin().getResized(Bit32()) + off32
                             arch.getMemory().save(memAddr, rs2.get().toBin().getResized(Bit16()))
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2177,12 +2182,14 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     val imm5 = paramMap.get(IMM5)
-                    if (rs1Addr != null && rs2Addr != null && imm5 != null) {
+                    val imm7 = paramMap.get(IMM7)
+                    if (rs1Addr != null && rs2Addr != null && imm5 != null && imm7 != null) {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val memAddr = rs1.variable.get().toBin().getResized(Bit32()) + imm5
+                            val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
+                            val memAddr = rs1.variable.get().toBin().getResized(Bit32()) + off32
                             arch.getMemory().save(memAddr, rs2.get().toBin().getResized(Bit32()))
                             pc.set(pc.get() + Hex("4"))
                         }
