@@ -90,17 +90,27 @@ val AppStyle = FC<Props> {
                         zIndex = integer(1000)
                         padding = 1.rem
                         display = Display.flex
+                        flexDirection = FlexDirection.row
                         justifyContent = JustifyContent.center
                         gap = 2.rem
                         alignItems = AlignItems.center
 
                         backgroundColor = StyleAttr.Header.BgColorSec.get()
 
-                        a{
+                        img {
+                            cursor = Cursor.pointer
+                        }
+
+                        a {
                             padding = StyleAttr.paddingSize
                             background = Color("#00000033")
                             borderRadius = StyleAttr.borderRadius
                         }
+
+                        StyleAttr.layoutSwitchMediaQuery {
+                            flexDirection = FlexDirection.column
+                        }
+
                     }
 
                     ".${StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT}" {
