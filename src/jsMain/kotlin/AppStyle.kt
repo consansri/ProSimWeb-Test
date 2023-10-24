@@ -82,43 +82,7 @@ val AppStyle = FC<Props> {
                         backgroundColor = StyleAttr.Header.BgColorSec.get()
                     }
 
-                    ".${StyleAttr.Header.CLASS_OVERLAY}" {
-                        position = Position.fixed
-                        bottom = 0.px
-                        left = 0.px
-                        width = 100.vw
-                        zIndex = integer(1000)
-                        padding = 1.rem
-                        display = Display.flex
-                        flexDirection = FlexDirection.row
-                        justifyContent = JustifyContent.center
-                        gap = 2.rem
-                        alignItems = AlignItems.center
 
-                        backgroundColor = StyleAttr.Header.BgColorSec.get()
-
-                        img {
-                            cursor = Cursor.pointer
-                        }
-
-                        a {
-                            padding = StyleAttr.paddingSize
-                            background = Color("#00000033")
-                            borderRadius = StyleAttr.borderRadius
-                        }
-
-                        StyleAttr.layoutSwitchMediaQuery {
-                            flexDirection = FlexDirection.column
-                        }
-
-                    }
-
-                    ".${StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT}" {
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        justifyContent = JustifyContent.center
-                        alignItems = AlignItems.center
-                    }
 
                     StyleAttr.layoutSwitchMediaQuery {
                         nav {
@@ -624,6 +588,50 @@ val AppStyle = FC<Props> {
                 }
 
                 // GLOBAL
+                ".${StyleAttr.Header.CLASS_OVERLAY}" {
+                    position = Position.fixed
+                    bottom = 0.px
+                    left = 0.px
+                    width = 100.vw
+                    zIndex = integer(1000)
+                    padding = 1.rem
+                    display = Display.flex
+                    flexDirection = FlexDirection.row
+                    justifyContent = JustifyContent.center
+                    gap = 2.rem
+                    alignItems = AlignItems.center
+
+                    backgroundColor = StyleAttr.Header.BgColorSec.get()
+
+                    img {
+                        cursor = Cursor.pointer
+                    }
+
+                    a {
+                        cursor = Cursor.pointer
+                        padding = StyleAttr.paddingSize
+                        background = Color("#00000033")
+                        borderRadius = StyleAttr.borderRadius
+                    }
+
+                    StyleAttr.layoutSwitchMediaQuery {
+                        flexDirection = FlexDirection.column
+                    }
+                }
+
+                ".${StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT}" {
+                    display = Display.flex
+                    flexDirection = FlexDirection.column
+                    justifyContent = JustifyContent.center
+                    alignItems = AlignItems.center
+
+                    input {
+                        textAlign = TextAlign.center
+                        padding = StyleAttr.paddingSize
+                        borderRadius = StyleAttr.borderRadius
+                    }
+                }
+
                 ".${StyleAttr.CLASS_LOGO}" {
                     fontSize = 3.rem
                     StyleAttr.logoFont

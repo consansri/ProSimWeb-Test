@@ -1,10 +1,12 @@
 package visual
 
+import StyleAttr
 import emulator.Emulator
 import emotion.react.css
 import emulator.kit.Settings
 import emulator.kit.common.Memory
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Value.*
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import react.*
@@ -24,10 +26,13 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import debug.DebugTools
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.h1
 
 import web.html.*
 import web.timers.*
 import web.cssom.*
+import kotlin.time.measureTime
 
 external interface MemViewProps : Props {
     var name: String
@@ -57,6 +62,10 @@ val MemoryView = FC<MemViewProps> { props ->
     val (showAddMem, setShowAddMem) = useState(false)
     val (showAddRow, setShowAddRow) = useState(false)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
+
+    val (useBounds, setUseBounds) = useState(appLogic.getArch().getMemory().getIOBounds() != null)
+    val (startAddr, setStartAddr) = useState(appLogic.getArch().getMemory().getIOBounds()?.lowerAddr?.toHex())
+    val (amount, setAmount) = useState(appLogic.getArch().getMemory().getIOBounds()?.amount ?: 32)
 
     pcIVRef.current?.let {
         clearInterval(it)
@@ -369,15 +378,50 @@ val MemoryView = FC<MemViewProps> { props ->
                                         }
                                         id = "mem${memInstance.address.getRawHexStr()}"
 
-                                        title = "[${memInstance.address.getRawHexStr()}] [${memInstance.mark.name}]"
+                                        title = "addr = ${memInstance.address.getRawHexStr()}\nvalue = ${memInstance.variable.get().toDec()} or ${memInstance.variable.get().toUDec()}\ntag = [${memInstance.mark.name}]"
 
                                         if (memInstance is Memory.MemInstance.EditableValue) {
-                                            if (memInstance.name.isNotEmpty()) {
-                                                p {
-                                                    +memInstance.name
+                                            input {
+                                                readOnly = false
+
+                                                type = InputType.text
+                                                pattern = "[0-9a-fA-F]+"
+                                                placeholder = Settings.PRESTRING_HEX
+                                                maxLength = appLogic.getArch().getMemory().getWordSize().getByteCount() * 2
+                                                defaultValue = memInstance.variable.get().toHex().getRawHexStr()
+
+                                                onBlur = { event ->
+
+                                                    // Set Value
+                                                    val newValue = event.currentTarget.value
+                                                    val currentTarget = event.currentTarget
+
+                                                    setTimeout({
+                                                        try {
+                                                            memInstance.variable.setHex(newValue)
+                                                            //setIUpdate(!internalUpdate)
+                                                            appLogic.getArch().getConsole()
+                                                                .info("Memory IO: [${memInstance.variable.get().toDec().getDecStr()}|${memInstance.variable.get().toUDec().getUDecStr()}|${memInstance.variable.get().toHex().getHexStr()}|${memInstance.variable.get().toBin().getBinaryStr()}]")
+                                                        } catch (e: NumberFormatException) {
+                                                            console.warn("MemoryView io onBlur: NumberFormatException")
+                                                        }
+
+                                                        // Get Actual Interpretation (for example padded binary number)
+                                                        try {
+                                                            currentTarget.value = memInstance.variable.get().toHex().getRawHexStr()
+                                                        } catch (e: NumberFormatException) {
+                                                            console.warn("RegisterView reg onBlur: NumberFormatException")
+                                                        }
+
+                                                    }, 0)
+
+                                                }
+                                                onKeyDown = { event ->
+                                                    if (event.key == "Enter") {
+                                                        event.currentTarget.blur()
+                                                    }
                                                 }
                                             }
-                                            +("[" + memInstance.variable.get().toHex().getRawHexStr() + "]")
                                         } else {
                                             +memInstance.variable.get().toHex().getRawHexStr()
                                         }
@@ -425,293 +469,63 @@ val MemoryView = FC<MemViewProps> { props ->
 
     if (showDefMemSettings) {
         div {
-            className = ClassName(StyleAttr.Main.Window.CLASS)
+            className = ClassName(StyleAttr.Header.CLASS_OVERLAY)
 
-            div {
-                className = ClassName(StyleAttr.Main.Window.CLASS_HEADER)
-                button {
-                    img {
-                        src = StyleAttr.Icons.cancel
-                    }
-
-                    onClick = {
-                        setShowDefMemSettings(false)
-                        setShowAddMem(false)
-                        setShowAddRow(false)
-                    }
-                }
-
-                button {
-                    img {
-                        src = StyleAttr.Icons.delete_black
-                    }
-
-                    onClick = {
-                        appLogic.getArch().getMemory().clearEditableValues()
-                        setIUpdate(!internalUpdate)
-                        setShowAddMem(false)
-                        setShowAddRow(false)
-                    }
-                }
-
-                a {
-                    +"I/O Memory Section"
-                }
+            h1 {
+                +"IO"
             }
 
             div {
-                className = ClassName(StyleAttr.Main.Window.CLASS_INFO)
-                p {
-                    +"Values in this section will be written in Memory before compilation!"
+                className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
+                ReactHTML.label {
+                    htmlFor = "enableIO"
+                    +"Use IO Section"
                 }
-                p {
-                    +"You can update these values on runtime!"
-                }
+                input {
+                    id = "enableIO"
+                    type = InputType.checkbox
+                    checked = useBounds
 
+                    onChange = {
+                        setUseBounds(it.currentTarget.checked)
+                    }
+                }
             }
+            if (useBounds) {
+                div {
+                    className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
+                    ReactHTML.label {
+                        htmlFor = "ioStart"
+                        +"Starting Address"
+                    }
 
-            div {
-                className = ClassName(StyleAttr.Main.Window.CLASS_CONTENT)
+                    input {
+                        id = "ioStart"
+                        type = InputType.text
+                        pattern = "[0-9a-fA-F]+"
+                        placeholder = Settings.PRESTRING_HEX
+                        defaultValue = startAddr?.getRawHexStr() ?: ""
 
-                for (dValue in appLogic.getArch().getMemory().getEditableInstances()) {
-                    div {
-                        if (dValue.name.isNotEmpty()) {
-                            input {
-                                contentEditable = false
-                                type = InputType.text
-                                readOnly = true
-                                value = dValue.name
-                            }
-                        }
-
-                        input {
-                            contentEditable = false
-                            type = InputType.text
-                            readOnly = true
-                            value = dValue.address.getRawHexStr()
-                        }
-
-                        input {
-                            id = "editval${dValue.address.getRawHexStr()}"
-                            placeholder = Settings.PRESTRING_HEX
-                            maxLength = appLogic.getArch().getMemory().getWordSize().getByteCount() * 2
-                            prefix = "value: "
-                            defaultValue = dValue.variable.get().toHex().getRawHexStr()
-                            onBlur = { event ->
-                                try {
-                                    dValue.variable.setHex(event.currentTarget.value)
-                                    event.currentTarget.value = dValue.variable.get().toHex().getRawHexStr()
-                                    appLogic.getArch().getMemory().refreshEditableValues()
-                                } catch (e: NumberFormatException) {
-                                    event.currentTarget.value = "0"
-                                }
-                            }
-
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        button {
-                            img {
-                                css {
-                                    filter = StyleAttr.Main.DeleteFilter
-                                }
-                                src = StyleAttr.Icons.delete_black
-                            }
-
-                            onClick = { event ->
-                                setTimeout({
-                                    appLogic.getArch().getMemory().removeEditableValue(dValue)
-                                }, 0)
-                            }
-                        }
-
-                        onClick = {
-                            setShowAddMem(false)
-                            setShowAddRow(false)
+                        onChange = {
+                            setStartAddr(if (it.currentTarget.value != "") Hex(it.currentTarget.value, appLogic.getArch().getMemory().getAddressSize()) else null)
                         }
                     }
                 }
 
                 div {
-                    if (showAddMem) {
-                        onClick = {
-                            setShowAddRow(false)
-                        }
-                        input {
-                            id = "dv-name"
-                            placeholder = "[name]"
-                            prefix = "name: "
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        input {
-                            id = "dv-address"
-                            placeholder = Settings.PRESTRING_HEX + "[address]"
-                            maxLength = appLogic.getArch().getMemory().getAddressSize().getByteCount() * 2
-                            prefix = "addr: "
-                            defaultValue = "F".repeat(appLogic.getArch().getMemory().getAddressSize().getByteCount() * 2)
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        input {
-                            id = "dv-value"
-                            placeholder = Settings.PRESTRING_HEX + "[value]"
-                            maxLength = appLogic.getArch().getMemory().getWordSize().getByteCount() * 2
-                            prefix = "value: "
-                            defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().getByteCount() * 2)
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        button {
-                            onClick = { event ->
-                                setTimeout({
-                                    val dvname = (document.getElementById("dv-name") as HTMLInputElement?)?.value ?: ""
-                                    val dvaddr = (document.getElementById("dv-address") as HTMLInputElement?)?.value ?: ""
-                                    val dvvalue = (document.getElementById("dv-value") as HTMLInputElement?)?.value ?: ""
-                                    try {
-                                        appLogic.getArch().getMemory().addEditableValue(dvname, Variable.Value.Hex(dvaddr, appLogic.getArch().getMemory().getAddressSize()), Variable.Value.Hex(dvvalue, appLogic.getArch().getMemory().getWordSize()))
-                                        appLogic.getArch().getMemory().refreshEditableValues()
-                                        setShowAddMem(false)
-                                    } catch (e: NumberFormatException) {
-                                        console.warn("NumberFormatException!")
-                                    }
-                                }, 0)
-                            }
-
-                            img {
-                                src = StyleAttr.Icons.add
-                            }
-                        }
-
-
-                    } else {
-                        a {
-                            css {
-                                cursor = Cursor.pointer
-                            }
-                            +"+"
-                            onClick = {
-                                setShowAddMem(true)
-                                setShowAddRow(false)
-                            }
-                        }
+                    className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
+                    ReactHTML.label {
+                        htmlFor = "ioAmount"
+                        +"Amount"
                     }
-                }
 
-                div {
-                    if (showAddRow) {
-                        css {
-                            cursor = Cursor.default
-                        }
-                        onClick = {
-                            setShowAddMem(false)
-                        }
+                    input {
+                        id = "ioAmount"
+                        type = InputType.number
+                        defaultValue = amount
 
-                        input {
-                            id = "dr-name"
-                            placeholder = "[row name]"
-
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        input {
-                            id = "dr-address"
-                            pattern = "[0-9A-Fa-f]+"
-                            placeholder = Settings.PRESTRING_HEX + "[start address]"
-                            maxLength = appLogic.getArch().getMemory().getAddressSize().getByteCount() * 2
-                            defaultValue = "1".padEnd(appLogic.getArch().getMemory().getWordSize().bitWidth, '0')
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        input {
-                            id = "dr-value"
-                            pattern = "[0-9A-Fa-f]+"
-                            placeholder = Settings.PRESTRING_HEX + "[initial]"
-                            maxLength = appLogic.getArch().getMemory().getWordSize().getByteCount() * 2
-                            defaultValue = "0".repeat(appLogic.getArch().getMemory().getWordSize().getByteCount() * 2)
-
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        input {
-                            id = "dr-amount"
-                            type = InputType.number
-                            placeholder = "[amount]"
-                            defaultValue = memLength.toString()
-
-                            onKeyDown = { event ->
-                                if (event.key == "Enter") {
-                                    event.currentTarget.blur()
-                                }
-                            }
-                        }
-
-                        button {
-                            onClick = { event ->
-                                setTimeout({
-                                    val drname = (document.getElementById("dr-name") as HTMLInputElement?)?.value ?: ""
-                                    val draddr = (document.getElementById("dr-address") as HTMLInputElement?)?.value ?: ""
-                                    val drvalue = (document.getElementById("dr-value") as HTMLInputElement?)?.value ?: ""
-                                    val dramount = (document.getElementById("dr-amount") as HTMLInputElement?)?.value?.toIntOrNull() ?: memLength
-                                    try {
-                                        var address = Variable.Value.Hex(draddr, appLogic.getArch().getMemory().getAddressSize())
-                                        for (id in 0 until dramount) {
-                                            appLogic.getArch().getMemory().addEditableValue(if (drname.isNotEmpty()) "$drname$id" else "", address, Variable.Value.Hex(drvalue, appLogic.getArch().getMemory().getWordSize()))
-                                            address = (address + Variable.Value.Hex("1")).toHex()
-                                        }
-                                        appLogic.getArch().getMemory().refreshEditableValues()
-                                        getEditableValues()
-                                        setShowAddRow(false)
-                                    } catch (e: NumberFormatException) {
-                                        console.warn("NumberFormatException!")
-                                    }
-                                }, 0)
-                            }
-
-                            img {
-                                src = StyleAttr.Icons.add
-                            }
-                        }
-
-                    } else {
-
-                        a {
-                            css {
-                                cursor = Cursor.pointer
-                            }
-                            +"add row"
-                            onClick = {
-                                setShowAddRow(true)
-                                setShowAddMem(false)
-                            }
+                        onChange = {
+                            setAmount(it.currentTarget.valueAsNumber.toLong())
                         }
                     }
                 }
@@ -729,6 +543,18 @@ val MemoryView = FC<MemViewProps> { props ->
             val td = web.dom.document.getElementById("mem${memInstance.address.getRawHexStr()}") as HTMLTableCellElement?
             td?.innerText = memInstance.variable.get().toHex().getRawHexStr()
         }
+    }
+
+    useEffect(useBounds, startAddr, amount) {
+        if (useBounds) {
+            startAddr?.let {
+                if (it.checkResult.valid) appLogic.getArch().getMemory().useIOBounds(it, amount) else appLogic.getArch().getConsole().error("IO Definition: Address isn't valid!")
+            } ?: appLogic.getArch().getConsole().error("IO Definition: Address isn't valid!")
+
+        } else {
+            appLogic.getArch().getMemory().removeIOBounds()
+        }
+        setIUpdate(!internalUpdate)
     }
 
     useEffect(memLength) {

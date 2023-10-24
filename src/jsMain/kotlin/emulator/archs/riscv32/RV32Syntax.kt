@@ -2140,7 +2140,7 @@ class RV32Syntax() : Syntax() {
                         if (rs1 != null && rs2 != null) {
                             val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
                             val memAddr = rs1.get().toBin().getResized(Bit32()) + off32
-                            arch.getMemory().save(memAddr, rs2.get().toBin().getResized(Bit8()))
+                            arch.getMemory().store(memAddr, rs2.get().toBin().getResized(Bit8()))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
@@ -2165,7 +2165,7 @@ class RV32Syntax() : Syntax() {
                         if (rs1 != null && rs2 != null) {
                             val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
                             val memAddr = rs1.get().toBin().getResized(Bit32()) + off32
-                            arch.getMemory().save(memAddr, rs2.get().toBin().getResized(Bit16()))
+                            arch.getMemory().store(memAddr, rs2.get().toBin().getResized(Bit16()))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
@@ -2190,7 +2190,7 @@ class RV32Syntax() : Syntax() {
                         if (rs1 != null && rs2 != null) {
                             val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
                             val memAddr = rs1.variable.get().toBin().getResized(Bit32()) + off32
-                            arch.getMemory().save(memAddr, rs2.get().toBin().getResized(Bit32()))
+                            arch.getMemory().store(memAddr, rs2.get().toBin().getResized(Bit32()))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }

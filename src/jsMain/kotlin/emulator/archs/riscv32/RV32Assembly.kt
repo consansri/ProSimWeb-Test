@@ -400,19 +400,19 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
             // adding bss addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in bssList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                memory.saveArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
+                memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
 
             // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in rodataList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                memory.saveArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA, true)
+                memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA, true)
             }
 
             // adding data alloc addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in dataList) {
                 labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
-                memory.saveArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
+                memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
 
             // Getting binary and store binary in memory
@@ -443,7 +443,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                 }
                 address = Variable.Value.Hex((binaryID * 4).toString(16), Variable.Size.Bit32())
                 transcriptEntrys.add(RVDisassembledRow(address))
-                memory.save(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
+                memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
             }
             transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4", Variable.Size.Bit8())).toHex()))
             architecture.getRegContainer().pc.variable.set(pcStartAddress)
