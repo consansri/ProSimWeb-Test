@@ -604,7 +604,10 @@ val AppStyle = FC<Props> {
                     backgroundColor = StyleAttr.Header.BgColorSec.get()
 
                     img {
+                        width = StyleAttr.iconSize
+                        height = StyleAttr.iconSize
                         cursor = Cursor.pointer
+                        filter = invert(100.pct)
                     }
 
                     a {

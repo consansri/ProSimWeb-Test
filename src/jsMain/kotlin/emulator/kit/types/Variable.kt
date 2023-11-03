@@ -1010,6 +1010,7 @@ class Variable {
         class Bit1 : Size("1 Bit", 1)
         class Bit3 : Size("3 Bit", 3)
         class Bit5 : Size("5 Bit", 5)
+        class Bit6 : Size("6 Bit", 6)
         class Bit7 : Size("7 Bit", 7)
         class Bit8 : Size("8 Bit", 8)
         class Bit12 : Size("12 Bit", 12)
@@ -1088,6 +1089,12 @@ class Variable {
                     this.umin = "0"
                     this.umax = "31"
                 }
+                is Size.Bit6 -> {
+                    this.min = "-32"
+                    this.max = "31"
+                    this.umin = "0"
+                    this.umax = "63"
+                }
 
                 is Size.Bit7 -> {
                     this.min = "-64"
@@ -1118,6 +1125,8 @@ class Variable {
                     this.umin = "0"
                     this.umax = "not identified"
                 }
+
+
             }
         }
 

@@ -471,6 +471,13 @@ val MemoryView = FC<MemViewProps> { props ->
         div {
             className = ClassName(StyleAttr.Header.CLASS_OVERLAY)
 
+            img {
+                src = StyleAttr.Icons.cancel
+                onClick = {
+                    setShowDefMemSettings(false)
+                }
+            }
+
             h1 {
                 +"IO"
             }

@@ -11,10 +11,16 @@ import debug.DebugTools
  * @constructor expecting a [addressSize] and [wordSize] such as initial binary values ([initBin]) and the [endianess] of the memory.
  *
  */
-class Memory(private val addressSize: Variable.Size, private val initBin: String, private val wordSize: Variable.Size, var endianess: Endianess) {
+class Memory(
+    private val addressSize: Variable.Size,
+    private val initBin: String,
+    private val wordSize: Variable.Size,
+    var endianess: Endianess,
+    private var ioBounds: IOBounds? = IOBounds(Variable.Value.Hex("00F00000", addressSize), 64)
+) {
     private var memMap: MutableMap<String, MemInstance> = mutableMapOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
-    private var ioBounds: IOBounds? = IOBounds(Variable.Value.Hex("00F00000", addressSize), 256)
+
 
     init {
         store(Variable.Value.Bin("0"), Variable(wordSize))
@@ -135,7 +141,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
     }
 
     fun load(address: Variable.Value): Variable.Value {
-        val value = memMap.get(address.toHex().getRawHexStr())?.variable?.get()
+        val value = memMap.get(address.toHex().getUResized(addressSize).getRawHexStr())?.variable?.get()
         if (value != null) {
             return value
         } else {
@@ -146,7 +152,7 @@ class Memory(private val addressSize: Variable.Size, private val initBin: String
     fun load(address: Variable.Value, amount: Int): Variable.Value {
         val instances = mutableListOf<String>()
 
-        var instanceAddress = address.toBin()
+        var instanceAddress = address.toBin().getUResized(addressSize)
         for (i in 0 until amount) {
             val value = load(instanceAddress)
             instances.add(value.toBin().getRawBinaryStr())

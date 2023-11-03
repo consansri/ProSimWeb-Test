@@ -14,15 +14,17 @@ data class Config(
     val memory: Memory,
     val transcript: Transcript,
     val flagsConditions: FlagsConditions?,
-    val cache: Cache?
+    val cache: Cache?,
+    val featureStates: Map<String, Boolean> = mapOf()
 ) {
 
     constructor(
         description: Description,
         fileHandler: FileHandler,
         regContainer: RegContainer,
-        memory: Memory
-    ) : this(description, fileHandler, regContainer, memory, Transcript(), null, null)
+        memory: Memory,
+        featureStates: Map<String, Boolean> = mapOf()
+    ) : this(description, fileHandler, regContainer, memory, Transcript(), null, null, featureStates)
 
     constructor(
         description: Description,
@@ -30,7 +32,8 @@ data class Config(
         regContainer: RegContainer,
         memory: Memory,
         transcript: Transcript,
-    ) : this(description, fileHandler, regContainer, memory, transcript, null, null)
+        featureStates: Map<String, Boolean> = mapOf()
+    ) : this(description, fileHandler, regContainer, memory, transcript, null, null, featureStates)
 
     constructor(
         description: Description,
@@ -38,8 +41,9 @@ data class Config(
         regContainer: RegContainer,
         memory: Memory,
         transcript: Transcript,
-        flagsConditions: FlagsConditions?
-    ) : this(description, fileHandler, regContainer, memory, transcript, flagsConditions, null)
+        flagsConditions: FlagsConditions?,
+        featureStates: Map<String, Boolean> = mapOf()
+    ) : this(description, fileHandler, regContainer, memory, transcript, flagsConditions, null, featureStates)
 
     data class Description(val name: String, val fullName: String, val docs: Docs)
 }

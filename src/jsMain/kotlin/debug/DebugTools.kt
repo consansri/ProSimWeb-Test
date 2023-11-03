@@ -84,7 +84,14 @@ object DebugTools {
     const val RV32_showOpCodeInfo = false
     const val RV32_showGrammarScanTiers = false
 
+    /*
+     * EXTENDABLE
+     */
 
+    const val RV64_showAsmInfo = false
+    const val RV64_showBinMapperInfo = false
+    const val RV64_showOpCodeInfo = false
+    const val RV64_showGrammarScanTiers = false
 
 
 

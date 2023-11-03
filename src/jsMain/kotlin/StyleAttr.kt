@@ -175,6 +175,8 @@ object StyleAttr {
         }
         object AppControls {
             val BgColor = ModeColor("#1B3C60", "#272732")
+            val FgColor = ModeColor("#EEE")
+            val BgColorDeActivated = ModeColor("#1B3C6031","#27273231")
 
             val iconSize = 1.8.rem
             val iconPadding = 0.1.rem

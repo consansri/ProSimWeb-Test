@@ -138,14 +138,20 @@ val App = FC<Props> { props ->
                         flexDirection = FlexDirection.row
                     }
 
-                    a {
+                    div {
+                        height = StyleAttr.Main.AppControls.size
+                        width = StyleAttr.Main.AppControls.size
                         backgroundColor = StyleAttr.Main.AppControls.BgColor.get()
                         padding = StyleAttr.Main.AppControls.iconPadding
                         borderRadius = StyleAttr.borderRadius
                         boxShadow = BoxShadow(0.px, 0.px, 0.5.rem, Color("#000000A0"))
-                        height = StyleAttr.Main.AppControls.size
-                        width = StyleAttr.Main.AppControls.size
                         cursor = Cursor.pointer
+                        textAlign = TextAlign.center
+                        display = Display.flex
+                        justifyContent = JustifyContent.center
+                        alignItems = AlignItems.center
+                        color = StyleAttr.Main.AppControls.FgColor.get()
+
 
                         img {
                             height = StyleAttr.Main.AppControls.iconSize
@@ -155,7 +161,7 @@ val App = FC<Props> { props ->
                     }
                 }
 
-                a {
+                div {
                     title = "Switch between ${StyleAttr.Mode.entries.joinToString(" ") { it.name }}"
                     img {
                         src = when (StyleAttr.mode) {
@@ -178,7 +184,7 @@ val App = FC<Props> { props ->
                         setMode(newMode)
                     }
                 }
-                a {
+                div {
                     title = "clear localStorage"
                     img {
                         alt = "clear local storage"
@@ -193,7 +199,24 @@ val App = FC<Props> { props ->
                     }
                 }
 
+                for (feature in appLogic.getArch().getAllFeatures()) {
+                    div {
+                        css {
+                            if (!feature.value) {
+                                backgroundColor = important(StyleAttr.Main.AppControls.BgColorDeActivated.get())
+                            }
+                        }
 
+                        a {
+                            +feature.key
+
+                        }
+                        onClick = {
+                            appLogic.getArch().getAllFeatures().set(feature.key, !feature.value)
+                            setReloadUI(!reloadUI)
+                        }
+                    }
+                }
             }
         }
         div {

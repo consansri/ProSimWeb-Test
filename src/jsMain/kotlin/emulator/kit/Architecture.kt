@@ -53,6 +53,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val transcript: Transcript
     private val flagsConditions: FlagsConditions?
     private val cache: Cache?
+    private val features: MutableMap<String, Boolean>
+
 
     init {
         this.description = config.description
@@ -63,7 +65,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
         this.iConsole = IConsole("${config.description.name} Console")
-
+        this.features = config.featureStates.toMutableMap()
         this.compiler = Compiler(
             this,
             asmConfig.syntax,
@@ -83,6 +85,13 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getState(): ArchState = archState
     fun getAssembly(): Compiler = compiler
     fun getFormattedFile(type: FileBuilder.ExportFormat, vararg settings: FileBuilder.Setting): Blob = FileBuilder().build(this, type, *settings)
+    fun getAllFeatures() = features
+    fun getFeatureState(name: String): Boolean? {
+        return features[name]
+    }
+    fun switchFeature(name: String) {
+
+    }
 
     /**
      * Execution Event: continuous
