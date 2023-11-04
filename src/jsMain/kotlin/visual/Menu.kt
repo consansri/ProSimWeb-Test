@@ -33,14 +33,14 @@ import web.url.URL
 
 external interface MenuProps : Props {
     var emulator: Emulator
-    var update: Boolean
+    var update: StateInstance<Boolean>
     var updateParent: () -> Unit
 }
 
 val Menu = FC<MenuProps>() { props ->
 
     val data by useState(props.emulator)
-    val (update, setUpdate) = useState(props.update)
+    val (update, setUpdate) = props.update
     val (navHidden, setNavHidden) = useState(true)
     val (archsHidden, setArchsHidden) = useState(true)
 

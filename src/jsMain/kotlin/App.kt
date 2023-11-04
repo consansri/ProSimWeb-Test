@@ -24,7 +24,8 @@ val App = FC<Props> { props ->
 
     val (appLogic, setAppLogic) = useState<Emulator>(Emulator())
     val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.mode)
-    val (reloadUI, setReloadUI) = useState(false)
+    val reloadUI = useState(false)
+
     val (lPercentage, setLPct) = useState<Int>(40)
     val (showMenu, setShowMenu) = useState(true)
 
@@ -41,7 +42,7 @@ val App = FC<Props> { props ->
 
     fun updateApp() {
         console.log("update App from Child Component")
-        setReloadUI(!reloadUI)
+        reloadUI.component2().invoke(!reloadUI.component1())
     }
 
     if (showMenu) {
@@ -51,7 +52,6 @@ val App = FC<Props> { props ->
             updateParent = ::updateApp
         }
     }
-
 
     ReactHTML.main {
         ref = mainRef
@@ -236,7 +236,7 @@ val App = FC<Props> { props ->
                         }
                         onClick = {
                             appLogic.getArch().getAllFeatures().set(feature.key, !feature.value)
-                            setReloadUI(!reloadUI)
+                            reloadUI.component2().invoke(!reloadUI.component1())
                         }
                     }
                 }
@@ -275,7 +275,7 @@ val App = FC<Props> { props ->
 
             InfoView {
                 this.emulator = appLogic
-                this.update = useState(reloadUI)
+                this.update = reloadUI
                 this.updateParent = ::updateApp
                 this.footerRef = footerRef
             }

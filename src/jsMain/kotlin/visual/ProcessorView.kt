@@ -24,7 +24,7 @@ import web.html.HTMLInputElement
 external interface ProcessorViewProps : Props {
     var emulator: Emulator
     var updateAppLogic: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
-    var update: Boolean
+    var update: StateInstance<Boolean>
 }
 
 
@@ -36,58 +36,59 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
     val (mStepAmount, setMStepAmount) = useState(localStorage.getItem(StorageKey.MSTEP_VALUE) ?: 10)
 
+    val iUpdate = useState(false)
     val (allowExe, setAllowExe) = useState(true)
     val appLogic by useState(props.emulator)
-    val (change, setUpdate) = useState(props.update)
+    val (change, setUpdate) = props.update
 
     fun queueExecution(executionType: ExecutionType, steps: Int = 1) {
         when (executionType) {
             Continuous -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeContinuous()
-                setUpdate(!change)
+                iUpdate.component2().invoke(!iUpdate.component1())
                 setAllowExe(true)
             }, 0)
 
             SingleStep -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeSingleStep()
-                setUpdate(!change)
+                iUpdate.component2().invoke(!iUpdate.component1())
                 setAllowExe(true)
             }, 0)
 
             MultiStep -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeMultiStep(steps)
-                setUpdate(!change)
+                iUpdate.component2().invoke(!iUpdate.component1())
                 setAllowExe(true)
             }, 0)
 
             SkipSubroutine -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeSkipSubroutine()
-                setUpdate(!change)
+                iUpdate.component2().invoke(!iUpdate.component1())
                 setAllowExe(true)
             }, 0)
 
             ReturnFromSubroutine -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeReturnFromSubroutine()
-                setUpdate(!change)
+                iUpdate.component2().invoke(!iUpdate.component1())
                 setAllowExe(true)
             }, 0)
 
             Reset -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeReset()
-                setUpdate(!change)
+                iUpdate.component2().invoke(!iUpdate.component1())
                 setAllowExe(true)
             }, 0)
 
             ClearAll -> executionQueue.current = setTimeout({
                 setAllowExe(false)
                 appLogic.getArch().exeClear()
-                setUpdate(!change)
+                iUpdate.component2().invoke(!iUpdate.component1())
                 setAllowExe(true)
             }, 0)
         }
@@ -263,14 +264,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         RegisterView {
             this.name = "Register"
             this.emulator = appLogic
-            this.update = change
+            this.update = iUpdate
             this.updateParent = props.updateAppLogic
         }
 
         FlagsCondsView {
             this.name = "Flags & Conditions"
             this.emulator = appLogic
-            this.update = change
+            this.update = iUpdate
             this.updateParent = props.updateAppLogic
         }
     }
@@ -281,7 +282,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         MemoryView {
             this.name = "Memory"
             this.emulator = appLogic
-            this.update = change
+            this.update = iUpdate
             this.length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
             this.updateParent = props.updateAppLogic
         }
@@ -291,6 +292,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) ProcessorView")
         }
+        iUpdate.component2().invoke(!iUpdate.component1())
         mStepInputRef.current?.let {
             val value = localStorage.getItem(StorageKey.MSTEP_VALUE) ?: ""
             it.value = value

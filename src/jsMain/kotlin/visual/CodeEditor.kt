@@ -27,7 +27,7 @@ import web.cssom.*
 
 external interface CodeEditorProps : Props {
     var emulator: Emulator
-    var update: Boolean
+    var update: StateInstance<Boolean>
     var updateParent: () -> Unit
 }
 
@@ -175,9 +175,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 checkTimeOutRef.current = setTimeout({
                     setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
                     setCheckState(appLogic.getArch().getState().getState())
+                    props.update.component2().invoke(!props.update.component1())
                 }, delay)
             }
         }
+
     }
 
     fun preHighlight() {
@@ -909,10 +911,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     useEffect(props.update) {
         setFiles(appLogic.getArch().getFileHandler().getAllFiles())
-    }
-
-    useEffect(StyleAttr.mode) {
-        checkCode(false)
     }
 }
 

@@ -165,7 +165,7 @@ class RV64BinMapper {
                     values?.let {
                         val regBin = values[0]
                         val immediate = values[1]
-                        val imm64 = immediate.getResized(Variable.Size.Bit64())
+                        val imm64 = immediate.getUResized(Variable.Size.Bit64())
                         
                         val hi20_high = imm64.getRawBinaryStr().substring(0, 20)
                         val low12_high = imm64.getRawBinaryStr().substring(20, 32)

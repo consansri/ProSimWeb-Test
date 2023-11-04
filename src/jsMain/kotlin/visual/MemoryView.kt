@@ -38,7 +38,7 @@ external interface MemViewProps : Props {
     var name: String
     var emulator: Emulator
     var length: Int
-    var update: Boolean
+    var update: StateInstance<Boolean>
     var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
@@ -52,7 +52,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
     val appLogic by useState(props.emulator)
     val name by useState(props.name)
-    val update by useState(props.update)
+    val update = props.update
     val (internalUpdate, setIUpdate) = useState(false)
     val (memLength, setMemLength) = useState<Int>(props.length)
     val (memEndianess, setEndianess) = useState<Memory.Endianess>()
@@ -544,6 +544,7 @@ val MemoryView = FC<MemViewProps> { props ->
             val td = web.dom.document.getElementById("mem${memInstance.address.getRawHexStr()}") as HTMLTableCellElement?
             td?.innerText = memInstance.variable.get().toHex().getRawHexStr()
         }
+        // calcMemTable()
     }
 
     useEffect(useBounds, startAddr, amount) {
@@ -558,9 +559,9 @@ val MemoryView = FC<MemViewProps> { props ->
         setIUpdate(!internalUpdate)
     }
 
-    useEffect(memLength) {
+    /*useEffect(memLength) {
         calcMemTable()
-    }
+    }*/
 
     useEffect(memEndianess) {
         memEndianess?.let {
