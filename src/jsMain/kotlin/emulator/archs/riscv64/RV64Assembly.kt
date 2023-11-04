@@ -38,9 +38,10 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
 
             val result = binaryMapper.getInstrFromBinary(binary)
             if (result != null) {
-                var branchOffset5: String = ""
-                var branchOffset7: String = ""
-                var jalOffset20: String = ""
+                var branchOffset5: String = "0"
+                var branchOffset7: String = "0"
+                var jalOffset20: String = "0"
+
                 result.binMap.entries.forEach {
                     when (it.key) {
                         RV64BinMapper.MaskLabel.IMM5, RV64BinMapper.MaskLabel.IMM7, RV64BinMapper.MaskLabel.IMM12, RV64BinMapper.MaskLabel.IMM20 -> {

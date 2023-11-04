@@ -42,6 +42,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
     val (shadow, setShadow) = useState(false)
     val (scrollDown, setScrollDown) = useState(localStorage.getItem(StorageKey.CONSOLE_SDOWN)?.toBoolean() ?: true)
     val (pin, setPin) = useState(localStorage.getItem(StorageKey.CONSOLE_PIN)?.toBoolean() ?: false)
+    val (showLog, setShowLog) = useState(localStorage.getItem(StorageKey.CONSOLE_SHOWINFO)?.toBoolean() ?: false)
 
     val iConsole = appLogic.getArch().getConsole()
 
@@ -179,6 +180,30 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             src = StyleAttr.Icons.autoscroll
         }
 
+        img {
+            css {
+                display = Display.inlineBlock
+                cursor = Cursor.pointer
+                float = Float.right
+                padding = 0.1.rem
+                width = 1.8.rem
+                height = 1.8.rem
+                marginLeft = 0.4.rem
+                borderRadius = 5.px
+                filter = invert(100)
+
+                backgroundColor = if (showLog) {
+                    Color("#999999")
+                } else {
+                    Color("#AAAAAA")
+                }
+            }
+            onClick = {
+                setShowLog(!showLog)
+            }
+            src = StyleAttr.Icons.info
+        }
+
 
         div {
 
@@ -206,6 +231,10 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             for (message in appLogic.getArch().getConsole().getMessages()) {
                 val lines = message.message.split("\n")
                 for (lineID in lines.indices) {
+                    if(message.type == IConsole.MSGType.LOG && !showLog){
+                        continue
+                    }
+
                     span {
                         css {
                             display = Display.block
@@ -239,6 +268,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
 
                         +((if (lineID == 0) "" else "\t") + lines[lineID])
                     }
+
                 }
 
             }
@@ -287,6 +317,10 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 }
             }
             localStorage.setItem(StorageKey.CONSOLE_PIN, pin.toString())
+        }
+
+        useEffect(showLog) {
+            localStorage.setItem(StorageKey.CONSOLE_PIN, showLog.toString())
         }
 
         useEffect(scrollDown) {

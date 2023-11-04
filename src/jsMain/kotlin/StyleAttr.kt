@@ -126,19 +126,21 @@ object StyleAttr {
 
         }
         object Processor {
-            val BgColor = ModeColor("#1B3C60", "#272732")
+            val BorderColor = ModeColor("#915A69","#5D2A3A")
+            val BgColor = ModeColor("#313131","#313131")
             val FgColor = ModeColor("#EEEEEE", "#CCCCCC")
             val iconFilter = important(invert(100.pct))
-            val TableBgColor = ModeColor("#EEEEEE", "#313141")
-            val TableFgColor = ModeColor("#182147", "#AAAAAA")
-            val TabBgColor = ModeColor("#FFFFFF31", "#00000031")
-            val TabFgColor = ModeColor("#EEEEEE", "#777777")
+            val TableFgColor = ModeColor("#313131", "#AABACA")
+            val TableBgColor = ModeColor("#EEEEEE", "#222222")
+            val TabBgColor = ModeColor("#00000031", "#00000031")
+            val TabFgColor = ModeColor("#EEEEEE", "#999999")
 
             val BgColorTransparent = ModeColor("#77777731","#11111151")
 
-            val BtnFgFilter = ModeFilter(invert(10.pct), invert(90.pct))
-            val BtnBgColor = ModeColor("#EEEEEE", "#111")
-            val BtnFgColor = ModeColor("#272737", "#EEEEEE")
+            val BtnFgFilter = invert(100.pct)
+            val BtnBgColor = ModeColor("#1B3C60", "#272732")
+            val BtnFgColor = ModeColor("#EEE")
+            val BtnBgColorDeActivated = ModeColor("#1B3C6031","#27273231")
 
             val MaxHeightMem = 40.vh
             val MaxHeightReg = 40.vh

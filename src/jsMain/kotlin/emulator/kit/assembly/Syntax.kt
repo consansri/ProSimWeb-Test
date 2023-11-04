@@ -1,5 +1,6 @@
 package emulator.kit.assembly
 
+import debug.DebugTools
 import emulator.kit.common.FileHandler
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
@@ -36,6 +37,7 @@ abstract class Syntax {
             return false
         }
     }
+
     sealed class TreeNode(val name: String) {
         abstract fun getAllTokens(): Array<out Compiler.Token>
         abstract fun searchTokenNode(token: Compiler.Token, prevPath: String): SearchResult?
@@ -154,18 +156,21 @@ abstract class Syntax {
             }
         }
     }
+
     class Error(val message: String, val linkedTreeNode: TreeNode) {
         constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode(ConnectedHL(), "unidentified", *tokens))
         constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
         constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
         constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
     }
+
     class Warning(val message: String, val linkedTreeNode: TreeNode) {
         constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode(ConnectedHL(), "unidentified", *tokens))
         constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
         constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
         constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
     }
+
     class RowSeq(vararg val components: Component) {
 
         fun exacltyMatches(vararg elementNodes: TreeNode.ElementNode): RowSeqResult {
@@ -273,6 +278,7 @@ abstract class Syntax {
         class Component(vararg val treeNodeNames: String, val repeatable: Boolean = false)
         data class RowSeqResult(val matches: Boolean, val matchingTreeNodes: List<TreeNode.ElementNode>, val error: Error? = null, val remainingTreeNodes: List<TreeNode.ElementNode>? = null)
     }
+
     class TokenSeq(vararg val components: Component, val ignoreSpaces: Boolean = false) {
 
         init {
@@ -318,11 +324,14 @@ abstract class Syntax {
                     }
                 }
             }
-
-            console.log("checking: ${tokens.joinToString("") { it.content }}")
+            if (DebugTools.KIT_showSyntaxInfo) {
+                console.log("checking: ${tokens.joinToString("") { it.content }}")
+            }
 
             if (trimmedTokens.size < components.size) {
-                console.log("result: emtpy trimmedTokens < components")
+                if (DebugTools.KIT_showSyntaxInfo) {
+                    console.log("result: empty trimmedTokens < components")
+                }
                 return SeqMatchResult(false, emptyList())
             }
 
@@ -348,7 +357,9 @@ abstract class Syntax {
                     }
                 }
             }
-            console.log("result: ${sequenceList.joinToString("") { it.token.content }}")
+            if (DebugTools.KIT_showSyntaxInfo) {
+                console.log("result: ${sequenceList.joinToString("") { it.token.content }}")
+            }
             return if (sequenceList.size == components.size) {
                 SeqMatchResult(true, sequenceList)
             } else {
@@ -420,6 +431,7 @@ abstract class Syntax {
             }
         }
     }
+
     class ConnectedHL(vararg hlPairs: Pair<String, List<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
 
         val hlTokenMap: MutableMap<String, MutableList<Compiler.Token>>
@@ -462,5 +474,6 @@ abstract class Syntax {
             }
         }
     }
+
     data class SearchResult(val elementNode: TreeNode.ElementNode, val path: String = "")
 }

@@ -27,7 +27,7 @@ import web.cssom.*
 external interface RegisterViewProps : Props {
     var name: String
     var emulator: Emulator
-    var update: StateInstance<Boolean>
+    var update: Boolean
     var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
@@ -39,11 +39,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
     val appLogic by useState(props.emulator)
     val name by useState(props.name)
+    val change by useState(props.update)
     val regFileList = appLogic.getArch().getRegContainer().getRegFileList()
     val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(regFileList.size - 1)
     val (currRegType, setCurrRegTypeIndex) = useState<Variable.Value.Types>(Variable.Value.Types.Hex)
     val (update, setUpdate) = useState(false)
-    val change = props.update
+
 
     val registerContainer = appLogic.getArch().getRegContainer()
 
@@ -197,8 +198,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                             button {
                                 css {
-                                    background = StyleAttr.Main.Processor.BgColor.get()
-                                    color = StyleAttr.Main.Processor.FgColor.get()
+                                    background = StyleAttr.Main.BgColor.get()
+                                    color = StyleAttr.Main.FgColor.get()
                                 }
 
                                 span {

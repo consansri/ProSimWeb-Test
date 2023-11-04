@@ -19,6 +19,7 @@ object StorageKey {
      /* Console */
     val CONSOLE_SDOWN = "console-sdown"
     val CONSOLE_PIN = "console-pin"
+    val CONSOLE_SHOWINFO = "console-showInfo"
 
 
 }

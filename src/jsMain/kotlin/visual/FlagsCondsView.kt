@@ -14,7 +14,7 @@ import web.cssom.*
 external interface FlagsCondsViewProps : Props {
     var name: String
     var emulator: Emulator
-    var update: StateInstance<Boolean>
+    var update: Boolean
     var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 
 
@@ -23,7 +23,7 @@ external interface FlagsCondsViewProps : Props {
 val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
     val appLogic by useState(props.emulator)
     val name by useState(props.name)
-    val update = props.update
+    val update by useState(props.update)
 
     fun refresh(element: HTMLButtonElement, flag: FlagsConditions.Flag) {
         if (flag.getValue()) {

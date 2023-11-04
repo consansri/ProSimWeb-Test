@@ -301,6 +301,7 @@ val AppStyle = FC<Props> {
                         position = Position.relative
                         borderRadius = StyleAttr.borderRadius
                         background = StyleAttr.transparent
+                        flexGrow = number(1.0)
 
                     }
 

@@ -12,6 +12,7 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import debug.DebugTools
+import emulator.archs.riscv64.RV64Syntax
 
 
 /**
@@ -892,8 +893,8 @@ class RV32Syntax() : Syntax() {
                 // check params
                 val checkedType = eInstrName.check(eParamcoll)
                 if (checkedType != null) {
-                    val matchesSize = eInstrName.matchesSize(paramcoll = eParamcoll, instrType = checkedType)
-                    if (!matchesSize.toBig) {
+                    val noMatch = eInstrName.matchesSize(paramcoll = eParamcoll, instrType = checkedType)
+                    if (noMatch == null) {
                         rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
                         startIsDefined = true
                         rows[lineID] = rowNode
@@ -901,10 +902,14 @@ class RV32Syntax() : Syntax() {
                             errors.add(it)
                         }
                     } else {
-                        warnings.add(Warning("Parameter with length of ${matchesSize.valBitLength} Bits for ${checkedType.id} instruction exceeds maximum size of ${checkedType.paramType.immMaxSize?.bitWidth} Bits!", *lineElements.toTypedArray()))
-                        rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
-                        startIsDefined = true
-                        rows[lineID] = rowNode
+                        if (noMatch.needsSignExtension) {
+                            warnings.add(Warning("Parameter with length of ${noMatch.size} should be sign extended until ${noMatch.expectedSize}!",*lineElements.toTypedArray()))
+                            rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                            startIsDefined = true
+                            rows[lineID] = rowNode
+                        } else {
+                            errors.add(Error("Parameter with length of ${noMatch.size} for ${checkedType.id} instruction exceeds maximum size of ${noMatch.expectedSize}!", *lineElements.toTypedArray()))
+                        }
                         result.error?.let {
                             errors.add(it)
                         }
@@ -1209,44 +1214,37 @@ class RV32Syntax() : Syntax() {
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RV32Flags.instruction), REFS.REF_E_INSTRNAME, insToken) {
 
-        fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): MatchSizeResult {
+        fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): Bin.NoMatch? {
             try {
-                val exceedingSize: Int = when (instrType.paramType) {
+                return when (instrType.paramType) {
                     R_INSTR.ParamType.RD_I20 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 20) length else null
+                        paramcoll.getValues()[1].checkSize(Bit20())
                     }
 
                     R_INSTR.ParamType.RD_Off12 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 12) length else null
+                        paramcoll.getValues()[1].checkSize(Bit12())
                     }
 
                     R_INSTR.ParamType.RS2_Off5 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 5) length else null
+                        paramcoll.getValues()[1].checkSize(Bit5())
                     }
 
                     R_INSTR.ParamType.RD_RS1_RS1 -> null
                     R_INSTR.ParamType.RD_RS1_I12 -> {
-                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
-                        if (length > 12) length else null
+                        paramcoll.getValues()[2].checkSize(Bit12())
                     }
 
                     R_INSTR.ParamType.RD_RS1_I5 -> {
-                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
-                        if (length > 5) length else null
+                        paramcoll.getValues()[2].checkSize(Bit5())
                     }
 
                     R_INSTR.ParamType.RS1_RS2_I12 -> {
-                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
-                        if (length > 12) length else null
+                        paramcoll.getValues()[2].checkSize(Bit12())
                     }
 
                     R_INSTR.ParamType.PS_RS1_RS2_Jlbl -> null
                     R_INSTR.ParamType.PS_RD_I32 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 32) length else null
+                        paramcoll.getValues()[1].checkSize(Bit32())
                     }
 
                     R_INSTR.ParamType.PS_RS1_Jlbl -> null
@@ -1256,12 +1254,11 @@ class RV32Syntax() : Syntax() {
                     R_INSTR.ParamType.PS_RS1 -> null
                     R_INSTR.ParamType.NONE -> null
                     R_INSTR.ParamType.PS_NONE -> null
-                } ?: return MatchSizeResult(false)
-                return MatchSizeResult(true, valBitLength = exceedingSize)
+                }
 
             } catch (e: IndexOutOfBoundsException) {
                 console.error("RV32Syntax: Index out of bounds exception! Compare value indices with check()! Bug needs to be fixed! ($e)")
-                return MatchSizeResult(false)
+                return null
             }
         }
 

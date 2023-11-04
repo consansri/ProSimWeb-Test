@@ -24,7 +24,7 @@ import web.html.HTMLInputElement
 external interface ProcessorViewProps : Props {
     var emulator: Emulator
     var updateAppLogic: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
-    var update: StateInstance<Boolean>
+    var update: Boolean
 }
 
 
@@ -38,7 +38,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
     val (allowExe, setAllowExe) = useState(true)
     val appLogic by useState(props.emulator)
-    val (change, setUpdate) = props.update
+    val (change, setUpdate) = useState(props.update)
 
     fun queueExecution(executionType: ExecutionType, steps: Int = 1) {
         when (executionType) {
@@ -111,7 +111,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         div {
             css {
-                color = StyleAttr.Main.Processor.FgColor.get()
+                color = StyleAttr.Main.FgColor.get()
             }
             button {
                 css {
@@ -263,14 +263,14 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         RegisterView {
             this.name = "Register"
             this.emulator = appLogic
-            this.update = useState(change)
+            this.update = change
             this.updateParent = props.updateAppLogic
         }
 
         FlagsCondsView {
             this.name = "Flags & Conditions"
             this.emulator = appLogic
-            this.update = useState(change)
+            this.update = change
             this.updateParent = props.updateAppLogic
         }
     }
@@ -281,7 +281,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
         MemoryView {
             this.name = "Memory"
             this.emulator = appLogic
-            this.update = useState(change)
+            this.update = change
             this.length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
             this.updateParent = props.updateAppLogic
         }

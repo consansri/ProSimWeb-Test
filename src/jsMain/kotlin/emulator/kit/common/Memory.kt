@@ -16,7 +16,7 @@ class Memory(
     private val initBin: String,
     private val wordSize: Variable.Size,
     var endianess: Endianess,
-    private var ioBounds: IOBounds? = IOBounds(Variable.Value.Hex("00F00000", addressSize), 64)
+    private var ioBounds: IOBounds? = IOBounds(Variable.Value.Hex("00F00000", addressSize), 16)
 ) {
     private var memMap: MutableMap<String, MemInstance> = mutableMapOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()

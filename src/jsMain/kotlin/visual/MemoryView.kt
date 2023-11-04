@@ -38,7 +38,7 @@ external interface MemViewProps : Props {
     var name: String
     var emulator: Emulator
     var length: Int
-    var update: StateInstance<Boolean>
+    var update: Boolean
     var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
 }
 
@@ -52,7 +52,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
     val appLogic by useState(props.emulator)
     val name by useState(props.name)
-    val update = props.update
+    val update by useState(props.update)
     val (internalUpdate, setIUpdate) = useState(false)
     val (memLength, setMemLength) = useState<Int>(props.length)
     val (memEndianess, setEndianess) = useState<Memory.Endianess>()
@@ -102,33 +102,22 @@ val MemoryView = FC<MemViewProps> { props ->
         }
     }
 
-    fun getEditableValues() {
-        for (dValue in appLogic.getArch().getMemory().getEditableInstances()) {
-            try {
-                val input = document.getElementById("editval${dValue.address.getRawHexStr()}")
-                input?.let {
-                    (input as HTMLInputElement).blur()
-                }
-
-            } catch (e: ClassCastException) {
-                console.warn("ClassCastException")
-            }
-        }
-    }
-
     div {
         css {
             display = Display.flex
             flexDirection = FlexDirection.column
+            justifyContent = JustifyContent.stretch
+            alignItems = AlignItems.stretch
             position = Position.relative
             gap = StyleAttr.paddingSize
+            height = 100.pct
 
             table {
                 backgroundColor = StyleAttr.Main.Processor.TableBgColor.get()
                 color = StyleAttr.Main.Processor.TableFgColor.get()
 
                 caption {
-                    color = StyleAttr.Main.Processor.FgColor.get()
+                    color = StyleAttr.Main.Processor.TableFgColor.get()
                 }
 
                 input {
@@ -143,30 +132,23 @@ val MemoryView = FC<MemViewProps> { props ->
                 width = 100.pct
                 flexDirection = FlexDirection.row
                 flexWrap = FlexWrap.wrap
-                justifyContent = JustifyContent.stretch
+                justifyContent = JustifyContent.flexEnd
                 alignItems = AlignItems.center
                 gap = StyleAttr.paddingSize
                 paddingLeft = 12.px
                 paddingRight = 12.px
+                flexGrow = number(0.0)
 
-                "input[type=range]" {
+                "input[type=number]" {
                     display = Display.inlineBlock
-                    cursor = Cursor.pointer
                     border = Border(0.px, LineStyle.hidden)
                     height = StyleAttr.iconSize + 2 * StyleAttr.iconPadding
                     flexGrow = number(1.0)
                     float = Float.left
-                    minHeight = 1.em
                     borderRadius = StyleAttr.iconBorderRadius
                     verticalAlign = VerticalAlign.middle
-                    accentColor = StyleAttr.Main.Processor.BtnBgColor.get()
-
-                    webkitSliderThumb {
-                        borderRadius = StyleAttr.iconBorderRadius
-                    }
-                    mozRangeThumb {
-                        borderRadius = StyleAttr.iconBorderRadius
-                    }
+                    background = StyleAttr.Main.Processor.BtnBgColor.get()
+                    color = StyleAttr.Main.Processor.BtnFgColor.get()
                 }
 
                 select {
@@ -197,7 +179,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         display = Display.block
                         height = StyleAttr.Main.Table.IconSize
                         width = StyleAttr.Main.Table.IconSize
-                        filter = important(StyleAttr.Main.Processor.BtnFgFilter.get())
+                        filter = important(StyleAttr.Main.Processor.BtnFgFilter)
                     }
                 }
             }
@@ -251,16 +233,13 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
             }
             input {
-                css {
-                    filter = invert(100.pct)
-                }
                 ref = inputLengthRef
                 placeholder = "values per row"
-                type = InputType.range
+                type = InputType.number
                 min = 1.0
                 max = 16.0
                 step = 1.0
-                value = "$memLength"
+                value = memLength
 
                 onInput = {
                     setMemLength(it.currentTarget.valueAsNumber.toInt())
@@ -272,7 +251,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 type = ButtonType.button
                 css {
                     if (!lowFirst) {
-                        filter = invert(0.7)
+                        background = important(StyleAttr.Main.Processor.BtnBgColorDeActivated.get())
                     }
                 }
 
@@ -290,6 +269,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
         div {
             css {
+                display = Display.block
                 overflowY = Overflow.scroll
                 maxHeight = StyleAttr.Main.Processor.MaxHeightMem
                 borderRadius = StyleAttr.borderRadius

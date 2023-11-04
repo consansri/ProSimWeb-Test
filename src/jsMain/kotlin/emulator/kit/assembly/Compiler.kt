@@ -53,11 +53,13 @@ class Compiler(
     fun setCode(code: String, shouldHighlight: Boolean): Boolean {
         initCode(code)
 
+
         architecture.getConsole().compilerInfo("building ...")
         val parseTime = measureTime {
             analyze()
             parse()
         }
+
         architecture.getConsole().compilerInfo("build\ttook ${parseTime.inWholeMicroseconds}µs\t(${if (isBuildable) "success" else "has errors"})")
 
         if (shouldHighlight) {
@@ -210,10 +212,11 @@ class Compiler(
     private fun parse() {
         architecture.getTranscript().clear()
         syntax.clear()
+        architecture.getConsole().clear()
         architecture.getConsole().compilerInfo("building... ")
         syntaxTree = syntax.check(this, tokenLines, architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() }, architecture.getTranscript())
 
-        architecture.getConsole().clear()
+
         syntaxTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
                 if (warning.linkedTreeNode.getAllTokens().isNotEmpty()) {
@@ -365,6 +368,7 @@ class Compiler(
                 }
                 architecture.getConsole().compilerInfo("assembl\ttook ${assembleTime.inWholeMicroseconds}µs")
 
+
                 val disassembleTime = measureTime {
                     assembly.generateTranscript(architecture, it)
                 }
@@ -509,6 +513,15 @@ class Compiler(
     }
 
     fun getGrammarTree(): Syntax.SyntaxTree? = syntaxTree
+
+    fun logTip(message: String, lineID: Int = -1) {
+        if(lineID != -1){
+            architecture.getConsole().log("--Compiler-Tip: $message")
+        }else{
+            architecture.getConsole().log("--Compiler-Tip: line ${lineID + 1} -> $message")
+        }
+
+    }
 
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 

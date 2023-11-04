@@ -26,6 +26,7 @@ val App = FC<Props> { props ->
     val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.mode)
     val (reloadUI, setReloadUI) = useState(false)
     val (lPercentage, setLPct) = useState<Int>(40)
+    val (showMenu, setShowMenu) = useState(true)
 
     localStorage.getItem(StorageKey.ARCH_TYPE)?.let {
         val loaded = it.toInt()
@@ -43,11 +44,14 @@ val App = FC<Props> { props ->
         setReloadUI(!reloadUI)
     }
 
-    Menu {
-        this.emulator = appLogic
-        update = reloadUI
-        updateParent = ::updateApp
+    if (showMenu) {
+        Menu {
+            this.emulator = appLogic
+            update = reloadUI
+            updateParent = ::updateApp
+        }
     }
+
 
     ReactHTML.main {
         ref = mainRef
@@ -78,28 +82,33 @@ val App = FC<Props> { props ->
                 css {
                     flex = lPercentage.pct
                     position = Position.relative
+                    minHeight = max(50.vh, (StyleAttr.Main.Editor.TextField.lineHeight * 50).px)
                     if (lPercentage == 0) {
                         visibility = Visibility.hidden
                     }
                     StyleAttr.layoutSwitchMediaQuery {
                         flex = 100.pct
                         display = Display.block
-                        minHeight = max(50.vh, (StyleAttr.Main.Editor.TextField.lineHeight * 10).px)
+
                     }
                 }
-                CodeEditor {
-                    this.emulator = appLogic
-                    update = reloadUI
-                    updateParent = ::updateApp
+                if (lPercentage != 0) {
+                    CodeEditor {
+                        this.emulator = appLogic
+                        update = reloadUI
+                        updateParent = ::updateApp
+                    }
                 }
 
             }
+
 
             div {
                 id = "rcontainer"
                 css {
                     flex = (100 - lPercentage).pct
-                    if (100 - lPercentage == 0) {
+                    if (lPercentage == 100) {
+                        flexGrow = number(0.0)
                         visibility = Visibility.hidden
                     }
                     display = Display.flex
@@ -107,22 +116,26 @@ val App = FC<Props> { props ->
                     gap = StyleAttr.paddingSize
                     padding = StyleAttr.paddingSize
                     position = Position.relative
-                    backgroundColor = StyleAttr.Main.Processor.BgColor.get()
-                    color = StyleAttr.Main.Processor.FgColor.get()
-                    boxShadow = StyleAttr.Main.elementShadow
+                    border = Border(3.px, LineStyle.solid, StyleAttr.Main.Processor.BorderColor.get())
+                    background = StyleAttr.Main.Processor.BgColor.get()
                     borderRadius = StyleAttr.borderRadius
+                    color = StyleAttr.Main.FgColor.get()
+                    /*boxShadow = StyleAttr.Main.elementShadow*/
+
 
                     StyleAttr.layoutSwitchMediaQuery {
                         flex = 100.pct
                     }
                 }
-
-                ProcessorView {
-                    this.emulator = appLogic
-                    update = useState(reloadUI)
-                    updateAppLogic = ::updateApp
+                if (lPercentage != 100) {
+                    ProcessorView {
+                        this.emulator = appLogic
+                        update = reloadUI
+                        updateAppLogic = ::updateApp
+                    }
                 }
             }
+
 
             div {
                 id = "controlsContainer"
@@ -158,6 +171,16 @@ val App = FC<Props> { props ->
                             width = StyleAttr.Main.AppControls.iconSize
                             filter = StyleAttr.iconFilter
                         }
+                    }
+                }
+
+                div {
+                    title = "Hide/Show Menu"
+                    img {
+                        src = StyleAttr.Icons.bars
+                    }
+                    onClick = {
+                        setShowMenu(!showMenu)
                     }
                 }
 

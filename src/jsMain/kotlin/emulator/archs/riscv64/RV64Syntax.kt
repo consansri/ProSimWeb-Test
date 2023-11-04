@@ -17,7 +17,7 @@ import emulator.archs.riscv64.RV64BinMapper.OpCode
 class RV64Syntax : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
-    override val decimalValueSize: Variable.Size = Bit32()
+    override val decimalValueSize: Variable.Size = Bit64()
 
     override fun clear() {
 
@@ -887,8 +887,8 @@ class RV64Syntax : Syntax() {
                 // check params
                 val checkedType = eInstrName.check(eParamcoll)
                 if (checkedType != null) {
-                    val matchesSize = eInstrName.matchesSize(paramcoll = eParamcoll, instrType = checkedType)
-                    if (!matchesSize.toBig) {
+                    val noMatch = eInstrName.matchesSize(paramcoll = eParamcoll, instrType = checkedType)
+                    if (noMatch == null) {
                         rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
                         startIsDefined = true
                         rows[lineID] = rowNode
@@ -896,10 +896,19 @@ class RV64Syntax : Syntax() {
                             errors.add(it)
                         }
                     } else {
-                        warnings.add(Warning("Parameter with length of ${matchesSize.valBitLength} Bits for ${checkedType.id} instruction exceeds maximum size of ${checkedType.paramType.immMaxSize?.bitWidth} Bits!", *lineElements.toTypedArray()))
-                        rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
-                        startIsDefined = true
-                        rows[lineID] = rowNode
+                        if (noMatch.needsSignExtension) {
+                            try {
+                                compiler.logTip("Parameter with length of ${noMatch.size} could be sign extended until ${noMatch.expectedSize}!", lineElements.first().tokens.first().lineLoc.lineID)
+                            } catch (e: IndexOutOfBoundsException) {
+                                compiler.logTip("Parameter with length of ${noMatch.size} could be sign extended until ${noMatch.expectedSize}!")
+                            }
+
+                            rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                            startIsDefined = true
+                            rows[lineID] = rowNode
+                        } else {
+                            errors.add(Error("Parameter with length of ${noMatch.size} for ${checkedType.id} instruction exceeds maximum size of ${noMatch.expectedSize}!", *lineElements.toTypedArray()))
+                        }
                         result.error?.let {
                             errors.add(it)
                         }
@@ -1204,59 +1213,49 @@ class RV64Syntax : Syntax() {
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RV64Flags.instruction), REFS.REF_E_INSTRNAME, insToken) {
 
-        fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): MatchSizeResult {
+
+        fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): Bin.NoMatch? {
             try {
-                val exceedingSize: Int = when (instrType.paramType) {
+                val immMax = instrType.paramType.immMaxSize
+                if (immMax == null) {
+                    return null
+                }
+                return when (instrType.paramType) {
                     R_INSTR.ParamType.RD_I20 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 20) length else null
+                        paramcoll.getValues()[1].checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RD_Off12 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 12) length else null
+                        paramcoll.getValues()[1].checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RS2_Off5 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 5) length else null
+                        paramcoll.getValues()[1].checkSize(immMax)
                     }
 
-                    R_INSTR.ParamType.RD_RS1_RS1 -> null
                     R_INSTR.ParamType.RD_RS1_I12 -> {
-                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
-                        if (length > 12) length else null
+                        paramcoll.getValues()[2].checkSize(immMax)
                     }
 
-                    R_INSTR.ParamType.RD_RS1_I5 -> {
-                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
-                        if (length > 5) length else null
+                    R_INSTR.ParamType.RD_RS1_I6 -> {
+                        paramcoll.getValues()[2].checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RS1_RS2_I12 -> {
-                        val length = paramcoll.getValues()[2].getRawBinaryStr().trimStart('0').length
-                        if (length > 12) length else null
+                        paramcoll.getValues()[2].checkSize(immMax)
                     }
 
-                    R_INSTR.ParamType.PS_RS1_RS2_Jlbl -> null
-                    R_INSTR.ParamType.PS_RD_I32 -> {
-                        val length = paramcoll.getValues()[1].getRawBinaryStr().trimStart('0').length
-                        if (length > 32) length else null
+                    R_INSTR.ParamType.PS_RD_I64 -> {
+                        paramcoll.getValues()[1].checkSize(immMax)
                     }
 
-                    R_INSTR.ParamType.PS_RS1_Jlbl -> null
-                    R_INSTR.ParamType.PS_RD_Albl -> null
-                    R_INSTR.ParamType.PS_Jlbl -> null
-                    R_INSTR.ParamType.PS_RD_RS1 -> null
-                    R_INSTR.ParamType.PS_RS1 -> null
-                    R_INSTR.ParamType.NONE -> null
-                    R_INSTR.ParamType.PS_NONE -> null
-                } ?: return MatchSizeResult(false)
-                return MatchSizeResult(true, valBitLength = exceedingSize)
+                    else -> null
+
+                }
 
             } catch (e: IndexOutOfBoundsException) {
                 console.error("RV64Syntax: Index out of bounds exception! Compare value indices with check()! Bug needs to be fixed! ($e)")
-                return MatchSizeResult(false)
+                return null
             }
         }
 
@@ -1307,7 +1306,7 @@ class RV64Syntax : Syntax() {
                         }
                     }
 
-                    R_INSTR.ParamType.RD_RS1_I5 -> {
+                    R_INSTR.ParamType.RD_RS1_I6 -> {
                         matches = if (params.size == 3) {
                             params[0] is E_PARAM.Register && params[1] is E_PARAM.Register && params[2] is E_PARAM.Constant
                         } else {
@@ -1331,7 +1330,7 @@ class RV64Syntax : Syntax() {
                         }
                     }
 
-                    R_INSTR.ParamType.PS_RD_I32 -> matches = if (params.size == 2) {
+                    R_INSTR.ParamType.PS_RD_I64 -> matches = if (params.size == 2) {
                         params[0] is E_PARAM.Register && params[1] is E_PARAM.Constant
                     } else {
                         false
@@ -1407,8 +1406,7 @@ class RV64Syntax : Syntax() {
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is E_PARAM.Constant -> {
-                        var value = it.getValue()
-                        /*if (value.size.byteCount < Bit32().byteCount) {
+                        var value = it.getValue()/*if (value.size.byteCount < Bit32().byteCount) {
                             value = when (it.constant) {
                                 is Compiler.Token.Constant.UDec -> {
                                     value.getUResized(Bit32())
@@ -1598,9 +1596,7 @@ class RV64Syntax : Syntax() {
         }
 
         enum class MajorType(val docName: String) {
-            SECTIONSTART("Section identification"),
-            DE_ALIGNED("Data emitting aligned"),
-            DE_UNALIGNED("Data emitting unaligned")
+            SECTIONSTART("Section identification"), DE_ALIGNED("Data emitting aligned"), DE_UNALIGNED("Data emitting unaligned")
         }
 
         enum class DirType(val dirname: String, val majorType: MajorType) {
@@ -1689,7 +1685,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             }, // rd, rs, imm
-            RD_RS1_I5(false, "rd, rs1, shamt5", Bit5()) {
+            RD_RS1_I6(false, "rd, rs1, shamt6", Bit6()) {
                 override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rd = paramMap.get(RD)
                     val rs1 = paramMap.get(RS1)
@@ -1720,7 +1716,7 @@ class RV64Syntax : Syntax() {
 
             // PSEUDO INSTRUCTIONS
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
-            PS_RD_I32(true, "rd, imm32", Bit32()), // rd, imm
+            PS_RD_I64(true, "rd, imm32", Bit64()), // rd, imm
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
             PS_Jlbl(true, "jlabel"),  // label
@@ -1735,14 +1731,7 @@ class RV64Syntax : Syntax() {
             }
         }
 
-        enum class InstrType(
-            val id: String,
-            val pseudo: Boolean,
-            val paramType: ParamType,
-            val opCode: OpCode? = null,
-            val memWords: Int = 1,
-            val relative: InstrType? = null
-        ) {
+        enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null) {
             LUI("LUI", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 0110111", arrayOf(IMM20, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap) // only for console information
@@ -1825,13 +1814,8 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            ECALL("ECALL", false, ParamType.NONE, OpCode("000000000000 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))),
-            EBREAK("EBREAK", false, ParamType.NONE, OpCode("000000000001 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))),
-            BEQ(
-                "BEQ",
-                false,
-                ParamType.RS1_RS2_I12,
-                OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+            ECALL("ECALL", false, ParamType.NONE, OpCode("000000000000 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))), EBREAK("EBREAK", false, ParamType.NONE, OpCode("000000000001 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))), BEQ(
+                "BEQ", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -1859,10 +1843,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             BNE(
-                "BNE",
-                false,
-                ParamType.RS1_RS2_I12,
-                OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "BNE", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -1889,10 +1870,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             BLT(
-                "BLT",
-                false,
-                ParamType.RS1_RS2_I12,
-                OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "BLT", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -1919,10 +1897,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             BGE(
-                "BGE",
-                false,
-                ParamType.RS1_RS2_I12,
-                OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "BGE", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -1949,10 +1924,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             BLTU(
-                "BLTU",
-                false,
-                ParamType.RS1_RS2_I12,
-                OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "BLTU", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -1979,10 +1951,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             BGEU(
-                "BGEU",
-                false,
-                ParamType.RS1_RS2_I12,
-                OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "BGEU", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2011,8 +1980,7 @@ class RV64Syntax : Syntax() {
             BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ), BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE), BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT), BGE1("BGE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGE), BLTU1(
                 "BLTU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLTU
             ),
-            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU),
-            LB(
+            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU), LB(
                 "LB", false, ParamType.RD_Off12, OpCode("000000000000 00000 000 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
@@ -2160,10 +2128,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SB(
-                "SB",
-                false,
-                ParamType.RS2_Off5,
-                OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "SB", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2185,10 +2150,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SH(
-                "SH",
-                false,
-                ParamType.RS2_Off5,
-                OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "SH", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2210,10 +2172,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SW(
-                "SW",
-                false,
-                ParamType.RS2_Off5,
-                OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "SW", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2235,10 +2194,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SD(
-                "SD",
-                false,
-                ParamType.RS2_Off5,
-                OpCode("0000000 00000 00000 011 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
+                "SD", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 011 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2400,10 +2356,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SLLI(
-                "SLLI",
-                false,
-                ParamType.RD_RS1_I5,
-                OpCode("000000 000000 00000 001 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
+                "SLLI", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 001 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2422,10 +2375,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SLLIW(
-                "SLLIW",
-                false,
-                ParamType.RD_RS1_I5,
-                OpCode("000000 000000 00000 001 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
+                "SLLIW", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 001 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2444,10 +2394,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRLI(
-                "SRLI",
-                false,
-                ParamType.RD_RS1_I5,
-                OpCode("000000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
+                "SRLI", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2466,10 +2413,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRLIW(
-                "SRLIW",
-                false,
-                ParamType.RD_RS1_I5,
-                OpCode("000000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
+                "SRLIW", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2488,10 +2432,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRAI(
-                "SRAI",
-                false,
-                ParamType.RD_RS1_I5,
-                OpCode("010000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
+                "SRAI", false, ParamType.RD_RS1_I6, OpCode("010000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2510,10 +2451,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRAIW(
-                "SRAIW",
-                false,
-                ParamType.RD_RS1_I5,
-                OpCode("010000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
+                "SRAIW", false, ParamType.RD_RS1_I6, OpCode("010000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2532,10 +2470,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             ADD(
-                "ADD",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "ADD", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2555,10 +2490,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             ADDW(
-                "ADDW",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "ADDW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2578,10 +2510,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SUB(
-                "SUB",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SUB", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2601,10 +2530,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SUBW(
-                "SUBW",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0100000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SUBW", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2624,10 +2550,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SLL(
-                "SLL",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SLL", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2647,10 +2570,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SLLW(
-                "SLLW",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 001 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SLLW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 001 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2670,10 +2590,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SLT(
-                "SLT",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SLT", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2693,10 +2610,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SLTU(
-                "SLTU",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SLTU", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2716,10 +2630,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             XOR(
-                "XOR",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "XOR", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2739,10 +2650,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRL(
-                "SRL",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SRL", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2762,10 +2670,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRLW(
-                "SRLW",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SRLW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2785,10 +2690,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRA(
-                "SRA",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SRA", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2808,10 +2710,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             SRAW(
-                "SRAW",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0100000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "SRAW", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2831,10 +2730,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             OR(
-                "OR",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "OR", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2854,10 +2750,7 @@ class RV64Syntax : Syntax() {
                 }
             },
             AND(
-                "AND",
-                false,
-                ParamType.RD_RS1_RS1,
-                OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
+                "AND", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
             ) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
@@ -2876,13 +2769,31 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            Nop("NOP", true, ParamType.PS_NONE), Mv("MV", true, ParamType.PS_RD_RS1), Li("LI", true, ParamType.PS_RD_I32, memWords = 2), La("LA", true, ParamType.PS_RD_Albl, memWords = 2), Not("NOT", true, ParamType.PS_RD_RS1), Neg("NEG", true, ParamType.PS_RD_RS1), Seqz(
+            Nop("NOP", true, ParamType.PS_NONE),
+            Mv("MV", true, ParamType.PS_RD_RS1),
+            Li("LI", true, ParamType.PS_RD_I64, memWords = 5),
+            La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
+            Not("NOT", true, ParamType.PS_RD_RS1),
+            Neg("NEG", true, ParamType.PS_RD_RS1),
+            Seqz(
                 "SEQZ", true, ParamType.PS_RD_RS1
             ),
-            Snez("SNEZ", true, ParamType.PS_RD_RS1), Sltz("SLTZ", true, ParamType.PS_RD_RS1), Sgtz("SGTZ", true, ParamType.PS_RD_RS1), Beqz("BEQZ", true, ParamType.PS_RS1_Jlbl), Bnez("BNEZ", true, ParamType.PS_RS1_Jlbl), Blez("BLEZ", true, ParamType.PS_RS1_Jlbl), Bgez(
+            Snez("SNEZ", true, ParamType.PS_RD_RS1),
+            Sltz("SLTZ", true, ParamType.PS_RD_RS1),
+            Sgtz("SGTZ", true, ParamType.PS_RD_RS1),
+            Beqz("BEQZ", true, ParamType.PS_RS1_Jlbl),
+            Bnez("BNEZ", true, ParamType.PS_RS1_Jlbl),
+            Blez("BLEZ", true, ParamType.PS_RS1_Jlbl),
+            Bgez(
                 "BGEZ", true, ParamType.PS_RS1_Jlbl
             ),
-            Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl), BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl), Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl), Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl), Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl), Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl), J(
+            Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl),
+            BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl),
+            Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl),
+            Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl),
+            Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl),
+            Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl),
+            J(
                 "J", true, ParamType.PS_Jlbl
             ),
             JAL1("JAL", true, ParamType.PS_RS1_Jlbl, relative = JAL),
@@ -2890,7 +2801,9 @@ class RV64Syntax : Syntax() {
             Jr("JR", true, ParamType.PS_RS1),
             JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
             Ret("RET", true, ParamType.PS_NONE),
-            Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
+            Call(
+                "CALL", true, ParamType.PS_Jlbl, memWords = 2
+            ),
             Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
 
             open fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {

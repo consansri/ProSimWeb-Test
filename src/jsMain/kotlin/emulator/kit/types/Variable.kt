@@ -221,6 +221,60 @@ class Variable {
                 return Bin(paddedBinString, size)
             }
 
+            /**
+             * Returns null if Matches
+             */
+            fun uCheckSize(size: Size): NoMatch? {
+                return when {
+                    this.size.bitWidth == size.bitWidth -> {
+                        null
+                    }
+
+                    this.size.bitWidth > size.bitWidth -> {
+                        NoMatch(this.size, size)
+                    }
+
+                    this.size.bitWidth < size.bitWidth -> {
+                        null
+                    }
+
+                    else -> {
+                        null
+                    }
+                }
+            }
+
+            /**
+             * Returns null if Matches
+             */
+            fun checkSize(size: Size): NoMatch? {
+                return when {
+                    this.size.bitWidth == size.bitWidth -> {
+                        null
+                    }
+
+                    this.size.bitWidth > size.bitWidth -> {
+                        val exceeding = this.getRawBinaryStr().substring(0, this.size.bitWidth - size.bitWidth)
+                        return if (exceeding.first() == '0') {
+                            if (exceeding.indexOf('1') == -1) null else NoMatch(this.size, size)
+                        } else {
+                            if (exceeding.indexOf('0') == -1) null else NoMatch(this.size, size)
+                        }
+                    }
+
+                    this.size.bitWidth < size.bitWidth -> {
+                        if (this.getRawBinaryStr().first() == '1') {
+                            return NoMatch(this.size, size, true)
+                        }
+                        return null
+                    }
+
+                    else -> {
+                        null
+                    }
+                }
+            }
+
             override fun toHex(): Hex {
                 return Conversion.getHex(this)
             }
@@ -344,6 +398,7 @@ class Variable {
                 return Bin(BinaryTools.inv(getRawBinaryStr()), size)
             }
 
+            data class NoMatch(val size: Size, val expectedSize: Size, val needsSignExtension: Boolean = false)
 
         }
 
@@ -1002,6 +1057,10 @@ class Variable {
             return super.equals(other)
         }
 
+        override fun toString(): String {
+            return "$bitWidth Bits"
+        }
+
         fun getByteCount(): Int {
             return (bitWidth.toFloat() / 8.0f).roundToInt()
         }
@@ -1089,6 +1148,7 @@ class Variable {
                     this.umin = "0"
                     this.umax = "31"
                 }
+
                 is Size.Bit6 -> {
                     this.min = "-32"
                     this.max = "31"
