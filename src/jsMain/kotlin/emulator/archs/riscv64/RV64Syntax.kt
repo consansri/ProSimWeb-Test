@@ -1716,7 +1716,7 @@ class RV64Syntax : Syntax() {
 
             // PSEUDO INSTRUCTIONS
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
-            PS_RD_I64(true, "rd, imm32", Bit64()), // rd, imm
+            PS_RD_I64(true, "rd, imm64", Bit64()), // rd, imm
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
             PS_Jlbl(true, "jlabel"),  // label

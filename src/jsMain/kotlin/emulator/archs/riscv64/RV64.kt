@@ -1,7 +1,6 @@
 package emulator.archs.riscv64
 
 import emotion.react.css
-import emulator.archs.riscv32.RV32BinMapper
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config

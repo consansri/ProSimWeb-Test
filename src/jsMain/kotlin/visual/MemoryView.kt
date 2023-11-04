@@ -212,11 +212,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
                 defaultValue = appLogic.getArch().getMemory().getEndianess().name
 
-                option {
-                    disabled = true
-                    +"Endianess"
-                }
-
                 for (entry in Memory.Endianess.entries) {
                     option {
                         value = entry.name
@@ -271,7 +266,8 @@ val MemoryView = FC<MemViewProps> { props ->
             css {
                 display = Display.block
                 overflowY = Overflow.scroll
-                maxHeight = StyleAttr.Main.Processor.MaxHeightMem
+                flexGrow = number(1.0)
+                maxHeight = 50.vh
                 borderRadius = StyleAttr.borderRadius
                 paddingLeft = 12.px // center with scrollbar on the right
             }
@@ -293,7 +289,11 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         for (columnID in 0 until memLength) {
                             th {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                               /* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*/
+                                css{
+                                    textAlign = TextAlign.center
+                                    width = 4.ch
+                                }
                                 scope = "col"
                                 +"$columnID"
                             }
@@ -319,6 +319,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         sortedKeys = sortedKeys.reversed()
                         nextAddress = nextAddress.getBiggest() - memLengthValue
                     }
+
 
                     for (memRowKey in sortedKeys) {
                         val memRow = memRows[memRowKey]
@@ -442,6 +443,19 @@ val MemoryView = FC<MemViewProps> { props ->
                             (Variable.Value.Hex(memRowKey) - memLengthValue)
                         }
                     }
+
+                    tr {
+                        td {
+                            colSpan = memLength + 2
+                            css {
+                                paddingTop = 15.rem
+                                paddingBottom = 15.rem
+                            }
+                            +"Memory"
+                        }
+                    }
+
+
                 }
             }
         }
