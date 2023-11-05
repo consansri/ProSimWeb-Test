@@ -5,7 +5,7 @@ package emulator.kit.common
  */
 class ArchState {
 
-    private var state = State.UNCHECKED
+    var state = State.UNCHECKED
 
     fun getState(): State {
         return state

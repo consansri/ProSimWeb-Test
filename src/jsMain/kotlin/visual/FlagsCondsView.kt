@@ -1,6 +1,5 @@
 package visual
 
-import emulator.Emulator
 import StyleAttr
 import emulator.kit.optional.FlagsConditions
 import react.*
@@ -8,22 +7,20 @@ import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import debug.DebugTools
+import emulator.kit.Architecture
 import web.html.*
 import web.cssom.*
 
 external interface FlagsCondsViewProps : Props {
     var name: String
-    var emulator: Emulator
-    var update: StateInstance<Boolean>
-    var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
-
-
+    var archState: StateInstance<Architecture>
+    var compileEventState: StateInstance<Boolean>
+    var exeEventState: StateInstance<Boolean>
 }
 
 val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
-    val appLogic by useState(props.emulator)
+    val arch = props.archState.component1()
     val name by useState(props.name)
-    val update = props.update
 
     fun refresh(element: HTMLButtonElement, flag: FlagsConditions.Flag) {
         if (flag.getValue()) {
@@ -42,7 +39,7 @@ val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
     }
 
 
-    appLogic.getArch().getFlagsConditions()?.let {
+    arch.getFlagsConditions()?.let {
         div {
             className = ClassName(StyleAttr.CLASS_PROC_FC_CONTAINER)
             div {
@@ -85,11 +82,6 @@ val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
             }
 
 
-        }
-    }
-    useEffect(update) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("(update) FlagsCondsView")
         }
     }
 

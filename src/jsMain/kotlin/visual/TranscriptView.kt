@@ -1,12 +1,9 @@
 package visual
 
-import emulator.Emulator
 import StyleAttr
 import emotion.react.css
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
-import react.FC
-import react.Props
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.table
@@ -15,38 +12,27 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import react.useRef
-import react.useState
 import debug.DebugTools
+import emulator.kit.Architecture
+import emulator.kit.common.RegContainer
+import react.*
 
 import web.timers.*
 import web.cssom.*
 
 external interface TranscriptProps : Props {
     var ta_val: String
-    var transcript: Transcript
-    var emulator: Emulator
-    var updateParent: () -> Unit
+    var arch: StateInstance<Architecture>
+    var compileEventState: StateInstance<Boolean>
+    var exeEventState: StateInstance<Boolean>
 }
 
 val TranscriptView = FC<TranscriptProps> { props ->
 
-    val executionPointInterval = useRef<Timeout>(null)
+    val arch = props.arch.component1()
 
-    val appLogic by useState(props.emulator)
-    val transcript by useState(props.transcript)
     val (currExeAddr, setCurrExeAddr) = useState<Variable.Value.Hex>(Variable.Value.Hex("0"))
     val (currType, setCurrType) = useState<Transcript.Type>(Transcript.Type.DISASSEMBLED)
-
-    executionPointInterval.current?.let {
-        clearInterval(it)
-    }
-    if (!DebugTools.REACT_deactivateAutoRefreshs) {
-        executionPointInterval.current = setInterval({
-            val pcValue = appLogic.getArch().getRegContainer().pc.variable.get()
-            setCurrExeAddr(pcValue.toHex())
-        }, 50)
-    }
 
     fun switchCurrType() {
         val currIndex = currType.ordinal
@@ -107,7 +93,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
                                 background = important(StyleAttr.Main.Editor.BgColor.get())
                             }
                         }
-                        for (header in transcript.getHeaders(currType)) {
+                        for (header in arch.getTranscript().getHeaders(currType)) {
                             th {
                                 className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                 scope = "col"
@@ -120,7 +106,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
                 // ...
 
                 tbody {
-                    for (row in transcript.getContent(currType)) {
+                    for (row in arch.getTranscript().getContent(currType)) {
                         tr {
                             css {
                                 cursor = Cursor.pointer
@@ -144,8 +130,8 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
                             onClick = {
                                 row.getAddresses().firstOrNull()?.let {
-                                    appLogic.getArch().exeUntilAddress(it.toHex())
-                                    props.updateParent()
+                                    arch.exeUntilAddress(it.toHex())
+                                    props.exeEventState.component2().invoke(!props.exeEventState.component1())
                                 }
                             }
                         }
@@ -168,8 +154,8 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
                                 onClick = {
                                     row.getAddresses().firstOrNull()?.let {
-                                        appLogic.getArch().exeUntilAddress(it.toHex())
-                                        props.updateParent()
+                                        arch.exeUntilAddress(it.toHex())
+                                        props.exeEventState.component2().invoke(!props.exeEventState.component1())
                                     }
                                 }
                             }
@@ -179,6 +165,15 @@ val TranscriptView = FC<TranscriptProps> { props ->
             }
         }
 
-
     }
+    useEffect(props.exeEventState.component1()) {
+        if(DebugTools.REACT_showUpdateInfo){
+            console.log("REACT: Exe Event Changed!")
+        }
+
+        val pcValue = arch.getRegContainer().pc.variable.get()
+        setCurrExeAddr(pcValue.toHex())
+    }
+
+
 }

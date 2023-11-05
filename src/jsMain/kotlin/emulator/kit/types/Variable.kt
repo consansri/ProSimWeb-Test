@@ -14,7 +14,7 @@ class Variable {
 
     val initialBinary: String
     val size: Size
-    private var value: Value
+    var value: Value
 
     constructor(initialBinary: String, size: Size) {
         this.initialBinary = initialBinary

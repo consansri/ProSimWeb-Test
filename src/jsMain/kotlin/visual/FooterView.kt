@@ -1,14 +1,17 @@
 package visual
 
 import Constants
+import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Settings
 import react.FC
 import react.Props
+import react.StateInstance
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
+import react.useEffect
 import web.cssom.*
 
 
@@ -16,7 +19,7 @@ external interface FooterViewProps : Props{
 
 }
 
-val FooterView = FC<FooterViewProps>{
+val FooterView = FC<FooterViewProps>{ props ->
 
     div{
         css {
@@ -54,6 +57,5 @@ val FooterView = FC<FooterViewProps>{
             +"Copyright © ${Constants.year} ${Constants.org}"
         }
     }
-
 
 }

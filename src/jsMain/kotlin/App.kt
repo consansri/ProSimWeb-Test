@@ -1,5 +1,4 @@
 import emotion.react.css
-import emulator.Emulator
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
 import web.html.*
@@ -11,9 +10,11 @@ import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import debug.DebugTools
+import emulator.Link
 import visual.*
 import visual.ProcessorView
 import web.cssom.*
+import web.dom.document
 
 
 val App = FC<Props> { props ->
@@ -22,34 +23,26 @@ val App = FC<Props> { props ->
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
 
-    val (appLogic, setAppLogic) = useState<Emulator>(Emulator())
     val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.mode)
-    val reloadUI = useState(false)
 
     val (lPercentage, setLPct) = useState<Int>(40)
     val (showMenu, setShowMenu) = useState(true)
 
-    localStorage.getItem(StorageKey.ARCH_TYPE)?.let {
-        val loaded = it.toInt()
-        if (loaded in 0 until appLogic.getArchList().size) {
-            appLogic.selID = loaded
-        }
-    }
+    val archState = useState(Link.entries[localStorage.getItem(StorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0].architecture)
 
+    val compileEventState = useState(false)
+    val exeEventState = useState(false)
 
 
     AppStyle {}
 
-    fun updateApp() {
-        console.log("update App from Child Component")
-        reloadUI.component2().invoke(!reloadUI.component1())
+    if (DebugTools.REACT_showUpdateInfo) {
+        console.log("REACT: render App")
     }
 
     if (showMenu) {
         Menu {
-            this.emulator = appLogic
-            update = reloadUI
-            updateParent = ::updateApp
+            this.archState = archState
         }
     }
 
@@ -94,9 +87,9 @@ val App = FC<Props> { props ->
                 }
                 if (lPercentage != 0) {
                     CodeEditor {
-                        this.emulator = appLogic
-                        update = reloadUI
-                        updateParent = ::updateApp
+                        this.archState = archState
+                        this.compileEventState = compileEventState
+                        this.exeEventState = exeEventState
                     }
                 }
 
@@ -129,9 +122,10 @@ val App = FC<Props> { props ->
                 }
                 if (lPercentage != 100) {
                     ProcessorView {
-                        this.emulator = appLogic
-                        update = reloadUI
-                        updateAppLogic = ::updateApp
+                        this.archState = archState
+                        this.compileEventState = compileEventState
+                        this.exeEventState = exeEventState
+
                     }
                 }
             }
@@ -222,7 +216,7 @@ val App = FC<Props> { props ->
                     }
                 }
 
-                for (feature in appLogic.getArch().getAllFeatures()) {
+                for (feature in archState.component1().getAllFeatures()) {
                     div {
                         css {
                             if (!feature.value) {
@@ -232,11 +226,9 @@ val App = FC<Props> { props ->
 
                         a {
                             +feature.key
-
                         }
                         onClick = {
-                            appLogic.getArch().getAllFeatures().set(feature.key, !feature.value)
-                            reloadUI.component2().invoke(!reloadUI.component1())
+                            archState.component1().getAllFeatures().set(feature.key, !feature.value)
                         }
                     }
                 }
@@ -274,10 +266,11 @@ val App = FC<Props> { props ->
             }
 
             InfoView {
-                this.emulator = appLogic
-                this.update = reloadUI
-                this.updateParent = ::updateApp
+                this.archState = archState
                 this.footerRef = footerRef
+                this.compileEventState = compileEventState
+                this.exeEventState = exeEventState
+
             }
         }
     }
@@ -293,15 +286,15 @@ val App = FC<Props> { props ->
         }
     }
 
-
-    useEffect(reloadUI) {
+    useEffect(mode) {
         if (DebugTools.REACT_showUpdateInfo) {
-            console.log("(update) App")
+            console.log("(update) Theme")
         }
     }
-
-    useEffect(mode) {
-
+    useEffect(archState.component1()) {
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("REACT: Switch to " + archState.component1().getDescription().fullName)
+        }
     }
 
 }

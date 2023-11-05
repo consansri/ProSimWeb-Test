@@ -1,8 +1,8 @@
 package visual
 
-import emulator.Emulator
 import StyleAttr
 import emotion.react.css
+import emulator.Link
 import emulator.kit.common.FileBuilder
 import emulator.kit.common.FileHandler
 import js.core.asList
@@ -20,6 +20,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import debug.DebugTools
+import emulator.kit.Architecture
 import web.buffer.Blob
 import web.cssom.*
 import web.storage.localStorage
@@ -30,17 +31,13 @@ import web.dom.*
 import web.location.location
 import web.url.URL
 
-
 external interface MenuProps : Props {
-    var emulator: Emulator
-    var update: StateInstance<Boolean>
-    var updateParent: () -> Unit
+    var archState: StateInstance<Architecture>
 }
 
 val Menu = FC<MenuProps>() { props ->
 
-    val data by useState(props.emulator)
-    val (update, setUpdate) = props.update
+    val (arch, setArch) = props.archState
     val (navHidden, setNavHidden) = useState(true)
     val (archsHidden, setArchsHidden) = useState(true)
 
@@ -49,8 +46,8 @@ val Menu = FC<MenuProps>() { props ->
     val (exportHidden, setExportHidden) = useState(true)
     val (selFormat, setSelFormat) = useState<FileBuilder.ExportFormat>(FileBuilder.ExportFormat.entries.first())
 
-    val (selAddrW, setSelAddrW) = useState<Int>(data.getArch().getMemory().getAddressSize().bitWidth)
-    val (selDataW, setSelDataW) = useState<Int>(data.getArch().getMemory().getWordSize().bitWidth)
+    val (selAddrW, setSelAddrW) = useState<Int>(arch.getMemory().getAddressSize().bitWidth)
+    val (selDataW, setSelDataW) = useState<Int>(arch.getMemory().getWordSize().bitWidth)
 
     val navRef = useRef<HTMLElement>()
     val archsRef = useRef<HTMLDivElement>()
@@ -86,7 +83,7 @@ val Menu = FC<MenuProps>() { props ->
 
         reader.onloadend = {
             console.log("read ${reader.result}")
-            data.getArch().getFileHandler().import(FileHandler.File(file.name as String, reader.result as String))
+            arch.getFileHandler().import(FileHandler.File(file.name as String, reader.result as String))
         }
     }
 
@@ -204,20 +201,17 @@ val Menu = FC<MenuProps>() { props ->
                 }
             }
 
-            for (id in data.getArchList().indices) {
+            for (archLink in Link.entries) {
                 a {
                     onClick = { event ->
                         showArchs(false)
-                        val newData = data
-                        newData.selID = id
+                        setArch(archLink.architecture)
                         localStorage.setItem(StorageKey.ARCH_TYPE, "$id")
-                        console.log("Load " + data.getArch().getDescription().fullName)
+
                         event.currentTarget.classList.toggle("nav-arch-active")
-                        //updateParent(newData)
-                        location.reload()
                     }
 
-                    +data.getArchList()[id].getDescription().fullName
+                    +arch.getDescription().fullName
                 }
             }
 
@@ -322,15 +316,15 @@ val Menu = FC<MenuProps>() { props ->
                         }
 
                         downloadAsyncRef.current = setTimeout({
-                            val blob = data.getArch().getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
+                            val blob = arch.getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
                             val anchor = document.createElement("a") as HTMLAnchorElement
                             anchor.href = URL.createObjectURL(blob)
                             anchor.style.display = "none"
                             document.body.appendChild(anchor)
                             if (selFormat.ending.isNotEmpty()) {
-                                anchor.download = data.getArch().getFileHandler().getCurrNameWithoutType() + selFormat.ending
+                                anchor.download = arch.getFileHandler().getCurrNameWithoutType() + selFormat.ending
                             } else {
-                                anchor.download = data.getArch().getFileHandler().getCurrent().getName()
+                                anchor.download = arch.getFileHandler().getCurrent().getName()
                             }
                             anchor.click()
                         }, 10)
@@ -378,7 +372,6 @@ val Menu = FC<MenuProps>() { props ->
                                 importFile(file)
                             }
                         }
-                        props.updateParent()
                         setImportHidden(true)
                     }
                 }
@@ -387,15 +380,5 @@ val Menu = FC<MenuProps>() { props ->
         }
     }
 
-    useEffect(selFormat, selAddrW, selDataW) {
-        // generate downloadable file
-
-    }
-
-    useEffect(update) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("(update) Menu")
-        }
-    }
 
 }

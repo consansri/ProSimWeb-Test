@@ -40,7 +40,7 @@ class FileBuilder {
                     }
                 }
                 val depth = 2.0.pow(addrWidth) * dataWidth
-                val memInstances = architecture.getMemory().getMemMap().map { it.value }.sortedBy { it.address.getRawHexStr() }.toMutableList()
+                val memInstances = architecture.getMemory().getMemList().sortedBy { it.address.getRawHexStr() }.toMutableList()
 
                 val vhdlItems = mutableListOf<VHDLItem>()
                 var itemsPerRow = Variable.Value.Dec((dataWidth / 8).toString()).getRawDecStr().toLongOrNull()

@@ -98,7 +98,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeContinuous() {
-        getConsole().clear()
+
     }
 
     /**
@@ -106,7 +106,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeSingleStep() {
-        getConsole().clear()
+
     }
 
     /**
@@ -114,7 +114,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeMultiStep(steps: Int) {
-        getConsole().clear()
         getConsole().log("--exe_multi_step $steps ...")
     }
 
@@ -123,7 +122,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeSkipSubroutine() {
-        getConsole().clear()
     }
 
     /**
@@ -131,7 +129,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeReturnFromSubroutine() {
-        getConsole().clear()
+
     }
 
     /**
@@ -139,7 +137,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeUntilLine(lineID: Int) {
-        getConsole().clear()
+
     }
 
     /**
@@ -147,7 +145,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeUntilAddress(address: Variable.Value.Hex) {
-        getConsole().clear()
+
     }
 
     /**

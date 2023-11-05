@@ -1,6 +1,5 @@
 package visual
 
-import emulator.Emulator
 import StorageKey
 import StyleAttr
 import emotion.react.css
@@ -12,6 +11,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import debug.DebugTools
+import emulator.kit.Architecture
 import emulator.kit.common.IConsole
 
 import web.html.*
@@ -19,11 +19,10 @@ import web.timers.*
 import web.cssom.*
 
 external interface IConsoleViewProps : Props {
-    var emulator: Emulator
-    var updateParent: () -> Unit
-    var update: StateInstance<Boolean>
+    var archState: StateInstance<Architecture>
     var footerRef: MutableRefObject<HTMLElement>
-
+    var compileEventState: StateInstance<Boolean>
+    var exeEventState: StateInstance<Boolean>
 }
 
 val IConsoleView = FC<IConsoleViewProps>() { props ->
@@ -33,27 +32,15 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
     val footerRef = props.footerRef
 
     val scrollIVRef = useRef<Timeout>(null)
-    val contentIVRef = useRef<Timeout>(null)
 
-    val appLogic by useState(props.emulator)
-    val update = props.update
-    val (internalUpdate, setIUpdate) = useState(false)
+    val (messages, setMessages) = useState(props.archState.component1().getConsole().getMessages())
+
+    val iConsole = props.archState.component1().getConsole()
 
     val (shadow, setShadow) = useState(false)
     val (scrollDown, setScrollDown) = useState(localStorage.getItem(StorageKey.CONSOLE_SDOWN)?.toBoolean() ?: true)
     val (pin, setPin) = useState(localStorage.getItem(StorageKey.CONSOLE_PIN)?.toBoolean() ?: false)
     val (showLog, setShowLog) = useState(localStorage.getItem(StorageKey.CONSOLE_SHOWINFO)?.toBoolean() ?: false)
-
-    val iConsole = appLogic.getArch().getConsole()
-
-    contentIVRef.current?.let {
-        clearInterval(it)
-    }
-    if (!DebugTools.REACT_deactivateAutoRefreshs) {
-        contentIVRef.current = setInterval({
-            setIUpdate(!internalUpdate)
-        }, 200)
-    }
 
     div {
 
@@ -91,7 +78,7 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             }
 
             onClick = { event ->
-                setIUpdate(!internalUpdate)
+
             }
 
             +iConsole.name
@@ -120,7 +107,8 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             }
 
             onClick = {
-                appLogic.getArch().getConsole().clear()
+                props.archState.component1().getConsole().clear()
+                setMessages(emptyList())
             }
 
             src = StyleAttr.Icons.delete_black
@@ -228,10 +216,10 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 }
             }
 
-            for (message in appLogic.getArch().getConsole().getMessages()) {
+            for (message in messages) {
                 val lines = message.message.split("\n")
                 for (lineID in lines.indices) {
-                    if(message.type == IConsole.MSGType.LOG && !showLog){
+                    if (message.type == IConsole.MSGType.LOG && !showLog) {
                         continue
                     }
 
@@ -298,10 +286,6 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             }
         }
 
-        document.body?.onresize = { event ->
-            setIUpdate(!internalUpdate)
-        }
-
         useEffect(pin) {
             if (pin) {
                 val heightPx: Int
@@ -338,20 +322,17 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             localStorage.setItem(StorageKey.CONSOLE_SDOWN, scrollDown.toString())
         }
 
-        useEffect(update) {
+        useEffect(document.body?.onresize) {
             if (DebugTools.REACT_showUpdateInfo) {
-                console.log("(update) ConsoleView")
+                iConsole.log("REACT: Resize ConsoleView updated!")
             }
             scrollRef.current?.let {
                 it.scrollTo(0.0, it.scrollHeight.toDouble())
             }
-
         }
 
-        useEffect(internalUpdate) {
-            /*if (DebugTools.showUpdateInfo) {
-                console.log("(update-internal) ConsoleView")
-            }*/
+        useEffect(props.exeEventState, props.compileEventState, props.archState.component1().getConsole().getMessages()) {
+            setMessages(props.archState.component1().getConsole().getMessages())
         }
 
     }

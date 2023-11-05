@@ -1,14 +1,13 @@
 package visual
 
-import emulator.Emulator
 import emotion.react.css
 import web.html.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-import debug.DebugTools
 import web.cssom.*
 import StyleAttr.Main.InfoView
+import emulator.kit.Architecture
 import emulator.kit.common.Docs
 import emulator.kit.common.FileHandler
 import js.core.asList
@@ -22,10 +21,11 @@ import web.http.fetch
 import web.window.window
 
 external interface InfoViewProps : Props {
-    var emulator: Emulator
-    var update: StateInstance<Boolean>
-    var updateParent: () -> Unit
+    var archState: StateInstance<Architecture>
     var footerRef: MutableRefObject<HTMLElement>
+    var compileEventState: StateInstance<Boolean>
+    var exeEventState: StateInstance<Boolean>
+
 }
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -33,17 +33,14 @@ val InfoView = FC<InfoViewProps> { props ->
 
     val docDiv = useRef<HTMLDivElement>()
 
-    val appLogic by useState(props.emulator)
-    val (update, setUpdate) = useState(props.update)
+    val arch = props.archState.component1()
     val (currMDID, setCurrMDID) = useState<Int>()
 
     var job: Job? = null
 
     div {
         IConsoleView {
-            this.emulator = appLogic
-            this.updateParent = props.updateParent
-            this.update = update
+            this.archState = props.archState
             this.footerRef = props.footerRef
         }
         div {
@@ -55,8 +52,8 @@ val InfoView = FC<InfoViewProps> { props ->
                 alignItems = AlignItems.center
                 gap = StyleAttr.paddingSize
             }
-            for (docID in appLogic.getArch().getDescription().docs.files.indices) {
-                val doc = appLogic.getArch().getDescription().docs.files[docID]
+            for (docID in arch.getDescription().docs.files.indices) {
+                val doc = arch.getDescription().docs.files[docID]
                 a {
                     css {
                         cursor = Cursor.pointer
@@ -195,7 +192,7 @@ val InfoView = FC<InfoViewProps> { props ->
                 ref = docDiv
 
                 currMDID?.let { id ->
-                    appLogic.getArch().getDescription().docs.files.getOrNull(id)?.let { file ->
+                    arch.getDescription().docs.files.getOrNull(id)?.let { file ->
                         if (file is Docs.HtmlFile.DefinedFile) {
                             file.fc {
 
@@ -207,15 +204,9 @@ val InfoView = FC<InfoViewProps> { props ->
         }
     }
 
-    useEffect(update) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("(update) InfoView")
-        }
-    }
-
     useEffect(currMDID) {
         if (currMDID != null) {
-            val file = appLogic.getArch().getDescription().docs.files[currMDID]
+            val file = arch.getDescription().docs.files[currMDID]
             if (file is Docs.HtmlFile.SourceFile) {
                 job = GlobalScope.launch {
                     val snippet = fetch(file.src).text()
@@ -225,17 +216,16 @@ val InfoView = FC<InfoViewProps> { props ->
                         for (child in codeChilds) {
                             child.addEventListener(EventType("click"), { event ->
                                 child.textContent?.let { text ->
-                                    if (appLogic.getArch().getFileHandler().getAllFiles().filter { it.getName() == "example" }.isEmpty()) {
-                                        appLogic.getArch().getFileHandler().import(FileHandler.File("example", text))
+                                    if (arch.getFileHandler().getAllFiles().filter { it.getName() == "example" }.isEmpty()) {
+                                        arch.getFileHandler().import(FileHandler.File("example", text))
                                         window.scrollTo(0, 0)
-                                        props.updateParent()
-                                        appLogic.getArch().getConsole().info("Successfully imported 'example'!")
+                                        arch.getConsole().info("Successfully imported 'example'!")
                                     } else {
                                         child.classList.add(StyleAttr.ANIM_SHAKERED)
                                         web.timers.setTimeout({
                                             child.classList.remove(StyleAttr.ANIM_SHAKERED)
                                         }, 100)
-                                        appLogic.getArch().getConsole().warn("Documentation couldn't import code example cause filename 'example' already exists!")
+                                        arch.getConsole().warn("Documentation couldn't import code example cause filename 'example' already exists!")
                                     }
                                 }
                             })

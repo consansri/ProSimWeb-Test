@@ -1,9 +1,7 @@
 package visual
 
-import emulator.Emulator
 import emotion.react.css
 import emulator.kit.Settings
-import kotlinx.browser.document
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -17,49 +15,37 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import debug.DebugTools
+import emulator.kit.Architecture
+import emulator.kit.common.ArchState
+import emulator.kit.common.IConsole
+import emulator.kit.common.RegContainer
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.Types.*
 import kotlin.time.measureTime
 import web.html.*
 import web.timers.*
 import web.cssom.*
+import web.dom.document
 
 external interface RegisterViewProps : Props {
     var name: String
-    var emulator: Emulator
-    var update: StateInstance<Boolean>
-    var updateParent: () -> Unit // Only update parent from a function which isn't changed from update prop (Infinite Loop)
+    var archState: StateInstance<Architecture>
+    var compileEventState: StateInstance<Boolean>
+    var exeEventState: StateInstance<Boolean>
 }
 
 val RegisterView = FC<RegisterViewProps> { props ->
 
     val bodyRef = useRef<HTMLTableSectionElement>()
     val pcRef = useRef<HTMLButtonElement>()
-    val pcRefreshInterval = useRef<Timeout>()
 
-    val appLogic by useState(props.emulator)
-    val name by useState(props.name)
-    val change = props.update
-    val regFileList = appLogic.getArch().getRegContainer().getRegFileList()
+    val arch = props.archState.component1()
+
+    val name = props.name
+    val regFileList = arch.getRegContainer().getRegFileList()
     val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(regFileList.size - 1)
     val (currRegType, setCurrRegTypeIndex) = useState<Variable.Value.Types>(Variable.Value.Types.Hex)
-    val (update, setUpdate) = useState(false)
 
-
-    val registerContainer = appLogic.getArch().getRegContainer()
-
-    // INTERVALS
-
-    pcRefreshInterval.current?.let {
-        clearInterval(it)
-    }
-    if (!DebugTools.REACT_deactivateAutoRefreshs) {
-        pcRefreshInterval.current = setInterval({
-            pcRef.current?.let {
-                it.innerText = "PC: ${registerContainer.pc.variable.get().toHex().getHexStr()}"
-            }
-        }, 100)
-    }
 
 
     /* DOM */
@@ -155,11 +141,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     paddingTop = 0.5.rem
                 }
 
-                +"PC: ${registerContainer.pc.variable.get().toHex().getHexStr()}"
+                +"PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
 
                 onClick = { event ->
-                    appLogic.getArch().getRegContainer().pc
-                    setUpdate(!update)
+                    pcRef.current?.let {
+                        it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+                    }
                 }
             }
         }
@@ -175,7 +162,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             tabIndex = 0
 
             table {
-                val registerArray = registerContainer.getRegFileList()[currRegFileIndex]
+                val registerArray = arch.getRegContainer().getRegFileList()[currRegFileIndex]
                 thead {
                     tr {
 
@@ -311,8 +298,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                                     reg.variable.setUDec(newValue)
                                                                 }
                                                             }
-                                                            setUpdate(!update)
-                                                            appLogic.getArch().getConsole().info("Register setValue: [${reg.variable.get().toDec().getDecStr()}|${reg.variable.get().toUDec().getUDecStr()}|${reg.variable.get().toHex().getHexStr()}|${reg.variable.get().toBin().getBinaryStr()}]")
+
+                                                            console.info("Register setValue: [${reg.variable.get().toDec().getDecStr()}|${reg.variable.get().toUDec().getUDecStr()}|${reg.variable.get().toHex().getHexStr()}|${reg.variable.get().toBin().getBinaryStr()}]")
                                                         } catch (e: NumberFormatException) {
                                                             console.warn("RegisterView reg onBlur: NumberFormatException")
                                                         }
@@ -369,15 +356,15 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
-    useEffect(currRegType, change) {
+    useEffect(currRegType) {
         if (DebugTools.REACT_showUpdateInfo) {
-            console.log("(part-update) RegisterView")
+            console.log("(update) RegisterView")
         }
-        val registers = if (currRegFileIndex < registerContainer.getRegFileList().size) {
-            registerContainer.getRegFileList()[currRegFileIndex]
+        val registers = if (currRegFileIndex < arch.getRegContainer().getRegFileList().size) {
+            arch.getRegContainer().getRegFileList()[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
-            registerContainer.getRegFileList()[0]
+            arch.getRegContainer().getRegFileList()[0]
         }
         registers.let {
             for (reg in it.registers) {
@@ -406,28 +393,50 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
             }
         }
-
+        pcRef.current?.let {
+            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+        }
     }
 
-    useEffect(change) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("(update) RegisterView")
+    useEffect(props.exeEventState) {
+        if(DebugTools.REACT_showUpdateInfo){
+            console.log("REACT: Exe Event!")
         }
-        val regCont = appLogic.getArch().getRegContainer()
-        val registers = if (currRegFileIndex < regCont.getRegFileList().size) {
-            regCont.getRegFileList()[currRegFileIndex]
+        val registers = if (currRegFileIndex < arch.getRegContainer().getRegFileList().size) {
+            arch.getRegContainer().getRegFileList()[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
-            regCont.getRegFileList()[0]
+            arch.getRegContainer().getRegFileList()[0]
         }
-    }
+        registers.let {
+            for (reg in it.registers) {
+                val regID = it.registers.indexOf(reg)
+                try {
+                    val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
+                    regRef?.value = when (currRegType) {
+                        Hex -> {
+                            reg.variable.get().toHex().getRawHexStr()
+                        }
 
-    useEffect(update) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("(part-update) RegisterView")
+                        Bin -> {
+                            reg.variable.get().toBin().getRawBinaryStr()
+                        }
+
+                        Dec -> {
+                            reg.variable.get().toDec().getRawDecStr()
+                        }
+
+                        UDec -> {
+                            reg.variable.get().toUDec().getRawUDecStr()
+                        }
+                    }
+                } catch (e: NumberFormatException) {
+                    console.warn("RegisterView useEffect(currRegType): NumberFormatException")
+                }
+            }
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${registerContainer.pc.variable.get().toHex().getHexStr()}"
+            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
         }
     }
 
