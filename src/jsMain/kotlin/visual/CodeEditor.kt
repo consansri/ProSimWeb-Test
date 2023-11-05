@@ -175,7 +175,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 checkTimeOutRef.current = setTimeout({
                     setvc_rows(appLogic.getArch().check(valueToCheck, currExeLine).split("\n"))
                     setCheckState(appLogic.getArch().getState().getState())
-                    props.update.component2().invoke(!props.update.component1())
+                    /*props.update.component2().invoke(!props.update.component1())*/
                 }, delay)
             }
         }
