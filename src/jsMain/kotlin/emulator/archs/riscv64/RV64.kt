@@ -18,7 +18,7 @@ object RV64 {
     val REG_VALUE_SIZE = Variable.Size.Bit64()
     val REG_ADDRESS_SIZE = Variable.Size.Bit5()
     val MEM_VALUE_WIDTH = Variable.Size.Bit8()
-    val MEM_ADDRESS_WIDTH = Variable.Size.Bit32()
+    val MEM_ADDRESS_WIDTH = Variable.Size.Bit64()
 
     enum class TS_COMPILED_HEADERS {
         Address,
@@ -169,7 +169,7 @@ object RV64 {
         )
     )
 
-    val asmConfig = AsmConfig(RV64Syntax(), RV64Assembly(RV64BinMapper(), Variable.Value.Hex("00010000", Variable.Size.Bit32()), Variable.Value.Hex("00020000", Variable.Size.Bit32()), Variable.Value.Hex("00030000", Variable.Size.Bit32())))
+    val asmConfig = AsmConfig(RV64Syntax(), RV64Assembly(RV64BinMapper(), Variable.Value.Hex("00010000", MEM_ADDRESS_WIDTH), Variable.Value.Hex("00020000", MEM_ADDRESS_WIDTH), Variable.Value.Hex("00030000", MEM_ADDRESS_WIDTH)))
     
     val config = Config(
         Config.Description("RV64I", "RISC-V 64Bit", riscVDocs),
@@ -213,7 +213,7 @@ object RV64 {
                     )
                 )
             ),
-            pcSize = Variable.Size.Bit32()
+            pcSize = REG_VALUE_SIZE
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
         Transcript()

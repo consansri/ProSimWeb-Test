@@ -4,6 +4,7 @@ import StyleAttr
 import emulator.kit.types.Variable
 import debug.DebugTools
 import emulator.kit.Settings
+import kotlin.time.measureTime
 
 /**
  * For emulating the [Memory] of architectures, this class is used. [store] and [load] functions are already implemented which depend on the [endianess].

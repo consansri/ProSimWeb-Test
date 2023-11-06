@@ -70,8 +70,6 @@ import emulator.kit.types.DecTools
  *
  *  [REACT_showUpdateInfo]
  *
- *  [REACT_deactivateAutoRefreshs]
- *
  */
 object DebugTools {
 
@@ -89,9 +87,9 @@ object DebugTools {
      */
 
     const val RV64_showAsmInfo = true
-    const val RV64_showBinMapperInfo = true
+    const val RV64_showBinMapperInfo = false
     const val RV64_showOpCodeInfo = false
-    const val RV64_showGrammarScanTiers = true
+    const val RV64_showGrammarScanTiers = false
 
 
 
@@ -104,7 +102,7 @@ object DebugTools {
     const val KIT_showMemoryInfo = false
 
     const val KIT_showSyntaxInfo = false
-    const val KIT_showCompilerInfo = true
+    const val KIT_showCompilerInfo = false
     const val KIT_showAsmInfo = false
 
 
@@ -167,8 +165,8 @@ object DebugTools {
      * VISUAL
      */
 
-    const val REACT_showUpdateInfo = true
-    const val REACT_deactivateAutoRefreshs = true
+    const val REACT_showUpdateInfo = false
+    const val REACT_deactivateAutomaticBuilds = true
 
 
 }

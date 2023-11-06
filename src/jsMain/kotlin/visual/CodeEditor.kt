@@ -51,16 +51,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val codeAreaRef = useRef<HTMLElement>(null)
     val preHLTimeoutRef = useRef<Timeout>(null)
     val checkTimeOutRef = useRef<Timeout>(null)
-    val executionPointInterval = useRef<Timeout>(null)
-
-    var job: Job? = null
 
     /* ----------------- REACT STATES ----------------- */
 
     val arch = props.archState.component1()
-    val consoleState = useState(props.archState.component1().getConsole())
-    val transcriptState = useState(props.archState.component1().getTranscript())
-    val regContainerState = useState(props.archState.component1().getRegContainer())
 
     val (currExeLine, setCurrExeLine) = useState(-1)
     val (exeFile, setExeFile) = useState<FileHandler.File>()
@@ -72,24 +66,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (lineNumbers, setLineNumbers) = useState<Int>(1)
     val (infoPanelText, setInfoPanelText) = useState("")
 
+    val (tsActive, setTSActive) = useState(false)
     val (undoActive, setUndoActive) = useState(false)
     val (redoActive, setRedoActive) = useState(false)
     /* ----------------- localStorage Sync Objects ----------------- */
 
     val (vc_rows, setvc_rows) = useState<List<String>>(emptyList())
-    val (files, setFiles) = useState<List<FileHandler.File>>()
+    val (files, setFiles) = useState<List<FileHandler.File>>(emptyList())
     val (transcriptView, setTranscriptView) = useState(false)
-
-    /* ----------------- Initiate Intervals ----------------- */
-
-    executionPointInterval.current?.let {
-        clearInterval(it)
-    }
-    if (!DebugTools.REACT_deactivateAutoRefreshs) {
-        executionPointInterval.current = setInterval({
-
-        }, 50)
-    }
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
 
@@ -117,6 +101,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             if (height != 0) {
                 it.style.height = "${height}px"
             }
+        }
+    }
+
+    fun updateTsButton() {
+        if (arch.getState().state == ArchState.State.EXECUTABLE || arch.getState().state == ArchState.State.EXECUTION) {
+            btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
+            setTSActive(true)
+        } else {
+            btnSwitchRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
+            setTSActive(false)
         }
     }
 
@@ -158,7 +152,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             props.compileEventState.component2().invoke(!props.compileEventState.component1())
         } else {
             val size = valueToCheck.split("\n").size
-            if (size < 250) {
+            if (size < 250 && !DebugTools.REACT_deactivateAutomaticBuilds) {
                 checkTimeOutRef.current?.let {
                     clearTimeout(it)
                 }
@@ -273,7 +267,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     src = StyleAttr.Icons.disassembler
                 }
 
-                if (arch.getState().state == ArchState.State.EXECUTABLE) {
+                if (tsActive) {
                     onClick = {
                         setTranscriptView(!transcriptView)
                     }
@@ -497,7 +491,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                     className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TABS)
 
-                    for (fileID in arch.getFileHandler().getAllFiles().indices) {
+                    for (fileID in files.indices) {
                         val file = arch.getFileHandler().getAllFiles()[fileID]
                         div {
 
@@ -859,8 +853,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Switched File!")
         }
-        /* Component RELOAD */
-        arch.getFileHandler().getFromLocalStorage()
         /* -- LOAD from localStorage -- */
         setFiles(arch.getFileHandler().getAllFiles())
         textareaRef.current?.let {
@@ -869,9 +861,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
     }
 
-    useEffect(props.archState){
-        /* Component RELOAD */
-        arch.getFileHandler().getFromLocalStorage()
+    useEffect(props.archState) {
         /* -- LOAD from localStorage -- */
         setFiles(arch.getFileHandler().getAllFiles())
     }
@@ -910,10 +900,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         updateUndoRedoButton()
     }
 
-    useEffect(arch.getRegContainer().pc.variable.value) {
+    useEffect(props.compileEventState) {
+        updateTsButton()
+        setFiles(arch.getFileHandler().getAllFiles())
+    }
+
+    useEffect(props.exeEventState) {
         if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: PC Value Changed!")
+            console.log("REACT: Exe Event Changed!")
         }
+
         val lineAddressMap = arch.getAssembly().getAssemblyMap().lineAddressMap
         val pcValue = arch.getRegContainer().pc.variable.get()
         val entry = lineAddressMap.get(pcValue.toHex().getRawHexStr())

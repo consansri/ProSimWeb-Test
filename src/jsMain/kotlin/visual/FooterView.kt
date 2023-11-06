@@ -7,12 +7,15 @@ import emulator.kit.Settings
 import react.FC
 import react.Props
 import react.StateInstance
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.useEffect
 import web.cssom.*
+import web.dom.document
+import web.window.window
 
 
 external interface FooterViewProps : Props{
@@ -30,20 +33,21 @@ val FooterView = FC<FooterViewProps>{ props ->
             textDecoration = null
         }
 
+
+
         p{
-            img{
-                css {
-                    width = 4.rem
-                    height = 4.rem
-                    cursor = Cursor.pointer
-                    filter = invert(90.pct)
+            a{
+                href = "mailto:constantin.birkert@web.de?subject=ProSimWeb: BugReport"
+                img{
+                    css {
+                        width = 4.rem
+                        height = 4.rem
+                        cursor = Cursor.pointer
+                        filter = invert(90.pct)
+                    }
+
+                    src = StyleAttr.Icons.report_bug
                 }
-
-                onClick = {event ->
-
-                }
-
-                src = StyleAttr.Icons.report_bug
             }
         }
         h3{
@@ -53,8 +57,12 @@ val FooterView = FC<FooterViewProps>{ props ->
         p{
             +"${Constants.name} version ${Constants.version}"
         }
+
         p{
             +"Copyright © ${Constants.year} ${Constants.org}"
+        }
+        p{
+            +"Developed by ${Constants.dev}"
         }
     }
 

@@ -1090,7 +1090,7 @@ class RV64Syntax : Syntax() {
          * Pass Instructions and JLabels to Transcript
          */
         val compiledTSRows = mutableListOf<RVCompiledRow>()
-        var address: Variable.Value = Hex("0", Bit32())
+        var address: Variable.Value = Hex("0", RV64.MEM_ADDRESS_WIDTH)
         var compiledRow = RVCompiledRow(address.toHex())
         for (section in sections + imports) {
             when (section) {
@@ -1747,7 +1747,7 @@ class RV64Syntax : Syntax() {
 
                     // calculate
                     val shiftedIMM32 = imm20.getUResized(Bit32()) shl 12 // from imm20 to imm32
-                    val sext64 = shiftedIMM32.getResized(RV64.REG_VALUE_SIZE)
+                    val sext64 = shiftedIMM32.getUResized(RV64.REG_VALUE_SIZE)
                     // change states
                     rd.set(sext64)    // set register to imm32 value
                     pc.set(pc.get() + Hex("4"))
@@ -1763,7 +1763,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm20 != null) {
                             val shiftedIMM32 = imm20.getUResized(Bit32()) shl 12
-                            val sext64 = shiftedIMM32.getResized(RV64.REG_VALUE_SIZE)
+                            val sext64 = shiftedIMM32.getUResized(RV64.REG_VALUE_SIZE)
                             val sum = pc.get() + sext64
                             rd.set(sum)
                             pc.set(pc.get() + Hex("4"))
@@ -2772,7 +2772,7 @@ class RV64Syntax : Syntax() {
             Nop("NOP", true, ParamType.PS_NONE),
             Mv("MV", true, ParamType.PS_RD_RS1),
             Li("LI", true, ParamType.PS_RD_I64, memWords = 5),
-            La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
+            La("LA", true, ParamType.PS_RD_Albl, memWords = 5),
             Not("NOT", true, ParamType.PS_RD_RS1),
             Neg("NEG", true, ParamType.PS_RD_RS1),
             Seqz(

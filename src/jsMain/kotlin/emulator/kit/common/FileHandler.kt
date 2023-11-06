@@ -15,6 +15,10 @@ class FileHandler(val fileEnding: String) {
     private val files = mutableListOf<File>()
     private var currentID: Int = 0
 
+    init {
+        getFromLocalStorage()
+    }
+
     fun import(file: File): Boolean {
         return if (files.map { it.getName() }.contains(file.getName())) {
             console.warn("couldn't import file cause filename duplicate recognized!")

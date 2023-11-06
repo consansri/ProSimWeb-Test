@@ -185,8 +185,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                             button {
                                 css {
-                                    background = StyleAttr.Main.BgColor.get()
-                                    color = StyleAttr.Main.FgColor.get()
+                                    background = StyleAttr.Main.Processor.BtnBgColor.get()
+                                    color = StyleAttr.Main.Processor.BtnFgColor.get()
                                 }
 
                                 span {
@@ -349,7 +349,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         }
                     }
                     if (DebugTools.REACT_showUpdateInfo) {
-                        console.log("RegisterView RegTypeChange took ${measuredRegTypeChange.inWholeMilliseconds} ms")
+                        console.log("REACT: RegisterView RegTypeChange took ${measuredRegTypeChange.inWholeMilliseconds} ms!")
                     }
                 }
             }

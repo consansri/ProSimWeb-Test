@@ -4,7 +4,9 @@ plugins {
 }
 
 group = "me.c3"
-version = "0.1.2"
+version = "0.1.3"
+
+val doodle_version: String by project
 
 repositories {
     mavenCentral()
@@ -33,7 +35,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                /*implementation("io.nacular.doodle:core:$doodle_version")
+                implementation("io.nacular.doodle:browser:$doodle_version")
 
+                // Optional
+                implementation("io.nacular.doodle:controls:$doodle_version")
+                implementation("io.nacular.doodle:animation:$doodle_version")
+                implementation("io.nacular.doodle:themes:$doodle_version")*/
             }
         }
         val commonTest by getting {

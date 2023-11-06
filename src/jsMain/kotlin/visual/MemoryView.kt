@@ -153,7 +153,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
             }
 
-            button {
+            /*button {
                 type = ButtonType.button
 
                 onClick = {
@@ -163,7 +163,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 img {
                     src = StyleAttr.Icons.refresh
                 }
-            }
+            }*/
 
             select {
 

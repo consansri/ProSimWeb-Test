@@ -10,6 +10,7 @@ import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import debug.DebugTools
+import kotlin.time.measureTime
 
 
 /**
@@ -435,15 +436,19 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
                 bins.addAll(binary)
             }
 
-            var address = Variable.Value.Hex("0", Variable.Size.Bit32())
+            var address = Variable.Value.Hex("0", RV32.MEM_ADDRESS_WIDTH)
             for (binaryID in bins.indices) {
                 val binary = bins[binaryID]
-                if (DebugTools.RV32_showAsmInfo) {
-                    console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
+                val calcTime = measureTime {
+                    address = Variable.Value.Hex((binaryID * 4).toString(16), Variable.Size.Bit32())
+                    transcriptEntrys.add(RVDisassembledRow(address))
                 }
-                address = Variable.Value.Hex((binaryID * 4).toString(16), Variable.Size.Bit32())
-                transcriptEntrys.add(RVDisassembledRow(address))
-                memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
+                val memoryTime = measureTime {
+                    memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
+                }
+                if (DebugTools.RV64_showAsmInfo) {
+                    console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID}/${bins.size - 1} saving... (calc: ${calcTime.inWholeMicroseconds} µs, memory: ${memoryTime.inWholeMicroseconds} µs)")
+                }
             }
             transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4", Variable.Size.Bit8())).toHex()))
             architecture.getRegContainer().pc.variable.set(pcStartAddress)

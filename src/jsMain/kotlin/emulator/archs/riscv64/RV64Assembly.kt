@@ -1,9 +1,6 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
-import emulator.archs.riscv64.RV64
-import emulator.archs.riscv64.RV64BinMapper
-import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Assembly
 import emulator.kit.assembly.Compiler
@@ -31,7 +28,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             val binary = architecture.getMemory().load(row.getAddresses().first(), 4).toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
-                if (Variable.Value.Bin(labels.value, Variable.Size.Bit32()) == row.getAddresses().first().toBin()) {
+                if (Variable.Value.Bin(labels.value, RV64.MEM_ADDRESS_WIDTH) == row.getAddresses().first().toBin()) {
                     labelString += "${labels.key.wholeName} "
                 }
             }
@@ -76,7 +73,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                 var labelstring = ""
                 when (result.type) {
                     RV64Syntax.R_INSTR.InstrType.JAL -> {
-                        val shiftedImm = Variable.Value.Bin(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), Variable.Size.Bit20()).getResized(Variable.Size.Bit32()) shl 1
+                        val shiftedImm = Variable.Value.Bin(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), Variable.Size.Bit20()).getResized(RV64.MEM_ADDRESS_WIDTH) shl 1
                         for (label in labelBinAddrMap) {
                             if (Variable.Value.Bin(label.value) == (row.getAddresses().first().toBin() + shiftedImm).toBin()) {
                                 labelstring = label.key.wholeName
@@ -86,7 +83,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
 
                     RV64Syntax.R_INSTR.InstrType.BEQ, RV64Syntax.R_INSTR.InstrType.BNE, RV64Syntax.R_INSTR.InstrType.BLT, RV64Syntax.R_INSTR.InstrType.BGE, RV64Syntax.R_INSTR.InstrType.BLTU, RV64Syntax.R_INSTR.InstrType.BGEU -> {
                         val imm12 = Variable.Value.Bin(branchOffset7[0].toString() + branchOffset5[4] + branchOffset7.substring(1) + branchOffset5.substring(0, 4), Variable.Size.Bit12())
-                        val offset = imm12.toBin().getResized(Variable.Size.Bit32()) shl 1
+                        val offset = imm12.toBin().getResized(RV64.MEM_ADDRESS_WIDTH) shl 1
                         for (label in labelBinAddrMap) {
                             if (Variable.Value.Bin(label.value) == (row.getAddresses().first().toBin() + offset).toBin()) {
                                 labelstring = label.key.wholeName
@@ -123,7 +120,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             val rodataList = mutableListOf<DataEntry>()
             val bssList = mutableListOf<DataEntry>()
             var instrID: Long = 0
-            var pcStartAddress = Variable.Value.Hex("0", Variable.Size.Bit32())
+            var pcStartAddress = Variable.Value.Hex("0", RV64.MEM_ADDRESS_WIDTH)
 
             var nextDataAddress = dataSecStart
             var nextRoDataAddress = rodataSecStart
@@ -136,7 +133,6 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                 when (section) {
                     is RV64Syntax.S_TEXT -> {
                         for (entry in section.collNodes) {
-                            console.log("assembling section: ${section.name}, row: ${entry.name}")
                             when (entry) {
                                 is RV64Syntax.R_INSTR -> {
                                     instructionMapList.set(instrID, entry)
@@ -149,12 +145,9 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                                         console.log("RISCVAssembly.generateByteCode(): found Label ${entry.label.wholeName} and calculated address $address (0x${address.toInt(2).toString(16)})")
                                     }
                                     if (entry.isGlobalStart) {
-                                        pcStartAddress = Variable.Value.Bin(address, Variable.Size.Bit32()).toHex()
+                                        pcStartAddress = Variable.Value.Bin(address, RV64.MEM_ADDRESS_WIDTH).toHex()
                                     }
                                     labelBinAddrMap.set(entry.label, address)
-                                }
-                                else -> {
-                                    console.log("not found")
                                 }
                             }
                         }
@@ -222,10 +215,10 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                                                         valueList.add(Variable.Value.Hex(char.code.toString(16), Variable.Size.Bit8()))
                                                     }
                                                     resizedValues = valueList.toTypedArray()
-                                                    length = Variable.Value.Hex(content.length.toString(16), Variable.Size.Bit32())
+                                                    length = Variable.Value.Hex(content.length.toString(16), RV64.MEM_ADDRESS_WIDTH)
                                                 } else {
                                                     resizedValues = arrayOf(originalValue)
-                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16), Variable.Size.Bit32())
+                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16), RV64.MEM_ADDRESS_WIDTH)
                                                 }
                                             }
 
@@ -407,41 +400,48 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             }
 
             // Getting binary and store binary in memory
+
             val instrIDMap = mutableMapOf<String, AssemblyMap.MapEntry>()
-            binaryMapper.setLabelLinks(labelBinAddrMap)
-            for (instr in instructionMapList) {
-                val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), Variable.Size.Bit32()), architecture)
-                if (DebugTools.RV64_showAsmInfo) {
-                    console.log(
-                        "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.instrname.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.instrType.id},  \n\t${
-                            instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") {
-                                it.getAllTokens().joinToString("") { it.content }
-                            }
-                        } to ${binary.joinToString { it.getRawBinaryStr() }}]"
-                    )
+            val binBuildingTime = measureTime {
+
+
+                binaryMapper.setLabelLinks(labelBinAddrMap)
+                for (instr in instructionMapList) {
+                    val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), RV64.MEM_ADDRESS_WIDTH), architecture)
+                    if (DebugTools.RV64_showAsmInfo) {
+                        console.log(
+                            "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.instrname.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.instrType.id},  \n\t${
+                                instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") {
+                                    it.getAllTokens().joinToString("") { it.content }
+                                }
+                            } to ${binary.joinToString { it.getRawBinaryStr() }}]"
+                        )
+                    }
+                    for (wordID in binary.indices) {
+                        instrIDMap.set(Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), RV64.MEM_ADDRESS_WIDTH).getRawHexStr(), AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID))
+                    }
+                    bins.addAll(binary)
                 }
-                for (wordID in binary.indices) {
-                    instrIDMap.set(Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), Variable.Size.Bit32()).getRawHexStr(), AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID))
-                }
-                bins.addAll(binary)
+            }
+            if (DebugTools.RV64_showAsmInfo) {
+                console.log("Assembly.generateByteCode(): ASM-BIN-BUILDING took ${binBuildingTime.inWholeMicroseconds} µs")
             }
 
-            var address = Variable.Value.Hex("0", Variable.Size.Bit32())
-            for (binaryID in bins.indices) {
-                val binary = bins[binaryID]
-                val calcTime = measureTime {
-                    address = Variable.Value.Hex((binaryID * 4).toString(16), Variable.Size.Bit32())
+            var address = Variable.Value.Hex("0", RV64.MEM_ADDRESS_WIDTH)
+            val asmStoreTime = measureTime {
+                for (binaryID in bins.indices) {
+                    val binary = bins[binaryID]
                     transcriptEntrys.add(RVDisassembledRow(address))
-                }
 
-                val memoryTime = measureTime {
                     memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
-                }
-
-                if (DebugTools.RV64_showAsmInfo) {
-                    console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID}/${bins.size - 1} saving... (calc: ${calcTime.inWholeMicroseconds} µs, memory: ${memoryTime.inWholeMicroseconds} µs)")
+                    address = (address + Variable.Value.Hex("4", RV64.MEM_ADDRESS_WIDTH)).toHex()
                 }
             }
+
+            if (DebugTools.RV64_showAsmInfo) {
+                console.log("Assembly.generateByteCode(): ASM-STORE took ${asmStoreTime.inWholeMicroseconds} µs")
+            }
+
             transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4", Variable.Size.Bit8())).toHex()))
             architecture.getRegContainer().pc.variable.set(pcStartAddress)
             assemblyMap = AssemblyMap(instrIDMap)

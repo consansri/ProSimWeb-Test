@@ -217,25 +217,48 @@ class RV64BinMapper {
                         val regBin = values[0]
                         val address = labelAddrMap.get(labels.first())
                         if (address != null) {
-                            val imm32 = Bin(address)
-                            val hi20 = imm32.getRawBinaryStr().substring(0, 20)
-                            val low12 = imm32.getRawBinaryStr().substring(20)
+                            val imm64 = Bin(address, RV64.MEM_ADDRESS_WIDTH)
+                            val hi20_high = imm64.getRawBinaryStr().substring(0, 20)
+                            val low12_high = imm64.getRawBinaryStr().substring(20, 32)
 
-                            val imm12 = Bin(low12, Variable.Size.Bit12())
+                            val hi20_low = imm64.getRawBinaryStr().substring(32, 52)
+                            val low12_low = imm64.getRawBinaryStr().substring(52)
 
-                            val imm20temp = (Bin(hi20, Variable.Size.Bit20())).toBin() // more performant
-                            val imm20 = if (imm12.toDec().isNegative()) {
-                                (imm20temp + Bin("1")).toBin()
+                            val imm12_high = Bin(low12_high, Variable.Size.Bit12())
+                            val imm12_low = Bin(low12_low, Variable.Size.Bit12())
+
+                            val imm20temp_high = (Bin(hi20_high, Variable.Size.Bit20())).toBin() // more performant
+                            val imm20_high = if (imm12_high.toDec().isNegative()) {
+                                (imm20temp_high + Bin("1")).toBin()
                             } else {
-                                imm20temp
+                                imm20temp_high
                             }
 
-                            val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
-                            val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
+                            val imm20temp_low = (Bin(hi20_low, Variable.Size.Bit20())).toBin() // more performant
+                            val imm20_low = if (imm12_low.toDec().isNegative()) {
+                                (imm20temp_low + Bin("1")).toBin()
+                            } else {
+                                imm20temp_low
+                            }
 
-                            if (luiOpCode != null && addiOpCode != null) {
-                                binArray.add(luiOpCode)
-                                binArray.add(addiOpCode)
+                            val luiOpCode_high = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20_high))
+                            val addiOpCode_high = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12_high))
+                            val slliOpCode = SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("111111",Variable.Size.Bit6())))
+                            val luiOpCode_low = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20_low))
+                            val addiOpCode_low = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12_low))
+
+                            if(
+                                luiOpCode_high != null &&
+                                addiOpCode_high != null &&
+                                slliOpCode != null &&
+                                luiOpCode_low != null &&
+                                addiOpCode_low != null
+                            ){
+                                binArray.add(luiOpCode_high)
+                                binArray.add(addiOpCode_high)
+                                binArray.add(slliOpCode)
+                                binArray.add(luiOpCode_low)
+                                binArray.add(addiOpCode_low)
                             }
                         }
                     }
