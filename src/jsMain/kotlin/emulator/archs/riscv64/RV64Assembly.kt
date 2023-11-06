@@ -10,6 +10,7 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
+import kotlin.time.measureTime
 
 class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.Value, val rodataSecStart: Variable.Value, val bssSecStart: Variable.Value) : Assembly() {
     val labelBinAddrMap = mutableMapOf<RV64Syntax.E_LABEL, String>()
@@ -135,6 +136,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                 when (section) {
                     is RV64Syntax.S_TEXT -> {
                         for (entry in section.collNodes) {
+                            console.log("assembling section: ${section.name}, row: ${entry.name}")
                             when (entry) {
                                 is RV64Syntax.R_INSTR -> {
                                     instructionMapList.set(instrID, entry)
@@ -150,6 +152,9 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                                         pcStartAddress = Variable.Value.Bin(address, Variable.Size.Bit32()).toHex()
                                     }
                                     labelBinAddrMap.set(entry.label, address)
+                                }
+                                else -> {
+                                    console.log("not found")
                                 }
                             }
                         }
@@ -424,18 +429,23 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             var address = Variable.Value.Hex("0", Variable.Size.Bit32())
             for (binaryID in bins.indices) {
                 val binary = bins[binaryID]
-                if (DebugTools.RV64_showAsmInfo) {
-                    console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID} saving...")
+                val calcTime = measureTime {
+                    address = Variable.Value.Hex((binaryID * 4).toString(16), Variable.Size.Bit32())
+                    transcriptEntrys.add(RVDisassembledRow(address))
                 }
-                address = Variable.Value.Hex((binaryID * 4).toString(16), Variable.Size.Bit32())
-                transcriptEntrys.add(RVDisassembledRow(address))
-                memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
+
+                val memoryTime = measureTime {
+                    memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
+                }
+
+                if (DebugTools.RV64_showAsmInfo) {
+                    console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID}/${bins.size - 1} saving... (calc: ${calcTime.inWholeMicroseconds} µs, memory: ${memoryTime.inWholeMicroseconds} µs)")
+                }
             }
             transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4", Variable.Size.Bit8())).toHex()))
             architecture.getRegContainer().pc.variable.set(pcStartAddress)
             assemblyMap = AssemblyMap(instrIDMap)
         }
-
         return assemblyMap ?: AssemblyMap()
     }
 

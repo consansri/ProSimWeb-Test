@@ -29,6 +29,7 @@ external interface CodeEditorProps : Props {
     var archState: StateInstance<Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
+    var fileChangeEvent: StateInstance<Boolean>
 }
 
 val CodeEditor = FC<CodeEditorProps> { props ->
@@ -854,7 +855,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
-    useEffect(arch.getFileHandler().getCurrID()){
+    useEffect(arch.getFileHandler().getCurrID()) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Switched File!")
         }
@@ -866,6 +867,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             it.value = arch.getFileHandler().getCurrContent()
             edit(it.value, false)
         }
+    }
+
+    useEffect(props.archState){
+        /* Component RELOAD */
+        arch.getFileHandler().getFromLocalStorage()
+        /* -- LOAD from localStorage -- */
+        setFiles(arch.getFileHandler().getAllFiles())
     }
 
     useEffect(arch.getState().state) {
@@ -902,8 +910,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         updateUndoRedoButton()
     }
 
-    useEffect(arch.getRegContainer().pc.variable.value){
-        if(DebugTools.REACT_showUpdateInfo){
+    useEffect(arch.getRegContainer().pc.variable.value) {
+        if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: PC Value Changed!")
         }
         val lineAddressMap = arch.getAssembly().getAssemblyMap().lineAddressMap
@@ -921,6 +929,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             setCurrExeLine(-1)
             setExeFile(null)
         }
+    }
+
+    useEffect(props.fileChangeEvent) {
+        setFiles(arch.getFileHandler().getAllFiles())
     }
 }
 

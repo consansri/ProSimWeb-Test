@@ -25,6 +25,7 @@ external interface InfoViewProps : Props {
     var footerRef: MutableRefObject<HTMLElement>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
+    var fileChangeEvent: StateInstance<Boolean>
 
 }
 
@@ -220,6 +221,7 @@ val InfoView = FC<InfoViewProps> { props ->
                                         arch.getFileHandler().import(FileHandler.File("example", text))
                                         window.scrollTo(0, 0)
                                         arch.getConsole().info("Successfully imported 'example'!")
+                                        props.fileChangeEvent.component2().invoke(!props.fileChangeEvent.component1())
                                     } else {
                                         child.classList.add(StyleAttr.ANIM_SHAKERED)
                                         web.timers.setTimeout({

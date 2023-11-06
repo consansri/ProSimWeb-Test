@@ -32,6 +32,7 @@ val App = FC<Props> { props ->
 
     val compileEventState = useState(false)
     val exeEventState = useState(false)
+    val fileChangeEvent= useState(false)
 
 
     AppStyle {}
@@ -43,6 +44,7 @@ val App = FC<Props> { props ->
     if (showMenu) {
         Menu {
             this.archState = archState
+            this.fileChangeEvent = fileChangeEvent
         }
     }
 
@@ -90,6 +92,7 @@ val App = FC<Props> { props ->
                         this.archState = archState
                         this.compileEventState = compileEventState
                         this.exeEventState = exeEventState
+                        this.fileChangeEvent = fileChangeEvent
                     }
                 }
 
@@ -270,6 +273,7 @@ val App = FC<Props> { props ->
                 this.footerRef = footerRef
                 this.compileEventState = compileEventState
                 this.exeEventState = exeEventState
+                this.fileChangeEvent = fileChangeEvent
 
             }
         }

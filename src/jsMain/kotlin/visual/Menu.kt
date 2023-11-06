@@ -33,6 +33,7 @@ import web.url.URL
 
 external interface MenuProps : Props {
     var archState: StateInstance<Architecture>
+    var fileChangeEvent: StateInstance<Boolean>
 }
 
 val Menu = FC<MenuProps>() { props ->
@@ -84,6 +85,7 @@ val Menu = FC<MenuProps>() { props ->
         reader.onloadend = {
             console.log("read ${reader.result}")
             arch.getFileHandler().import(FileHandler.File(file.name as String, reader.result as String))
+            props.fileChangeEvent.component2().invoke(!props.fileChangeEvent.component1())
         }
     }
 
@@ -206,12 +208,12 @@ val Menu = FC<MenuProps>() { props ->
                     onClick = { event ->
                         showArchs(false)
                         setArch(archLink.architecture)
-                        localStorage.setItem(StorageKey.ARCH_TYPE, "$id")
+                        localStorage.setItem(StorageKey.ARCH_TYPE, Link.entries.indexOf(archLink).toString())
 
                         event.currentTarget.classList.toggle("nav-arch-active")
                     }
 
-                    +arch.getDescription().fullName
+                    +archLink.architecture.getDescription().fullName
                 }
             }
 

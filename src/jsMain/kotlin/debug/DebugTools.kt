@@ -88,10 +88,10 @@ object DebugTools {
      * EXTENDABLE
      */
 
-    const val RV64_showAsmInfo = false
-    const val RV64_showBinMapperInfo = false
+    const val RV64_showAsmInfo = true
+    const val RV64_showBinMapperInfo = true
     const val RV64_showOpCodeInfo = false
-    const val RV64_showGrammarScanTiers = false
+    const val RV64_showGrammarScanTiers = true
 
 
 
@@ -104,7 +104,7 @@ object DebugTools {
     const val KIT_showMemoryInfo = false
 
     const val KIT_showSyntaxInfo = false
-    const val KIT_showCompilerInfo = false
+    const val KIT_showCompilerInfo = true
     const val KIT_showAsmInfo = false
 
 

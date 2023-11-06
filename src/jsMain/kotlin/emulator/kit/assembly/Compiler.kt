@@ -59,7 +59,7 @@ class Compiler(
             analyze()
             parse()
         }
-
+        console.log("analyzing and parsing done")
         architecture.getConsole().compilerInfo("build\ttook ${parseTime.inWholeMicroseconds}µs\t(${if (isBuildable) "success" else "has errors"})")
 
         if (shouldHighlight) {
@@ -68,8 +68,10 @@ class Compiler(
             }
             architecture.getConsole().compilerInfo("highlight\ttook ${hlTime.inWholeMicroseconds}µs")
         }
+        console.log("highlight done")
 
         assemble()
+        console.log("assembling done")
 
         return isBuildable
     }
@@ -361,16 +363,20 @@ class Compiler(
         architecture.getMemory().clear()
         architecture.getRegContainer().pc.reset()
         architecture.getTranscript().clear(Transcript.Type.DISASSEMBLED)
+
         if (isBuildable) {
             syntaxTree?.let {
                 val assembleTime = measureTime {
+                    console.log("start assembly")
                     assemblyMap = assembly.generateByteCode(architecture, it)
+                    console.log("assembly done")
                 }
                 architecture.getConsole().compilerInfo("assembl\ttook ${assembleTime.inWholeMicroseconds}µs")
 
 
                 val disassembleTime = measureTime {
                     assembly.generateTranscript(architecture, it)
+                    console.log("disassembly done")
                 }
                 architecture.getConsole().compilerInfo("disassembl\ttook ${disassembleTime.inWholeMicroseconds}µs")
 
