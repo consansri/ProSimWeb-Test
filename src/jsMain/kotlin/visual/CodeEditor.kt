@@ -32,7 +32,11 @@ external interface CodeEditorProps : Props {
     var fileChangeEvent: StateInstance<Boolean>
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 val CodeEditor = FC<CodeEditorProps> { props ->
+
+
+
 
     /* ----------------- REACT REFERENCES ----------------- */
 
@@ -74,6 +78,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (vc_rows, setvc_rows) = useState<List<String>>(emptyList())
     val (files, setFiles) = useState<List<FileHandler.File>>(emptyList())
     val (transcriptView, setTranscriptView) = useState(false)
+
+
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
 
@@ -143,13 +149,22 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- ASYNC Events ----------------- */
 
+
+
     fun checkCode(immediate: Boolean) {
         val valueToCheck = arch.getFileHandler().getCurrContent()
         val delay = 1000
 
         if (immediate) {
-            setvc_rows(arch.check(valueToCheck, currExeLine).split("\n"))
-            props.compileEventState.component2().invoke(!props.compileEventState.component1())
+
+            /* ----------------- COROUTINES ----------------- */
+            GlobalScope.launch {
+                setvc_rows(arch.check(valueToCheck, currExeLine).split("\n"))
+                props.compileEventState.component2().invoke(!props.compileEventState.component1())
+            }
+
+
+
         } else {
             val size = valueToCheck.split("\n").size
             if (size < 250 && !DebugTools.REACT_deactivateAutomaticBuilds) {

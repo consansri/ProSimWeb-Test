@@ -27,7 +27,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
             val measuredTime = measureTime {
                 super.exeContinuous()
 
-                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
 
                 while (result != null && instrCount < 1000) {
@@ -35,7 +35,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                     result.type.execute(this, result.binMap)
 
                     // Load next Instruction
-                    value = getMemory().load(getRegContainer().pc.get(), 4)
+                    value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                     result = mapper.getInstrFromBinary(value.toBin())
                 }
             }
@@ -50,7 +50,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
             super.exeSingleStep() // clears console
 
             // load binary from memory
-            val loadedValue = getMemory().load(getRegContainer().pc.get(), 4)
+            val loadedValue = getMemory().load(getRegContainer().pc.get().toHex(), 4)
             // identify instr and opcode usages (build binary map)
             val instrResult = mapper.getInstrFromBinary(loadedValue.toBin())
             // execute instr
@@ -67,7 +67,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
             val measuredTime = measureTime {
                 super.exeMultiStep(steps)
 
-                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
 
                 for (step in 0 until steps) {
@@ -76,7 +76,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                         result.type.execute(this, result.binMap)
 
                         // Load next Instruction
-                        value = getMemory().load(getRegContainer().pc.get(), 4)
+                        value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                         result = mapper.getInstrFromBinary(value.toBin())
                     } else {
                         break
@@ -95,7 +95,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
             val measuredTime = measureTime {
                 super.exeSkipSubroutine()
 
-                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
                 if (result != null) {
                     if (result.type == RV64Syntax.R_INSTR.InstrType.JAL || result.type == RV64Syntax.R_INSTR.InstrType.JALR) {
@@ -107,7 +107,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                             } else {
                                 break
                             }
-                            value = getMemory().load(getRegContainer().pc.get(), 4)
+                            value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                             result = mapper.getInstrFromBinary(value.toBin())
                         }
 
@@ -128,7 +128,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
             var instrCount = 0
             val measuredTime = measureTime {
 
-                var value = getMemory().load(getRegContainer().pc.get(), 4)
+                var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
 
                 val returnTypeList = listOf(RV64Syntax.R_INSTR.InstrType.JALR, RV64Syntax.R_INSTR.InstrType.JAL)
@@ -136,7 +136,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                 while (result != null && !returnTypeList.contains(result.type)) {
                     result.type.execute(this, result.binMap)
 
-                    value = getMemory().load(getRegContainer().pc.get(), 4)
+                    value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                     result = mapper.getInstrFromBinary(value.toBin())
                     instrCount++
                 }
@@ -171,7 +171,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                 getConsole().info("--exe_until_line executing until line ${closestID + 1} or address ${destAddr.getHexStr()}")
                 val measuredTime = measureTime {
                     while (instrCount < 1000) {
-                        val value = getMemory().load(getRegContainer().pc.get(), 4)
+                        val value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                         val result = mapper.getInstrFromBinary(value.toBin())
                         if (destAddr == getRegContainer().pc.get()) {
                             break
@@ -190,7 +190,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                 getConsole().info("--exe_continuous")
                 val measuredTime = measureTime {
                     while (instrCount < 1000) {
-                        val value = getMemory().load(getRegContainer().pc.get(), 4)
+                        val value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                         val result = mapper.getInstrFromBinary(value.toBin())
                         if (result != null) {
                             result.type.execute(this, result.binMap)
@@ -213,7 +213,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
         getConsole().info("--exe_until_line executing until address ${address.getHexStr()}")
         val measuredTime = measureTime {
             while (instrCount < 1000) {
-                val value = getMemory().load(getRegContainer().pc.get(), 4)
+                val value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 val result = mapper.getInstrFromBinary(value.toBin())
                 if (address == getRegContainer().pc.get()) {
                     break

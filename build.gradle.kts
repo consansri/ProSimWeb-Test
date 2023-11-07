@@ -42,6 +42,7 @@ kotlin {
                 implementation("io.nacular.doodle:controls:$doodle_version")
                 implementation("io.nacular.doodle:animation:$doodle_version")
                 implementation("io.nacular.doodle:themes:$doodle_version")*/
+
             }
         }
         val commonTest by getting {

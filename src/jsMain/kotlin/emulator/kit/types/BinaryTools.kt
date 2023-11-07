@@ -7,6 +7,15 @@ import debug.DebugTools
  * This Object contains all performant relevant binary calculations based on [String] representations.
  */
 object BinaryTools {
+
+    val hexToBinDigit = mapOf(
+        '0' to "0000", '1' to "0001", '2' to "0010", '3' to "0011",
+        '4' to "0100", '5' to "0101", '6' to "0110", '7' to "0111",
+        '8' to "1000", '9' to "1001", 'A' to "1010", 'B' to "1011",
+        'C' to "1100", 'D' to "1101", 'E' to "1110", 'F' to "1111"
+    )
+    val binToHexDigit = hexToBinDigit.map { it.value to it.key }.toMap()
+
     fun negotiate(aBin: String): String {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
 
@@ -24,9 +33,11 @@ object BinaryTools {
 
         return checkEmpty(result)
     }
+
     fun add(aBin: String, bBin: String): String {
         return addWithCarry(aBin, bBin).result
     }
+
     fun addWithCarry(aBin: String, bBin: String): AdditionResult {
 
         /*
@@ -66,6 +77,7 @@ object BinaryTools {
 
         return AdditionResult(checkEmpty(result.trimStart('0')), carryChar)
     }
+
     fun sub(aBin: String, bBin: String): String {
 
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -87,41 +99,49 @@ object BinaryTools {
                     borrow = '0'
                     '0'
                 }
+
                 digitA == '1' && digitB == '0' && borrow == '0' -> {
                     borrow = '0'
                     '1'
                 }
+
                 digitA == '1' && digitB == '1' && borrow == '0' -> {
                     borrow = '0'
                     '0'
                 }
+
                 digitA == '0' && digitB == '1' && borrow == '0' -> {
                     borrow = '1'
                     '1'
                 }
+
                 digitA == '0' && digitB == '0' && borrow == '1' -> {
                     borrow = '1'
                     '1'
                 }
+
                 digitA == '1' && digitB == '0' && borrow == '1' -> {
                     borrow = '0'
                     '0'
                 }
+
                 digitA == '1' && digitB == '1' && borrow == '1' -> {
                     borrow = '1'
                     '1'
                 }
+
                 digitA == '0' && digitB == '1' && borrow == '1' -> {
                     borrow = '1'
                     '0'
                 }
+
                 else -> {
                     console.error("$digitA or $digitB is not a '1' or '0'!")
                     '0'
                 }
             }
 
-            result =  diff.toString() + result
+            result = diff.toString() + result
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
@@ -129,6 +149,7 @@ object BinaryTools {
         }
         return checkEmpty(result.trimStart('0'))
     }
+
     fun multiply(aBin: String, bBin: String): String {
 
         /*
@@ -164,6 +185,7 @@ object BinaryTools {
 
         return checkEmpty(result.trimStart('0'))
     }
+
     fun divide(dividend: String, divisor: String): DivisionResult {
         val dend = dividend.trim().removePrefix(Settings.PRESTRING_BINARY).trimStart('0')
         val sor = divisor.trim().removePrefix(Settings.PRESTRING_BINARY).trimStart('0')
@@ -194,6 +216,7 @@ object BinaryTools {
 
         return DivisionResult(checkEmpty(result.trimStart('0')), (comparison + remainingDividend).trimStart('0'))
     }
+
     fun inv(aBin: String): String {
 
         /*
@@ -217,6 +240,7 @@ object BinaryTools {
         }
         return checkEmpty(result)
     }
+
     fun xor(aBin: String, bBin: String): String {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -237,6 +261,7 @@ object BinaryTools {
 
         return result
     }
+
     fun or(aBin: String, bBin: String): String {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -257,6 +282,7 @@ object BinaryTools {
 
         return result
     }
+
     fun and(aBin: String, bBin: String): String {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -277,6 +303,7 @@ object BinaryTools {
 
         return result
     }
+
     fun isGreaterThan(aBin: String, bBin: String): Boolean {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -298,6 +325,7 @@ object BinaryTools {
         }
         return false
     }
+
     fun isEqual(aBin: String, bBin: String): Boolean {
 
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -313,6 +341,7 @@ object BinaryTools {
         }
         return true
     }
+
     fun isGreaterEqualThan(aBin: String, bBin: String): Boolean {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
@@ -333,6 +362,7 @@ object BinaryTools {
         }
         return true
     }
+
     fun checkEmpty(aBin: String): String {
         return if (aBin == "") {
             "0"

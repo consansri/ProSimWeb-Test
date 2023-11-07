@@ -43,7 +43,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
 
         for (rowID in transcriptEntrys.indices) {
             val row = transcriptEntrys[rowID]
-            val binary = architecture.getMemory().load(row.getAddresses().first(), 4).toBin()
+            val binary = architecture.getMemory().load(row.getAddresses().first().toHex(), 4).toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
                 if (Variable.Value.Bin(labels.value, Variable.Size.Bit32()) == row.getAddresses().first().toBin()) {

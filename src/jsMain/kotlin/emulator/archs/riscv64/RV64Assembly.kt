@@ -25,7 +25,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
 
         for (rowID in transcriptEntrys.indices) {
             val row = transcriptEntrys[rowID]
-            val binary = architecture.getMemory().load(row.getAddresses().first(), 4).toBin()
+            val binary = architecture.getMemory().load(row.getAddresses().first().toHex(), 4).toBin()
             var labelString = ""
             for (labels in labelBinAddrMap) {
                 if (Variable.Value.Bin(labels.value, RV64.MEM_ADDRESS_WIDTH) == row.getAddresses().first().toBin()) {
@@ -404,7 +404,6 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             val instrIDMap = mutableMapOf<String, AssemblyMap.MapEntry>()
             val binBuildingTime = measureTime {
 
-
                 binaryMapper.setLabelLinks(labelBinAddrMap)
                 for (instr in instructionMapList) {
                     val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), RV64.MEM_ADDRESS_WIDTH), architecture)
@@ -430,11 +429,17 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             var address = Variable.Value.Hex("0", RV64.MEM_ADDRESS_WIDTH)
             val asmStoreTime = measureTime {
                 for (binaryID in bins.indices) {
-                    val binary = bins[binaryID]
-                    transcriptEntrys.add(RVDisassembledRow(address))
+                    val storeTime = measureTime {
+                        val binary = bins[binaryID]
+                        transcriptEntrys.add(RVDisassembledRow(address))
 
-                    memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
-                    address = (address + Variable.Value.Hex("4", RV64.MEM_ADDRESS_WIDTH)).toHex()
+                        memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
+                        address = (address + Variable.Value.Hex("4", RV64.MEM_ADDRESS_WIDTH)).toHex()
+                    }
+
+                    if (DebugTools.RV64_showAsmInfo) {
+                        console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID + 1}/${bins.size}\ttook ${storeTime.inWholeMicroseconds} µs\taddress: ${address}")
+                    }
                 }
             }
 

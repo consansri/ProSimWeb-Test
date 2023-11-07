@@ -847,12 +847,16 @@ class Variable {
             fun getHex(bin: Bin): Hex {
                 var hexStr = ""
 
-                val binStr = bin.getRawBinaryStr()
+                var binStr = bin.getRawBinaryStr()
+                binStr = if(binStr.length % 4 != 0){
+                    "0".repeat(4 - (binStr.length % 4)) + binStr
+                }else {
+                    binStr
+                }
 
                 for (i in binStr.indices step 4) {
                     val substring = binStr.substring(i, i + 4)
-                    val int = substring.toInt(2)
-                    hexStr += int.toString(16).uppercase()
+                    hexStr += BinaryTools.binToHexDigit[substring] ?: break
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
@@ -863,18 +867,17 @@ class Variable {
             }
 
             fun getBinary(hex: Hex): Bin {
-                val stringBuilder = StringBuilder()
+                var BinStr = ""
 
-                val hexStr = hex.getRawHexStr()
+                val hexStr = hex.getRawHexStr().uppercase()
 
                 for (i in hexStr.indices) {
-                    val hexDigit = hexStr[i].digitToInt(16)
-                    stringBuilder.append(hexDigit.toString(2).padStart(4, '0'))
+                    BinStr += BinaryTools.hexToBinDigit[hexStr[i]]
                 }
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${hex.getHexStr()} to ${stringBuilder}")
+                    console.info("Conversion: ${hex.getHexStr()} to ${BinStr}")
                 }
-                return Bin(stringBuilder.toString(), hex.size)
+                return Bin(BinStr, hex.size)
             }
 
             fun getBinary(dec: Dec): Bin {

@@ -2027,7 +2027,7 @@ class RV32Syntax() : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
-                            val loadedByte = arch.getMemory().load(memAddr).toBin().getResized(Bit32())
+                            val loadedByte = arch.getMemory().load(memAddr.toHex()).toBin().getResized(Bit32())
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2048,7 +2048,7 @@ class RV32Syntax() : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
-                            val loadedByte = arch.getMemory().load(memAddr, 2).toBin().getResized(Bit32())
+                            val loadedByte = arch.getMemory().load(memAddr.toHex(), 2).toBin().getResized(Bit32())
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2069,7 +2069,7 @@ class RV32Syntax() : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
-                            val loadedByte = arch.getMemory().load(memAddr, 4)
+                            val loadedByte = arch.getMemory().load(memAddr.toHex(), 4)
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2090,7 +2090,7 @@ class RV32Syntax() : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
-                            val loadedByte = arch.getMemory().load(memAddr)
+                            val loadedByte = arch.getMemory().load(memAddr.toHex())
                             rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, 24) + loadedByte.toBin().getRawBinaryStr(), Bit32()))
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2111,7 +2111,7 @@ class RV32Syntax() : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
-                            val loadedByte = arch.getMemory().load(memAddr, 2)
+                            val loadedByte = arch.getMemory().load(memAddr.toHex(), 2)
                             rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, 16) + loadedByte.toBin().getRawBinaryStr(), Bit32()))
                             pc.set(pc.get() + Hex("4"))
                         }

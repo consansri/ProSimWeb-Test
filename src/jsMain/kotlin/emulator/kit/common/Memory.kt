@@ -25,8 +25,6 @@ class Memory(
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
 
     init {
-        store(Variable.Value.Bin("0"), Variable(wordSize))
-        store(getAddressMax(), Variable(wordSize))
         resetEditSection()
     }
 
@@ -93,7 +91,7 @@ class Memory(
         }
 
         for (word in wordList) {
-            val instance = memList.firstOrNull { it.address == hexAddress }
+            val instance = memList.firstOrNull { it.address.getRawHexStr() == hexAddress.getRawHexStr() }
             if (instance != null) {
                 if (!instance.readonly) {
                     instance.variable.setHex(word.toString())
@@ -114,21 +112,24 @@ class Memory(
     }
 
     fun store(address: Variable.Value, value: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
+        val hexValue = value.toHex()
+        var hexAddress = address.toHex()
+
         // Little Endian
-        var wordList = value.toHex().getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() }
+        var wordList = hexValue.getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() }
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
             wordList = wordList.reversed()
         }
 
-        var hexAddress = address.toHex()
+
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("saving... ${endianess.name} ${value.toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+            console.log("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
         }
 
         for (word in wordList) {
-            val instance = memList.firstOrNull { it.address == hexAddress }
+            val instance = memList.firstOrNull { it.address.getRawHexStr() == hexAddress.getRawHexStr() }
             if (instance != null) {
                 if (!instance.readonly) {
                     instance.variable.setHex(word.toString())
@@ -136,7 +137,7 @@ class Memory(
                         instance.mark = mark
                     }
                 } else {
-                    console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${value.toHex().getHexStr()}) in readonly Memory!")
+                    console.warn("Memory: Denied writing data (address: ${hexAddress.getHexStr()}, value: ${hexValue.getHexStr()}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, wordSize)
@@ -148,23 +149,23 @@ class Memory(
         }
     }
 
-    fun load(address: Variable.Value): Variable.Value {
-        val value = memList.firstOrNull { it.address == address.toHex() }?.variable?.value
+    fun load(address: Variable.Value.Hex): Variable.Value.Bin {
+        val value = memList.firstOrNull { it.address.getRawHexStr() == address.toHex().getRawHexStr() }?.variable?.value?.toBin()
         if (value != null) {
             return value
         } else {
-            return getInitialBinary().get()
+            return getInitialBinary().get().toBin()
         }
     }
 
-    fun load(address: Variable.Value, amount: Int): Variable.Value {
+    fun load(address: Variable.Value.Hex, amount: Int): Variable.Value.Bin {
         val instances = mutableListOf<String>()
 
-        var instanceAddress = address.toBin().getUResized(addressSize)
-        for (i in 0 until amount) {
+        var instanceAddress = address.getUResized(addressSize)
+        for (i in 0..<amount) {
             val value = load(instanceAddress)
             instances.add(value.toBin().getRawBinaryStr())
-            instanceAddress = (instanceAddress + Variable.Value.Bin("1", addressSize)).toBin()
+            instanceAddress = (instanceAddress + Variable.Value.Hex("01", Variable.Size.Bit8())).toHex()
         }
 
         if (endianess == Endianess.LittleEndian) {
@@ -176,8 +177,6 @@ class Memory(
 
     fun clear() {
         this.memList.clear()
-        store(Variable.Value.Bin("0"), Variable(wordSize))
-        store(getAddressMax(), Variable(wordSize))
         resetEditSection()
     }
 
@@ -236,12 +235,27 @@ class Memory(
     }
 
     open class MemInstance(val address: Variable.Value.Hex, var variable: Variable, var mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, val readonly: Boolean = false, entrysInRow: Int) {
-        var offset: Int = (address % Variable.Value.Dec(Settings.PRESTRING_DECIMAL + entrysInRow.toString(), Variable.Size.Bit8())).toHex().getRawHexStr().toInt(16)
-        var row: Variable.Value.Hex = (address - Variable.Value.Dec("$offset", Variable.Size.Bit8())).toHex()
+
+        private val addrRelevantForOffset: Int
+        var offset: Int
+        var row: Variable.Value.Hex
+
+        init {
+            val tempAddrRelevantForOffset = address.getRawHexStr().substring(address.getRawHexStr().length - 4).toIntOrNull(16) ?: null
+            if (tempAddrRelevantForOffset != null) {
+                addrRelevantForOffset = tempAddrRelevantForOffset
+            } else {
+                console.error("couldn't extract relevant address part (from ${address.getRawHexStr()}) for offset calculation!")
+                addrRelevantForOffset = 0
+            }
+
+            offset = addrRelevantForOffset % entrysInRow
+            row = (address - Variable.Value.Hex(offset.toString(16), Variable.Size.Bit8())).toHex()
+        }
 
         fun reMap(entrysInRow: Int) {
-            offset = (address % Variable.Value.Dec(Settings.PRESTRING_DECIMAL + entrysInRow.toString(), Variable.Size.Bit8())).toHex().getRawHexStr().toInt(16)
-            row = (address - Variable.Value.Dec("$offset", Variable.Size.Bit8())).toHex()
+            offset = addrRelevantForOffset % entrysInRow
+            row = (address - Variable.Value.Hex(offset.toString(16), Variable.Size.Bit8())).toHex()
         }
 
         class EditableValue(address: Variable.Value.Hex, value: Variable.Value.Hex, entrysInRow: Int) : MemInstance(address, Variable(value), StyleAttr.Main.Table.Mark.EDITABLE, entrysInRow = entrysInRow)

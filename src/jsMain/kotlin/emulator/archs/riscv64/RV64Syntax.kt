@@ -1994,7 +1994,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedByte = arch.getMemory().load(memAddr).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val loadedByte = arch.getMemory().load(memAddr.toHex()).toBin().getResized(RV64.REG_VALUE_SIZE)
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2015,7 +2015,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedHalfWord = arch.getMemory().load(memAddr, 2).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val loadedHalfWord = arch.getMemory().load(memAddr.toHex(), 2).toBin().getResized(RV64.REG_VALUE_SIZE)
                             rd.set(loadedHalfWord)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2036,7 +2036,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedWord = arch.getMemory().load(memAddr, 4).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 4).toBin().getResized(RV64.REG_VALUE_SIZE)
                             rd.set(loadedWord)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2057,7 +2057,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedWord = arch.getMemory().load(memAddr, 8).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 8).toBin().getResized(RV64.REG_VALUE_SIZE)
                             rd.set(loadedWord)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2078,7 +2078,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedByte = arch.getMemory().load(memAddr)
+                            val loadedByte = arch.getMemory().load(memAddr.toHex())
                             rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, RV64.REG_VALUE_SIZE.bitWidth - 8) + loadedByte.toBin().getRawBinaryStr(), RV64.REG_VALUE_SIZE))
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2099,7 +2099,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedByte = arch.getMemory().load(memAddr, 2)
+                            val loadedByte = arch.getMemory().load(memAddr.toHex(), 2)
                             rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, RV64.REG_VALUE_SIZE.bitWidth - 16) + loadedByte.toBin().getRawBinaryStr(), RV64.REG_VALUE_SIZE))
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2120,7 +2120,7 @@ class RV64Syntax : Syntax() {
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedWord = arch.getMemory().load(memAddr, 4).toBin().getUResized(RV64.REG_VALUE_SIZE)
+                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 4).toBin().getUResized(RV64.REG_VALUE_SIZE)
                             rd.set(loadedWord)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -2807,7 +2807,7 @@ class RV64Syntax : Syntax() {
             Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
 
             open fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
-                arch.getConsole().info("executing $id ...")
+                arch.getConsole().log("executing $id ...")
             }
         }
     }
