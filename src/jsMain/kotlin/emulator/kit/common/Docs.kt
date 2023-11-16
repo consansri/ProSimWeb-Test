@@ -46,7 +46,6 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 li {
                     +"""REACT Console can hide or show logs (controlled with button)"""
                 }
-
             }
 
             h3{
