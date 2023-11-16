@@ -332,9 +332,12 @@ class RV32BinMapper {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
                             val x1 = Variable.Value.Bin("1", Variable.Size.Bit5())
-                            val imm32 = (Variable.Value.Bin(lblAddr, Variable.Size.Bit32()) - instrStartAddress).toBin().getRawBinaryStr()
-                            val auipcOff = (Variable.Value.Bin(imm32.substring(0, 20), Variable.Size.Bit20()) + Variable.Value.Bin(imm32[20].toString(), Variable.Size.Bit1())).toBin()
+
+                            val pcRelAddress32 = (Variable.Value.Bin(lblAddr, Variable.Size.Bit32()) - instrStartAddress).toBin()
+                            val imm32 = pcRelAddress32.getRawBinaryStr()
+
                             val jalrOff = Variable.Value.Bin(imm32.substring(20), Variable.Size.Bit12())
+                            val auipcOff = (pcRelAddress32 - jalrOff.getResized(Variable.Size.Bit32())).toBin().ushr(12).getUResized(Variable.Size.Bit20())
 
                             val auipcOpCode = AUIPC.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.IMM20 to auipcOff))
                             val jalrOpCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.IMM12 to jalrOff, MaskLabel.RS1 to x1))
@@ -353,9 +356,12 @@ class RV32BinMapper {
                         if (lblAddr != null) {
                             val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                             val x6 = Variable.Value.Hex("6", Variable.Size.Bit5()).toBin()
-                            val imm32 = (Variable.Value.Bin(lblAddr, Variable.Size.Bit32()) - instrStartAddress).toBin().getRawBinaryStr()
-                            val auipcOff = (Variable.Value.Bin(imm32.substring(0, 20), Variable.Size.Bit20()) + Variable.Value.Bin(imm32[20].toString(), Variable.Size.Bit1())).toBin()
+
+                            val pcRelAddress32 = (Variable.Value.Bin(lblAddr, Variable.Size.Bit32()) - instrStartAddress).toBin()
+                            val imm32 = pcRelAddress32.getRawBinaryStr()
+
                             val jalrOff = Variable.Value.Bin(imm32.substring(20), Variable.Size.Bit12())
+                            val auipcOff = (pcRelAddress32 - jalrOff.getResized(Variable.Size.Bit32())).toBin().ushr(12).getUResized(Variable.Size.Bit20())
 
                             val auipcOpCode = AUIPC.opCode?.getOpCode(mapOf(MaskLabel.RD to x6, MaskLabel.IMM20 to auipcOff))
                             val jalrOpCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x0, MaskLabel.IMM12 to jalrOff, MaskLabel.RS1 to x6))

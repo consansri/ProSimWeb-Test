@@ -8,7 +8,7 @@ import emulator.kit.types.Variable
  */
 class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size) {
 
-    val pc = PC(Variable("0", pcSize), Variable.Value.Bin("0"))
+    val pc = PC(Variable("0", pcSize), Variable.Value.Bin("0", pcSize))
 
     fun clear() {
         for (registerFile in registerFileList) {
@@ -16,6 +16,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
                 reg.variable.clear()
             }
         }
+        pc.set(Variable.Value.Bin("0", pcSize))
     }
 
     fun getReg(name: String): Register? {
@@ -97,7 +98,6 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         fun reset() {
             variable.set(initial)
         }
-
     }
 
     data class RegisterFile(val name: String, val registers: Array<Register>)

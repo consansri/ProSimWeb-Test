@@ -961,11 +961,11 @@ class Variable {
                     negative = false
                 }
 
-                for (weight in binString.length - 1 downTo 0) {
-                    val index = binString.length - 1 - weight
-                    val summand = DecTools.binaryWeights[weight].weight
+                for (index in binString.indices) {
+                    val binWeight = binString.length - 1 - index
+                    val decWeight = DecTools.binaryWeights[binWeight].weight
                     if (binString[index] == '1') {
-                        decString = DecTools.add(decString, summand)
+                        decString = DecTools.add(decString, decWeight)
                     }
                 }
 
@@ -987,11 +987,12 @@ class Variable {
                 if (binString.length > 0) {
                     val absBin: String = binString
 
-                    for (i in absBin.indices) {
-                        val index = absBin.length - 1 - i
-                        val add = DecTools.pow("2", i.toString(10))
+                    for (index in absBin.indices) {
+                        val binWeight = absBin.length - 1 - index
+                        val decWeight = DecTools.binaryWeights[binWeight].weight
+                        // val add = DecTools.pow("2", i.toString(10))
                         if (absBin[index] == '1') {
-                            udecString = DecTools.add(udecString, add)
+                            udecString = DecTools.add(udecString, decWeight)
                         }
                     }
                 }

@@ -59,6 +59,14 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 }
             }
             h3{
+                +"Fixed"
+            }
+            ul{
+                li {
+                    +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!"""
+                }
+            }
+            h3{
                 +"Issues"
             }
             ul{

@@ -172,7 +172,7 @@ class Memory(
             instances.reverse()
         }
 
-        return Variable.Value.Bin(instances.joinToString("") { it }, Variable.Tools.getNearestSize(amount * wordSize.bitWidth))
+        return Variable.Value.Bin(instances.joinToString("") { it })
     }
 
     fun clear() {

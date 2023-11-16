@@ -1746,10 +1746,9 @@ class RV64Syntax : Syntax() {
                     if (rd == null) return
 
                     // calculate
-                    val shiftedIMM32 = imm20.getUResized(Bit32()) shl 12 // from imm20 to imm32
-                    val sext64 = shiftedIMM32.getUResized(RV64.REG_VALUE_SIZE)
+                    val shiftedIMM = imm20.getResized(RV64.REG_VALUE_SIZE) shl 12 // from imm20 to imm32
                     // change states
-                    rd.set(sext64)    // set register to imm32 value
+                    rd.set(shiftedIMM)    // set register to imm32 value
                     pc.set(pc.get() + Hex("4"))
                 }
             },
@@ -1762,9 +1761,8 @@ class RV64Syntax : Syntax() {
                         val imm20 = paramMap.get(IMM20)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedIMM32 = imm20.getUResized(Bit32()) shl 12
-                            val sext64 = shiftedIMM32.getUResized(RV64.REG_VALUE_SIZE)
-                            val sum = pc.get() + sext64
+                            val shiftedIMM = imm20.getUResized(RV64.REG_VALUE_SIZE) shl 12
+                            val sum = pc.get() + shiftedIMM
                             rd.set(sum)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -1807,7 +1805,7 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val jumpAddr = rs1.get() + imm12.getResized(RV64.REG_VALUE_SIZE)
+                            val jumpAddr = rs1.get() + imm12.getResized(Bit64())
                             rd.set(pc.get() + Hex("4"))
                             pc.set(jumpAddr)
                         }

@@ -603,6 +603,7 @@ val AppStyle = FC<Props> {
                     alignItems = AlignItems.center
 
                     backgroundColor = StyleAttr.Header.BgColorSec.get()
+                    color = StyleAttr.Header.FgColor.get()
 
                     img {
                         width = StyleAttr.iconSize
