@@ -1,6 +1,0 @@
-# FileHandler #
-
-## Concept ##
-
-### FILE CONTENT ###
-

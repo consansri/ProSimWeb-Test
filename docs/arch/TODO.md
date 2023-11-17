@@ -1,3 +1,0 @@
-#TODOs
-
-- Automtatic Code Screenshots 
