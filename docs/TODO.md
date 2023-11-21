@@ -9,6 +9,7 @@
 
 - Automtatic Code Screenshots
 - Make UART Memory Mapped IO accessible through console on runtime
+- Timer controlled execution event (1Hz, 2Hz, ...)
 
 # DONE #
 
