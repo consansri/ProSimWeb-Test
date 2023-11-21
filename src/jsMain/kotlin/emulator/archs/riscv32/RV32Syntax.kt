@@ -246,7 +246,7 @@ class RV32Syntax() : Syntax() {
                             }
                         }
                     }
-                    if(macros.map { it.name }.contains(name)){
+                    if (macros.map { it.name }.contains(name)) {
                         validArgs = false
                     }
 
@@ -903,7 +903,7 @@ class RV32Syntax() : Syntax() {
                         }
                     } else {
                         if (noMatch.needsSignExtension) {
-                            warnings.add(Warning("Parameter with length of ${noMatch.size} should be sign extended until ${noMatch.expectedSize}!",*lineElements.toTypedArray()))
+                            warnings.add(Warning("Parameter with length of ${noMatch.size} should be sign extended until ${noMatch.expectedSize}!", *lineElements.toTypedArray()))
                             rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
                             startIsDefined = true
                             rows[lineID] = rowNode
@@ -2610,15 +2610,26 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             },
-            Nop("NOP", true, ParamType.PS_NONE), Mv("MV", true, ParamType.PS_RD_RS1), Li("LI", true, ParamType.PS_RD_I32, memWords = 2), La("LA", true, ParamType.PS_RD_Albl, memWords = 2), Not("NOT", true, ParamType.PS_RD_RS1), Neg("NEG", true, ParamType.PS_RD_RS1), Seqz(
-                "SEQZ", true, ParamType.PS_RD_RS1
-            ),
-            Snez("SNEZ", true, ParamType.PS_RD_RS1), Sltz("SLTZ", true, ParamType.PS_RD_RS1), Sgtz("SGTZ", true, ParamType.PS_RD_RS1), Beqz("BEQZ", true, ParamType.PS_RS1_Jlbl), Bnez("BNEZ", true, ParamType.PS_RS1_Jlbl), Blez("BLEZ", true, ParamType.PS_RS1_Jlbl), Bgez(
-                "BGEZ", true, ParamType.PS_RS1_Jlbl
-            ),
-            Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl), BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl), Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl), Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl), Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl), Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl), J(
-                "J", true, ParamType.PS_Jlbl
-            ),
+            Nop("NOP", true, ParamType.PS_NONE), Mv("MV", true, ParamType.PS_RD_RS1),
+            Li("LI", true, ParamType.PS_RD_I32, memWords = 2),
+            La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
+            Not("NOT", true, ParamType.PS_RD_RS1),
+            Neg("NEG", true, ParamType.PS_RD_RS1),
+            Seqz("SEQZ", true, ParamType.PS_RD_RS1),
+            Snez("SNEZ", true, ParamType.PS_RD_RS1),
+            Sltz("SLTZ", true, ParamType.PS_RD_RS1),
+            Sgtz("SGTZ", true, ParamType.PS_RD_RS1),
+            Beqz("BEQZ", true, ParamType.PS_RS1_Jlbl),
+            Bnez("BNEZ", true, ParamType.PS_RS1_Jlbl),
+            Blez("BLEZ", true, ParamType.PS_RS1_Jlbl),
+            Bgez("BGEZ", true, ParamType.PS_RS1_Jlbl),
+            Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl),
+            BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl),
+            Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl),
+            Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl),
+            Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl),
+            Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl),
+            J("J", true, ParamType.PS_Jlbl),
             JAL1("JAL", true, ParamType.PS_RS1_Jlbl, relative = JAL),
             JAL2("JAL", true, ParamType.PS_Jlbl, relative = JAL),
             Jr("JR", true, ParamType.PS_RS1),

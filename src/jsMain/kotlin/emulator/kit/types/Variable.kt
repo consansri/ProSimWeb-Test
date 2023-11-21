@@ -247,6 +247,30 @@ class Variable {
             /**
              * Returns null if Matches
              */
+            fun checkSizeUnsigned(size: Size): NoMatch? {
+                return when {
+                    this.size.bitWidth == size.bitWidth -> {
+                        null
+                    }
+
+                    this.size.bitWidth > size.bitWidth -> {
+                        val exceeding = this.getRawBinaryStr().substring(0, this.size.bitWidth - size.bitWidth)
+                        if (exceeding.indexOf('1') == -1) null else NoMatch(this.size, size)
+                    }
+
+                    this.size.bitWidth < size.bitWidth -> {
+                        if (this.getRawBinaryStr().first() == '1') {
+                            return NoMatch(this.size, size, true)
+                        }
+                        return null
+                    }
+
+                    else -> {
+                        null
+                    }
+                }
+            }
+
             fun checkSize(size: Size): NoMatch? {
                 return when {
                     this.size.bitWidth == size.bitWidth -> {
@@ -848,9 +872,9 @@ class Variable {
                 var hexStr = ""
 
                 var binStr = bin.getRawBinaryStr()
-                binStr = if(binStr.length % 4 != 0){
+                binStr = if (binStr.length % 4 != 0) {
                     "0".repeat(4 - (binStr.length % 4)) + binStr
-                }else {
+                } else {
                     binStr
                 }
 

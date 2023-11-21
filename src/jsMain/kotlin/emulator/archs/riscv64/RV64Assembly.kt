@@ -18,7 +18,6 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
      * Disassembles the content of the memory and builds the [RVDisassembledRow]'s from it which are then added to the disassembled transcript view.
      */
     override fun generateTranscript(architecture: Architecture, syntaxTree: Syntax.SyntaxTree) {
-        val transcript = architecture.getTranscript()
         if (DebugTools.RV64_showAsmInfo) {
             console.log("RISCVAssembly.generateTranscript(): labelMap -> ${labelBinAddrMap.entries.joinToString("") { "\n\t${it.key.wholeName}: ${it.value}" }}")
         }
@@ -101,7 +100,6 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> \n${transcriptEntrys.joinToString { "\n\t" + it.getContent().joinToString("\t") { it.content } }}")
         }
 
-        transcript.addContent(Transcript.Type.COMPILED, emptyList())
         architecture.getTranscript().addContent(Transcript.Type.DISASSEMBLED, transcriptEntrys)
     }
 
@@ -432,14 +430,12 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                     val storeTime = measureTime {
                         val binary = bins[binaryID]
                         transcriptEntrys.add(RVDisassembledRow(address))
-
                         memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
-                        address = (address + Variable.Value.Hex("4", RV64.MEM_ADDRESS_WIDTH)).toHex()
                     }
-
                     if (DebugTools.RV64_showAsmInfo) {
                         console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID + 1}/${bins.size}\ttook ${storeTime.inWholeMicroseconds} µs\taddress: ${address}")
                     }
+                    address = (address + Variable.Value.Hex("4", RV64.MEM_ADDRESS_WIDTH)).toHex()
                 }
             }
 
@@ -447,7 +443,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                 console.log("Assembly.generateByteCode(): ASM-STORE took ${asmStoreTime.inWholeMicroseconds} µs")
             }
 
-            transcriptEntrys.add(RVDisassembledRow((address + Variable.Value.Hex("4", Variable.Size.Bit8())).toHex()))
+            transcriptEntrys.add(RVDisassembledRow(address.toHex()))
             architecture.getRegContainer().pc.variable.set(pcStartAddress)
             assemblyMap = AssemblyMap(instrIDMap)
         }

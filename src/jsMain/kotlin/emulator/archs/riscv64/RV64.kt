@@ -5,20 +5,21 @@ import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
 import react.FC
 import react.dom.html.ReactHTML
 import web.cssom.ClassName
 import web.cssom.Float
 
 object RV64 {
-   
     
     val MEM_INIT: String = "0"
     val REG_INIT: String = "0"
-    val REG_VALUE_SIZE = Variable.Size.Bit64()
-    val REG_ADDRESS_SIZE = Variable.Size.Bit5()
-    val MEM_VALUE_WIDTH = Variable.Size.Bit8()
-    val MEM_ADDRESS_WIDTH = Variable.Size.Bit64()
+    val XLEN = Bit64()
+    val REG_VALUE_SIZE = XLEN
+    val REG_ADDRESS_SIZE = Bit5()
+    val MEM_VALUE_WIDTH = Bit8()
+    val MEM_ADDRESS_WIDTH = XLEN
 
     enum class TS_COMPILED_HEADERS {
         Address,
@@ -37,7 +38,7 @@ object RV64 {
     enum class FEATURE(val initialValue: Boolean) {
         // I(true), /*Integrated*/
         /**
-         * TODO("Integrated more architecture extension packages")
+         * TODO("Integrate more architecture extension packages")
          */
 
         /* M(true),

@@ -17,7 +17,7 @@ import emulator.archs.riscv64.RV64BinMapper.OpCode
 class RV64Syntax : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
-    override val decimalValueSize: Variable.Size = Bit64()
+    override val decimalValueSize: Variable.Size = Bit32()
 
     override fun clear() {
 
@@ -1212,8 +1212,6 @@ class RV64Syntax : Syntax() {
 
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RV64Flags.instruction), REFS.REF_E_INSTRNAME, insToken) {
-
-
         fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): Bin.NoMatch? {
             try {
                 val immMax = instrType.paramType.immMaxSize
@@ -1222,35 +1220,38 @@ class RV64Syntax : Syntax() {
                 }
                 return when (instrType.paramType) {
                     R_INSTR.ParamType.RD_I20 -> {
-                        paramcoll.getValues()[1].checkSize(immMax)
+                        paramcoll.getValues()[1].toBin().checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RD_Off12 -> {
-                        paramcoll.getValues()[1].checkSize(immMax)
+                        paramcoll.getValues()[1].toBin().checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RS2_Off5 -> {
-                        paramcoll.getValues()[1].checkSize(immMax)
+                        paramcoll.getValues()[1].toBin().checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RD_RS1_I12 -> {
-                        paramcoll.getValues()[2].checkSize(immMax)
+                        paramcoll.getValues()[2].toBin().checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RD_RS1_I6 -> {
-                        paramcoll.getValues()[2].checkSize(immMax)
+                        paramcoll.getValues()[2].toBin().checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.RS1_RS2_I12 -> {
-                        paramcoll.getValues()[2].checkSize(immMax)
+                        paramcoll.getValues()[2].toBin().checkSize(immMax)
+                    }
+
+                    R_INSTR.ParamType.PS_RD_I32 -> {
+                        paramcoll.getValues()[1].toBin().checkSize(immMax)
                     }
 
                     R_INSTR.ParamType.PS_RD_I64 -> {
-                        paramcoll.getValues()[1].checkSize(immMax)
+                        paramcoll.getValues()[1].toBin().checkSize(immMax)
                     }
 
                     else -> null
-
                 }
 
             } catch (e: IndexOutOfBoundsException) {
@@ -1330,8 +1331,25 @@ class RV64Syntax : Syntax() {
                         }
                     }
 
+                    R_INSTR.ParamType.PS_RD_I32 -> matches = if (params.size == 2) {
+                        val immediate = params[1]
+                        if (params[0] is E_PARAM.Register && immediate is E_PARAM.Constant) {
+                            immediate.constant.getValue().size.bitWidth <= Bit32().bitWidth
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+
                     R_INSTR.ParamType.PS_RD_I64 -> matches = if (params.size == 2) {
-                        params[0] is E_PARAM.Register && params[1] is E_PARAM.Constant
+                        val immediate = params[1]
+                        if (params[0] is E_PARAM.Register && immediate is E_PARAM.Constant) {
+                            val immSize = immediate.constant.getValue().size
+                            immSize.bitWidth > Bit32().bitWidth && immSize.bitWidth <= Bit64().bitWidth
+                        } else {
+                            false
+                        }
                     } else {
                         false
                     }
@@ -1368,11 +1386,11 @@ class RV64Syntax : Syntax() {
 
 
                     R_INSTR.ParamType.PS_NONE -> {
-                        matches = params.size == 0
+                        matches = params.isEmpty()
                     }
 
                     R_INSTR.ParamType.NONE -> {
-                        matches = params.size == 0
+                        matches = params.isEmpty()
                     }
 
 
@@ -1384,8 +1402,6 @@ class RV64Syntax : Syntax() {
 
             return null
         }
-
-        data class MatchSizeResult(val toBig: Boolean, val valBitLength: Int = 0)
     }
 
     class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toList() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toList() }.toTypedArray()) {
@@ -1401,8 +1417,8 @@ class RV64Syntax : Syntax() {
             paramsWithOutSplitSymbols = parameterList.toTypedArray()
         }
 
-        fun getValues(): Array<Bin> {
-            val values = mutableListOf<Bin>()
+        fun getValues(): Array<Variable.Value> {
+            val values = mutableListOf<Variable.Value>()
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is E_PARAM.Constant -> {
@@ -1503,8 +1519,8 @@ class RV64Syntax : Syntax() {
         }
 
         class Constant(val constant: Compiler.Token.Constant) : E_PARAM(REFS.REF_E_PARAM_CONSTANT, RV64Flags.constant, constant) {
-            fun getValue(): Bin {
-                return constant.getValue().toBin()
+            fun getValue(): Variable.Value {
+                return constant.getValue()
             }
         }
 
@@ -1716,7 +1732,8 @@ class RV64Syntax : Syntax() {
 
             // PSEUDO INSTRUCTIONS
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
-            PS_RD_I64(true, "rd, imm64", Bit64()), // rd, imm
+            PS_RD_I32(true, "rd, imm32", Bit32()), // rd, imm32
+            PS_RD_I64(true, "rd, imm64", Bit64()), // rd, imm64
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
             PS_Jlbl(true, "jlabel"),  // label
@@ -1746,7 +1763,7 @@ class RV64Syntax : Syntax() {
                     if (rd == null) return
 
                     // calculate
-                    val shiftedIMM = imm20.getResized(RV64.REG_VALUE_SIZE) shl 12 // from imm20 to imm32
+                    val shiftedIMM = imm20.getResized(RV64.XLEN) shl 12 // from imm20 to imm32
                     // change states
                     rd.set(shiftedIMM)    // set register to imm32 value
                     pc.set(pc.get() + Hex("4"))
@@ -1761,7 +1778,7 @@ class RV64Syntax : Syntax() {
                         val imm20 = paramMap.get(IMM20)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm20 != null) {
-                            val shiftedIMM = imm20.getUResized(RV64.REG_VALUE_SIZE) shl 12
+                            val shiftedIMM = imm20.getUResized(RV64.XLEN) shl 12
                             val sum = pc.get() + shiftedIMM
                             rd.set(sum)
                             pc.set(pc.get() + Hex("4"))
@@ -1786,7 +1803,7 @@ class RV64Syntax : Syntax() {
                              *        Location       20 [      10 : 1               ] 11 [ 19 : 12             ]
                              */
 
-                            val shiftedImm = Bin(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), Bit20()).getResized(RV64.REG_VALUE_SIZE) shl 1
+                            val shiftedImm = Bin(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), Bit20()).getResized(RV64.XLEN) shl 1
 
                             rd.set(pc.get() + Hex("4"))
                             pc.set(pc.get() + shiftedImm)
@@ -1812,9 +1829,9 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            ECALL("ECALL", false, ParamType.NONE, OpCode("000000000000 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))), EBREAK("EBREAK", false, ParamType.NONE, OpCode("000000000001 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))), BEQ(
-                "BEQ", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            ECALL("ECALL", false, ParamType.NONE, OpCode("000000000000 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))),
+            EBREAK("EBREAK", false, ParamType.NONE, OpCode("000000000001 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))),
+            BEQ("BEQ", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -1830,7 +1847,7 @@ class RV64Syntax : Syntax() {
                             val imm5str = imm5.getResized(Bit5()).getRawBinaryStr()
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
 
-                            val offset = imm12.toBin().getResized(RV64.REG_VALUE_SIZE) shl 1
+                            val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                             if (rs1.get().toBin() == rs2.get().toBin()) {
                                 pc.set(pc.get() + offset)
                             } else {
@@ -1840,9 +1857,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            BNE(
-                "BNE", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            BNE("BNE", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -1857,7 +1872,7 @@ class RV64Syntax : Syntax() {
                             val imm7str = imm7.getResized(Bit7()).getRawBinaryStr()
                             val imm5str = imm5.getResized(Bit5()).getRawBinaryStr()
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
-                            val offset = imm12.toBin().getResized(RV64.REG_VALUE_SIZE) shl 1
+                            val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                             if (rs1.get().toBin() != rs2.get().toBin()) {
                                 pc.set(pc.get() + offset)
                             } else {
@@ -1867,9 +1882,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            BLT(
-                "BLT", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            BLT("BLT", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -1884,7 +1897,7 @@ class RV64Syntax : Syntax() {
                             val imm7str = imm7.getResized(Bit7()).getRawBinaryStr()
                             val imm5str = imm5.getResized(Bit5()).getRawBinaryStr()
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
-                            val offset = imm12.toBin().getResized(RV64.REG_VALUE_SIZE) shl 1
+                            val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                             if (rs1.get().toDec() < rs2.get().toDec()) {
                                 pc.set(pc.get() + offset)
                             } else {
@@ -1894,9 +1907,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            BGE(
-                "BGE", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            BGE("BGE", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -1911,7 +1922,7 @@ class RV64Syntax : Syntax() {
                             val imm7str = imm7.getResized(Bit7()).getRawBinaryStr()
                             val imm5str = imm5.getResized(Bit5()).getRawBinaryStr()
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
-                            val offset = imm12.toBin().getResized(RV64.REG_VALUE_SIZE) shl 1
+                            val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                             if (rs1.get().toDec() >= rs2.get().toDec()) {
                                 pc.set(pc.get() + offset)
                             } else {
@@ -1921,9 +1932,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            BLTU(
-                "BLTU", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            BLTU("BLTU", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -1938,7 +1947,7 @@ class RV64Syntax : Syntax() {
                             val imm7str = imm7.getResized(Bit7()).getRawBinaryStr()
                             val imm5str = imm5.getResized(Bit5()).getRawBinaryStr()
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
-                            val offset = imm12.toBin().getResized(RV64.REG_VALUE_SIZE) shl 1
+                            val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                             if (rs1.get().toUDec() < rs2.get().toUDec()) {
                                 pc.set(pc.get() + offset)
                             } else {
@@ -1948,9 +1957,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            BGEU(
-                "BGEU", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            BGEU("BGEU", false, ParamType.RS1_RS2_I12, OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -1965,7 +1972,7 @@ class RV64Syntax : Syntax() {
                             val imm7str = imm7.getResized(Bit7()).getRawBinaryStr()
                             val imm5str = imm5.getResized(Bit5()).getRawBinaryStr()
                             val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Bit12())
-                            val offset = imm12.toBin().getResized(RV64.REG_VALUE_SIZE) shl 1
+                            val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                             if (rs1.get().toUDec() >= rs2.get().toUDec()) {
                                 pc.set(pc.get() + offset)
                             } else {
@@ -1975,12 +1982,13 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ), BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE), BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT), BGE1("BGE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGE), BLTU1(
-                "BLTU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLTU
-            ),
-            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU), LB(
-                "LB", false, ParamType.RD_Off12, OpCode("000000000000 00000 000 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ),
+            BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE),
+            BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT),
+            BGE1("BGE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGE),
+            BLTU1("BLTU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLTU),
+            BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU),
+            LB("LB", false, ParamType.RD_Off12, OpCode("000000000000 00000 000 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -1991,17 +1999,15 @@ class RV64Syntax : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedByte = arch.getMemory().load(memAddr.toHex()).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
+                            val loadedByte = arch.getMemory().load(memAddr.toHex()).toBin().getResized(RV64.XLEN)
                             rd.set(loadedByte)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            LH(
-                "LH", false, ParamType.RD_Off12, OpCode("000000000000 00000 001 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            LH("LH", false, ParamType.RD_Off12, OpCode("000000000000 00000 001 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2012,17 +2018,15 @@ class RV64Syntax : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedHalfWord = arch.getMemory().load(memAddr.toHex(), 2).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
+                            val loadedHalfWord = arch.getMemory().load(memAddr.toHex(), 2).toBin().getResized(RV64.XLEN)
                             rd.set(loadedHalfWord)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            LW(
-                "LW", false, ParamType.RD_Off12, OpCode("000000000000 00000 010 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            LW("LW", false, ParamType.RD_Off12, OpCode("000000000000 00000 010 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2033,17 +2037,15 @@ class RV64Syntax : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 4).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
+                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 4).toBin().getResized(RV64.XLEN)
                             rd.set(loadedWord)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            LD(
-                "LD", false, ParamType.RD_Off12, OpCode("000000000000 00000 011 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            LD("LD", false, ParamType.RD_Off12, OpCode("000000000000 00000 011 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2054,17 +2056,15 @@ class RV64Syntax : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 8).toBin().getResized(RV64.REG_VALUE_SIZE)
+                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
+                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 8).toBin().getResized(RV64.XLEN)
                             rd.set(loadedWord)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            LBU(
-                "LBU", false, ParamType.RD_Off12, OpCode("000000000000 00000 100 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            LBU("LBU", false, ParamType.RD_Off12, OpCode("000000000000 00000 100 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2075,17 +2075,15 @@ class RV64Syntax : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
+                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                             val loadedByte = arch.getMemory().load(memAddr.toHex())
-                            rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, RV64.REG_VALUE_SIZE.bitWidth - 8) + loadedByte.toBin().getRawBinaryStr(), RV64.REG_VALUE_SIZE))
+                            rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, RV64.XLEN.bitWidth - 8) + loadedByte.toBin().getRawBinaryStr(), RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            LHU(
-                "LHU", false, ParamType.RD_Off12, OpCode("000000000000 00000 101 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            LHU("LHU", false, ParamType.RD_Off12, OpCode("000000000000 00000 101 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2096,17 +2094,15 @@ class RV64Syntax : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
+                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                             val loadedByte = arch.getMemory().load(memAddr.toHex(), 2)
-                            rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, RV64.REG_VALUE_SIZE.bitWidth - 16) + loadedByte.toBin().getRawBinaryStr(), RV64.REG_VALUE_SIZE))
+                            rd.set(Bin(rd.get().toBin().getRawBinaryStr().substring(0, RV64.XLEN.bitWidth - 16) + loadedByte.toBin().getRawBinaryStr(), RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            LWU(
-                "LWU", false, ParamType.RD_Off12, OpCode("000000000000 00000 110 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            LWU("LWU", false, ParamType.RD_Off12, OpCode("000000000000 00000 110 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2117,17 +2113,15 @@ class RV64Syntax : Syntax() {
                         val rs1 = arch.getRegContainer().getReg(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
-                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.REG_VALUE_SIZE)
-                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 4).toBin().getUResized(RV64.REG_VALUE_SIZE)
+                            val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
+                            val loadedWord = arch.getMemory().load(memAddr.toHex(), 4).toBin().getUResized(RV64.XLEN)
                             rd.set(loadedWord)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SB(
-                "SB", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            SB("SB", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -2139,17 +2133,15 @@ class RV64Syntax : Syntax() {
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val off64 = (imm7.getResized(RV64.REG_VALUE_SIZE) shl 5) + imm5
-                            val memAddr = rs1.get().toBin().getResized(RV64.REG_VALUE_SIZE) + off64
+                            val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
+                            val memAddr = rs1.get().toBin().getResized(RV64.XLEN) + off64
                             arch.getMemory().store(memAddr, rs2.get().toBin().getResized(Bit8()))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SH(
-                "SH", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            SH("SH", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -2161,17 +2153,15 @@ class RV64Syntax : Syntax() {
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val off64 = (imm7.getResized(RV64.REG_VALUE_SIZE) shl 5) + imm5
-                            val memAddr = rs1.get().toBin().getResized(RV64.REG_VALUE_SIZE) + off64
+                            val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
+                            val memAddr = rs1.get().toBin().getResized(RV64.XLEN) + off64
                             arch.getMemory().store(memAddr, rs2.get().toBin().getResized(Bit16()))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SW(
-                "SW", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            SW("SW", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -2183,17 +2173,15 @@ class RV64Syntax : Syntax() {
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val off64 = (imm7.getResized(RV64.REG_VALUE_SIZE) shl 5) + imm5
-                            val memAddr = rs1.variable.get().toBin().getResized(RV64.REG_VALUE_SIZE) + off64
+                            val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
+                            val memAddr = rs1.variable.get().toBin().getResized(RV64.XLEN) + off64
                             arch.getMemory().store(memAddr, rs2.get().toBin().getResized(Bit32()))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SD(
-                "SD", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 011 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
-            ) {
+            SD("SD", false, ParamType.RS2_Off5, OpCode("0000000 00000 00000 011 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap.get(RS1)
@@ -2205,17 +2193,15 @@ class RV64Syntax : Syntax() {
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
-                            val off64 = (imm7.getResized(RV64.REG_VALUE_SIZE) shl 5) + imm5
-                            val memAddr = rs1.variable.get().toBin().getResized(RV64.REG_VALUE_SIZE) + off64
-                            arch.getMemory().store(memAddr, rs2.get().toBin().getResized(RV64.REG_VALUE_SIZE))
+                            val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
+                            val memAddr = rs1.variable.get().toBin().getResized(RV64.XLEN) + off64
+                            arch.getMemory().store(memAddr, rs2.get().toBin().getResized(RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            ADDI(
-                "ADDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 000 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            ADDI("ADDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 000 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2226,7 +2212,7 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm64 = imm12.getResized(RV64.REG_VALUE_SIZE)
+                            val paddedImm64 = imm12.getResized(RV64.XLEN)
                             val sum = rs1.get().toBin() + paddedImm64
                             rd.set(sum)
                             pc.set(pc.get() + Hex("4"))
@@ -2247,15 +2233,13 @@ class RV64Syntax : Syntax() {
                         if (rd != null && imm12 != null && rs1 != null) {
                             val paddedImm32 = imm12.getResized(Bit32())
                             val sum = rs1.get().toBin().getResized(Bit32()) + paddedImm32
-                            rd.set(sum.toBin().getResized(RV64.REG_VALUE_SIZE))
+                            rd.set(sum.toBin().getResized(RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SLTI(
-                "SLTI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 010 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLTI("SLTI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 010 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2266,16 +2250,14 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm64 = imm12.getResized(RV64.REG_VALUE_SIZE)
-                            rd.set(if (rs1.get().toDec() < paddedImm64.toDec()) Bin("1", RV64.REG_VALUE_SIZE) else Bin("0", RV64.REG_VALUE_SIZE))
+                            val paddedImm64 = imm12.getResized(RV64.XLEN)
+                            rd.set(if (rs1.get().toDec() < paddedImm64.toDec()) Bin("1", RV64.XLEN) else Bin("0", RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SLTIU(
-                "SLTIU", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 011 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLTIU("SLTIU", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 011 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2286,16 +2268,14 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm64 = imm12.getUResized(RV64.REG_VALUE_SIZE)
-                            rd.set(if (rs1.get().toBin() < paddedImm64) Bin("1", RV64.REG_VALUE_SIZE) else Bin("0", RV64.REG_VALUE_SIZE))
+                            val paddedImm64 = imm12.getUResized(RV64.XLEN)
+                            rd.set(if (rs1.get().toBin() < paddedImm64) Bin("1", RV64.XLEN) else Bin("0", RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            XORI(
-                "XORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 100 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            XORI("XORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 100 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2306,16 +2286,14 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm64 = imm12.getUResized(RV64.REG_VALUE_SIZE)
+                            val paddedImm64 = imm12.getUResized(RV64.XLEN)
                             rd.set(rs1.get().toBin() xor paddedImm64)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            ORI(
-                "ORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 110 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            ORI("ORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 110 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2326,16 +2304,14 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm64 = imm12.getUResized(RV64.REG_VALUE_SIZE)
+                            val paddedImm64 = imm12.getUResized(RV64.XLEN)
                             rd.set(rs1.get().toBin() or paddedImm64)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            ANDI(
-                "ANDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 111 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            ANDI("ANDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 111 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2346,16 +2322,14 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val paddedImm64 = imm12.getUResized(RV64.REG_VALUE_SIZE)
+                            val paddedImm64 = imm12.getUResized(RV64.XLEN)
                             rd.set(rs1.get().toBin() and paddedImm64)
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SLLI(
-                "SLLI", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 001 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLLI("SLLI", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 001 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2372,9 +2346,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SLLIW(
-                "SLLIW", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 001 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLLIW("SLLIW", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 001 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2385,15 +2357,13 @@ class RV64Syntax : Syntax() {
                         val shamt6 = paramMap.get(SHAMT6)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && shamt6 != null && rs1 != null) {
-                            rd.set((rs1.get().toBin().getUResized(Bit32()) ushl shamt6.getUResized(Bit5()).getRawBinaryStr().toInt(2)).getResized(RV64.REG_VALUE_SIZE))
+                            rd.set((rs1.get().toBin().getUResized(Bit32()) ushl shamt6.getUResized(Bit5()).getRawBinaryStr().toInt(2)).getResized(RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SRLI(
-                "SRLI", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRLI("SRLI", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2410,9 +2380,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SRLIW(
-                "SRLIW", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRLIW("SRLIW", false, ParamType.RD_RS1_I6, OpCode("000000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2423,15 +2391,13 @@ class RV64Syntax : Syntax() {
                         val shamt6 = paramMap.get(SHAMT6)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && shamt6 != null && rs1 != null) {
-                            rd.set((rs1.get().toBin().getUResized(Bit32()) ushr shamt6.getUResized(Bit5()).getRawBinaryStr().toInt(2)).getResized(RV64.REG_VALUE_SIZE))
+                            rd.set((rs1.get().toBin().getUResized(Bit32()) ushr shamt6.getUResized(Bit5()).getRawBinaryStr().toInt(2)).getResized(RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SRAI(
-                "SRAI", false, ParamType.RD_RS1_I6, OpCode("010000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRAI("SRAI", false, ParamType.RD_RS1_I6, OpCode("010000 000000 00000 101 00000 0010011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2448,9 +2414,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SRAIW(
-                "SRAIW", false, ParamType.RD_RS1_I6, OpCode("010000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRAIW("SRAIW", false, ParamType.RD_RS1_I6, OpCode("010000 000000 00000 101 00000 0011011", arrayOf(FUNCT6, SHAMT6, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2461,15 +2425,13 @@ class RV64Syntax : Syntax() {
                         val shamt6 = paramMap.get(SHAMT6)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && shamt6 != null && rs1 != null) {
-                            rd.set((rs1.get().toBin().getUResized(Bit32()) shr shamt6.getUResized(Bit5()).getRawBinaryStr().toInt(2)).getResized(RV64.REG_VALUE_SIZE))
+                            rd.set((rs1.get().toBin().getUResized(Bit32()) shr shamt6.getUResized(Bit5()).getRawBinaryStr().toInt(2)).getResized(RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            ADD(
-                "ADD", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            ADD("ADD", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2487,9 +2449,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            ADDW(
-                "ADDW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            ADDW("ADDW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2501,15 +2461,13 @@ class RV64Syntax : Syntax() {
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
-                            rd.set((rs1.get().toBin().getResized(Bit32()) + rs2.get().toBin().getResized(Bit32())).toBin().getResized(RV64.REG_VALUE_SIZE))
+                            rd.set((rs1.get().toBin().getResized(Bit32()) + rs2.get().toBin().getResized(Bit32())).toBin().getResized(RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SUB(
-                "SUB", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SUB("SUB", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2527,9 +2485,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SUBW(
-                "SUBW", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SUBW("SUBW", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2541,15 +2497,13 @@ class RV64Syntax : Syntax() {
                         val rs2 = arch.getRegContainer().getReg(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
-                            rd.set((rs1.get().toBin().getResized(Bit32()) - rs2.get().toBin().getResized(Bit32())).toBin().getResized(RV64.REG_VALUE_SIZE))
+                            rd.set((rs1.get().toBin().getResized(Bit32()) - rs2.get().toBin().getResized(Bit32())).toBin().getResized(RV64.XLEN))
                             pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
             },
-            SLL(
-                "SLL", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLL("SLL", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2567,9 +2521,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SLLW(
-                "SLLW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 001 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLLW("SLLW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 001 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2587,9 +2539,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SLT(
-                "SLT", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLT("SLT", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2607,9 +2557,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SLTU(
-                "SLTU", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SLTU("SLTU", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2627,9 +2575,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            XOR(
-                "XOR", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            XOR("XOR", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2647,9 +2593,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SRL(
-                "SRL", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRL("SRL", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2667,9 +2611,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SRLW(
-                "SRLW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRLW("SRLW", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2687,9 +2629,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SRA(
-                "SRA", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRA("SRA", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2707,9 +2647,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            SRAW(
-                "SRAW", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            SRAW("SRAW", false, ParamType.RD_RS1_RS1, OpCode("0100000 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2727,9 +2665,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            OR(
-                "OR", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            OR("OR", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2747,9 +2683,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            AND(
-                "AND", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
-            ) {
+            AND("AND", false, ParamType.RD_RS1_RS1, OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2769,39 +2703,32 @@ class RV64Syntax : Syntax() {
             },
             Nop("NOP", true, ParamType.PS_NONE),
             Mv("MV", true, ParamType.PS_RD_RS1),
+            Li32("LI", true, ParamType.PS_RD_I32, memWords = 2),
             Li("LI", true, ParamType.PS_RD_I64, memWords = 5),
             La("LA", true, ParamType.PS_RD_Albl, memWords = 5),
             Not("NOT", true, ParamType.PS_RD_RS1),
             Neg("NEG", true, ParamType.PS_RD_RS1),
-            Seqz(
-                "SEQZ", true, ParamType.PS_RD_RS1
-            ),
+            Seqz("SEQZ", true, ParamType.PS_RD_RS1),
             Snez("SNEZ", true, ParamType.PS_RD_RS1),
             Sltz("SLTZ", true, ParamType.PS_RD_RS1),
             Sgtz("SGTZ", true, ParamType.PS_RD_RS1),
             Beqz("BEQZ", true, ParamType.PS_RS1_Jlbl),
             Bnez("BNEZ", true, ParamType.PS_RS1_Jlbl),
             Blez("BLEZ", true, ParamType.PS_RS1_Jlbl),
-            Bgez(
-                "BGEZ", true, ParamType.PS_RS1_Jlbl
-            ),
+            Bgez("BGEZ", true, ParamType.PS_RS1_Jlbl),
             Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl),
             BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl),
             Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl),
             Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl),
             Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl),
             Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl),
-            J(
-                "J", true, ParamType.PS_Jlbl
-            ),
+            J("J", true, ParamType.PS_Jlbl),
             JAL1("JAL", true, ParamType.PS_RS1_Jlbl, relative = JAL),
             JAL2("JAL", true, ParamType.PS_Jlbl, relative = JAL),
             Jr("JR", true, ParamType.PS_RS1),
             JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
             Ret("RET", true, ParamType.PS_NONE),
-            Call(
-                "CALL", true, ParamType.PS_Jlbl, memWords = 2
-            ),
+            Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
             Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
 
             open fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
