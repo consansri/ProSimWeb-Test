@@ -1,6 +1,8 @@
 # TODOS #
 
-- Value add signed or unsigned identification at instantiation and implement dependent arithmetic operations
+- Value add exponential Numbers
+- Value string escape sequence ("\"" = ")
+- Value add signed or unsigned identification at instantiation and implement dependent arithmetic operations (or clarify hex,bin,udec as unsigned and dec as signed)
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
 - Make RV32 and RV64 dependent on XLEN parameter of each Object
 - RV64 change li pseudo instruction to smart li with different transcriptions (make li flexible)
