@@ -1,5 +1,6 @@
 # TODOS #
 
+- Value add signed or unsigned identification at instantiation and implement dependent arithmetic operations
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
 - Make RV32 and RV64 dependent on XLEN parameter of each Object
 - RV64 change li pseudo instruction to smart li with different transcriptions (make li flexible)
@@ -28,4 +29,4 @@
 - **(done)** not only allow .global directive also allow .globl
 - **(done)** transcript not binary representation instead use hex representation
 - **(done)** allow negative hex and resolve them after constant and macro replacements
-- **(done)** reanalyze line after constant insertion to resolve negations
+- **(done)** reanalyze line after constant insertion to resolve negation
