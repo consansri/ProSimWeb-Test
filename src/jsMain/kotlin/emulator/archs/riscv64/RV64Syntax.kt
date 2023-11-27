@@ -1815,7 +1815,7 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
-            JALR("JALR", false, ParamType.RD_Off12, OpCode("000000000000 00000 000 00000 1100111", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
+            JALR("JALR", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 000 00000 1100111", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2732,6 +2732,7 @@ class RV64Syntax : Syntax() {
             JAL2("JAL", true, ParamType.PS_Jlbl, relative = JAL),
             Jr("JR", true, ParamType.PS_RS1),
             JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
+            JALR2("JALR", true, ParamType.RD_Off12, relative = JALR),
             Ret("RET", true, ParamType.PS_NONE),
             Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
             Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);

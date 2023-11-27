@@ -1,6 +1,7 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
+import emulator.archs.riscv32.RV32BinMapper
 import emulator.kit.Architecture
 import emulator.kit.Settings
 import emulator.kit.types.Variable
@@ -68,7 +69,7 @@ class RV64BinMapper {
 
                 JALR -> {
                     binValues?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[1], MaskLabel.RS1 to binValues[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[2], MaskLabel.RS1 to binValues[1]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -402,6 +403,15 @@ class RV64BinMapper {
 
                         if (jalrOpCode != null) {
                             binArray.add(jalrOpCode)
+                        }
+                    }
+                }
+
+                JALR2 -> {
+                    binValues?.let {
+                        val opCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[1], MaskLabel.RS1 to binValues[2]))
+                        opCode?.let {
+                            binArray.add(opCode)
                         }
                     }
                 }

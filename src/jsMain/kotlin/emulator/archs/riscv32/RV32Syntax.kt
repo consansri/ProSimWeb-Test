@@ -1808,7 +1808,7 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             },
-            JALR("JALR", false, ParamType.RD_Off12, RV32BinMapper.OpCode("000000000000 00000 000 00000 1100111", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
+            JALR("JALR", false, ParamType.RD_RS1_I12, RV32BinMapper.OpCode("000000000000 00000 000 00000 1100111", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
@@ -2610,7 +2610,8 @@ class RV32Syntax() : Syntax() {
                     }
                 }
             },
-            Nop("NOP", true, ParamType.PS_NONE), Mv("MV", true, ParamType.PS_RD_RS1),
+            Nop("NOP", true, ParamType.PS_NONE),
+            Mv("MV", true, ParamType.PS_RD_RS1),
             Li("LI", true, ParamType.PS_RD_I32, memWords = 2),
             La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
             Not("NOT", true, ParamType.PS_RD_RS1),
@@ -2634,6 +2635,7 @@ class RV32Syntax() : Syntax() {
             JAL2("JAL", true, ParamType.PS_Jlbl, relative = JAL),
             Jr("JR", true, ParamType.PS_RS1),
             JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
+            JALR2("JALR", true, ParamType.RD_Off12, relative = JALR),
             Ret("RET", true, ParamType.PS_NONE),
             Call("CALL", true, ParamType.PS_Jlbl, memWords = 2),
             Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);

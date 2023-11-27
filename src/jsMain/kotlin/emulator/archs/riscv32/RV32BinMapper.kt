@@ -68,7 +68,7 @@ class RV32BinMapper {
 
                 JALR -> {
                     values?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[2], MaskLabel.RS1 to values[1]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -311,6 +311,15 @@ class RV32BinMapper {
 
                         if (jalrOpCode != null) {
                             binArray.add(jalrOpCode)
+                        }
+                    }
+                }
+
+                JALR2 -> {
+                    values?.let {
+                        val opCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
+                        opCode?.let {
+                            binArray.add(opCode)
                         }
                     }
                 }
