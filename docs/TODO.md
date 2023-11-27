@@ -7,7 +7,7 @@
 - Make RV32 and RV64 dependent on XLEN parameter of each Object
 - RV64 change li pseudo instruction to smart li with different transcriptions (make li flexible)
 - RV64 ADD Control and Status Register
-- jalr offset syntax (not "0(ra)" instead "ra,0" )
+- jalr offset syntax (not "0(ra)" (only load store instructions) instead "ra,0" )
 
 # SUGAR #
 
