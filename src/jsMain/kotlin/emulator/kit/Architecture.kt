@@ -98,7 +98,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeContinuous() {
-
+        getConsole().clear()
     }
 
     /**
@@ -106,7 +106,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeSingleStep() {
-
+        getConsole().clear()
     }
 
     /**
@@ -114,7 +114,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeMultiStep(steps: Int) {
-        getConsole().log("--exe_multi_step $steps ...")
+        getConsole().clear()
     }
 
     /**
@@ -122,6 +122,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeSkipSubroutine() {
+        getConsole().clear()
     }
 
     /**
@@ -129,7 +130,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeReturnFromSubroutine() {
-
+        getConsole().clear()
     }
 
     /**
@@ -137,7 +138,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeUntilLine(lineID: Int) {
-
+        getConsole().clear()
     }
 
     /**
@@ -145,7 +146,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeUntilAddress(address: Variable.Value.Hex) {
-
+        getConsole().clear()
     }
 
     /**
@@ -153,9 +154,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * don't need to but could be implemented by specific archs
      */
     open fun exeReset() {
-        getConsole().clear()
-        getConsole().log("--reset ...")
         compiler.reassemble()
+        getConsole().log("compiler: reassembling")
     }
 
     /**
@@ -163,8 +163,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * don't need to but could be implemented by specific archs
      */
     open fun exeClear() {
-        getConsole().log("--clear_registers ...")
         regContainer.clear()
+        getConsole().log("compiler: clearing register values")
     }
 
     /**
