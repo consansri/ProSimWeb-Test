@@ -18,7 +18,8 @@ class RV32BinMapper {
 
     fun getBinaryFromInstrDef(instrDef: RV32Syntax.R_INSTR, instrStartAddress: Variable.Value.Hex, architecture: Architecture): Array<Variable.Value.Bin> {
         val binArray = mutableListOf<Variable.Value.Bin>()
-        val values = instrDef.paramcoll?.getValues()
+        val values = instrDef.paramcoll?.getValues(null)
+        val binValues = instrDef.paramcoll?.getValues(null)?.map { it.toBin() }
         val labels = mutableListOf<RV32Syntax.E_LABEL>()
         instrDef.paramcoll?.getILabels()?.forEach { labels.add(it.label) }
         instrDef.paramcoll?.getULabels()?.forEach { labels.add(it.label) }
@@ -40,9 +41,9 @@ class RV32BinMapper {
             val instrDefType = instrDef.instrType
             when (instrDefType) {
                 LUI, AUIPC -> {
-                    values?.let {
-                        val imm20 = Variable.Value.Bin(values[1].getRawBinaryStr().substring(0, 20), Variable.Size.Bit20())
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
+                    binValues?.let {
+                        val imm20 = Variable.Value.Bin(binValues[1].getRawBinaryStr().substring(0, 20), Variable.Size.Bit20())
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM20 to imm20))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -50,8 +51,8 @@ class RV32BinMapper {
                 }
 
                 JAL -> {
-                    values?.let {
-                        val imm20toWork = values[1].getResized(Variable.Size.Bit20()).getRawBinaryStr()
+                    binValues?.let {
+                        val imm20toWork = binValues[1].getResized(Variable.Size.Bit20()).getRawBinaryStr()
 
                         /**
                          *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
@@ -59,7 +60,7 @@ class RV32BinMapper {
                          */
 
                         val imm20 = Variable.Value.Bin(imm20toWork[0].toString() + imm20toWork.substring(10) + imm20toWork[9] + imm20toWork.substring(1, 9), Variable.Size.Bit20())
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM20 to imm20))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM20 to imm20))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -67,8 +68,8 @@ class RV32BinMapper {
                 }
 
                 JALR -> {
-                    values?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[2], MaskLabel.RS1 to values[1]))
+                    binValues?.let {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[2], MaskLabel.RS1 to binValues[1]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -76,7 +77,7 @@ class RV32BinMapper {
                 }
 
                 EBREAK, ECALL -> {
-                    values?.let {
+                    binValues?.let {
                         val opCode = instrDef.instrType.opCode?.getOpCode(mapOf())
                         opCode?.let {
                             binArray.add(opCode)
@@ -85,12 +86,12 @@ class RV32BinMapper {
                 }
 
                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
-                    values?.let {
-                        val imm12 = values[2].getResized(Variable.Size.Bit12()).getRawBinaryStr()
+                    binValues?.let {
+                        val imm12 = binValues[2].getResized(Variable.Size.Bit12()).getRawBinaryStr()
                         val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                         val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0], MaskLabel.RS2 to values[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RS1 to binValues[0], MaskLabel.RS2 to binValues[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -98,7 +99,7 @@ class RV32BinMapper {
                 }
 
                 BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
-                    if (values != null && labels.isNotEmpty()) {
+                    if (binValues != null && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
@@ -106,7 +107,7 @@ class RV32BinMapper {
                             val imm5 = Variable.Value.Bin(imm12offset.substring(8) + imm12offset[1], Variable.Size.Bit5())
                             val imm7 = Variable.Value.Bin(imm12offset[0] + imm12offset.substring(2, 8), Variable.Size.Bit7())
 
-                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to values[0], MaskLabel.RS2 to values[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
+                            val opCode = instrDefType.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to binValues[0], MaskLabel.RS2 to binValues[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                             opCode?.let {
                                 binArray.add(opCode)
                             }
@@ -115,8 +116,8 @@ class RV32BinMapper {
                 }
 
                 LB, LH, LW, LBU, LHU -> {
-                    values?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
+                    binValues?.let {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[1], MaskLabel.RS1 to binValues[2]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -124,12 +125,12 @@ class RV32BinMapper {
                 }
 
                 SB, SH, SW -> {
-                    if (values != null && values.size == 3) {
-                        val imm12 = values[1].getRawBinaryStr()
+                    if (binValues != null && binValues.size == 3) {
+                        val imm12 = binValues[1].getRawBinaryStr()
                         val imm5 = Variable.Value.Bin(imm12.substring(imm12.length - 5))
                         val imm7 = Variable.Value.Bin(imm12.substring(imm12.length - 12, imm12.length - 5))
 
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RS2 to values[0], MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5, MaskLabel.RS1 to values[2]))
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RS2 to binValues[0], MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5, MaskLabel.RS1 to binValues[2]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -137,8 +138,8 @@ class RV32BinMapper {
                 }
 
                 ADDI, SLTI, SLTIU, XORI, ORI, ANDI -> {
-                    values?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.IMM12 to values[2]))
+                    binValues?.let {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.IMM12 to binValues[2]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -146,8 +147,8 @@ class RV32BinMapper {
                 }
 
                 SLLI, SRLI, SRAI -> {
-                    values?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.SHAMT to values[2]))
+                    binValues?.let {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.SHAMT to binValues[2]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -155,8 +156,8 @@ class RV32BinMapper {
                 }
 
                 ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND -> {
-                    values?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.RS1 to values[1], MaskLabel.RS2 to values[2]))
+                    binValues?.let {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.RS2 to binValues[2]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -164,9 +165,9 @@ class RV32BinMapper {
                 }
 
                 Li -> {
-                    values?.let {
-                        val regBin = values[0]
-                        val immediate = values[1]
+                    binValues?.let {
+                        val regBin = binValues[0]
+                        val immediate = binValues[1]
                         val imm32 = immediate.getUResized(Variable.Size.Bit32())
 
                         val hi20 = imm32.getRawBinaryStr().substring(0, 20)
@@ -193,8 +194,8 @@ class RV32BinMapper {
                 }
 
                 La -> {
-                    if (values != null && labels.isNotEmpty()) {
-                        val regBin = values[0]
+                    if (binValues != null && labels.isNotEmpty()) {
+                        val regBin = binValues[0]
                         val address = labelAddrMap.get(labels.first())
                         if (address != null) {
                             val imm32 = Variable.Value.Bin(address)
@@ -222,10 +223,10 @@ class RV32BinMapper {
                 }
 
                 JAL1 -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rd = values[0]
+                            val rd = binValues[0]
                             val imm20toWork = ((Variable.Value.Bin(lblAddr, Variable.Size.Bit32()) - instrStartAddress).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinaryStr()
 
                             /**
@@ -288,8 +289,8 @@ class RV32BinMapper {
                 }
 
                 Jr -> {
-                    if (!values.isNullOrEmpty()) {
-                        val rs1 = values[0]
+                    if (!binValues.isNullOrEmpty()) {
+                        val rs1 = binValues[0]
                         val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                         val zero = Variable.Value.Bin("0", Variable.Size.Bit12())
 
@@ -302,8 +303,8 @@ class RV32BinMapper {
                 }
 
                 JALR1 -> {
-                    if (!values.isNullOrEmpty()) {
-                        val rs1 = values[0]
+                    if (!binValues.isNullOrEmpty()) {
+                        val rs1 = binValues[0]
                         val x1 = Variable.Value.Bin("1", Variable.Size.Bit5())
                         val zero = Variable.Value.Bin("0", Variable.Size.Bit12())
 
@@ -316,8 +317,8 @@ class RV32BinMapper {
                 }
 
                 JALR2 -> {
-                    values?.let {
-                        val opCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to values[0], MaskLabel.IMM12 to values[1], MaskLabel.RS1 to values[2]))
+                    binValues?.let {
+                        val opCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[1], MaskLabel.RS1 to binValues[2]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -384,9 +385,9 @@ class RV32BinMapper {
                 }
 
                 Mv -> {
-                    values?.let {
-                        val rd = values[0]
-                        val rs1 = values[1]
+                    binValues?.let {
+                        val rd = binValues[0]
+                        val rs1 = binValues[1]
                         val zero = Variable.Value.Bin("0", Variable.Size.Bit12())
 
                         val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.RS1 to rs1, MaskLabel.IMM12 to zero))
@@ -408,9 +409,9 @@ class RV32BinMapper {
                 }
 
                 Not -> {
-                    values?.let {
-                        val rd = values[0]
-                        val rs1 = values[1]
+                    binValues?.let {
+                        val rd = binValues[0]
+                        val rs1 = binValues[1]
 
                         val xoriOpCode = XORI.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.RS1 to rs1, MaskLabel.IMM12 to Variable.Value.Bin("1".repeat(12), Variable.Size.Bit12())))
 
@@ -421,10 +422,10 @@ class RV32BinMapper {
                 }
 
                 Neg -> {
-                    values?.let {
-                        val rd = values[0]
+                    binValues?.let {
+                        val rd = binValues[0]
                         val rs1 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                        val rs2 = values[1]
+                        val rs2 = binValues[1]
 
                         val subOpCode = SUB.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.RS1 to rs1, MaskLabel.RS2 to rs2))
 
@@ -435,9 +436,9 @@ class RV32BinMapper {
                 }
 
                 Seqz -> {
-                    values?.let {
-                        val rd = values[0]
-                        val rs1 = values[1]
+                    binValues?.let {
+                        val rd = binValues[0]
+                        val rs1 = binValues[1]
                         val imm12 = Variable.Value.Bin("1", Variable.Size.Bit12())
 
                         val sltiuOpCode = SLTIU.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.RS1 to rs1, MaskLabel.IMM12 to imm12))
@@ -449,10 +450,10 @@ class RV32BinMapper {
                 }
 
                 Snez -> {
-                    values?.let {
-                        val rd = values[0]
+                    binValues?.let {
+                        val rd = binValues[0]
                         val rs1 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                        val rs2 = values[1]
+                        val rs2 = binValues[1]
 
                         val sltuOpCode = SLTU.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.RS1 to rs1, MaskLabel.RS2 to rs2))
 
@@ -463,9 +464,9 @@ class RV32BinMapper {
                 }
 
                 Sltz -> {
-                    values?.let {
-                        val rd = values[0]
-                        val rs1 = values[1]
+                    binValues?.let {
+                        val rd = binValues[0]
+                        val rs1 = binValues[1]
                         val zero = Variable.Value.Bin("0", Variable.Size.Bit12())
 
                         val sltOpCode = SLT.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.RS1 to rs1, MaskLabel.RS2 to zero))
@@ -477,10 +478,10 @@ class RV32BinMapper {
                 }
 
                 Sgtz -> {
-                    values?.let {
-                        val rd = values[0]
+                    binValues?.let {
+                        val rd = binValues[0]
                         val rs1 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                        val rs2 = values[1]
+                        val rs2 = binValues[1]
 
                         val sltOpCode = SLT.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.RS1 to rs1, MaskLabel.RS2 to rs2))
 
@@ -491,10 +492,10 @@ class RV32BinMapper {
                 }
 
                 Beqz -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
+                            val rs1 = binValues[0]
                             val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -510,10 +511,10 @@ class RV32BinMapper {
                 }
 
                 Bnez -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
+                            val rs1 = binValues[0]
                             val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -529,10 +530,10 @@ class RV32BinMapper {
                 }
 
                 Blez -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
+                            val rs1 = binValues[0]
                             val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -548,10 +549,10 @@ class RV32BinMapper {
                 }
 
                 Bgez -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
+                            val rs1 = binValues[0]
                             val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -567,10 +568,10 @@ class RV32BinMapper {
                 }
 
                 Bltz -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
+                            val rs1 = binValues[0]
                             val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -586,10 +587,10 @@ class RV32BinMapper {
                 }
 
                 BGTZ -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
+                            val rs1 = binValues[0]
                             val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -605,11 +606,11 @@ class RV32BinMapper {
                 }
 
                 Bgt -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
-                            val rs2 = values[1]
+                            val rs1 = binValues[0]
+                            val rs2 = binValues[1]
 
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -626,11 +627,11 @@ class RV32BinMapper {
                 }
 
                 Ble -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
-                            val rs2 = values[1]
+                            val rs1 = binValues[0]
+                            val rs2 = binValues[1]
 
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -647,11 +648,11 @@ class RV32BinMapper {
                 }
 
                 Bgtu -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
-                            val rs2 = values[1]
+                            val rs1 = binValues[0]
+                            val rs2 = binValues[1]
 
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()
@@ -668,11 +669,11 @@ class RV32BinMapper {
                 }
 
                 Bleu -> {
-                    if (!values.isNullOrEmpty() && labels.isNotEmpty()) {
+                    if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
                         val lblAddr = labelAddrMap.get(labels.first())
                         if (lblAddr != null) {
-                            val rs1 = values[0]
-                            val rs2 = values[1]
+                            val rs1 = binValues[0]
+                            val rs2 = binValues[1]
 
                             val labelAddr = Variable.Value.Bin(lblAddr, Variable.Size.Bit32())
                             val imm12 = (labelAddr - instrStartAddress).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinaryStr()

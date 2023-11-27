@@ -12,7 +12,6 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import debug.DebugTools
-import emulator.archs.riscv64.RV64Syntax
 
 
 /**
@@ -23,7 +22,6 @@ import emulator.archs.riscv64.RV64Syntax
 class RV32Syntax() : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
-    override val decimalValueSize: Variable.Size = Bit32()
 
     override fun clear() {
 
@@ -893,28 +891,12 @@ class RV32Syntax() : Syntax() {
                 // check params
                 val checkedType = eInstrName.check(eParamcoll)
                 if (checkedType != null) {
-                    val noMatch = eInstrName.matchesSize(paramcoll = eParamcoll, instrType = checkedType)
-                    if (noMatch == null) {
-                        rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
-                        startIsDefined = true
-                        rows[lineID] = rowNode
-                        result.error?.let {
-                            errors.add(it)
-                        }
-                    } else {
-                        if (noMatch.needsSignExtension) {
-                            warnings.add(Warning("Parameter with length of ${noMatch.size} should be sign extended until ${noMatch.expectedSize}!", *lineElements.toTypedArray()))
-                            rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
-                            startIsDefined = true
-                            rows[lineID] = rowNode
-                        } else {
-                            errors.add(Error("Parameter with length of ${noMatch.size} for ${checkedType.id} instruction exceeds maximum size of ${noMatch.expectedSize}!", *lineElements.toTypedArray()))
-                        }
-                        result.error?.let {
-                            errors.add(it)
-                        }
+                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                    startIsDefined = true
+                    rows[lineID] = rowNode
+                    result.error?.let {
+                        errors.add(it)
                     }
-
                 } else {
                     errors.add(Error("Couldn't match parameters to any instruction!\nexpected parameters: ${eInstrName.types.joinToString(" or ") { it.paramType.exampleString }}", *lineElements.toTypedArray()))
                 }
@@ -1214,37 +1196,37 @@ class RV32Syntax() : Syntax() {
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RV32Flags.instruction), REFS.REF_E_INSTRNAME, insToken) {
 
-        fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): Bin.NoMatch? {
+        private fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): Variable.CheckResult? {
             try {
                 return when (instrType.paramType) {
                     R_INSTR.ParamType.RD_I20 -> {
-                        paramcoll.getValues()[1].checkSize(Bit20())
+                        paramcoll.getValues(Bit20())[1].checkResult
                     }
 
                     R_INSTR.ParamType.RD_Off12 -> {
-                        paramcoll.getValues()[1].checkSize(Bit12())
+                        paramcoll.getValues(Bit12())[1].checkResult
                     }
 
                     R_INSTR.ParamType.RS2_Off5 -> {
-                        paramcoll.getValues()[1].checkSize(Bit5())
+                        paramcoll.getValues(Bit5())[1].checkResult
                     }
 
                     R_INSTR.ParamType.RD_RS1_RS1 -> null
                     R_INSTR.ParamType.RD_RS1_I12 -> {
-                        paramcoll.getValues()[2].checkSize(Bit12())
+                        paramcoll.getValues(Bit12())[2].checkResult
                     }
 
                     R_INSTR.ParamType.RD_RS1_I5 -> {
-                        paramcoll.getValues()[2].checkSize(Bit5())
+                        paramcoll.getValues(Bit5())[2].checkResult
                     }
 
                     R_INSTR.ParamType.RS1_RS2_I12 -> {
-                        paramcoll.getValues()[2].checkSize(Bit12())
+                        paramcoll.getValues(Bit12())[2].checkResult
                     }
 
                     R_INSTR.ParamType.PS_RS1_RS2_Jlbl -> null
                     R_INSTR.ParamType.PS_RD_I32 -> {
-                        paramcoll.getValues()[1].checkSize(Bit32())
+                        paramcoll.getValues(Bit32())[1].checkResult
                     }
 
                     R_INSTR.ParamType.PS_RS1_Jlbl -> null
@@ -1266,7 +1248,7 @@ class RV32Syntax() : Syntax() {
             val params = paramcoll.paramsWithOutSplitSymbols
             var type: R_INSTR.InstrType
             types.forEach {
-                val matches: Boolean
+                var matches: Boolean
                 type = it
                 when (it.paramType) {
                     R_INSTR.ParamType.RD_I20 -> {
@@ -1377,9 +1359,15 @@ class RV32Syntax() : Syntax() {
                     R_INSTR.ParamType.NONE -> {
                         matches = params.size == 0
                     }
-
-
                 }
+
+                if (matches) {
+                    val checkResult = matchesSize(paramcoll, type)
+                    checkResult?.let { checkRes ->
+                        matches = checkRes.valid
+                    }
+                }
+
                 if (matches) {
                     return type
                 }
@@ -1387,8 +1375,6 @@ class RV32Syntax() : Syntax() {
 
             return null
         }
-
-        data class MatchSizeResult(val toBig: Boolean, val valBitLength: Int = 0)
     }
 
     class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toList() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toList() }.toTypedArray()) {
@@ -1404,28 +1390,17 @@ class RV32Syntax() : Syntax() {
             paramsWithOutSplitSymbols = parameterList.toTypedArray()
         }
 
-        fun getValues(): Array<Bin> {
-            val values = mutableListOf<Bin>()
+        fun getValues(immSize: Variable.Size?): Array<Variable.Value> {
+            val values = mutableListOf<Variable.Value>()
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is E_PARAM.Constant -> {
-                        var value = it.getValue()
-                        /*if (value.size.byteCount < Bit32().byteCount) {
-                            value = when (it.constant) {
-                                is Compiler.Token.Constant.UDec -> {
-                                    value.getUResized(Bit32())
-                                }
-
-                                else -> {
-                                    value.getResized(Bit32())
-                                }
-                            }
-                        }*/
+                        var value = it.getValue(immSize)
                         values.add(value)
                     }
 
                     is E_PARAM.Offset -> {
-                        values.addAll(it.getValueArray())
+                        values.addAll(it.getValueArray(immSize))
                     }
 
                     is E_PARAM.Register -> {
@@ -1497,8 +1472,8 @@ class RV32Syntax() : Syntax() {
         }
 
         class Offset(val offset: Compiler.Token.Constant, openParan: Compiler.Token, val register: Compiler.Token.Register, closeParan: Compiler.Token) : E_PARAM(REFS.REF_E_PARAM_OFFSET, RV32Flags.offset, offset, openParan, register, closeParan) {
-            fun getValueArray(): Array<Bin> {
-                return arrayOf(offset.getValue().toBin(), register.reg.address.toBin())
+            fun getValueArray(offsetSize: Variable.Size?): Array<Variable.Value> {
+                return arrayOf(offset.getValue(offsetSize), register.reg.address.toBin())
             }
 
             object Syntax {
@@ -1507,8 +1482,8 @@ class RV32Syntax() : Syntax() {
         }
 
         class Constant(val constant: Compiler.Token.Constant) : E_PARAM(REFS.REF_E_PARAM_CONSTANT, RV32Flags.constant, constant) {
-            fun getValue(): Bin {
-                return constant.getValue().toBin()
+            fun getValue(size: Variable.Size?): Variable.Value {
+                return constant.getValue(size)
             }
         }
 

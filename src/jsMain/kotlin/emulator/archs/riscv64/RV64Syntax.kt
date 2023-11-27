@@ -13,11 +13,11 @@ import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel.*
 import emulator.archs.riscv64.RV64BinMapper.OpCode
+import emulator.kit.common.IConsole
 
 class RV64Syntax : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
-    override val decimalValueSize: Variable.Size = Bit32()
 
     override fun clear() {
 
@@ -887,33 +887,12 @@ class RV64Syntax : Syntax() {
                 // check params
                 val checkedType = eInstrName.check(eParamcoll)
                 if (checkedType != null) {
-                    val noMatch = eInstrName.matchesSize(paramcoll = eParamcoll, instrType = checkedType)
-                    if (noMatch == null) {
-                        rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
-                        startIsDefined = true
-                        rows[lineID] = rowNode
-                        result.error?.let {
-                            errors.add(it)
-                        }
-                    } else {
-                        if (noMatch.needsSignExtension) {
-                            try {
-                                compiler.logTip("Parameter with length of ${noMatch.size} could be sign extended until ${noMatch.expectedSize}!", lineElements.first().tokens.first().lineLoc.lineID)
-                            } catch (e: IndexOutOfBoundsException) {
-                                compiler.logTip("Parameter with length of ${noMatch.size} could be sign extended until ${noMatch.expectedSize}!")
-                            }
-
-                            rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
-                            startIsDefined = true
-                            rows[lineID] = rowNode
-                        } else {
-                            errors.add(Error("Parameter with length of ${noMatch.size} for ${checkedType.id} instruction exceeds maximum size of ${noMatch.expectedSize}!", *lineElements.toTypedArray()))
-                        }
-                        result.error?.let {
-                            errors.add(it)
-                        }
+                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                    startIsDefined = true
+                    rows[lineID] = rowNode
+                    result.error?.let {
+                        errors.add(it)
                     }
-
                 } else {
                     errors.add(Error("Couldn't match parameters to any instruction!\nexpected parameters: ${eInstrName.types.joinToString(" or ") { it.paramType.exampleString }}", *lineElements.toTypedArray()))
                 }
@@ -1212,7 +1191,7 @@ class RV64Syntax : Syntax() {
 
     /* -------------------------------------------------------------- ELEMENTS -------------------------------------------------------------- */
     class E_INSTRNAME(val insToken: Compiler.Token.Word, vararg val types: R_INSTR.InstrType) : TreeNode.ElementNode(ConnectedHL(RV64Flags.instruction), REFS.REF_E_INSTRNAME, insToken) {
-        fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): Bin.NoMatch? {
+        private fun matchesSize(paramcoll: E_PARAMCOLL = E_PARAMCOLL(), instrType: R_INSTR.InstrType): Variable.CheckResult? {
             try {
                 val immMax = instrType.paramType.immMaxSize
                 if (immMax == null) {
@@ -1220,35 +1199,36 @@ class RV64Syntax : Syntax() {
                 }
                 return when (instrType.paramType) {
                     R_INSTR.ParamType.RD_I20 -> {
-                        paramcoll.getValues()[1].toBin().checkSize(immMax)
+                        paramcoll.getValues(immMax)[1].checkResult
                     }
 
                     R_INSTR.ParamType.RD_Off12 -> {
-                        paramcoll.getValues()[1].toBin().checkSize(immMax)
+                        paramcoll.getValues(immMax)[1].checkResult
                     }
 
                     R_INSTR.ParamType.RS2_Off5 -> {
-                        paramcoll.getValues()[1].toBin().checkSize(immMax)
+                        paramcoll.getValues(immMax)[1].checkResult
                     }
 
                     R_INSTR.ParamType.RD_RS1_I12 -> {
-                        paramcoll.getValues()[2].toBin().checkSize(immMax)
+                        paramcoll.getValues(immMax)[2].checkResult
                     }
 
                     R_INSTR.ParamType.RD_RS1_I6 -> {
-                        paramcoll.getValues()[2].toBin().checkSize(immMax)
+                        paramcoll.getValues(immMax)[2].checkResult
                     }
 
                     R_INSTR.ParamType.RS1_RS2_I12 -> {
-                        paramcoll.getValues()[2].toBin().checkSize(immMax)
+                        paramcoll.getValues(immMax)[2].checkResult
                     }
 
-                    R_INSTR.ParamType.PS_RD_LI_I32Signed -> {
-                        paramcoll.getValues()[1].toBin().checkSize(immMax)
-                    }
-
-                    R_INSTR.ParamType.PS_RD_LI_I64Signed -> {
-                        paramcoll.getValues()[1].toBin().checkSize(immMax)
+                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I64 -> {
+                        val value = paramcoll.getValues(immMax)[1]
+                        if (value.isSigned() == instrType.paramType.immSigned || instrType.paramType.immSigned == null) {
+                            value.checkResult
+                        } else {
+                            Variable.CheckResult(false, "", "Is signed but shouldn't be signed for this type!")
+                        }
                     }
 
                     else -> null
@@ -1264,7 +1244,7 @@ class RV64Syntax : Syntax() {
             val params = paramcoll.paramsWithOutSplitSymbols
             var type: R_INSTR.InstrType
             types.forEach {
-                val matches: Boolean
+                var matches: Boolean
                 type = it
                 when (it.paramType) {
                     R_INSTR.ParamType.RD_I20 -> {
@@ -1331,28 +1311,12 @@ class RV64Syntax : Syntax() {
                         }
                     }
 
-                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I64Unsigned, R_INSTR.ParamType.PS_RD_LI_I64Signed -> matches = if (params.size == 2) {
-                        val immediate = params[1]
-                        if (params[0] is E_PARAM.Register && immediate is E_PARAM.Constant) {
-                            val signed = immediate.constant.getValue().isSigned()
-                            val size = it.paramType.immMaxSize
-                            val shouldHaveSign = it.paramType.immSigned
-                            val sizeMatches = if (size != null) {
-                                immediate.constant.getValue().size.bitWidth <= size.bitWidth
-                            } else {
-                                true
-                            }
-                            val signMatches = if (shouldHaveSign != null) {
-                                signed == shouldHaveSign
-                            } else {
-                                true
-                            }
-                            sizeMatches && signMatches
+                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I64 -> {
+                        matches = if (params.size == 2) {
+                            params[0] is E_PARAM.Register && params[1] is E_PARAM.Constant
                         } else {
                             false
                         }
-                    } else {
-                        false
                     }
 
                     R_INSTR.ParamType.PS_RS1_Jlbl -> matches = if (params.size == 2) {
@@ -1385,7 +1349,6 @@ class RV64Syntax : Syntax() {
                         false
                     }
 
-
                     R_INSTR.ParamType.PS_NONE -> {
                         matches = params.isEmpty()
                     }
@@ -1393,10 +1356,15 @@ class RV64Syntax : Syntax() {
                     R_INSTR.ParamType.NONE -> {
                         matches = params.isEmpty()
                     }
-
-                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned -> TODO()
-                    R_INSTR.ParamType.PS_RD_LI_I64Unsigned -> TODO()
                 }
+
+                if (matches) {
+                    val checkResult = matchesSize(paramcoll, type)
+                    checkResult?.let { checkRes ->
+                        matches = checkRes.valid
+                    }
+                }
+
                 if (matches) {
                     return type
                 }
@@ -1419,27 +1387,17 @@ class RV64Syntax : Syntax() {
             paramsWithOutSplitSymbols = parameterList.toTypedArray()
         }
 
-        fun getValues(): Array<Variable.Value> {
+        fun getValues(immSize: Variable.Size?): Array<Variable.Value> {
             val values = mutableListOf<Variable.Value>()
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is E_PARAM.Constant -> {
-                        var value = it.getValue()/*if (value.size.byteCount < Bit32().byteCount) {
-                            value = when (it.constant) {
-                                is Compiler.Token.Constant.UDec -> {
-                                    value.getUResized(Bit32())
-                                }
-
-                                else -> {
-                                    value.getResized(Bit32())
-                                }
-                            }
-                        }*/
+                        var value = it.getValue(immSize)
                         values.add(value)
                     }
 
                     is E_PARAM.Offset -> {
-                        values.addAll(it.getValueArray())
+                        values.addAll(it.getValueArray(immSize))
                     }
 
                     is E_PARAM.Register -> {
@@ -1511,8 +1469,8 @@ class RV64Syntax : Syntax() {
         }
 
         class Offset(val offset: Compiler.Token.Constant, openParan: Compiler.Token, val register: Compiler.Token.Register, closeParan: Compiler.Token) : E_PARAM(REFS.REF_E_PARAM_OFFSET, RV64Flags.offset, offset, openParan, register, closeParan) {
-            fun getValueArray(): Array<Bin> {
-                return arrayOf(offset.getValue().toBin(), register.reg.address.toBin())
+            fun getValueArray(offsetSize: Variable.Size?): Array<Variable.Value> {
+                return arrayOf(offset.getValue(offsetSize), register.reg.address.toBin())
             }
 
             object Syntax {
@@ -1521,8 +1479,8 @@ class RV64Syntax : Syntax() {
         }
 
         class Constant(val constant: Compiler.Token.Constant) : E_PARAM(REFS.REF_E_PARAM_CONSTANT, RV64Flags.constant, constant) {
-            fun getValue(): Variable.Value {
-                return constant.getValue()
+            fun getValue(size: Variable.Size?): Variable.Value {
+                return constant.getValue(size)
             }
         }
 
@@ -1736,8 +1694,7 @@ class RV64Syntax : Syntax() {
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
             PS_RD_LI_I32Signed(true, "rd, imm64", Bit32(), true), // rd, imm32
             PS_RD_LI_I32Unsigned(true, "rd, imm64", Bit32(), false), // rd, imm32 unsigned
-            PS_RD_LI_I64Signed(true, "rd, imm64", Bit64(), true), // rd, imm64
-            PS_RD_LI_I64Unsigned(true, "rd, imm64", Bit64(), false), // rd, imm64 unsigned
+            PS_RD_LI_I64(true, "rd, imm64", Bit64(), null), // rd, imm64
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
             PS_Jlbl(true, "jlabel"),  // label
@@ -2709,7 +2666,7 @@ class RV64Syntax : Syntax() {
             Mv("MV", true, ParamType.PS_RD_RS1),
             Li32Signed("LI", true, ParamType.PS_RD_LI_I32Signed, memWords = 2),
             Li32Unsigned("LI", true, ParamType.PS_RD_LI_I32Signed, memWords = 4),
-            Li64("LI", true, ParamType.PS_RD_LI_I64Signed, memWords = 8),
+            Li64("LI", true, ParamType.PS_RD_LI_I64, memWords = 8),
             La("LA", true, ParamType.PS_RD_Albl, memWords = 8),
             Not("NOT", true, ParamType.PS_RD_RS1),
             Neg("NEG", true, ParamType.PS_RD_RS1),

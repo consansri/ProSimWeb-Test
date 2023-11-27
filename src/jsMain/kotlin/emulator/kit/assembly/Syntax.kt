@@ -13,7 +13,6 @@ import emulator.kit.types.Variable
  */
 abstract class Syntax {
     abstract val applyStandardHLForRest: Boolean
-    abstract val decimalValueSize: Variable.Size
     abstract fun clear()
     abstract fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree
     class SyntaxTree(val rootNode: TreeNode.RootNode? = null) {

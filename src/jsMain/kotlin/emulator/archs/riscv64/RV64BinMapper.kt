@@ -18,8 +18,8 @@ class RV64BinMapper {
 
     fun getBinaryFromInstrDef(instrDef: RV64Syntax.R_INSTR, instrStartAddress: Hex, architecture: Architecture): Array<Bin> {
         val binArray = mutableListOf<Bin>()
-        val values = instrDef.paramcoll?.getValues()
-        val binValues = instrDef.paramcoll?.getValues()?.map { it.toBin() }
+        val values = instrDef.paramcoll?.getValues(null)
+        val binValues = instrDef.paramcoll?.getValues(null)?.map { it.toBin() }
         val labels = mutableListOf<RV64Syntax.E_LABEL>()
         instrDef.paramcoll?.getILabels()?.forEach { labels.add(it.label) }
         instrDef.paramcoll?.getULabels()?.forEach { labels.add(it.label) }
@@ -167,7 +167,7 @@ class RV64BinMapper {
                 Li32Signed -> {
                     binValues?.let {
                         val regBin = binValues[0]
-                        val immediate = binValues[1]
+                        val immediate = binValues[1].getResized(Bit32())
                         val imm32 = immediate.getUResized(Bit32())
 
                         val hi20 = imm32.getRawBinaryStr().substring(0, 20)
@@ -187,28 +187,13 @@ class RV64BinMapper {
                 }
 
                 Li32Unsigned -> {
-
+                    console.error("32 Bit Version of (Pseudo) Signed Load Immediate not yet integrated!")
                 }
 
                 Li64 -> {
-                    values?.let {
-                        val regBin = values[0].toBin()
-                        val immediate = values[1]
-
-                        when (immediate) {
-                            is Bin, is Hex, is UDec -> {
-                                val imm64 = immediate.toBin().getUResized(RV64.XLEN)
-                                val hi20_high = Bin(imm64.getRawBinaryStr().substring(0, 20), Bit20())
-                                val low12_high = Bin(imm64.getRawBinaryStr().substring(20, 32), Bit12())
-                                
-                                
-                                
-                            }
-
-                            is Dec -> {
-
-                            }
-                        }
+                    binValues?.let {
+                        val regBin = binValues[0].toBin()
+                        val immediate = binValues[1].getResized(Bit64())
 
                         console.error("64 Bit Version of (Pseudo) Load Immediate not yet integrated!")
 

@@ -115,8 +115,8 @@ class Compiler(
 
                     val dec = regexCollection.dec.find(remainingLine)
                     if (dec != null) {
-                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize, architecture)
-                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize, architecture)
+                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
+                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
                         startIndex += dec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -413,7 +413,7 @@ class Compiler(
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID, syntax.decimalValueSize, architecture)
+                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -550,61 +550,79 @@ class Compiler(
 
         sealed class Constant(lineLoc: LineLoc, content: kotlin.String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.CONSTANT
-            abstract fun getValue(): Variable.Value
+            abstract fun getValue(size: Variable.Size? = null): Variable.Value
 
             class Ascii(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): Variable.Value {
-                    val binChars = StringBuilder()
+                override fun getValue(size: Variable.Size?): Variable.Value {
+                    var binChars = ""
                     val byteArray = content.substring(1, content.length - 1).encodeToByteArray()
                     for (byte in byteArray) {
                         val bin = byte.toInt().toString(2)
-                        binChars.append(bin)
+                        binChars += bin
                     }
-                    return Variable.Value.Bin(binChars.toString())
+                    return if (size != null) {
+                        Variable.Value.Bin(binChars, size)
+                    } else {
+                        Variable.Value.Bin(binChars)
+                    }
+
                 }
             }
 
             class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): Variable.Value {
-                    val hexStr = StringBuilder()
+                override fun getValue(size: Variable.Size?): Variable.Value {
+                    var hexStr = ""
                     val trimmedContent = content.substring(1, content.length - 1)
                     for (char in trimmedContent) {
                         val hexChar = char.code.toString(16)
-                        hexStr.append(hexChar)
+                        hexStr += hexChar
                     }
-                    return Variable.Value.Hex(hexStr.toString())
+                    return if (size != null) {
+                        Variable.Value.Hex(hexStr, size)
+                    } else {
+                        Variable.Value.Hex(hexStr)
+                    }
                 }
             }
 
             class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): Variable.Value {
-                    return if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-'), Variable.Tools.getNearestSize(content.trimStart('-').removePrefix(Settings.PRESTRING_BINARY).length)) else Variable.Value.Bin(content)
+                override fun getValue(size: Variable.Size?): Variable.Value {
+                    return if (size != null) {
+                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-'), size) else Variable.Value.Bin(content, size)
+                    } else {
+                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-')) else Variable.Value.Bin(content)
+                    }
                 }
             }
 
             class Hex(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): Variable.Value {
-                    return if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-'), Variable.Tools.getNearestSize(content.trimStart('-').removePrefix(Settings.PRESTRING_HEX).length * 4)) else Variable.Value.Hex(content)
+                override fun getValue(size: Variable.Size?): Variable.Value {
+                    return if (size != null) {
+                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-'), size) else Variable.Value.Hex(content, size)
+                    } else {
+                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-')) else Variable.Value.Hex(content)
+                    }
                 }
             }
 
-            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int, val size: Variable.Size, archForErrors: Architecture) : Constant(lineLoc, content, id) {
-                init {
-                    val result = Variable.Value.Dec(content, size).checkResult
+            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
 
-                    if (!result.valid) {
-                        archForErrors.getConsole().error("${result.message} -> setting ${result.corrected}")
+                override fun getValue(size: Variable.Size?): Variable.Value {
+                    return if (size != null) {
+                        Variable.Value.Dec(content, size)
+                    } else {
+                        Variable.Value.Dec(content)
                     }
-                }
-
-                override fun getValue(): Variable.Value {
-                    return Variable.Value.Dec(content, size)
                 }
             }
 
             class UDec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(): Variable.Value {
-                    return Variable.Value.UDec(content)
+                override fun getValue(size: Variable.Size?): Variable.Value {
+                    return if (size != null) {
+                        Variable.Value.UDec(content, size)
+                    } else {
+                        Variable.Value.UDec(content)
+                    }
                 }
             }
 
