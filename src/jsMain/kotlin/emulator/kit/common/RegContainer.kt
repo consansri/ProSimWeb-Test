@@ -1,6 +1,7 @@
 package emulator.kit.common
 
 import emulator.kit.types.Variable
+import kotlin.contracts.CallsInPlace
 
 /**
  * The [RegContainer] is making all [RegisterFile]s besides the [PC] accessible.
@@ -59,7 +60,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
      * You can [hardwire] it to disallow changeability.
      * To identify registers more easily a [description] is needed in the constructor.
      */
-    data class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val description: String, val hardwire: Boolean = false) {
+    data class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val callingConvention: CallingConvention = CallingConvention.UNSPECIFIED, val description: String, val hardwire: Boolean = false) {
 
         private val regexList: List<Regex>
 
@@ -91,7 +92,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
 
         fun get(): Variable.Value = variable.get()
 
-        fun set(value: Variable.Value){
+        fun set(value: Variable.Value) {
             variable.set(value)
         }
 
@@ -101,6 +102,12 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
     }
 
     data class RegisterFile(val name: String, val registers: Array<Register>)
+
+    enum class CallingConvention(val displayName: String) {
+        UNSPECIFIED("-"),
+        CALLER("-R"),
+        CALLEE("-E")
+    }
 
 
 }

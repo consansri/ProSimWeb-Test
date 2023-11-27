@@ -47,7 +47,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
     val (currRegType, setCurrRegTypeIndex) = useState<Variable.Value.Types>(Variable.Value.Types.Hex)
 
 
-
     /* DOM */
 
     div {
@@ -203,7 +202,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                     }, 0)
                                 }
                             }
-
+                        }
+                        th {
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                            +"Calle"
                         }
                         th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
@@ -341,6 +343,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         }
                                     }
                                     td {
+                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                        +reg.callingConvention.displayName
+                                    }
+                                    td {
                                         className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
                                         +reg.description
                                     }
@@ -399,7 +405,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
     }
 
     useEffect(props.exeEventState) {
-        if(DebugTools.REACT_showUpdateInfo){
+        if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Exe Event!")
         }
         val registers = if (currRegFileIndex < arch.getRegContainer().getRegFileList().size) {

@@ -2,12 +2,9 @@
 
 - Value add exponential Numbers
 - Value string escape sequence ("\"" = ")
-- Value add signed or unsigned identification at instantiation and implement dependent arithmetic operations (or clarify hex,bin,udec as unsigned and dec as signed)
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
-- Make RV32 and RV64 dependent on XLEN parameter of each Object
 - RV64 change li pseudo instruction to smart li with different transcriptions (make li flexible)
 - RV64 ADD Control and Status Register
-- jalr offset syntax (not "0(ra)" (only load store instructions) instead "ra,0" )
 
 # SUGAR #
 
@@ -33,3 +30,7 @@
 - **(done)** transcript not binary representation instead use hex representation
 - **(done)** allow negative hex and resolve them after constant and macro replacements
 - **(done)** reanalyze line after constant insertion to resolve negation
+- **(done)** jalr offset syntax (not "0(ra)" (only load store instructions) instead "ra,0" )
+- **(done)** Make RV32 and RV64 dependent on XLEN parameter of each Object
+- **(done)** Value add signed or unsigned identification at instantiation and implement dependent arithmetic operations (or clarify hex,bin,udec as unsigned and dec as signed)
+- **(done)** Calling Convention is now displayed in register file
