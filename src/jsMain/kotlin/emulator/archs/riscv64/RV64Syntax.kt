@@ -1243,11 +1243,11 @@ class RV64Syntax : Syntax() {
                         paramcoll.getValues()[2].toBin().checkSize(immMax)
                     }
 
-                    R_INSTR.ParamType.PS_RD_I32 -> {
+                    R_INSTR.ParamType.PS_RD_LI_I32Signed -> {
                         paramcoll.getValues()[1].toBin().checkSize(immMax)
                     }
 
-                    R_INSTR.ParamType.PS_RD_I64 -> {
+                    R_INSTR.ParamType.PS_RD_LI_I64Signed -> {
                         paramcoll.getValues()[1].toBin().checkSize(immMax)
                     }
 
@@ -1331,22 +1331,23 @@ class RV64Syntax : Syntax() {
                         }
                     }
 
-                    R_INSTR.ParamType.PS_RD_I32 -> matches = if (params.size == 2) {
+                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I64Unsigned, R_INSTR.ParamType.PS_RD_LI_I64Signed -> matches = if (params.size == 2) {
                         val immediate = params[1]
                         if (params[0] is E_PARAM.Register && immediate is E_PARAM.Constant) {
-                            immediate.constant.getValue().size.bitWidth <= Bit32().bitWidth
-                        } else {
-                            false
-                        }
-                    } else {
-                        false
-                    }
-
-                    R_INSTR.ParamType.PS_RD_I64 -> matches = if (params.size == 2) {
-                        val immediate = params[1]
-                        if (params[0] is E_PARAM.Register && immediate is E_PARAM.Constant) {
-                            val immSize = immediate.constant.getValue().size
-                            immSize.bitWidth > Bit32().bitWidth && immSize.bitWidth <= Bit64().bitWidth
+                            val signed = immediate.constant.getValue().isSigned()
+                            val size = it.paramType.immMaxSize
+                            val shouldHaveSign = it.paramType.immSigned
+                            val sizeMatches = if (size != null) {
+                                immediate.constant.getValue().size.bitWidth <= size.bitWidth
+                            } else {
+                                true
+                            }
+                            val signMatches = if (shouldHaveSign != null) {
+                                signed == shouldHaveSign
+                            } else {
+                                true
+                            }
+                            sizeMatches && signMatches
                         } else {
                             false
                         }
@@ -1393,7 +1394,8 @@ class RV64Syntax : Syntax() {
                         matches = params.isEmpty()
                     }
 
-
+                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned -> TODO()
+                    R_INSTR.ParamType.PS_RD_LI_I64Unsigned -> TODO()
                 }
                 if (matches) {
                     return type
@@ -1630,7 +1632,7 @@ class RV64Syntax : Syntax() {
     class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label, directive)
     class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label, directive, paramcoll)
     class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
-        enum class ParamType(val pseudo: Boolean, val exampleString: String, val immMaxSize: Variable.Size? = null) {
+        enum class ParamType(val pseudo: Boolean, val exampleString: String, val immMaxSize: Variable.Size? = null, val immSigned: Boolean? = null) {
             // NORMAL INSTRUCTIONS
             RD_I20(false, "rd, imm20", Bit20()) {
                 override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
@@ -1732,8 +1734,10 @@ class RV64Syntax : Syntax() {
 
             // PSEUDO INSTRUCTIONS
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
-            PS_RD_I32(true, "rd, imm32", Bit32()), // rd, imm32
-            PS_RD_I64(true, "rd, imm64", Bit64()), // rd, imm64
+            PS_RD_LI_I32Signed(true, "rd, imm64", Bit32(), true), // rd, imm32
+            PS_RD_LI_I32Unsigned(true, "rd, imm64", Bit32(), false), // rd, imm32 unsigned
+            PS_RD_LI_I64Signed(true, "rd, imm64", Bit64(), true), // rd, imm64
+            PS_RD_LI_I64Unsigned(true, "rd, imm64", Bit64(), false), // rd, imm64 unsigned
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
             PS_Jlbl(true, "jlabel"),  // label
@@ -2703,9 +2707,10 @@ class RV64Syntax : Syntax() {
             },
             Nop("NOP", true, ParamType.PS_NONE),
             Mv("MV", true, ParamType.PS_RD_RS1),
-            Li32("LI", true, ParamType.PS_RD_I32, memWords = 2),
-            Li("LI", true, ParamType.PS_RD_I64, memWords = 5),
-            La("LA", true, ParamType.PS_RD_Albl, memWords = 5),
+            Li32Signed("LI", true, ParamType.PS_RD_LI_I32Signed, memWords = 2),
+            Li32Unsigned("LI", true, ParamType.PS_RD_LI_I32Signed, memWords = 4),
+            Li64("LI", true, ParamType.PS_RD_LI_I64Signed, memWords = 8),
+            La("LA", true, ParamType.PS_RD_Albl, memWords = 8),
             Not("NOT", true, ParamType.PS_RD_RS1),
             Neg("NEG", true, ParamType.PS_RD_RS1),
             Seqz("SEQZ", true, ParamType.PS_RD_RS1),

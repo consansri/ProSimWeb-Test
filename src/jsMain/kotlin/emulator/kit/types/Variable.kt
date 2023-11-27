@@ -153,9 +153,21 @@ class Variable {
             }
             return super.equals(other)
         }
-
         abstract override fun toString(): String
+        fun isSigned(): Boolean {
+            return when(this){
+                is Dec -> true
+                is Bin -> false
+                is Hex -> false
+                is UDec -> false
+            }
+        }
 
+        override fun hashCode(): Int {
+            var result = input.hashCode()
+            result = 31 * result + size.hashCode()
+            return result
+        }
 
         /**
          * Provides the binary representation of [Value].

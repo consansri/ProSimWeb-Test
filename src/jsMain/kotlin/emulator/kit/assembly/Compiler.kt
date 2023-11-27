@@ -10,7 +10,7 @@ import emulator.kit.types.HTMLTools
 import kotlin.time.measureTime
 
 /**
- * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. Also the [Compiler] fires the compilation events in the following order.
+ * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. The [Compiler] fires the compilation events in the following order.
  *
  * 1. common analysis ([analyze])
  * 2. specific analysis ([parse] which uses the given logic from [syntax])
@@ -115,8 +115,8 @@ class Compiler(
 
                     val dec = regexCollection.dec.find(remainingLine)
                     if (dec != null) {
-                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize)
-                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize)
+                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize, architecture)
+                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size, syntax.decimalValueSize, architecture)
                         startIndex += dec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -413,7 +413,7 @@ class Compiler(
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID, syntax.decimalValueSize)
+                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID, syntax.decimalValueSize, architecture)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -513,9 +513,9 @@ class Compiler(
     fun getGrammarTree(): Syntax.SyntaxTree? = syntaxTree
 
     fun logTip(message: String, lineID: Int = -1) {
-        if(lineID != -1){
+        if (lineID != -1) {
             architecture.getConsole().log("--Compiler-Tip: $message")
-        }else{
+        } else {
             architecture.getConsole().log("--Compiler-Tip: line ${lineID + 1} -> $message")
         }
 
@@ -588,7 +588,15 @@ class Compiler(
                 }
             }
 
-            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int, val size: Variable.Size) : Constant(lineLoc, content, id) {
+            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int, val size: Variable.Size, archForErrors: Architecture) : Constant(lineLoc, content, id) {
+                init {
+                    val result = Variable.Value.Dec(content, size).checkResult
+
+                    if (!result.valid) {
+                        archForErrors.getConsole().error("${result.message} -> setting ${result.corrected}")
+                    }
+                }
+
                 override fun getValue(): Variable.Value {
                     return Variable.Value.Dec(content, size)
                 }

@@ -163,7 +163,7 @@ class RV64BinMapper {
                     }
                 }
 
-                Li32 -> {
+                Li32Signed -> {
                     binValues?.let {
                         val regBin = binValues[0]
                         val immediate = binValues[1]
@@ -185,7 +185,11 @@ class RV64BinMapper {
                     }
                 }
 
-                Li -> {
+                Li32Unsigned -> {
+
+                }
+
+                Li64 -> {
                     values?.let {
                         val regBin = values[0].toBin()
                         val immediate = values[1]
