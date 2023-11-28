@@ -1,7 +1,6 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
-import emulator.archs.riscv32.RV32BinMapper
 import emulator.kit.Architecture
 import emulator.kit.Settings
 import emulator.kit.types.Variable
@@ -164,11 +163,47 @@ class RV64BinMapper {
                     }
                 }
 
+                Li28Unsigned -> {
+                    /**
+                     * split into 4 bit
+                     *
+                     *  SIGN-C----A----F----E----A----F----F---
+                     *  xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx
+                     * |0000-xxxx-xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|
+                     *            LUI                ORI
+                     *
+                     */
+                    binValues?.let {
+                        val regBin = binValues[0]
+                        val imm28 = binValues[1].getUResized(Bit28())
+                        if (!imm28.checkResult.valid) {
+                            architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instrDefType.name}]\n${imm28.checkResult.message}")
+                        }
+
+                        val lui16 = imm28.getRawBinaryStr().substring(0, 16)
+                        val ori12first = imm28.getRawBinaryStr().substring(16, 28)
+
+                        val lui16_imm20 = Bin(lui16, Bit16()).getUResized(Bit20())
+                        val ori12first_imm = Bin(ori12first, Bit12())
+
+                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+
+                        if (luiOpCode != null && oriOpCode != null) {
+                            binArray.add(luiOpCode)
+                            binArray.add(oriOpCode)
+                        }
+                    }
+                }
+
                 Li32Signed -> {
                     binValues?.let {
                         val regBin = binValues[0]
                         val immediate = binValues[1].getResized(Bit32())
                         val imm32 = immediate.getUResized(Bit32())
+                        if (!imm32.checkResult.valid) {
+                            architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instrDefType.name}]\n${imm32.checkResult.message}")
+                        }
 
                         val hi20 = imm32.getRawBinaryStr().substring(0, 20)
                         val low12 = imm32.getRawBinaryStr().substring(20)
@@ -186,113 +221,185 @@ class RV64BinMapper {
                     }
                 }
 
-                Li32Unsigned -> {
-                    console.error("32 Bit Version of (Pseudo) Signed Load Immediate not yet integrated!")
-                }
-
-                Li64 -> {
+                Li40Unsigned -> {
+                    /**
+                     * split into 4 bit
+                     *
+                     *  SIGN-C----A----F----E----A----F----F----E----D----E---
+                     *  xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx
+                     * |0000-xxxx-xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|
+                     *            LUI                 ORI            ORI
+                     *
+                     */
                     binValues?.let {
-                        val regBin = binValues[0].toBin()
-                        val immediate = binValues[1].getResized(Bit64())
-
-                        console.error("64 Bit Version of (Pseudo) Load Immediate not yet integrated!")
-
-                        val imm64 = immediate.toBin().getUResized(Bit64())
-                        val hi20_high = imm64.getRawBinaryStr().substring(0, 20)
-                        val low12_high = imm64.getRawBinaryStr().substring(20, 32)
-
-                        val hi20_low = imm64.getRawBinaryStr().substring(32, 52)
-                        val low12_low = imm64.getRawBinaryStr().substring(52)
-
-                        val imm12_high = Bin(low12_high, Bit12())
-                        val imm12_low = Bin(low12_low, Bit12())
-
-                        val imm20temp_high = (Bin(hi20_high, Bit20())).toBin() // more performant
-                        val imm20_high = if (imm12_high.toDec().isNegative()) {
-                            (imm20temp_high + Bin("1")).toBin()
-                        } else {
-                            imm20temp_high
+                        val regBin = binValues[0]
+                        val imm40 = binValues[1].getUResized(Bit40())
+                        if (!imm40.checkResult.valid) {
+                            architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instrDefType.name}]\n${imm40.checkResult.message}")
                         }
 
-                        val imm20temp_low = (Bin(hi20_low, Bit20())).toBin() // more performant
-                        val imm20_low = if (imm12_low.toDec().isNegative()) {
-                            (imm20temp_low + Bin("1")).toBin()
-                        } else {
-                            imm20temp_low
-                        }
+                        val lui16 = imm40.getRawBinaryStr().substring(0, 16)
+                        val ori12first = imm40.getRawBinaryStr().substring(16, 28)
+                        val ori12sec = imm40.getRawBinaryStr().substring(28, 40)
 
-                        val luiOpCode_high = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20_high))
-                        val addiOpCode_high = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12_high))
-                        val slliOpCode = SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("100000", Bit6())))
-                        val luiOpCode_low = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20_low))
-                        val addiOpCode_low = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12_low))
+                        val lui16_imm20 = Bin(lui16, Bit16()).getUResized(Bit20())
+                        val ori12first_imm = Bin(ori12first, Bit12())
+                        val ori12sec_imm = Bin(ori12sec, Bit12())
 
-                        if (
-                            luiOpCode_high != null &&
-                            addiOpCode_high != null &&
-                            slliOpCode != null &&
-                            luiOpCode_low != null &&
-                            addiOpCode_low != null
-                        ) {
-                            binArray.add(luiOpCode_high)
-                            binArray.add(addiOpCode_high)
-                            binArray.add(slliOpCode)
-                            binArray.add(luiOpCode_low)
-                            binArray.add(addiOpCode_low)
+                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                        val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+
+
+                        val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+
+                        if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null) {
+                            binArray.add(luiOpCode)
+                            binArray.add(oriFirstOpCode)
+                            binArray.add(slli12Bit)
+                            binArray.add(oriSecOpCode)
                         }
                     }
                 }
 
-                La -> {
+                Li52Unsigned -> {
+                    /**
+                     * split into 4 bit
+                     *
+                     *  SIGN-C----A----F----E----A----F----F----E----D----E----A----D----B---
+                     *  xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx
+                     * |0000-xxxx-xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|xxxx-xxxx-xxxx
+                     *            LUI                 ORI            ORI            ORI
+                     *
+                     */
+                    binValues?.let {
+                        val regBin = binValues[0]
+                        val imm52 = binValues[1].getUResized(Bit52())
+                        if (!imm52.checkResult.valid) {
+                            architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instrDefType.name}]\n${imm52.checkResult.message}")
+                        }
+
+
+                        val lui16 = imm52.getRawBinaryStr().substring(0, 16)
+                        val ori12first = imm52.getRawBinaryStr().substring(16, 28)
+                        val ori12sec = imm52.getRawBinaryStr().substring(28, 40)
+                        val ori12third = imm52.getRawBinaryStr().substring(40, 52)
+
+                        val lui16_imm20 = Bin(lui16, Bit16()).getUResized(Bit20())
+                        val ori12first_imm = Bin(ori12first, Bit12())
+                        val ori12sec_imm = Bin(ori12sec, Bit12())
+                        val ori12third_imm = Bin(ori12third, Bit12())
+
+                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                        val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+                        val oriThirdOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
+
+
+                        val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+
+                        if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null && oriThirdOpCode != null) {
+                            binArray.add(luiOpCode)
+                            binArray.add(oriFirstOpCode)
+                            binArray.add(slli12Bit)
+                            binArray.add(oriSecOpCode)
+                            binArray.add(slli12Bit)
+                            binArray.add(oriThirdOpCode)
+                        }
+                    }
+                }
+
+                Li64 -> {
+                    /**
+                     * split into 4 bit
+                     *
+                     *  SIGN-C----A----F----E----A----F----F----E----D----E----A----D----B----E----E----F---
+                     *  xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx
+                     * |0000-xxxx-xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|xxxx-xxxx-xxxx|
+                     *            LUI                 ORI            ORI            ORI            ORI
+                     *
+                     */
+                    binValues?.let {
+                        val regBin = binValues[0]
+                        val imm64 = binValues[1].getUResized(Bit64())
+                        if (!imm64.checkResult.valid) {
+                            architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instrDefType.name}]\n${imm64.checkResult.message}")
+                        }
+
+                        val lui16 = imm64.getRawBinaryStr().substring(0, 16)
+                        val ori12first = imm64.getRawBinaryStr().substring(16, 28)
+                        val ori12sec = imm64.getRawBinaryStr().substring(28, 40)
+                        val ori12third = imm64.getRawBinaryStr().substring(40, 52)
+                        val ori12fourth = imm64.getRawBinaryStr().substring(52, 64)
+
+                        val lui16_imm20 = Bin(lui16, Bit16()).getUResized(Bit20())
+                        val ori12first_imm = Bin(ori12first, Bit12())
+                        val ori12sec_imm = Bin(ori12sec, Bit12())
+                        val ori12third_imm = Bin(ori12third, Bit12())
+                        val ori12fourth_imm = Bin(ori12fourth, Bit12())
+
+                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                        val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+                        val oriThirdOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
+                        val oriFourthOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12fourth_imm))
+
+
+                        val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+
+                        if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null && oriThirdOpCode != null && oriFourthOpCode != null) {
+                            binArray.add(luiOpCode)
+                            binArray.add(oriFirstOpCode)
+                            binArray.add(slli12Bit)
+                            binArray.add(oriSecOpCode)
+                            binArray.add(slli12Bit)
+                            binArray.add(oriThirdOpCode)
+                            binArray.add(slli12Bit)
+                            binArray.add(oriFourthOpCode)
+                        }
+                    }
+                }
+
+                La64 -> {
                     if (binValues != null && labels.isNotEmpty()) {
                         val regBin = binValues[0]
                         val address = labelAddrMap.get(labels.first())
                         if (address != null) {
-
-                            console.error("64 Bit Version of (Pseudo) Load Address not yet integrated!")
-
-                            val imm64 = Bin(address, RV64.MEM_ADDRESS_WIDTH)
-                            val hi20_high = imm64.getRawBinaryStr().substring(0, 20)
-                            val low12_high = imm64.getRawBinaryStr().substring(20, 32)
-
-                            val hi20_low = imm64.getRawBinaryStr().substring(32, 52)
-                            val low12_low = imm64.getRawBinaryStr().substring(52)
-
-                            val imm12_high = Bin(low12_high, Bit12())
-                            val imm12_low = Bin(low12_low, Bit12())
-
-                            val imm20temp_high = (Bin(hi20_high, Bit20())).toBin() // more performant
-                            val imm20_high = if (imm12_high.toDec().isNegative()) {
-                                (imm20temp_high + Bin("1")).toBin()
-                            } else {
-                                imm20temp_high
+                            val imm64 = Bin(address, Bit64())
+                            if (!imm64.checkResult.valid) {
+                                architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instrDefType.name}]\n${imm64.checkResult.message}")
                             }
 
-                            val imm20temp_low = (Bin(hi20_low, Bit20())).toBin() // more performant
-                            val imm20_low = if (imm12_low.toDec().isNegative()) {
-                                (imm20temp_low + Bin("1")).toBin()
-                            } else {
-                                imm20temp_low
-                            }
+                            val lui16 = imm64.getRawBinaryStr().substring(0, 16)
+                            val ori12first = imm64.getRawBinaryStr().substring(16, 28)
+                            val ori12sec = imm64.getRawBinaryStr().substring(28, 40)
+                            val ori12third = imm64.getRawBinaryStr().substring(40, 52)
+                            val ori12fourth = imm64.getRawBinaryStr().substring(52, 64)
 
-                            val luiOpCode_high = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20_high))
-                            val addiOpCode_high = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12_high))
-                            val slliOpCode = SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("100000", Bit6())))
-                            val luiOpCode_low = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20_low))
-                            val addiOpCode_low = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12_low))
+                            val lui16_imm20 = Bin(lui16, Bit16()).getUResized(Bit20())
+                            val ori12first_imm = Bin(ori12first, Bit12())
+                            val ori12sec_imm = Bin(ori12sec, Bit12())
+                            val ori12third_imm = Bin(ori12third, Bit12())
+                            val ori12fourth_imm = Bin(ori12fourth, Bit12())
 
-                            if (
-                                luiOpCode_high != null &&
-                                addiOpCode_high != null &&
-                                slliOpCode != null &&
-                                luiOpCode_low != null &&
-                                addiOpCode_low != null
-                            ) {
-                                binArray.add(luiOpCode_high)
-                                binArray.add(addiOpCode_high)
-                                binArray.add(slliOpCode)
-                                binArray.add(luiOpCode_low)
-                                binArray.add(addiOpCode_low)
+                            val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                            val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                            val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+                            val oriThirdOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
+                            val oriFourthOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12fourth_imm))
+
+
+                            val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+
+                            if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null && oriThirdOpCode != null && oriFourthOpCode != null) {
+                                binArray.add(luiOpCode)
+                                binArray.add(oriFirstOpCode)
+                                binArray.add(slli12Bit)
+                                binArray.add(oriSecOpCode)
+                                binArray.add(slli12Bit)
+                                binArray.add(oriThirdOpCode)
+                                binArray.add(slli12Bit)
+                                binArray.add(oriFourthOpCode)
                             }
                         }
                     }

@@ -153,9 +153,10 @@ class Variable {
             }
             return super.equals(other)
         }
+
         abstract override fun toString(): String
         fun isSigned(): Boolean {
-            return when(this){
+            return when (this) {
                 is Dec -> true
                 is Bin -> false
                 is Hex -> false
@@ -447,6 +448,7 @@ class Variable {
 
             init {
                 this.checkResult = check(input, size)
+                console.log("check if $input matches ${size.bitWidth} Bits? - ${this.checkResult.valid}")
                 this.hexString = checkResult.corrected
             }
 
@@ -465,21 +467,22 @@ class Variable {
             }
 
             override fun check(string: String, size: Size): CheckResult {
-                var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.getByteCount() * 2, '0').uppercase()
+                var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.hexChars, '0').uppercase()
                 val message: String
                 if (regex.matches(formatted)) {
-                    if (formatted.length <= size.getByteCount() * 2) {
-                        formatted = formatted.padStart(size.getByteCount() * 2, '0')
-                        return CheckResult(true, Settings.PRESTRING_HEX + formatted)
+                    return if (formatted.length <= size.hexChars) {
+                        console.log("Format: " + formatted+ " matches ${size.bitWidth} Bits!")
+                        formatted = formatted.padStart(size.hexChars, '0')
+                        CheckResult(true, Settings.PRESTRING_HEX + formatted)
                     } else {
-                        val trimmedString = formatted.substring(formatted.length - size.getByteCount() * 2)
-                        message = "Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.getByteCount() * 2}!"
+                        val trimmedString = formatted.substring(formatted.length - size.hexChars)
+                        message = "Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.hexChars}!"
                         console.warn(message)
-                        return CheckResult(false, Settings.PRESTRING_HEX + trimmedString, message)
+                        CheckResult(false, Settings.PRESTRING_HEX + trimmedString, message)
                     }
                 } else {
-                    val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.getByteCount() * 2)
-                    message = "Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.getByteCount() * 2)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
+                    val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.hexChars)
+                    message = "Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.hexChars)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
                     console.error(message)
                     return CheckResult(false, zeroString, message)
                 }
@@ -506,7 +509,7 @@ class Variable {
             }
 
             override fun getBiggest(): Value {
-                return Hex("F".repeat(size.bitWidth / 4), size)
+                return Hex("F".repeat(size.hexChars), size)
             }
 
             override fun plus(operand: Value): Value {
@@ -1088,6 +1091,8 @@ class Variable {
      */
     sealed class Size(val name: String, val bitWidth: Int) {
 
+        val hexChars = bitWidth / 4
+
         override fun equals(other: Any?): Boolean {
             when (other) {
                 is Size -> {
@@ -1115,7 +1120,10 @@ class Variable {
         class Bit12 : Size("12 Bit", 12)
         class Bit16 : Size("16 Bit", 16)
         class Bit20 : Size("20 Bit", 20)
+        class Bit28 : Size("28 Bit", 28)
         class Bit32 : Size("32 Bit", 32)
+        class Bit40 : Size("40 Bit", 40)
+        class Bit52 : Size("52 Bit", 52)
         class Bit64 : Size("64 Bit", 64)
         class Bit128 : Size("128 Bit", 128)
     }
@@ -1217,6 +1225,27 @@ class Variable {
                     this.umax = "1048575"
                 }
 
+                is Size.Bit28 -> {
+                    this.min = "-124217728"
+                    this.max = "124217727"
+                    this.umin = "0"
+                    this.umax = "268435456"
+                }
+
+                is Size.Bit40 -> {
+                    this.min = "-549755813888"
+                    this.max = "549755813887"
+                    this.umin = "0"
+                    this.umax = "1099511627776"
+                }
+
+                is Size.Bit52 -> {
+                    this.min = "-2251799813685248"
+                    this.max = "2251799813685247"
+                    this.umin = "0"
+                    this.umax = "4503599627370496"
+                }
+
                 is Size.Original -> {
                     console.error("Variable.Bounds: Can't get bounds from original Size Type! Use getNearestSize() or getNearestDecSize() first!")
 
@@ -1225,7 +1254,6 @@ class Variable {
                     this.umin = "0"
                     this.umax = "not identified"
                 }
-
 
             }
         }

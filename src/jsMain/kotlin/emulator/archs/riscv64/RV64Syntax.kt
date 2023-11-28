@@ -13,7 +13,6 @@ import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel.*
 import emulator.archs.riscv64.RV64BinMapper.OpCode
-import emulator.kit.common.IConsole
 
 class RV64Syntax : Syntax() {
 
@@ -1222,11 +1221,13 @@ class RV64Syntax : Syntax() {
                         paramcoll.getValues(immMax)[2].checkResult
                     }
 
-                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I64 -> {
+                    R_INSTR.ParamType.PS_RD_LI_I28Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I40Unsigned, R_INSTR.ParamType.PS_RD_LI_I52Unsigned, R_INSTR.ParamType.PS_RD_LI_I64 -> {
                         val value = paramcoll.getValues(immMax)[1]
                         if (value.isSigned() == instrType.paramType.immSigned || instrType.paramType.immSigned == null) {
+                            console.log("checking if $value matches ${instrType.name}? ${value.checkResult.valid} ${value.checkResult.message} ${value.checkResult.corrected}")
                             value.checkResult
                         } else {
+                            console.log("checking if $value matches ${instrType.name}? false")
                             Variable.CheckResult(false, "", "Is signed but shouldn't be signed for this type!")
                         }
                     }
@@ -1311,7 +1312,7 @@ class RV64Syntax : Syntax() {
                         }
                     }
 
-                    R_INSTR.ParamType.PS_RD_LI_I32Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I64 -> {
+                    R_INSTR.ParamType.PS_RD_LI_I28Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I40Unsigned, R_INSTR.ParamType.PS_RD_LI_I52Unsigned, R_INSTR.ParamType.PS_RD_LI_I64 -> {
                         matches = if (params.size == 2) {
                             params[0] is E_PARAM.Register && params[1] is E_PARAM.Constant
                         } else {
@@ -1692,8 +1693,10 @@ class RV64Syntax : Syntax() {
 
             // PSEUDO INSTRUCTIONS
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
+            PS_RD_LI_I28Unsigned(true, "rd, imm64", Bit28(), false), // rd, imm28 unsigned
             PS_RD_LI_I32Signed(true, "rd, imm64", Bit32(), true), // rd, imm32
-            PS_RD_LI_I32Unsigned(true, "rd, imm64", Bit32(), false), // rd, imm32 unsigned
+            PS_RD_LI_I40Unsigned(true, "rd, imm64", Bit40(), false),
+            PS_RD_LI_I52Unsigned(true, "rd, imm64", Bit52(), false),
             PS_RD_LI_I64(true, "rd, imm64", Bit64(), null), // rd, imm64
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
@@ -2664,10 +2667,12 @@ class RV64Syntax : Syntax() {
             },
             Nop("NOP", true, ParamType.PS_NONE),
             Mv("MV", true, ParamType.PS_RD_RS1),
+            Li28Unsigned("LI", true, ParamType.PS_RD_LI_I28Unsigned, memWords = 2),
             Li32Signed("LI", true, ParamType.PS_RD_LI_I32Signed, memWords = 2),
-            Li32Unsigned("LI", true, ParamType.PS_RD_LI_I32Signed, memWords = 4),
+            Li40Unsigned("LI", true, ParamType.PS_RD_LI_I40Unsigned, memWords = 4),
+            Li52Unsigned("LI", true, ParamType.PS_RD_LI_I52Unsigned, memWords = 6),
             Li64("LI", true, ParamType.PS_RD_LI_I64, memWords = 8),
-            La("LA", true, ParamType.PS_RD_Albl, memWords = 8),
+            La64("LA", true, ParamType.PS_RD_Albl, memWords = 8),
             Not("NOT", true, ParamType.PS_RD_RS1),
             Neg("NEG", true, ParamType.PS_RD_RS1),
             Seqz("SEQZ", true, ParamType.PS_RD_RS1),
