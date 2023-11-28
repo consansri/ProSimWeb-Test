@@ -25,7 +25,11 @@ class IConsole(val name: String) {
     }
 
     fun compilerInfo(message: String) {
-        messageArray.add(Message(MSGType.INFO, "--Compiler: $message"))
+        messageArray.add(Message(MSGType.INFO, "compiler: $message"))
+    }
+
+    fun exeInfo(message: String){
+        messageArray.add(Message(MSGType.INFO, "execute: $message"))
     }
 
     fun clear() {

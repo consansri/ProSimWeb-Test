@@ -41,7 +41,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                     result = mapper.getInstrFromBinary(value.toBin())
                 }
             }
-            getConsole().log("compiler: continuous \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+            getConsole().exeInfo("continuous \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
         }
     }
 
@@ -57,7 +57,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
             // execute instr
             instrResult?.type?.execute(this, instrResult.binMap)
         }
-        getConsole().log("compiler: single_step \ntook ${measuredTime.inWholeMicroseconds} μs")
+        getConsole().exeInfo("single_step \ntook ${measuredTime.inWholeMicroseconds} μs")
     }
 
     override fun exeMultiStep(steps: Int) {
@@ -84,7 +84,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 }
             }
 
-            getConsole().log("compiler: multi_step \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
+            getConsole().exeInfo("multi_step \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
         }
     }
 
@@ -117,7 +117,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                     }
                 }
             }
-            getConsole().log("compiler: exe_skip_subroutine \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
+            getConsole().exeInfo("exe_skip_subroutine \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
         }
     }
 
@@ -141,7 +141,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 }
             }
 
-            getConsole().log("compiler: exe_return_from_subroutine... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
+            getConsole().exeInfo("exe_return_from_subroutine... \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
         }
 
     }
@@ -183,7 +183,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                     }
                 }
 
-                getConsole().log("compiler: exe_until_line\nline ${closestID + 1} or address ${destAddr.getHexStr()} \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
+                getConsole().exeInfo("exe_until_line\nline ${closestID + 1} or address ${destAddr.getHexStr()} \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
             } else {
                 val measuredTime = measureTime {
                     while (instrCount < 1000) {
@@ -198,7 +198,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                     }
                 }
 
-                getConsole().log("compiler: exe_until_line\nwasn't reaching line! \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
+                getConsole().exeInfo("exe_until_line\nwasn't reaching line! \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
             }
         }
     }
@@ -221,7 +221,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 }
             }
         }
-        getConsole().log("compiler: exe_until_address\nexecuting until address ${address.getHexStr()} \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
+        getConsole().exeInfo("exe_until_address\nexecuting until address ${address.getHexStr()} \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
     }
 
     override fun getPreHighlighting(text: String): String {
