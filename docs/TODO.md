@@ -4,6 +4,7 @@
 - Value string escape sequence ("\"" = ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
 - RV64 ADD Control and Status Register
+- remove view state bugs from user manual
 
 # SUGAR #
 
