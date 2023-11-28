@@ -36,8 +36,6 @@ external interface CodeEditorProps : Props {
 val CodeEditor = FC<CodeEditorProps> { props ->
 
 
-
-
     /* ----------------- REACT REFERENCES ----------------- */
 
     val textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -78,6 +76,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (vc_rows, setvc_rows) = useState<List<String>>(emptyList())
     val (files, setFiles) = useState<List<FileHandler.File>>(emptyList())
     val (transcriptView, setTranscriptView) = useState(false)
+
+
+    /* ----------------- SUGAR ----------------- */
 
 
 
@@ -149,8 +150,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- ASYNC Events ----------------- */
 
-
-
     fun checkCode(immediate: Boolean) {
         val valueToCheck = arch.getFileHandler().getCurrContent()
         val delay = 1000
@@ -162,8 +161,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 setvc_rows(arch.check(valueToCheck, currExeLine).split("\n"))
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
             }
-
-
 
         } else {
             val size = valueToCheck.split("\n").size
