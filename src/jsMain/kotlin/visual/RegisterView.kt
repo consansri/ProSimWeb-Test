@@ -96,7 +96,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
             for (regFile in regFileList) {
                 a {
-
                     css {
                         display = Display.inlineBlock
                         cursor = Cursor.pointer
@@ -201,6 +200,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         }
                                     }, 0)
                                 }
+                            }
+                        }
+                        if (registerArray.hasPrivileges) {
+                            th {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                +"Privilege"
                             }
                         }
                         th {
@@ -340,6 +345,17 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                     event.currentTarget.blur()
                                                 }
                                             }
+                                        }
+                                    }
+                                    if (registerArray.hasPrivileges) {
+                                        td {
+                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                            if (reg.privilegeID != null) {
+                                                +reg.privilegeID
+                                            } else {
+                                                +"-"
+                                            }
+
                                         }
                                     }
                                     td {

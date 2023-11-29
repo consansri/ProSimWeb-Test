@@ -1,7 +1,6 @@
 package emulator.kit.common
 
 import emulator.kit.types.Variable
-import kotlin.contracts.CallsInPlace
 
 /**
  * The [RegContainer] is making all [RegisterFile]s besides the [PC] accessible.
@@ -60,7 +59,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
      * You can [hardwire] it to disallow changeability.
      * To identify registers more easily a [description] is needed in the constructor.
      */
-    open class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val callingConvention: CallingConvention = CallingConvention.UNSPECIFIED, val description: String, val hardwire: Boolean = false) {
+    open class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val callingConvention: CallingConvention = CallingConvention.UNSPECIFIED, val description: String, val privilegeID: String? = null, val hardwire: Boolean = false) {
 
         private val regexList: List<Regex>
 
@@ -101,7 +100,22 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         }
     }
 
-    data class RegisterFile(val name: String, val registers: Array<Register>)
+    data class RegisterFile(val name: String, val unsortedRegisters: Array<Register>, val hasPrivileges: Boolean = false) {
+        val registers: Array<Register> = unsortedRegisters.sortedBy { it.address.input }.toTypedArray()
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class.js != other::class.js) return false
+
+            other as RegisterFile
+
+            return name == other.name
+        }
+
+        override fun hashCode(): Int {
+            return name.hashCode()
+        }
+
+    }
 
     enum class CallingConvention(val displayName: String) {
         UNSPECIFIED("-"),

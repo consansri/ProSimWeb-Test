@@ -448,7 +448,6 @@ class Variable {
 
             init {
                 this.checkResult = check(input, size)
-                console.log("check if $input matches ${size.bitWidth} Bits? - ${this.checkResult.valid}")
                 this.hexString = checkResult.corrected
             }
 
@@ -471,7 +470,6 @@ class Variable {
                 val message: String
                 if (regex.matches(formatted)) {
                     return if (formatted.length <= size.hexChars) {
-                        console.log("Format: " + formatted+ " matches ${size.bitWidth} Bits!")
                         formatted = formatted.padStart(size.hexChars, '0')
                         CheckResult(true, Settings.PRESTRING_HEX + formatted)
                     } else {

@@ -594,7 +594,12 @@ class RV64Syntax : Syntax() {
 
                     // REGISTER
                     if (firstToken is Compiler.Token.Register) {
-                        parameterList.add(E_PARAM.Register(firstToken))
+                        if (firstToken.reg is CSRegister) {
+                            parameterList.add(E_PARAM.CSRegister(firstToken))
+                        } else {
+                            parameterList.add(E_PARAM.Register(firstToken))
+                        }
+
                         paramBuffer.remove(firstToken)
                         continue
                     }
@@ -1488,6 +1493,12 @@ class RV64Syntax : Syntax() {
         class Register(val register: Compiler.Token.Register) : E_PARAM(REFS.REF_E_PARAM_REGISTER, RV64Flags.register, register) {
             fun getAddress(): Bin {
                 return register.reg.address.toBin()
+            }
+        }
+
+        class CSRegister(val csregister: Compiler.Token.Register) : E_PARAM(REFS.REF_E_PARAM_REGISTER, RV64Flags.register, csregister) {
+            fun getAddress(): Bin {
+                return csregister.reg.address.toBin()
             }
         }
 

@@ -11,7 +11,7 @@ class CSRegister(
     variable: Variable,
     description: String,
     hardwire: Boolean = false
-): RegContainer.Register(address,names, aliases,variable, description =  description, hardwire = hardwire) {
+): RegContainer.Register(address,names, aliases,variable, description =  description, privilegeID = privilege.name, hardwire = hardwire) {
 
     enum class Privilege{
         URW,
