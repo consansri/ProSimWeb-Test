@@ -4,7 +4,7 @@
 - Value string escape sequence ("\"" = ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
 - RV64 ADD Control and Status Register
-- remove view state bugs from user manual
+
 
 # SUGAR #
 
@@ -13,6 +13,8 @@
 - Timer controlled execution event (1Hz, 2Hz, ...)
 
 # DONE #
+
+## Version 0.1.3 ##
 
 - **(done)** Exchange StartAtLine Identification and pre code-execution with a memory highlighter of the instruction marked at the line
 - **(done)** Switch Editable Memory from Binary Value Format to Hexadecimal Value Format
@@ -31,8 +33,14 @@
 - **(done)** allow negative hex and resolve them after constant and macro replacements
 - **(done)** reanalyze line after constant insertion to resolve negation
 
+## Version 0.1.4 ##
+ 
 - **(done)** jalr offset syntax (not "0(ra)" (only load store instructions) instead "ra,0" )
 - **(done)** Make RV32 and RV64 dependent on XLEN parameter of each Object
 - **(done)** Value add signed or unsigned identification at instantiation and implement dependent arithmetic operations (or clarify hex,bin,udec as unsigned and dec as signed)
 - **(done)** Calling Convention is now displayed in register file
 - **(done)** RV64 change li pseudo instruction to smart li with different transcriptions (make li flexible)
+
+## Version 0.1.5 ##
+
+- **(done)** remove view state bugs from user manual

@@ -1693,10 +1693,10 @@ class RV64Syntax : Syntax() {
 
             // PSEUDO INSTRUCTIONS
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
-            PS_RD_LI_I28Unsigned(true, "rd, imm64", Bit28(), false), // rd, imm28 unsigned
-            PS_RD_LI_I32Signed(true, "rd, imm64", Bit32(), true), // rd, imm32
-            PS_RD_LI_I40Unsigned(true, "rd, imm64", Bit40(), false),
-            PS_RD_LI_I52Unsigned(true, "rd, imm64", Bit52(), false),
+            PS_RD_LI_I28Unsigned(true, "rd, imm28u", Bit28(), false), // rd, imm28 unsigned
+            PS_RD_LI_I32Signed(true, "rd, imm32s", Bit32(), true), // rd, imm32
+            PS_RD_LI_I40Unsigned(true, "rd, imm40u", Bit40(), false),
+            PS_RD_LI_I52Unsigned(true, "rd, imm52u", Bit52(), false),
             PS_RD_LI_I64(true, "rd, imm64", Bit64(), null), // rd, imm64
             PS_RS1_Jlbl(true, "rs, jlabel"), // rs, label
             PS_RD_Albl(true, "rd, alabel"), // rd, label
