@@ -60,7 +60,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
      * You can [hardwire] it to disallow changeability.
      * To identify registers more easily a [description] is needed in the constructor.
      */
-    data class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val callingConvention: CallingConvention = CallingConvention.UNSPECIFIED, val description: String, val hardwire: Boolean = false) {
+    open class Register(val address: Variable.Value, val names: List<String>, val aliases: List<String>, val variable: Variable, val callingConvention: CallingConvention = CallingConvention.UNSPECIFIED, val description: String, val hardwire: Boolean = false) {
 
         private val regexList: List<Regex>
 
