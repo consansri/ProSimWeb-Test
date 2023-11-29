@@ -90,9 +90,9 @@ val InfoView = FC<InfoViewProps> { props ->
                 padding = StyleAttr.paddingSize
                 overflowX = Overflow.scroll
 
-                media(StyleAttr.responsiveQuery, {
+                media(StyleAttr.responsiveQuery) {
                     alignItems = AlignItems.start
-                })
+                }
             }
             ReactHTML.div {
                 css {
@@ -100,13 +100,13 @@ val InfoView = FC<InfoViewProps> { props ->
 
                     ReactHTML.h1 {
                         fontSize = InfoView.fontSizeH1
-                        marginTop = important(InfoView.marginTop)
+                        marginTop = important(InfoView.marginTopH1)
                         marginBottom = important(InfoView.marginBottom)
                         marginLeft = important(0.rem)
                     }
                     ReactHTML.h2 {
                         fontSize = InfoView.fontSizeH2
-                        marginTop = important(InfoView.marginTop)
+                        marginTop = important(InfoView.marginTopH1)
                         marginBottom = important(InfoView.marginBottom)
                         marginLeft = important(0.rem)
                     }

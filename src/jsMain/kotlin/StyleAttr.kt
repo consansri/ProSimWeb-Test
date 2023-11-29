@@ -185,7 +185,8 @@ object StyleAttr {
             val size = iconSize + 2 * iconPadding
         }
         object InfoView {
-            val marginTop = 0.2.rem
+            val marginTopH1 = 1.rem
+            val marginTop = 0.3.rem
             val marginBottom = 0.1.rem
 
             val tabSize = 1.rem
