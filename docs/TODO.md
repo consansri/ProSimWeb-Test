@@ -4,13 +4,15 @@
 - Value string escape sequence ("\"" = ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
 - RV64 ADD Control and Status Register
-
+- split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
+- 
 
 # SUGAR #
 
 - Automtatic Code Screenshots
 - Make UART Memory Mapped IO accessible through console on runtime
 - Timer controlled execution event (1Hz, 2Hz, ...)
+- add code completion
 
 # DONE #
 
