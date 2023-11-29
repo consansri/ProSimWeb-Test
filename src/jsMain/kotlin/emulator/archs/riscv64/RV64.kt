@@ -20,12 +20,14 @@ object RV64 {
 
     val MEM_INIT: String = "0"
     val REG_INIT: String = "0"
-    val XLEN = Bit64()
+    val XLEN: Variable.Size = Bit64()
     val REG_VALUE_SIZE = XLEN
     val REG_ADDRESS_SIZE = Bit5()
     val CSR_REG_ADDRESS_SIZE = Bit12()
     val MEM_VALUE_WIDTH = Bit8()
     val MEM_ADDRESS_WIDTH = XLEN
+
+
 
     enum class TS_COMPILED_HEADERS {
         Address,
@@ -41,21 +43,37 @@ object RV64 {
         Parameters
     }
 
-    enum class FEATURE(val initialValue: Boolean) {
-        // I(true), /*Integrated*/
+    enum class FEATURE(val initialValue: Boolean, val descr: String, val featureIndex: Int, val deactivated: Boolean = true) {
+        A(false, "Atomic Extension", 0),
+        B(false, "Tentatively reserved for Bit-Manipulation extension", 1),
+        C(false, "Compressed extension", 2),
+        D(false, "Double-precision floating-point extension", 3),
+        E(false, "RV32E base ISA", 4),
+        F(false, "Single-precision floating-point extension", 5),
+        G(false, "Reserved", 6),
+        H(false, "Hypervisor extension", 7),
+        I(true, "RV32I/64I/128I base ISA", 8, false),
+        J(false, "Tentatively reserved for Dynamically Translated Languages extension", 9),
+        K(false, "Reserved", 10),
+        L(false, "Reserved", 11),
+        M(false, "Integer Multiply/Divide extension", 12),
+        N(false, "Tentatively reserved for User-Level Interrupts extension", 13),
+        O(false, "Reserved", 14),
+        P(false, "Tentatively reserved for Packed-SIMD extension", 15),
+        Q(false, "Quad-precision floating-point extension", 16),
+        R(false, "Reserved", 17),
+        S(false, "Supervisor mode implemented", 18),
+        T(false, "Reserved", 19),
+        U(false, "User mode implemented", 20),
+        V(false, "Tentatively reserved for Vector extenstion", 21),
+        W(false, "Reserved", 22),
+        X(false, "Non-standard extensions present", 23),
+        Y(false, "Reserved", 24),
+        Z(false, "Reserved", 25)
+
         /**
          * TODO("Integrate more architecture extension packages")
          */
-
-        /* M(true),
-         A(false),
-         F(false),
-         D(false),
-         C(false),
-         V(false),
-         B(false),
-         J(false),
-         Z(false)*/
     }
 
     val riscVDocs = Docs(
@@ -216,6 +234,25 @@ object RV64 {
         )
     )
 
+    val MXLMISA = when (XLEN) {
+        Bit32() -> {
+            "01"
+        }
+
+        Bit64() -> {
+            "10"
+        }
+
+        Bit128() -> {
+            "11"
+        }
+
+        else -> {
+            "00"
+        }
+    }
+    val MXLMISAExtensions = FEATURE.entries.toList().reversed().joinToString("") { if(it.initialValue) "1" else "0" }
+
     val csrRegFile = RegisterFile(
         "csr", arrayOf(
             // Unprivileged Floating-Point CSRs
@@ -252,7 +289,7 @@ object RV64 {
             CSRegister(Hex("F15", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF15"), listOf("mconfigptr"), Variable(REG_INIT, XLEN), "Pointer to configuration data structure."),
             // Machine Trap Setup
             CSRegister(Hex("300", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x300"), listOf("mstatus"), Variable(REG_INIT, XLEN), "Machine status register."),
-            CSRegister(Hex("301", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x301"), listOf("misa"), Variable(REG_INIT, XLEN), "ISA and extensions."),
+            CSRegister(Hex("301", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x301"), listOf("misa"), Variable("$MXLMISA${"0".repeat(XLEN.bitWidth - 28)}${MXLMISAExtensions}", XLEN), "ISA and extensions."),
             CSRegister(Hex("302", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x302"), listOf("medeleg"), Variable(REG_INIT, XLEN), "Machine exception delegation register."),
             CSRegister(Hex("303", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x303"), listOf("mideleg"), Variable(REG_INIT, XLEN), "Machine interrupt delegation register."),
             CSRegister(Hex("304", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x304"), listOf("mie"), Variable(REG_INIT, XLEN), "Machine interrupt-enable register."),
@@ -421,7 +458,6 @@ object RV64 {
             CSRegister(Hex("7B1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B1"), listOf("dpc"), Variable(REG_INIT, XLEN), "Debug PC."),
             CSRegister(Hex("7B2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B2"), listOf("dscratch0"), Variable(REG_INIT, XLEN), "Debug scratch register 0."),
             CSRegister(Hex("7B3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B3"), listOf("dscratch1"), Variable(REG_INIT, XLEN), "Debug scratch register 1."),
-
 
 
             // Unprivileged Counter/Timers
