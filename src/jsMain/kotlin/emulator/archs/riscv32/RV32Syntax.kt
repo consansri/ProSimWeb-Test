@@ -1598,47 +1598,47 @@ class RV32Syntax() : Syntax() {
         enum class ParamType(val pseudo: Boolean, val exampleString: String, val immMaxSize: Variable.Size? = null) {
             // NORMAL INSTRUCTIONS
             RD_I20(false, "rd, imm20", Bit20()) {
-                override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rd = paramMap.get(RD)
                     return if (rd != null) {
                         paramMap.remove(RD)
                         val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
-                        "${regContainer.getReg(rd)?.aliases?.first()},\t$immString"
+                        "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"
                     }
                 }
             }, // rd, imm
             RD_Off12(false, "rd, imm12(rs)", Bit12()) {
-                override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rd = paramMap.get(RD)
                     val rs1 = paramMap.get(RS1)
                     return if (rd != null && rs1 != null) {
                         paramMap.remove(RD)
                         paramMap.remove(RS1)
                         val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
-                        "${regContainer.getReg(rd)?.aliases?.first()},\t$immString(${regContainer.getReg(rs1)?.aliases?.first()})"
+                        "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
                     } else {
                         "param missing"
                     }
                 }
             }, // rd, imm12(rs)
             RS2_Off5(false, "rs2, imm5(rs1)", Bit5()) {
-                override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rs2 = paramMap.get(RS2)
                     val rs1 = paramMap.get(RS1)
                     return if (rs2 != null && rs1 != null) {
                         paramMap.remove(RS2)
                         paramMap.remove(RS1)
                         val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
-                        "${regContainer.getReg(rs2)?.aliases?.first()},\t$immString(${regContainer.getReg(rs1)?.aliases?.first()})"
+                        "${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
                     } else {
                         "param missing"
                     }
                 }
             }, // rs2, imm5(rs1)
             RD_RS1_RS1(false, "rd, rs1, rs2") {
-                override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rd = paramMap.get(RD)
                     val rs1 = paramMap.get(RS1)
                     val rs2 = paramMap.get(RS2)
@@ -1646,49 +1646,49 @@ class RV32Syntax() : Syntax() {
                         paramMap.remove(RD)
                         paramMap.remove(RS2)
                         paramMap.remove(RS1)
-                        "${regContainer.getReg(rd)?.aliases?.first()},\t${regContainer.getReg(rs1)?.aliases?.first()},\t${regContainer.getReg(rs2)?.aliases?.first()}"
+                        "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()}"
                     } else {
                         "param missing"
                     }
                 }
             }, // rd, rs1, rs2
             RD_RS1_I12(false, "rd, rs1, imm12", Bit12()) {
-                override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rd = paramMap.get(RD)
                     val rs1 = paramMap.get(RS1)
                     return if (rd != null && rs1 != null) {
                         paramMap.remove(RD)
                         paramMap.remove(RS1)
                         val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
-                        "${regContainer.getReg(rd)?.aliases?.first()},\t${regContainer.getReg(rs1)?.aliases?.first()},\t$immString"
+                        "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"
                     }
                 }
             }, // rd, rs, imm
             RD_RS1_I5(false, "rd, rs1, shamt5", Bit5()) {
-                override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rd = paramMap.get(RD)
                     val rs1 = paramMap.get(RS1)
                     return if (rd != null && rs1 != null) {
                         paramMap.remove(RD)
                         paramMap.remove(RS1)
                         val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
-                        "${regContainer.getReg(rd)?.aliases?.first()},\t${regContainer.getReg(rs1)?.aliases?.first()},\t$immString"
+                        "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"
                     }
                 }
             }, // rd, rs, shamt
             RS1_RS2_I12(false, "rs1, rs2, imm12", Bit12()) {
-                override fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                     val rs2 = paramMap.get(RS2)
                     val rs1 = paramMap.get(RS1)
                     return if (rs2 != null && rs1 != null) {
                         paramMap.remove(RS2)
                         paramMap.remove(RS1)
                         val immString = if (labelName.isEmpty()) "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toHex().getRawHexStr() }}" else labelName
-                        "${regContainer.getReg(rs1)?.aliases?.first()},\t${regContainer.getReg(rs2)?.aliases?.first()},\t$immString"
+                        "${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString"
                     } else {
                         "param missing"
                     }
@@ -1707,7 +1707,7 @@ class RV32Syntax() : Syntax() {
             // NONE PARAM INSTR
             NONE(false, "none"), PS_NONE(true, "none");
 
-            open fun getTSParamString(regContainer: RegContainer, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
+            open fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Bin>, labelName: String): String {
                 return "pseudo param type"
             }
         }
@@ -1729,7 +1729,7 @@ class RV32Syntax() : Syntax() {
                     if (rdAddr == null || imm20 == null) return
 
                     // get relevant registers
-                    val rd = arch.getRegContainer().getReg(rdAddr)
+                    val rd = arch.getRegByAddr(rdAddr)
                     val pc = arch.getRegContainer().pc
                     if (rd == null) return
 
@@ -1746,7 +1746,7 @@ class RV32Syntax() : Syntax() {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
                     if (rdAddr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
+                        val rd = arch.getRegByAddr(rdAddr)
                         val imm20 = paramMap.get(IMM20)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm20 != null) {
@@ -1763,7 +1763,7 @@ class RV32Syntax() : Syntax() {
                     super.execute(arch, paramMap)
                     val rdAddr = paramMap.get(RD)
                     if (rdAddr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
+                        val rd = arch.getRegByAddr(rdAddr)
                         val imm20 = paramMap.get(IMM20)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm20 != null) {
@@ -1789,8 +1789,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
@@ -1814,8 +1814,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rs2Addr != null && rs1Addr != null) {
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm7 = paramMap.get(IMM7)
                         val imm5 = paramMap.get(IMM5)
                         val pc = arch.getRegContainer().pc
@@ -1845,8 +1845,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rs2Addr != null && rs1Addr != null) {
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm7 = paramMap.get(IMM7)
                         val imm5 = paramMap.get(IMM5)
                         val pc = arch.getRegContainer().pc
@@ -1875,8 +1875,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rs2Addr != null && rs1Addr != null) {
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm7 = paramMap.get(IMM7)
                         val imm5 = paramMap.get(IMM5)
                         val pc = arch.getRegContainer().pc
@@ -1905,8 +1905,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rs2Addr != null && rs1Addr != null) {
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm7 = paramMap.get(IMM7)
                         val imm5 = paramMap.get(IMM5)
                         val pc = arch.getRegContainer().pc
@@ -1935,8 +1935,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rs2Addr != null && rs1Addr != null) {
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm7 = paramMap.get(IMM7)
                         val imm5 = paramMap.get(IMM5)
                         val pc = arch.getRegContainer().pc
@@ -1965,8 +1965,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rs2Addr != null && rs1Addr != null) {
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm7 = paramMap.get(IMM7)
                         val imm5 = paramMap.get(IMM5)
                         val pc = arch.getRegContainer().pc
@@ -1997,8 +1997,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val imm12 = paramMap.get(IMM12)
                     if (rdAddr != null && rs1Addr != null && imm12 != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
@@ -2018,8 +2018,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val imm12 = paramMap.get(IMM12)
                     if (rdAddr != null && rs1Addr != null && imm12 != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
@@ -2039,8 +2039,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val imm12 = paramMap.get(IMM12)
                     if (rdAddr != null && rs1Addr != null && imm12 != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
@@ -2060,8 +2060,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val imm12 = paramMap.get(IMM12)
                     if (rdAddr != null && rs1Addr != null && imm12 != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
@@ -2081,8 +2081,8 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val imm12 = paramMap.get(IMM12)
                     if (rdAddr != null && rs1Addr != null && imm12 != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null) {
                             val memAddr = rs1.get().toBin() + imm12.getResized(Bit32())
@@ -2106,8 +2106,8 @@ class RV32Syntax() : Syntax() {
                     val imm5 = paramMap.get(IMM5)
                     val imm7 = paramMap.get(IMM7)
                     if (rs1Addr != null && rs2Addr != null && imm5 != null && imm7 != null) {
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
                             val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
@@ -2131,8 +2131,8 @@ class RV32Syntax() : Syntax() {
                     val imm5 = paramMap.get(IMM5)
                     val imm7 = paramMap.get(IMM7)
                     if (rs1Addr != null && rs2Addr != null && imm5 != null && imm7 != null) {
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
                             val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
@@ -2156,8 +2156,8 @@ class RV32Syntax() : Syntax() {
                     val imm5 = paramMap.get(IMM5)
                     val imm7 = paramMap.get(IMM7)
                     if (rs1Addr != null && rs2Addr != null && imm5 != null && imm7 != null) {
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rs1 != null && rs2 != null) {
                             val off32 = (imm7.getResized(Bit32()) shl 5) + imm5
@@ -2176,8 +2176,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
@@ -2197,8 +2197,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
@@ -2217,8 +2217,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
@@ -2237,8 +2237,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
@@ -2257,8 +2257,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
@@ -2277,8 +2277,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
@@ -2300,8 +2300,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val shamt = paramMap.get(SHAMT)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
@@ -2322,8 +2322,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val shamt = paramMap.get(SHAMT)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
@@ -2344,8 +2344,8 @@ class RV32Syntax() : Syntax() {
                     val rdAddr = paramMap.get(RD)
                     val rs1Addr = paramMap.get(RS1)
                     if (rdAddr != null && rs1Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
                         val shamt = paramMap.get(SHAMT)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && shamt != null && rs1 != null) {
@@ -2367,9 +2367,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() + rs2.get().toBin())
@@ -2390,9 +2390,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() - rs2.get().toBin())
@@ -2413,9 +2413,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() ushl rs2.get().toBin().getRawBinaryStr().toInt(2))
@@ -2436,9 +2436,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(if (rs1.get().toDec() < rs2.get().toDec()) Bin("1", Bit32()) else Bin("0", Bit32()))
@@ -2459,9 +2459,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(if (rs1.get().toBin() < rs2.get().toBin()) Bin("1", Bit32()) else Bin("0", Bit32()))
@@ -2482,9 +2482,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() xor rs2.get().toBin())
@@ -2505,9 +2505,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() ushr rs2.get().toBin().getRawBinaryStr().toInt(2))
@@ -2528,9 +2528,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() shr rs2.get().toBin().getRawBinaryStr().toInt(2))
@@ -2551,9 +2551,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() or rs2.get().toBin())
@@ -2574,9 +2574,9 @@ class RV32Syntax() : Syntax() {
                     val rs1Addr = paramMap.get(RS1)
                     val rs2Addr = paramMap.get(RS2)
                     if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
-                        val rd = arch.getRegContainer().getReg(rdAddr)
-                        val rs1 = arch.getRegContainer().getReg(rs1Addr)
-                        val rs2 = arch.getRegContainer().getReg(rs2Addr)
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && rs1 != null && rs2 != null) {
                             rd.set(rs1.get().toBin() and rs2.get().toBin())

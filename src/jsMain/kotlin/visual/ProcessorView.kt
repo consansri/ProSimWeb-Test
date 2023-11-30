@@ -80,13 +80,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 props.exeEventState.component2().invoke(!props.exeEventState.component1())
                 setAllowExe(true)
             }, 0)
-
-            ClearAll -> executionQueue.current = setTimeout({
-                setAllowExe(false)
-                arch.exeClear()
-                props.exeEventState.component2().invoke(!props.exeEventState.component1())
-                setAllowExe(true)
-            }, 0)
         }
     }
 
@@ -235,22 +228,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                     queueExecution(Reset)
                 }
             }
-
-            button {
-                css {
-                    background = StyleAttr.Main.Processor.BtnBg.CLEAR.get()
-                }
-                title = "Clear"
-                disabled = !allowExe
-                p {
-                    img {
-                        src = StyleAttr.Icons.delete_black
-                    }
-                }
-                onClick = {
-                    queueExecution(ClearAll)
-                }
-            }
         }
     }
 
@@ -296,6 +273,5 @@ enum class ExecutionType {
     MultiStep,
     SkipSubroutine,
     ReturnFromSubroutine,
-    Reset,
-    ClearAll
+    Reset
 }

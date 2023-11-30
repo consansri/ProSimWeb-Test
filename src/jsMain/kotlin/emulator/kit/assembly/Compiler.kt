@@ -160,7 +160,7 @@ class Compiler(
 
                     val regRes = regexCollection.alphaNumeric.find(remainingLine)
                     if (regRes != null) {
-                        val reg = architecture.getRegContainer().getReg(regRes.value)
+                        val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
                         if (reg != null) {
                             tokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
                             tempTokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
@@ -453,7 +453,7 @@ class Compiler(
 
             val regRes = regexCollection.alphaNumeric.find(remaining)
             if (regRes != null) {
-                val reg = architecture.getRegContainer().getReg(regRes.value)
+                val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
                 if (reg != null) {
                     tokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, lineID)
                     startIndex += regRes.value.length

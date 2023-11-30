@@ -10,8 +10,9 @@ class CSRegister(
     aliases: List<String>,
     variable: Variable,
     description: String,
+    neededByFeatureID: List<Int>? = null,
     hardwire: Boolean = false
-): RegContainer.Register(address,names, aliases,variable, description =  description, privilegeID = privilege.name, hardwire = hardwire) {
+): RegContainer.Register(address,names, aliases,variable, needsFeatureID = neededByFeatureID, description =  description, privilegeID = privilege.name, hardwire = hardwire) {
 
     override fun set(value: Variable.Value) {
         super.set(value)

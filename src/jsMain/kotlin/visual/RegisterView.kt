@@ -226,8 +226,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     val measuredRegTypeChange = measureTime {
                         registerArray.let {
-                            for (reg in it.registers) {
-                                val regID = it.registers.indexOf(reg)
+                            for (reg in it.getRegisters(props.archState.component1().getAllFeatures())) {
+                                val regID = it.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
 
                                 tr {
 
@@ -389,8 +389,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             arch.getRegContainer().getRegFileList()[0]
         }
         registers.let {
-            for (reg in it.registers) {
-                val regID = it.registers.indexOf(reg)
+            for (reg in it.getRegisters(props.archState.component1().getAllFeatures())) {
+                val regID = it.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
                 try {
                     val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
                     regRef?.value = when (currRegType) {
@@ -431,8 +431,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             arch.getRegContainer().getRegFileList()[0]
         }
         registers.let {
-            for (reg in it.registers) {
-                val regID = it.registers.indexOf(reg)
+            for (reg in it.getRegisters(props.archState.component1().getAllFeatures())) {
+                val regID = it.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
                 try {
                     val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
                     regRef?.value = when (currRegType) {

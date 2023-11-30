@@ -469,7 +469,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
         fun addInstr(architecture: Architecture, instrResult: RV64BinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
             content[RV64.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
-            content[RV64.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegContainer(), instrResult.binMap.toMutableMap(), labelName))
+            content[RV64.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture, instrResult.binMap.toMutableMap(), labelName))
         }
 
         fun addLabel(labelName: String) {

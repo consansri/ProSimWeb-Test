@@ -150,9 +150,8 @@ object StyleAttr {
                 SSTEP(ModeColor("#98D8AA", "#41A05A")),
                 MSTEP(ModeColor("#E2B124", "#B68B0F")),
                 SOVER(ModeColor("#549FD8", "#126EB4")),
-                ESUB(ModeColor("#549FD8", "#126EB4")),
-                RESET(ModeColor("#EE9955", "#AC5916")),
-                CLEAR(ModeColor("#EE2222", "#9A0000"))
+                ESUB(ModeColor("#EE9955", "#AC5916")),
+                RESET(ModeColor("#EE2222", "#9A0000"))
                 ;
 
                 fun get(): Color {

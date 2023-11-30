@@ -62,7 +62,7 @@ object RV64 {
         P(false, "Tentatively reserved for Packed-SIMD extension", invisible = true),
         Q(false, "Quad-precision floating-point extension"),
         R(false, "Reserved", invisible = true),
-        S(false, "Supervisor mode implemented"),
+        S(false, "Supervisor mode implemented", false),
         T(false, "Reserved", invisible = true),
         U(false, "User mode implemented"),
         V(false, "Tentatively reserved for Vector extenstion", invisible = true),
@@ -234,283 +234,266 @@ object RV64 {
         )
     )
 
-    val MXLMISA = when (XLEN) {
-        Bit32() -> {
-            "01"
-        }
-
-        Bit64() -> {
-            "10"
-        }
-
-        Bit128() -> {
-            "11"
-        }
-
-        else -> {
-            "00"
-        }
-    }
-
-    val MXLMISAExtensions = FEATURE.entries.toList().reversed().joinToString("") { if (it.initialValue) "1" else "0" }
-
-    val csrRegFile = RegisterFile(
-        "csr", arrayOf(
-            // Unprivileged Floating-Point CSRs
-            CSRegister(Hex("001", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x001"), listOf("fflags"), Variable(REG_INIT, XLEN), "Floating-Point Accrued Exceptions."),
-            CSRegister(Hex("002", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x002"), listOf("frm"), Variable(REG_INIT, XLEN), "Floating-Point Dynamic Rounding Mode."),
-            CSRegister(Hex("003", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x003"), listOf("fcsr"), Variable(REG_INIT, XLEN), "Floating-Point Control and Status Register (frm + fflags)."),
-
-            // Supervisor Trap Setup
-            CSRegister(Hex("100", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x100"), listOf("sstatus"), Variable(REG_INIT, XLEN), "Supervisor status register."),
-            CSRegister(Hex("104", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x104"), listOf("sie"), Variable(REG_INIT, XLEN), "Supervisor interrupt-enable register."),
-            CSRegister(Hex("105", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x105"), listOf("stvec"), Variable(REG_INIT, XLEN), "Supervisor trap handler base address."),
-            CSRegister(Hex("106", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x106"), listOf("scounteren"), Variable(REG_INIT, XLEN), "Supervisor counter enable."),
-            // Supervisor Configuration
-            CSRegister(Hex("10A", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x10A"), listOf("senvcfg"), Variable(REG_INIT, XLEN), "Supervisor environment configuration register."),
-            // Supervisor Trap Handling
-            CSRegister(Hex("140", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x140"), listOf("sscratch"), Variable(REG_INIT, XLEN), "Scratch register for supervisor trap handlers."),
-            CSRegister(Hex("141", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x141"), listOf("sepc"), Variable(REG_INIT, XLEN), "Supervisor exception program counter."),
-            CSRegister(Hex("142", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x142"), listOf("scause"), Variable(REG_INIT, XLEN), "Supervisor trap cause."),
-            CSRegister(Hex("143", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x143"), listOf("stval"), Variable(REG_INIT, XLEN), "Supervisor bad address or instruction."),
-            CSRegister(Hex("144", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x144"), listOf("sip"), Variable(REG_INIT, XLEN), "Supervisor interrupt pending."),
-            // Supervisor Protection and Translation
-            CSRegister(Hex("180", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x180"), listOf("satp"), Variable(REG_INIT, XLEN), "Supervisor address translation and protection."),
-            // Debug/Trace Registers
-            CSRegister(Hex("5A8", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x5A8"), listOf("scontext"), Variable(REG_INIT, XLEN), "Supervisor-mode context register."),
-
-            // TODO("Add Hypervisor Registers")
-
-            // Machine-Level CSR
-            // Machine Information Registers
-            CSRegister(Hex("F11", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF11"), listOf("mvendorid"), Variable(REG_INIT, XLEN), "Vendor ID."),
-            CSRegister(Hex("F12", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF12"), listOf("marchid"), Variable(REG_INIT, XLEN), "Architecture ID."),
-            CSRegister(Hex("F13", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF13"), listOf("mimpid"), Variable(REG_INIT, XLEN), "Implementation ID."),
-            CSRegister(Hex("F14", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF14"), listOf("mhartid"), Variable(REG_INIT, XLEN), "Hardware thread ID."),
-            CSRegister(Hex("F15", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF15"), listOf("mconfigptr"), Variable(REG_INIT, XLEN), "Pointer to configuration data structure."),
-            // Machine Trap Setup
-            CSRegister(Hex("300", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x300"), listOf("mstatus"), Variable(REG_INIT, XLEN), "Machine status register."),
-            CSRegister(Hex("301", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x301"), listOf("misa"), Variable("$MXLMISA${"0".repeat(XLEN.bitWidth - 28)}${MXLMISAExtensions}", XLEN), "ISA and extensions."),
-            CSRegister(Hex("302", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x302"), listOf("medeleg"), Variable(REG_INIT, XLEN), "Machine exception delegation register."),
-            CSRegister(Hex("303", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x303"), listOf("mideleg"), Variable(REG_INIT, XLEN), "Machine interrupt delegation register."),
-            CSRegister(Hex("304", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x304"), listOf("mie"), Variable(REG_INIT, XLEN), "Machine interrupt-enable register."),
-            CSRegister(Hex("305", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x305"), listOf("mtvec"), Variable(REG_INIT, XLEN), "Machine trap-handler base address."),
-            CSRegister(Hex("306", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x306"), listOf("mcounteren"), Variable(REG_INIT, XLEN), "Machine counter enable."),
-            // RV32 Only CSRegister(Hex("310", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x310"), listOf("mstatush"), Variable(REG_INIT, XLEN), "Additional machine status register. (RV32)"),
-            // Machine Trap Handling
-            CSRegister(Hex("340", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x340"), listOf("mscratch"), Variable(REG_INIT, XLEN), "Scratch register for machine trap handlers."),
-            CSRegister(Hex("341", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x341"), listOf("mepc"), Variable(REG_INIT, XLEN), "Machine exception program counter."),
-            CSRegister(Hex("342", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x342"), listOf("mcause"), Variable(REG_INIT, XLEN), "Machine trap cause."),
-            CSRegister(Hex("343", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x343"), listOf("mtval"), Variable(REG_INIT, XLEN), "Machine bad address or instruction."),
-            CSRegister(Hex("344", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x344"), listOf("mip"), Variable(REG_INIT, XLEN), "Machine interrupt pending."),
-            CSRegister(Hex("34A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x34A"), listOf("mtinst"), Variable(REG_INIT, XLEN), "Machine trap instruction (transformed)."),
-            CSRegister(Hex("34B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x34B"), listOf("mtval2"), Variable(REG_INIT, XLEN), "Machine bad guest physical address."),
-            // Machine Configuration
-            CSRegister(Hex("30A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x30A"), listOf("menvcfg"), Variable(REG_INIT, XLEN), "Machine environment configuration register."),
-            CSRegister(Hex("747", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x747"), listOf("mseccfg"), Variable(REG_INIT, XLEN), "Machine security configuration register."),
-            // Machine Memory Protection
-            CSRegister(Hex("3A0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A0"), listOf("pmpcfg0"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."), // needs to be extended for RV32
-            CSRegister(Hex("3A2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A2"), listOf("pmpcfg2"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
-            CSRegister(Hex("3A4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A4"), listOf("pmpcfg4"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
-            CSRegister(Hex("3A6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A6"), listOf("pmpcfg6"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
-            CSRegister(Hex("3A8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A8"), listOf("pmpcfg8"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
-            CSRegister(Hex("3AA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3AA"), listOf("pmpcfg10"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
-            CSRegister(Hex("3AC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3AC"), listOf("pmpcfg12"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
-            CSRegister(Hex("3AE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3AE"), listOf("pmpcfg14"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
-
-            CSRegister(Hex("3B0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B0"), listOf("pmpaddr0"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B1"), listOf("pmpaddr1"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B2"), listOf("pmpaddr2"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B3"), listOf("pmpaddr3"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B4"), listOf("pmpaddr4"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B5"), listOf("pmpaddr5"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B6"), listOf("pmpaddr6"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B7"), listOf("pmpaddr7"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B8"), listOf("pmpaddr8"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3B9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B9"), listOf("pmpaddr9"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3BA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BA"), listOf("pmpaddr10"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3BB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BB"), listOf("pmpaddr11"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3BC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BC"), listOf("pmpaddr12"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3BD", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BD"), listOf("pmpaddr13"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3BE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BE"), listOf("pmpaddr14"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3BF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BF"), listOf("pmpaddr15"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-
-            CSRegister(Hex("3C0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C0"), listOf("pmpaddr16"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C1"), listOf("pmpaddr17"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C2"), listOf("pmpaddr18"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C3"), listOf("pmpaddr19"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C4"), listOf("pmpaddr20"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C5"), listOf("pmpaddr21"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C6"), listOf("pmpaddr22"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C7"), listOf("pmpaddr23"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C8"), listOf("pmpaddr24"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3C9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C9"), listOf("pmpaddr25"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3CA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CA"), listOf("pmpaddr26"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3CB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CB"), listOf("pmpaddr27"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3CC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CC"), listOf("pmpaddr28"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3CD", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CD"), listOf("pmpaddr29"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3CE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CE"), listOf("pmpaddr30"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3CF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CF"), listOf("pmpaddr31"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-
-            CSRegister(Hex("3D0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D0"), listOf("pmpaddr32"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D1"), listOf("pmpaddr33"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D2"), listOf("pmpaddr34"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D3"), listOf("pmpaddr35"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D4"), listOf("pmpaddr36"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D5"), listOf("pmpaddr37"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D6"), listOf("pmpaddr38"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D7"), listOf("pmpaddr39"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D8"), listOf("pmpaddr40"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3D9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D9"), listOf("pmpaddr41"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3DA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DA"), listOf("pmpaddr42"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3DB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DB"), listOf("pmpaddr43"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3DC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DC"), listOf("pmpaddr44"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3DD", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DD"), listOf("pmpaddr45"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3DE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DE"), listOf("pmpaddr46"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3DF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DF"), listOf("pmpaddr47"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-
-            CSRegister(Hex("3E0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E0"), listOf("pmpaddr48"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E1"), listOf("pmpaddr49"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E2"), listOf("pmpaddr50"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E3"), listOf("pmpaddr51"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E4"), listOf("pmpaddr52"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E5"), listOf("pmpaddr53"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E6"), listOf("pmpaddr54"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E7"), listOf("pmpaddr55"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E8"), listOf("pmpaddr56"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3E9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E9"), listOf("pmpaddr57"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3EA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EA"), listOf("pmpaddr58"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3EB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EB"), listOf("pmpaddr59"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3EC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EC"), listOf("pmpaddr60"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3ED", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3ED"), listOf("pmpaddr61"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3EE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EE"), listOf("pmpaddr62"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            CSRegister(Hex("3EF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EF"), listOf("pmpaddr63"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
-            // Machine Counter/Timers
-            CSRegister(Hex("B00", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB00"), listOf("mcycle"), Variable(REG_INIT, XLEN), "Machine cycle counter."),
-            CSRegister(Hex("B02", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB02"), listOf("minstret"), Variable(REG_INIT, XLEN), "Machine instructions-retired counter."),
-            CSRegister(Hex("B03", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB03"), listOf("mhpmcounter3"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B04", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB04"), listOf("mhpmcounter4"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B05", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB05"), listOf("mhpmcounter5"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B06", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB06"), listOf("mhpmcounter6"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B07", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB07"), listOf("mhpmcounter7"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B08", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB08"), listOf("mhpmcounter8"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B09", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB09"), listOf("mhpmcounter9"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B0A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0A"), listOf("mhpmcounter10"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B0B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0B"), listOf("mhpmcounter11"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B0C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0C"), listOf("mhpmcounter12"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B0D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0D"), listOf("mhpmcounter13"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B0E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0E"), listOf("mhpmcounter14"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B0F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0F"), listOf("mhpmcounter15"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B10", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB10"), listOf("mhpmcounter16"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B11", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB11"), listOf("mhpmcounter17"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B12", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB12"), listOf("mhpmcounter18"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B13", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB13"), listOf("mhpmcounter19"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B14", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB14"), listOf("mhpmcounter20"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B15", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB15"), listOf("mhpmcounter21"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B16", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB16"), listOf("mhpmcounter22"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B17", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB17"), listOf("mhpmcounter23"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B18", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB18"), listOf("mhpmcounter24"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B19", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB19"), listOf("mhpmcounter25"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B1A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1A"), listOf("mhpmcounter26"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B1B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1B"), listOf("mhpmcounter27"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B1C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1C"), listOf("mhpmcounter28"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B1D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1D"), listOf("mhpmcounter29"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B1E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1E"), listOf("mhpmcounter30"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
-            CSRegister(Hex("B1F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1F"), listOf("mhpmcounter31"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),// needs to be extended for RV32
-            // Machine Counter Setup
-            CSRegister(Hex("320", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x320"), listOf("mcountinhibit"), Variable(REG_INIT, XLEN), "Machine counter-inhibit register."),
-            CSRegister(Hex("323", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x323"), listOf("mhpmevent3"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("324", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x324"), listOf("mhpmevent4"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("325", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x325"), listOf("mhpmevent5"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("326", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x326"), listOf("mhpmevent6"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("327", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x327"), listOf("mhpmevent7"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("328", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x328"), listOf("mhpmevent8"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("329", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x329"), listOf("mhpmevent9"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("32A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32A"), listOf("mhpmevent10"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("32B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32B"), listOf("mhpmevent11"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("32C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32C"), listOf("mhpmevent12"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("32D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32D"), listOf("mhpmevent13"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("32E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32E"), listOf("mhpmevent14"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("32F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32F"), listOf("mhpmevent15"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("330", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x330"), listOf("mhpmevent16"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("331", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x331"), listOf("mhpmevent17"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("332", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x332"), listOf("mhpmevent18"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("333", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x333"), listOf("mhpmevent19"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("334", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x334"), listOf("mhpmevent20"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("335", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x335"), listOf("mhpmevent21"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("336", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x336"), listOf("mhpmevent22"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("337", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x337"), listOf("mhpmevent23"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("338", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x338"), listOf("mhpmevent24"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("339", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x339"), listOf("mhpmevent25"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("33A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33A"), listOf("mhpmevent26"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("33B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33B"), listOf("mhpmevent27"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("33C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33C"), listOf("mhpmevent28"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("33D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33D"), listOf("mhpmevent29"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("33E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33E"), listOf("mhpmevent30"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            CSRegister(Hex("33F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33F"), listOf("mhpmevent31"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
-            // Debug/Trace Registers (shared with Debug Mode)
-            CSRegister(Hex("7A0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A0"), listOf("tselect"), Variable(REG_INIT, XLEN), "Debug/Trace trigger register select."),
-            CSRegister(Hex("7A1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A1"), listOf("tdata1"), Variable(REG_INIT, XLEN), "First Debug/Trace trigger data register."),
-            CSRegister(Hex("7A2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A2"), listOf("tdata2"), Variable(REG_INIT, XLEN), "Second Debug/Trace trigger data register."),
-            CSRegister(Hex("7A3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A3"), listOf("tdata3"), Variable(REG_INIT, XLEN), "Third Debug/Trace trigger data register."),
-            CSRegister(Hex("7A8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A8"), listOf("mcontext"), Variable(REG_INIT, XLEN), "Machine-mode context register."),
-            // Debug Mode Registers
-            CSRegister(Hex("7B0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B0"), listOf("dcsr"), Variable(REG_INIT, XLEN), "Debug control and status register."),
-            CSRegister(Hex("7B1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B1"), listOf("dpc"), Variable(REG_INIT, XLEN), "Debug PC."),
-            CSRegister(Hex("7B2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B2"), listOf("dscratch0"), Variable(REG_INIT, XLEN), "Debug scratch register 0."),
-            CSRegister(Hex("7B3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B3"), listOf("dscratch1"), Variable(REG_INIT, XLEN), "Debug scratch register 1."),
 
 
-            // Unprivileged Counter/Timers
-            CSRegister(Hex("C00", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC00"), listOf("cycle"), Variable(REG_INIT, XLEN), "Cycle counter for RDCYCLE instruction."),
-            CSRegister(Hex("C01", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC01"), listOf("time"), Variable(REG_INIT, XLEN), "Timer for RDTIME instruction."),
-            CSRegister(Hex("C02", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC02"), listOf("instret"), Variable(REG_INIT, XLEN), "Instructions-retired counter for RDINSTRET instruction."),
-            CSRegister(Hex("C03", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC03"), listOf("hpmcounter3"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C04", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC04"), listOf("hpmcounter4"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C05", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC05"), listOf("hpmcounter5"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C06", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC06"), listOf("hpmcounter6"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C07", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC07"), listOf("hpmcounter7"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C08", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC08"), listOf("hpmcounter8"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C09", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC09"), listOf("hpmcounter9"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C0A", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0A"), listOf("hpmcounter10"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C0B", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0B"), listOf("hpmcounter11"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C0C", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0C"), listOf("hpmcounter12"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C0D", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0D"), listOf("hpmcounter13"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C0E", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0E"), listOf("hpmcounter14"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C0F", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0F"), listOf("hpmcounter15"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C10", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC10"), listOf("hpmcounter16"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C11", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC11"), listOf("hpmcounter17"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C12", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC12"), listOf("hpmcounter18"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C13", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC13"), listOf("hpmcounter19"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C14", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC14"), listOf("hpmcounter20"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C15", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC15"), listOf("hpmcounter21"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C16", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC16"), listOf("hpmcounter22"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C17", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC17"), listOf("hpmcounter23"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C18", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC18"), listOf("hpmcounter24"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C19", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC19"), listOf("hpmcounter25"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C1A", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1A"), listOf("hpmcounter26"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C1B", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1B"), listOf("hpmcounter27"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C1C", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1C"), listOf("hpmcounter28"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C1D", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1D"), listOf("hpmcounter29"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C1E", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1E"), listOf("hpmcounter30"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
-            CSRegister(Hex("C1F", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1F"), listOf("hpmcounter31"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."), // Needs to be extended for RV32I
 
+    val csrUnprivileged = arrayOf(
+        // Unprivileged Floating-Point CSRs
+        CSRegister(Hex("001", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x001"), listOf("fflags"), Variable(REG_INIT, XLEN), "Floating-Point Accrued Exceptions."),
+        CSRegister(Hex("002", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x002"), listOf("frm"), Variable(REG_INIT, XLEN), "Floating-Point Dynamic Rounding Mode."),
+        CSRegister(Hex("003", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x003"), listOf("fcsr"), Variable(REG_INIT, XLEN), "Floating-Point Control and Status Register (frm + fflags)."),
 
-        ), hasPrivileges = true
+        // Unprivileged Counter/Timers
+        CSRegister(Hex("C00", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC00"), listOf("cycle"), Variable(REG_INIT, XLEN), "Cycle counter for RDCYCLE instruction."),
+        CSRegister(Hex("C01", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC01"), listOf("time"), Variable(REG_INIT, XLEN), "Timer for RDTIME instruction."),
+        CSRegister(Hex("C02", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC02"), listOf("instret"), Variable(REG_INIT, XLEN), "Instructions-retired counter for RDINSTRET instruction."),
+        CSRegister(Hex("C03", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC03"), listOf("hpmcounter3"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C04", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC04"), listOf("hpmcounter4"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C05", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC05"), listOf("hpmcounter5"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C06", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC06"), listOf("hpmcounter6"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C07", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC07"), listOf("hpmcounter7"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C08", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC08"), listOf("hpmcounter8"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C09", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC09"), listOf("hpmcounter9"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C0A", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0A"), listOf("hpmcounter10"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C0B", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0B"), listOf("hpmcounter11"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C0C", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0C"), listOf("hpmcounter12"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C0D", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0D"), listOf("hpmcounter13"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C0E", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0E"), listOf("hpmcounter14"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C0F", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC0F"), listOf("hpmcounter15"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C10", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC10"), listOf("hpmcounter16"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C11", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC11"), listOf("hpmcounter17"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C12", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC12"), listOf("hpmcounter18"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C13", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC13"), listOf("hpmcounter19"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C14", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC14"), listOf("hpmcounter20"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C15", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC15"), listOf("hpmcounter21"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C16", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC16"), listOf("hpmcounter22"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C17", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC17"), listOf("hpmcounter23"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C18", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC18"), listOf("hpmcounter24"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C19", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC19"), listOf("hpmcounter25"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C1A", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1A"), listOf("hpmcounter26"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C1B", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1B"), listOf("hpmcounter27"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C1C", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1C"), listOf("hpmcounter28"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C1D", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1D"), listOf("hpmcounter29"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C1E", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1E"), listOf("hpmcounter30"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
+        CSRegister(Hex("C1F", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1F"), listOf("hpmcounter31"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."), // Needs to be extended for RV32I
     )
 
-    val regFileList = mutableListOf(standardRegFile, csrRegFile)
+    val csrMachine = arrayOf(
+        // Machine-Level CSR
+        // Machine Information Registers
+        CSRegister(Hex("F11", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF11"), listOf("mvendorid"), Variable(REG_INIT, XLEN), "Vendor ID."),
+        CSRegister(Hex("F12", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF12"), listOf("marchid"), Variable(REG_INIT, XLEN), "Architecture ID."),
+        CSRegister(Hex("F13", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF13"), listOf("mimpid"), Variable(REG_INIT, XLEN), "Implementation ID."),
+        CSRegister(Hex("F14", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF14"), listOf("mhartid"), Variable(REG_INIT, XLEN), "Hardware thread ID."),
+        CSRegister(Hex("F15", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF15"), listOf("mconfigptr"), Variable(REG_INIT, XLEN), "Pointer to configuration data structure."),
+        // Machine Trap Setup
+        CSRegister(Hex("300", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x300"), listOf("mstatus"), Variable(REG_INIT, XLEN), "Machine status register."),
+        CSRegister(Hex("301", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x301"), listOf("misa"), Variable(REG_INIT, XLEN), "ISA and extensions."),
+        CSRegister(Hex("302", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x302"), listOf("medeleg"), Variable(REG_INIT, XLEN), "Machine exception delegation register."),
+        CSRegister(Hex("303", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x303"), listOf("mideleg"), Variable(REG_INIT, XLEN), "Machine interrupt delegation register."),
+        CSRegister(Hex("304", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x304"), listOf("mie"), Variable(REG_INIT, XLEN), "Machine interrupt-enable register."),
+        CSRegister(Hex("305", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x305"), listOf("mtvec"), Variable(REG_INIT, XLEN), "Machine trap-handler base address."),
+        CSRegister(Hex("306", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x306"), listOf("mcounteren"), Variable(REG_INIT, XLEN), "Machine counter enable."),
+        // RV32 Only CSRegister(Hex("310", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x310"), listOf("mstatush"), Variable(REG_INIT, XLEN), "Additional machine status register. (RV32)"),
+        // Machine Trap Handling
+        CSRegister(Hex("340", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x340"), listOf("mscratch"), Variable(REG_INIT, XLEN), "Scratch register for machine trap handlers."),
+        CSRegister(Hex("341", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x341"), listOf("mepc"), Variable(REG_INIT, XLEN), "Machine exception program counter."),
+        CSRegister(Hex("342", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x342"), listOf("mcause"), Variable(REG_INIT, XLEN), "Machine trap cause."),
+        CSRegister(Hex("343", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x343"), listOf("mtval"), Variable(REG_INIT, XLEN), "Machine bad address or instruction."),
+        CSRegister(Hex("344", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x344"), listOf("mip"), Variable(REG_INIT, XLEN), "Machine interrupt pending."),
+        CSRegister(Hex("34A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x34A"), listOf("mtinst"), Variable(REG_INIT, XLEN), "Machine trap instruction (transformed)."),
+        CSRegister(Hex("34B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x34B"), listOf("mtval2"), Variable(REG_INIT, XLEN), "Machine bad guest physical address."),
+        // Machine Configuration
+        CSRegister(Hex("30A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x30A"), listOf("menvcfg"), Variable(REG_INIT, XLEN), "Machine environment configuration register."),
+        CSRegister(Hex("747", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x747"), listOf("mseccfg"), Variable(REG_INIT, XLEN), "Machine security configuration register."),
+        // Machine Memory Protection
+        CSRegister(Hex("3A0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A0"), listOf("pmpcfg0"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."), // needs to be extended for RV32
+        CSRegister(Hex("3A2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A2"), listOf("pmpcfg2"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
+        CSRegister(Hex("3A4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A4"), listOf("pmpcfg4"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
+        CSRegister(Hex("3A6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A6"), listOf("pmpcfg6"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
+        CSRegister(Hex("3A8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3A8"), listOf("pmpcfg8"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
+        CSRegister(Hex("3AA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3AA"), listOf("pmpcfg10"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
+        CSRegister(Hex("3AC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3AC"), listOf("pmpcfg12"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
+        CSRegister(Hex("3AE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3AE"), listOf("pmpcfg14"), Variable(REG_INIT, XLEN), "Physical memory protection configuration."),
+
+        CSRegister(Hex("3B0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B0"), listOf("pmpaddr0"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B1"), listOf("pmpaddr1"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B2"), listOf("pmpaddr2"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B3"), listOf("pmpaddr3"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B4"), listOf("pmpaddr4"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B5"), listOf("pmpaddr5"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B6"), listOf("pmpaddr6"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B7"), listOf("pmpaddr7"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B8"), listOf("pmpaddr8"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3B9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3B9"), listOf("pmpaddr9"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3BA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BA"), listOf("pmpaddr10"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3BB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BB"), listOf("pmpaddr11"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3BC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BC"), listOf("pmpaddr12"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3BD", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BD"), listOf("pmpaddr13"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3BE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BE"), listOf("pmpaddr14"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3BF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3BF"), listOf("pmpaddr15"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+
+        CSRegister(Hex("3C0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C0"), listOf("pmpaddr16"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C1"), listOf("pmpaddr17"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C2"), listOf("pmpaddr18"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C3"), listOf("pmpaddr19"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C4"), listOf("pmpaddr20"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C5"), listOf("pmpaddr21"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C6"), listOf("pmpaddr22"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C7"), listOf("pmpaddr23"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C8"), listOf("pmpaddr24"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3C9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3C9"), listOf("pmpaddr25"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3CA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CA"), listOf("pmpaddr26"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3CB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CB"), listOf("pmpaddr27"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3CC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CC"), listOf("pmpaddr28"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3CD", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CD"), listOf("pmpaddr29"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3CE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CE"), listOf("pmpaddr30"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3CF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3CF"), listOf("pmpaddr31"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+
+        CSRegister(Hex("3D0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D0"), listOf("pmpaddr32"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D1"), listOf("pmpaddr33"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D2"), listOf("pmpaddr34"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D3"), listOf("pmpaddr35"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D4"), listOf("pmpaddr36"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D5"), listOf("pmpaddr37"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D6"), listOf("pmpaddr38"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D7"), listOf("pmpaddr39"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D8"), listOf("pmpaddr40"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3D9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3D9"), listOf("pmpaddr41"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3DA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DA"), listOf("pmpaddr42"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3DB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DB"), listOf("pmpaddr43"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3DC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DC"), listOf("pmpaddr44"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3DD", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DD"), listOf("pmpaddr45"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3DE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DE"), listOf("pmpaddr46"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3DF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3DF"), listOf("pmpaddr47"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+
+        CSRegister(Hex("3E0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E0"), listOf("pmpaddr48"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E1"), listOf("pmpaddr49"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E2"), listOf("pmpaddr50"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E3"), listOf("pmpaddr51"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E4", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E4"), listOf("pmpaddr52"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E5", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E5"), listOf("pmpaddr53"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E6", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E6"), listOf("pmpaddr54"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E7", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E7"), listOf("pmpaddr55"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E8"), listOf("pmpaddr56"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3E9", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3E9"), listOf("pmpaddr57"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3EA", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EA"), listOf("pmpaddr58"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3EB", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EB"), listOf("pmpaddr59"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3EC", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EC"), listOf("pmpaddr60"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3ED", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3ED"), listOf("pmpaddr61"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3EE", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EE"), listOf("pmpaddr62"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        CSRegister(Hex("3EF", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x3EF"), listOf("pmpaddr63"), Variable(REG_INIT, XLEN), "Physical memory protection address register."),
+        // Machine Counter/Timers
+        CSRegister(Hex("B00", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB00"), listOf("mcycle"), Variable(REG_INIT, XLEN), "Machine cycle counter."),
+        CSRegister(Hex("B02", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB02"), listOf("minstret"), Variable(REG_INIT, XLEN), "Machine instructions-retired counter."),
+        CSRegister(Hex("B03", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB03"), listOf("mhpmcounter3"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B04", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB04"), listOf("mhpmcounter4"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B05", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB05"), listOf("mhpmcounter5"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B06", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB06"), listOf("mhpmcounter6"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B07", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB07"), listOf("mhpmcounter7"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B08", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB08"), listOf("mhpmcounter8"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B09", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB09"), listOf("mhpmcounter9"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B0A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0A"), listOf("mhpmcounter10"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B0B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0B"), listOf("mhpmcounter11"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B0C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0C"), listOf("mhpmcounter12"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B0D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0D"), listOf("mhpmcounter13"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B0E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0E"), listOf("mhpmcounter14"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B0F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB0F"), listOf("mhpmcounter15"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B10", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB10"), listOf("mhpmcounter16"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B11", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB11"), listOf("mhpmcounter17"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B12", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB12"), listOf("mhpmcounter18"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B13", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB13"), listOf("mhpmcounter19"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B14", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB14"), listOf("mhpmcounter20"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B15", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB15"), listOf("mhpmcounter21"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B16", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB16"), listOf("mhpmcounter22"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B17", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB17"), listOf("mhpmcounter23"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B18", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB18"), listOf("mhpmcounter24"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B19", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB19"), listOf("mhpmcounter25"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B1A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1A"), listOf("mhpmcounter26"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B1B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1B"), listOf("mhpmcounter27"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B1C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1C"), listOf("mhpmcounter28"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B1D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1D"), listOf("mhpmcounter29"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B1E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1E"), listOf("mhpmcounter30"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),
+        CSRegister(Hex("B1F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("xB1F"), listOf("mhpmcounter31"), Variable(REG_INIT, XLEN), "Machine performance-monitoring counter."),// needs to be extended for RV32
+        // Machine Counter Setup
+        CSRegister(Hex("320", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x320"), listOf("mcountinhibit"), Variable(REG_INIT, XLEN), "Machine counter-inhibit register."),
+        CSRegister(Hex("323", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x323"), listOf("mhpmevent3"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("324", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x324"), listOf("mhpmevent4"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("325", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x325"), listOf("mhpmevent5"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("326", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x326"), listOf("mhpmevent6"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("327", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x327"), listOf("mhpmevent7"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("328", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x328"), listOf("mhpmevent8"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("329", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x329"), listOf("mhpmevent9"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("32A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32A"), listOf("mhpmevent10"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("32B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32B"), listOf("mhpmevent11"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("32C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32C"), listOf("mhpmevent12"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("32D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32D"), listOf("mhpmevent13"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("32E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32E"), listOf("mhpmevent14"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("32F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x32F"), listOf("mhpmevent15"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("330", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x330"), listOf("mhpmevent16"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("331", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x331"), listOf("mhpmevent17"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("332", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x332"), listOf("mhpmevent18"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("333", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x333"), listOf("mhpmevent19"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("334", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x334"), listOf("mhpmevent20"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("335", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x335"), listOf("mhpmevent21"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("336", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x336"), listOf("mhpmevent22"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("337", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x337"), listOf("mhpmevent23"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("338", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x338"), listOf("mhpmevent24"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("339", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x339"), listOf("mhpmevent25"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("33A", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33A"), listOf("mhpmevent26"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("33B", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33B"), listOf("mhpmevent27"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("33C", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33C"), listOf("mhpmevent28"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("33D", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33D"), listOf("mhpmevent29"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("33E", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33E"), listOf("mhpmevent30"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        CSRegister(Hex("33F", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x33F"), listOf("mhpmevent31"), Variable(REG_INIT, XLEN), "Machine performance-monitoring event selector."),
+        // Debug/Trace Registers (shared with Debug Mode)
+        CSRegister(Hex("7A0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A0"), listOf("tselect"), Variable(REG_INIT, XLEN), "Debug/Trace trigger register select."),
+        CSRegister(Hex("7A1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A1"), listOf("tdata1"), Variable(REG_INIT, XLEN), "First Debug/Trace trigger data register."),
+        CSRegister(Hex("7A2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A2"), listOf("tdata2"), Variable(REG_INIT, XLEN), "Second Debug/Trace trigger data register."),
+        CSRegister(Hex("7A3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A3"), listOf("tdata3"), Variable(REG_INIT, XLEN), "Third Debug/Trace trigger data register."),
+        CSRegister(Hex("7A8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A8"), listOf("mcontext"), Variable(REG_INIT, XLEN), "Machine-mode context register."),
+        // Debug Mode Registers
+        CSRegister(Hex("7B0", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B0"), listOf("dcsr"), Variable(REG_INIT, XLEN), "Debug control and status register."),
+        CSRegister(Hex("7B1", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B1"), listOf("dpc"), Variable(REG_INIT, XLEN), "Debug PC."),
+        CSRegister(Hex("7B2", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B2"), listOf("dscratch0"), Variable(REG_INIT, XLEN), "Debug scratch register 0."),
+        CSRegister(Hex("7B3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7B3"), listOf("dscratch1"), Variable(REG_INIT, XLEN), "Debug scratch register 1."),
+    )
+
+    val csrSupervisor = arrayOf(
+        // Supervisor Trap Setup
+        CSRegister(Hex("100", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x100"), listOf("sstatus"), Variable(REG_INIT, XLEN), "Supervisor status register.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("104", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x104"), listOf("sie"), Variable(REG_INIT, XLEN), "Supervisor interrupt-enable register.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("105", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x105"), listOf("stvec"), Variable(REG_INIT, XLEN), "Supervisor trap handler base address.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("106", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x106"), listOf("scounteren"), Variable(REG_INIT, XLEN), "Supervisor counter enable.", listOf(FEATURE.S.ordinal)),
+        // Supervisor Configuration
+        CSRegister(Hex("10A", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x10A"), listOf("senvcfg"), Variable(REG_INIT, XLEN), "Supervisor environment configuration register.", listOf(FEATURE.S.ordinal)),
+        // Supervisor Trap Handling
+        CSRegister(Hex("140", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x140"), listOf("sscratch"), Variable(REG_INIT, XLEN), "Scratch register for supervisor trap handlers.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("141", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x141"), listOf("sepc"), Variable(REG_INIT, XLEN), "Supervisor exception program counter.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("142", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x142"), listOf("scause"), Variable(REG_INIT, XLEN), "Supervisor trap cause.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("143", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x143"), listOf("stval"), Variable(REG_INIT, XLEN), "Supervisor bad address or instruction.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("144", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x144"), listOf("sip"), Variable(REG_INIT, XLEN), "Supervisor interrupt pending.", listOf(FEATURE.S.ordinal)),
+        // Supervisor Protection and Translation
+        CSRegister(Hex("180", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x180"), listOf("satp"), Variable(REG_INIT, XLEN), "Supervisor address translation and protection.", listOf(FEATURE.S.ordinal)),
+        // Debug/Trace Registers
+        CSRegister(Hex("5A8", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x5A8"), listOf("scontext"), Variable(REG_INIT, XLEN), "Supervisor-mode context register.", listOf(FEATURE.S.ordinal)),
+    )
+
+
+    val csrRegFile = RegisterFile(
+        "csr", arrayOf(*csrUnprivileged, *csrMachine, *csrSupervisor ), hasPrivileges = true
+    )
 
     val config = Config(
         Config.Description("RV64I", "RISC-V 64Bit", riscVDocs),
         FileHandler("s"),
         RegContainer(
-            regFileList,
+            mutableListOf(standardRegFile, csrRegFile),
             pcSize = REG_VALUE_SIZE
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
         Transcript(),
-        features = FEATURE.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible) }
+        features = FEATURE.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr) }
     )
 
 }

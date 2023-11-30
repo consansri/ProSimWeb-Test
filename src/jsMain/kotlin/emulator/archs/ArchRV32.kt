@@ -16,7 +16,7 @@ import kotlin.time.measureTime
 class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
 
     val instrnames = R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
-    val registers = getRegContainer().getAllRegs().map { it.getRegexList() }.flatMap { it }
+    val registers = this.getAllRegs().map { it.getRegexList() }.flatMap { it }
     val labels = listOf(Regex("""(?<=\s|^)(.+:)(?=\s|$)"""))
     val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
     val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }

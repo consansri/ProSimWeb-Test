@@ -239,6 +239,7 @@ val App = FC<Props> { props ->
                         onClick = {
                             feature.switch()
                             setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
+                            archState.component1().exeReset()
                         }
                     }
                 }

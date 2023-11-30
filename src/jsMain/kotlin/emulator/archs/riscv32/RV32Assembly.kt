@@ -477,7 +477,7 @@ class RV32Assembly(val binaryMapper: RV32BinMapper, val dataSecStart: Variable.V
         fun addInstr(architecture: Architecture, instrResult: RV32BinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
             content[RV32.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
-            content[RV32.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture.getRegContainer(), instrResult.binMap.toMutableMap(), labelName))
+            content[RV32.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture, instrResult.binMap.toMutableMap(), labelName))
         }
 
         fun addLabel(labelName: String) {

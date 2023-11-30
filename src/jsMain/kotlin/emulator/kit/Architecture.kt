@@ -86,6 +86,9 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getAssembly(): Compiler = compiler
     fun getFormattedFile(type: FileBuilder.ExportFormat, vararg settings: FileBuilder.Setting): Blob = FileBuilder().build(this, type, *settings)
     fun getAllFeatures() = features
+    fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
+    fun getRegByName(name: String): RegContainer.Register? = regContainer.getReg(name, features)
+    fun getRegByAddr(addr: Variable.Value): RegContainer.Register? = regContainer.getReg(addr, features)
 
     /**
      * Execution Event: continuous
@@ -148,17 +151,9 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * don't need to but could be implemented by specific archs
      */
     open fun exeReset() {
-        compiler.reassemble()
-        getConsole().log("compiler: reassembling")
-    }
-
-    /**
-     * Clear Event
-     * don't need to but could be implemented by specific archs
-     */
-    open fun exeClear() {
         regContainer.clear()
-        getConsole().log("compiler: clearing register values")
+        compiler.reassemble()
+        getConsole().exeInfo("resetting")
     }
 
     /**
@@ -201,4 +196,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         }
         return result
     }
+
+
 }
