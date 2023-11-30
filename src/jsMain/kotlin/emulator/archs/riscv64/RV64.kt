@@ -35,7 +35,6 @@ object RV64 {
         Instruction,
         Parameters
     }
-
     enum class TS_DISASSEMBLED_HEADERS {
         Address,
         Label,
@@ -43,7 +42,10 @@ object RV64 {
         Parameters
     }
 
-    enum class FEATURE(val initialValue: Boolean, val descr: String, val static: Boolean = true, val invisible: Boolean = false) {
+    /**
+     * RV64 Extensions supplied through feature functionality
+     */
+    enum class EXTENSION(val initialValue: Boolean, val descr: String, val static: Boolean = true, val invisible: Boolean = false) {
         A(false, "Atomic Extension"),
         B(false, "Tentatively reserved for Bit-Manipulation extension", invisible = true),
         C(false, "Compressed extension"),
@@ -77,9 +79,8 @@ object RV64 {
     }
 
     /**
-     * Documenation
+     * RV64 Generated Documenation
      */
-
     val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
@@ -120,7 +121,7 @@ object RV64 {
                     +"Extensions"
                 }
                 ReactHTML.ul {
-                    for (feature in FEATURE.entries.filter { !it.invisible }) {
+                    for (feature in EXTENSION.entries.filter { !it.invisible }) {
                         ReactHTML.li {
                             +"${feature.name} (${if(feature.static) "fixed" else "switchable"}): ${feature.descr}"
                         }
@@ -480,22 +481,22 @@ object RV64 {
         )
     val csrSupervisor = arrayOf(
         // Supervisor Trap Setup
-        CSRegister(Hex("100", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x100"), listOf("sstatus"), Variable(REG_INIT, XLEN), "Supervisor status register.", listOf(FEATURE.S.ordinal)),
-        CSRegister(Hex("104", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x104"), listOf("sie"), Variable(REG_INIT, XLEN), "Supervisor interrupt-enable register.", listOf(FEATURE.S.ordinal)),
-        CSRegister(Hex("105", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x105"), listOf("stvec"), Variable(REG_INIT, XLEN), "Supervisor trap handler base address.", listOf(FEATURE.S.ordinal)),
-        CSRegister(Hex("106", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x106"), listOf("scounteren"), Variable(REG_INIT, XLEN), "Supervisor counter enable.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("100", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x100"), listOf("sstatus"), Variable(REG_INIT, XLEN), "Supervisor status register.", listOf(EXTENSION.S.ordinal)),
+        CSRegister(Hex("104", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x104"), listOf("sie"), Variable(REG_INIT, XLEN), "Supervisor interrupt-enable register.", listOf(EXTENSION.S.ordinal)),
+        CSRegister(Hex("105", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x105"), listOf("stvec"), Variable(REG_INIT, XLEN), "Supervisor trap handler base address.", listOf(EXTENSION.S.ordinal)),
+        CSRegister(Hex("106", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x106"), listOf("scounteren"), Variable(REG_INIT, XLEN), "Supervisor counter enable.", listOf(EXTENSION.S.ordinal)),
         // Supervisor Configuration
-        CSRegister(Hex("10A", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x10A"), listOf("senvcfg"), Variable(REG_INIT, XLEN), "Supervisor environment configuration register.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("10A", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x10A"), listOf("senvcfg"), Variable(REG_INIT, XLEN), "Supervisor environment configuration register.", listOf(EXTENSION.S.ordinal)),
         // Supervisor Trap Handling
-        CSRegister(Hex("140", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x140"), listOf("sscratch"), Variable(REG_INIT, XLEN), "Scratch register for supervisor trap handlers.", listOf(FEATURE.S.ordinal)),
-        CSRegister(Hex("141", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x141"), listOf("sepc"), Variable(REG_INIT, XLEN), "Supervisor exception program counter.", listOf(FEATURE.S.ordinal)),
-        CSRegister(Hex("142", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x142"), listOf("scause"), Variable(REG_INIT, XLEN), "Supervisor trap cause.", listOf(FEATURE.S.ordinal)),
-        CSRegister(Hex("143", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x143"), listOf("stval"), Variable(REG_INIT, XLEN), "Supervisor bad address or instruction.", listOf(FEATURE.S.ordinal)),
-        CSRegister(Hex("144", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x144"), listOf("sip"), Variable(REG_INIT, XLEN), "Supervisor interrupt pending.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("140", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x140"), listOf("sscratch"), Variable(REG_INIT, XLEN), "Scratch register for supervisor trap handlers.", listOf(EXTENSION.S.ordinal)),
+        CSRegister(Hex("141", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x141"), listOf("sepc"), Variable(REG_INIT, XLEN), "Supervisor exception program counter.", listOf(EXTENSION.S.ordinal)),
+        CSRegister(Hex("142", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x142"), listOf("scause"), Variable(REG_INIT, XLEN), "Supervisor trap cause.", listOf(EXTENSION.S.ordinal)),
+        CSRegister(Hex("143", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x143"), listOf("stval"), Variable(REG_INIT, XLEN), "Supervisor bad address or instruction.", listOf(EXTENSION.S.ordinal)),
+        CSRegister(Hex("144", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x144"), listOf("sip"), Variable(REG_INIT, XLEN), "Supervisor interrupt pending.", listOf(EXTENSION.S.ordinal)),
         // Supervisor Protection and Translation
-        CSRegister(Hex("180", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x180"), listOf("satp"), Variable(REG_INIT, XLEN), "Supervisor address translation and protection.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("180", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x180"), listOf("satp"), Variable(REG_INIT, XLEN), "Supervisor address translation and protection.", listOf(EXTENSION.S.ordinal)),
         // Debug/Trace Registers
-        CSRegister(Hex("5A8", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x5A8"), listOf("scontext"), Variable(REG_INIT, XLEN), "Supervisor-mode context register.", listOf(FEATURE.S.ordinal)),
+        CSRegister(Hex("5A8", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x5A8"), listOf("scontext"), Variable(REG_INIT, XLEN), "Supervisor-mode context register.", listOf(EXTENSION.S.ordinal)),
     )
 
     val csrRegFile = RegisterFile("csr", arrayOf(*csrUnprivileged, *csrDebug, *csrMachine, *csrSupervisor), hasPrivileges = true)
@@ -513,7 +514,7 @@ object RV64 {
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
         Transcript(),
-        features = FEATURE.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr) }
+        features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr) }
     )
 
 }
