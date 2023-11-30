@@ -76,6 +76,10 @@ object RV64 {
          */
     }
 
+    /**
+     * Documenation
+     */
+
     val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
@@ -113,6 +117,16 @@ object RV64 {
                     }
                 }
                 ReactHTML.h2 {
+                    +"Extensions"
+                }
+                ReactHTML.ul {
+                    for (feature in FEATURE.entries.filter { !it.invisible }) {
+                        ReactHTML.li {
+                            +"${feature.name} (${if(feature.static) "fixed" else "switchable"}): ${feature.descr}"
+                        }
+                    }
+                }
+                ReactHTML.h2 {
                     +"Directives"
                 }
 
@@ -126,7 +140,6 @@ object RV64 {
                         }
                     }
                 }
-
                 ReactHTML.h2 {
                     +"Instructions"
                 }
@@ -197,6 +210,10 @@ object RV64 {
 
     val asmConfig = AsmConfig(RV64Syntax(), RV64Assembly(RV64BinMapper(), Hex("00010000", MEM_ADDRESS_WIDTH), Hex("00020000", MEM_ADDRESS_WIDTH), Hex("00030000", MEM_ADDRESS_WIDTH)))
 
+    /**
+     * Standard Registers
+     */
+
     val standardRegFile = RegisterFile(
         "main", arrayOf(
             Register(UDec("0", REG_ADDRESS_SIZE), listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), description = "hardwired zero", hardwire = true),
@@ -234,6 +251,9 @@ object RV64 {
         )
     )
 
+    /**
+     * CSR Registers
+     */
 
     val csrUnprivileged = arrayOf(
         // Unprivileged Floating-Point CSRs
@@ -275,7 +295,6 @@ object RV64 {
         CSRegister(Hex("C1E", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1E"), listOf("hpmcounter30"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."),
         CSRegister(Hex("C1F", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1F"), listOf("hpmcounter31"), Variable(REG_INIT, XLEN), "Performance-monitoring counter."), // Needs to be extended for RV32I
     )
-
     val csrDebug = arrayOf(
         // Debug Mode Registers
         CSRegister(Hex("7B0", CSR_REG_ADDRESS_SIZE), Privilege.DRW, listOf("x7B0"), listOf("dcsr"), Variable(REG_INIT, XLEN), "Debug control and status register."),
@@ -283,7 +302,6 @@ object RV64 {
         CSRegister(Hex("7B2", CSR_REG_ADDRESS_SIZE), Privilege.DRW, listOf("x7B2"), listOf("dscratch0"), Variable(REG_INIT, XLEN), "Debug scratch register 0."),
         CSRegister(Hex("7B3", CSR_REG_ADDRESS_SIZE), Privilege.DRW, listOf("x7B3"), listOf("dscratch1"), Variable(REG_INIT, XLEN), "Debug scratch register 1."),
     )
-
     val csrMachine = arrayOf(
         // Machine-Level CSR
         // Machine Information Registers
@@ -460,7 +478,6 @@ object RV64 {
         CSRegister(Hex("7A8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A8"), listOf("mcontext"), Variable(REG_INIT, XLEN), "Machine-mode context register."),
 
         )
-
     val csrSupervisor = arrayOf(
         // Supervisor Trap Setup
         CSRegister(Hex("100", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x100"), listOf("sstatus"), Variable(REG_INIT, XLEN), "Supervisor status register.", listOf(FEATURE.S.ordinal)),
@@ -481,8 +498,11 @@ object RV64 {
         CSRegister(Hex("5A8", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x5A8"), listOf("scontext"), Variable(REG_INIT, XLEN), "Supervisor-mode context register.", listOf(FEATURE.S.ordinal)),
     )
 
-
     val csrRegFile = RegisterFile("csr", arrayOf(*csrUnprivileged, *csrDebug, *csrMachine, *csrSupervisor), hasPrivileges = true)
+
+    /**
+     * Configuration
+     */
 
     val config = Config(
         Config.Description("RV64I", "RISC-V 64Bit", riscVDocs),
