@@ -2,6 +2,7 @@ package emulator.kit.configs
 
 import emulator.kit.common.*
 import emulator.kit.optional.Cache
+import emulator.kit.optional.Feature
 import emulator.kit.optional.FlagsConditions
 
 /**
@@ -15,7 +16,7 @@ data class Config(
     val transcript: Transcript,
     val flagsConditions: FlagsConditions?,
     val cache: Cache?,
-    val featureStates: Map<String, Boolean> = mapOf()
+    val features: List<Feature> = listOf()
 ) {
 
     constructor(
@@ -23,8 +24,8 @@ data class Config(
         fileHandler: FileHandler,
         regContainer: RegContainer,
         memory: Memory,
-        featureStates: Map<String, Boolean> = mapOf()
-    ) : this(description, fileHandler, regContainer, memory, Transcript(), null, null, featureStates)
+        features: List<Feature> = listOf()
+    ) : this(description, fileHandler, regContainer, memory, Transcript(), null, null, features)
 
     constructor(
         description: Description,
@@ -32,8 +33,8 @@ data class Config(
         regContainer: RegContainer,
         memory: Memory,
         transcript: Transcript,
-        featureStates: Map<String, Boolean> = mapOf()
-    ) : this(description, fileHandler, regContainer, memory, transcript, null, null, featureStates)
+        features: List<Feature> = listOf()
+    ) : this(description, fileHandler, regContainer, memory, transcript, null, null, features)
 
     constructor(
         description: Description,
@@ -42,8 +43,8 @@ data class Config(
         memory: Memory,
         transcript: Transcript,
         flagsConditions: FlagsConditions?,
-        featureStates: Map<String, Boolean> = mapOf()
-    ) : this(description, fileHandler, regContainer, memory, transcript, flagsConditions, null, featureStates)
+        features: List<Feature> = listOf()
+    ) : this(description, fileHandler, regContainer, memory, transcript, flagsConditions, null, features)
 
     data class Description(val name: String, val fullName: String, val docs: Docs)
 }

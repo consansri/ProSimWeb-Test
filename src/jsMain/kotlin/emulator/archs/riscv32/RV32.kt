@@ -57,23 +57,6 @@ object RV32 {
         Parameters
     }
 
-    enum class FEATURE(val initialValue: Boolean) {
-        // I(true), /*Integrated*/
-        /**
-         * TODO("Integrated more architecture extension packages")
-         */
-
-       /* M(true),
-        A(false),
-        F(false),
-        D(false),
-        C(false),
-        V(false),
-        B(false),
-        J(false),
-        Z(false)*/
-    }
-
     val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
@@ -243,8 +226,7 @@ object RV32 {
             pcSize = Variable.Size.Bit32()
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
-        Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name }),
-        FEATURE.entries.associate { it.name to it.initialValue }
+        Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name })
     )
 
 

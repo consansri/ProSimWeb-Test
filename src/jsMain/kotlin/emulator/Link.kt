@@ -10,5 +10,5 @@ import emulator.kit.Architecture
  */
 enum class Link(val architecture: Architecture) {
     RV32I(ArchRV32()),
-    RV64I(ArchRV64())
+    RV64I(ArchRV64());
 }

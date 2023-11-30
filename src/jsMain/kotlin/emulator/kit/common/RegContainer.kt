@@ -74,7 +74,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
             return variable.get()
         }
 
-        fun set(value: Variable.Value) {
+        open fun set(value: Variable.Value) {
             if (!hardwire) {
                 variable.set(value)
             }

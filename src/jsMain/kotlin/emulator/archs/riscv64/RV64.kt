@@ -15,6 +15,7 @@ import emulator.kit.common.RegContainer.RegisterFile
 import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.CSRegister.Privilege
+import emulator.kit.optional.Feature
 
 object RV64 {
 
@@ -26,7 +27,6 @@ object RV64 {
     val CSR_REG_ADDRESS_SIZE = Bit12()
     val MEM_VALUE_WIDTH = Bit8()
     val MEM_ADDRESS_WIDTH = XLEN
-
 
 
     enum class TS_COMPILED_HEADERS {
@@ -43,36 +43,36 @@ object RV64 {
         Parameters
     }
 
-    enum class FEATURE(val initialValue: Boolean, val descr: String, val featureIndex: Int, val deactivated: Boolean = true) {
-        A(false, "Atomic Extension", 0),
-        B(false, "Tentatively reserved for Bit-Manipulation extension", 1),
-        C(false, "Compressed extension", 2),
-        D(false, "Double-precision floating-point extension", 3),
-        E(false, "RV32E base ISA", 4),
-        F(false, "Single-precision floating-point extension", 5),
-        G(false, "Reserved", 6),
-        H(false, "Hypervisor extension", 7),
-        I(true, "RV32I/64I/128I base ISA", 8, false),
-        J(false, "Tentatively reserved for Dynamically Translated Languages extension", 9),
-        K(false, "Reserved", 10),
-        L(false, "Reserved", 11),
-        M(false, "Integer Multiply/Divide extension", 12),
-        N(false, "Tentatively reserved for User-Level Interrupts extension", 13),
-        O(false, "Reserved", 14),
-        P(false, "Tentatively reserved for Packed-SIMD extension", 15),
-        Q(false, "Quad-precision floating-point extension", 16),
-        R(false, "Reserved", 17),
-        S(false, "Supervisor mode implemented", 18),
-        T(false, "Reserved", 19),
-        U(false, "User mode implemented", 20),
-        V(false, "Tentatively reserved for Vector extenstion", 21),
-        W(false, "Reserved", 22),
-        X(false, "Non-standard extensions present", 23),
-        Y(false, "Reserved", 24),
-        Z(false, "Reserved", 25)
+    enum class FEATURE(val initialValue: Boolean, val descr: String, val static: Boolean = true, val invisible: Boolean = false) {
+        A(false, "Atomic Extension"),
+        B(false, "Tentatively reserved for Bit-Manipulation extension", invisible = true),
+        C(false, "Compressed extension"),
+        D(false, "Double-precision floating-point extension"),
+        E(false, "RV32E base ISA"),
+        F(false, "Single-precision floating-point extension"),
+        G(false, "Reserved", invisible = true),
+        H(false, "Hypervisor extension"),
+        I(true, "RV32I/64I/128I base ISA"),
+        J(false, "Tentatively reserved for Dynamically Translated Languages extension", invisible = true),
+        K(false, "Reserved", invisible = true),
+        L(false, "Reserved", invisible = true),
+        M(false, "Integer Multiply/Divide extension"),
+        N(false, "Tentatively reserved for User-Level Interrupts extension", invisible = true),
+        O(false, "Reserved", invisible = true),
+        P(false, "Tentatively reserved for Packed-SIMD extension", invisible = true),
+        Q(false, "Quad-precision floating-point extension"),
+        R(false, "Reserved", invisible = true),
+        S(false, "Supervisor mode implemented"),
+        T(false, "Reserved", invisible = true),
+        U(false, "User mode implemented"),
+        V(false, "Tentatively reserved for Vector extenstion", invisible = true),
+        W(false, "Reserved", invisible = true),
+        X(false, "Non-standard extensions present"),
+        Y(false, "Reserved", invisible = true),
+        Z(false, "Reserved", invisible = true)
 
         /**
-         * TODO("Integrate more architecture extension packages")
+         * TODO("Integrate architecture extension packages")
          */
     }
 
@@ -251,7 +251,8 @@ object RV64 {
             "00"
         }
     }
-    val MXLMISAExtensions = FEATURE.entries.toList().reversed().joinToString("") { if(it.initialValue) "1" else "0" }
+
+    val MXLMISAExtensions = FEATURE.entries.toList().reversed().joinToString("") { if (it.initialValue) "1" else "0" }
 
     val csrRegFile = RegisterFile(
         "csr", arrayOf(
@@ -508,7 +509,8 @@ object RV64 {
             pcSize = REG_VALUE_SIZE
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
-        Transcript()
+        Transcript(),
+        features = FEATURE.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible) }
     )
 
 }

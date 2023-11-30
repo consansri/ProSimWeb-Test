@@ -29,10 +29,12 @@ val App = FC<Props> { props ->
     val (showMenu, setShowMenu) = useState(true)
 
     val archState = useState(Link.entries[localStorage.getItem(StorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0].architecture)
+    val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().getAllFeatures().filter { !it.invisible })
+
 
     val compileEventState = useState(false)
     val exeEventState = useState(false)
-    val fileChangeEvent= useState(false)
+    val fileChangeEvent = useState(false)
 
 
     AppStyle {}
@@ -219,19 +221,24 @@ val App = FC<Props> { props ->
                     }
                 }
 
-                for (feature in archState.component1().getAllFeatures()) {
+                for (feature in visibleFeatures) {
                     div {
                         css {
-                            if (!feature.value) {
+                            if (!feature.isActive()) {
                                 backgroundColor = important(StyleAttr.Main.AppControls.BgColorDeActivated.get())
                             }
                         }
-
                         a {
-                            +feature.key
+                            css {
+                                if (!feature.isActive()) {
+                                    color = important(StyleAttr.Main.AppControls.FgColorDeActivated.get())
+                                }
+                            }
+                            +feature.name
                         }
                         onClick = {
-                            archState.component1().getAllFeatures().set(feature.key, !feature.value)
+                            feature.switch()
+                            setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
                         }
                     }
                 }
