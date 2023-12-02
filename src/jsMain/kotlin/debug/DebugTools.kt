@@ -166,7 +166,7 @@ object DebugTools {
      */
 
     const val REACT_showUpdateInfo = false
-    const val REACT_deactivateAutomaticBuilds = false
+    const val REACT_deactivateAutomaticBuilds = true
 
 
 }

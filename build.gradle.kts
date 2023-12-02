@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "me.c3"
-version = "0.1.4"
+version = "0.1.5"
 
 val doodle_version: String by project
 
@@ -42,7 +42,6 @@ kotlin {
                 implementation("io.nacular.doodle:controls:$doodle_version")
                 implementation("io.nacular.doodle:animation:$doodle_version")
                 implementation("io.nacular.doodle:themes:$doodle_version")*/
-
             }
         }
         val commonTest by getting {

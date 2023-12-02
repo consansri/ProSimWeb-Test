@@ -50,7 +50,7 @@ object RV64 {
      * RV64 Extensions supplied through feature functionality
      */
     enum class EXTENSION(val initialValue: Boolean, val descr: String, val static: Boolean = true, val invisible: Boolean = false, val enables: List<EXTENSION> = emptyList()) {
-        CSR(false, "Control and Status Register", false),
+        CSR(false, "Control and Status Register extension", false),
         A(false, "Atomic Extension"),
         B(false, "Tentatively reserved for Bit-Manipulation extension", invisible = true),
         C(false, "Compressed extension"),

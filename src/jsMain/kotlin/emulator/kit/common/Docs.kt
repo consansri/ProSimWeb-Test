@@ -13,7 +13,7 @@ import react.dom.html.ReactHTML.ul
 
 /**
  * This class contains all documents which are partly supplied by specific architectures. There are two options to define a documentation file.
- * The first is by linking a source path to a specific html source file and the second is by directly defining a file as an react component, inwhich information can be generated directly from the implemented architecture.
+ * The first is by linking a source path to a specific html source file and the second is by directly defining a file as a React component, inwhich information can be generated directly from the implemented architecture.
  */
 class Docs(vararg htmlFiles: HtmlFile) {
     var files = mutableListOf<HtmlFile>(
@@ -22,6 +22,50 @@ class Docs(vararg htmlFiles: HtmlFile) {
             "../documents/user-manual.html"
         ),
         HtmlFile.DefinedFile("Version - ${Constants.version}", FC<Props> {
+            h2 {
+                +"Version - 0.1.5"
+            }
+            h3 {
+                +"New"
+            }
+            ul {
+                li {
+                    +"KIT Feature System is fully integrated."
+                }
+                li {
+                    +"""RV64 Extensions where added but aren't fully implemented (CSR and S can be enabled).
+                        |Instructions and Registers usable without any restrictions (upcoming).
+                    """.trimMargin()
+                }
+            }
+            h3 {
+                +"Changed"
+            }
+            ul {
+                li {
+                    +"KIT Privileges can be added to Registers."
+                }
+            }
+            h3 {
+                +"Fixed"
+            }
+            ul {
+                li {
+                    +"KIT FileHandler had some issues with undo redo state on page reload."
+                }
+                li {
+                    +"REACT Editor had some code state indication issues when build is triggered through the button."
+                }
+            }
+            h3 {
+                +"Issues"
+            }
+            ul {
+                li {
+                    +"KIT RV64 Code examples are missing."
+                }
+            }
+
             h2 {
                 +"Version - 0.1.4"
             }
@@ -99,7 +143,7 @@ class Docs(vararg htmlFiles: HtmlFile) {
             }
             ul {
                 li {
-                    +"KIT RV64 Code examples are still missing"
+                    +"KIT RV64 Code examples are missing."
                 }
             }
 
