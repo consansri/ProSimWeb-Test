@@ -86,7 +86,7 @@ object DebugTools {
      * EXTENDABLE
      */
 
-    const val RV64_showAsmInfo = true
+    const val RV64_showAsmInfo = false
     const val RV64_showBinMapperInfo = false
     const val RV64_showOpCodeInfo = false
     const val RV64_showGrammarScanTiers = false
@@ -166,7 +166,7 @@ object DebugTools {
      */
 
     const val REACT_showUpdateInfo = false
-    const val REACT_deactivateAutomaticBuilds = true
+    const val REACT_deactivateAutomaticBuilds = false
 
 
 }

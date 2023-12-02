@@ -42,10 +42,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
     val arch = props.archState.component1()
 
     val name = props.name
-    val regFileList = arch.getRegContainer().getRegFileList()
-    val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(regFileList.size - 1)
+    val (allRegFiles, setAllRegFiles) = useState(arch.getAllRegFiles())
+    val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(0)
     val (currRegType, setCurrRegTypeIndex) = useState<Variable.Value.Types>(Variable.Value.Types.Hex)
-
 
     /* DOM */
 
@@ -80,7 +79,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
             }
 
-
             button {
                 css {
                     color = StyleAttr.Main.Processor.FgColor.get()
@@ -94,7 +92,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 +"Register"
             }
 
-            for (regFile in regFileList) {
+            for (regFile in allRegFiles.filter { it.getRegisters(arch.getAllFeatures()).isNotEmpty() }) {
                 a {
                     css {
                         display = Display.inlineBlock
@@ -109,7 +107,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         padding = Padding(0.1.rem, 0.5.rem)
                         color = StyleAttr.Main.Processor.TabFgColor.get()
 
-                        if (currRegFileIndex == regFileList.indexOf(regFile)) {
+                        if (currRegFileIndex == allRegFiles.indexOf(regFile)) {
                             backgroundColor = important(StyleAttr.Main.Processor.TableBgColor.get())
                             boxShadow = important(BoxShadow(0.px, 0.px, 0.px, Color("#FFF")))
                             padding = important(Padding(0.2.rem, 0.5.rem))
@@ -121,7 +119,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     +regFile.name
                     onClick = {
-                        setCurrRegFileIndex(regFileList.indexOf(regFile))
+                        setCurrRegFileIndex(allRegFiles.indexOf(regFile))
                     }
                 }
             }
@@ -160,7 +158,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             tabIndex = 0
 
             table {
-                val registerArray = arch.getRegContainer().getRegFileList()[currRegFileIndex]
+                val registerArray = arch.getAllRegFiles()[currRegFileIndex]
                 thead {
                     tr {
 
@@ -205,12 +203,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         if (registerArray.hasPrivileges) {
                             th {
                                 className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                +"Privilege"
+                                +"Priv"
                             }
                         }
                         th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            +"Calle"
+                            +"CC"
                         }
                         th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
@@ -224,26 +222,32 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 tbody {
                     ref = bodyRef
 
+
                     val measuredRegTypeChange = measureTime {
-                        registerArray.let {
-                            for (reg in it.getRegisters(props.archState.component1().getAllFeatures())) {
-                                val regID = it.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+                        registerArray.let { regFile ->
+                            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
+                                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
 
                                 tr {
-
                                     td {
-                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                        css{
+                                            textAlign = TextAlign.left
+                                            paddingLeft = StyleAttr.paddingSize
+                                        }
                                         +reg.names.joinToString("\\") { it }
                                     }
                                     td {
-                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                        css{
+                                            textAlign = TextAlign.left
+                                            paddingLeft = StyleAttr.paddingSize
+                                        }
                                         +reg.aliases.joinToString("\\") { it }
                                     }
                                     td {
                                         className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
 
                                         input {
-                                            id = "reg0${regID}"
+                                            id = "reg0${regFile.name}${regID}"
                                             readOnly = false
                                             setTimeout({
                                                 when (currRegType) {
@@ -355,7 +359,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                             } else {
                                                 +"-"
                                             }
-
                                         }
                                     }
                                     td {
@@ -378,21 +381,63 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
+    useEffect(currRegFileIndex){
+        if (DebugTools.REACT_showUpdateInfo) {
+            console.log("(update) RegisterView")
+        }
+        val registers = if (currRegFileIndex < allRegFiles.size) {
+            allRegFiles[currRegFileIndex]
+        } else {
+            setCurrRegFileIndex(0)
+            allRegFiles[0]
+        }
+        registers.let { regFile ->
+            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
+                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+                try {
+                    val regRef = document.getElementById("reg0${regFile.name}$regID") as HTMLInputElement?
+                    regRef?.value = when (currRegType) {
+                        Hex -> {
+                            reg.variable.get().toHex().getRawHexStr()
+                        }
+
+                        Bin -> {
+                            reg.variable.get().toBin().getRawBinaryStr()
+                        }
+
+                        Dec -> {
+                            reg.variable.get().toDec().getRawDecStr()
+                        }
+
+                        UDec -> {
+                            reg.variable.get().toUDec().getRawUDecStr()
+                        }
+                    }
+                } catch (e: NumberFormatException) {
+                    console.warn("RegisterView useEffect(currRegType): NumberFormatException")
+                }
+            }
+        }
+        pcRef.current?.let {
+            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+        }
+    }
+
     useEffect(currRegType) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) RegisterView")
         }
-        val registers = if (currRegFileIndex < arch.getRegContainer().getRegFileList().size) {
-            arch.getRegContainer().getRegFileList()[currRegFileIndex]
+        val registers = if (currRegFileIndex <allRegFiles.size) {
+            allRegFiles[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
-            arch.getRegContainer().getRegFileList()[0]
+            allRegFiles[0]
         }
-        registers.let {
-            for (reg in it.getRegisters(props.archState.component1().getAllFeatures())) {
-                val regID = it.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+        registers.let { regFile ->
+            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
+                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
                 try {
-                    val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
+                    val regRef = document.getElementById("reg0${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = when (currRegType) {
                         Hex -> {
                             reg.variable.get().toHex().getRawHexStr()
@@ -424,17 +469,17 @@ val RegisterView = FC<RegisterViewProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Exe Event!")
         }
-        val registers = if (currRegFileIndex < arch.getRegContainer().getRegFileList().size) {
-            arch.getRegContainer().getRegFileList()[currRegFileIndex]
+        val registers = if (currRegFileIndex < allRegFiles.size) {
+            allRegFiles[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
-            arch.getRegContainer().getRegFileList()[0]
+            allRegFiles[0]
         }
-        registers.let {
-            for (reg in it.getRegisters(props.archState.component1().getAllFeatures())) {
-                val regID = it.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+        registers.let { regFile ->
+            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
+                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
                 try {
-                    val regRef = document.getElementById("reg0$regID") as HTMLInputElement?
+                    val regRef = document.getElementById("reg0${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = when (currRegType) {
                         Hex -> {
                             reg.variable.get().toHex().getRawHexStr()

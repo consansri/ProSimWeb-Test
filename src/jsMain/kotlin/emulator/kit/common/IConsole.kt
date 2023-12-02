@@ -32,6 +32,10 @@ class IConsole(val name: String) {
         messageArray.add(Message(MSGType.INFO, "execute: $message"))
     }
 
+    fun missingFeature(message: String){
+        messageArray.add(Message(MSGType.WARNING, "feature missing: $message"))
+    }
+
     fun clear() {
         messageArray.clear()
     }

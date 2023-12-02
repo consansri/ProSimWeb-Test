@@ -229,26 +229,6 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
 
     override fun exeReset() {
         super.exeReset()
-        // Reset MISA
-        val MXLMISA = when (RV64.XLEN) {
-            Variable.Size.Bit32() -> {
-                "01"
-            }
-
-            Variable.Size.Bit64() -> {
-                "10"
-            }
-
-            Variable.Size.Bit128() -> {
-                "11"
-            }
-
-            else -> {
-                "00"
-            }
-        }
-        val MXLMISAExtensions = getAllFeatures().reversed().joinToString("") { if (it.isActive()) "1" else "0" }
-        this.getRegByName("misa")?.set(Variable.Value.Bin("$MXLMISA${"0".repeat(RV64.XLEN.bitWidth - 28)}${MXLMISAExtensions}", RV64.XLEN))
     }
 
     override fun getPreHighlighting(text: String): String {

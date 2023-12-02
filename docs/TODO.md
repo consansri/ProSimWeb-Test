@@ -3,7 +3,7 @@
 - Value add exponential Numbers
 - Value string escape sequence ("\"" = ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
-- RV64 ADD Control and Status Register
+- RV64 ADD Control and Status Register (Fix Instruction Issue not executing the right way) 
 - split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
 - 
 

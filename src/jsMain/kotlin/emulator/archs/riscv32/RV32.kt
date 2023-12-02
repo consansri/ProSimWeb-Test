@@ -42,6 +42,7 @@ object RV32 {
     val REG_ADDRESS_SIZE = Variable.Size.Bit5()
     val MEM_VALUE_WIDTH = Variable.Size.Bit8()
     val MEM_ADDRESS_WIDTH = Variable.Size.Bit32()
+    const val MAIN_REGFILE_NAME = "common"
 
     enum class TS_COMPILED_HEADERS {
         Address,
@@ -187,7 +188,7 @@ object RV32 {
         RegContainer(
             listOf(
                 RegContainer.RegisterFile(
-                    "main", arrayOf(
+                    MAIN_REGFILE_NAME, arrayOf(
                         RegContainer.Register(Variable.Value.UDec("0", REG_ADDRESS_SIZE), listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), description = "hardwired zero", hardwire = true),
                         RegContainer.Register(Variable.Value.UDec("1", REG_ADDRESS_SIZE), listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), RegContainer.CallingConvention.CALLER,"return address"),
                         RegContainer.Register(Variable.Value.UDec("2", REG_ADDRESS_SIZE), listOf("x2"), listOf("sp"), Variable(REG_INIT, REG_VALUE_SIZE), RegContainer.CallingConvention.CALLEE,"stack pointer"),
@@ -223,7 +224,8 @@ object RV32 {
                     )
                 )
             ),
-            pcSize = Variable.Size.Bit32()
+            pcSize = Variable.Size.Bit32(),
+            standardRegFileName = MAIN_REGFILE_NAME
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
         Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name })

@@ -53,12 +53,12 @@ class Compiler(
     fun setCode(code: String, shouldHighlight: Boolean): Boolean {
         initCode(code)
 
-        architecture.getConsole().compilerInfo("building ...")
+        architecture.getConsole().clear()
         val parseTime = measureTime {
             analyze()
             parse()
         }
-        architecture.getConsole().compilerInfo("build\ttook ${parseTime.inWholeMicroseconds}µs\t(${if (isBuildable) "success" else "has errors"})")
+        architecture.getConsole().compilerInfo("build    \ttook ${parseTime.inWholeMicroseconds}µs\t(${if (isBuildable) "success" else "has errors"})")
 
         if (shouldHighlight) {
             val hlTime = measureTime {
@@ -160,7 +160,7 @@ class Compiler(
 
                     val regRes = regexCollection.alphaNumeric.find(remainingLine)
                     if (regRes != null) {
-                        val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
+                        val reg = architecture.getRegContainer().getAllRegs(architecture.getAllFeatures()).firstOrNull { reg -> reg.names.contains(regRes.value) || reg.aliases.contains(regRes.value) }
                         if (reg != null) {
                             tokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
                             tempTokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
@@ -210,9 +210,7 @@ class Compiler(
     private fun parse() {
         architecture.getTranscript().clear()
         syntax.clear()
-        architecture.getConsole().clear()
-        architecture.getConsole().compilerInfo("building... ")
-        syntaxTree = syntax.check(this, tokenLines, architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() }, architecture.getTranscript())
+        syntaxTree = syntax.check(architecture, this, tokenLines, architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() }, architecture.getTranscript())
 
         syntaxTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
@@ -511,15 +509,6 @@ class Compiler(
     }
 
     fun getGrammarTree(): Syntax.SyntaxTree? = syntaxTree
-
-    fun logTip(message: String, lineID: Int = -1) {
-        if (lineID != -1) {
-            architecture.getConsole().log("--Compiler-Tip: $message")
-        } else {
-            architecture.getConsole().log("--Compiler-Tip: line ${lineID + 1} -> $message")
-        }
-
-    }
 
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 

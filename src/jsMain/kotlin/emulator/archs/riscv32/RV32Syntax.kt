@@ -27,7 +27,7 @@ class RV32Syntax() : Syntax() {
 
     }
 
-    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: Architecture, compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
 
         /**
          *  -------------------------------------------------------------- GLOBAL LISTS --------------------------------------------------------------

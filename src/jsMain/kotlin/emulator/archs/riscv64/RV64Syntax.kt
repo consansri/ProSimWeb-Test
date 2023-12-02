@@ -6,13 +6,13 @@ import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.FileHandler
-import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel.*
 import emulator.archs.riscv64.RV64BinMapper.OpCode
+import emulator.kit.optional.Feature
 
 class RV64Syntax : Syntax() {
 
@@ -22,7 +22,7 @@ class RV64Syntax : Syntax() {
 
     }
 
-    override fun check(compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: Architecture, compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
 
         /**
          *  -------------------------------------------------------------- GLOBAL LISTS --------------------------------------------------------------
@@ -551,7 +551,18 @@ class RV64Syntax : Syntax() {
                         val validTypes = mutableListOf<R_INSTR.InstrType>()
                         for (type in R_INSTR.InstrType.entries) {
                             if (type.id.uppercase() == token.content.uppercase()) {
-                                validTypes.add(type)
+                                val missingFeatures = mutableListOf<Feature>()
+                                for (neededFeatureID in type.needFeatures) {
+                                    val feature = arch.getAllFeatures().firstOrNull { it.id == neededFeatureID }
+                                    if (feature != null && !feature.isActive()) {
+                                        missingFeatures.add(feature)
+                                    }
+                                }
+                                if (missingFeatures.isEmpty()) {
+                                    validTypes.add(type)
+                                } else {
+                                    arch.getConsole().missingFeature("$type can only be used with ${missingFeatures.joinToString(", ") { it.name }} active!")
+                                }
                             }
                         }
                         if (validTypes.isNotEmpty()) {
@@ -594,12 +605,7 @@ class RV64Syntax : Syntax() {
 
                     // REGISTER
                     if (firstToken is Compiler.Token.Register) {
-                        if (firstToken.reg is CSRegister) {
-                            parameterList.add(E_PARAM.CSRegister(firstToken))
-                        } else {
-                            parameterList.add(E_PARAM.Register(firstToken))
-                        }
-
+                        parameterList.add(E_PARAM.Register(firstToken))
                         paramBuffer.remove(firstToken)
                         continue
                     }
@@ -889,7 +895,7 @@ class RV64Syntax : Syntax() {
                 }
 
                 // check params
-                val checkedType = eInstrName.check(eParamcoll)
+                val checkedType = eInstrName.check(arch, eParamcoll)
                 if (checkedType != null) {
                     rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
                     startIsDefined = true
@@ -918,7 +924,7 @@ class RV64Syntax : Syntax() {
                 val eInstrName = result.matchingTreeNodes[0] as E_INSTRNAME
 
                 // check params
-                val checkedType = eInstrName.check()
+                val checkedType = eInstrName.check(arch)
                 if (checkedType != null) {
                     rowNode = R_INSTR(eInstrName, null, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
                     startIsDefined = true
@@ -1229,12 +1235,21 @@ class RV64Syntax : Syntax() {
                     R_INSTR.ParamType.PS_RD_LI_I28Unsigned, R_INSTR.ParamType.PS_RD_LI_I32Signed, R_INSTR.ParamType.PS_RD_LI_I40Unsigned, R_INSTR.ParamType.PS_RD_LI_I52Unsigned, R_INSTR.ParamType.PS_RD_LI_I64 -> {
                         val value = paramcoll.getValues(immMax)[1]
                         if (value.isSigned() == instrType.paramType.immSigned || instrType.paramType.immSigned == null) {
-                            console.log("checking if $value matches ${instrType.name}? ${value.checkResult.valid} ${value.checkResult.message} ${value.checkResult.corrected}")
                             value.checkResult
                         } else {
-                            console.log("checking if $value matches ${instrType.name}? false")
                             Variable.CheckResult(false, "", "Is signed but shouldn't be signed for this type!")
                         }
+                    }
+
+                    R_INSTR.ParamType.CSR_RD_OFF12_RS1 -> {
+                        val value = paramcoll.getValues(Bit12())[1]
+                        value.checkResult
+                    }
+
+                    R_INSTR.ParamType.CSR_RD_OFF12_UIMM5 -> {
+                        val csrCheck = paramcoll.getValues(Bit12())[1].checkResult
+                        val uimm5Check = paramcoll.getValues(immMax)[2].checkResult
+                        Variable.CheckResult(csrCheck.valid && uimm5Check.valid, "", "${csrCheck.message} | ${uimm5Check.message}")
                     }
 
                     else -> null
@@ -1246,7 +1261,7 @@ class RV64Syntax : Syntax() {
             }
         }
 
-        fun check(paramcoll: E_PARAMCOLL = E_PARAMCOLL()): R_INSTR.InstrType? {
+        fun check(arch: Architecture, paramcoll: E_PARAMCOLL = E_PARAMCOLL()): R_INSTR.InstrType? {
             val params = paramcoll.paramsWithOutSplitSymbols
             var type: R_INSTR.InstrType
             types.forEach {
@@ -1362,6 +1377,25 @@ class RV64Syntax : Syntax() {
                     R_INSTR.ParamType.NONE -> {
                         matches = params.isEmpty()
                     }
+
+                    R_INSTR.ParamType.CSR_RD_OFF12_RS1 -> matches = if (params.size == 3) {
+                        val first = params[0]
+                        val second = params[1]
+                        val third = params[2]
+
+                        first is E_PARAM.Register && (second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV64.CSR_REGFILE_NAME) != null) && third is E_PARAM.Register
+                    } else {
+                        false
+                    }
+
+                    R_INSTR.ParamType.CSR_RD_OFF12_UIMM5 -> matches = if (params.size == 3) {
+                        val first = params[0]
+                        val second = params[1]
+                        val third = params[2]
+                        first is E_PARAM.Register && (second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV64.CSR_REGFILE_NAME) != null) && third is E_PARAM.Constant
+                    } else {
+                        false
+                    }
                 }
 
                 if (matches) {
@@ -1398,7 +1432,7 @@ class RV64Syntax : Syntax() {
             paramsWithOutSplitSymbols.forEach {
                 when (it) {
                     is E_PARAM.Constant -> {
-                        var value = it.getValue(immSize)
+                        val value = it.getValue(immSize)
                         values.add(value)
                     }
 
@@ -1493,12 +1527,6 @@ class RV64Syntax : Syntax() {
         class Register(val register: Compiler.Token.Register) : E_PARAM(REFS.REF_E_PARAM_REGISTER, RV64Flags.register, register) {
             fun getAddress(): Bin {
                 return register.reg.address.toBin()
-            }
-        }
-
-        class CSRegister(val csregister: Compiler.Token.Register) : E_PARAM(REFS.REF_E_PARAM_REGISTER, RV64Flags.register, csregister) {
-            fun getAddress(): Bin {
-                return csregister.reg.address.toBin()
             }
         }
 
@@ -1701,6 +1729,36 @@ class RV64Syntax : Syntax() {
                     }
                 }
             }, // rs1, rs2, imm
+            CSR_RD_OFF12_RS1(false, "rd, csr12, rs1") {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
+                    val rd = paramMap.get(RD)
+                    val csr = paramMap.get(CSR)
+                    val rs1 = paramMap.get(RS1)
+                    return if (rd != null && csr != null && rs1 != null) {
+                        paramMap.remove(RD)
+                        paramMap.remove(CSR)
+                        paramMap.remove(RS1)
+                        "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
+                    } else {
+                        "param missing"
+                    }
+                }
+            },
+            CSR_RD_OFF12_UIMM5(false, "rd, offset, uimm5", Bit5()) {
+                override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
+                    val rd = paramMap.get(RD)
+                    val csr = paramMap.get(CSR)
+                    return if (rd != null && csr != null) {
+                        console.log(paramMap.values.joinToString { it.getBinaryStr() })
+                        paramMap.remove(RD)
+                        paramMap.remove(CSR)
+                        val immString = if (labelName.isEmpty()) paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toBin().toString() } else labelName
+                        "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr)?.aliases?.first()},\t$immString"
+                    } else {
+                        "param missing"
+                    }
+                }
+            },
 
             // PSEUDO INSTRUCTIONS
             PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel"),
@@ -1723,7 +1781,7 @@ class RV64Syntax : Syntax() {
             }
         }
 
-        enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null) {
+        enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null, val needFeatures: List<Int> = emptyList()) {
             LUI("LUI", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 0110111", arrayOf(IMM20, RD, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
                     super.execute(arch, paramMap) // only for console information
@@ -2676,6 +2734,151 @@ class RV64Syntax : Syntax() {
                     }
                 }
             },
+
+            // CSR
+            CSRRW("CSRRW", false, ParamType.CSR_RD_OFF12_RS1, OpCode("000000000000 00000 001 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val csrAddr = paramMap.get(CSR)
+                    if (rdAddr != null && rs1Addr != null && csrAddr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && csr != null) {
+                            if (rd.address.toHex().getRawHexStr() != "00000") {
+                                val t = csr.get().toBin().getUResized(RV64.XLEN)
+                                rd.set(t)
+                            }
+
+                            csr.set(rs1.get())
+
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            CSRRS("CSRRS", false, ParamType.CSR_RD_OFF12_RS1, OpCode("000000000000 00000 010 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val csrAddr = paramMap.get(CSR)
+                    if (rdAddr != null && rs1Addr != null && csrAddr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && csr != null) {
+                            if (rd.address.toHex().getRawHexStr() != "00000") {
+                                val t = csr.get().toBin().getUResized(RV64.XLEN)
+                                rd.set(t)
+                            }
+
+                            csr.set(rs1.get().toBin() or csr.get().toBin())
+
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            CSRRC("CSRRC", false, ParamType.CSR_RD_OFF12_RS1, OpCode("000000000000 00000 011 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val csrAddr = paramMap.get(CSR)
+                    if (rdAddr != null && rs1Addr != null && csrAddr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && csr != null) {
+                            if (rd.address.toHex().getRawHexStr() != "00000") {
+                                val t = csr.get().toBin().getUResized(RV64.XLEN)
+                                rd.set(t)
+                            }
+
+                            csr.set(csr.get().toBin() and rs1.get().toBin().inv())
+
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            CSRRWI("CSRRWI", false, ParamType.CSR_RD_OFF12_UIMM5, OpCode("000000000000 00000 101 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val uimm5 = paramMap.get(UIMM5)
+                    val csrAddr = paramMap.get(CSR)
+                    if (rdAddr != null && uimm5 != null && csrAddr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && csr != null) {
+                            if (rd.address.toHex().getRawHexStr() != "00000") {
+                                val t = csr.get().toBin().getUResized(RV64.XLEN)
+                                rd.set(t)
+                            }
+
+                            csr.set(uimm5.getUResized(RV64.XLEN))
+
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            CSRRSI("CSRRSI", false, ParamType.CSR_RD_OFF12_UIMM5, OpCode("000000000000 00000 110 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val uimm5 = paramMap.get(UIMM5)
+                    val csrAddr = paramMap.get(CSR)
+                    if (rdAddr != null && uimm5 != null && csrAddr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && csr != null) {
+                            if (rd.address.toHex().getRawHexStr() != "00000") {
+                                val t = csr.get().toBin().getUResized(RV64.XLEN)
+                                rd.set(t)
+                            }
+
+                            csr.set(csr.get().toBin() or uimm5.getUResized(RV64.XLEN))
+
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            CSRRCI("CSRRCI", false, ParamType.CSR_RD_OFF12_UIMM5, OpCode("000000000000 00000 111 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val uimm5 = paramMap.get(UIMM5)
+                    val csrAddr = paramMap.get(CSR)
+                    if (rdAddr != null && uimm5 != null && csrAddr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && csr != null) {
+                            if (rd.address.toHex().getRawHexStr() != "00000") {
+                                val t = csr.get().toBin().getUResized(RV64.XLEN)
+                                rd.set(t)
+                            }
+
+                            csr.set(csr.get().toBin() and uimm5.getUResized(RV64.XLEN).inv())
+
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+
+            // Pseudo
             Nop("NOP", true, ParamType.PS_NONE),
             Mv("MV", true, ParamType.PS_RD_RS1),
             Li28Unsigned("LI", true, ParamType.PS_RD_LI_I28Unsigned, memWords = 2),

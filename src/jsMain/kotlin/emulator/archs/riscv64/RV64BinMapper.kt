@@ -163,6 +163,27 @@ class RV64BinMapper {
                     }
                 }
 
+
+                CSRRW, CSRRS, CSRRC -> {
+                    binValues?.let {
+                        val csrAddr = binValues[1].getUResized(Bit12())
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.CSR to csrAddr, MaskLabel.RS1 to binValues[2]))
+                        opCode?.let {
+                            binArray.add(opCode)
+                        }
+                    }
+                }
+                CSRRWI, CSRRSI, CSRRCI -> {
+                    binValues?.let {
+                        val csrAddr = binValues[1].getUResized(Bit12())
+                        val uimm5 = binValues[2].getUResized(Bit5())
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.CSR to csrAddr, MaskLabel.UIMM5 to uimm5))
+                        opCode?.let {
+                            binArray.add(opCode)
+                        }
+                    }
+                }
+
                 Li28Unsigned -> {
                     /**
                      * split into 4 bit
@@ -186,8 +207,8 @@ class RV64BinMapper {
                         val lui16_imm20 = Bin(lui16, Bit16()).getUResized(Bit20())
                         val ori12first_imm = Bin(ori12first, Bit12())
 
-                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
-                        val oriOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                        val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
 
                         if (luiOpCode != null && oriOpCode != null) {
                             binArray.add(luiOpCode)
@@ -211,8 +232,8 @@ class RV64BinMapper {
                         val imm12 = Bin(low12, Bit12())
                         val imm20 = Bin(hi20, Bit20())
 
-                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
-                        val oriOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
+                        val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
+                        val oriOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
 
                         if (luiOpCode != null && oriOpCode != null) {
                             binArray.add(luiOpCode)
@@ -246,12 +267,12 @@ class RV64BinMapper {
                         val ori12first_imm = Bin(ori12first, Bit12())
                         val ori12sec_imm = Bin(ori12sec, Bit12())
 
-                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
-                        val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
-                        val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+                        val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriFirstOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                        val oriSecOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
 
 
-                        val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+                        val slli12Bit = SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
 
                         if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null) {
                             binArray.add(luiOpCode)
@@ -290,13 +311,13 @@ class RV64BinMapper {
                         val ori12sec_imm = Bin(ori12sec, Bit12())
                         val ori12third_imm = Bin(ori12third, Bit12())
 
-                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
-                        val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
-                        val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
-                        val oriThirdOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
+                        val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriFirstOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                        val oriSecOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+                        val oriThirdOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
 
 
-                        val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+                        val slli12Bit = SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
 
                         if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null && oriThirdOpCode != null) {
                             binArray.add(luiOpCode)
@@ -338,14 +359,14 @@ class RV64BinMapper {
                         val ori12third_imm = Bin(ori12third, Bit12())
                         val ori12fourth_imm = Bin(ori12fourth, Bit12())
 
-                        val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
-                        val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
-                        val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
-                        val oriThirdOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
-                        val oriFourthOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12fourth_imm))
+                        val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                        val oriFirstOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                        val oriSecOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+                        val oriThirdOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
+                        val oriFourthOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12fourth_imm))
 
 
-                        val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+                        val slli12Bit = SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
 
                         if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null && oriThirdOpCode != null && oriFourthOpCode != null) {
                             binArray.add(luiOpCode)
@@ -382,14 +403,14 @@ class RV64BinMapper {
                             val ori12third_imm = Bin(ori12third, Bit12())
                             val ori12fourth_imm = Bin(ori12fourth, Bit12())
 
-                            val luiOpCode = RV64Syntax.R_INSTR.InstrType.LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
-                            val oriFirstOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
-                            val oriSecOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
-                            val oriThirdOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
-                            val oriFourthOpCode = RV64Syntax.R_INSTR.InstrType.ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12fourth_imm))
+                            val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to lui16_imm20))
+                            val oriFirstOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12first_imm))
+                            val oriSecOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12sec_imm))
+                            val oriThirdOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12third_imm))
+                            val oriFourthOpCode = ORI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to ori12fourth_imm))
 
 
-                            val slli12Bit = RV64Syntax.R_INSTR.InstrType.SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
+                            val slli12Bit = SLLI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.SHAMT6 to Bin("001100", Bit6())))
 
                             if (luiOpCode != null && oriFirstOpCode != null && slli12Bit != null && oriSecOpCode != null && oriThirdOpCode != null && oriFourthOpCode != null) {
                                 binArray.add(luiOpCode)
@@ -872,7 +893,6 @@ class RV64BinMapper {
                     }
                 }
 
-
             }
         } catch (e: IndexOutOfBoundsException) {
             console.error("IndexOutOfBoundsException: $e")
@@ -1015,9 +1035,11 @@ class RV64BinMapper {
         FUNCT3(true, Bit3()),
         RS1(false, Bit5()),
         RS2(false, Bit5()),
+        CSR(false, Bit12()),
         SHAMT6(false, Bit6()),
         FUNCT6(true, Bit6()),
         FUNCT7(true, Bit7()),
+        UIMM5(false, Bit5()),
         IMM5(false, Bit5()),
         IMM7(false, Bit7()),
         IMM12(false, Bit12()),

@@ -6,6 +6,8 @@ import emulator.kit.assembly.Syntax
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.*
 import debug.DebugTools
+import react.useRef
+import web.timers.Timeout
 
 /**
  * [FileHandler] loads and saves [File]s to memory and holds undo/redo states.
@@ -114,24 +116,25 @@ class FileHandler(val fileEnding: String) {
                 val filecontent = localStorage.getItem("$fileID" + StorageKey.FILE_CONTENT)
                 val fileUndoLength = localStorage.getItem("$fileID" + StorageKey.FILE_UNDO_LENGTH)?.toIntOrNull() ?: 1
                 val fileRedoLength = localStorage.getItem("$fileID" + StorageKey.FILE_REDO_LENGTH)?.toIntOrNull() ?: 0
-                val fileUndoStates = mutableListOf<String>("")
+                val fileUndoStates = mutableListOf<String>()
                 val fileRedoStates = mutableListOf<String>()
+
                 for (undoID in 0 until fileUndoLength) {
                     fileUndoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$undoID") ?: "")
                 }
                 for (redoID in 0 until fileRedoLength) {
                     fileRedoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$redoID") ?: "")
                 }
-
+                console.log("Loaded: $fileUndoLength -> ${fileUndoStates.size}, $fileRedoLength -> ${fileRedoStates.size}")
                 if (filename != null && filecontent != null) {
                     if (DebugTools.KIT_showFileHandlerInfo) {
-                        console.log("found file: $filename $filecontent")
+                        console.log("found file: $filename $filecontent ${fileUndoStates.size} ${fileRedoStates.size}")
                     }
-                    files.add(File(filename, filecontent, fileUndoStates, fileRedoStates))
+                    files.add(File(filename, filecontent, undoStates =  fileUndoStates, redoStates =  fileRedoStates))
                 }
             }
         } else {
-            files.add(File("main.$fileEnding", ""))
+            files.add(File("main.$fileEnding", "", undoStates =  mutableListOf(), redoStates =  mutableListOf()))
         }
         setCurrent(localStorage.getItem(StorageKey.FILE_CURR)?.toIntOrNull() ?: 0)
         if (DebugTools.KIT_showFileHandlerInfo) {
@@ -149,6 +152,7 @@ class FileHandler(val fileEnding: String) {
                 localStorage.setItem("$fileID" + StorageKey.FILE_CONTENT, file.getContent())
                 localStorage.setItem("$fileID" + StorageKey.FILE_UNDO_LENGTH, file.getUndoStates().size.toString())
                 localStorage.setItem("$fileID" + StorageKey.FILE_REDO_LENGTH, file.getRedoStates().size.toString())
+                console.log("Set: ${file.getUndoStates().size}, ${file.getRedoStates().size}")
                 file.getUndoStates().forEach {
                     val undoID = file.getUndoStates().indexOf(it)
                     localStorage.setItem("${fileID}${StorageKey.FILE_UNDO}-$undoID", it)
@@ -176,10 +180,13 @@ class FileHandler(val fileEnding: String) {
         }
     }
 
-    data class File(private var name: String, private var content: String, private val hlLines: MutableList<String> = mutableListOf(), private val undoStates: MutableList<String> = mutableListOf(), private val redoStates: MutableList<String> = mutableListOf()) {
-
-        var job: Job? = null
+    data class File(private var name: String, private var content: String, private val undoStates: MutableList<String> = mutableListOf(), private val redoStates: MutableList<String> = mutableListOf()) {
+        var timeout: Timeout? = null
         var syntaxTree: Syntax.SyntaxTree? = null
+
+        init {
+            console.log("File: \n\t${undoStates.size}\n\t${redoStates.size}")
+        }
 
         fun rename(newName: String) {
             name = newName
@@ -191,6 +198,7 @@ class FileHandler(val fileEnding: String) {
 
         fun setContent(fileHandler: FileHandler, content: String) {
             this.addUndoState(fileHandler, content)
+            this.redoStates.clear()
             this.content = content
         }
 
@@ -237,24 +245,23 @@ class FileHandler(val fileEnding: String) {
         }
 
         private fun addUndoState(fileHandler: FileHandler, content: String) {
-            if (content != undoStates.firstOrNull()) {
-                job?.cancel()
-                job = GlobalScope.launch {
-                    try {
-                        delay(Settings.UNDO_DELAY_MILLIS)
-                        undoStates.add(0, content)
-                        if (undoStates.size > Settings.UNDO_STATE_COUNT) {
-                            undoStates.removeLast()
-                        }
-                        fileHandler.refreshLocalStorage(true)
-
-                    } catch (e: CancellationException) {
-
-                    } finally {
-
-                    }
-                }
+            timeout?.let {
+                web.timers.clearTimeout(it)
             }
+            timeout = web.timers.setTimeout({
+                try {
+                    undoStates.add(0, content)
+                    if (undoStates.size > Settings.UNDO_STATE_COUNT) {
+                        undoStates.removeLast()
+                    }
+                    fileHandler.refreshLocalStorage(true)
+
+                } catch (e: CancellationException) {
+
+                } finally {
+
+                }
+            }, Settings.UNDO_DELAY_MILLIS)
         }
 
     }

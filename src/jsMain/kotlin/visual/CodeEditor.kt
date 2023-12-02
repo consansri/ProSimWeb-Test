@@ -56,7 +56,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- REACT STATES ----------------- */
 
-    val arch = props.archState.component1()
+    val (state, setState) = useState(props.archState.component1().getState().state)
 
     val (currExeLine, setCurrExeLine) = useState(-1)
     val (exeFile, setExeFile) = useState<FileHandler.File>()
@@ -79,7 +79,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
 
     /* ----------------- SUGAR ----------------- */
-
 
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
@@ -112,7 +111,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun updateTsButton() {
-        if (arch.getState().state == ArchState.State.EXECUTABLE || arch.getState().state == ArchState.State.EXECUTION) {
+        if (props.archState.component1().getState().state == ArchState.State.EXECUTABLE || props.archState.component1().getState().state == ArchState.State.EXECUTION) {
             btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             setTSActive(true)
         } else {
@@ -132,14 +131,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun updateUndoRedoButton() {
-        if (arch.getFileHandler().getCurrUndoLength() > 1) {
+        if (props.archState.component1().getFileHandler().getCurrUndoLength() > 1) {
             btnUndoRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             setUndoActive(true)
         } else {
             setUndoActive(false)
             btnUndoRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
         }
-        if (arch.getFileHandler().getCurrRedoLength() > 0) {
+        if (props.archState.component1().getFileHandler().getCurrRedoLength() > 0) {
             setRedoActive(true)
             btnRedoRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
         } else {
@@ -151,16 +150,20 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- ASYNC Events ----------------- */
 
     fun checkCode(immediate: Boolean) {
-        val valueToCheck = arch.getFileHandler().getCurrContent()
+        val valueToCheck = props.archState.component1().getFileHandler().getCurrContent()
         val delay = 1000
 
         if (immediate) {
-
             /* ----------------- COROUTINES ----------------- */
-            GlobalScope.launch {
-                setvc_rows(arch.check(valueToCheck, currExeLine).split("\n"))
-                props.compileEventState.component2().invoke(!props.compileEventState.component1())
+            checkTimeOutRef.current?.let {
+                clearTimeout(it)
             }
+            checkTimeOutRef.current = setTimeout({
+                props.archState.component1().getState().edit()
+                setvc_rows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
+                props.compileEventState.component2().invoke(!props.compileEventState.component1())
+                setState(props.archState.component1().getState().state)
+            }, 0)
 
         } else {
             val size = valueToCheck.split("\n").size
@@ -169,8 +172,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     clearTimeout(it)
                 }
                 checkTimeOutRef.current = setTimeout({
-                    setvc_rows(arch.check(valueToCheck, currExeLine).split("\n"))
+                    props.archState.component1().getState().edit()
+                    setvc_rows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
+                    setState(props.archState.component1().getState().state)
                 }, delay)
             }
         }
@@ -178,26 +183,25 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun preHighlight() {
-        val value = arch.getFileHandler().getCurrContent()
+        val value = props.archState.component1().getFileHandler().getCurrContent()
         setvc_rows(value.split("\n"))
         preHLTimeoutRef.current?.let {
             clearTimeout(it)
         }
         setvc_rows(value.split("\n"))
         preHLTimeoutRef.current = setTimeout({
-            val hlTaList = arch.getPreHighlighting(value).split("\n")
+            val hlTaList = props.archState.component1().getPreHighlighting(value).split("\n")
             setvc_rows(hlTaList)
         }, 1000)
     }
 
     /* ----------------- CHANGE EVENTS ----------------- */
     fun edit(content: String, immediate: Boolean) {
-        arch.getState().edit()
+        props.archState.component1().getState().edit()
 
-
-        arch.getFileHandler().editCurr(content)
+        props.archState.component1().getFileHandler().editCurr(content)
         textareaRef.current?.let {
-            it.value = arch.getFileHandler().getCurrContent()
+            it.value = props.archState.component1().getFileHandler().getCurrContent()
         }
 
         preHighlight()
@@ -206,12 +210,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun undo() {
-        arch.getState().edit()
+        props.archState.component1().getState().edit()
 
-
-        arch.getFileHandler().undoCurr()
+        props.archState.component1().getFileHandler().undoCurr()
         textareaRef.current?.let {
-            it.value = arch.getFileHandler().getCurrContent()
+            it.value = props.archState.component1().getFileHandler().getCurrContent()
         }
 
         preHighlight()
@@ -220,12 +223,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun redo() {
-        arch.getState().edit()
+        props.archState.component1().getState().edit()
 
 
-        arch.getFileHandler().redoCurr()
+        props.archState.component1().getFileHandler().redoCurr()
         textareaRef.current?.let {
-            it.value = arch.getFileHandler().getCurrContent()
+            it.value = props.archState.component1().getFileHandler().getCurrContent()
         }
 
         preHighlight()
@@ -292,7 +295,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     cursor = Cursor.pointer
                 }
 
-                when (arch.getState().state) {
+                when (state) {
                     ArchState.State.UNCHECKED -> {
                         title = "Status: loading..."
                         img {
@@ -504,10 +507,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TABS)
 
                     for (fileID in files.indices) {
-                        val file = arch.getFileHandler().getAllFiles()[fileID]
+                        val file = props.archState.component1().getFileHandler().getAllFiles()[fileID]
                         div {
 
-                            className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB + if (file == arch.getFileHandler().getCurrent()) " ${StyleAttr.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
+                            className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB + if (file == props.archState.component1().getFileHandler().getCurrent()) " ${StyleAttr.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
 
                             img {
                                 src = if (file.getLinkedTree() != null) {
@@ -517,7 +520,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 }
                             }
 
-                            if (file == arch.getFileHandler().getCurrent()) {
+                            if (file == props.archState.component1().getFileHandler().getCurrent()) {
                                 if (!showRenameTab) {
                                     a {
                                         css {
@@ -550,7 +553,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         }
 
                                         onChange = {
-                                            val success = arch.getFileHandler().renameCurrent(it.currentTarget.value)
+                                            val success = props.archState.component1().getFileHandler().renameCurrent(it.currentTarget.value)
                                             renameinput.current?.let {
                                                 if (success) {
                                                     it.classList.add(StyleAttr.ANIM_BLINKGREEN)
@@ -580,8 +583,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     onClick = {
                                         val response = window.confirm("Do you really want to delete the file '${file.getName()}'?\nThis can't be undone!")
                                         if (response) {
-                                            arch.getFileHandler().remove(file)
-                                            edit(arch.getFileHandler().getCurrContent(), false)
+                                            props.archState.component1().getFileHandler().remove(file)
+                                            edit(props.archState.component1().getFileHandler().getCurrContent(), false)
                                             setShowAddTab(false)
                                             setTaValueUpdate(!taValueUpdate)
                                         }
@@ -597,8 +600,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     +file.getName()
 
                                     onClick = {
-                                        arch.getFileHandler().setCurrent(fileID)
-                                        edit(arch.getFileHandler().getCurrContent(), false)
+                                        props.archState.component1().getFileHandler().setCurrent(fileID)
+                                        edit(props.archState.component1().getFileHandler().getCurrContent(), false)
                                         setShowAddTab(false)
                                         setTaValueUpdate(!taValueUpdate)
                                     }
@@ -624,9 +627,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     if (event.key == "Enter") {
                                         val input = addtabinput.current
                                         input?.let {
-                                            val success = arch.getFileHandler().import(FileHandler.File(it.value, ""))
+                                            val success = props.archState.component1().getFileHandler().import(FileHandler.File(it.value, ""))
                                             if (success) {
-                                                edit(arch.getFileHandler().getCurrContent(), false)
+                                                edit(props.archState.component1().getFileHandler().getCurrContent(), false)
                                                 setTaValueUpdate(!taValueUpdate)
                                                 setShowAddTab(false)
                                             } else {
@@ -646,9 +649,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                 onClick = {
                                     val input = addtabinput.current
                                     input?.let {
-                                        val success = arch.getFileHandler().import(FileHandler.File(it.value, ""))
+                                        val success = props.archState.component1().getFileHandler().import(FileHandler.File(it.value, ""))
                                         if (success) {
-                                            edit(arch.getFileHandler().getCurrContent(), false)
+                                            edit(props.archState.component1().getFileHandler().getCurrContent(), false)
                                             setTaValueUpdate(!taValueUpdate)
                                             setShowAddTab(false)
                                         } else {
@@ -703,7 +706,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         for (lineNumber in 1..lineNumbers) {
                             span {
                                 onClick = { event ->
-                                    arch.exeUntilLine(lineNumber - 1)
+                                    props.archState.component1().exeUntilLine(lineNumber - 1)
                                     props.exeEventState.component2().invoke(!props.exeEventState.component1())
                                 }
                                 css {
@@ -733,7 +736,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             cols = 50
                             autoCapitalize = "off"
                             spellCheck = false
-                            placeholder = "Enter ${arch.getDescription().name} Assembly ..."
+                            placeholder = "Enter ${props.archState.component1().getDescription().name} Assembly ..."
 
                             onSelect = { event ->
                                 val cursorPosition = event.currentTarget.selectionStart
@@ -743,7 +746,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     val lineID = lines.size - 1
                                     val startIndex = lines[lineID].length
 
-                                    val grammarTree = arch.getAssembly().getGrammarTree()
+                                    val grammarTree = props.archState.component1().getAssembly().getGrammarTree()
                                     grammarTree?.rootNode?.let { rootNode ->
                                         var path = ""
                                         rootNode.containers.forEach {
@@ -783,7 +786,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         edit(event.currentTarget.value, false)
                                     }
                                 } else if (event.ctrlKey && event.key == "z") {
-                                    undo()
+                                    if (undoActive) {
+                                        undo()
+                                    }
                                 } else if (event.key == "Enter") {
                                     edit(event.currentTarget.value, false)
                                 } else if (event.ctrlKey && event.altKey && event.key == "l") {
@@ -861,44 +866,26 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- USEEFFECTS (Save and Reload from localStorage) ----------------- */
 
-    useEffect(arch.getFileHandler().getCurrID()) {
+    useEffect(props.archState.component1().getFileHandler().getCurrID()) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Switched File!")
         }
         /* -- LOAD from localStorage -- */
-        setFiles(arch.getFileHandler().getAllFiles())
+        setFiles(props.archState.component1().getFileHandler().getAllFiles())
         textareaRef.current?.let {
-            it.value = arch.getFileHandler().getCurrContent()
+            it.value = props.archState.component1().getFileHandler().getCurrContent()
             edit(it.value, false)
         }
     }
 
     useEffect(props.archState) {
         /* -- LOAD from localStorage -- */
-        setFiles(arch.getFileHandler().getAllFiles())
-    }
-
-    useEffect(arch.getState().state) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: Code State Changed!")
-        }
-
-        when (arch.getState().state) {
-            ArchState.State.EXECUTABLE -> {
-                if (!arch.getTranscript().deactivated()) {
-                    btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
-                }
-            }
-
-            else -> {
-                btnSwitchRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
-            }
-        }
+        setFiles(props.archState.component1().getFileHandler().getAllFiles())
     }
 
     useEffect(transcriptView) {
         textareaRef.current?.let {
-            it.value = arch.getFileHandler().getCurrContent()
+            it.value = props.archState.component1().getFileHandler().getCurrContent()
         }
         updateTAResize()
         updateClearButton()
@@ -914,7 +901,21 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     useEffect(props.compileEventState) {
         updateTsButton()
-        setFiles(arch.getFileHandler().getAllFiles())
+        setFiles(props.archState.component1().getFileHandler().getAllFiles())
+    }
+
+    useEffect(state) {
+        when (state) {
+            ArchState.State.EXECUTABLE -> {
+                if (!props.archState.component1().getTranscript().deactivated()) {
+                    btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
+                }
+            }
+
+            else -> {
+                btnSwitchRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
+            }
+        }
     }
 
     useEffect(props.exeEventState) {
@@ -922,13 +923,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             console.log("REACT: Exe Event Changed!")
         }
 
-        val lineAddressMap = arch.getAssembly().getAssemblyMap().lineAddressMap
-        val pcValue = arch.getRegContainer().pc.variable.get()
+        val lineAddressMap = props.archState.component1().getAssembly().getAssemblyMap().lineAddressMap
+        val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
         val entry = lineAddressMap.get(pcValue.toHex().getRawHexStr())
 
         if (entry != null) {
             setExeFile(entry.file)
-            if (entry.file == arch.getFileHandler().getCurrent()) {
+            if (entry.file == props.archState.component1().getFileHandler().getCurrent()) {
                 setCurrExeLine(entry.lineID + 1)
             } else {
                 setCurrExeLine(-1)
@@ -940,7 +941,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     useEffect(props.fileChangeEvent) {
-        setFiles(arch.getFileHandler().getAllFiles())
+        setFiles(props.archState.component1().getFileHandler().getAllFiles())
     }
 }
 

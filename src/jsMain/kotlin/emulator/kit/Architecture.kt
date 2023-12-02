@@ -86,9 +86,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getAssembly(): Compiler = compiler
     fun getFormattedFile(type: FileBuilder.ExportFormat, vararg settings: FileBuilder.Setting): Blob = FileBuilder().build(this, type, *settings)
     fun getAllFeatures() = features
+    fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
     fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
-    fun getRegByName(name: String): RegContainer.Register? = regContainer.getReg(name, features)
-    fun getRegByAddr(addr: Variable.Value): RegContainer.Register? = regContainer.getReg(addr, features)
+    fun getRegByName(name: String, regFile: String? = null): RegContainer.Register? = regContainer.getReg(name, features, regFile)
+    fun getRegByAddr(addr: Variable.Value, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
 
     /**
      * Execution Event: continuous

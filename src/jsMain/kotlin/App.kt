@@ -237,7 +237,19 @@ val App = FC<Props> { props ->
                             +feature.name
                         }
                         onClick = {
+                            if (feature.isActive()) {
+                                for (featToUpdate in archState.component1().getAllFeatures()) {
+                                    if (featToUpdate.enableIDs.contains(feature.id)) {
+                                        featToUpdate.deactivate()
+                                    }
+                                }
+                            } else {
+                                for (id in feature.enableIDs) {
+                                    archState.component1().getAllFeatures().firstOrNull { it.id == id }?.activate()
+                                }
+                            }
                             feature.switch()
+
                             setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
                             archState.component1().exeReset()
                         }

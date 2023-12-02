@@ -7,7 +7,7 @@ import emulator.kit.types.Variable
  * The [RegContainer] is making all [RegisterFile]s besides the [PC] accessible.
  * It contains searching functions to find a register by name or alias ([getReg]).
  */
-class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size) {
+class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size, private val standardRegFileName: String) {
 
     val pc = PC(Variable("0", pcSize), Variable.Value.Bin("0", pcSize))
 
@@ -18,25 +18,29 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         pc.set(Variable.Value.Bin("0", pcSize))
     }
 
-    fun getReg(name: String, features: List<Feature>): Register? {
+    fun getReg(name: String, features: List<Feature>, regFile: String? = null): Register? {
         for (registerFile in registerFileList) {
-            for (reg in registerFile.getRegisters(features)) {
-                if (reg.names.contains(name)) {
-                    return reg
-                }
-                if (reg.aliases.contains(name)) {
-                    return reg
+            if ((regFile == null && registerFile.name == standardRegFileName) xor (registerFile.name == regFile)) {
+                for (reg in registerFile.getRegisters(features)) {
+                    if (reg.names.contains(name)) {
+                        return reg
+                    }
+                    if (reg.aliases.contains(name)) {
+                        return reg
+                    }
                 }
             }
         }
         return null
     }
 
-    fun getReg(address: Variable.Value, features: List<Feature>): Register? {
+    fun getReg(address: Variable.Value, features: List<Feature>, regFile: String? = null): Register? {
         for (registerFile in registerFileList) {
-            for (reg in registerFile.getRegisters(features)) {
-                if (reg.address == address) {
-                    return reg
+            if ((regFile == null && registerFile.name == standardRegFileName) xor (registerFile.name == regFile)) {
+                for (reg in registerFile.getRegisters(features)) {
+                    if (reg.address == address) {
+                        return reg
+                    }
                 }
             }
         }
@@ -119,7 +123,9 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         }
     }
 
-    data class RegisterFile(val name: String, val unsortedRegisters: Array<Register>, val hasPrivileges: Boolean = false) {
+    data class RegisterFile(
+        val name: String, val unsortedRegisters: Array<Register>, val hasPrivileges: Boolean = false
+    ) {
         private val registers: Array<Register> = unsortedRegisters.sortedBy { it.address.input }.toTypedArray()
 
         override fun equals(other: Any?): Boolean {
@@ -147,8 +153,8 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
 
     enum class CallingConvention(val displayName: String) {
         UNSPECIFIED("-"),
-        CALLER("-R"),
-        CALLEE("-E")
+        CALLER("CALLER"),
+        CALLEE("CALLEE")
     }
 
 

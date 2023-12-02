@@ -14,10 +14,6 @@ class CSRegister(
     hardwire: Boolean = false
 ): RegContainer.Register(address,names, aliases,variable, needsFeatureID = neededByFeatureID, description =  description, privilegeID = privilege.name, hardwire = hardwire) {
 
-    override fun set(value: Variable.Value) {
-        super.set(value)
-    }
-
     enum class Privilege{
         URW,
         URO,
