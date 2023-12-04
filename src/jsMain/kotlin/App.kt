@@ -130,7 +130,6 @@ val App = FC<Props> { props ->
                         this.archState = archState
                         this.compileEventState = compileEventState
                         this.exeEventState = exeEventState
-
                     }
                 }
             }
@@ -319,6 +318,7 @@ val App = FC<Props> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Switch to " + archState.component1().getDescription().fullName)
         }
+        setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
     }
 
 }

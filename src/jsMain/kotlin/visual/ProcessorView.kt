@@ -246,7 +246,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.archState = props.archState
             this.compileEventState = props.compileEventState
             this.exeEventState = props.exeEventState
-
         }
     }
 

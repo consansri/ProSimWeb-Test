@@ -126,7 +126,7 @@ object StyleAttr {
 
         }
         object Processor {
-            val BorderColor = ModeColor("#915A69","#5D2A3A")
+            val BorderColor = ModeColor("#915A69","#313131")
             val BgColor = ModeColor("#313131","#313131")
             val FgColor = ModeColor("#EEEEEE", "#CCCCCC")
             val iconFilter = important(invert(100.pct))
