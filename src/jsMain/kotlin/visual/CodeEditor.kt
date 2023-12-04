@@ -335,63 +335,66 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
             }
 
-            a {
-                css {
-                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
-                    cursor = Cursor.pointer
-                }
-                id = "undo"
-                ref = btnUndoRef
-                title = "Undo"
+            if (!transcriptView) {
+                a {
+                    css {
+                        height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
+                        cursor = Cursor.pointer
+                    }
+                    id = "undo"
+                    ref = btnUndoRef
+                    title = "Undo"
 
-                img {
-                    src = StyleAttr.Icons.backwards
+                    img {
+                        src = StyleAttr.Icons.backwards
+                    }
+                    if (undoActive) {
+                        onClick = {
+                            undo()
+                        }
+                    }
                 }
-                if (undoActive) {
+
+                a {
+                    css {
+                        height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
+                        cursor = Cursor.pointer
+                    }
+                    id = "redo"
+                    ref = btnRedoRef
+                    title = "Redo"
+
+                    img {
+                        src = StyleAttr.Icons.forwards
+                    }
+                    if (redoActive) {
+                        onClick = {
+                            redo()
+                        }
+                    }
+                }
+
+                a {
+                    css {
+                        height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
+                        cursor = Cursor.pointer
+
+                        hover {
+                            filter = important(StyleAttr.iconActiveFilter)
+                        }
+                    }
+                    id = "build"
+                    title = "build"
+
+                    img {
+                        src = StyleAttr.Icons.build
+                    }
                     onClick = {
-                        undo()
+                        checkCode(true)
                     }
                 }
             }
 
-            a {
-                css {
-                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
-                    cursor = Cursor.pointer
-                }
-                id = "redo"
-                ref = btnRedoRef
-                title = "Redo"
-
-                img {
-                    src = StyleAttr.Icons.forwards
-                }
-                if (redoActive) {
-                    onClick = {
-                        redo()
-                    }
-                }
-            }
-
-            a {
-                css {
-                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
-                    cursor = Cursor.pointer
-
-                    hover {
-                        filter = important(StyleAttr.iconActiveFilter)
-                    }
-                }
-                id = "build"
-                title = "build"
-
-                img {
-                    src = StyleAttr.Icons.build
-                }
-                onClick = {
-                    checkCode(true)
-                }
-            }
 
             a {
                 css {
@@ -429,49 +432,50 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
             }
 
-            a {
-                css {
-                    height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
-                    background = important(StyleAttr.Main.DeleteColor)
-                    cursor = Cursor.pointer
-                }
-                ref = btnClearRef
-                title = "Clear"
+            if (!transcriptView) {
+                a {
+                    css {
+                        height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
+                        background = important(StyleAttr.Main.DeleteColor)
+                        cursor = Cursor.pointer
+                    }
+                    ref = btnClearRef
+                    title = "Clear"
 
-                img {
-                    src = StyleAttr.Icons.delete_black
+                    img {
+                        src = StyleAttr.Icons.delete_black
+                    }
+
+                    onClick = {
+                        edit("", false)
+                    }
                 }
 
-                onClick = {
-                    edit("", false)
+                a {
+                    ref = infoPanelRef
+                    css {
+                        cursor = Cursor.pointer
+                        position = Position.absolute
+                        bottom = 0.rem
+                        display = Display.block
+                        writingMode = WritingMode.verticalRl
+                    }
+
+                    title = "{$infoPanelText}"
+
+                    if (showInfoPanel) {
+                        +infoPanelText
+                    }
+
+                    img {
+                        src = StyleAttr.Icons.tag
+                    }
+
+                    onClick = {
+                        setShowInfoPanel(!showInfoPanel)
+                    }
                 }
             }
-
-            a {
-                ref = infoPanelRef
-                css {
-                    cursor = Cursor.pointer
-                    position = Position.absolute
-                    bottom = 0.rem
-                    display = Display.block
-                    writingMode = WritingMode.verticalRl
-                }
-
-                title = "{$infoPanelText}"
-
-                if (showInfoPanel) {
-                    +infoPanelText
-                }
-
-                img {
-                    src = StyleAttr.Icons.tag
-                }
-
-                onClick = {
-                    setShowInfoPanel(!showInfoPanel)
-                }
-            }
-
         }
 
         div {

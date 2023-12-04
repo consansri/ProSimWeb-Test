@@ -64,6 +64,9 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 li {
                     +"KIT RV64 Code examples are missing."
                 }
+                li {
+                    +"REACT Editor Undo, Redo, Build and Clear Button shouldn't be used in trancript view. Will be hidden in next version!"
+                }
             }
 
             h2 {
