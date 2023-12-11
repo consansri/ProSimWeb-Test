@@ -688,11 +688,30 @@ class RV32Syntax() : Syntax() {
                     val eLabel = result.matchingTreeNodes[0] as E_LABEL
                     val eDir = result.matchingTreeNodes[1] as E_DIRECTIVE
                     val eParamcoll = result.matchingTreeNodes[2] as E_PARAMCOLL
-                    if (eParamcoll.paramsWithOutSplitSymbols.size == 1 && eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.first() is E_PARAM.Constant) {
+                    if (eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
                         rowNode = R_ILBL(eLabel, eDir, eParamcoll)
                         rows[lineID] = rowNode
                     } else {
-                        errors.add(Syntax.Error((if (!eDir.isDataEmitting()) "Not a data emitting directive for" else "Invalid parameter count for") + " initialized label!", nodes = lineElements.toTypedArray()))
+                        errors.add(Error((if (!eDir.isDataEmitting()) "Not a data emitting directive for" else "Invalid parameters for") + " initialized label!", nodes = lineElements.toTypedArray()))
+                    }
+                    result.error?.let {
+                        errors.add(it)
+                    }
+                    elements[lineID] = mutableListOf()
+                    continue
+                }
+            }
+
+            result = RowSeqs.init.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches) {
+                if (result.matchingTreeNodes.size == 2) {
+                    val eDir = result.matchingTreeNodes[0] as E_DIRECTIVE
+                    val eParamcoll = result.matchingTreeNodes[1] as E_PARAMCOLL
+                    if (eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
+                        rowNode = R_INIT(eDir, eParamcoll)
+                        rows[lineID] = rowNode
+                    } else {
+                        errors.add(Error((if (!eDir.isDataEmitting()) "Not a data emitting directive!" else "Invalid parameters!"), nodes = lineElements.toTypedArray()))
                     }
                     result.error?.let {
                         errors.add(it)
@@ -1017,6 +1036,13 @@ class RV32Syntax() : Syntax() {
                     }
                 }
 
+                is R_INIT -> {
+                    if (sectionType == DATA || sectionType == RODATA) {
+                        sectionContent.add(firstRow)
+                        resolved = true
+                    }
+                }
+
                 is R_ULBL -> {
                     if (sectionType == BSS) {
                         sectionContent.add(firstRow)
@@ -1134,6 +1160,7 @@ class RV32Syntax() : Syntax() {
         val jlabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL))
         val ulabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL), RowSeq.Component(REFS.REF_E_DIRECTIVE))
         val ilabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL), RowSeq.Component(REFS.REF_E_DIRECTIVE), RowSeq.Component(REFS.REF_E_PARAMCOLL))
+        val init = RowSeq(RowSeq.Component(REFS.REF_E_DIRECTIVE), RowSeq.Component(REFS.REF_E_PARAMCOLL))
 
         val directive = RowSeq(RowSeq.Component(REFS.REF_E_DIRECTIVE))
 
@@ -1171,6 +1198,7 @@ class RV32Syntax() : Syntax() {
         val REF_R_INSTR = "R_instr"
         val REF_R_JLBL = "R_jlbl"
         val REF_R_ILBL = "R_ilbl"
+        val REF_R_INIT = "R_init"
         val REF_R_ULBL = "R_ulbl"
 
         val REF_S_TEXT = "S_text"
@@ -1594,6 +1622,7 @@ class RV32Syntax() : Syntax() {
     class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean, val isGlobalStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
     class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label, directive)
     class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label, directive, paramcoll)
+    class R_INIT(val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_INIT, directive, paramcoll)
     class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
         enum class ParamType(val pseudo: Boolean, val exampleString: String, val immMaxSize: Variable.Size? = null) {
             // NORMAL INSTRUCTIONS
