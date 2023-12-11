@@ -125,7 +125,7 @@ class FileHandler(val fileEnding: String) {
                 for (redoID in 0 until fileRedoLength) {
                     fileRedoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$redoID") ?: "")
                 }
-                console.log("Loaded: $fileUndoLength -> ${fileUndoStates.size}, $fileRedoLength -> ${fileRedoStates.size}")
+
                 if (filename != null && filecontent != null) {
                     if (DebugTools.KIT_showFileHandlerInfo) {
                         console.log("found file: $filename $filecontent ${fileUndoStates.size} ${fileRedoStates.size}")
@@ -152,7 +152,6 @@ class FileHandler(val fileEnding: String) {
                 localStorage.setItem("$fileID" + StorageKey.FILE_CONTENT, file.getContent())
                 localStorage.setItem("$fileID" + StorageKey.FILE_UNDO_LENGTH, file.getUndoStates().size.toString())
                 localStorage.setItem("$fileID" + StorageKey.FILE_REDO_LENGTH, file.getRedoStates().size.toString())
-                console.log("Set: ${file.getUndoStates().size}, ${file.getRedoStates().size}")
                 file.getUndoStates().forEach {
                     val undoID = file.getUndoStates().indexOf(it)
                     localStorage.setItem("${fileID}${StorageKey.FILE_UNDO}-$undoID", it)
@@ -183,10 +182,6 @@ class FileHandler(val fileEnding: String) {
     data class File(private var name: String, private var content: String, private val undoStates: MutableList<String> = mutableListOf(), private val redoStates: MutableList<String> = mutableListOf()) {
         var timeout: Timeout? = null
         var syntaxTree: Syntax.SyntaxTree? = null
-
-        init {
-            console.log("File: \n\t${undoStates.size}\n\t${redoStates.size}")
-        }
 
         fun rename(newName: String) {
             name = newName

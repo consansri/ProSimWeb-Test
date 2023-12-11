@@ -14,7 +14,7 @@ object StyleAttr {
 
     object Header {
         // COLORS
-        val BgColor = ModeColor("#AAA","#272732")
+        val BgColor = ModeColor("#CCCCCC","#272732")
         val IconFilter = ModeFilter(invert(0.pct), invert(100.pct))
         val BgColorSec = ModeColor("#5767aa")
         val FgColor = ModeColor("#272732","#EEE")

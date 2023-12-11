@@ -694,11 +694,30 @@ class RV64Syntax : Syntax() {
                     val eLabel = result.matchingTreeNodes[0] as E_LABEL
                     val eDir = result.matchingTreeNodes[1] as E_DIRECTIVE
                     val eParamcoll = result.matchingTreeNodes[2] as E_PARAMCOLL
-                    if (eParamcoll.paramsWithOutSplitSymbols.size == 1 && eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.first() is E_PARAM.Constant) {
+                    if (eParamcoll.paramsWithOutSplitSymbols.size == 1 && eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
                         rowNode = R_ILBL(eLabel, eDir, eParamcoll)
                         rows[lineID] = rowNode
                     } else {
-                        errors.add(Syntax.Error((if (!eDir.isDataEmitting()) "Not a data emitting directive for" else "Invalid parameter count for") + " initialized label!", nodes = lineElements.toTypedArray()))
+                        errors.add(Error((if (!eDir.isDataEmitting()) "Not a data emitting directive for" else "Invalid parameter count for") + " initialized label!", nodes = lineElements.toTypedArray()))
+                    }
+                    result.error?.let {
+                        errors.add(it)
+                    }
+                    elements[lineID] = mutableListOf()
+                    continue
+                }
+            }
+
+            result = RowSeqs.dataemitting.exacltyMatches(*lineElements.toTypedArray())
+            if (result.matches) {
+                if (result.matchingTreeNodes.size == 2) {
+                    val eDir = result.matchingTreeNodes[0] as E_DIRECTIVE
+                    val eParamcoll = result.matchingTreeNodes[1] as E_PARAMCOLL
+                    if (eParamcoll.paramsWithOutSplitSymbols.size == 1 && eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
+                        rowNode = R_DATAEMITTING(eDir, eParamcoll)
+                        rows[lineID] = rowNode
+                    } else {
+                        errors.add(Error(if (!eDir.isDataEmitting()) "Not a data emitting directive!" else "Invalid parameter count!", nodes = lineElements.toTypedArray()))
                     }
                     result.error?.let {
                         errors.add(it)
@@ -717,7 +736,7 @@ class RV64Syntax : Syntax() {
                         rowNode = R_ULBL(eLabel, eDir)
                         rows[lineID] = rowNode
                     } else {
-                        errors.add(Syntax.Error("Not a data emitting directive for uninitialized label!", nodes = lineElements.toTypedArray()))
+                        errors.add(Error("Not a data emitting directive for uninitialized label!", nodes = lineElements.toTypedArray()))
                     }
                     result.error?.let {
                         errors.add(it)
@@ -761,7 +780,7 @@ class RV64Syntax : Syntax() {
                     rowNode = R_SECSTART(eDir)
                     rows[lineID] = rowNode
                 } else {
-                    errors.add(Syntax.Error("Found directive type which shouldn't indicate a section start!", *lineElements.toTypedArray()))
+                    errors.add(Error("Found directive type which shouldn't indicate a section start!", *lineElements.toTypedArray()))
                 }
                 result.error?.let {
                     errors.add(it)
@@ -798,7 +817,7 @@ class RV64Syntax : Syntax() {
                             val searchName = lastMainJLBL.label.wholeName + param.linkName
 
                             // scan imports
-                            for (importRowNode in imports.flatMap { it.collNodes.toList() }.filterIsInstance<TreeNode.RowNode>().toList()) {
+                            for (importRowNode in imports.flatMap { it.collNodes.toList() }.toList()) {
                                 when (importRowNode) {
                                     is R_JLBL -> {
                                         if (searchName == importRowNode.label.wholeName) {
@@ -838,7 +857,7 @@ class RV64Syntax : Syntax() {
                             val searchName = param.linkName
 
                             // scan imports
-                            for (importRowNode in imports.flatMap { it.collNodes.toList() }.filterIsInstance<TreeNode.RowNode>().toList()) {
+                            for (importRowNode in imports.flatMap { it.collNodes.toList() }.toList()) {
                                 when (importRowNode) {
                                     is R_JLBL -> {
                                         if (searchName == importRowNode.label.wholeName) {
@@ -897,7 +916,7 @@ class RV64Syntax : Syntax() {
                 // check params
                 val checkedType = eInstrName.check(arch, eParamcoll)
                 if (checkedType != null) {
-                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                    rowNode = R_INSTR(eInstrName, eParamcoll, checkedType)
                     startIsDefined = true
                     rows[lineID] = rowNode
                     result.error?.let {
@@ -926,7 +945,7 @@ class RV64Syntax : Syntax() {
                 // check params
                 val checkedType = eInstrName.check(arch)
                 if (checkedType != null) {
-                    rowNode = R_INSTR(eInstrName, null, checkedType, lastMainJLBL, if (!startIsDefined) true else false)
+                    rowNode = R_INSTR(eInstrName, null, checkedType)
                     startIsDefined = true
                     rows[lineID] = rowNode
                     result.error?.let {
@@ -940,7 +959,7 @@ class RV64Syntax : Syntax() {
             }
 
             if (lineElements.isNotEmpty()) {
-                errors.add(Syntax.Error("couldn't match Elements to RiscV Row!", *lineElements.toTypedArray()))
+                errors.add(Error("couldn't match Elements to RiscV Row!", *lineElements.toTypedArray()))
             }
         }
 
@@ -1023,6 +1042,13 @@ class RV64Syntax : Syntax() {
                     }
                 }
 
+                is R_DATAEMITTING -> {
+                    if (sectionType == DATA || sectionType == RODATA) {
+                        sectionContent.add(firstRow)
+                        resolved = true
+                    }
+                }
+
                 is R_ULBL -> {
                     if (sectionType == BSS) {
                         sectionContent.add(firstRow)
@@ -1032,7 +1058,7 @@ class RV64Syntax : Syntax() {
             }
 
             if (!resolved && firstRow != null) {
-                errors.add(Syntax.Error("Couldn't match row into section!", firstRow))
+                errors.add(Error("Couldn't match row into section!", firstRow))
             }
 
             remainingRowList.removeFirst()
@@ -1140,6 +1166,7 @@ class RV64Syntax : Syntax() {
         val jlabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL))
         val ulabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL), RowSeq.Component(REFS.REF_E_DIRECTIVE))
         val ilabel = RowSeq(RowSeq.Component(REFS.REF_E_LABEL), RowSeq.Component(REFS.REF_E_DIRECTIVE), RowSeq.Component(REFS.REF_E_PARAMCOLL))
+        val dataemitting = RowSeq(RowSeq.Component(REFS.REF_E_DIRECTIVE), RowSeq.Component(REFS.REF_E_PARAMCOLL))
 
         val directive = RowSeq(RowSeq.Component(REFS.REF_E_DIRECTIVE))
 
@@ -1178,6 +1205,7 @@ class RV64Syntax : Syntax() {
         val REF_R_JLBL = "R_jlbl"
         val REF_R_ILBL = "R_ilbl"
         val REF_R_ULBL = "R_ulbl"
+        val REF_R_DATAEMITTING = "R_dataemitting"
 
         val REF_S_TEXT = "S_text"
         val REF_S_DATA = "S_data"
@@ -1530,7 +1558,7 @@ class RV64Syntax : Syntax() {
             }
         }
 
-        class SplitSymbol(val splitSymbol: Compiler.Token.Symbol) : E_PARAM(REFS.REF_E_PARAM_SPLITSYMBOL, RV64Flags.instruction, splitSymbol)
+        class SplitSymbol(splitSymbol: Compiler.Token.Symbol) : E_PARAM(REFS.REF_E_PARAM_SPLITSYMBOL, RV64Flags.instruction, splitSymbol)
         class Link(vararg val labelName: Compiler.Token) : E_PARAM(REFS.REF_E_PARAM_LABELLINK, RV64Flags.label, *labelName) {
             val linkName = labelName.joinToString("") { it.content }
 
@@ -1587,7 +1615,7 @@ class RV64Syntax : Syntax() {
         }
     }
 
-    class E_LABEL(vararg val labelName: Compiler.Token, colon: Compiler.Token.Symbol, val sublblFrom: E_LABEL? = null) : TreeNode.ElementNode(ConnectedHL(RV64Flags.label), REFS.REF_E_LABEL, *labelName, colon) {
+    class E_LABEL(vararg labelName: Compiler.Token, colon: Compiler.Token.Symbol, val sublblFrom: E_LABEL? = null) : TreeNode.ElementNode(ConnectedHL(RV64Flags.label), REFS.REF_E_LABEL, *labelName, colon) {
 
         val wholeName: String
         val tokenSeq: TokenSeq
@@ -1605,7 +1633,7 @@ class RV64Syntax : Syntax() {
         }
     }
 
-    class E_DIRECTIVE(val type: DirType, val dot: Compiler.Token.Symbol, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive), REFS.REF_E_DIRECTIVE, dot, *tokens) {
+    class E_DIRECTIVE(val type: DirType, dot: Compiler.Token.Symbol, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive), REFS.REF_E_DIRECTIVE, dot, *tokens) {
 
         fun isDataEmitting(): Boolean {
             return type.majorType == MajorType.DE_ALIGNED || type.majorType == MajorType.DE_UNALIGNED
@@ -1615,12 +1643,19 @@ class RV64Syntax : Syntax() {
             SECTIONSTART("Section identification"), DE_ALIGNED("Data emitting aligned"), DE_UNALIGNED("Data emitting unaligned")
         }
 
-        enum class DirType(val dirname: String, val majorType: MajorType) {
+        enum class DirType(val dirname: String, val majorType: MajorType, val deSize: Variable.Size? = null) {
             TEXT("text", MajorType.SECTIONSTART), DATA("data", MajorType.SECTIONSTART), RODATA("rodata", MajorType.SECTIONSTART), BSS("bss", MajorType.SECTIONSTART),
 
-            BYTE("byte", MajorType.DE_ALIGNED), HALF("half", MajorType.DE_ALIGNED), WORD("word", MajorType.DE_ALIGNED), DWORD("dword", MajorType.DE_ALIGNED), ASCIZ("asciz", MajorType.DE_ALIGNED), STRING("string", MajorType.DE_ALIGNED),
+            BYTE("byte", MajorType.DE_ALIGNED, Bit8()),
+            HALF("half", MajorType.DE_ALIGNED, Bit16()),
+            WORD("word", MajorType.DE_ALIGNED, Bit32()),
+            DWORD("dword", MajorType.DE_ALIGNED, Bit64()),
+            ASCIZ("asciz", MajorType.DE_ALIGNED),
+            STRING("string", MajorType.DE_ALIGNED),
 
-            BYTE_2("2byte", MajorType.DE_UNALIGNED), BYTE_4("4byte", MajorType.DE_UNALIGNED), BYTE_8("8byte", MajorType.DE_UNALIGNED),
+            BYTE_2("2byte", MajorType.DE_UNALIGNED, Bit16()),
+            BYTE_4("4byte", MajorType.DE_UNALIGNED, Bit32()),
+            BYTE_8("8byte", MajorType.DE_UNALIGNED, Bit64()),
         }
     }
 
@@ -1629,7 +1664,8 @@ class RV64Syntax : Syntax() {
     class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean, val isGlobalStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
     class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label, directive)
     class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label, directive, paramcoll)
-    class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType, val lastMainLabel: R_JLBL? = null, val globlStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
+    class R_DATAEMITTING(val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_DATAEMITTING, directive, paramcoll)
+    class R_INSTR(val instrname: E_INSTRNAME, val paramcoll: E_PARAMCOLL?, val instrType: InstrType) : TreeNode.RowNode(REFS.REF_R_INSTR, instrname, paramcoll) {
         enum class ParamType(val pseudo: Boolean, val exampleString: String, val immMaxSize: Variable.Size? = null, val immSigned: Boolean? = null) {
             // NORMAL INSTRUCTIONS
             RD_I20(false, "rd, imm20", Bit20()) {

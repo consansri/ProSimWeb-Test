@@ -9,10 +9,10 @@ import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
-class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.Value, val rodataSecStart: Variable.Value, val bssSecStart: Variable.Value) : Assembly() {
-    val labelBinAddrMap = mutableMapOf<RV64Syntax.E_LABEL, String>()
-    val transcriptEntrys = mutableListOf<RVDisassembledRow>()
-    val bins = mutableListOf<Variable.Value.Bin>()
+class RV64Assembly(private val binaryMapper: RV64BinMapper, private val dataSecStart: Variable.Value, private val rodataSecStart: Variable.Value, private val bssSecStart: Variable.Value) : Assembly() {
+    private val labelBinAddrMap = mutableMapOf<RV64Syntax.E_LABEL, String>()
+    private val transcriptEntrys = mutableListOf<RVDisassembledRow>()
+    private val bins = mutableListOf<Variable.Value.Bin>()
 
     /**
      * Disassembles the content of the memory and builds the [RVDisassembledRow]'s from it which are then added to the disassembled transcript view.
@@ -35,9 +35,9 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
 
             val result = binaryMapper.getInstrFromBinary(binary)
             if (result != null) {
-                var branchOffset5: String = "0"
-                var branchOffset7: String = "0"
-                var jalOffset20: String = "0"
+                var branchOffset5 = "0"
+                var branchOffset7 = "0"
+                var jalOffset20 = "0"
 
                 result.binMap.entries.forEach {
                     when (it.key) {
@@ -97,7 +97,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
         }
 
         if (DebugTools.RV64_showAsmInfo) {
-            console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> \n${transcriptEntrys.joinToString { "\n\t" + it.getContent().joinToString("\t") { it.content } }}")
+            console.log("RISCVAssembly.generateTranscript(): TranscriptEntries -> \n${transcriptEntrys.joinToString { entry -> "\n\t" + entry.getContent().joinToString("\t") { it.content } }}")
         }
 
         architecture.getTranscript().addContent(Transcript.Type.DISASSEMBLED, transcriptEntrys)
@@ -114,9 +114,9 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             transcriptEntrys.clear()
             bins.clear()
             val instructionMapList = mutableMapOf<Long, RV64Syntax.R_INSTR>()
-            val dataList = mutableListOf<DataEntry>()
-            val rodataList = mutableListOf<DataEntry>()
-            val bssList = mutableListOf<DataEntry>()
+            val dataList = mutableListOf<Entry>()
+            val rodataList = mutableListOf<Entry>()
+            val bssList = mutableListOf<Entry>()
             var instrID: Long = 0
             var pcStartAddress = Variable.Value.Hex("0", RV64.MEM_ADDRESS_WIDTH)
 
@@ -125,7 +125,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
             var nextBssAddress = bssSecStart
             // Resolving Sections
 
-            val sections = rootNode.containers.filter { it is RV64Syntax.C_SECTIONS }.flatMap { it.nodes.toList() }
+            val sections = rootNode.containers.filterIsInstance<RV64Syntax.C_SECTIONS>().flatMap { it.nodes.toList() }
 
             for (section in sections) {
                 when (section) {
@@ -133,7 +133,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                         for (entry in section.collNodes) {
                             when (entry) {
                                 is RV64Syntax.R_INSTR -> {
-                                    instructionMapList.set(instrID, entry)
+                                    instructionMapList[instrID] = entry
                                     instrID += entry.instrType.memWords
                                 }
 
@@ -145,7 +145,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                                     if (entry.isGlobalStart) {
                                         pcStartAddress = Variable.Value.Bin(address, RV64.MEM_ADDRESS_WIDTH).toHex()
                                     }
-                                    labelBinAddrMap.set(entry.label, address)
+                                    labelBinAddrMap[entry.label] = address
                                 }
                             }
                         }
@@ -155,90 +155,67 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                         for (entry in section.sectionContent) {
                             when (entry) {
                                 is RV64Syntax.R_ILBL -> {
-                                    val param = entry.paramcoll.paramsWithOutSplitSymbols.first()
-                                    if (param is RV64Syntax.E_PARAM.Constant) {
-                                        val originalValue: Variable.Value.Hex
-                                        val constToken = param.constant
-                                        val isString: Boolean
-                                        when (constToken) {
-                                            is Compiler.Token.Constant.Ascii -> {
-                                                originalValue = Variable.Value.Hex(Variable.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
-                                                isString = false
-                                            }
+                                    val params = entry.paramcoll.paramsWithOutSplitSymbols
 
-                                            is Compiler.Token.Constant.String -> {
-                                                originalValue = Variable.Value.Hex(Variable.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
-                                                isString = true
-                                            }
-
-                                            else -> {
-                                                originalValue = constToken.getValue().toHex()
-                                                isString = false
-                                            }
+                                    var values = params.mapNotNull {
+                                        if (it is RV64Syntax.E_PARAM.Constant) {
+                                            val constToken = it.constant
+                                            constToken.getValue(entry.directive.type.deSize)
+                                        } else {
+                                            null
                                         }
-
-                                        val resizedValues: Array<Variable.Value.Hex>
-                                        val length: Variable.Value.Hex
-                                        when (entry.directive.type) {
-                                            RV64Syntax.E_DIRECTIVE.DirType.BYTE -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.HALF -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit16()))
-                                                length = Variable.Value.Hex("2", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.WORD -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit32()))
-                                                length = Variable.Value.Hex("4", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.DWORD -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit64()))
-                                                length = Variable.Value.Hex("8", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.ASCIZ -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.STRING -> {
-                                                if (isString) {
-                                                    val content = constToken.content.substring(1, constToken.content.length - 1)
-                                                    val valueList = mutableListOf<Variable.Value.Hex>()
-                                                    for (char in content) {
-                                                        valueList.add(Variable.Value.Hex(char.code.toString(16), Variable.Size.Bit8()))
-                                                    }
-                                                    resizedValues = valueList.toTypedArray()
-                                                    length = Variable.Value.Hex(content.length.toString(16), RV64.MEM_ADDRESS_WIDTH)
-                                                } else {
-                                                    resizedValues = arrayOf(originalValue)
-                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16), RV64.MEM_ADDRESS_WIDTH)
-                                                }
-                                            }
-
-                                            else -> {
-                                                resizedValues = arrayOf(originalValue)
-                                                length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
-                                            }
-                                        }
-
-                                        if (DebugTools.RV64_showAsmInfo) {
-                                            console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} \n\tresized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} \n\tallocating at ${nextDataAddress.toHex().getRawHexStr()}")
-                                        }
-
-                                        val sizeOfOne = Variable.Value.Hex((resizedValues.first().size.getByteCount()).toString(16), Variable.Size.Bit8())
-                                        val rest = nextDataAddress % sizeOfOne
-                                        if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
-                                            nextDataAddress += sizeOfOne - rest
-                                        }
-                                        val dataEntry = DataEntry(entry.label, nextDataAddress.toHex(), resizedValues.first().size, *resizedValues)
-                                        dataList.add(dataEntry)
-                                        nextDataAddress += length
                                     }
+
+                                    if (DebugTools.RV32_showAsmInfo) {
+                                        console.log("Assembly.generateByteCode(): ASM-ALLOC found ${values.joinToString { it.toString() }} allocating at ${nextDataAddress.toHex().getRawHexStr()}")
+                                    }
+
+                                    if (entry.directive.type == RV64Syntax.E_DIRECTIVE.DirType.STRING) {
+                                        values = values.flatMap {value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
+                                    }
+
+                                    val sizeOfOne = Variable.Value.Hex(entry.directive.type.deSize?.getByteCount()?.toString(16) ?: "1", Variable.Size.Bit8())
+                                    val length = sizeOfOne * Variable.Value.Hex(values.size.toString(16), RV64.XLEN)
+
+                                    val rest = nextDataAddress % sizeOfOne
+                                    if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                                        nextDataAddress += sizeOfOne - rest
+                                    }
+                                    val dataEntry = Entry.LabeledDataEntry(entry.label, nextDataAddress.toHex(), *values.toTypedArray())
+                                    rodataList.add(dataEntry)
+                                    nextDataAddress += length
+                                }
+
+                                is RV64Syntax.R_DATAEMITTING -> {
+                                    val params = entry.paramcoll.paramsWithOutSplitSymbols
+
+                                    var values = params.mapNotNull {
+                                        if (it is RV64Syntax.E_PARAM.Constant) {
+                                            val constToken = it.constant
+                                            constToken.getValue(entry.directive.type.deSize)
+                                        } else {
+                                            null
+                                        }
+                                    }
+
+                                    if (DebugTools.RV32_showAsmInfo) {
+                                        console.log("Assembly.generateByteCode(): ASM-ALLOC found ${values.joinToString { it.toString() }} allocating at ${nextDataAddress.toHex().getRawHexStr()}")
+                                    }
+
+                                    if (entry.directive.type == RV64Syntax.E_DIRECTIVE.DirType.STRING) {
+                                        values = values.flatMap {value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
+                                    }
+
+                                    val sizeOfOne = Variable.Value.Hex(entry.directive.type.deSize?.getByteCount()?.toString(16) ?: "1", Variable.Size.Bit8())
+                                    val length = sizeOfOne * Variable.Value.Hex(values.size.toString(16), RV64.XLEN)
+
+                                    val rest = nextDataAddress % sizeOfOne
+                                    if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                                        nextDataAddress += sizeOfOne - rest
+                                    }
+                                    val dataEntry = Entry.DataEntry(nextDataAddress.toHex(), *values.toTypedArray())
+                                    rodataList.add(dataEntry)
+                                    nextDataAddress += length
                                 }
                             }
                         }
@@ -248,90 +225,67 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                         for (entry in section.sectionContent) {
                             when (entry) {
                                 is RV64Syntax.R_ILBL -> {
-                                    val param = entry.paramcoll.paramsWithOutSplitSymbols.first()
-                                    if (param is RV64Syntax.E_PARAM.Constant) {
-                                        val originalValue: Variable.Value.Hex
-                                        val constToken = param.constant
-                                        val isString: Boolean
-                                        when (constToken) {
-                                            is Compiler.Token.Constant.Ascii -> {
-                                                originalValue = Variable.Value.Hex(Variable.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
-                                                isString = false
-                                            }
+                                    val params = entry.paramcoll.paramsWithOutSplitSymbols
 
-                                            is Compiler.Token.Constant.String -> {
-                                                originalValue = Variable.Value.Hex(Variable.Tools.asciiToHex(constToken.content.substring(1, constToken.content.length - 1)))
-                                                isString = true
-                                            }
-
-                                            else -> {
-                                                originalValue = constToken.getValue().toHex()
-                                                isString = false
-                                            }
+                                    var values = params.mapNotNull {
+                                        if (it is RV64Syntax.E_PARAM.Constant) {
+                                            val constToken = it.constant
+                                            constToken.getValue(entry.directive.type.deSize)
+                                        } else {
+                                            null
                                         }
-
-                                        val resizedValues: Array<Variable.Value.Hex>
-                                        val length: Variable.Value.Hex
-                                        when (entry.directive.type) {
-                                            RV64Syntax.E_DIRECTIVE.DirType.BYTE -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.HALF -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit16()))
-                                                length = Variable.Value.Hex("2", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.WORD -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit32()))
-                                                length = Variable.Value.Hex("4", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.DWORD -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit64()))
-                                                length = Variable.Value.Hex("8", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.ASCIZ -> {
-                                                resizedValues = arrayOf(originalValue.getUResized(Variable.Size.Bit8()))
-                                                length = Variable.Value.Hex("1", Variable.Size.Bit8())
-                                            }
-
-                                            RV64Syntax.E_DIRECTIVE.DirType.STRING -> {
-                                                if (isString) {
-                                                    val content = constToken.content.substring(1, constToken.content.length - 1)
-                                                    val valueList = mutableListOf<Variable.Value.Hex>()
-                                                    for (char in content) {
-                                                        valueList.add(Variable.Value.Hex(char.code.toString(16), Variable.Size.Bit8()))
-                                                    }
-                                                    resizedValues = valueList.toTypedArray()
-                                                    length = Variable.Value.Hex(content.length.toString(16))
-                                                } else {
-                                                    resizedValues = arrayOf(originalValue)
-                                                    length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
-                                                }
-                                            }
-
-                                            else -> {
-                                                resizedValues = arrayOf(originalValue)
-                                                length = Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
-                                            }
-                                        }
-
-                                        if (DebugTools.RV64_showAsmInfo) {
-                                            console.log("Assembly.generateByteCode(): ASM-ALLOC found ${originalValue.toHex().getRawHexStr()} resized to ${resizedValues.joinToString { it.toHex().getRawHexStr() }} allocating at ${nextRoDataAddress.toHex().getRawHexStr()}")
-                                        }
-
-                                        val sizeOfOne = Variable.Value.Hex((resizedValues.first().size.getByteCount()).toString(16))
-                                        val rest = nextRoDataAddress % sizeOfOne
-                                        if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
-                                            nextRoDataAddress += sizeOfOne - rest
-                                        }
-                                        val dataEntry = DataEntry(entry.label, nextRoDataAddress.toHex(), resizedValues.first().size, *resizedValues)
-                                        rodataList.add(dataEntry)
-                                        nextRoDataAddress += length
                                     }
+
+                                    if (DebugTools.RV32_showAsmInfo) {
+                                        console.log("Assembly.generateByteCode(): ASM-ALLOC found ${values.joinToString { it.toString() }} allocating at ${nextRoDataAddress.toHex().getRawHexStr()}")
+                                    }
+
+                                    if (entry.directive.type == RV64Syntax.E_DIRECTIVE.DirType.STRING) {
+                                        values = values.flatMap { value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
+                                    }
+
+                                    val sizeOfOne = Variable.Value.Hex(entry.directive.type.deSize?.getByteCount()?.toString(16) ?: "1", Variable.Size.Bit8())
+                                    val length = sizeOfOne * Variable.Value.Hex(values.size.toString(16), RV64.XLEN)
+
+                                    val rest = nextRoDataAddress % sizeOfOne
+                                    if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                                        nextRoDataAddress += sizeOfOne - rest
+                                    }
+                                    val dataEntry = Entry.LabeledDataEntry(entry.label, nextRoDataAddress.toHex(), *values.toTypedArray())
+                                    rodataList.add(dataEntry)
+                                    nextRoDataAddress += length
+                                }
+
+                                is RV64Syntax.R_DATAEMITTING -> {
+                                    val params = entry.paramcoll.paramsWithOutSplitSymbols
+
+                                    var values = params.mapNotNull {
+                                        if (it is RV64Syntax.E_PARAM.Constant) {
+                                            val constToken = it.constant
+                                            constToken.getValue(entry.directive.type.deSize)
+                                        } else {
+                                            null
+                                        }
+                                    }
+
+                                    if (DebugTools.RV32_showAsmInfo) {
+                                        console.log("Assembly.generateByteCode(): ASM-ALLOC found ${values.joinToString { it.toString() }} allocating at ${nextDataAddress.toHex().getRawHexStr()}")
+                                    }
+
+                                    if (entry.directive.type == RV64Syntax.E_DIRECTIVE.DirType.STRING) {
+                                        values = values.flatMap {value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
+                                    }
+
+                                    val sizeOfOne = Variable.Value.Hex(entry.directive.type.deSize?.getByteCount()?.toString(16) ?: "1", Variable.Size.Bit8())
+                                    val length = sizeOfOne * Variable.Value.Hex(values.size.toString(16), RV64.XLEN)
+
+                                    val rest = nextDataAddress % sizeOfOne
+                                    if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                                        nextDataAddress += sizeOfOne - rest
+                                    }
+                                    val dataEntry = Entry.DataEntry(nextDataAddress.toHex(), *values.toTypedArray())
+                                    rodataList.add(dataEntry)
+                                    nextDataAddress += length
                                 }
                             }
                         }
@@ -366,8 +320,8 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                                     if (rest != Variable.Value.Bin("0", Variable.Size.Bit1())) {
                                         nextBssAddress += sizeOfOne - rest
                                     }
-                                    dataList.add(DataEntry(entry.label, nextBssAddress.toHex(), originalValue.size, originalValue))
-                                    nextBssAddress += emulator.kit.types.Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
+                                    dataList.add(Entry.LabeledDataEntry(entry.label, nextBssAddress.toHex(), originalValue))
+                                    nextBssAddress += Variable.Value.Hex((originalValue.size.getByteCount()).toString(16))
                                 }
                             }
                         }
@@ -381,19 +335,25 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
 
             // adding bss addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in bssList) {
-                labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
+                if (alloc is Entry.LabeledDataEntry) {
+                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                }
                 memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
 
             // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in rodataList) {
-                labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
+                if (alloc is Entry.LabeledDataEntry) {
+                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                }
                 memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA, true)
             }
 
             // adding data alloc addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in dataList) {
-                labelBinAddrMap.set(alloc.label, alloc.address.toBin().getRawBinaryStr())
+                if (alloc is Entry.LabeledDataEntry) {
+                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                }
                 memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
 
@@ -408,14 +368,14 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                     if (DebugTools.RV64_showAsmInfo) {
                         console.log(
                             "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.instrname.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.instrType.id},  \n\t${
-                                instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") {
-                                    it.getAllTokens().joinToString("") { it.content }
+                                instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") {param ->
+                                    param.getAllTokens().joinToString("") { it.content }
                                 }
                             } to ${binary.joinToString { it.getRawBinaryStr() }}]"
                         )
                     }
                     for (wordID in binary.indices) {
-                        instrIDMap.set(Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), RV64.MEM_ADDRESS_WIDTH).getRawHexStr(), AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID))
+                        instrIDMap[Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), RV64.MEM_ADDRESS_WIDTH).getRawHexStr()] = AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID)
                     }
                     bins.addAll(binary)
                 }
@@ -433,7 +393,7 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
                         memory.store(address, binary, StyleAttr.Main.Table.Mark.PROGRAM)
                     }
                     if (DebugTools.RV64_showAsmInfo) {
-                        console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID + 1}/${bins.size}\ttook ${storeTime.inWholeMicroseconds} µs\taddress: ${address}")
+                        console.log("Assembly.generateByteCode(): ASM-STORE ${binaryID + 1}/${bins.size}\ttook ${storeTime.inWholeMicroseconds} µs\taddress: $address")
                     }
                     address = (address + Variable.Value.Hex("4", RV64.MEM_ADDRESS_WIDTH)).toHex()
                 }
@@ -453,7 +413,10 @@ class RV64Assembly(val binaryMapper: RV64BinMapper, val dataSecStart: Variable.V
     /**
      * Is used by [generateByteCode] to temporarily hold up all important information before it is actually saved to memory.
      */
-    class DataEntry(val label: RV64Syntax.E_LABEL, val address: Variable.Value.Hex, val sizeOfOne: Variable.Size, vararg val values: Variable.Value)
+    sealed class Entry(val address: Variable.Value.Hex, vararg val values: Variable.Value) {
+        class LabeledDataEntry(val label: RV64Syntax.E_LABEL, address: Variable.Value.Hex, vararg values: Variable.Value) : Entry(address, *values)
+        class DataEntry(address: Variable.Value.Hex, vararg values: Variable.Value) : Entry(address, *values)
+    }
 
     /**
      * Is used to do the flexible formatting of the [Transcript.Row] which is expected by the transcript.
