@@ -104,12 +104,12 @@ val MemoryView = FC<MemViewProps> { props ->
                     float = Float.left
                     borderRadius = StyleAttr.iconBorderRadius
                     verticalAlign = VerticalAlign.middle
-                    background = StyleAttr.Main.Processor.BtnBgColor.get()
+                    background = StyleAttr.Main.Processor.TableBgColor.get()
                     color = StyleAttr.Main.Processor.BtnFgColor.get()
                 }
 
                 select {
-                    background = StyleAttr.Main.Processor.BtnBgColor.get()
+                    background = StyleAttr.Main.Processor.TableBgColor.get()
                     color = StyleAttr.Main.Processor.BtnFgColor.get()
                     height = StyleAttr.iconSize + 2 * StyleAttr.iconPadding
                     fontSize = important(StyleAttr.Main.Table.FontSizeSelect)
@@ -124,7 +124,7 @@ val MemoryView = FC<MemViewProps> { props ->
                     padding = StyleAttr.Main.Table.IconPadding
                     float = Float.left
                     color = StyleAttr.Main.Processor.BtnFgColor.get()
-                    backgroundColor = StyleAttr.Main.Processor.BtnBgColor.get()
+                    backgroundColor = StyleAttr.Main.Processor.TableBgColor.get()
                     borderRadius = StyleAttr.iconBorderRadius
                     transition = Transition(TransitionProperty.all, 0.2.s, TransitionTimingFunction.ease)
 
@@ -136,7 +136,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         display = Display.block
                         height = StyleAttr.Main.Table.IconSize
                         width = StyleAttr.Main.Table.IconSize
-                        filter = important(StyleAttr.Main.Processor.BtnFgFilter)
+                        filter = important(StyleAttr.Main.Processor.BtnFgFilter.get())
                     }
                 }
             }

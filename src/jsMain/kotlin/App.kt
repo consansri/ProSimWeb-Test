@@ -62,13 +62,14 @@ val App = FC<Props> { props ->
             css {
                 display = Display.flex
                 position = Position.relative
-                gap = StyleAttr.paddingSize
+                //gap = StyleAttr.paddingSize
                 flexWrap = FlexWrap.nowrap
-                padding = StyleAttr.paddingSize
+                // padding = StyleAttr.paddingSize
                 flexDirection = FlexDirection.row
                 justifyContent = JustifyContent.stretch
                 alignItems = AlignItems.stretch
-
+                borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
                 StyleAttr.layoutSwitchMediaQuery {
                     flexDirection = FlexDirection.column
                 }
@@ -112,13 +113,10 @@ val App = FC<Props> { props ->
                     display = Display.flex
                     flexDirection = FlexDirection.column
                     gap = StyleAttr.paddingSize
-                    padding = StyleAttr.paddingSize
+                    //padding = StyleAttr.paddingSize
                     position = Position.relative
-                    border = Border(3.px, LineStyle.solid, StyleAttr.Main.Processor.BorderColor.get())
+
                     background = StyleAttr.Main.Processor.BgColor.get()
-                    borderRadius = StyleAttr.borderRadius
-                    color = StyleAttr.Main.FgColor.get()
-                    /*boxShadow = StyleAttr.Main.elementShadow*/
 
 
                     StyleAttr.layoutSwitchMediaQuery {
@@ -144,6 +142,8 @@ val App = FC<Props> { props ->
                     gap = StyleAttr.paddingSize
                     justifyContent = JustifyContent.start
                     alignItems = AlignItems.start
+                    padding = StyleAttr.paddingSize
+                    borderLeft = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
 
                     StyleAttr.layoutSwitchMediaQuery {
                         flexDirection = FlexDirection.row
@@ -151,11 +151,11 @@ val App = FC<Props> { props ->
 
                     div {
                         height = StyleAttr.Main.AppControls.size
-                        width = StyleAttr.Main.AppControls.size
+                        minWidth = StyleAttr.Main.AppControls.size
                         backgroundColor = StyleAttr.Main.AppControls.BgColor.get()
                         padding = StyleAttr.Main.AppControls.iconPadding
                         borderRadius = StyleAttr.borderRadius
-                        boxShadow = BoxShadow(0.px, 0.px, 0.5.rem, Color("#000000A0"))
+                        boxShadow = BoxShadow(0.px, 0.px, 0.1.rem, Color("#000000A0"))
                         cursor = Cursor.pointer
                         textAlign = TextAlign.center
                         display = Display.flex
@@ -163,10 +163,8 @@ val App = FC<Props> { props ->
                         alignItems = AlignItems.center
                         color = StyleAttr.Main.AppControls.FgColor.get()
 
-
                         img {
                             height = StyleAttr.Main.AppControls.iconSize
-                            width = StyleAttr.Main.AppControls.iconSize
                             filter = StyleAttr.iconFilter
                         }
                     }

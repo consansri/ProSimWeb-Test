@@ -88,19 +88,6 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         div {
             css {
-                color = StyleAttr.Main.Processor.FgColor.get()
-                fontWeight = StyleAttr.Main.Processor.fontWeight
-                fontSize = StyleAttr.Main.Processor.fontSizeTitle
-                fontStyle = StyleAttr.Main.Processor.fontStyle
-            }
-            a {
-                ref = titleRef
-                +arch.getDescription().name
-            }
-        }
-
-        div {
-            css {
                 color = StyleAttr.Main.FgColor.get()
             }
             button {
@@ -229,7 +216,22 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 }
             }
         }
+
+
     }
+
+   /* div {
+        css {
+            color = StyleAttr.Main.FgColor.get()
+            fontWeight = StyleAttr.Main.Processor.fontWeight
+            fontSize = StyleAttr.Main.Processor.fontSizeTitle
+            fontStyle = StyleAttr.Main.Processor.fontStyle
+        }
+        a {
+            ref = titleRef
+            +arch.getDescription().name
+        }
+    }*/
 
     div {
         className = ClassName(StyleAttr.Main.Processor.CLASS_REG)

@@ -94,6 +94,9 @@ val Menu = FC<MenuProps>() { props ->
             backgroundColor = StyleAttr.Header.BgColor.get()
             color = StyleAttr.Header.FgColor.get()
 
+            img {
+                filter = StyleAttr.Header.IconFilter.get()
+            }
             a {
                 color = StyleAttr.Header.FgColor.get()
             }
@@ -117,7 +120,6 @@ val Menu = FC<MenuProps>() { props ->
                 img {
                     className = ClassName("nav-img")
                     src = StyleAttr.Icons.home
-
                 }
             }
 
@@ -192,7 +194,6 @@ val Menu = FC<MenuProps>() { props ->
 
         div {
             ref = archsRef
-
             css(ClassName(StyleAttr.Header.CLASS_DROPDOWN)) {
                 if (archsHidden) {
                     visibility = Visibility.hidden
@@ -205,6 +206,9 @@ val Menu = FC<MenuProps>() { props ->
 
             for (archLink in Link.entries) {
                 a {
+                    css {
+                        color = StyleAttr.Header.FgColorSec.get()
+                    }
                     onClick = { event ->
                         showArchs(false)
                         setArch(archLink.architecture)
@@ -223,6 +227,9 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 img {
+                    css{
+                        filter = invert(100.pct)
+                    }
                     src = StyleAttr.Icons.cancel
                 }
             }
@@ -309,7 +316,9 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 a {
-
+                    css {
+                        color = StyleAttr.Header.FgColorSec.get()
+                    }
                     +"Export"
 
                     onClick = {
@@ -364,7 +373,9 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 a {
-
+                    css {
+                        color = StyleAttr.Header.FgColorSec.get()
+                    }
                     +"Import"
                     onClick = {
                         val files = importRef.current?.files?.asList() ?: emptyList<File>()

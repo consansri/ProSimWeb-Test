@@ -247,6 +247,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 flexDirection = FlexDirection.column
                 justifyContent = JustifyContent.start
                 alignItems = AlignItems.start
+                padding = StyleAttr.paddingSize
                 gap = StyleAttr.paddingSize
                 minWidth = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
 
@@ -456,7 +457,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     css {
                         cursor = Cursor.pointer
                         position = Position.absolute
-                        bottom = 0.rem
+                        bottom = StyleAttr.paddingSize
                         display = Display.block
                         writingMode = WritingMode.verticalRl
                     }
@@ -490,9 +491,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 backgroundColor = StyleAttr.Main.Editor.BgColor.get()
                 color = StyleAttr.Main.Editor.FgColor.get()
                 caretColor = important(StyleAttr.Main.Editor.FgColor.get())
-                borderRadius = StyleAttr.borderRadius
+                borderLeft = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                borderRight = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                //borderRadius = StyleAttr.borderRadius
                 padding = StyleAttr.paddingSize
-                boxShadow = StyleAttr.Main.elementShadow
+                //boxShadow = StyleAttr.Main.elementShadow
             }
 
             ref = editorContainerRef

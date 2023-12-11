@@ -50,7 +50,6 @@ val AppStyle = FC<Props> {
                     img {
                         width = StyleAttr.iconSizeNav
                         height = StyleAttr.iconSizeNav
-                        filter = StyleAttr.iconFilter
                     }
 
                     button {
@@ -81,8 +80,6 @@ val AppStyle = FC<Props> {
                         zIndex = StyleAttr.Header.IndexNavDropDown
                         backgroundColor = StyleAttr.Header.BgColorSec.get()
                     }
-
-
 
                     StyleAttr.layoutSwitchMediaQuery {
                         nav {
@@ -121,7 +118,7 @@ val AppStyle = FC<Props> {
                         height = 100.pct
                         width = 100.pct
                         borderRadius = StyleAttr.borderRadius
-                        gap = StyleAttr.paddingSize
+                        //gap = StyleAttr.paddingSize
                     }
 
                     ".${StyleAttr.Main.Editor.TextField.CLASS}" {
@@ -226,7 +223,7 @@ val AppStyle = FC<Props> {
                         width = 100.pct
                         display = Display.flex
                         flexDirection = FlexDirection.column
-                        gap = StyleAttr.paddingSize
+                        //gap = 0.px
                         background = StyleAttr.transparent
 
                         div {
@@ -237,7 +234,9 @@ val AppStyle = FC<Props> {
                             flexWrap = FlexWrap.wrap
                             justifyContent = JustifyContent.spaceBetween
                             alignItems = AlignItems.center
-                            gap = StyleAttr.paddingSize
+                            backgroundColor = StyleAttr.Main.LineColor.get()
+                            gap = 1.px
+                            //gap = StyleAttr.paddingSize
 
                             a {
                                 flexGrow = number(1.0)
@@ -255,7 +254,7 @@ val AppStyle = FC<Props> {
                             button {
                                 cursor = Cursor.pointer
                                 flexGrow = number(1.0)
-                                borderRadius = StyleAttr.borderRadius
+                                //borderRadius = StyleAttr.borderRadius
                                 padding = StyleAttr.paddingSize
                                 height = 2 * StyleAttr.paddingSize + StyleAttr.iconSize
                             }
@@ -267,7 +266,7 @@ val AppStyle = FC<Props> {
                                 flexDirection = FlexDirection.row
                                 gap = StyleAttr.paddingSize
                                 cursor = Cursor.pointer
-                                borderRadius = StyleAttr.borderRadius
+                                //borderRadius = StyleAttr.borderRadius
                                 padding = StyleAttr.paddingSize
                                 height = 2 * StyleAttr.paddingSize + StyleAttr.iconSize
                             }
@@ -603,7 +602,7 @@ val AppStyle = FC<Props> {
                     alignItems = AlignItems.center
 
                     backgroundColor = StyleAttr.Header.BgColorSec.get()
-                    color = StyleAttr.Header.FgColor.get()
+                    color = StyleAttr.Header.FgColorSec.get()
 
                     img {
                         width = StyleAttr.iconSize

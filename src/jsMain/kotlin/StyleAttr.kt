@@ -14,9 +14,11 @@ object StyleAttr {
 
     object Header {
         // COLORS
-        val BgColor = ModeColor("#1B3C60","#272732")
+        val BgColor = ModeColor("#AAA","#272732")
+        val IconFilter = ModeFilter(invert(0.pct), invert(100.pct))
         val BgColorSec = ModeColor("#5767aa")
-        val FgColor = ModeColor("#EEE")
+        val FgColor = ModeColor("#272732","#EEE")
+        val FgColorSec = ModeColor("#EEE")
 
         val IndexNavMobile = integer(20)
         val IndexNavDropDown = integer(21)
@@ -30,7 +32,7 @@ object StyleAttr {
         val DeleteColor = Color("#EE2222FF")
         val BgColor = ModeColor("#F1F1E6", "#575767")
         val FgColor = ModeColor("#454545", "#D5D5D5")
-
+        val LineColor = ModeColor("#45454577", "#D5D5D577")
         val elementShadow = BoxShadow(0.px, 3.px, 6.px, rgb(0, 0, 0, 0.77))
 
         val DeleteFilter = important(invert(0.pct))
@@ -127,19 +129,19 @@ object StyleAttr {
         }
         object Processor {
             val BorderColor = ModeColor("#915A69","#313131")
-            val BgColor = ModeColor("#313131","#313131")
-            val FgColor = ModeColor("#EEEEEE", "#CCCCCC")
+            val BgColor = ModeColor("#CCCCCC","#313131")
+            val FgColor = ModeColor("#313131", "#CCCCCC")
             val iconFilter = important(invert(100.pct))
-            val TableFgColor = ModeColor("#313131", "#AABACA")
+            val TableFgColor = ModeColor("#313131", "#CCCCCC")
             val TableBgColor = ModeColor("#EEEEEE", "#222222")
             val TabBgColor = ModeColor("#00000031", "#00000031")
             val TabFgColor = ModeColor("#EEEEEE", "#999999")
 
             val BgColorTransparent = ModeColor("#77777731","#11111151")
 
-            val BtnFgFilter = invert(100.pct)
-            val BtnBgColor = ModeColor("#1B3C60", "#272732")
-            val BtnFgColor = ModeColor("#EEE")
+            val BtnFgFilter = ModeFilter(invert(0.pct), invert(100.pct))
+            val BtnBgColor = ModeColor("#CCCCCC", "#313131")
+            val BtnFgColor = ModeColor("#313131", "#CCCCCC")
             val BtnBgColorDeActivated = ModeColor("#1B3C6031","#27273231")
 
             val MaxHeightMem = 40.vh
