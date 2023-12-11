@@ -236,6 +236,7 @@ val AppStyle = FC<Props> {
                             alignItems = AlignItems.center
                             backgroundColor = StyleAttr.Main.LineColor.get()
                             gap = 1.px
+                            paddingBottom = 1.px
                             //gap = StyleAttr.paddingSize
 
                             a {
