@@ -154,7 +154,6 @@ val App = FC<Props> { props ->
                         minWidth = StyleAttr.Main.AppControls.size
                         backgroundColor = StyleAttr.Main.AppControls.BgColor.get()
                         padding = StyleAttr.Main.AppControls.iconPadding
-                        borderRadius = StyleAttr.borderRadius
                         cursor = Cursor.pointer
                         textAlign = TextAlign.center
                         display = Display.flex

@@ -141,7 +141,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
                     css {
                         background = StyleAttr.Main.Processor.BgColorTransparent.get()
-                        color = StyleAttr.Main.Processor.FgColor.get()
+                        color = important(Color("#FFF"))
                     }
 
                     onChange = {

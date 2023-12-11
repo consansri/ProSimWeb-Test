@@ -2,11 +2,11 @@
 <h2>Sections</h2>
 <pre><code>.data
 # allocate read/write initialized memory
-    labeledArray:   .string "hello world"           # behaves as byte array (dependent on endianess)
+    dataEx:         .string "hello world"           # behaves as byte array (dependent on endianess)
     labeledArray:   .byte   0xCA, 0xFE, 0xAF, 0xFE  # classic byte array (dependent on endianess)
 
     .word   -4134
-    .dword  ""
+    .dword  0xCAFEAFFEDEADBEEF
     # ...
 
 .rodata
