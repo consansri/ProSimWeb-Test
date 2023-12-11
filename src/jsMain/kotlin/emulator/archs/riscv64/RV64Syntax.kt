@@ -694,7 +694,7 @@ class RV64Syntax : Syntax() {
                     val eLabel = result.matchingTreeNodes[0] as E_LABEL
                     val eDir = result.matchingTreeNodes[1] as E_DIRECTIVE
                     val eParamcoll = result.matchingTreeNodes[2] as E_PARAMCOLL
-                    if (eParamcoll.paramsWithOutSplitSymbols.size == 1 && eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
+                    if (eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
                         rowNode = R_ILBL(eLabel, eDir, eParamcoll)
                         rows[lineID] = rowNode
                     } else {
@@ -713,7 +713,7 @@ class RV64Syntax : Syntax() {
                 if (result.matchingTreeNodes.size == 2) {
                     val eDir = result.matchingTreeNodes[0] as E_DIRECTIVE
                     val eParamcoll = result.matchingTreeNodes[1] as E_PARAMCOLL
-                    if (eParamcoll.paramsWithOutSplitSymbols.size == 1 && eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
+                    if (eDir.isDataEmitting() && eParamcoll.paramsWithOutSplitSymbols.all { it is E_PARAM.Constant }) {
                         rowNode = R_DATAEMITTING(eDir, eParamcoll)
                         rows[lineID] = rowNode
                     } else {
