@@ -4,6 +4,13 @@
 - Value string escape sequence ("\"" = ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
 - split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
+- LD Files for Memory Initialization
+- TABLE Syntax in data section (
+    label:  .half 0xCAFE, 0xAFFE
+            .half 0xDEAD, 0xBEEF
+  )
+- 
+
 
 # SUGAR #
 
