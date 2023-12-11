@@ -207,7 +207,7 @@ val Menu = FC<MenuProps>() { props ->
             for (archLink in Link.entries) {
                 a {
                     css {
-                        color = StyleAttr.Header.FgColorSec.get()
+                        color = important(StyleAttr.Header.FgColorSec.get())
                     }
                     onClick = { event ->
                         showArchs(false)
@@ -227,8 +227,8 @@ val Menu = FC<MenuProps>() { props ->
                 }
 
                 img {
-                    css{
-                        filter = invert(100.pct)
+                    css {
+                        filter = important(invert(100.pct))
                     }
                     src = StyleAttr.Icons.cancel
                 }

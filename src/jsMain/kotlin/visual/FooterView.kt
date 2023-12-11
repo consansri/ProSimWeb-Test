@@ -33,8 +33,6 @@ val FooterView = FC<FooterViewProps>{ props ->
             textDecoration = null
         }
 
-
-
         p{
             a{
                 href = "mailto:constantin.birkert@web.de?subject=ProSimWeb: BugReport"

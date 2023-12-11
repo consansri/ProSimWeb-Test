@@ -14,10 +14,10 @@ object StyleAttr {
 
     object Header {
         // COLORS
-        val BgColor = ModeColor("#CCCCCC","#272732")
+        val BgColor = ModeColor("#DDDDDD", "#373737")
         val IconFilter = ModeFilter(invert(0.pct), invert(100.pct))
-        val BgColorSec = ModeColor("#5767aa")
-        val FgColor = ModeColor("#272732","#EEE")
+        val BgColorSec = ModeColor("#777777")
+        val FgColor = ModeColor("#272732", "#EEE")
         val FgColorSec = ModeColor("#EEE")
 
         val IndexNavMobile = integer(20)
@@ -28,9 +28,10 @@ object StyleAttr {
         const val CLASS_OVERLAY = "menu-overlay"
         const val CLASS_OVERLAY_LABELEDINPUT = "menu-overlay-items"
     }
+
     object Main {
-        val DeleteColor = Color("#EE2222FF")
-        val BgColor = ModeColor("#F1F1E6", "#575767")
+        val DeleteColor = ModeColor("#EE2222", "#9A0000")
+        val BgColor = ModeColor("#DDDDDD", "#373737")
         val FgColor = ModeColor("#454545", "#D5D5D5")
         val LineColor = ModeColor("#45454577", "#D5D5D577")
         val elementShadow = BoxShadow(0.px, 3.px, 6.px, rgb(0, 0, 0, 0.77))
@@ -44,12 +45,12 @@ object StyleAttr {
             val FontSize = 16.px
 
             object Controls {
-                val BgColor = ModeColor("#1B3C60", "#272737")
-                val FgColor = ModeColor("#EEE")
+                val BgColor = ModeColor("#FFFFFF00", "#222222")
+                val FgColor = ModeColor("#313131","#EEE")
 
                 val iconSize = 1.8.rem
-                val iconPadding = 0.1.rem
-                val iconFilter = invert(100.pct)
+                val iconPadding = 0.2.rem
+                val iconFilter = ModeFilter(invert(0.pct), invert(100.pct))
                 val controlSize = 2.0.rem
                 val borderRadius = 0.4.rem
             }
@@ -127,9 +128,10 @@ object StyleAttr {
 
 
         }
+
         object Processor {
-            val BorderColor = ModeColor("#915A69","#313131")
-            val BgColor = ModeColor("#CCCCCC","#313131")
+            val BorderColor = ModeColor("#915A69", "#313131")
+            val BgColor = ModeColor("#DDDDDD", "#313131")
             val FgColor = ModeColor("#313131", "#CCCCCC")
             val iconFilter = important(invert(100.pct))
             val TableFgColor = ModeColor("#313131", "#CCCCCC")
@@ -137,12 +139,12 @@ object StyleAttr {
             val TabBgColor = ModeColor("#00000031", "#00000031")
             val TabFgColor = ModeColor("#EEEEEE", "#999999")
 
-            val BgColorTransparent = ModeColor("#77777731","#11111151")
+            val BgColorTransparent = ModeColor("#77777731", "#11111151")
 
             val BtnFgFilter = ModeFilter(invert(0.pct), invert(100.pct))
-            val BtnBgColor = ModeColor("#CCCCCC", "#313131")
+            val BtnBgColor = ModeColor("#DDDDDD", "#313131")
             val BtnFgColor = ModeColor("#313131", "#CCCCCC")
-            val BtnBgColorDeActivated = ModeColor("#1B3C6031","#27273231")
+            val BtnBgColorDeActivated = ModeColor("#1B3C6031", "#27273231")
 
             val MaxHeightMem = 40.vh
             val MaxHeightReg = 40.vh
@@ -171,21 +173,23 @@ object StyleAttr {
             const val CLASS_REG = "processor-regdiv"
             const val CLASS_MEM = "processor-memdiv"
 
-            object Memory{
+            object Memory {
                 const val emptyPlaceholderRows = 10
             }
 
         }
-        object AppControls {
-            val BgColor = ModeColor("#1B3C60", "#272732")
-            val FgColor = ModeColor("#EEE")
-            val BgColorDeActivated = ModeColor("#1B3C6031","#27273231")
-            val FgColorDeActivated = ModeColor("#1B3C60", "#EEE")
 
+        object AppControls {
+            val BgColor = ModeColor("#FFFFFF00", "#222222")
+            val FgColor = ModeColor("#222222","#EEEEEE")
+            val BgColorDeActivated = ModeColor("#FFFFFF00", "#22222231")
+            val FgColorDeActivated = ModeColor("#999999", "#777777")
+            val iconFilter = ModeFilter(invert(0.pct), invert(100.pct))
             val iconSize = 1.8.rem
-            val iconPadding = 0.1.rem
+            val iconPadding = 0.2.rem
             val size = iconSize + 2 * iconPadding
         }
+
         object InfoView {
             val marginTopH1 = 1.rem
             val marginTop = 0.3.rem
@@ -201,17 +205,20 @@ object StyleAttr {
 
             val iconFilter = ModeFilter(invert(0.pct), invert(90.pct))
 
+            val consoleBgColor = ModeColor("#EEEEEE", "#222222")
+            val consoleFgColor = ModeColor("#222222", "#EEEEEE")
+
             enum class Colors(val color: ModeColor) {
                 Bg(ModeColor("#77778731")),
-                TableBg(ModeColor("#9797A731","#27273731")),
-                base00(ModeColor("#202746", "#f5f7ff")),
-                base01(ModeColor("#293256", "#dfe2f1")),
-                base02(ModeColor("#5e6687", "#979db4")),
-                base03(ModeColor("#6b7394", "#898ea4")),
-                base04(ModeColor("#898ea4", "#6b7394")),
-                base05(ModeColor("#979db4", "#5e6687")),
-                base06(ModeColor("#dfe2f1", "#293256")),
-                base07(ModeColor("#f5f7ff", "#202746")),
+                TableBg(ModeColor("#9797A731", "#27273731")),
+                base00(ModeColor("#101010", "#F0F0F0")),
+                base01(ModeColor("#303030", "#D0D0D0")),
+                base02(ModeColor("#505050", "#B0B0B0")),
+                base03(ModeColor("#707070", "#909090")),
+                base04(ModeColor("#909090", "#707070")),
+                base05(ModeColor("#B0B0B0", "#505050")),
+                base06(ModeColor("#D0D0D0", "#303030")),
+                base07(ModeColor("#F0F0F0", "#101010")),
                 red(ModeColor("#c94922")),
                 orange(ModeColor("#c76b29")),
                 yellow(ModeColor("#c08b30")),
@@ -228,15 +235,13 @@ object StyleAttr {
                 }
             }
         }
+
         object Table {
             val BgPC = Color("#008b1966")
             val FgPC = Color("#008b19")
 
             val BorderColor = Color("#E3E3E2FF")
             val StripeColor = Color("#FFFFFF19")
-
-            val IconSize = 1.8.rem
-            val IconPadding = 0.1.rem
 
             val FontSizeHead = 0.84.em
             val FontSizeBody = 0.84.em
@@ -262,6 +267,7 @@ object StyleAttr {
                 }
             }
         }
+
         object Window {
             const val CLASS = "window"
             const val CLASS_HEADER = "window-header"
@@ -296,6 +302,7 @@ object StyleAttr {
         const val CLASS_ANIM_BLINKGREEN = "anim-blinkgreen"
         const val CLASS_ANIM_DEACTIVATED = "anim-deactivated"
     }
+
     object Footer {
         val BgColor = ModeColor("#905356")
         val FgColor = ModeColor("#FFF")
@@ -313,7 +320,7 @@ object StyleAttr {
     val iconActiveFilter = invert(71).also { sepia(54) }.also { saturate(429) }.also { hueRotate(83.deg) }.also { brightness(89) }.also { contrast(87) }
 
     val iconSize = 1.8.rem
-    val iconPadding = 0.1.rem
+    val iconPadding = 0.2.rem
     val iconBorderRadius = 0.4.rem
 
     // FONTS
@@ -378,6 +385,7 @@ object StyleAttr {
         const val step_over = "benicons/step_over.svg"
         const val tag = "benicons/tag.svg"
     }
+
     class ModeColor(light: String, dark: String? = null) {
         val light: Color
         val dark: Color?
@@ -394,6 +402,7 @@ object StyleAttr {
             }
         }
     }
+
     class ModeFilter(val light: FilterFunction, val dark: FilterFunction?) {
         fun get(): FilterFunction {
             return when (mode) {
@@ -402,6 +411,7 @@ object StyleAttr {
             }
         }
     }
+
     enum class Mode {
         LIGHT,
         DARK

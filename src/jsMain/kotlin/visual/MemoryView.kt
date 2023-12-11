@@ -91,7 +91,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 flexWrap = FlexWrap.wrap
                 justifyContent = JustifyContent.flexEnd
                 alignItems = AlignItems.center
-                gap = StyleAttr.paddingSize
+                gap = 1.px
                 paddingLeft = 12.px
                 paddingRight = 12.px
                 flexGrow = number(0.0)
@@ -102,8 +102,8 @@ val MemoryView = FC<MemViewProps> { props ->
                     height = StyleAttr.iconSize + 2 * StyleAttr.iconPadding
                     flexGrow = number(1.0)
                     float = Float.left
-                    borderRadius = StyleAttr.iconBorderRadius
                     verticalAlign = VerticalAlign.middle
+                    borderRadius = 0.px
                     background = StyleAttr.Main.Processor.TableBgColor.get()
                     color = StyleAttr.Main.Processor.BtnFgColor.get()
                 }
@@ -114,19 +114,17 @@ val MemoryView = FC<MemViewProps> { props ->
                     height = StyleAttr.iconSize + 2 * StyleAttr.iconPadding
                     fontSize = important(StyleAttr.Main.Table.FontSizeSelect)
                     fontWeight = FontWeight.lighter
+                    borderRadius = 0.px
                     cursor = Cursor.pointer
-
                 }
 
                 button {
                     display = Display.inlineBlock
                     cursor = Cursor.pointer
-                    padding = StyleAttr.Main.Table.IconPadding
+                    padding = StyleAttr.iconPadding
                     float = Float.left
                     color = StyleAttr.Main.Processor.BtnFgColor.get()
                     backgroundColor = StyleAttr.Main.Processor.TableBgColor.get()
-                    borderRadius = StyleAttr.iconBorderRadius
-                    transition = Transition(TransitionProperty.all, 0.2.s, TransitionTimingFunction.ease)
 
                     a {
                         padding = StyleAttr.paddingSize
@@ -134,14 +132,17 @@ val MemoryView = FC<MemViewProps> { props ->
 
                     img {
                         display = Display.block
-                        height = StyleAttr.Main.Table.IconSize
-                        width = StyleAttr.Main.Table.IconSize
+                        height = StyleAttr.iconSize
                         filter = important(StyleAttr.Main.Processor.BtnFgFilter.get())
                     }
                 }
             }
 
             button {
+                css{
+                    borderTopLeftRadius = StyleAttr.iconBorderRadius
+                    borderBottomLeftRadius = StyleAttr.iconBorderRadius
+                }
                 type = ButtonType.button
 
                 onClick = {
@@ -203,9 +204,8 @@ val MemoryView = FC<MemViewProps> { props ->
             button {
                 type = ButtonType.button
                 css {
-                    if (!lowFirst) {
-                        background = important(StyleAttr.Main.Processor.BtnBgColorDeActivated.get())
-                    }
+                    borderTopRightRadius = StyleAttr.iconBorderRadius
+                    borderBottomRightRadius = StyleAttr.iconBorderRadius
                 }
 
                 onClick = { event ->

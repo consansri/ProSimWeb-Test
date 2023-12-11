@@ -643,7 +643,7 @@ val AppStyle = FC<Props> {
                 }
 
                 ".${StyleAttr.Main.CLASS_DELETE}" {
-                    backgroundColor = important(StyleAttr.Main.DeleteColor)
+                    backgroundColor = important(StyleAttr.Main.DeleteColor.get())
                 }
             }
         }

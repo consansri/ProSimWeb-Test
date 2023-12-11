@@ -59,7 +59,7 @@ val InfoView = FC<InfoViewProps> { props ->
                     css {
                         cursor = Cursor.pointer
                         borderRadius = StyleAttr.borderRadius
-                        background = InfoView.Colors.base06.get()
+                        background = InfoView.Colors.base07.get()
                         padding = StyleAttr.paddingSize
                         color = important(InfoView.Colors.base00.get())
                     }
@@ -103,18 +103,22 @@ val InfoView = FC<InfoViewProps> { props ->
                         marginTop = important(InfoView.marginTopH1)
                         marginBottom = important(InfoView.marginBottom)
                         marginLeft = important(0.rem)
+                        color = StyleAttr.Main.InfoView.Colors.base03.get()
                     }
                     ReactHTML.h2 {
                         fontSize = InfoView.fontSizeH2
                         marginTop = important(InfoView.marginTopH1)
                         marginBottom = important(InfoView.marginBottom)
                         marginLeft = important(0.rem)
+                        textAlign = TextAlign.center
+                        color = StyleAttr.Main.InfoView.Colors.base02.get()
                     }
                     ReactHTML.h3 {
                         fontSize = InfoView.fontSizeH3
                         marginTop = important(InfoView.marginTop)
                         marginBottom = important(InfoView.marginBottom)
                         marginLeft = important(0.rem)
+                        color = StyleAttr.Main.InfoView.Colors.base01.get()
                     }
                     ReactHTML.h4 {
                         fontSize = InfoView.fontSizeH4

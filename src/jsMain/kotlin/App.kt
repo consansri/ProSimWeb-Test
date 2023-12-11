@@ -139,14 +139,14 @@ val App = FC<Props> { props ->
                 css {
                     display = Display.flex
                     flexDirection = FlexDirection.column
-                    gap = StyleAttr.paddingSize
                     justifyContent = JustifyContent.start
                     alignItems = AlignItems.start
-                    padding = StyleAttr.paddingSize
                     borderLeft = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
 
                     StyleAttr.layoutSwitchMediaQuery {
                         flexDirection = FlexDirection.row
+                        borderLeft = Border(0.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                        borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
                     }
 
                     div {
@@ -155,17 +155,17 @@ val App = FC<Props> { props ->
                         backgroundColor = StyleAttr.Main.AppControls.BgColor.get()
                         padding = StyleAttr.Main.AppControls.iconPadding
                         borderRadius = StyleAttr.borderRadius
-                        boxShadow = BoxShadow(0.px, 0.px, 0.1.rem, Color("#000000A0"))
                         cursor = Cursor.pointer
                         textAlign = TextAlign.center
                         display = Display.flex
                         justifyContent = JustifyContent.center
                         alignItems = AlignItems.center
                         color = StyleAttr.Main.AppControls.FgColor.get()
+                        borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
 
                         img {
                             height = StyleAttr.Main.AppControls.iconSize
-                            filter = StyleAttr.iconFilter
+                            filter = StyleAttr.Main.AppControls.iconFilter.get()
                         }
                     }
                 }
@@ -260,9 +260,8 @@ val App = FC<Props> { props ->
                 display = Display.flex
                 flexDirection = FlexDirection.column
                 position = Position.relative
-                gap = StyleAttr.paddingSize
+                //gap = StyleAttr.paddingSize
                 flexWrap = FlexWrap.nowrap
-                padding = StyleAttr.paddingSize
             }
 
             input {
@@ -273,6 +272,7 @@ val App = FC<Props> { props ->
                     StyleAttr.layoutSwitchMediaQuery {
                         visibility = Visibility.hidden
                     }
+                    margin = StyleAttr.paddingSize
                 }
 
                 min = 0.0
@@ -301,6 +301,7 @@ val App = FC<Props> { props ->
         css {
             backgroundColor = StyleAttr.Footer.BgColor.get()
             color = StyleAttr.Footer.FgColor.get()
+            borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
         }
         FooterView {
 

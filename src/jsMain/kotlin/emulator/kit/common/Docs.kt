@@ -22,59 +22,71 @@ class Docs(vararg htmlFiles: HtmlFile) {
             "../documents/user-manual.html"
         ),
         HtmlFile.DefinedFile("Version - ${Constants.version}", FC<Props> {
-            h2 {
-                +"Version - 0.1.5"
-            }
-            h3 {
-                +"New"
-            }
+            h2 { +"Version - 0.1.6" }
+            h3 { +"New" }
             ul {
+                li { +"KIT RV64 Code examples now added." }
+            }
+            h3 { +"Changed" }
+            ul {
+                li { +"REACT Design changed for a more minimalistic style which allows a better focus on the actual content." }
+            }
+            h3 { +"Fixed" }
+            ul {
+                li { +"REACT Editor Undo, Redo, Build and Clear Button are hidden in transcript view!" }
+                li { +"KIT RV32 & RV64 .data and .rodata updated syntax changes. (examples below)" }
                 li {
-                    +"KIT Feature System is fully integrated."
+                    pre {
+                        code {
+                            +"""
+                    .data
+                    
+                    # string arrays always where possible
+                    myStringArray:	.string	"i always existed :|"
+                    
+                    # all other arrays are now possibly too :)
+                    myByteArray:	.byte 	0xC0, 0xFF, 0xEE, 0xBA, 0xBE
+                    
+                    # and standalone data emitting directives are now usable
+                    myTable:	.half	0x0001, 0x0002, 0x0003, 0x0004
+                                    .half 	0x0005, 0x0006, 0x0007, 0x0008
+                                    #...
+                """.trimIndent()
+                        }
+                    }
                 }
+            }
+            h3 { +"Issues" }
+            ul {
+            }
+
+            h2 { +"Version - 0.1.5" }
+            h3 { +"New" }
+            ul {
+                li { +"KIT Feature System is fully integrated." }
                 li {
                     +"""RV64 Extensions where added but aren't fully implemented (CSR and S can be enabled).
                         |Instructions and Registers usable without any restrictions (upcoming).
                     """.trimMargin()
                 }
             }
-            h3 {
-                +"Changed"
-            }
+            h3 { +"Changed" }
             ul {
-                li {
-                    +"KIT Privileges can be added to Registers."
-                }
+                li { +"KIT Privileges can be added to Registers." }
             }
-            h3 {
-                +"Fixed"
-            }
+            h3 { +"Fixed" }
             ul {
-                li {
-                    +"KIT FileHandler had some issues with undo redo state on page reload."
-                }
-                li {
-                    +"REACT Editor had some code state indication issues when build is triggered through the button."
-                }
+                li { +"KIT FileHandler had some issues with undo redo state on page reload." }
+                li { +"REACT Editor had some code state indication issues when build is triggered through the button." }
             }
-            h3 {
-                +"Issues"
-            }
+            h3 { +"Issues" }
             ul {
-                li {
-                    +"KIT RV64 Code examples are missing."
-                }
-                li {
-                    +"REACT Editor Undo, Redo, Build and Clear Button shouldn't be used in trancript view. Will be hidden in next version!"
-                }
+                li { +"KIT RV64 Code examples are missing." }
+                li { +"REACT Editor Undo, Redo, Build and Clear Button shouldn't be used in trancript view. Will be hidden in next version!" }
             }
 
-            h2 {
-                +"Version - 0.1.4"
-            }
-            h3 {
-                +"New"
-            }
+            h2 { +"Version - 0.1.4" }
+            h3 { +"New" }
             ul {
                 li {
                     +"""KIT & REACT The Calling Convention needs to be set for each Register.
@@ -82,23 +94,13 @@ class Docs(vararg htmlFiles: HtmlFile) {
                     """.trimMargin()
                 }
             }
-            h3 {
-                +"Changed"
-            }
+            h3 { +"Changed" }
             ul {
-                li {
-                    +"KIT RV32 and RV64 under the hood the whole syntax implementation is dependent on a specific xlen (globally set parameter)."
-                }
-                li {
-                    +"KIT types are either specified as signed or unsigned. (dec is signed while hex, bin, udec are unsigned)"
-                }
-                li {
-                    +"KIT Compiler checking value sizes is now fully ported to the arch syntax implementation."
-                }
+                li { +"KIT RV32 and RV64 under the hood the whole syntax implementation is dependent on a specific xlen (globally set parameter)." }
+                li { +"KIT types are either specified as signed or unsigned. (dec is signed while hex, bin, udec are unsigned)" }
+                li { +"KIT Compiler checking value sizes is now fully ported to the arch syntax implementation." }
             }
-            h3 {
-                +"Fixed"
-            }
+            h3 { +"Fixed" }
             ul {
                 li {
                     pre {
@@ -141,63 +143,37 @@ class Docs(vararg htmlFiles: HtmlFile) {
                     }
                 }
             }
-            h3 {
-                +"Issues"
-            }
+            h3 { +"Issues" }
             ul {
-                li {
-                    +"KIT RV64 Code examples are missing."
-                }
+                li { +"KIT RV64 Code examples are missing." }
             }
 
-            h2 {
-                +"Version - 0.1.3"
-            }
-            h3 {
-                +"New"
-            }
+            h2 { +"Version - 0.1.3" }
+            h3 { +"New" }
             ul {
                 li {
                     +"""REACT got a completely new component update system based on useStates.
                         |Manually refreshing components isn't needed anymore.""".trimMargin()
                 }
-                li {
-                    +"""KIT RV64I is now in it's preview state"""
-                }
-                li {
-                    +"""GLOBAL Switched to Kotlin 1.9.20 where Kotlin Multiplatform becomes stable"""
-                }
-                li {
-                    +"""REACT Menu can now be collapsed and elapsed"""
-                }
-                li {
-                    +"""KIT now supports ISA extension features"""
-                }
-                li {
-                    +"""REACT Console can hide or show logs (controlled with button)"""
-                }
+                li { +"""KIT RV64I is now in it's preview state""" }
+                li { +"""GLOBAL Switched to Kotlin 1.9.20 where Kotlin Multiplatform becomes stable""" }
+                li { +"""REACT Menu can now be collapsed and elapsed""" }
+                li { +"""KIT now supports ISA extension features""" }
+                li { +"""REACT Console can hide or show logs (controlled with button)""" }
             }
 
-            h3 {
-                +"Changed"
-            }
+            h3 { +"Changed" }
             ul {
                 li {
                     +"""KIT Memory Component now returns a List of Memory Instances which already contain the row address and offset.
                         |This change happened to implement a more efficient way to rerender the memory without always recalculating the indexes of each instance.""".trimMargin()
                 }
             }
-            h3 {
-                +"Fixed"
-            }
+            h3 { +"Fixed" }
             ul {
-                li {
-                    +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!"""
-                }
+                li { +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!""" }
             }
-            h3 {
-                +"Issues"
-            }
+            h3 { +"Issues" }
             ul {
                 li {
                     +"""KIT Caused by the new Memory and Update System, the assembly process is now a little slower. 

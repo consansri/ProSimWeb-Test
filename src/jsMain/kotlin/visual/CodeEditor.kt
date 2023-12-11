@@ -247,23 +247,22 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 flexDirection = FlexDirection.column
                 justifyContent = JustifyContent.start
                 alignItems = AlignItems.start
-                padding = StyleAttr.paddingSize
-                gap = StyleAttr.paddingSize
+                //padding = StyleAttr.paddingSize
                 minWidth = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
-
                 a {
                     width = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
-                    boxShadow = BoxShadow(0.px, 3.px, 8.px, rgb(0, 0, 0, 0.24))
+                    //boxShadow = BoxShadow(0.px, 3.px, 8.px, rgb(0, 0, 0, 0.24))
                     padding = StyleAttr.Main.Editor.Controls.iconPadding
-                    borderRadius = StyleAttr.Main.Editor.Controls.borderRadius
+                    //borderRadius = StyleAttr.Main.Editor.Controls.borderRadius
+                    borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
                     background = StyleAttr.Main.Editor.Controls.BgColor.get()
                     color = StyleAttr.Main.Editor.Controls.FgColor.get()
                     transition = Transition(TransitionProperty.all, 0.1.s, TransitionTimingFunction.ease)
                 }
                 img {
                     width = StyleAttr.Main.Editor.Controls.iconSize
-                    height = StyleAttr.Main.Editor.Controls.iconSize
-                    filter = StyleAttr.Main.Editor.Controls.iconFilter
+                    //height = StyleAttr.Main.Editor.Controls.iconSize
+                    filter = StyleAttr.Main.Editor.Controls.iconFilter.get()
                 }
             }
 
@@ -379,10 +378,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     css {
                         height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
                         cursor = Cursor.pointer
-
-                        hover {
-                            filter = important(StyleAttr.iconActiveFilter)
-                        }
                     }
                     id = "build"
                     title = "build"
@@ -437,13 +432,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 a {
                     css {
                         height = StyleAttr.Main.Editor.Controls.iconSize + 2 * StyleAttr.Main.Editor.Controls.iconPadding
-                        background = important(StyleAttr.Main.DeleteColor)
+                        background = important(StyleAttr.Main.DeleteColor.get())
                         cursor = Cursor.pointer
                     }
                     ref = btnClearRef
                     title = "Clear"
 
                     img {
+                        css{
+                            filter = important(invert(100.pct))
+                        }
                         src = StyleAttr.Icons.delete_black
                     }
 
@@ -457,9 +455,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     css {
                         cursor = Cursor.pointer
                         position = Position.absolute
-                        bottom = StyleAttr.paddingSize
+                        bottom = 0.px
                         display = Display.block
                         writingMode = WritingMode.verticalRl
+                        borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                        borderBottom =important(Border(0.px, LineStyle.solid))
                     }
 
                     title = "{$infoPanelText}"

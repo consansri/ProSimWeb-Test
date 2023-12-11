@@ -48,9 +48,11 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
 
         css {
             display = Display.block
-            backgroundColor = Color("#313131")
+            backgroundColor = StyleAttr.Main.InfoView.consoleBgColor.get()
             padding = 10.px
             fontFamily = FontFamily.monospace
+            borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+            borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
 
             if (pin) {
                 position = Position.fixed
@@ -66,14 +68,14 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
 
 
             } else {
-                borderRadius = 0.3.rem
+                //borderRadius = 0.3.rem
                 position = Position.relative
             }
         }
 
         a {
             css {
-                color = Color("#BBBBBB")
+                color = StyleAttr.Main.InfoView.consoleFgColor.get()
                 fontSize = 1.2.rem
             }
 
