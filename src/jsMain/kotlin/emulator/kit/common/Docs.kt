@@ -22,6 +22,18 @@ class Docs(vararg htmlFiles: HtmlFile) {
             "../documents/user-manual.html"
         ),
         HtmlFile.DefinedFile("Version - ${Constants.version}", FC<Props> {
+            h2 { +"Version - 0.1.7" }
+            h3{+"Changed"}
+            ul{
+                li {+"REACT exchanged edit icon."}
+                li {+"KIT Memory cleares first on reset."}
+            }
+            h3 { +"Fixed" }
+            ul {
+                li { +"REACT Fixed: MMIO values weren't visualy updating on change from program." }
+            }
+
+
             h2 { +"Version - 0.1.6" }
             h3 { +"New" }
             ul {
@@ -56,9 +68,6 @@ class Docs(vararg htmlFiles: HtmlFile) {
                     }
                 }
             }
-            h3 { +"Issues" }
-            ul {
-            }
 
             h2 { +"Version - 0.1.5" }
             h3 { +"New" }
@@ -78,11 +87,6 @@ class Docs(vararg htmlFiles: HtmlFile) {
             ul {
                 li { +"KIT FileHandler had some issues with undo redo state on page reload." }
                 li { +"REACT Editor had some code state indication issues when build is triggered through the button." }
-            }
-            h3 { +"Issues" }
-            ul {
-                li { +"KIT RV64 Code examples are missing." }
-                li { +"REACT Editor Undo, Redo, Build and Clear Button shouldn't be used in trancript view. Will be hidden in next version!" }
             }
 
             h2 { +"Version - 0.1.4" }
@@ -144,9 +148,6 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 }
             }
             h3 { +"Issues" }
-            ul {
-                li { +"KIT RV64 Code examples are missing." }
-            }
 
             h2 { +"Version - 0.1.3" }
             h3 { +"New" }
@@ -168,17 +169,14 @@ class Docs(vararg htmlFiles: HtmlFile) {
                     +"""KIT Memory Component now returns a List of Memory Instances which already contain the row address and offset.
                         |This change happened to implement a more efficient way to rerender the memory without always recalculating the indexes of each instance.""".trimMargin()
                 }
-            }
-            h3 { +"Fixed" }
-            ul {
-                li { +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!""" }
-            }
-            h3 { +"Issues" }
-            ul {
                 li {
                     +"""KIT Caused by the new Memory and Update System, the assembly process is now a little slower. 
                         |This is not directly caused by inefficient code instead it is caused by JavaScript which slows down with each loop run.""".trimMargin()
                 }
+            }
+            h3 { +"Fixed" }
+            ul {
+                li { +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!""" }
             }
         })
     )

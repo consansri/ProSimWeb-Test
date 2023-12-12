@@ -153,6 +153,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      */
     open fun exeReset() {
         regContainer.clear()
+        memory.clear()
         compiler.reassemble()
         getConsole().exeInfo("resetting")
     }

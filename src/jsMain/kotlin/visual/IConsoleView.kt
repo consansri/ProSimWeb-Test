@@ -234,23 +234,19 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                             whiteSpace = WhiteSpace.pre
                             when (message.type) {
                                 IConsole.MSGType.INFO -> {
-                                    color = Color("#AAAAAA")
+                                    color = StyleAttr.Main.InfoView.Colors.base01.get()
                                 }
 
                                 IConsole.MSGType.LOG -> {
-                                    color = Color("#888888")
+                                    color = StyleAttr.Main.InfoView.Colors.base03.get()
                                 }
 
                                 IConsole.MSGType.WARNING -> {
-                                    color = Color("#FDDA0D")
+                                    color = StyleAttr.Main.InfoView.Colors.yellow.get()
                                 }
 
                                 IConsole.MSGType.ERROR -> {
-                                    color = Color("#FF5733")
-                                }
-
-                                else -> {
-                                    color = Color("#FFF")
+                                    color = StyleAttr.Main.InfoView.Colors.red.get()
                                 }
                             }
                         }

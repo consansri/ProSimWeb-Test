@@ -45,8 +45,7 @@ val MemoryView = FC<MemViewProps> { props ->
     val tbody = useRef<HTMLTableSectionElement>()
     val inputLengthRef = useRef<HTMLInputElement>()
     val asciiRef = useRef<HTMLElement>()
-
-    val arch = props.archState.component1()
+    val editRef = useRef<HTMLInputElement>()
 
     val name by useState(props.name)
     val (memEndianess, setEndianess) = useState<Memory.Endianess>()
@@ -55,9 +54,12 @@ val MemoryView = FC<MemViewProps> { props ->
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
 
-    val (useBounds, setUseBounds) = useState(arch.getMemory().getIOBounds() != null)
-    val (startAddr, setStartAddr) = useState(arch.getMemory().getIOBounds()?.lowerAddr?.toHex())
-    val (amount, setAmount) = useState(arch.getMemory().getIOBounds()?.amount ?: 32)
+    val (useBounds, setUseBounds) = useState(props.archState.component1().getMemory().getIOBounds() != null)
+    val (startAddr, setStartAddr) = useState(props.archState.component1().getMemory().getIOBounds()?.lowerAddr?.toHex())
+    val (amount, setAmount) = useState(props.archState.component1().getMemory().getIOBounds()?.amount ?: 32)
+
+    val (editVar, setEditVar) = useState<Memory.MemInstance.EditableValue>()
+
 
     div {
         css {
@@ -139,7 +141,7 @@ val MemoryView = FC<MemViewProps> { props ->
             }
 
             button {
-                css{
+                css {
                     borderTopLeftRadius = StyleAttr.iconBorderRadius
                     borderBottomLeftRadius = StyleAttr.iconBorderRadius
                 }
@@ -158,7 +160,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 type = ButtonType.button
 
                 onClick = {
-                    setMemList(arch.getMemory().getMemList())
+                    setMemList(props.archState.component1().getMemory().getMemList())
                 }
 
                 img {
@@ -168,7 +170,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
             select {
 
-                defaultValue = arch.getMemory().getEndianess().name
+                defaultValue = props.archState.component1().getMemory().getEndianess().name
 
                 for (entry in Memory.Endianess.entries) {
                     option {
@@ -192,12 +194,12 @@ val MemoryView = FC<MemViewProps> { props ->
                 min = 1.0
                 max = 16.0
                 step = 1.0
-                defaultValue = arch.getMemory().getEntrysInRow()
+                defaultValue = props.archState.component1().getMemory().getEntrysInRow()
 
                 onInput = {
-                    arch.getMemory().setEntrysInRow(it.currentTarget.valueAsNumber.toInt())
+                    props.archState.component1().getMemory().setEntrysInRow(it.currentTarget.valueAsNumber.toInt())
                     localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
-                    setMemList(arch.getMemory().getMemList())
+                    setMemList(props.archState.component1().getMemory().getMemList())
                 }
             }
 
@@ -245,7 +247,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             +"Address"
                         }
 
-                        for (columnID in 0 until arch.getMemory().getEntrysInRow()) {
+                        for (columnID in 0 until props.archState.component1().getMemory().getEntrysInRow()) {
                             th {
                                 /* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*/
                                 css {
@@ -270,22 +272,26 @@ val MemoryView = FC<MemViewProps> { props ->
 
 
                     var previousAddress: Hex? = null
-                    val memRows = memList.sortedBy { it.address.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
-                    val reversedMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
-                    for (memRow in if (lowFirst) memRows else reversedMemRows) {
-                        if (previousAddress != null && Hex(memRow.key) - previousAddress > Hex("1", Variable.Size.Bit1())) {
+                    val tempMemRows = memList.sortedBy { it.address.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
+                    val tempRevMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
+                    if (DebugTools.REACT_showUpdateInfo) {
+                        console.log("REACT: Memory Map Updated!")
+                    }
+                    for (memRow in if (lowFirst) tempMemRows else tempRevMemRows) {
+                        if (previousAddress != null && Hex(memRow.key) - previousAddress > Hex(props.archState.component1().getMemory().getEntrysInRow().toString(16), props.archState.component1().getMemory().getAddressSize())) {
                             tr {
                                 th {
                                     css {
                                         color = important(StyleAttr.Main.Table.Mark.NOTUSED.get())
                                     }
-                                    colSpan = 2 + arch.getMemory().getEntrysInRow()
+                                    colSpan = 2 + props.archState.component1().getMemory().getEntrysInRow()
                                     scope = "row"
                                     title = "only zeros in addresses between"
                                     +"..."
                                 }
                             }
                         }
+                        previousAddress = Hex(memRow.key, props.archState.component1().getMemory().getAddressSize())
                         tr {
                             th {
                                 className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
@@ -293,7 +299,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 +memRow.key
                             }
 
-                            for (id in 0 until arch.getMemory().getEntrysInRow()) {
+                            for (id in 0..<props.archState.component1().getMemory().getEntrysInRow()) {
                                 val memInstance = memRow.value.firstOrNull { it.offset == id }
                                 if (memInstance == null) {
                                     td {
@@ -302,7 +308,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                             fontWeight = important(FontWeight.lighter)
                                         }
                                         title = "unused"
-                                        +arch.getMemory().getInitialBinary().get().toHex().getRawHexStr()
+                                        +props.archState.component1().getMemory().getInitialBinary().get().toHex().getRawHexStr()
                                     }
                                 } else {
                                     td {
@@ -319,51 +325,12 @@ val MemoryView = FC<MemViewProps> { props ->
                                         //id = "mem${memInstance.address.getRawHexStr()}"
                                         title = "addr = ${memInstance.address.getRawHexStr()}\nvalue = ${memInstance.variable.get().toDec()} or ${memInstance.variable.get().toUDec()}\ntag = [${memInstance.mark.name}]"
 
+                                        +memInstance.variable.get().toHex().getRawHexStr()
 
                                         if (memInstance is Memory.MemInstance.EditableValue) {
-                                            input {
-                                                readOnly = false
-
-                                                type = InputType.text
-                                                pattern = "[0-9a-fA-F]+"
-                                                placeholder = Settings.PRESTRING_HEX
-                                                maxLength = arch.getMemory().getWordSize().getByteCount() * 2
-                                                defaultValue = memInstance.variable.get().toHex().getRawHexStr()
-
-                                                onBlur = { event ->
-
-                                                    // Set Value
-                                                    val newValue = event.currentTarget.value
-                                                    val currentTarget = event.currentTarget
-
-                                                    setTimeout({
-                                                        try {
-                                                            memInstance.variable.setHex(newValue)
-                                                            //setIUpdate(!internalUpdate)
-                                                            arch.getConsole()
-                                                                .info("Memory IO: [${memInstance.variable.get().toDec().getDecStr()}|${memInstance.variable.get().toUDec().getUDecStr()}|${memInstance.variable.get().toHex().getHexStr()}|${memInstance.variable.get().toBin().getBinaryStr()}]")
-                                                        } catch (e: NumberFormatException) {
-                                                            arch.getConsole().warn("MemoryView io onBlur: NumberFormatException")
-                                                        }
-
-                                                        // Get Actual Interpretation (for example padded binary number)
-                                                        try {
-                                                            currentTarget.value = memInstance.variable.get().toHex().getRawHexStr()
-                                                        } catch (e: NumberFormatException) {
-                                                            arch.getConsole().warn("RegisterView reg onBlur: NumberFormatException")
-                                                        }
-
-                                                    }, 0)
-
-                                                }
-                                                onKeyDown = { event ->
-                                                    if (event.key == "Enter") {
-                                                        event.currentTarget.blur()
-                                                    }
-                                                }
+                                            onClick = {
+                                                setEditVar(memInstance)
                                             }
-                                        } else {
-                                            +memInstance.variable.get().toHex().getRawHexStr()
                                         }
                                     }
                                 }
@@ -374,8 +341,8 @@ val MemoryView = FC<MemViewProps> { props ->
                                 className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
                                 ref = asciiRef
                                 var asciiString = ""
-                                val emptyAscii = arch.getMemory().getInitialBinary().get().toASCII()
-                                for (column in 0 until arch.getMemory().getEntrysInRow()) {
+                                val emptyAscii = props.archState.component1().getMemory().getInitialBinary().get().toASCII()
+                                for (column in 0 until props.archState.component1().getMemory().getEntrysInRow()) {
                                     val memInstance = memRow.value.firstOrNull { it.offset == column }
                                     asciiString += if (memInstance != null) {
                                         memInstance.variable.get().toASCII()
@@ -390,7 +357,7 @@ val MemoryView = FC<MemViewProps> { props ->
                     }
                     tr {
                         td {
-                            colSpan = arch.getMemory().getEntrysInRow() + 2
+                            colSpan = props.archState.component1().getMemory().getEntrysInRow() + 2
                             css {
                                 paddingTop = 15.rem
                                 paddingBottom = 15.rem
@@ -398,14 +365,54 @@ val MemoryView = FC<MemViewProps> { props ->
                             +"Memory"
                         }
                     }
-
                 }
-
-
             }
         }
     }
 
+    if (editVar != null) {
+        div {
+            className = ClassName(StyleAttr.Header.CLASS_OVERLAY)
+
+            img {
+                src = StyleAttr.Icons.cancel
+                onClick = {
+                    setEditVar(null)
+                }
+            }
+            div {
+                className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
+                ReactHTML.label {
+                    htmlFor = "editField"
+                    +"New Value"
+                }
+
+                input {
+                    ref = editRef
+                    id = "editField"
+                    type = InputType.text
+                    pattern = "[0-9a-fA-F]+"
+                    placeholder = Settings.PRESTRING_HEX
+                    defaultValue = editVar.variable.get().toHex().getRawHexStr()
+
+                    onChange = {
+                        val hex = Hex(it.currentTarget.value, props.archState.component1().getMemory().getWordSize())
+                        if (hex.checkResult.valid) {
+                            editVar.variable.set(hex)
+                        } else {
+                            it.currentTarget.value = editVar.variable.get().toHex().getRawHexStr()
+                        }
+                    }
+                    onKeyDown = {
+                        if (it.key == "Enter") {
+                            setEditVar(null)
+                        }
+                    }
+                }
+            }
+
+        }
+    }
 
     if (showDefMemSettings) {
         div {
@@ -454,7 +461,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         defaultValue = startAddr?.getRawHexStr() ?: ""
 
                         onChange = {
-                            setStartAddr(if (it.currentTarget.value != "") Hex(it.currentTarget.value, arch.getMemory().getAddressSize()) else null)
+                            setStartAddr(if (it.currentTarget.value != "") Hex(it.currentTarget.value, props.archState.component1().getMemory().getAddressSize()) else null)
                         }
                     }
                 }
@@ -490,31 +497,37 @@ val MemoryView = FC<MemViewProps> { props ->
     useEffect(useBounds, startAddr, amount) {
         if (useBounds) {
             startAddr?.let {
-                if (it.checkResult.valid) arch.getMemory().useIOBounds(it, amount) else arch.getConsole().error("IO Definition: Address isn't valid!")
-            } ?: arch.getConsole().error("IO Definition: Address isn't valid!")
+                if (it.checkResult.valid) props.archState.component1().getMemory().useIOBounds(it, amount) else props.archState.component1().getConsole().error("IO Definition: Address isn't valid!")
+            } ?: props.archState.component1().getConsole().error("IO Definition: Address isn't valid!")
 
         } else {
-            arch.getMemory().removeIOBounds()
+            props.archState.component1().getMemory().removeIOBounds()
         }
     }
 
-    useEffect(props.exeEventState) {
+    useEffect(props.exeEventState.component1()) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Exe Event!")
         }
-        setCurrExeAddr(arch.getRegContainer().pc.variable.get().toHex().getRawHexStr())
-        setMemList(arch.getMemory().getMemList())
+        setCurrExeAddr(props.archState.component1().getRegContainer().pc.variable.get().toHex().getRawHexStr())
+        setMemList(props.archState.component1().getMemory().getMemList())
     }
 
-    useEffect(arch.getMemory().memList, arch.getState().state) {
+    useEffect(props.archState.component1().getMemory().memList, props.archState.component1().getState().state) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Memory Map or Code State Changed!")
         }
     }
 
+    useEffect(editVar){
+        if(editVar != null){
+            editRef.current?.focus()
+        }
+    }
+
     useEffect(memEndianess) {
         memEndianess?.let {
-            arch.getMemory().setEndianess(it)
+            props.archState.component1().getMemory().setEndianess(it)
         }
     }
 
