@@ -3,4 +3,5 @@
 /.idea/
 .classpath
 .project
-ProSimWeb-Test.eml
+*.eml
+*.userlibraries
