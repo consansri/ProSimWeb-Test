@@ -96,7 +96,7 @@ val InfoView = FC<InfoViewProps> { props ->
             }
             ReactHTML.div {
                 css {
-                    whiteSpace = WhiteSpace.pre
+                    whiteSpace = WhiteSpace.preWrap
 
                     ReactHTML.h1 {
                         fontSize = InfoView.fontSizeH1

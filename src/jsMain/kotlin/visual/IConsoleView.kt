@@ -97,20 +97,17 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 height = 1.8.rem
                 marginLeft = 0.4.rem
                 borderRadius = 5.px
-                backgroundColor = Color("#AAAAAA")
-                filter = invert(100)
-                transitionProperty = TransitionProperty.all
-                transitionDuration = 0.2.s
+                filter = StyleAttr.Main.InfoView.iconFilter.get()
                 transitionTimingFunction = TransitionTimingFunction.easeInOut
 
                 hover {
-                    backgroundColor = Color("#999999")
+                    backgroundColor = Color("#99999977")
                 }
             }
 
             onClick = {
                 props.archState.component1().getConsole().clear()
-                setMessages(emptyList())
+                setMessages(props.archState.component1().getConsole().getMessages())
             }
 
             src = StyleAttr.Icons.delete_black
@@ -127,12 +124,15 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 height = 1.8.rem
                 marginLeft = 0.4.rem
                 borderRadius = 5.px
-                filter = invert(100)
+                filter = StyleAttr.Main.InfoView.iconFilter.get()
 
                 backgroundColor = if (pin) {
                     Color("#999999")
                 } else {
-                    Color("#AAAAAA")
+                    Color("#AAAAAA00")
+                }
+                hover {
+                    backgroundColor = Color("#99999977")
                 }
             }
 
@@ -154,12 +154,15 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 height = 1.8.rem
                 marginLeft = 0.4.rem
                 borderRadius = 5.px
-                filter = invert(100)
+                filter = StyleAttr.Main.InfoView.iconFilter.get()
 
                 backgroundColor = if (scrollDown) {
                     Color("#999999")
                 } else {
-                    Color("#AAAAAA")
+                    Color("#AAAAAA00")
+                }
+                hover {
+                    backgroundColor = Color("#99999977")
                 }
             }
 
@@ -180,12 +183,15 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
                 height = 1.8.rem
                 marginLeft = 0.4.rem
                 borderRadius = 5.px
-                filter = invert(100)
+                filter = StyleAttr.Main.InfoView.iconFilter.get()
 
                 backgroundColor = if (showLog) {
                     Color("#999999")
                 } else {
-                    Color("#AAAAAA")
+                    Color("#AAAAAA00")
+                }
+                hover {
+                    backgroundColor = Color("#99999977")
                 }
             }
             onClick = {

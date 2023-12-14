@@ -203,7 +203,7 @@ object StyleAttr {
             val fontSizeH4 = 1.1.rem
             val fontSizeStandard = 1.0.rem
 
-            val iconFilter = ModeFilter(invert(0.pct), invert(90.pct))
+            val iconFilter = ModeFilter(invert(0.pct), invert(100.pct))
 
             val consoleBgColor = ModeColor("#EEEEEE", "#222222")
             val consoleFgColor = ModeColor("#222222", "#EEEEEE")
