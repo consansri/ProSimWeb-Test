@@ -9,6 +9,7 @@ import emulator.kit.optional.FlagsConditions
 import emulator.kit.types.Variable
 
 import debug.DebugTools
+import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 import emulator.kit.types.HTMLTools
 import web.buffer.Blob
@@ -55,6 +56,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val flagsConditions: FlagsConditions?
     private val cache: Cache?
     private val features: List<Feature>
+    private val settings: List<ArchSetting>
 
     init {
         this.description = config.description
@@ -65,7 +67,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.flagsConditions = config.flagsConditions
         this.cache = config.cache
         this.iConsole = IConsole("${config.description.name} Console")
-        this.features = config.features
+        this.features = asmConfig.features
+        this.settings = asmConfig.settings
         this.compiler = Compiler(
             this,
             asmConfig.syntax,
@@ -85,7 +88,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getState(): ArchState = archState
     fun getAssembly(): Compiler = compiler
     fun getFormattedFile(type: FileBuilder.ExportFormat, vararg settings: FileBuilder.Setting): Blob = FileBuilder().build(this, type, *settings)
-    fun getAllFeatures() = features
+    fun getAllFeatures(): List<Feature> = features
+    fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
     fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
     fun getRegByName(name: String, regFile: String? = null): RegContainer.Register? = regContainer.getReg(name, features, regFile)

@@ -11,6 +11,10 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import debug.DebugTools
 import emulator.Link
+import emulator.archs.riscv64.RV64
+import emulator.kit.Settings
+import emulator.kit.optional.ArchSetting
+import emulator.kit.types.Variable
 import visual.*
 import visual.ProcessorView
 import web.cssom.*
@@ -30,7 +34,7 @@ val App = FC<Props> { props ->
 
     val archState = useState(Link.entries[localStorage.getItem(StorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0].architecture)
     val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().getAllFeatures().filter { !it.invisible })
-
+    val (showSettings, setShowSettings) = useState(false)
 
     val compileEventState = useState(false)
     val exeEventState = useState(false)
@@ -217,6 +221,20 @@ val App = FC<Props> { props ->
                     }
                 }
 
+                div {
+                    title = "architecture settings"
+                    img {
+                        alt = "architecture settings"
+                        src = StyleAttr.Icons.edit
+                    }
+                    onClick = {
+                        setShowSettings(!showSettings)
+                    }
+                }
+
+
+
+
                 for (feature in visibleFeatures) {
                     div {
                         css {
@@ -294,7 +312,52 @@ val App = FC<Props> { props ->
             }
         }
     }
+    if (showSettings) {
+        div {
+            className = ClassName(StyleAttr.Header.CLASS_OVERLAY)
 
+            img {
+                src = StyleAttr.Icons.cancel
+                onClick = {
+                    setShowSettings(false)
+                }
+            }
+
+            for (setting in archState.component1().getAllSettings()) {
+                div {
+                    className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
+                    ReactHTML.label {
+                        htmlFor = "setting${setting.name}"
+                        +setting.name
+                    }
+                    input {
+                        id = "setting${setting.name}"
+                        when (setting) {
+                            is ArchSetting.BoolSetting -> {
+
+                            }
+
+                            is ArchSetting.ImmSetting -> {
+                                type = InputType.text
+                                pattern = "[0-9a-fA-F]+"
+                                placeholder = Settings.PRESTRING_HEX
+                                defaultValue = setting.value.get().toHex().getRawHexStr()
+
+                                onChange = {
+                                    val hex = Variable.Value.Hex(it.currentTarget.value, RV64.MEM_ADDRESS_WIDTH)
+                                    if (hex.checkResult.valid) {
+                                        setting.value.set(hex)
+                                    } else {
+                                        it.currentTarget.value = setting.value.get().toHex().getRawHexStr()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     footer {
         ref = footerRef
         css {

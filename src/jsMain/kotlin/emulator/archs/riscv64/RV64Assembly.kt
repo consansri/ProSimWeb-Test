@@ -1,15 +1,17 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
+import emulator.archs.riscv32.RV32
 import emulator.kit.Architecture
 import emulator.kit.assembly.Assembly
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
+import emulator.kit.optional.ArchSetting
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
-class RV64Assembly(private val binaryMapper: RV64BinMapper, private val dataSecStart: Variable.Value, private val rodataSecStart: Variable.Value, private val bssSecStart: Variable.Value) : Assembly() {
+class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
     private val labelBinAddrMap = mutableMapOf<RV64Syntax.E_LABEL, String>()
     private val transcriptEntrys = mutableListOf<RVDisassembledRow>()
     private val bins = mutableListOf<Variable.Value.Bin>()
@@ -107,6 +109,10 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper, private val dataSecS
      * Extracts all relevant information from the [syntaxTree] and stores it at certain points in memory.
      */
     override fun generateByteCode(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
+        val dataSecStart = architecture.getAllSettings().filterIsInstance<ArchSetting.ImmSetting>().firstOrNull { it.name == RV64.SETTING.DATA.name }?.value?.get() ?: Variable.Value.Hex("10000", RV32.MEM_ADDRESS_WIDTH)
+        val roDataSecStart = architecture.getAllSettings().filterIsInstance<ArchSetting.ImmSetting>().firstOrNull { it.name == RV64.SETTING.RODATA.name }?.value?.get() ?: Variable.Value.Hex("20000", RV32.MEM_ADDRESS_WIDTH)
+        val bssSecStart = architecture.getAllSettings().filterIsInstance<ArchSetting.ImmSetting>().firstOrNull { it.name == RV64.SETTING.BSS.name }?.value?.get() ?: Variable.Value.Hex("30000", RV32.MEM_ADDRESS_WIDTH)
+
         val rootNode = syntaxTree.rootNode
         var assemblyMap: AssemblyMap? = null
         rootNode?.let {
@@ -121,7 +127,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper, private val dataSecS
             var pcStartAddress = Variable.Value.Hex("0", RV64.MEM_ADDRESS_WIDTH)
 
             var nextDataAddress = dataSecStart
-            var nextRoDataAddress = rodataSecStart
+            var nextRoDataAddress = roDataSecStart
             var nextBssAddress = bssSecStart
             // Resolving Sections
 

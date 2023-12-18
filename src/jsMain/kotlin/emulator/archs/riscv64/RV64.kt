@@ -1,6 +1,7 @@
 package emulator.archs.riscv64
 
 import emotion.react.css
+import emulator.archs.riscv32.RV32
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -15,6 +16,7 @@ import emulator.kit.common.RegContainer.RegisterFile
 import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.CSRegister.Privilege
+import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 
 object RV64 {
@@ -44,6 +46,12 @@ object RV64 {
         Label,
         Instruction,
         Parameters
+    }
+
+    enum class SETTING {
+        DATA,
+        RODATA,
+        BSS
     }
 
     /**
@@ -214,7 +222,16 @@ object RV64 {
         )
     )
 
-    val asmConfig = AsmConfig(RV64Syntax(), RV64Assembly(RV64BinMapper(), Hex("00010000", MEM_ADDRESS_WIDTH), Hex("00020000", MEM_ADDRESS_WIDTH), Hex("00030000", MEM_ADDRESS_WIDTH)))
+    val asmConfig = AsmConfig(
+        RV64Syntax(),
+        RV64Assembly(RV64BinMapper()),
+        features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) },
+        settings = listOf(
+            ArchSetting.ImmSetting(SETTING.DATA.name, Variable(Variable.Value.Hex("00010000", XLEN))),
+            ArchSetting.ImmSetting(SETTING.RODATA.name, Variable(Variable.Value.Hex("00020000", XLEN))),
+            ArchSetting.ImmSetting(SETTING.BSS.name, Variable(Variable.Value.Hex("00030000", XLEN)))
+        )
+    )
 
     /**
      * Standard Registers
@@ -518,8 +535,7 @@ object RV64 {
             standardRegFileName = MAIN_REGFILE_NAME
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
-        Transcript(),
-        features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
+        Transcript()
     )
 
 }

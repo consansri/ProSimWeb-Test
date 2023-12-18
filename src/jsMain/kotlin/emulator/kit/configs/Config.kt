@@ -1,6 +1,7 @@
 package emulator.kit.configs
 
 import emulator.kit.common.*
+import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Cache
 import emulator.kit.optional.Feature
 import emulator.kit.optional.FlagsConditions
@@ -15,17 +16,23 @@ data class Config(
     val memory: Memory,
     val transcript: Transcript,
     val flagsConditions: FlagsConditions?,
-    val cache: Cache?,
-    val features: List<Feature> = listOf()
+    val cache: Cache?
 ) {
 
     constructor(
         description: Description,
         fileHandler: FileHandler,
         regContainer: RegContainer,
+        memory: Memory
+    ) : this(description, fileHandler, regContainer, memory, Transcript(), null, null)
+
+    constructor(
+        description: Description,
+        fileHandler: FileHandler,
+        regContainer: RegContainer,
         memory: Memory,
-        features: List<Feature> = listOf()
-    ) : this(description, fileHandler, regContainer, memory, Transcript(), null, null, features)
+        transcript: Transcript
+    ) : this(description, fileHandler, regContainer, memory, transcript, null, null)
 
     constructor(
         description: Description,
@@ -33,18 +40,8 @@ data class Config(
         regContainer: RegContainer,
         memory: Memory,
         transcript: Transcript,
-        features: List<Feature> = listOf()
-    ) : this(description, fileHandler, regContainer, memory, transcript, null, null, features)
-
-    constructor(
-        description: Description,
-        fileHandler: FileHandler,
-        regContainer: RegContainer,
-        memory: Memory,
-        transcript: Transcript,
-        flagsConditions: FlagsConditions?,
-        features: List<Feature> = listOf()
-    ) : this(description, fileHandler, regContainer, memory, transcript, flagsConditions, null, features)
+        flagsConditions: FlagsConditions?
+    ) : this(description, fileHandler, regContainer, memory, transcript, flagsConditions, null)
 
     data class Description(val name: String, val fullName: String, val docs: Docs)
 }

@@ -6,6 +6,7 @@ import emotion.react.css
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
+import emulator.kit.optional.ArchSetting
 import emulator.kit.types.*
 import react.FC
 import react.dom.html.ReactHTML
@@ -56,6 +57,12 @@ object RV32 {
         Label,
         Instruction,
         Parameters
+    }
+
+    enum class SETTING{
+        DATA,
+        RODATA,
+        BSS
     }
 
     val riscVDocs = Docs(
@@ -179,7 +186,12 @@ object RV32 {
 
     val asmConfig = AsmConfig(
         RV32Syntax(),
-        RV32Assembly(RV32BinMapper(), Variable.Value.Hex("00010000", Variable.Size.Bit32()), Variable.Value.Hex("00020000", Variable.Size.Bit32()), Variable.Value.Hex("00030000", Variable.Size.Bit32()))
+        RV32Assembly(RV32BinMapper()),
+        settings = listOf(
+            ArchSetting.ImmSetting(SETTING.DATA.name, Variable(Variable.Value.Hex("00010000", Variable.Size.Bit32()))),
+            ArchSetting.ImmSetting(SETTING.RODATA.name, Variable(Variable.Value.Hex("00020000", Variable.Size.Bit32()))),
+            ArchSetting.ImmSetting(SETTING.BSS.name, Variable(Variable.Value.Hex("00030000", Variable.Size.Bit32())))
+        )
     )
 
     val config = Config(
