@@ -334,19 +334,27 @@ val App = FC<Props> { props ->
                         id = "setting${setting.name}"
                         when (setting) {
                             is ArchSetting.BoolSetting -> {
-
+                                TODO()
                             }
 
                             is ArchSetting.ImmSetting -> {
+                                localStorage.getItem("${archState.component1().getDescription().name}-${setting.name}")?.let {
+                                    val value = Variable.Value.Hex(it, RV64.XLEN)
+                                    if (value.checkResult.valid) {
+                                        setting.value.set(value)
+                                    }
+                                }
+
                                 type = InputType.text
                                 pattern = "[0-9a-fA-F]+"
                                 placeholder = Settings.PRESTRING_HEX
                                 defaultValue = setting.value.get().toHex().getRawHexStr()
 
                                 onChange = {
-                                    val hex = Variable.Value.Hex(it.currentTarget.value, RV64.MEM_ADDRESS_WIDTH)
+                                    val hex = Variable.Value.Hex(it.currentTarget.value, RV64.XLEN)
                                     if (hex.checkResult.valid) {
                                         setting.value.set(hex)
+                                        localStorage.setItem("${archState.component1().getDescription().name}-${setting.name}", setting.value.get().toHex().getHexStr())
                                     } else {
                                         it.currentTarget.value = setting.value.get().toHex().getRawHexStr()
                                     }
