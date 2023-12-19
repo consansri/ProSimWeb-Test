@@ -1,5 +1,6 @@
 package visual
 
+import StorageKey
 import StyleAttr
 
 import emotion.react.css
@@ -503,6 +504,23 @@ val MemoryView = FC<MemViewProps> { props ->
         } else {
             props.archState.component1().getMemory().removeIOBounds()
         }
+        localStorage.setItem(StorageKey.MIO_ACTIVE, useBounds.toString())
+        startAddr?.let {
+            localStorage.setItem(StorageKey.MIO_START, startAddr.getHexStr())
+        }
+        localStorage.setItem(StorageKey.MIO_AMOUNT, amount.toString())
+    }
+
+    useEffect(props.archState.component1()){
+        localStorage.getItem(StorageKey.MIO_ACTIVE)?.toBooleanStrictOrNull()?.let{
+            setUseBounds(it)
+        }
+        localStorage.getItem(StorageKey.MIO_START)?.let{
+            setStartAddr(Hex(it, props.archState.component1().getMemory().getAddressSize()))
+        }
+        localStorage.getItem(StorageKey.MIO_AMOUNT)?.toLongOrNull()?.let{
+            setAmount(it)
+        }
     }
 
     useEffect(props.exeEventState.component1()) {
@@ -519,8 +537,8 @@ val MemoryView = FC<MemViewProps> { props ->
         }
     }
 
-    useEffect(editVar){
-        if(editVar != null){
+    useEffect(editVar) {
+        if (editVar != null) {
             editRef.current?.focus()
         }
     }

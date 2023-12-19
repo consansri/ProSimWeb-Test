@@ -15,6 +15,10 @@ object StorageKey {
     // memory
     val MEM_LENGTH = "mem-length"
     val MSTEP_VALUE = "m-step-value"
+    val MIO_ACTIVE = "mem-io-active"
+    val MIO_START = "mem-io-start"
+    val MIO_AMOUNT = "mem-io-amount"
+
 
      /* Console */
     val CONSOLE_SDOWN = "console-sdown"
