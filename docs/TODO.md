@@ -5,7 +5,6 @@
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
 - split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
 - LD Files for Memory Initialization
-- store more arch setup constants in localstorage so a page reload sets the whole environment back
 
 # SUGAR #
 
@@ -17,6 +16,7 @@
 # DONE #
 
 ## Version 0.1.8 ##
+- **(done)** store more arch setup constants in localstorage so a page reload sets the whole environment back
 - **(done)** add memory section settings to memory and make accessible
 
 ## Version 0.1.6 ##
