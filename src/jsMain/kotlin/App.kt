@@ -164,7 +164,13 @@ val App = FC<Props> { props ->
                         justifyContent = JustifyContent.center
                         alignItems = AlignItems.center
                         color = StyleAttr.Main.AppControls.FgColor.get()
+
                         borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+
+                        StyleAttr.layoutSwitchMediaQuery {
+                            borderBottom = Border(0.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                            borderRight = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                        }
 
                         img {
                             height = StyleAttr.Main.AppControls.iconSize
@@ -338,13 +344,6 @@ val App = FC<Props> { props ->
                             }
 
                             is ArchSetting.ImmSetting -> {
-                                localStorage.getItem("${archState.component1().getDescription().name}-${setting.name}")?.let {
-                                    val value = Variable.Value.Hex(it, RV64.XLEN)
-                                    if (value.checkResult.valid) {
-                                        setting.value.set(value)
-                                    }
-                                }
-
                                 type = InputType.text
                                 pattern = "[0-9a-fA-F]+"
                                 placeholder = Settings.PRESTRING_HEX
@@ -388,6 +387,22 @@ val App = FC<Props> { props ->
             console.log("REACT: Switch to " + archState.component1().getDescription().fullName)
         }
         setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
+        for(setting in archState.component1().getAllSettings()) {
+            when(setting){
+                is ArchSetting.BoolSetting -> {
+                    TODO()
+                }
+
+                is ArchSetting.ImmSetting -> {
+                    localStorage.getItem("${archState.component1().getDescription().name}-${setting.name}")?.let {
+                        val value = Variable.Value.Hex(it, RV64.XLEN)
+                        if (value.checkResult.valid) {
+                            setting.value.set(value)
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

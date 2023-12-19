@@ -55,9 +55,10 @@ val MemoryView = FC<MemViewProps> { props ->
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
 
-    val (useBounds, setUseBounds) = useState(props.archState.component1().getMemory().getIOBounds() != null)
-    val (startAddr, setStartAddr) = useState(props.archState.component1().getMemory().getIOBounds()?.lowerAddr?.toHex())
-    val (amount, setAmount) = useState(props.archState.component1().getMemory().getIOBounds()?.amount ?: 32)
+    val (useBounds, setUseBounds) = useState(localStorage.getItem("${StorageKey.MIO_ACTIVE}-${props.archState.component1().getDescription().name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().getMemory().getIOBounds() != null))
+    val (startAddr, setStartAddr) = useState(localStorage.getItem("${StorageKey.MIO_START}-${props.archState.component1().getDescription().name}")?.let { Hex(it, props.archState.component1().getMemory().getAddressSize()) } ?: props.archState.component1().getMemory()
+        .getIOBounds()?.lowerAddr?.toHex())
+    val (amount, setAmount) = useState(localStorage.getItem("${StorageKey.MIO_AMOUNT}-${props.archState.component1().getDescription().name}")?.toLongOrNull() ?: props.archState.component1().getMemory().getIOBounds()?.amount ?: 32)
 
     val (editVar, setEditVar) = useState<Memory.MemInstance.EditableValue>()
 
@@ -504,23 +505,11 @@ val MemoryView = FC<MemViewProps> { props ->
         } else {
             props.archState.component1().getMemory().removeIOBounds()
         }
-        localStorage.setItem(StorageKey.MIO_ACTIVE, useBounds.toString())
+        localStorage.setItem("${StorageKey.MIO_ACTIVE}-${props.archState.component1().getDescription().name}", useBounds.toString())
         startAddr?.let {
-            localStorage.setItem(StorageKey.MIO_START, startAddr.getHexStr())
+            localStorage.setItem("${StorageKey.MIO_START}-${props.archState.component1().getDescription().name}", startAddr.getHexStr())
         }
-        localStorage.setItem(StorageKey.MIO_AMOUNT, amount.toString())
-    }
-
-    useEffect(props.archState.component1()){
-        localStorage.getItem(StorageKey.MIO_ACTIVE)?.toBooleanStrictOrNull()?.let{
-            setUseBounds(it)
-        }
-        localStorage.getItem(StorageKey.MIO_START)?.let{
-            setStartAddr(Hex(it, props.archState.component1().getMemory().getAddressSize()))
-        }
-        localStorage.getItem(StorageKey.MIO_AMOUNT)?.toLongOrNull()?.let{
-            setAmount(it)
-        }
+        localStorage.setItem("${StorageKey.MIO_AMOUNT}-${props.archState.component1().getDescription().name}", amount.toString())
     }
 
     useEffect(props.exeEventState.component1()) {

@@ -215,6 +215,7 @@ val Menu = FC<MenuProps>() { props ->
                         localStorage.setItem(StorageKey.ARCH_TYPE, Link.entries.indexOf(archLink).toString())
 
                         event.currentTarget.classList.toggle("nav-arch-active")
+                        location.reload()
                     }
 
                     +archLink.architecture.getDescription().fullName
