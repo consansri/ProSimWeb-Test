@@ -2,6 +2,11 @@ object StorageKey {
 
     val ARCH_TYPE = "arch-type"
 
+    // settings
+    val ARCH_SETTING = "setting"
+    val ARCH_FEATURE = "feature"
+    val THEME = "theme"
+
     // files
     val FILE_CURR = "file-current"
     val FILE_COUNT = "file-count"

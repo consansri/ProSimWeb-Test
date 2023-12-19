@@ -27,7 +27,7 @@ val App = FC<Props> { props ->
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
 
-    val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.mode)
+    val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.Mode.entries.getOrNull(localStorage.getItem(StorageKey.THEME)?.toIntOrNull() ?: -1) ?: StyleAttr.mode)
 
     val (lPercentage, setLPct) = useState<Int>(40)
     val (showMenu, setShowMenu) = useState(true)
@@ -208,7 +208,7 @@ val App = FC<Props> { props ->
                         } else {
                             StyleAttr.Mode.entries[0]
                         }
-                        StyleAttr.mode = newMode
+                        localStorage.setItem(StorageKey.THEME, newMode.ordinal.toString())
                         setMode(newMode)
                     }
                 }
@@ -238,9 +238,6 @@ val App = FC<Props> { props ->
                     }
                 }
 
-
-
-
                 for (feature in visibleFeatures) {
                     div {
                         css {
@@ -269,7 +266,7 @@ val App = FC<Props> { props ->
                                 }
                             }
                             feature.switch()
-
+                            localStorage.setItem("${archState.component1().getDescription().name}-${StorageKey.ARCH_FEATURE}-${feature.id}", feature.isActive().toString())
                             setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
                             archState.component1().exeReset()
                         }
@@ -353,7 +350,7 @@ val App = FC<Props> { props ->
                                     val hex = Variable.Value.Hex(it.currentTarget.value, RV64.XLEN)
                                     if (hex.checkResult.valid) {
                                         setting.value.set(hex)
-                                        localStorage.setItem("${archState.component1().getDescription().name}-${setting.name}", setting.value.get().toHex().getHexStr())
+                                        localStorage.setItem("${archState.component1().getDescription().name}-${StorageKey.ARCH_SETTING}-${setting.name}", setting.value.get().toHex().getHexStr())
                                     } else {
                                         it.currentTarget.value = setting.value.get().toHex().getRawHexStr()
                                     }
@@ -381,20 +378,27 @@ val App = FC<Props> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) Theme")
         }
+        StyleAttr.mode = mode
+        compileEventState.component2().invoke(!compileEventState.component1())
     }
     useEffect(archState.component1()) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Switch to " + archState.component1().getDescription().fullName)
         }
+        for (feature in archState.component1().getAllFeatures()) {
+            localStorage.getItem("${archState.component1().getDescription().name}-${StorageKey.ARCH_FEATURE}-${feature.id}")?.toBooleanStrictOrNull()?.let {
+                if(it) feature.activate() else feature.deactivate()
+            }
+        }
         setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
-        for(setting in archState.component1().getAllSettings()) {
-            when(setting){
+        for (setting in archState.component1().getAllSettings()) {
+            when (setting) {
                 is ArchSetting.BoolSetting -> {
                     TODO()
                 }
 
                 is ArchSetting.ImmSetting -> {
-                    localStorage.getItem("${archState.component1().getDescription().name}-${setting.name}")?.let {
+                    localStorage.getItem("${archState.component1().getDescription().name}-${StorageKey.ARCH_SETTING}-${setting.name}")?.let {
                         val value = Variable.Value.Hex(it, RV64.XLEN)
                         if (value.checkResult.valid) {
                             setting.value.set(value)
