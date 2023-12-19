@@ -6,7 +6,6 @@
 - split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
 - LD Files for Memory Initialization
 - store more arch setup constants in localstorage so a page reload sets the whole environment back
-- add memory section settings to memory and make accessible
 
 # SUGAR #
 
@@ -16,6 +15,9 @@
 - add code completion
 
 # DONE #
+
+## Version 0.1.8 ##
+- **(done)** add memory section settings to memory and make accessible
 
 ## Version 0.1.6 ##
 - **(done)** TABLE Syntax in data section (
