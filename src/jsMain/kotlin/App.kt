@@ -240,6 +240,7 @@ val App = FC<Props> { props ->
 
                 for (feature in visibleFeatures) {
                     div {
+                        title = "${archState.component1().getDescription().name}-${StorageKey.ARCH_FEATURE}-${feature.id}-${feature.name}"
                         css {
                             if (!feature.isActive()) {
                                 backgroundColor = important(StyleAttr.Main.AppControls.BgColorDeActivated.get())

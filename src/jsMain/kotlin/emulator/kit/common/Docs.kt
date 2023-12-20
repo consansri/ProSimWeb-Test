@@ -22,11 +22,25 @@ class Docs(vararg htmlFiles: HtmlFile) {
             "../documents/user-manual.html"
         ),
         HtmlFile.DefinedFile("Version - ${Constants.version}", FC<Props> {
+            h2 { +"Version - 0.1.8" }
+            h3 { +"New" }
+            ul {
+                li { +"KIT RV64 M Extension added!" }
+            }
+            h3 { +"Changed" }
+            ul {
+                li { +"KIT Memory sections now can be changed via Architecture Settings!" }
+                li { +"""REACT More relevant settings will be stored and reloaded in and from local storage!
+                    |General: Theme, MMIO
+                    |Specific: Architecture Features, Architecture Settings (e.g. risc-v data, rodata and bss section)
+                """.trimMargin() }
+            }
+
             h2 { +"Version - 0.1.7" }
-            h3{+"Changed"}
-            ul{
-                li {+"REACT exchanged edit icon."}
-                li {+"KIT Memory cleares first on reset."}
+            h3 { +"Changed" }
+            ul {
+                li { +"REACT exchanged edit icon." }
+                li { +"KIT Memory cleares first on reset." }
             }
             h3 { +"Fixed" }
             ul {
