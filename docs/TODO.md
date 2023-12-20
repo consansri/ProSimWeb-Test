@@ -16,6 +16,7 @@
 # DONE #
 
 ## Version 0.1.8 ##
+- **(done)** added RV64M Extension
 - **(done)** store more arch setup constants in localstorage so a page reload sets the whole environment back
 - **(done)** add memory section settings to memory and make accessible
 
