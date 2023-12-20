@@ -71,7 +71,7 @@ object RV64 {
         J(false, "Tentatively reserved for Dynamically Translated Languages extension", invisible = true),
         K(false, "Reserved", invisible = true),
         L(false, "Reserved", invisible = true),
-        M(false, "Integer Multiply/Divide extension"),
+        M(false, "Integer Multiply/Divide extension", false),
         N(false, "Tentatively reserved for User-Level Interrupts extension", invisible = true),
         O(false, "Reserved", invisible = true),
         P(false, "Tentatively reserved for Packed-SIMD extension", invisible = true),

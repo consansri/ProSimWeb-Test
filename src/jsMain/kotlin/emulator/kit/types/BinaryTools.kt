@@ -159,17 +159,20 @@ object BinaryTools {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
 
-        var result = "0"
-        var aPuffer = a
+        val aPadded = "0".repeat(b.length) + a
+        val bPadded = "0".repeat(a.length) + b
 
-        for (digit in b.reversed()) {
+        var result = "0"
+        var aPuffer = aPadded
+
+        for (digit in bPadded.reversed()) {
             try {
                 if (digit == '1') {
                     val additionResult = addWithCarry(result, aPuffer)
-                    if (additionResult.carry == '1') {
-                        result = additionResult.carry + additionResult.result
+                    result = if (additionResult.carry == '1') {
+                        additionResult.carry + additionResult.result
                     } else {
-                        result = additionResult.result
+                        additionResult.result
                     }
                 }
                 val aPair = addWithCarry(aPuffer, aPuffer)
@@ -184,6 +187,44 @@ object BinaryTools {
         }
 
         return checkEmpty(result.trimStart('0'))
+    }
+
+    fun multiplySigned(aBin: String, bBin: String): String {
+        val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
+        val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
+
+        return if (a.isNotEmpty() && b.isNotEmpty()) {
+            val aSign = a[0]
+            val bSign = b[0]
+
+            val aAbs = if(aSign == '1') negotiate(a.substring(1)) else a.substring(1)
+            val bAbs = if(bSign == '1') negotiate(b.substring(1)) else b.substring(1)
+
+            val unsignedResult = multiply(aAbs, bAbs)
+            val resultSign = if (aSign == bSign || !unsignedResult.contains('1')) '0' else '1'
+            if(resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
+        } else {
+            console.warn("BinaryTools: multiplication factor is empty!")
+            "0"
+        }
+    }
+
+    fun multiplyMixed(aSigned: String, bUnsigned: String): String {
+        val a = aSigned.trim().removePrefix(Settings.PRESTRING_BINARY)
+        val b = bUnsigned.trim().removePrefix(Settings.PRESTRING_BINARY)
+
+        return if (a.isNotEmpty() && b.isNotEmpty()) {
+            val aSign = a[0]
+
+            val aAbs = if (aSign == '1') negotiate(a.substring(1)) else a.substring(1)
+
+            val unsignedResult = multiply(aAbs, b)
+            val resultSign = if (aSign == '0' || !unsignedResult.contains('1')) '0' else '1'
+            if(resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
+        } else {
+            console.warn("BinaryTools: multiplication factor is empty!")
+            "0"
+        }
     }
 
     fun divide(dividend: String, divisor: String): DivisionResult {
@@ -217,6 +258,30 @@ object BinaryTools {
         return DivisionResult(checkEmpty(result.trimStart('0')), (comparison + remainingDividend).trimStart('0'))
     }
 
+    fun divideSigned(dividend: String, divisor: String): DivisionResult {
+        val dend = dividend.trim().removePrefix(Settings.PRESTRING_BINARY)
+        val sor = divisor.trim().removePrefix(Settings.PRESTRING_BINARY)
+
+        if (dend.isEmpty() || sor.isEmpty()) {
+            console.warn("BinaryTools: Dividend or Divisor are empty!")
+            return DivisionResult("0", "")
+        }
+        val dendSign = dend[0]
+        val sorSign = sor[0]
+
+        val uDend = if (dendSign == '1') negotiate(dend.substring(1)) else dend.substring(1)
+        val uSor = if (sorSign == '1') negotiate(sor.substring(1)) else sor.substring(1)
+
+        val uResult = divide(uDend, uSor)
+
+        val resultSign = if (dendSign == sorSign) '0' else '1'
+
+        val quotient = if (resultSign == '1') negotiate("0" + uResult.result) else "0" + uResult.result
+        val remainder = "0" + uResult.remainder
+        val result = DivisionResult(quotient, remainder)
+        return result
+    }
+
     fun inv(aBin: String): String {
 
         /*
@@ -229,9 +294,9 @@ object BinaryTools {
 
         for (i in a.indices.reversed()) {
             if (a[i] == '1') {
-                result = '0' + result
+                result = "0$result"
             } else {
-                result = '1' + result
+                result = "1$result"
             }
         }
 

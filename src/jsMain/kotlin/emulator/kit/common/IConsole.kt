@@ -38,7 +38,6 @@ class IConsole(val name: String) {
 
     fun clear() {
         messageArray.clear()
-        console.log("Console cleared!")
     }
 
     fun getMessages(): List<Message> {

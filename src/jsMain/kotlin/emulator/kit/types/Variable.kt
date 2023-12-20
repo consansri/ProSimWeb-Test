@@ -354,20 +354,42 @@ class Variable {
 
             override fun times(operand: Value): Value {
                 val result = BinaryTools.multiply(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
-                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(result, biggerSize)
+                //val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return Bin(result)
+            }
+
+            /**
+             * Flexible Multiplication Operation
+             */
+            fun flexTimesSigned(factor: Bin, resizeToLargestParamSize: Boolean = true, factorIsUnsigned: Boolean = false): Bin {
+                val result = if (factorIsUnsigned) BinaryTools.multiplyMixed(this.getRawBinaryStr(), factor.getRawBinaryStr()) else BinaryTools.multiplySigned(this.getRawBinaryStr(), factor.getRawBinaryStr())
+                val biggerSize = if (this.size.bitWidth > factor.size.bitWidth) this.size else factor.size
+
+                return if (resizeToLargestParamSize) Bin(result).getResized(biggerSize) else Bin(result)
             }
 
             override fun div(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(divResult.result, biggerSize)
+                return Bin(divResult.result).getUResized(biggerSize)
+            }
+
+            fun flexDivSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true): Bin {
+                val divResult = BinaryTools.divideSigned(this.getRawBinaryStr(), divisor.getRawBinaryStr())
+                val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) this.size else divisor.size
+                return if (resizeToLargestParamSize) Bin(divResult.result).getResized(biggerSize) else Bin(divResult.result)
             }
 
             override fun rem(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
+            }
+
+            fun flexRemSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true): Bin {
+                val divResult = BinaryTools.divideSigned(this.getRawBinaryStr(), divisor.getRawBinaryStr())
+                val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) this.size else divisor.size
+                return if (resizeToLargestParamSize) Bin(BinaryTools.checkEmpty(divResult.remainder)).getResized(biggerSize) else Bin(divResult.remainder)
             }
 
             override fun unaryMinus(): Value {
