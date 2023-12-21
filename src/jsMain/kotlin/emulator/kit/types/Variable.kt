@@ -374,8 +374,8 @@ class Variable {
                 return Bin(divResult.result).getUResized(biggerSize)
             }
 
-            fun flexDivSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true): Bin {
-                val divResult = BinaryTools.divideSigned(this.getRawBinaryStr(), divisor.getRawBinaryStr())
+            fun flexDivSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true, dividendIsUnsigned: Boolean = false): Bin {
+                val divResult =if(dividendIsUnsigned) BinaryTools.divideMixed(this.getRawBinaryStr(), divisor.getRawBinaryStr()) else BinaryTools.divideSigned(this.getRawBinaryStr(), divisor.getRawBinaryStr())
                 val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) this.size else divisor.size
                 return if (resizeToLargestParamSize) Bin(divResult.result).getResized(biggerSize) else Bin(divResult.result)
             }

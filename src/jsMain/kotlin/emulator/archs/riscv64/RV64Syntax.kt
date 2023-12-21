@@ -3027,7 +3027,7 @@ class RV64Syntax : Syntax() {
                         if (rd != null && rs1 != null && rs2 != null) {
                             val factor1 = rs1.get().toBin()
                             val factor2 = rs2.get().toBin()
-                            val result = factor1.flexDivSigned(factor2)
+                            val result = factor1.flexDivSigned(factor2, dividendIsUnsigned = true)
                             rd.set(result)
                             pc.set(pc.get() + Hex("4"))
                         }
@@ -3094,6 +3094,118 @@ class RV64Syntax : Syntax() {
                             val factor1 = rs1.get().toBin()
                             val factor2 = rs2.get().toBin()
                             val result = factor1 % factor2
+                            rd.set(result)
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+
+            // RV64 M Extension
+            MULW("MULW", false, ParamType.RD_RS1_RS2, OpCode("0000001 00000 00000 000 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.M.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val rs2Addr = paramMap.get(RS2)
+
+                    if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && rs2 != null) {
+                            val factor1 = rs1.get().toBin()
+                            val factor2 = rs2.get().toBin()
+                            val result = factor1.flexTimesSigned(factor2).getUResized(Bit32()).getUResized(RV64.XLEN)
+                            rd.set(result)
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            DIVW("DIVW", false, ParamType.RD_RS1_RS2, OpCode("0000001 00000 00000 100 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.M.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val rs2Addr = paramMap.get(RS2)
+
+                    if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && rs2 != null) {
+                            val factor1 = rs1.get().toBin().getUResized(Bit32())
+                            val factor2 = rs2.get().toBin().getUResized(Bit32())
+                            val result = factor1.flexDivSigned(factor2, dividendIsUnsigned = true).getUResized(RV64.XLEN)
+                            rd.set(result)
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            DIVUW("DIVUW", false, ParamType.RD_RS1_RS2, OpCode("0000001 00000 00000 101 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.M.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val rs2Addr = paramMap.get(RS2)
+
+                    if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && rs2 != null) {
+                            val factor1 = rs1.get().toBin().getUResized(Bit32())
+                            val factor2 = rs2.get().toBin().getUResized(Bit32())
+                            val result = (factor1 / factor2).toBin().getUResized(RV64.XLEN)
+                            rd.set(result)
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            REMW("REMW", false, ParamType.RD_RS1_RS2, OpCode("0000001 00000 00000 110 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.M.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val rs2Addr = paramMap.get(RS2)
+
+                    if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && rs2 != null) {
+                            val factor1 = rs1.get().toBin().getUResized(Bit32())
+                            val factor2 = rs2.get().toBin().getUResized(Bit32())
+                            val result = factor1.flexRemSigned(factor2).getUResized(RV64.XLEN)
+                            rd.set(result)
+                            pc.set(pc.get() + Hex("4"))
+                        }
+                    }
+                }
+            },
+            REMUW("REMUW", false, ParamType.RD_RS1_RS2, OpCode("0000001 00000 00000 111 00000 0111011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV64.EXTENSION.M.ordinal)) {
+                override fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
+                    super.execute(arch, paramMap)
+                    val rdAddr = paramMap.get(RD)
+                    val rs1Addr = paramMap.get(RS1)
+                    val rs2Addr = paramMap.get(RS2)
+
+                    if (rdAddr != null && rs1Addr != null && rs2Addr != null) {
+                        val rd = arch.getRegByAddr(rdAddr)
+                        val rs1 = arch.getRegByAddr(rs1Addr)
+                        val rs2 = arch.getRegByAddr(rs2Addr)
+                        val pc = arch.getRegContainer().pc
+                        if (rd != null && rs1 != null && rs2 != null) {
+                            val factor1 = rs1.get().toBin().getUResized(Bit32())
+                            val factor2 = rs2.get().toBin().getUResized(Bit32())
+                            val result = (factor1 % factor2).toBin().getUResized(RV64.XLEN)
                             rd.set(result)
                             pc.set(pc.get() + Hex("4"))
                         }

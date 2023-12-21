@@ -282,6 +282,27 @@ object BinaryTools {
         return result
     }
 
+    fun divideMixed(uDividend: String, sDivisor: String): DivisionResult{
+        val dend = uDividend.trim().removePrefix(Settings.PRESTRING_BINARY)
+        val sor = sDivisor.trim().removePrefix(Settings.PRESTRING_BINARY)
+
+        if (dend.isEmpty() || sor.isEmpty()) {
+            console.warn("BinaryTools: Dividend or Divisor are empty!")
+            return DivisionResult("0", "")
+        }
+
+        val sorSign = sor[0]
+
+        val uSor = if (sorSign == '1') negotiate(sor.substring(1)) else sor.substring(1)
+
+        val uResult = divide(dend, uSor)
+
+        val quotient = if (sorSign == '1') negotiate("0" + uResult.result) else "0" + uResult.result
+        val remainder = "0" + uResult.remainder
+        val result = DivisionResult(quotient, remainder)
+        return result
+    }
+
     fun inv(aBin: String): String {
 
         /*

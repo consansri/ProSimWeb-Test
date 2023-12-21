@@ -2819,7 +2819,7 @@ class RV32Syntax() : Syntax() {
                         if (rd != null && rs1 != null && rs2 != null) {
                             val factor1 = rs1.get().toBin()
                             val factor2 = rs2.get().toBin()
-                            val result = factor1.flexDivSigned(factor2)
+                            val result = factor1.flexDivSigned(factor2, dividendIsUnsigned = true)
                             rd.set(result)
                             pc.set(pc.get() + Hex("4"))
                         }

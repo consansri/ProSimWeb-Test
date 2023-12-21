@@ -187,10 +187,14 @@ class RV32BinMapper {
                 }
 
                 Li -> {
-                    binValues?.let {
-                        val regBin = binValues[0]
-                        val immediate = binValues[1]
-                        val imm32 = immediate.getUResized(Variable.Size.Bit32())
+                    values?.let {
+                        val regBin = values[0].toBin()
+                        val imm32 = when(val immediate = values[1]){
+                            is Variable.Value.Bin -> immediate.getUResized(RV32.XLEN).toBin()
+                            is Variable.Value.Dec -> immediate.getResized(RV32.XLEN).toBin()
+                            is Variable.Value.Hex -> immediate.getUResized(RV32.XLEN).toBin()
+                            is Variable.Value.UDec -> immediate.getUResized(RV32.XLEN).toBin()
+                        }
 
                         val hi20 = imm32.getRawBinaryStr().substring(0, 20)
                         val low12 = imm32.getRawBinaryStr().substring(20)
@@ -220,7 +224,7 @@ class RV32BinMapper {
                         val regBin = binValues[0]
                         val address = labelAddrMap.get(labels.first())
                         if (address != null) {
-                            val imm32 = Variable.Value.Bin(address)
+                            val imm32 = Variable.Value.Bin(address, RV32.XLEN)
                             val hi20 = imm32.getRawBinaryStr().substring(0, 20)
                             val low12 = imm32.getRawBinaryStr().substring(20)
 
