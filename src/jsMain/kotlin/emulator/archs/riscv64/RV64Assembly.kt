@@ -152,6 +152,11 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                                         pcStartAddress = Variable.Value.Bin(address, RV64.MEM_ADDRESS_WIDTH).toHex()
                                     }
                                     labelBinAddrMap[entry.label] = address
+
+                                    entry.inlineInstr?.let {
+                                        instructionMapList[instrID] = it
+                                        instrID += it.instrType.memWords
+                                    }
                                 }
                             }
                         }
@@ -177,7 +182,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                                     }
 
                                     if (entry.directive.type == RV64Syntax.E_DIRECTIVE.DirType.STRING) {
-                                        values = values.flatMap {value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
+                                        values = values.flatMap { value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
                                     }
 
                                     val sizeOfOne = Variable.Value.Hex(entry.directive.type.deSize?.getByteCount()?.toString(16) ?: "1", Variable.Size.Bit8())
@@ -209,7 +214,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                                     }
 
                                     if (entry.directive.type == RV64Syntax.E_DIRECTIVE.DirType.STRING) {
-                                        values = values.flatMap {value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
+                                        values = values.flatMap { value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
                                     }
 
                                     val sizeOfOne = Variable.Value.Hex(entry.directive.type.deSize?.getByteCount()?.toString(16) ?: "1", Variable.Size.Bit8())
@@ -279,7 +284,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                                     }
 
                                     if (entry.directive.type == RV64Syntax.E_DIRECTIVE.DirType.STRING) {
-                                        values = values.flatMap {value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
+                                        values = values.flatMap { value -> value.toHex().getRawHexStr().chunked(2).map { Variable.Value.Hex(it, Variable.Size.Bit8()) } }
                                     }
 
                                     val sizeOfOne = Variable.Value.Hex(entry.directive.type.deSize?.getByteCount()?.toString(16) ?: "1", Variable.Size.Bit8())
@@ -374,7 +379,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                     if (DebugTools.RV64_showAsmInfo) {
                         console.log(
                             "Assembly.generateByteCode(): ASM-MAP [LINE ${instr.value.instrname.insToken.lineLoc.lineID + 1} ID ${instr.key}, ${instr.value.instrType.id},  \n\t${
-                                instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") {param ->
+                                instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") { param ->
                                     param.getAllTokens().joinToString("") { it.content }
                                 }
                             } to ${binary.joinToString { it.getRawBinaryStr() }}]"

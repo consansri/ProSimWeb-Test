@@ -32,7 +32,6 @@ class RV64Syntax : Syntax() {
 
         // List which holds the actual state after the actuall scans
         val remainingLines = tokenLines.toMutableList()
-        var startIsDefined = false
 
         // For Root Node
         val errors: MutableList<Error> = mutableListOf()
@@ -746,7 +745,7 @@ class RV64Syntax : Syntax() {
                 }
             }
 
-            result = RowSeqs.jlabel.exacltyMatches(*lineElements.toTypedArray())
+            result = RowSeqs.jlabel.matches(*lineElements.toTypedArray())
             if (result.matches) {
                 if (result.matchingTreeNodes.size == 1) {
                     val eLabel = result.matchingTreeNodes[0] as E_LABEL
@@ -762,7 +761,7 @@ class RV64Syntax : Syntax() {
                     result.error?.let {
                         errors.add(it)
                     }
-                    elements[lineID] = mutableListOf()
+                    elements[lineID] = result.remainingTreeNodes?.toMutableList() ?: mutableListOf()
                     continue
                 }
             }
@@ -917,8 +916,16 @@ class RV64Syntax : Syntax() {
                 val checkedType = eInstrName.check(arch, eParamcoll)
                 if (checkedType != null) {
                     rowNode = R_INSTR(eInstrName, eParamcoll, checkedType)
-                    startIsDefined = true
-                    rows[lineID] = rowNode
+                    val rowContent = rows.getOrNull(lineID)
+                    if (rowContent != null) {
+                        if (rowContent is R_JLBL) {
+                            rowContent.addInlineInstr(rowNode)
+                        } else {
+                            errors.add(Error("${rowNode.name} can't be after ${rowContent.name}!", rowNode))
+                        }
+                    } else {
+                        rows[lineID] = rowNode
+                    }
                     result.error?.let {
                         errors.add(it)
                     }
@@ -931,25 +938,21 @@ class RV64Syntax : Syntax() {
 
             result = RowSeqs.instrWithoutParams.exacltyMatches(*lineElements.toTypedArray())
             if (result.matches) {
-                var lastMainJLBL: R_JLBL? = null
-                for (index in lineID downTo 0) {
-                    val rowContent = rows[index]
-                    if (rowContent is R_JLBL && rowContent.isMainLabel) {
-                        lastMainJLBL = rowContent
-                        break
-                    }
-                }
-
                 val eInstrName = result.matchingTreeNodes[0] as E_INSTRNAME
 
                 // check params
                 val checkedType = eInstrName.check(arch)
                 if (checkedType != null) {
                     rowNode = R_INSTR(eInstrName, null, checkedType)
-                    startIsDefined = true
-                    rows[lineID] = rowNode
-                    result.error?.let {
-                        errors.add(it)
+                    val rowContent = rows.getOrNull(lineID)
+                    if (rowContent != null) {
+                        if (rowContent is R_JLBL) {
+                            rowContent.addInlineInstr(rowNode)
+                        } else {
+                            errors.add(Error("${rowNode.name} can't be after ${rowContent.name}!", rowNode))
+                        }
+                    } else {
+                        rows[lineID] = rowNode
                     }
                 } else {
                     errors.add(Error("Couldn't match parameters to any instruction!\nexpected parameters: ${eInstrName.types.joinToString(" or ") { it.paramType.exampleString }}", *lineElements.toTypedArray()))
@@ -1661,7 +1664,14 @@ class RV64Syntax : Syntax() {
 
     /* -------------------------------------------------------------- ROWS -------------------------------------------------------------- */
     class R_SECSTART(val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_SECSTART, directive)
-    class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean, val isGlobalStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_JLBL, label)
+    class R_JLBL(val label: E_LABEL, val isMainLabel: Boolean, val isGlobalStart: Boolean = false) : TreeNode.RowNode(REFS.REF_R_JLBL, label) {
+        var inlineInstr: R_INSTR? = null
+        fun addInlineInstr(instr: R_INSTR) {
+            inlineInstr = instr
+            this.elementNodes = arrayOf(*this.elementNodes, *instr.elementNodes)
+        }
+
+    }
     class R_ULBL(val label: E_LABEL, val directive: E_DIRECTIVE) : TreeNode.RowNode(REFS.REF_R_ULBL, label, directive)
     class R_ILBL(val label: E_LABEL, val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_ILBL, label, directive, paramcoll)
     class R_DATAEMITTING(val directive: E_DIRECTIVE, val paramcoll: E_PARAMCOLL) : TreeNode.RowNode(REFS.REF_R_DATAEMITTING, directive, paramcoll)
@@ -1785,7 +1795,6 @@ class RV64Syntax : Syntax() {
                     val rd = paramMap.get(RD)
                     val csr = paramMap.get(CSR)
                     return if (rd != null && csr != null) {
-                        console.log(paramMap.values.joinToString { it.getBinaryStr() })
                         paramMap.remove(RD)
                         paramMap.remove(CSR)
                         val immString = if (labelName.isEmpty()) paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toBin().toString() } else labelName
@@ -1891,7 +1900,7 @@ class RV64Syntax : Syntax() {
                         val imm12 = paramMap.get(IMM12)
                         val pc = arch.getRegContainer().pc
                         if (rd != null && imm12 != null && rs1 != null) {
-                            val jumpAddr = rs1.get() + imm12.getResized(Bit64())
+                            val jumpAddr = rs1.get() + imm12.getResized(RV64.XLEN)
                             rd.set(pc.get() + Hex("4"))
                             pc.set(jumpAddr)
                         }

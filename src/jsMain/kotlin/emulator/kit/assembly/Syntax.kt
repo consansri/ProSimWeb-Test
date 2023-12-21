@@ -56,7 +56,7 @@ abstract class Syntax {
         }
 
         open class RowNode(name: String, vararg nullableElementNodes: ElementNode?) : TreeNode(name) {
-            val elementNodes: Array<out ElementNode>
+            var elementNodes: Array<out ElementNode>
 
             init {
                 elementNodes = nullableElementNodes.toMutableList().filterNotNull().toTypedArray()
@@ -186,7 +186,6 @@ abstract class Syntax {
             }
 
             for (treeNode in elementNodes) {
-
                 val treeNodeIndex = elementNodes.indexOf(treeNode)
                 val component = components[syntaxIndex]
                 if (component.treeNodeNames.contains(treeNode.name)) {
@@ -216,7 +215,6 @@ abstract class Syntax {
                     }
                 }
             }
-
 
             if (remainingTreeNodes.isNotEmpty()) {
                 valid = false

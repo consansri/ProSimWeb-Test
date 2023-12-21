@@ -277,7 +277,6 @@ object RV64 {
     /**
      * CSR Registers
      */
-
     val csrUnprivileged = arrayOf(
         // Unprivileged Floating-Point CSRs
         CSRegister(Hex("001", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x001"), listOf("fflags"), Variable(REG_INIT, XLEN), "Floating-Point Accrued Exceptions.", listOf(EXTENSION.CSR.ordinal)),
@@ -535,7 +534,7 @@ object RV64 {
             standardRegFileName = MAIN_REGFILE_NAME
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
-        Transcript()
+        Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name })
     )
 
 }

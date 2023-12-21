@@ -25,15 +25,20 @@ class Docs(vararg htmlFiles: HtmlFile) {
             h2 { +"Version - 0.1.8" }
             h3 { +"New" }
             ul {
-                li { +"KIT RV64 M Extension added!" }
+                li { +"KIT RV32 & RV64 Syntax inline instructions with labels now possible!" }
+                li { +"KIT RV32 & RV64 M Extension added!" }
             }
             h3 { +"Changed" }
             ul {
+                li { +"KIT RV32 CSR Extension now also implemented for RV32!" }
+                li { +"KIT RV32 reimplemented all rv32 instructions." }
                 li { +"KIT Memory sections now can be changed via Architecture Settings!" }
-                li { +"""REACT More relevant settings will be stored and reloaded in and from local storage!
+                li {
+                    +"""REACT More relevant settings will be stored and reloaded in and from local storage!
                     |General: Theme, MMIO
                     |Specific: Architecture Features, Architecture Settings (e.g. risc-v data, rodata and bss section)
-                """.trimMargin() }
+                """.trimMargin()
+                }
             }
 
             h2 { +"Version - 0.1.7" }

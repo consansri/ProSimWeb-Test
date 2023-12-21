@@ -4,6 +4,8 @@ import emulator.kit.Settings
 import emulator.archs.riscv32.RV32Syntax.R_INSTR.InstrType.*
 import emulator.kit.types.Variable
 import debug.DebugTools
+import emulator.archs.riscv64.RV64BinMapper
+import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.Architecture
 
 
@@ -155,9 +157,29 @@ class RV32BinMapper {
                     }
                 }
 
-                ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND -> {
+                ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND, MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU -> {
                     binValues?.let {
                         val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.RS2 to binValues[2]))
+                        opCode?.let {
+                            binArray.add(opCode)
+                        }
+                    }
+                }
+
+                CSRRW, CSRRS, CSRRC -> {
+                    binValues?.let {
+                        val csrAddr = binValues[1].getUResized(Variable.Size.Bit12())
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.CSR to csrAddr, MaskLabel.RS1 to binValues[2]))
+                        opCode?.let {
+                            binArray.add(opCode)
+                        }
+                    }
+                }
+                CSRRWI, CSRRSI, CSRRCI -> {
+                    binValues?.let {
+                        val csrAddr = binValues[1].getUResized(Variable.Size.Bit12())
+                        val uimm5 = binValues[2].getUResized(Variable.Size.Bit5())
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.CSR to csrAddr, MaskLabel.UIMM5 to uimm5))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -688,6 +710,8 @@ class RV32BinMapper {
                         }
                     }
                 }
+                
+                
 
 
             }
@@ -833,11 +857,15 @@ class RV32BinMapper {
         RS1(false, Variable.Size.Bit5()),
         RS2(false, Variable.Size.Bit5()),
         SHAMT(false, Variable.Size.Bit5()),
+        SHAMT6(false, Variable.Size.Bit6()),
         FUNCT7(true, Variable.Size.Bit7()),
+        FUNCT6(true, Variable.Size.Bit6()),
         IMM5(false, Variable.Size.Bit5()),
+        UIMM5(false, Variable.Size.Bit5()),
         IMM7(false, Variable.Size.Bit7()),
         IMM12(false, Variable.Size.Bit12()),
         IMM20(false, Variable.Size.Bit20()),
+        CSR(false, Variable.Size.Bit12()),
         NONE(true)
     }
 }

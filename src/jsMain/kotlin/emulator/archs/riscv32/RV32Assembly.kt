@@ -166,6 +166,11 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
                                         pcStartAddress = Variable.Value.Bin(address, Variable.Size.Bit32()).toHex()
                                     }
                                     labelBinAddrMap[entry.label] = address
+
+                                    entry.inlineInstr?.let {
+                                        instructionMapList[instrID] = it
+                                        instrID += it.instrType.memWords
+                                    }
                                 }
                             }
                         }
