@@ -34,7 +34,6 @@ object StyleAttr {
         val BgColor = ModeColor("#DDDDDD", "#373737")
         val FgColor = ModeColor("#454545", "#D5D5D5")
         val LineColor = ModeColor("#45454577", "#D5D5D577")
-        val elementShadow = BoxShadow(0.px, 3.px, 6.px, rgb(0, 0, 0, 0.77))
 
         val DeleteFilter = important(invert(0.pct))
 
@@ -51,8 +50,6 @@ object StyleAttr {
                 val iconSize = 1.8.rem
                 val iconPadding = 0.2.rem
                 val iconFilter = ModeFilter(invert(0.pct), invert(100.pct))
-                val controlSize = 2.0.rem
-                val borderRadius = 0.4.rem
             }
 
             object Transcript {
@@ -130,7 +127,6 @@ object StyleAttr {
         }
 
         object Processor {
-            val BorderColor = ModeColor("#915A69", "#313131")
             val BgColor = ModeColor("#DDDDDD", "#313131")
             val FgColor = ModeColor("#313131", "#CCCCCC")
             val iconFilter = important(invert(100.pct))
@@ -144,7 +140,6 @@ object StyleAttr {
             val BtnFgFilter = ModeFilter(invert(0.pct), invert(100.pct))
             val BtnBgColor = ModeColor("#DDDDDD", "#313131")
             val BtnFgColor = ModeColor("#313131", "#CCCCCC")
-            val BtnBgColorDeActivated = ModeColor("#1B3C6031", "#27273231")
 
             val MaxHeightMem = 40.vh
             val MaxHeightReg = 40.vh
@@ -163,20 +158,11 @@ object StyleAttr {
                 }
             }
 
-            val fontSizeTitle = 1.2.rem
-            val fontWeight = FontWeight.bold
-            val fontStyle = FontStyle.normal
-
 
             const val CLASS = "processor"
             const val CLASS_EXE = "processor-exediv"
             const val CLASS_REG = "processor-regdiv"
             const val CLASS_MEM = "processor-memdiv"
-
-            object Memory {
-                const val emptyPlaceholderRows = 10
-            }
-
         }
 
         object AppControls {
@@ -274,10 +260,6 @@ object StyleAttr {
             const val CLASS_INFO = "window-info"
             const val CLASS_CONTENT = "window-content"
 
-            const val CLASS_CLEAR = "window-clear-btn"
-            const val CLASS_CLOSE = "window-close-btn"
-            const val CLASS_TITLE = "window-title"
-
             val FgColor = Color("#EEEEEE")
             val BgColor = Color("#222222EE")
             val BgColorSec = Color("#777777")
@@ -332,12 +314,6 @@ object StyleAttr {
     val CLASS_PROC_FC_FLAG = "proc-fc-flag"
     val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
     val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
-
-    // CONSOLE
-    val MESSAGE_TYPE_INFO = 0
-    val MESSAGE_TYPE_LOG = 1
-    val MESSAGE_TYPE_WARN = 2
-    val MESSAGE_TYPE_ERROR = 3
 
     // ANIM
     val ANIM_SHAKERED = "anim-shakered"

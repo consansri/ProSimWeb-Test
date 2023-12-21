@@ -122,7 +122,6 @@ val App = FC<Props> { props ->
 
                     background = StyleAttr.Main.Processor.BgColor.get()
 
-
                     StyleAttr.layoutSwitchMediaQuery {
                         flex = 100.pct
                     }

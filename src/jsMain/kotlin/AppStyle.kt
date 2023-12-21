@@ -239,6 +239,10 @@ val AppStyle = FC<Props> {
                             paddingBottom = 1.px
                             //gap = StyleAttr.paddingSize
 
+                            StyleAttr.layoutSwitchMediaQuery {
+                                paddingTop = 1.px
+                            }
+
                             a {
                                 flexGrow = number(1.0)
                                 textAlign = TextAlign.center
