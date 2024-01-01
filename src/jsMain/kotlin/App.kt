@@ -18,18 +18,16 @@ import emulator.kit.types.Variable
 import visual.*
 import visual.ProcessorView
 import web.cssom.*
-import web.dom.document
 
 
-val App = FC<Props> { props ->
+val App = FC<Props> {
 
-    val navRef = useRef<HTMLDivElement>()
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
 
-    val (mode, setMode) = useState<StyleAttr.Mode>(StyleAttr.Mode.entries.getOrNull(localStorage.getItem(StorageKey.THEME)?.toIntOrNull() ?: -1) ?: StyleAttr.mode)
+    val (mode, setMode) = useState(StyleAttr.Mode.entries.getOrNull(localStorage.getItem(StorageKey.THEME)?.toIntOrNull() ?: -1) ?: StyleAttr.mode)
 
-    val (lPercentage, setLPct) = useState<Int>(40)
+    val (lPercentage, setLPct) = useState(40)
     val (showMenu, setShowMenu) = useState(true)
 
     val archState = useState(Link.entries[localStorage.getItem(StorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0].architecture)

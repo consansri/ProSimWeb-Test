@@ -4,7 +4,6 @@ import StyleAttr
 import emulator.kit.configs.Config.*
 import emotion.react.css
 import emulator.archs.riscv64.CSRegister
-import emulator.archs.riscv64.RV64
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -40,8 +39,8 @@ import web.cssom.Float
  */
 object RV32 {
 
-    val MEM_INIT: String = "0"
-    val REG_INIT: String = "0"
+    private const val MEM_INIT: String = "0"
+    private const val REG_INIT: String = "0"
     val XLEN = Variable.Size.Bit32()
 
     val REG_VALUE_SIZE = XLEN
