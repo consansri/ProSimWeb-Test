@@ -1,7 +1,6 @@
 package emulator.archs.riscv64
 
 import emotion.react.css
-import emulator.archs.riscv32.RV32
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -21,18 +20,17 @@ import emulator.kit.optional.Feature
 
 object RV64 {
 
-    const val MEM_INIT: String = "0"
-    const val REG_INIT: String = "0"
+    private const val MEM_INIT: String = "0"
+    private const val REG_INIT: String = "0"
     val XLEN: Variable.Size = Bit64()
-    val REG_VALUE_SIZE = XLEN
-    val REG_ADDRESS_SIZE = Bit5()
-    val CSR_REG_ADDRESS_SIZE = Bit12()
-    val MEM_VALUE_WIDTH = Bit8()
+    private val REG_VALUE_SIZE = XLEN
+    private val REG_ADDRESS_SIZE = Bit5()
+    private val CSR_REG_ADDRESS_SIZE = Bit12()
+    private val MEM_VALUE_WIDTH = Bit8()
     val MEM_ADDRESS_WIDTH = XLEN
 
     const val CSR_REGFILE_NAME = "csr"
-    const val MAIN_REGFILE_NAME = "common"
-
+    private const val MAIN_REGFILE_NAME = "common"
 
     enum class TS_COMPILED_HEADERS {
         Address,
@@ -94,7 +92,7 @@ object RV64 {
     /**
      * RV64 Generated Documenation
      */
-    val riscVDocs = Docs(
+    private val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
             "../documents/rv64/syntaxexamples.html"
@@ -227,9 +225,9 @@ object RV64 {
         RV64Assembly(RV64BinMapper()),
         features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) },
         settings = listOf(
-            ArchSetting.ImmSetting(SETTING.DATA.name, Variable(Variable.Value.Hex("00010000", XLEN))),
-            ArchSetting.ImmSetting(SETTING.RODATA.name, Variable(Variable.Value.Hex("00020000", XLEN))),
-            ArchSetting.ImmSetting(SETTING.BSS.name, Variable(Variable.Value.Hex("00030000", XLEN)))
+            ArchSetting.ImmSetting(SETTING.DATA.name, Variable(Hex("00010000", XLEN))),
+            ArchSetting.ImmSetting(SETTING.RODATA.name, Variable(Hex(hexString = "00020000", size = XLEN))),
+            ArchSetting.ImmSetting(SETTING.BSS.name, Variable(Hex("00030000", XLEN)))
         )
     )
 
@@ -237,7 +235,7 @@ object RV64 {
      * Standard Registers
      */
 
-    val standardRegFile = RegisterFile(
+    private val standardRegFile = RegisterFile(
         MAIN_REGFILE_NAME, arrayOf(
             Register(Bin("00000", REG_ADDRESS_SIZE), listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), description = "hardwired zero", hardwire = true),
             Register(Bin("00001", REG_ADDRESS_SIZE), listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "return address"),
@@ -277,7 +275,7 @@ object RV64 {
     /**
      * CSR Registers
      */
-    val csrUnprivileged = arrayOf(
+    private val csrUnprivileged = arrayOf(
         // Unprivileged Floating-Point CSRs
         CSRegister(Hex("001", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x001"), listOf("fflags"), Variable(REG_INIT, XLEN), "Floating-Point Accrued Exceptions.", listOf(EXTENSION.CSR.ordinal)),
         CSRegister(Hex("002", CSR_REG_ADDRESS_SIZE), Privilege.URW, listOf("x002"), listOf("frm"), Variable(REG_INIT, XLEN), "Floating-Point Dynamic Rounding Mode.", listOf(EXTENSION.CSR.ordinal)),
@@ -317,14 +315,14 @@ object RV64 {
         CSRegister(Hex("C1E", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1E"), listOf("hpmcounter30"), Variable(REG_INIT, XLEN), "Performance-monitoring counter.", listOf(EXTENSION.CSR.ordinal)),
         CSRegister(Hex("C1F", CSR_REG_ADDRESS_SIZE), Privilege.URO, listOf("xC1F"), listOf("hpmcounter31"), Variable(REG_INIT, XLEN), "Performance-monitoring counter.", listOf(EXTENSION.CSR.ordinal)), // Needs to be extended for RV32I
     )
-    val csrDebug = arrayOf(
+    private val csrDebug = arrayOf(
         // Debug Mode Registers
         CSRegister(Hex("7B0", CSR_REG_ADDRESS_SIZE), Privilege.DRW, listOf("x7B0"), listOf("dcsr"), Variable(REG_INIT, XLEN), "Debug control and status register.", listOf(EXTENSION.CSR.ordinal)),
         CSRegister(Hex("7B1", CSR_REG_ADDRESS_SIZE), Privilege.DRW, listOf("x7B1"), listOf("dpc"), Variable(REG_INIT, XLEN), "Debug PC.", listOf(EXTENSION.CSR.ordinal)),
         CSRegister(Hex("7B2", CSR_REG_ADDRESS_SIZE), Privilege.DRW, listOf("x7B2"), listOf("dscratch0"), Variable(REG_INIT, XLEN), "Debug scratch register 0.", listOf(EXTENSION.CSR.ordinal)),
         CSRegister(Hex("7B3", CSR_REG_ADDRESS_SIZE), Privilege.DRW, listOf("x7B3"), listOf("dscratch1"), Variable(REG_INIT, XLEN), "Debug scratch register 1.", listOf(EXTENSION.CSR.ordinal)),
     )
-    val csrMachine = arrayOf(
+    private val csrMachine = arrayOf(
         // Machine-Level CSR
         // Machine Information Registers
         CSRegister(Hex("F11", CSR_REG_ADDRESS_SIZE), Privilege.MRO, listOf("xF11"), listOf("mvendorid"), Variable(REG_INIT, XLEN), "Vendor ID.", listOf(EXTENSION.CSR.ordinal)),
@@ -499,7 +497,7 @@ object RV64 {
         CSRegister(Hex("7A3", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A3"), listOf("tdata3"), Variable(REG_INIT, XLEN), "Third Debug/Trace trigger data register.", listOf(EXTENSION.CSR.ordinal)),
         CSRegister(Hex("7A8", CSR_REG_ADDRESS_SIZE), Privilege.MRW, listOf("x7A8"), listOf("mcontext"), Variable(REG_INIT, XLEN), "Machine-mode context register.", listOf(EXTENSION.CSR.ordinal)),
     )
-    val csrSupervisor = arrayOf(
+    private val csrSupervisor = arrayOf(
         // Supervisor Trap Setup
         CSRegister(Hex("100", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x100"), listOf("sstatus"), Variable(REG_INIT, XLEN), "Supervisor status register.", listOf(EXTENSION.S.ordinal)),
         CSRegister(Hex("104", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x104"), listOf("sie"), Variable(REG_INIT, XLEN), "Supervisor interrupt-enable register.", listOf(EXTENSION.S.ordinal)),
@@ -519,7 +517,7 @@ object RV64 {
         CSRegister(Hex("5A8", CSR_REG_ADDRESS_SIZE), Privilege.SRW, listOf("x5A8"), listOf("scontext"), Variable(REG_INIT, XLEN), "Supervisor-mode context register.", listOf(EXTENSION.S.ordinal)),
     )
 
-    val csrRegFile = RegisterFile(CSR_REGFILE_NAME, arrayOf(*csrUnprivileged, *csrDebug, *csrMachine, *csrSupervisor), hasPrivileges = true)
+    private val csrRegFile = RegisterFile(CSR_REGFILE_NAME, arrayOf(*csrUnprivileged, *csrDebug, *csrMachine, *csrSupervisor), hasPrivileges = true)
 
     /**
      * Configuration

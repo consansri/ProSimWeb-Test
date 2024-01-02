@@ -1,7 +1,7 @@
 package emulator
 
-import emulator.cisc.ArchRV32
-import emulator.cisc.ArchRV64
+import emulator.archs.ArchRV32
+import emulator.archs.ArchRV64
 import emulator.kit.Architecture
 
 /**

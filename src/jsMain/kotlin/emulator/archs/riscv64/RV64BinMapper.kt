@@ -10,7 +10,7 @@ import emulator.archs.riscv64.RV64Syntax.R_INSTR.InstrType.*
 
 class RV64BinMapper {
 
-    var labelAddrMap = mapOf<RV64Syntax.E_LABEL, String>()
+    private var labelAddrMap = mapOf<RV64Syntax.E_LABEL, String>()
     fun setLabelLinks(labelAddrMap: Map<RV64Syntax.E_LABEL, String>) {
         this.labelAddrMap = labelAddrMap
     }
@@ -30,15 +30,14 @@ class RV64BinMapper {
 
         if (labels.isNotEmpty()) {
             for (label in labels) {
-                val linkedAddress = labelAddrMap.get(label)
+                val linkedAddress = labelAddrMap[label]
                 if (linkedAddress == null) {
                     console.warn("BinMapper.getBinaryFromInstrDef(): missing label address entry for [${label.wholeName}]!")
                 }
             }
         }
         try {
-            val instrDefType = instrDef.instrType
-            when (instrDefType) {
+            when (val instrDefType = instrDef.instrType) {
                 LUI, AUIPC -> {
                     binValues?.let {
                         val imm20 = Bin(binValues[1].getRawBinaryStr().substring(0, 20), Bit20())
@@ -99,7 +98,7 @@ class RV64BinMapper {
 
                 BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
                     if (binValues != null && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val labelAddr = Bin(lblAddr, Bit32())
                             val imm12offset = (labelAddr - instrStartAddress).toBin().getResized(Bit12()).shr(1).getRawBinaryStr()
@@ -384,7 +383,7 @@ class RV64BinMapper {
                 La64 -> {
                     if (binValues != null && labels.isNotEmpty()) {
                         val regBin = binValues[0]
-                        val address = labelAddrMap.get(labels.first())
+                        val address = labelAddrMap[labels.first()]
                         if (address != null) {
                             val imm64 = Bin(address, Bit64())
                             if (!imm64.checkResult.valid) {
@@ -428,7 +427,7 @@ class RV64BinMapper {
 
                 JAL1 -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rd = binValues[0]
                             val imm20toWork = ((Bin(lblAddr, Bit32()) - instrStartAddress).toBin() shr 1).getResized(Bit20()).getRawBinaryStr()
@@ -450,7 +449,7 @@ class RV64BinMapper {
 
                 JAL2 -> {
                     if (labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rd = Bin("1", Bit5())
                             val imm20toWork = ((Bin(lblAddr, Bit32()) - instrStartAddress).toBin() shr 1).getResized(Bit20()).getRawBinaryStr()
@@ -472,7 +471,7 @@ class RV64BinMapper {
 
                 J -> {
                     if (labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rd = Bin("0", Bit5())
                             val imm20toWork = ((Bin(lblAddr, Bit32()) - instrStartAddress).toBin() shr 1).getResized(Bit20()).getRawBinaryStr()
@@ -543,15 +542,15 @@ class RV64BinMapper {
 
                 Call -> {
                     if (labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val x1 = Bin("1", Bit5())
 
                             val pcRelAddress32 = (Bin(lblAddr, Bit32()) - instrStartAddress).toBin()
                             val imm32 = pcRelAddress32.getRawBinaryStr()
 
-                            var jalrOff = Bin(imm32.substring(20), Bit12())
-                            var auipcOff = (pcRelAddress32 - jalrOff.getResized(Bit32())).toBin().ushr(12).getUResized(Bit20())
+                            val jalrOff = Bin(imm32.substring(20), Bit12())
+                            val auipcOff = (pcRelAddress32 - jalrOff.getResized(Bit32())).toBin().ushr(12).getUResized(Bit20())
 
                             val auipcOpCode = AUIPC.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.IMM20 to auipcOff))
                             val jalrOpCode = JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.IMM12 to jalrOff, MaskLabel.RS1 to x1))
@@ -566,7 +565,7 @@ class RV64BinMapper {
 
                 Tail -> {
                     if (labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val x0 = Bin("0", Bit5())
                             val x6 = Hex("6", Bit5()).toBin()
@@ -697,7 +696,7 @@ class RV64BinMapper {
 
                 Beqz -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val x0 = Bin("0", Bit5())
@@ -716,7 +715,7 @@ class RV64BinMapper {
 
                 Bnez -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val x0 = Bin("0", Bit5())
@@ -735,7 +734,7 @@ class RV64BinMapper {
 
                 Blez -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val x0 = Bin("0", Bit5())
@@ -754,7 +753,7 @@ class RV64BinMapper {
 
                 Bgez -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val x0 = Bin("0", Bit5())
@@ -773,7 +772,7 @@ class RV64BinMapper {
 
                 Bltz -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val x0 = Bin("0", Bit5())
@@ -792,7 +791,7 @@ class RV64BinMapper {
 
                 BGTZ -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val x0 = Bin("0", Bit5())
@@ -811,7 +810,7 @@ class RV64BinMapper {
 
                 Bgt -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val rs2 = binValues[1]
@@ -832,7 +831,7 @@ class RV64BinMapper {
 
                 Ble -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val rs2 = binValues[1]
@@ -853,7 +852,7 @@ class RV64BinMapper {
 
                 Bgtu -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val rs2 = binValues[1]
@@ -874,7 +873,7 @@ class RV64BinMapper {
 
                 Bleu -> {
                     if (!binValues.isNullOrEmpty() && labels.isNotEmpty()) {
-                        val lblAddr = labelAddrMap.get(labels.first())
+                        val lblAddr = labelAddrMap[labels.first()]
                         if (lblAddr != null) {
                             val rs1 = binValues[0]
                             val rs2 = binValues[1]
@@ -918,7 +917,7 @@ class RV64BinMapper {
     }
 
     data class InstrResult(val type: RV64Syntax.R_INSTR.InstrType, val binMap: Map<MaskLabel, Bin> = mapOf())
-    class OpCode(val opMask: String, val maskLabels: Array<MaskLabel>) {
+    class OpCode(private val opMask: String, val maskLabels: Array<MaskLabel>) {
 
         val opMaskList = opMask.removePrefix(Settings.PRESTRING_BINARY).split(" ")
         fun checkOpCode(bin: Bin): CheckResult {
@@ -951,7 +950,7 @@ class RV64BinMapper {
                         if (!label.static) {
                             val substring = getSubString(binaryString, label)
                             if (label.maxSize != null) {
-                                binMap.set(label, Bin(substring, label.maxSize))
+                                binMap[label] = Bin(substring, label.maxSize)
                             }
                         }
                     }
@@ -981,7 +980,7 @@ class RV64BinMapper {
             for (labelID in maskLabels.indices) {
                 val maskLabel = maskLabels[labelID]
                 if (!maskLabel.static) {
-                    val param = parameterMap.get(maskLabel)
+                    val param = parameterMap[maskLabel]
                     if (param != null) {
                         val size = maskLabel.maxSize
                         if (size != null) {

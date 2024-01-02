@@ -4,7 +4,6 @@ import debug.DebugTools
 import emulator.archs.riscv32.RV32
 import emulator.kit.Architecture
 import emulator.kit.assembly.Assembly
-import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.optional.ArchSetting

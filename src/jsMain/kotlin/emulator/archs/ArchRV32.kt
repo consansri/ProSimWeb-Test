@@ -1,4 +1,4 @@
-package emulator.cisc
+package emulator.archs
 
 import emulator.kit.Architecture
 import emulator.archs.riscv32.RV32
@@ -13,15 +13,15 @@ import kotlin.time.measureTime
 /**
  * This class connects the used custom and kit components, for a fully functional emulator and assembly process.
  */
-class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
+class ArchRV32 : Architecture(RV32.config, RV32.asmConfig) {
 
-    val instrnames = R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
-    val registers = this.getAllRegs().map { it.getRegexList() }.flatMap { it }
+    private val instrnames = R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
+    val registers = this.getAllRegs().map { it.getRegexList() }.flatten()
     val labels = listOf(Regex("""(?<=\s|^)(.+:)(?=\s|$)"""))
-    val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
-    val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }
-    val consts = listOf(Regex("""(?<=\s|^)(0x[0-9A-Fa-f]+)"""), Regex("""(?<=\s|^)(0b[01]+)"""), Regex("""(?<=\s|^)((-)?[0-9]+)"""), Regex("""(?<=\s|^)(u[0-9]+)"""), Regex("""('.')"""), Regex("\".+\""))
-    val mapper = RV32BinMapper()
+    private val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
+    private val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }
+    private val consts = listOf(Regex("""(?<=\s|^)(0x[0-9A-Fa-f]+)"""), Regex("""(?<=\s|^)(0b[01]+)"""), Regex("""(?<=\s|^)((-)?[0-9]+)"""), Regex("""(?<=\s|^)(u[0-9]+)"""), Regex("""('.')"""), Regex("\".+\""))
+    private val mapper = RV32BinMapper()
 
     override fun exeContinuous() {
         if (this.getAssembly().isBuildable()) {
@@ -70,7 +70,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                 var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
 
-                for (step in 0 until steps) {
+                for (step in 0..<steps) {
                     if (result != null) {
                         instrCount++
                         result.type.execute(this, result.binMap)
@@ -164,7 +164,7 @@ class ArchRV32() : Architecture(RV32.config, RV32.asmConfig) {
                     }
                 }
             }
-            val destAddrString = lineAddressMap.associate { it.first.lineID to it.second }.get(closestID) ?: ""
+            val destAddrString = lineAddressMap.associate { it.first.lineID to it.second }[closestID] ?: ""
             if (destAddrString.isNotEmpty() && closestID != null) {
                 val destAddr = Variable.Value.Hex(destAddrString)
                 val measuredTime = measureTime {

@@ -1,4 +1,4 @@
-package emulator.cisc
+package emulator.archs
 
 import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.Architecture
@@ -10,15 +10,15 @@ import emulator.kit.types.StringTools
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
-class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
+class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
 
-    val instrnames = RV64Syntax.R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
-    val registers = this.getAllRegs().map { it.getRegexList() }.flatMap { it }
+    private val instrnames = RV64Syntax.R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
+    val registers = this.getAllRegs().map { it.getRegexList() }.flatten()
     val labels = listOf(Regex("""(?<=\s|^)(.+:)(?=\s|$)"""))
-    val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
-    val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }
-    val consts = listOf(Regex("""(?<=\s|^)(0x[0-9A-Fa-f]+)"""), Regex("""(?<=\s|^)(0b[01]+)"""), Regex("""(?<=\s|^)((-)?[0-9]+)"""), Regex("""(?<=\s|^)(u[0-9]+)"""), Regex("""('.')"""), Regex("\".+\""))
-    val mapper = RV64BinMapper()
+    private val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
+    private val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }
+    private val consts = listOf(Regex("""(?<=\s|^)(0x[0-9A-Fa-f]+)"""), Regex("""(?<=\s|^)(0b[01]+)"""), Regex("""(?<=\s|^)((-)?[0-9]+)"""), Regex("""(?<=\s|^)(u[0-9]+)"""), Regex("""('.')"""), Regex("\".+\""))
+    private val mapper = RV64BinMapper()
 
 
     override fun exeContinuous() {
@@ -70,7 +70,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                 var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
 
-                for (step in 0 until steps) {
+                for (step in 0..<steps) {
                     if (result != null) {
                         instrCount++
                         result.type.execute(this, result.binMap)
@@ -165,7 +165,7 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
                     }
                 }
             }
-            val destAddrString = lineAddressMap.associate { it.first.lineID to it.second }.get(closestID) ?: ""
+            val destAddrString = lineAddressMap.associate { it.first.lineID to it.second }[closestID] ?: ""
             if (destAddrString.isNotEmpty() && closestID != null) {
                 val destAddr = Variable.Value.Hex(destAddrString)
                 val measuredTime = measureTime {
@@ -226,10 +226,6 @@ class ArchRV64() : Architecture(RV64.config, RV64.asmConfig) {
         getConsole().exeInfo("exe_until_address\nexecuting until address ${address.getHexStr()} \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
     }
 
-
-    override fun exeReset() {
-        super.exeReset()
-    }
 
     override fun getPreHighlighting(text: String): String {
         val lines = HTMLTools.encodeHTML(text).split("\n").toMutableList()
