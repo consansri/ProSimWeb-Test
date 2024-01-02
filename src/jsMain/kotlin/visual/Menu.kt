@@ -1,12 +1,14 @@
 package visual
 
+import Constants
+import StorageKey
 import StyleAttr
 import emotion.react.css
 import emulator.Link
+import emulator.kit.Architecture
 import emulator.kit.common.FileBuilder
 import emulator.kit.common.FileHandler
 import js.core.asList
-
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -19,16 +21,16 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import debug.DebugTools
-import emulator.kit.Architecture
 import web.buffer.Blob
 import web.cssom.*
-import web.storage.localStorage
-import web.timers.*
+import web.dom.document
+import web.file.FileReader
 import web.html.*
-import web.file.*
-import web.dom.*
 import web.location.location
+import web.storage.localStorage
+import web.timers.Timeout
+import web.timers.clearInterval
+import web.timers.setTimeout
 import web.url.URL
 
 external interface MenuProps : Props {
@@ -36,7 +38,7 @@ external interface MenuProps : Props {
     var fileChangeEvent: StateInstance<Boolean>
 }
 
-val Menu = FC<MenuProps>() { props ->
+val Menu = FC<MenuProps> { props ->
 
     val (arch, setArch) = props.archState
     val (navHidden, setNavHidden) = useState(true)
@@ -45,10 +47,10 @@ val Menu = FC<MenuProps>() { props ->
     val (importHidden, setImportHidden) = useState(true)
 
     val (exportHidden, setExportHidden) = useState(true)
-    val (selFormat, setSelFormat) = useState<FileBuilder.ExportFormat>(FileBuilder.ExportFormat.entries.first())
+    val (selFormat, setSelFormat) = useState(FileBuilder.ExportFormat.entries.first())
 
-    val (selAddrW, setSelAddrW) = useState<Int>(arch.getMemory().getAddressSize().bitWidth)
-    val (selDataW, setSelDataW) = useState<Int>(arch.getMemory().getWordSize().bitWidth)
+    val (selAddrW, setSelAddrW) = useState(arch.getMemory().getAddressSize().bitWidth)
+    val (selDataW, setSelDataW) = useState(arch.getMemory().getWordSize().bitWidth)
 
     val navRef = useRef<HTMLElement>()
     val archsRef = useRef<HTMLDivElement>()
@@ -106,7 +108,7 @@ val Menu = FC<MenuProps>() { props ->
         }
 
         h3 {
-            +Constants.name
+            +Constants.NAME
         }
 
         nav {
@@ -197,7 +199,7 @@ val Menu = FC<MenuProps>() { props ->
             css(ClassName(StyleAttr.Header.CLASS_DROPDOWN)) {
                 if (archsHidden) {
                     visibility = Visibility.hidden
-                    transform = translatey(-100.vh)
+                    transform = translatey((-100).vh)
                 } else {
                     visibility = Visibility.visible
                     transform = translatey(0.vh)
@@ -380,9 +382,9 @@ val Menu = FC<MenuProps>() { props ->
                     }
                     +"Import"
                     onClick = {
-                        val files = importRef.current?.files?.asList() ?: emptyList<File>()
+                        val files = importRef.current?.files?.asList() ?: emptyList()
 
-                        if (!files.isEmpty()) {
+                        if (files.isNotEmpty()) {
                             for (file in files) {
                                 importFile(file)
                             }

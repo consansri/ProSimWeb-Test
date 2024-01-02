@@ -1,26 +1,19 @@
 package visual
 
 import Constants
-import debug.DebugTools
+import StyleAttr
 import emotion.react.css
-import emulator.kit.Settings
 import react.FC
 import react.Props
-import react.StateInstance
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
-import react.useEffect
 import web.cssom.*
-import web.dom.document
-import web.window.window
 
 
-external interface FooterViewProps : Props{
-
-}
+external interface FooterViewProps : Props
 
 val FooterView = FC<FooterViewProps>{ props ->
 
@@ -50,10 +43,10 @@ val FooterView = FC<FooterViewProps>{ props ->
         }
         h3{
             className = ClassName(StyleAttr.CLASS_LOGO)
-            +Constants.name
+            +Constants.NAME
         }
         p{
-            +"${Constants.name} version ${Constants.version}"
+            +"${Constants.NAME} version ${Constants.version}"
         }
 
         p{

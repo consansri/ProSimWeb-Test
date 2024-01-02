@@ -1,9 +1,12 @@
 package visual
 
 import StyleAttr
+import debug.DebugTools
 import emotion.react.css
+import emulator.kit.Architecture
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
+import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.table
@@ -12,16 +15,10 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import debug.DebugTools
-import emulator.kit.Architecture
-import emulator.kit.common.RegContainer
-import react.*
-
-import web.timers.*
 import web.cssom.*
 
 external interface TranscriptProps : Props {
-    var ta_val: String
+    var taVal: String
     var arch: StateInstance<Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
@@ -31,8 +28,8 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
     val arch = props.arch.component1()
 
-    val (currExeAddr, setCurrExeAddr) = useState<Variable.Value.Hex>(Variable.Value.Hex("0"))
-    val (currType, setCurrType) = useState<Transcript.Type>(Transcript.Type.DISASSEMBLED)
+    val (currExeAddr, setCurrExeAddr) = useState(Variable.Value.Hex("0"))
+    val (currType, setCurrType) = useState(Transcript.Type.DISASSEMBLED)
 
     fun switchCurrType() {
         val currIndex = currType.ordinal

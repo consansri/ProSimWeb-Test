@@ -4,7 +4,6 @@ import StyleAttr
 import emotion.react.css
 import emulator.kit.common.FileHandler
 import kotlinx.browser.window
-import kotlinx.coroutines.*
 import web.html.*
 import react.*
 import react.dom.aria.ariaHidden
@@ -32,7 +31,6 @@ external interface CodeEditorProps : Props {
     var fileChangeEvent: StateInstance<Boolean>
 }
 
-@OptIn(DelicateCoroutinesApi::class)
 val CodeEditor = FC<CodeEditorProps> { props ->
 
 
@@ -65,7 +63,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (showRenameTab, setShowRenameTab) = useState(false)
     val (showAddTab, setShowAddTab) = useState(false)
     val (showInfoPanel, setShowInfoPanel) = useState(false)
-    val (lineNumbers, setLineNumbers) = useState<Int>(1)
+    val (lineNumbers, setLineNumbers) = useState(1)
     val (infoPanelText, setInfoPanelText) = useState("")
 
     val (tsActive, setTSActive) = useState(false)
@@ -73,7 +71,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (redoActive, setRedoActive) = useState(false)
     /* ----------------- localStorage Sync Objects ----------------- */
 
-    val (vc_rows, setvc_rows) = useState<List<String>>(emptyList())
+    val (vcRows, setvcRows) = useState<List<String>>(emptyList())
     val (files, setFiles) = useState<List<FileHandler.File>>(emptyList())
     val (transcriptView, setTranscriptView) = useState(false)
 
@@ -91,16 +89,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun updateTAResize() {
         var height = 0
-        var width = 0
+        var width: Int
 
-        textareaRef.current?.let {
-            val lineCount = it.value.split("\n").size + 1
-            width = it.value.split("\n").map { it.length }.max()
+        textareaRef.current?.let { element ->
+            val lineCount = element.value.split("\n").size + 1
+            width = element.value.split("\n").maxOfOrNull { it.length } ?: 0
             height = lineCount * StyleAttr.Main.Editor.TextField.lineHeight
-            it.style.height = "auto"
-            it.style.height = "${height}px"
-            it.style.width = "auto"
-            it.style.width = "${width + 1}ch"
+            element.style.height = "auto"
+            element.style.height = "${height}px"
+            element.style.width = "auto"
+            element.style.width = "${width + 1}ch"
         }
         inputDivRef.current?.let {
             it.style.height = "auto"
@@ -160,7 +158,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
             checkTimeOutRef.current = setTimeout({
                 props.archState.component1().getState().edit()
-                setvc_rows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
+                setvcRows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
                 setState(props.archState.component1().getState().state)
             }, 0)
@@ -173,7 +171,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
                 checkTimeOutRef.current = setTimeout({
                     props.archState.component1().getState().edit()
-                    setvc_rows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
+                    setvcRows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
                     setState(props.archState.component1().getState().state)
                 }, delay)
@@ -184,14 +182,14 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun preHighlight() {
         val value = props.archState.component1().getFileHandler().getCurrContent()
-        setvc_rows(value.split("\n"))
+        setvcRows(value.split("\n"))
         preHLTimeoutRef.current?.let {
             clearTimeout(it)
         }
-        setvc_rows(value.split("\n"))
+        setvcRows(value.split("\n"))
         preHLTimeoutRef.current = setTimeout({
             val hlTaList = props.archState.component1().getPreHighlighting(value).split("\n")
-            setvc_rows(hlTaList)
+            setvcRows(hlTaList)
         }, 1000)
     }
 
@@ -325,13 +323,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         }
                     }
 
-                    else -> {
-                        title = "Status: loading..."
-                        img {
-                            className = ClassName(StyleAttr.Main.CLASS_ANIM_ROTATION)
-                            src = StyleAttr.Icons.status_loading
-                        }
-                    }
                 }
             }
 
@@ -502,7 +493,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
             if (transcriptView) {
                 TranscriptView {
-                    this.ta_val = ta_val
+                    this.taVal = taVal
                     this.arch = props.archState
                     this.exeEventState = props.exeEventState
                     this.compileEventState = props.compileEventState
@@ -561,16 +552,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                         onChange = {
                                             val success = props.archState.component1().getFileHandler().renameCurrent(it.currentTarget.value)
-                                            renameinput.current?.let {
+                                            renameinput.current?.let { input ->
                                                 if (success) {
-                                                    it.classList.add(StyleAttr.ANIM_BLINKGREEN)
+                                                    input.classList.add(StyleAttr.ANIM_BLINKGREEN)
                                                     setTimeout({
-                                                        it.classList.remove(StyleAttr.ANIM_BLINKGREEN)
+                                                        input.classList.remove(StyleAttr.ANIM_BLINKGREEN)
                                                     }, 500)
                                                 } else {
-                                                    it.classList.add(StyleAttr.ANIM_SHAKERED)
+                                                    input.classList.add(StyleAttr.ANIM_SHAKERED)
                                                     setTimeout({
-                                                        it.classList.remove(StyleAttr.ANIM_SHAKERED)
+                                                        input.classList.remove(StyleAttr.ANIM_SHAKERED)
                                                     }, 500)
                                                 }
                                             }
@@ -678,7 +669,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                             +"+"
 
-                            onClick = { event ->
+                            onClick = { _ ->
                                 setShowAddTab(true)
                             }
                         }
@@ -712,7 +703,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                         for (lineNumber in 1..lineNumbers) {
                             span {
-                                onClick = { event ->
+                                onClick = { _ ->
                                     props.archState.component1().exeUntilLine(lineNumber - 1)
                                     props.exeEventState.component2().invoke(!props.exeEventState.component1())
                                 }
@@ -757,9 +748,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     grammarTree?.rootNode?.let { rootNode ->
                                         var path = ""
                                         rootNode.containers.forEach {
-                                            it.getAllTokens().forEach {
-                                                if (it.lineLoc.lineID == lineID && startIndex in it.lineLoc.startIndex..it.lineLoc.endIndex) {
-                                                    val result = grammarTree.contains(it)
+                                            it.getAllTokens().forEach { token ->
+                                                if (token.lineLoc.lineID == lineID && startIndex in token.lineLoc.startIndex..token.lineLoc.endIndex) {
+                                                    val result = grammarTree.contains(token)
                                                     if (result != null) {
                                                         path = result.path
                                                     }
@@ -781,9 +772,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     textareaRef.current?.let {
                                         val start =
                                             it.selectionStart
-                                                ?: error("CodeEditor: OnKeyDown Tab handling: start is null")
                                         val end =
-                                            it.selectionEnd ?: error("CodeEditor: OnKeyDown Tab handling: end is null")
+                                            it.selectionEnd
 
                                         it.value = it.value.substring(0, start) + '\t' + it.value.substring(end)
 
@@ -854,13 +844,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                 ref = codeAreaRef
 
-                                vc_rows.let {
+                                vcRows.let {
                                     var contentString = ""
                                     for (i in it.indices) {
                                         contentString += "${it[i]}\n"
                                     }
-                                    codeAreaRef.current?.let {
-                                        it.innerHTML = contentString
+                                    codeAreaRef.current?.let { element ->
+                                        element.innerHTML = contentString
                                     }
                                 }
                             }
@@ -932,7 +922,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
         val lineAddressMap = props.archState.component1().getAssembly().getAssemblyMap().lineAddressMap
         val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
-        val entry = lineAddressMap.get(pcValue.toHex().getRawHexStr())
+        val entry = lineAddressMap[pcValue.toHex().getRawHexStr()]
 
         if (entry != null) {
             setExeFile(entry.file)
@@ -953,7 +943,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 }
 
 object Formatter {
-    val reformats = listOf<ReFormat>(
+    val reformats = listOf(
         ReFormat(Regex("""(\s{2,})"""), "\t"),
         ReFormat(Regex("""(,)\S"""), ", ")
     )

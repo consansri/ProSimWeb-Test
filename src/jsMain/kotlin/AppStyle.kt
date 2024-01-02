@@ -94,7 +94,7 @@ val AppStyle = FC<Props> {
                             justifyContent = JustifyContent.center
                             gap = 1.5.rem
                             transition = 1.s
-                            transform = translatey(-100.vh)
+                            transform = translatey((-100).vh)
                             zIndex = StyleAttr.Header.IndexNavMobile
                             visibility = Visibility.hidden
                         }
@@ -515,7 +515,7 @@ val AppStyle = FC<Props> {
                             gap = StyleAttr.Main.Window.paddingContent
                             alignItems = AlignItems.stretch
                             padding = StyleAttr.Main.Window.paddingContent
-                            boxShadow = BoxShadow(BoxShadowInset.inset, 0.px, 11.px, 8.px, -10.px, StyleAttr.Main.Window.FgColor)
+                            boxShadow = BoxShadow(BoxShadowInset.inset, 0.px, 11.px, 8.px, (-10).px, StyleAttr.Main.Window.FgColor)
                             overflowY = Overflow.scroll
                             flexGrow = number(1.0)
 

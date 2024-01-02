@@ -1540,7 +1540,7 @@ class RV64Syntax : Syntax() {
             }
 
             object Syntax {
-                val tokenSeq = TokenSeq(TokenSeq.Component.InSpecific.Constant(), TokenSeq.Component.Specific("("), TokenSeq.Component.InSpecific.Register(), TokenSeq.Component.Specific(")"), ignoreSpaces = true)
+                val tokenSeq = TokenSeq(TokenSeq.Component.InSpecific.Constant, TokenSeq.Component.Specific("("), TokenSeq.Component.InSpecific.Register, TokenSeq.Component.Specific(")"), ignoreSpaces = true)
             }
         }
 

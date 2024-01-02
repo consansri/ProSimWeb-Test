@@ -8,5 +8,4 @@ sealed class ArchSetting(val name: String) {
 
     class BoolSetting(name: String, val boolean: Boolean): ArchSetting(name)
 
-
 }

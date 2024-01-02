@@ -4,7 +4,6 @@ import debug.DebugTools
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
 import emulator.kit.common.Transcript
-import emulator.kit.types.Variable
 
 /**
  * This template solves as an interface for specific architecture syntax implementations. It has one main function [check] in which the whole syntax should be analyzed and a corresponding syntax tree should be build.
@@ -140,7 +139,7 @@ abstract class Syntax {
 
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
-                allErrors.forEach { tokens.addAll(it.linkedTreeNode.getAllTokens() ?: emptyArray()) }
+                allErrors.forEach { tokens.addAll(it.linkedTreeNode.getAllTokens()) }
                 containers.forEach { tokens.addAll(it.getAllTokens()) }
                 return tokens.toTypedArray()
             }
@@ -171,7 +170,7 @@ abstract class Syntax {
         constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
     }
 
-    class RowSeq(vararg val components: Component) {
+    class RowSeq(private vararg val components: Component) {
 
         fun exacltyMatches(vararg elementNodes: TreeNode.ElementNode): RowSeqResult {
             var syntaxIndex = 0
@@ -221,7 +220,7 @@ abstract class Syntax {
                 val tokens = mutableListOf<Compiler.Token>()
                 remainingTreeNodes.forEach { tokens.addAll(it.getAllTokens()) }
 
-                error = Syntax.Error(message = "to many arguments for Sequence {${components.joinToString(" , ") { "${it.treeNodeNames} repeatable: ${it.repeatable}" }}}!", *tokens.toTypedArray())
+                error = Error(message = "to many arguments for Sequence {${components.joinToString(" , ") { "${it.treeNodeNames} repeatable: ${it.repeatable}" }}}!", *tokens.toTypedArray())
             }
             return RowSeqResult(valid, matchingTreeNodes, error, remainingTreeNodes)
         }
@@ -277,7 +276,7 @@ abstract class Syntax {
         data class RowSeqResult(val matches: Boolean, val matchingTreeNodes: List<TreeNode.ElementNode>, val error: Error? = null, val remainingTreeNodes: List<TreeNode.ElementNode>? = null)
     }
 
-    class TokenSeq(vararg val components: Component, val ignoreSpaces: Boolean = false) {
+    class TokenSeq(private vararg val components: Component, val ignoreSpaces: Boolean = false) {
 
         init {
             if (components.isEmpty()) {
@@ -402,27 +401,27 @@ abstract class Syntax {
 
             sealed class InSpecific : Component() {
 
-                class Symbol : InSpecific() {
+                data object Symbol : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.SYMBOL
                 }
 
-                class Word : InSpecific() {
+                data object Word : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.WORD
                 }
 
-                class AlphaNum : InSpecific() {
+                data object AlphaNum : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.ALPHANUM
                 }
 
-                class Constant : InSpecific() {
+                data object Constant : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.CONSTANT
                 }
 
-                class Register : InSpecific() {
+                data object Register : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.REGISTER
                 }
 
-                class Space : InSpecific() {
+                data object Space : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.SPACE
                 }
 
@@ -432,17 +431,16 @@ abstract class Syntax {
 
     class ConnectedHL(vararg hlPairs: Pair<String, List<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
 
-        val hlTokenMap: MutableMap<String, MutableList<Compiler.Token>>
+        val hlTokenMap: MutableMap<String, MutableList<Compiler.Token>> = mutableMapOf()
 
         init {
-            hlTokenMap = mutableMapOf()
             for (hlPair in hlPairs) {
-                val entry = hlTokenMap.get(hlPair.first)
+                val entry = hlTokenMap[hlPair.first]
 
                 if (entry != null) {
                     entry.addAll(hlPair.second)
                 } else {
-                    hlTokenMap.set(hlPair.first, hlPair.second.toMutableList())
+                    hlTokenMap[hlPair.first] = hlPair.second.toMutableList()
                 }
             }
 

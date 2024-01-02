@@ -2,18 +2,20 @@ package visual
 
 import StorageKey
 import StyleAttr
-
+import debug.DebugTools
 import emotion.react.css
+import emulator.kit.Architecture
 import emulator.kit.Settings
 import emulator.kit.common.Memory
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Value.Hex
 import kotlinx.browser.localStorage
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
@@ -24,14 +26,8 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import debug.DebugTools
-import emulator.kit.Architecture
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.h1
-
-import web.html.*
-import web.timers.*
 import web.cssom.*
+import web.html.*
 
 external interface MemViewProps : Props {
     var name: String
@@ -48,10 +44,9 @@ val MemoryView = FC<MemViewProps> { props ->
     val asciiRef = useRef<HTMLElement>()
     val editRef = useRef<HTMLInputElement>()
 
-    val name by useState(props.name)
     val (memEndianess, setEndianess) = useState<Memory.Endianess>()
     val (lowFirst, setLowFirst) = useState(true)
-    val (memList, setMemList) = useState<List<Memory.MemInstance>>(props.archState.component1().getMemory().getMemList())
+    val (memList, setMemList) = useState(props.archState.component1().getMemory().getMemList())
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
 
@@ -212,7 +207,7 @@ val MemoryView = FC<MemViewProps> { props ->
                     borderBottomRightRadius = StyleAttr.iconBorderRadius
                 }
 
-                onClick = { event ->
+                onClick = { _ ->
                     setLowFirst(!lowFirst)
                 }
 
@@ -249,7 +244,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             +"Address"
                         }
 
-                        for (columnID in 0 until props.archState.component1().getMemory().getEntrysInRow()) {
+                        for (columnID in 0..<props.archState.component1().getMemory().getEntrysInRow()) {
                             th {
                                 /* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*/
                                 css {
@@ -344,13 +339,9 @@ val MemoryView = FC<MemViewProps> { props ->
                                 ref = asciiRef
                                 var asciiString = ""
                                 val emptyAscii = props.archState.component1().getMemory().getInitialBinary().get().toASCII()
-                                for (column in 0 until props.archState.component1().getMemory().getEntrysInRow()) {
+                                for (column in 0..<props.archState.component1().getMemory().getEntrysInRow()) {
                                     val memInstance = memRow.value.firstOrNull { it.offset == column }
-                                    asciiString += if (memInstance != null) {
-                                        memInstance.variable.get().toASCII()
-                                    } else {
-                                        emptyAscii
-                                    }
+                                    asciiString += memInstance?.variable?.get()?.toASCII() ?: emptyAscii
                                 }
 
                                 +asciiString

@@ -25,7 +25,7 @@ external interface IConsoleViewProps : Props {
     var exeEventState: StateInstance<Boolean>
 }
 
-val IConsoleView = FC<IConsoleViewProps>() { props ->
+val IConsoleView = FC<IConsoleViewProps> { props ->
 
     val consoleContainerRef = useRef<HTMLDivElement>()
     val scrollRef = useRef<HTMLDivElement>()
@@ -77,10 +77,6 @@ val IConsoleView = FC<IConsoleViewProps>() { props ->
             css {
                 color = StyleAttr.Main.InfoView.consoleFgColor.get()
                 fontSize = 1.2.rem
-            }
-
-            onClick = { event ->
-
             }
 
             +iConsole.name

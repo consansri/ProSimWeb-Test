@@ -27,8 +27,7 @@ import web.buffer.Blob
  *  @param asmConfig Specific Grammar and Assembler class which is then given the Architecture through the asmConfig "file"
  *
  *  Essential Features
- *  @property name Essential: Given by Config
- *  @property docs Essential: Given by Config
+ *  @property description Essential: Given by Config
  *  @property fileHandler Essential: Given by Config
  *  @property regContainer Essential: Given by Config
  *  @property memory Essential: Given by Config
@@ -167,8 +166,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * needs to be implemented by specific architectures if prehighlighting of certain keywords is wished
      */
     open fun getPreHighlighting(text: String): String {
-        val encodedLine = HTMLTools.encodeHTML(text)
-        return encodedLine
+        return HTMLTools.encodeHTML(text)
     }
 
     /**

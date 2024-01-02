@@ -1,14 +1,11 @@
 package visual
 
 import StorageKey
+import StyleAttr
 import emotion.react.css
 import emulator.kit.Architecture
-import web.html.*
-import web.timers.*
-import web.cssom.*
 import kotlinx.browser.localStorage
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
@@ -16,9 +13,14 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import visual.ExecutionType.*
-
+import web.cssom.ClassName
+import web.cssom.Color
+import web.cssom.important
 import web.html.HTMLAnchorElement
 import web.html.HTMLInputElement
+import web.html.InputType
+import web.timers.Timeout
+import web.timers.setTimeout
 
 external interface ProcessorViewProps : Props {
     var archState: StateInstance<Architecture>
@@ -28,7 +30,6 @@ external interface ProcessorViewProps : Props {
 
 
 val ProcessorView = FC<ProcessorViewProps> { props ->
-    val titleRef = useRef<HTMLAnchorElement>()
     val mStepInputRef = useRef<HTMLInputElement>()
     val executionQueue = useRef<Timeout>(null)
 

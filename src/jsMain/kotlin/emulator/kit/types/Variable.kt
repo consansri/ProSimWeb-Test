@@ -12,7 +12,7 @@ import kotlin.math.roundToInt
  */
 class Variable {
 
-    val initialBinary: String
+    private val initialBinary: String
     val size: Size
     var value: Value
 
@@ -100,6 +100,10 @@ class Variable {
     operator fun dec(): Variable {
         this.value = this.value--
         return Variable(--value)
+    }
+
+    override fun hashCode(): Int {
+        return value.hashCode()
     }
 
     /**
@@ -195,21 +199,20 @@ class Variable {
                         CheckResult(true, formattedInput)
                     } else {
                         val trimmedString = formattedInput.substring(formattedInput.length - size.bitWidth)
-                        message = "Bin.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!"
+                        message = "Bin.check(): $string is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!"
                         console.warn(message)
                         CheckResult(false, trimmedString, message)
                     }
                 } else {
                     val zeroString = Settings.PRESTRING_BINARY + "0".repeat(size.bitWidth)
-                    message = "Bin.check(): ${string} does not match the binary Pattern (${Settings.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning ${zeroString} instead!"
+                    message = "Bin.check(): $string does not match the binary Pattern (${Settings.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning $zeroString instead!"
                     console.error(message)
                     return CheckResult(false, formattedInput, message)
                 }
             }
 
             fun getRawBinaryStr(): String {
-                val binStr = binString.removePrefix(Settings.PRESTRING_BINARY)
-                return binStr
+                return binString.removePrefix(Settings.PRESTRING_BINARY)
             }
 
             fun getBinaryStr(): String {
@@ -405,12 +408,12 @@ class Variable {
             }
 
             override fun compareTo(other: Value): Int {
-                if (BinaryTools.isEqual(getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
-                    return 0
+                return if (BinaryTools.isEqual(getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                    0
                 } else if (BinaryTools.isGreaterThan(getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
-                    return 1
+                    1
                 } else {
-                    return -1
+                    -1
                 }
             }
 
@@ -496,13 +499,13 @@ class Variable {
                         CheckResult(true, Settings.PRESTRING_HEX + formatted)
                     } else {
                         val trimmedString = formatted.substring(formatted.length - size.hexChars)
-                        message = "Hex.check(): ${string} is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.hexChars}!"
+                        message = "Hex.check(): $string is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.hexChars}!"
                         console.warn(message)
                         CheckResult(false, Settings.PRESTRING_HEX + trimmedString, message)
                     }
                 } else {
                     val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.hexChars)
-                    message = "Hex.check(): ${string} does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.hexChars)} where X is element of [0-9,A-F]), returning ${zeroString} instead!"
+                    message = "Hex.check(): $string does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.hexChars)} where X is element of [0-9,A-F]), returning $zeroString instead!"
                     console.error(message)
                     return CheckResult(false, zeroString, message)
                 }
@@ -575,12 +578,12 @@ class Variable {
             }
 
             override fun compareTo(other: Value): Int {
-                if (BinaryTools.isEqual(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
-                    return 0
+                return if (BinaryTools.isEqual(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                    0
                 } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
-                    return 1
+                    1
                 } else {
-                    return -1
+                    -1
                 }
             }
 
@@ -599,7 +602,7 @@ class Variable {
         class Dec(decString: String, size: Size) : Value(decString, size) {
             private val decString: String
             private val negative: Boolean
-            val posRegex = Regex("[0-9]+")
+            private val posRegex = Regex("[0-9]+")
 
             init {
                 this.checkResult = check(input, size)
@@ -630,20 +633,20 @@ class Variable {
                 val message: String
                 if (!posRegex.matches(formatted.replace("-", ""))) {
                     val zeroString = "0"
-                    message = "Dec.check(): ${formatted} does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
+                    message = "Dec.check(): $formatted does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning $zeroString instead!"
                     console.error(message)
                     return CheckResult(false, Settings.PRESTRING_DECIMAL + zeroString, message)
                 } else {
-                    if (DecTools.isGreaterThan(formatted, Bounds(size).max)) {
-                        message = "Dec.check(): ${formatted} must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}"
+                    return if (DecTools.isGreaterThan(formatted, Bounds(size).max)) {
+                        message = "Dec.check(): $formatted must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}"
                         console.warn(message)
-                        return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
+                        CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).min, formatted)) {
-                        message = "Dec.check(): ${formatted} must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
+                        message = "Dec.check(): $formatted must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
                         console.warn(message)
-                        return CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min, message)
+                        CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min, message)
                     } else {
-                        return CheckResult(true, Settings.PRESTRING_DECIMAL + formatted)
+                        CheckResult(true, Settings.PRESTRING_DECIMAL + formatted)
                     }
                 }
             }
@@ -669,11 +672,11 @@ class Variable {
             }
 
             override fun toDouble(): Double {
-                try {
-                    return getRawDecStr().toDouble()
+                return try {
+                    getRawDecStr().toDouble()
                 } catch (e: NumberFormatException) {
                     console.warn("Value.toDouble(): NumberFormatException (dec: ${getRawDecStr()}) -> returning 0")
-                    return 0.0
+                    0.0
                 }
             }
 
@@ -724,12 +727,12 @@ class Variable {
             }
 
             override fun compareTo(other: Value): Int {
-                if (DecTools.isEqual(this.getRawDecStr(), other.toDec().getRawDecStr())) {
-                    return 0
+                return if (DecTools.isEqual(this.getRawDecStr(), other.toDec().getRawDecStr())) {
+                    0
                 } else if (DecTools.isGreaterThan(this.getRawDecStr(), other.toDec().getRawDecStr())) {
-                    return 1
+                    1
                 } else {
-                    return -1
+                    -1
                 }
             }
 
@@ -744,7 +747,7 @@ class Variable {
          */
         class UDec(udecString: String, size: Size) : Value(udecString, size) {
             private val udecString: String
-            val posRegex = Regex("[0-9]+")
+            private val posRegex = Regex("[0-9]+")
 
             init {
                 this.checkResult = check(input, size)
@@ -774,20 +777,20 @@ class Variable {
                 val message: String
                 if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
-                    message = "UDec.check(): ${formatted} does not match the udec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning ${zeroString} instead!"
+                    message = "UDec.check(): $formatted does not match the udec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning $zeroString instead!"
                     console.error(message)
                     return CheckResult(false, Settings.PRESTRING_UDECIMAL + zeroString, message)
                 } else {
-                    if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
-                        message = "UDec.check(): ${formatted} must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}"
+                    return if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
+                        message = "UDec.check(): $formatted must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}"
                         console.warn(message)
-                        return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umax, message)
+                        CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umax, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).umin, formatted)) {
-                        message = "UDec.check(): ${formatted} must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}"
+                        message = "UDec.check(): $formatted must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}"
                         console.warn(message)
-                        return CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umin, message)
+                        CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umin, message)
                     } else {
-                        return CheckResult(true, Settings.PRESTRING_UDECIMAL + formatted)
+                        CheckResult(true, Settings.PRESTRING_UDECIMAL + formatted)
                     }
                 }
             }
@@ -813,11 +816,11 @@ class Variable {
             }
 
             override fun toDouble(): Double {
-                try {
-                    return getRawUDecStr().toDouble()
+                return try {
+                    getRawUDecStr().toDouble()
                 } catch (e: NumberFormatException) {
                     console.warn("Value.toDouble(): NumberFormatException (udec: ${getRawUDecStr()}) -> returning 0")
-                    return 0.0
+                    0.0
                 }
             }
 
@@ -869,12 +872,12 @@ class Variable {
             }
 
             override fun compareTo(other: Value): Int {
-                if (DecTools.isEqual(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
-                    return 0
+                return if (DecTools.isEqual(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
+                    0
                 } else if (DecTools.isGreaterThan(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
-                    return 1
+                    1
                 } else {
-                    return -1
+                    -1
                 }
             }
 
@@ -919,24 +922,24 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${bin.getBinaryStr()} to ${hexStr}")
+                    console.info("Conversion: ${bin.getBinaryStr()} to $hexStr")
                 }
 
                 return Hex(hexStr, bin.size)
             }
 
             fun getBinary(hex: Hex): Bin {
-                var BinStr = ""
+                var binStr = ""
 
                 val hexStr = hex.getRawHexStr().uppercase()
 
                 for (i in hexStr.indices) {
-                    BinStr += BinaryTools.hexToBinDigit[hexStr[i]]
+                    binStr += BinaryTools.hexToBinDigit[hexStr[i]]
                 }
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${hex.getHexStr()} to ${BinStr}")
+                    console.info("Conversion: ${hex.getHexStr()} to $binStr")
                 }
-                return Bin(BinStr, hex.size)
+                return Bin(binStr, hex.size)
             }
 
             fun getBinary(dec: Dec): Bin {
@@ -953,15 +956,15 @@ class Variable {
                 for (i in dec.size.bitWidth - 1 downTo 0) {
                     val weight = DecTools.binaryWeights[i].weight
                     if (DecTools.isGreaterEqualThan(decString, weight)) {
-                        binaryStr = binaryStr + "1"
+                        binaryStr += "1"
                         decString = DecTools.sub(decString, weight)
                     } else {
-                        binaryStr = binaryStr + "0"
+                        binaryStr += "0"
                     }
                 }
 
                 if (binaryStr == "") {
-                    console.warn("Conversion.getBinary(dec: Dec) : error in calculation ${dec.getRawDecStr()} to ${binaryStr}")
+                    console.warn("Conversion.getBinary(dec: Dec) : error in calculation ${dec.getRawDecStr()} to $binaryStr")
                 }
 
                 if (dec.isNegative()) {
@@ -969,7 +972,7 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${dec.getDecStr()} to ${binaryStr}")
+                    console.info("Conversion: ${dec.getDecStr()} to $binaryStr")
                 }
 
                 return Bin(binaryStr, dec.size)
@@ -984,19 +987,19 @@ class Variable {
                 for (i in udec.size.bitWidth - 1 downTo 0) {
                     val weight = DecTools.binaryWeights[i].weight
                     if (DecTools.isGreaterEqualThan(udecString, weight)) {
-                        binaryStr = binaryStr + "1"
+                        binaryStr += "1"
                         udecString = DecTools.sub(udecString, weight)
                     } else {
-                        binaryStr = binaryStr + "0"
+                        binaryStr += "0"
                     }
                 }
 
                 if (binaryStr == "") {
-                    console.warn("Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to ${binaryStr}")
+                    console.warn("Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to $binaryStr")
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${udec.getUDecStr()} to ${binaryStr}")
+                    console.info("Conversion: ${udec.getUDecStr()} to $binaryStr")
                 }
 
                 return Bin(binaryStr, udec.size)
@@ -1033,7 +1036,7 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${bin.getBinaryStr()} to ${decString}")
+                    console.info("Conversion: ${bin.getBinaryStr()} to $decString")
                 }
 
                 return Dec(decString, bin.size)
@@ -1043,7 +1046,7 @@ class Variable {
                 val binString = bin.getRawBinaryStr()
 
                 var udecString = "0"
-                if (binString.length > 0) {
+                if (binString.isNotEmpty()) {
                     val absBin: String = binString
 
                     for (index in absBin.indices) {
@@ -1056,7 +1059,7 @@ class Variable {
                     }
                 }
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${bin.getBinaryStr()} to ${udecString}")
+                    console.info("Conversion: ${bin.getBinaryStr()} to $udecString")
                 }
 
                 return UDec(udecString, bin.size)
@@ -1086,7 +1089,7 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    console.info("Conversion: ${value.toHex().getHexStr()} to ${stringBuilder}")
+                    console.info("Conversion: ${value.toHex().getHexStr()} to $stringBuilder")
                 }
 
                 return stringBuilder.toString()
@@ -1128,6 +1131,10 @@ class Variable {
 
         fun getByteCount(): Int {
             return (bitWidth.toFloat() / 8.0f).roundToInt()
+        }
+
+        override fun hashCode(): Int {
+            return bitWidth.hashCode()
         }
 
         class Original(bitWidth: Int) : Size("original", bitWidth)

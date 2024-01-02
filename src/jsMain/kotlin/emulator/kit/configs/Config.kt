@@ -1,9 +1,7 @@
 package emulator.kit.configs
 
 import emulator.kit.common.*
-import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Cache
-import emulator.kit.optional.Feature
 import emulator.kit.optional.FlagsConditions
 
 /**

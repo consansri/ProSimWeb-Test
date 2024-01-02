@@ -215,13 +215,13 @@ val InfoView = FC<InfoViewProps> { props ->
             if (file is Docs.HtmlFile.SourceFile) {
                 job = GlobalScope.launch {
                     val snippet = fetch(file.src).text()
-                    docDiv.current?.let {
-                        it.innerHTML = snippet.await()
-                        val codeChilds = it.getElementsByTagName("code").asList()
+                    docDiv.current?.let { input ->
+                        input.innerHTML = snippet.await()
+                        val codeChilds = input.getElementsByTagName("code").asList()
                         for (child in codeChilds) {
                             child.addEventListener(EventType("click"), { event ->
                                 child.textContent?.let { text ->
-                                    if (arch.getFileHandler().getAllFiles().filter { it.getName() == "example" }.isEmpty()) {
+                                    if (arch.getFileHandler().getAllFiles().none { it.getName() == "example" }) {
                                         arch.getFileHandler().import(FileHandler.File("example", text))
                                         window.scrollTo(0, 0)
                                         arch.getConsole().info("Successfully imported 'example'!")

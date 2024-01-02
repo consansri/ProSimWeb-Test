@@ -8,9 +8,9 @@ import debug.DebugTools
  */
 object DecTools {
 
-    val negRegex = Regex("-[0-9]+")
-    val posRegex = Regex("[0-9]+")
-    val zeroRegex = Regex("(-)?0+")
+    private val negRegex = Regex("-[0-9]+")
+    private val posRegex = Regex("[0-9]+")
+    private val zeroRegex = Regex("(-)?0+")
     val binaryWeights: List<BinaryWeight> = List(Variable.Size.Bit128().bitWidth) { BinaryWeight(it, pow("2", it.toString())) }
 
     fun add(a: String, b: String): String {
@@ -23,11 +23,9 @@ object DecTools {
         val aAbs = abs(aTrimmed)
         val bAbs = abs(bTrimmed)
 
-        val result: String
-
-        if (aNeg == bNeg) {
+        val result: String = if (aNeg == bNeg) {
             val resultAbs = addUnsigned(aAbs, bAbs)
-            result = if (aNeg) negotiate(resultAbs) else resultAbs
+            if (aNeg) negotiate(resultAbs) else resultAbs
         } else {
             val isAAbsGreater = isGreaterEqualThan(aAbs, bAbs)
             val resultAbs = if (isAAbsGreater) subUnsigned(aAbs, bAbs) else subUnsigned(bAbs, aAbs)
@@ -35,10 +33,10 @@ object DecTools {
             val aSign = if (aNeg) "-" else ""
             val bSign = if (bNeg) "-" else ""
 
-            result = if (isAAbsGreater) "$aSign$resultAbs" else "$bSign$resultAbs"
+            if (isAAbsGreater) "$aSign$resultAbs" else "$bSign$resultAbs"
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.info("DecTools: ${a} + ${b} = $result")
+            console.info("DecTools: $a + $b = $result")
         }
         return checkEmpty(result)
     }
@@ -49,7 +47,7 @@ object DecTools {
 
         val result = add(aTrimmed, negotiate(bTrimmed))
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.info("DecTools: ${a} - ${b} = $result")
+            console.info("DecTools: $a - $b = $result")
         }
         return checkEmpty(result)
     }
@@ -58,15 +56,13 @@ object DecTools {
         val aTrimmed = a.trim().removePrefix(Settings.PRESTRING_DECIMAL)
         val bTrimmed = b.trim().removePrefix(Settings.PRESTRING_DECIMAL)
 
-        val result: String
-
-        if (isNegative(aTrimmed) xor isNegative(bTrimmed)) {
-            result = negotiate(multiplyUnsigned(abs(aTrimmed), abs(bTrimmed)))
+        val result: String = if (isNegative(aTrimmed) xor isNegative(bTrimmed)) {
+            negotiate(multiplyUnsigned(abs(aTrimmed), abs(bTrimmed)))
         } else {
-            result = multiplyUnsigned(abs(aTrimmed), abs(bTrimmed))
+            multiplyUnsigned(abs(aTrimmed), abs(bTrimmed))
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.info("DecTools: ${a} * ${b} = $result")
+            console.info("DecTools: $a * $b = $result")
         }
         return checkEmpty(result)
     }
@@ -75,17 +71,15 @@ object DecTools {
         val dividendTrimmed = dividend.trim().removePrefix(Settings.PRESTRING_DECIMAL)
         val divisorTrimmed = divisor.trim().removePrefix(Settings.PRESTRING_DECIMAL)
 
-        val result: DivisionResult
-
-        if (isNegative(dividendTrimmed) xor isNegative(divisorTrimmed)) {
+        val result: DivisionResult = if (isNegative(dividendTrimmed) xor isNegative(divisorTrimmed)) {
             val smallResult = divideUnsigned(abs(dividendTrimmed), abs(divisorTrimmed))
             val negresult = DivisionResult(negotiate(smallResult.result), smallResult.rest)
-            result = negresult
+            negresult
         } else {
-            result = divideUnsigned(abs(dividendTrimmed), abs(divisorTrimmed))
+            divideUnsigned(abs(dividendTrimmed), abs(divisorTrimmed))
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.info("DecTools: ${dividend} / ${divisor} = $result")
+            console.info("DecTools: $dividend / $divisor = $result")
         }
         return checkEmpty(result)
     }
@@ -98,7 +92,7 @@ object DecTools {
         val absExponent = abs(exponentTrimmed)
 
         if (isNegative(exponentTrimmed)) {
-            console.warn("DecTools.pow(): exponent = ${exponent} must be greater equal 0! (using ${absExponent} for calculation!)")
+            console.warn("DecTools.pow(): exponent = $exponent must be greater equal 0! (using $absExponent for calculation!)")
         }
 
         val result = if (isNegative(baseTrimmed)) {
@@ -112,7 +106,7 @@ object DecTools {
         }
 
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.log("DecTools: $base^($exponent) -> result: ${result}")
+            console.log("DecTools: $base^($exponent) -> result: $result")
         }
 
         return checkEmpty(result)
@@ -133,10 +127,10 @@ object DecTools {
         } else if (posRegex.matches(aTrimmed)) {
             "-$aTrimmed"
         } else {
-            throw Exception("DecTools.negotiate(): ${a} is invalid!")
+            throw Exception("DecTools.negotiate(): $a is invalid!")
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.log("DecTools: negotiate($a) -> ${result}")
+            console.log("DecTools: negotiate($a) -> $result")
         }
         return checkEmpty(result)
     }
@@ -147,13 +141,9 @@ object DecTools {
          */
         val aTrimmed = a.trim().removePrefix(Settings.PRESTRING_DECIMAL)
 
-        val result = if (negRegex.matches(aTrimmed) && !isEqual(abs(aTrimmed), "0")) {
-            true
-        } else {
-            false
-        }
+        val result = negRegex.matches(aTrimmed) && !isEqual(abs(aTrimmed), "0")
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.log("DecTools: isNegative($a) -> ${result}")
+            console.log("DecTools: isNegative($a) -> $result")
         }
 
         return result
@@ -194,10 +184,10 @@ object DecTools {
         return true
     }
 
-    fun isZero(a: String): Boolean {
+    private fun isZero(a: String): Boolean {
         val result = isEqual(a, "0")
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.log("DecTools: isZero($a) -> ${result}")
+            console.log("DecTools: isZero($a) -> $result")
         }
         return result
     }
@@ -226,7 +216,7 @@ object DecTools {
         if (aNeg xor bNeg) {
             return !aNeg
         } else {
-            var negativeComparison: Boolean = false
+            var negativeComparison = false
             if (aNeg && bNeg) {
                 aTrimmed = negotiate(aTrimmed)
                 bTrimmed = negotiate(bTrimmed)
@@ -243,9 +233,9 @@ object DecTools {
 
                 var result: Boolean? = null
                 if (aDigit > bDigit) {
-                    result = if (negativeComparison) false else true
+                    result = !negativeComparison
                 } else if (aDigit < bDigit) {
-                    result = if (negativeComparison) true else false
+                    result = negativeComparison
                 }
                 result?.let {
                     // console.warn("${aDigit},${bDigit} -> neg:${negativeComparison} result:${result}")
@@ -262,7 +252,7 @@ object DecTools {
          */
         val result = a.trim().removePrefix(Settings.PRESTRING_DECIMAL).replace("-", "")
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            console.log("DecTools: abs($a) -> ${result}")
+            console.log("DecTools: abs($a) -> $result")
         }
         return result
     }
@@ -380,7 +370,7 @@ object DecTools {
         val divisorTrimmed = divisor.trim().removePrefix(Settings.PRESTRING_DECIMAL)
 
         if (isNegative(dividendTrimmed) || isNegative(divisorTrimmed)) {
-            throw Exception("DecTools.divideUnsigned(): ${dividendTrimmed}, ${divisor} not both positiv!")
+            throw Exception("DecTools.divideUnsigned(): ${dividendTrimmed}, $divisor not both positiv!")
         }
 
         if (isGreaterThan(divisorTrimmed, dividendTrimmed)) {
@@ -403,11 +393,10 @@ object DecTools {
 
         while (isGreaterEqualThan(dividendBuffer, divisorTrimmed)) {
 
-            val smallDivi: String
-            if (needBiggerCompare != null) {
-                smallDivi = dividendBuffer.substring(0, needBiggerCompare)
+            val smallDivi: String = if (needBiggerCompare != null) {
+                dividendBuffer.substring(0, needBiggerCompare)
             } else {
-                smallDivi = dividendBuffer.substring(0, comparisonLength)
+                dividendBuffer.substring(0, comparisonLength)
             }
 
             val smallResult = smallDivUnsigned(smallDivi, divisorTrimmed)
@@ -433,7 +422,7 @@ object DecTools {
             DebugTools.KIT_ValBinaryToolsDivisionLoopLimit?.let {
                 if (loop < DebugTools.KIT_ValBinaryToolsDivisionLoopLimit) {
                     if (DebugTools.KIT_showValDecToolsCalculationDetails) {
-                        console.log("DecTools.divideUnsigned.loop$loop: dividend: ${dividendBuffer}, result: ${result}, rest: ${rest}, smallResult: ${smallResult}")
+                        console.log("DecTools.divideUnsigned.loop$loop: dividend: ${dividendBuffer}, result: ${result}, rest: ${rest}, smallResult: $smallResult")
                     }
                     loop++
                 } else {
@@ -471,7 +460,7 @@ object DecTools {
             }
         }
         if (DebugTools.KIT_showValDecToolsCalculationDetails) {
-            console.log("DecTools: loops needed: $loop, smallDivUnsigned($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${dividendTemp}")
+            console.log("DecTools: loops needed: $loop, smallDivUnsigned($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: $dividendTemp")
         }
         return DivisionResult(result, dividendTemp)
     }
@@ -487,7 +476,7 @@ object DecTools {
 
         val expoInt = exponentTrimmed.toInt()
         if (expoInt < 0) {
-            throw Exception("DecTools.powUnsigned(): exponent = ${exponent} must be greater equal 0! (returning 1)")
+            throw Exception("DecTools.powUnsigned(): exponent = $exponent must be greater equal 0! (returning 1)")
         } else {
             for (i in 1..expoInt) {
                 result = multiplyUnsigned(result, baseTrimmed)
@@ -502,15 +491,15 @@ object DecTools {
     }
 
     fun checkEmpty(a: String): String {
-        return if (a.equals("")) {
+        return if (a == "") {
             "0"
         } else {
             a
         }
     }
 
-    fun checkEmpty(divResult: DivisionResult): DivisionResult {
-        return if (divResult.result.equals("")) {
+    private fun checkEmpty(divResult: DivisionResult): DivisionResult {
+        return if (divResult.result == "") {
             DivisionResult("0", divResult.rest)
         } else {
             divResult

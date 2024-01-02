@@ -199,7 +199,7 @@ class Compiler(
                     }
 
                     architecture.getConsole().warn("Assembly: no match found for $remainingLine")
-                    break;
+                    break
                 }
                 tokenLines.add(lineID, tempTokenList)
                 tokenList += Token.NewLine(LineLoc(file, lineID, line.length, line.length + 2), "\n", tokenList.size)
@@ -226,8 +226,8 @@ class Compiler(
             }
         }
 
-        syntaxTree?.rootNode?.allErrors?.let {
-            for (error in it) {
+        syntaxTree?.rootNode?.allErrors?.let { errors ->
+            for (error in errors) {
                 if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
                     if (error.linkedTreeNode.getAllTokens().first().isPseudo()) {
                         architecture.getConsole().error("pseudo: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}]")
@@ -238,7 +238,7 @@ class Compiler(
                     architecture.getConsole().error("GlobalError: " + error.message)
                 }
             }
-            isBuildable = it.isEmpty()
+            isBuildable = errors.isEmpty()
         }
 
     }
@@ -276,37 +276,37 @@ class Compiler(
                         }
 
                         is Token.Constant.Binary -> {
-                            hlFlagCollection.const_bin?.let {
+                            hlFlagCollection.constBin?.let {
                                 token.hl(architecture, it)
                             }
                         }
 
                         is Token.Constant.Dec -> {
-                            hlFlagCollection.const_dec?.let {
+                            hlFlagCollection.constDec?.let {
                                 token.hl(architecture, it)
                             }
                         }
 
                         is Token.Constant.Hex -> {
-                            hlFlagCollection.const_hex?.let {
+                            hlFlagCollection.constHex?.let {
                                 token.hl(architecture, it)
                             }
                         }
 
                         is Token.Constant.UDec -> {
-                            hlFlagCollection.const_udec?.let {
+                            hlFlagCollection.constUDec?.let {
                                 token.hl(architecture, it)
                             }
                         }
 
                         is Token.Constant.Ascii -> {
-                            hlFlagCollection.const_ascii?.let {
+                            hlFlagCollection.constAscii?.let {
                                 token.hl(architecture, it)
                             }
                         }
 
                         is Token.Constant.String -> {
-                            hlFlagCollection.const_ascii?.let {
+                            hlFlagCollection.constAscii?.let {
                                 token.hl(architecture, it)
                             }
                         }
@@ -487,7 +487,7 @@ class Compiler(
             }
 
             architecture.getConsole().warn("Assembly.analyze($content): no match found for $remaining")
-            break;
+            break
         }
 
         return tokens
@@ -501,9 +501,7 @@ class Compiler(
             }
         }
         val hlContent = stringBuilder.toString()
-        return if (hlContent.isNotEmpty()) {
-            hlContent
-        } else {
+        return hlContent.ifEmpty {
             dryContent
         }
     }
@@ -643,12 +641,12 @@ class Compiler(
     data class HLFlagCollection(
         val alphaNum: String? = null,
         val word: String? = null,
-        val const_hex: String? = null,
-        val const_bin: String? = null,
-        val const_dec: String? = null,
-        val const_udec: String? = null,
-        val const_ascii: String? = null,
-        val const_string: String? = null,
+        val constHex: String? = null,
+        val constBin: String? = null,
+        val constDec: String? = null,
+        val constUDec: String? = null,
+        val constAscii: String? = null,
+        val constString: String? = null,
         val register: String? = null,
         val symbol: String? = null,
         val instruction: String? = null,

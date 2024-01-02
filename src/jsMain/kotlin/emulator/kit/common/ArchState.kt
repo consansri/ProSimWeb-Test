@@ -17,10 +17,10 @@ class ArchState {
 
     fun check(success: Boolean) {
         if (state == State.UNCHECKED) {
-            if (success) {
-                state = State.EXECUTABLE
+            state = if (success) {
+                State.EXECUTABLE
             } else {
-                state = State.HASERRORS
+                State.HASERRORS
             }
         }
     }

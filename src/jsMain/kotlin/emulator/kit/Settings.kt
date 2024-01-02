@@ -13,7 +13,7 @@ object Settings {
     /**
      * [PROSIMNAME] defines the name of the app.
      */
-    const val PROSIMNAME = Constants.name
+    const val PROSIMNAME = Constants.NAME
 
     // FILEHANDLER
     /**
@@ -88,12 +88,12 @@ object Settings {
     val COMPILER_HLCOLL = Compiler.HLFlagCollection(
         alphaNum = HL.violet.getFlag(),
         word = HL.magenta.getFlag(),
-        const_hex = HL.blue.getFlag(),
-        const_bin = HL.blue.getFlag(),
-        const_dec = HL.blue.getFlag(),
-        const_udec = HL.blue.getFlag(),
-        const_ascii = HL.green.getFlag(),
-        const_string = HL.green.getFlag(),
+        constHex = HL.blue.getFlag(),
+        constBin = HL.blue.getFlag(),
+        constDec = HL.blue.getFlag(),
+        constUDec = HL.blue.getFlag(),
+        constAscii = HL.green.getFlag(),
+        constString = HL.green.getFlag(),
         register = HL.orange.getFlag(),
         symbol = HL.cyan.getFlag(),
         instruction = HL.blue.getFlag(),

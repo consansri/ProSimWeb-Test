@@ -1,7 +1,12 @@
 package visual
 
+import StyleAttr
+import debug.DebugTools
 import emotion.react.css
+import emulator.kit.Architecture
 import emulator.kit.Settings
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Value.Types.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -14,18 +19,14 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import debug.DebugTools
-import emulator.kit.Architecture
-import emulator.kit.common.ArchState
-import emulator.kit.common.IConsole
-import emulator.kit.common.RegContainer
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Value.Types.*
-import kotlin.time.measureTime
-import web.html.*
-import web.timers.*
 import web.cssom.*
 import web.dom.document
+import web.html.HTMLButtonElement
+import web.html.HTMLInputElement
+import web.html.HTMLTableSectionElement
+import web.html.InputType
+import web.timers.setTimeout
+import kotlin.time.measureTime
 
 external interface RegisterViewProps : Props {
     var name: String
@@ -41,10 +42,9 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
     val arch = props.archState.component1()
 
-    val name = props.name
     val (allRegFiles, setAllRegFiles) = useState(arch.getAllRegFiles())
-    val (currRegFileIndex, setCurrRegFileIndex) = useState<Int>(0)
-    val (currRegType, setCurrRegTypeIndex) = useState<Variable.Value.Types>(Variable.Value.Types.Hex)
+    val (currRegFileIndex, setCurrRegFileIndex) = useState(0)
+    val (currRegType, setCurrRegTypeIndex) = useState(Variable.Value.Types.Hex)
 
     /* DOM */
 

@@ -19,12 +19,10 @@ object BinaryTools {
     fun negotiate(aBin: String): String {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
 
-        var result = ""
-
-        if (a[0] == '1') {
-            result = add(inv(a), "1")
+        val result: String = if (a[0] == '1') {
+            add(inv(a), "1")
         } else {
-            result = add(inv(a), "1")
+            add(inv(a), "1")
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
@@ -52,7 +50,7 @@ object BinaryTools {
 
         val maxLength = maxOf(a.length, b.length)
 
-        for (i in 0 until maxLength) {
+        for (i in 0..<maxLength) {
             val digitA = if (i < a.length) a[a.length - 1 - i].toString().toInt() else 0
             val digitB = if (i < b.length) b[b.length - 1 - i].toString().toInt() else 0
 
@@ -63,12 +61,10 @@ object BinaryTools {
             result = digitResult.toString() + result
         }
 
-        val carryChar: Char
-
-        if (carry == 1) {
-            carryChar = '1'
+        val carryChar: Char = if (carry == 1) {
+            '1'
         } else {
-            carryChar = '0'
+            '0'
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
@@ -178,7 +174,7 @@ object BinaryTools {
                 val aPair = addWithCarry(aPuffer, aPuffer)
                 aPuffer = aPair.carry + aPair.result
             } catch (e: NumberFormatException) {
-                console.warn("BinaryTools.multiply(): ${digit} is not a digit!")
+                console.warn("BinaryTools.multiply(): $digit is not a digit!")
             }
         }
 
@@ -278,11 +274,10 @@ object BinaryTools {
 
         val quotient = if (resultSign == '1') negotiate("0" + uResult.result) else "0" + uResult.result
         val remainder = "0" + uResult.remainder
-        val result = DivisionResult(quotient, remainder)
-        return result
+        return DivisionResult(quotient, remainder)
     }
 
-    fun divideMixed(uDividend: String, sDivisor: String): DivisionResult{
+    fun divideMixed(uDividend: String, sDivisor: String): DivisionResult {
         val dend = uDividend.trim().removePrefix(Settings.PRESTRING_BINARY)
         val sor = sDivisor.trim().removePrefix(Settings.PRESTRING_BINARY)
 
@@ -299,8 +294,7 @@ object BinaryTools {
 
         val quotient = if (sorSign == '1') negotiate("0" + uResult.result) else "0" + uResult.result
         val remainder = "0" + uResult.remainder
-        val result = DivisionResult(quotient, remainder)
-        return result
+        return DivisionResult(quotient, remainder)
     }
 
     fun inv(aBin: String): String {
@@ -314,10 +308,10 @@ object BinaryTools {
         var result = ""
 
         for (i in a.indices.reversed()) {
-            if (a[i] == '1') {
-                result = "0$result"
+            result = if (a[i] == '1') {
+                "0$result"
             } else {
-                result = "1$result"
+                "1$result"
             }
         }
 
@@ -338,10 +332,10 @@ object BinaryTools {
 
         var result = ""
         for (id in paddedA.indices) {
-            if (paddedA[id] != paddedB[id]) {
-                result += "1"
+            result += if (paddedA[id] != paddedB[id]) {
+                "1"
             } else {
-                result += "0"
+                "0"
             }
         }
 
@@ -359,10 +353,10 @@ object BinaryTools {
 
         var result = ""
         for (id in paddedA.indices) {
-            if (paddedA[id] == '1' || paddedB[id] == '1') {
-                result += "1"
+            result += if (paddedA[id] == '1' || paddedB[id] == '1') {
+                "1"
             } else {
-                result += "0"
+                "0"
             }
         }
 
@@ -380,10 +374,10 @@ object BinaryTools {
 
         var result = ""
         for (id in paddedA.indices) {
-            if (paddedA[id] == '1' && paddedB[id] == '1') {
-                result += "1"
+            result += if (paddedA[id] == '1' && paddedB[id] == '1') {
+                "1"
             } else {
-                result += "0"
+                "0"
             }
         }
 
@@ -402,11 +396,7 @@ object BinaryTools {
             val bDigit = paddedB[i]
 
             if (aDigit != bDigit) {
-                if (aDigit == '1') {
-                    return true
-                } else {
-                    return false
-                }
+                return aDigit == '1'
             }
         }
         return false
@@ -439,11 +429,7 @@ object BinaryTools {
             val bDigit = paddedB[i]
 
             if (aDigit != bDigit) {
-                if (aDigit == '1') {
-                    return true
-                } else {
-                    return false
-                }
+                return aDigit == '1'
             }
         }
         return true

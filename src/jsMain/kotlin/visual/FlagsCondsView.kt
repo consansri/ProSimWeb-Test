@@ -6,7 +6,6 @@ import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import debug.DebugTools
 import emulator.kit.Architecture
 import web.html.*
 import web.cssom.*
@@ -18,9 +17,8 @@ external interface FlagsCondsViewProps : Props {
     var exeEventState: StateInstance<Boolean>
 }
 
-val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
+val FlagsCondsView = FC<FlagsCondsViewProps> { props ->
     val arch = props.archState.component1()
-    val name by useState(props.name)
 
     fun refresh(element: HTMLButtonElement, flag: FlagsConditions.Flag) {
         if (flag.getValue()) {
@@ -70,10 +68,10 @@ val FlagsCondsView = FC<FlagsCondsViewProps>() { props ->
 
                 for (cond in it.conditions) {
                     button {
-                        if (cond.getValue()) {
-                            className = ClassName(StyleAttr.CLASS_PROC_FC_COND + " " + StyleAttr.CLASS_PROC_FC_COND_ACTIVE)
+                        className = if (cond.getValue()) {
+                            ClassName(StyleAttr.CLASS_PROC_FC_COND + " " + StyleAttr.CLASS_PROC_FC_COND_ACTIVE)
                         } else {
-                            className = ClassName(StyleAttr.CLASS_PROC_FC_COND)
+                            ClassName(StyleAttr.CLASS_PROC_FC_COND)
                         }
 
                         +cond.name

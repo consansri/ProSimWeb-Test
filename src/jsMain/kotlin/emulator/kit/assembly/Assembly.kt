@@ -17,7 +17,7 @@ abstract class Assembly {
     data class AssemblyMap(val lineAddressMap: Map<String, MapEntry> = mapOf()) {
         init {
             if (DebugTools.KIT_showAsmInfo) {
-                console.log("Assembly.AssemblyMap(): " + lineAddressMap)
+                console.log("Assembly.AssemblyMap(): $lineAddressMap")
             }
         }
 

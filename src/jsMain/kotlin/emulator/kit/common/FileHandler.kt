@@ -1,18 +1,18 @@
 package emulator.kit.common
 
 import StorageKey
+import debug.DebugTools
 import emulator.kit.Settings
 import emulator.kit.assembly.Syntax
+import emulator.kit.common.FileHandler.File
 import kotlinx.browser.localStorage
-import kotlinx.coroutines.*
-import debug.DebugTools
-import react.useRef
+import kotlinx.coroutines.CancellationException
 import web.timers.Timeout
 
 /**
  * [FileHandler] loads and saves [File]s to memory and holds undo/redo states.
  */
-class FileHandler(val fileEnding: String) {
+class FileHandler(private val fileEnding: String) {
 
     private val files = mutableListOf<File>()
     private var currentID: Int = 0
@@ -59,7 +59,7 @@ class FileHandler(val fileEnding: String) {
             false
         } else {
             if (DebugTools.KIT_showFileHandlerInfo) {
-                console.log("FileHandler: rename file ${files[currentID].getName()} to ${newName}")
+                console.log("FileHandler: rename file ${files[currentID].getName()} to $newName")
             }
             files[currentID].rename(newName)
             refreshLocalStorage(true)
@@ -107,11 +107,11 @@ class FileHandler(val fileEnding: String) {
 
     fun getAllFiles(): List<File> = files
 
-    fun getFromLocalStorage() {
+    private fun getFromLocalStorage() {
         files.clear()
         val fileCount = localStorage.getItem(StorageKey.FILE_COUNT)?.toIntOrNull() ?: 0
         if (fileCount > 0) {
-            for (fileID in 0 until fileCount) {
+            for (fileID in 0..<fileCount) {
                 val filename = localStorage.getItem("$fileID" + StorageKey.FILE_NAME)
                 val filecontent = localStorage.getItem("$fileID" + StorageKey.FILE_CONTENT)
                 val fileUndoLength = localStorage.getItem("$fileID" + StorageKey.FILE_UNDO_LENGTH)?.toIntOrNull() ?: 1
@@ -119,10 +119,10 @@ class FileHandler(val fileEnding: String) {
                 val fileUndoStates = mutableListOf<String>()
                 val fileRedoStates = mutableListOf<String>()
 
-                for (undoID in 0 until fileUndoLength) {
+                for (undoID in 0..<fileUndoLength) {
                     fileUndoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$undoID") ?: "")
                 }
-                for (redoID in 0 until fileRedoLength) {
+                for (redoID in 0..<fileRedoLength) {
                     fileRedoStates.add(localStorage.getItem("${fileID}${StorageKey.FILE_UNDO}-$redoID") ?: "")
                 }
 
@@ -180,8 +180,8 @@ class FileHandler(val fileEnding: String) {
     }
 
     data class File(private var name: String, private var content: String, private val undoStates: MutableList<String> = mutableListOf(), private val redoStates: MutableList<String> = mutableListOf()) {
-        var timeout: Timeout? = null
-        var syntaxTree: Syntax.SyntaxTree? = null
+        private var timeout: Timeout? = null
+        private var syntaxTree: Syntax.SyntaxTree? = null
 
         fun rename(newName: String) {
             name = newName
@@ -251,7 +251,7 @@ class FileHandler(val fileEnding: String) {
                     }
                     fileHandler.refreshLocalStorage(true)
 
-                } catch (e: CancellationException) {
+                } catch (_: CancellationException) {
 
                 } finally {
 

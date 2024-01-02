@@ -11,7 +11,7 @@ fun main() {
 
     val app = App.create()
 
-    document.title = "${Constants.name} ${Constants.version}"
+    document.title = "${Constants.NAME} ${Constants.version}"
     createRoot(root).render(app)
 }
 

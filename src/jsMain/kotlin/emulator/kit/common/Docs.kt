@@ -3,11 +3,9 @@ package emulator.kit.common
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.code
-import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.ul
 
@@ -16,7 +14,7 @@ import react.dom.html.ReactHTML.ul
  * The first is by linking a source path to a specific html source file and the second is by directly defining a file as a React component, inwhich information can be generated directly from the implemented architecture.
  */
 class Docs(vararg htmlFiles: HtmlFile) {
-    var files = mutableListOf<HtmlFile>(
+    var files = mutableListOf(
         HtmlFile.SourceFile(
             "User Manual",
             "../documents/user-manual.html"

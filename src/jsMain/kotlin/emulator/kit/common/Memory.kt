@@ -3,8 +3,6 @@ package emulator.kit.common
 import StyleAttr
 import emulator.kit.types.Variable
 import debug.DebugTools
-import emulator.kit.Settings
-import kotlin.time.measureTime
 
 /**
  * For emulating the [Memory] of architectures, this class is used. [store] and [load] functions are already implemented which depend on the [endianess].
@@ -17,7 +15,7 @@ class Memory(
     private val addressSize: Variable.Size,
     private val initBin: String,
     private val wordSize: Variable.Size,
-    var endianess: Endianess,
+    private var endianess: Endianess,
     private var ioBounds: IOBounds? = null,
     private var entrysInRow: Int = 16
 ) {
@@ -68,9 +66,9 @@ class Memory(
                     console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
-                val variable = Variable(initBin, wordSize)
-                variable.setHex(word.toString())
-                val newInstance = MemInstance(hexAddress, variable, mark, readonly, entrysInRow)
+                val zeroValue = Variable(initBin, wordSize)
+                zeroValue.setHex(word.toString())
+                val newInstance = MemInstance(hexAddress, zeroValue, mark, readonly, entrysInRow)
                 memList.add(newInstance)
             }
         }
@@ -151,11 +149,7 @@ class Memory(
 
     fun load(address: Variable.Value.Hex): Variable.Value.Bin {
         val value = memList.firstOrNull { it.address.getRawHexStr() == address.toHex().getRawHexStr() }?.variable?.value?.toBin()
-        if (value != null) {
-            return value
-        } else {
-            return getInitialBinary().get().toBin()
-        }
+        return value ?: getInitialBinary().get().toBin()
     }
 
     fun load(address: Variable.Value.Hex, amount: Int): Variable.Value.Bin {
@@ -241,12 +235,12 @@ class Memory(
         var row: Variable.Value.Hex
 
         init {
-            val tempAddrRelevantForOffset = address.getRawHexStr().substring(address.getRawHexStr().length - 4).toIntOrNull(16) ?: null
-            if (tempAddrRelevantForOffset != null) {
-                addrRelevantForOffset = tempAddrRelevantForOffset
+            val tempAddrRelevantForOffset = address.getRawHexStr().substring(address.getRawHexStr().length - 4).toIntOrNull(16)
+            addrRelevantForOffset = if (tempAddrRelevantForOffset != null) {
+                tempAddrRelevantForOffset
             } else {
                 console.error("couldn't extract relevant address part (from ${address.getRawHexStr()}) for offset calculation!")
-                addrRelevantForOffset = 0
+                0
             }
 
             offset = addrRelevantForOffset % entrysInRow

@@ -19,7 +19,7 @@ class FileBuilder {
 
         when (format) {
             ExportFormat.VHDL, ExportFormat.MIF, ExportFormat.HEXDUMP -> {
-                val content = mutableListOf<String>("Empty...")
+                val content = mutableListOf("Empty...")
 
                 val date = Date(Date.now())
 
