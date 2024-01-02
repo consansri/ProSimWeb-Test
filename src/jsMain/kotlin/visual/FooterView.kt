@@ -46,14 +46,14 @@ val FooterView = FC<FooterViewProps>{ props ->
             +Constants.NAME
         }
         p{
-            +"${Constants.NAME} version ${Constants.version}"
+            +"${Constants.NAME} version ${Constants.VERSION}"
         }
 
         p{
-            +"Copyright © ${Constants.year} ${Constants.org}"
+            +"Copyright © ${Constants.YEAR} ${Constants.ORG}"
         }
         p{
-            +"Developed by ${Constants.dev}"
+            +"Developed by ${Constants.DEV}"
         }
     }
 

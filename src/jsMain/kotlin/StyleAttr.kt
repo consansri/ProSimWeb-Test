@@ -4,8 +4,8 @@ object StyleAttr {
 
     // GLOBAL
     val transparent = Color("#00000000")
-    val layoutSwitchMediaQuery = "@media (max-width: 1200px)"
-    val responsiveQuery = "max-width: 1200px"
+    const val layoutSwitchMediaQuery = "@media (max-width: 1200px)"
+    const val responsiveQuery = "max-width: 1200px"
 
     var mode: Mode = Mode.LIGHT
 
@@ -40,7 +40,7 @@ object StyleAttr {
         object Editor {
             val BgColor = ModeColor("#EEEEEE", "#222222")
             val FgColor = ModeColor("#313131", "#AABACA")
-            val Font = codeFont
+            const val Font = codeFont
             val FontSize = 16.px
 
             object Controls {
@@ -68,8 +68,8 @@ object StyleAttr {
                 val LineNumbersColor = ModeColor("#999999")
                 val LineActiveColor = ModeColor("#00FF00")
                 val minLineNumWidth = 35.px
-                val tabSize = 6
-                val lineHeight = 21
+                const val tabSize = 6
+                const val lineHeight = 21
                 val IndexArea = integer(2)
                 val IndexHL = integer(1)
 
@@ -144,7 +144,7 @@ object StyleAttr {
             val MaxHeightMem = 40.vh
             val MaxHeightReg = 40.vh
 
-            enum class BtnBg(val modeColor: ModeColor) {
+            enum class BtnBg(private val modeColor: ModeColor) {
                 CONTINUOUS(ModeColor("#58CC79", "#19A744")),
                 SSTEP(ModeColor("#98D8AA", "#41A05A")),
                 MSTEP(ModeColor("#E2B124", "#B68B0F")),
@@ -159,7 +159,6 @@ object StyleAttr {
             }
 
 
-            const val CLASS = "processor"
             const val CLASS_EXE = "processor-exediv"
             const val CLASS_REG = "processor-regdiv"
             const val CLASS_MEM = "processor-memdiv"
@@ -306,18 +305,18 @@ object StyleAttr {
     val iconBorderRadius = 0.4.rem
 
     // FONTS
-    val logoFont = "font-family: 'Bungee Shade', cursive"
+    const val logoFont = "font-family: 'Bungee Shade', cursive"
 
     // PROCESSOR.FLAGSCONDSVIEW
-    val CLASS_PROC_FC_CONTAINER = "proc-fc-container"
-    val CLASS_PROC_FC_COND = "proc-fc-cond"
-    val CLASS_PROC_FC_FLAG = "proc-fc-flag"
-    val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
-    val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
+    const val CLASS_PROC_FC_CONTAINER = "proc-fc-container"
+    const val CLASS_PROC_FC_COND = "proc-fc-cond"
+    const val CLASS_PROC_FC_FLAG = "proc-fc-flag"
+    const val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
+    const val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
 
     // ANIM
-    val ANIM_SHAKERED = "anim-shakered"
-    val ANIM_BLINKGREEN = "anim-blinkgreen"
+    const val ANIM_SHAKERED = "anim-shakered"
+    const val ANIM_BLINKGREEN = "anim-blinkgreen"
 
     object Icons {
         const val add = "benicons/add.svg"
@@ -363,8 +362,8 @@ object StyleAttr {
     }
 
     class ModeColor(light: String, dark: String? = null) {
-        val light: Color
-        val dark: Color?
+        private val light: Color
+        private val dark: Color?
 
         init {
             this.light = Color(light)
@@ -379,7 +378,7 @@ object StyleAttr {
         }
     }
 
-    class ModeFilter(val light: FilterFunction, val dark: FilterFunction?) {
+    class ModeFilter(private val light: FilterFunction, private val dark: FilterFunction?) {
         fun get(): FilterFunction {
             return when (mode) {
                 Mode.LIGHT -> light

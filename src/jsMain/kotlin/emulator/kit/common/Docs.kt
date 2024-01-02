@@ -19,7 +19,7 @@ class Docs(vararg htmlFiles: HtmlFile) {
             "User Manual",
             "../documents/user-manual.html"
         ),
-        HtmlFile.DefinedFile("Version - ${Constants.version}", FC<Props> {
+        HtmlFile.DefinedFile("Version - ${Constants.VERSION}", FC<Props> {
             h2 { +"Version - 0.1.8" }
             h3 { +"New" }
             ul {
