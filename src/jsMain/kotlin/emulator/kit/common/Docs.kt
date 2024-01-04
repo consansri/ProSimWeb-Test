@@ -17,7 +17,7 @@ class Docs(vararg htmlFiles: HtmlFile) {
     var files = mutableListOf(
         HtmlFile.SourceFile(
             "User Manual",
-            "../documents/user-manual.html"
+            "/documents/user-manual.html"
         ),
         HtmlFile.DefinedFile("Version - ${Constants.VERSION}", FC<Props> {
             h2 { +"Version - 0.1.8" }

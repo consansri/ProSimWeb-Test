@@ -95,7 +95,7 @@ object RV64 {
     private val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
-            "../documents/rv64/syntaxexamples.html"
+            "/documents/rv64/syntaxexamples.html"
         ),
         Docs.HtmlFile.DefinedFile(
             "Implemented",

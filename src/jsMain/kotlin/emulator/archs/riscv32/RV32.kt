@@ -112,7 +112,7 @@ object RV32 {
     val riscVDocs = Docs(
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
-            "../documents/rv32/syntaxexamples.html"
+            "/documents/rv32/syntaxexamples.html"
         ),
         Docs.HtmlFile.DefinedFile(
             "Implemented",
