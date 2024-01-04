@@ -83,10 +83,6 @@ object RV64 {
         X(false, "Non-standard extensions present"),
         Y(false, "Reserved", invisible = true),
         Z(false, "Reserved", invisible = true),
-
-        /**
-         * TODO("Integrate architecture extension packages")
-         */
     }
 
     /**

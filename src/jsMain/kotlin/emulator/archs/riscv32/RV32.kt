@@ -103,10 +103,6 @@ object RV32 {
         X(false, "Non-standard extensions present"),
         Y(false, "Reserved", invisible = true),
         Z(false, "Reserved", invisible = true),
-
-        /**
-         * TODO("Integrate architecture extension packages")
-         */
     }
 
     val riscVDocs = Docs(
