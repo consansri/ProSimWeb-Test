@@ -15,6 +15,10 @@
 
 # DONE #
 
+## Version 0.1.9 ##
+- **(done)** fix html docs paths
+- fix mobile view app controls
+
 ## Version 0.1.8 ##
 - **(done)** added RV inline instructions
 - **(done)** all RV64 Extensions now also implemented in RV32

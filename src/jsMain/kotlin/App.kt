@@ -143,6 +143,7 @@ val App = FC<Props> {
                     justifyContent = JustifyContent.start
                     alignItems = AlignItems.start
                     borderLeft = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                    flexWrap = FlexWrap.wrap
 
                     StyleAttr.layoutSwitchMediaQuery {
                         flexDirection = FlexDirection.row
