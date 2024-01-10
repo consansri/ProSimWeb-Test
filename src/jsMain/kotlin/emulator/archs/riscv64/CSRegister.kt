@@ -12,9 +12,9 @@ class CSRegister(
     description: String,
     neededByFeatureID: List<Int>? = null,
     hardwire: Boolean = false
-): RegContainer.Register(address,names, aliases,variable, needsFeatureID = neededByFeatureID, description =  description, privilegeID = privilege.name, hardwire = hardwire) {
+) : RegContainer.Register(address, names, aliases, variable, needsFeatureID = neededByFeatureID, description = description, privilegeID = privilege.name, hardwire = hardwire) {
 
-    enum class Privilege{
+    enum class Privilege {
         URW,
         URO,
         SRW,
