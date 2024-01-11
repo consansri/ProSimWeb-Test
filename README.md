@@ -1,1 +1,3 @@
-# prosimweb-test
+# ProSimWeb #
+
+This repository is dedicated to the development of a Web App Processor Emulator as part of my Bachelor's thesis at the University of Stuttgart, which will be carried out at the Institute of Communication Networks and Computer Systems (IKR). The project will begin on April 17, 2023, and is expected to be completed in six months, with a functional front-end web application that can emulate at least the RISC-V processor architecture and is easily expandable to other architectures.
