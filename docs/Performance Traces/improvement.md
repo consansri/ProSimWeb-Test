@@ -1,23 +1,3 @@
-# Documentation #
-
-## Design ##
-
-### Rules ###
-
-- > **CSSRule:** Apply Variable Elements such as (Colors) in kotlin emotion and every other css style in a css file!
-
-### z-Axis ###
-
-| INDEX | ITEM                    |
-|:-----:|:------------------------|
-|  100  | **Scroll Bars**         |
-|  21   | **Menu Nav Dropdown**   |
-|  20   | **Menu Mobile Nav**     |
-|  10   | **Memory Window**       |
-|   2   | **Editor Area**         |
-|   1   | **Editor Highlighting** |
-|   0   | **normal**              |
-
 ## Performance Improvement ##
 
 ### RiscV Program Execution ###
@@ -112,7 +92,7 @@ lru:
 
 Measurement continuous
 <p align="center">
-    <img width="90%" alt="[measurement-before]" src="Performance Traces/measurement20230715-continuousexample-before.png"/>
+    <img width="90%" alt="[measurement-before]" src="measurement20230715-continuousexample-before.png"/>
 </p>
 
 Measurement Single Instruction add
@@ -131,7 +111,7 @@ Measurement Single Instruction add
 > ```
 
 <p align="center">
-    <img width="90%" alt="[measurement-before]" src="Performance Traces/measurement20230715-addexample-before.png"/>
+    <img width="90%" alt="[measurement-before]" src="measurement20230715-addexample-before.png"/>
 </p>
 
 **Issues and Solutions**
