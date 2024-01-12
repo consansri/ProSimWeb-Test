@@ -15,7 +15,7 @@ import emulator.kit.types.Variable.Size.*
  * - https://en.wikibooks.org/wiki/6502_Assembly
  * - https://en.wikipedia.org/wiki/MOS_Technology_6502
  * - https://www.masswerk.at/6502/6502_instruction_set.html
- * - https://www.masswerk.at/6502/6502_instruction_set.html
+ *
  *
  * Comparison:
  * - https://www.masswerk.at/6502/assembler.html
