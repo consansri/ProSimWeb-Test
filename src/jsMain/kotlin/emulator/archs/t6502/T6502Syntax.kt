@@ -116,12 +116,26 @@ class T6502Syntax : Syntax() {
         PLP,
 
         // decrements, increments
-        DEC,
-        DEX,
-        DEY,
-        INC,
-        INX,
-        INY,
+        DEC(
+            mapOf(
+                ABS to Hex("CE", BYTE_SIZE),
+                A_AND_X to Hex("DE", BYTE_SIZE),
+                ZP to Hex("C6", BYTE_SIZE),
+                ZP_AND_X to Hex("D6", BYTE_SIZE)
+            )
+        ),
+        DEX(mapOf(IMP to Hex("CA", BYTE_SIZE))),
+        DEY(mapOf(IMP to Hex("88", BYTE_SIZE))),
+        INC(
+            mapOf(
+                ABS to Hex("EE", BYTE_SIZE),
+                A_AND_X to Hex("FE", BYTE_SIZE),
+                ZP to Hex("E6", BYTE_SIZE),
+                ZP_AND_X to Hex("F6", BYTE_SIZE)
+            )
+        ),
+        INX(mapOf(IMP to Hex("E8", BYTE_SIZE))),
+        INY(mapOf(IMP to Hex("C8", BYTE_SIZE))),
 
         // arithmetic operations
         ADC(
@@ -155,10 +169,42 @@ class T6502Syntax : Syntax() {
         ORA,
 
         // shift & rotate
-        ASL,
-        LSR,
-        ROL,
-        ROR,
+        ASL(
+            mapOf(
+                ABS to Hex("0E", BYTE_SIZE),
+                A_AND_X to Hex("1E", BYTE_SIZE),
+                A to Hex("0A", BYTE_SIZE),
+                ZP to Hex("06", BYTE_SIZE),
+                ZP_AND_X to Hex("16", BYTE_SIZE)
+            )
+        ),
+        LSR(
+            mapOf(
+                ABS to Hex("4E", BYTE_SIZE),
+                A_AND_X to Hex("5E", BYTE_SIZE),
+                A to Hex("4A", BYTE_SIZE),
+                ZP to Hex("46", BYTE_SIZE),
+                ZP_AND_X to Hex("56", BYTE_SIZE)
+            )
+        ),
+        ROL(
+            mapOf(
+                ABS to Hex("2E", BYTE_SIZE),
+                A_AND_X to Hex("3E", BYTE_SIZE),
+                A to Hex("2A", BYTE_SIZE),
+                ZP to Hex("26", BYTE_SIZE),
+                ZP_AND_X to Hex("36", BYTE_SIZE)
+            )
+        ),
+        ROR(
+            mapOf(
+                ABS to Hex("6E", BYTE_SIZE),
+                A_AND_X to Hex("7E", BYTE_SIZE),
+                A to Hex("6A", BYTE_SIZE),
+                ZP to Hex("66", BYTE_SIZE),
+                ZP_AND_X to Hex("76", BYTE_SIZE)
+            )
+        ),
 
         // flag
         CLC,
@@ -197,7 +243,7 @@ class T6502Syntax : Syntax() {
         BIT,
         NOP;
 
-        open fun execute(arch: Architecture){
+        open fun execute(arch: Architecture) {
             arch.getConsole().log("executing ${this.name}...")
         }
     }
