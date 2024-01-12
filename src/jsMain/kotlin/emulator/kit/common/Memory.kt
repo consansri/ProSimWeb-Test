@@ -8,13 +8,13 @@ import debug.DebugTools
  * For emulating the [Memory] of architectures, this class is used. [store] and [load] functions are already implemented which depend on the [endianess].
  * Beside the normal not directly editable values there are [MemInstance.EditableValue]s to allow memory mapped i/o emulation.
  *
- * @constructor expecting a [addressSize] and [wordSize] such as initial binary values ([initBin]) and the [endianess] of the memory.
+ * @constructor expecting a [addressSize] and [instanceSize] such as initial binary values ([initBin]) and the [endianess] of the memory.
  *
  */
 class Memory(
     private val addressSize: Variable.Size,
     private val initBin: String,
-    private val wordSize: Variable.Size,
+    private val instanceSize: Variable.Size,
     private var endianess: Endianess,
     private var ioBounds: IOBounds? = null,
     private var entrysInRow: Int = 16
@@ -42,7 +42,7 @@ class Memory(
     fun getEndianess(): Endianess = endianess
     fun store(address: Variable.Value, variable: Variable, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
-        var wordList = variable.get().toHex().getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() }
+        var wordList = variable.get().toHex().getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() }
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
@@ -66,7 +66,7 @@ class Memory(
                     console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
-                val zeroValue = Variable(initBin, wordSize)
+                val zeroValue = Variable(initBin, instanceSize)
                 zeroValue.setHex(word.toString())
                 val newInstance = MemInstance(hexAddress, zeroValue, mark, readonly, entrysInRow)
                 memList.add(newInstance)
@@ -76,7 +76,7 @@ class Memory(
 
     fun storeArray(address: Variable.Value, vararg values: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
-        var wordList = values.map { value -> value.toHex().getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() } }.reversed().flatten()
+        var wordList = values.map { value -> value.toHex().getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() } }.reversed().flatten()
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
@@ -100,7 +100,7 @@ class Memory(
                     console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
                 }
             } else {
-                val variable = Variable(initBin, wordSize)
+                val variable = Variable(initBin, instanceSize)
                 variable.setHex(word.toString())
                 val newInstance = MemInstance(hexAddress, variable, mark, readonly, entrysInRow)
                 memList.add(newInstance)
@@ -114,7 +114,7 @@ class Memory(
         var hexAddress = address.toHex()
 
         // Little Endian
-        var wordList = hexValue.getRawHexStr().reversed().chunked(wordSize.bitWidth / 4) { it.reversed() }
+        var wordList = hexValue.getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() }
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
@@ -138,7 +138,7 @@ class Memory(
                     console.warn("Memory: Denied writing data (address: ${hexAddress.getHexStr()}, value: ${hexValue.getHexStr()}) in readonly Memory!")
                 }
             } else {
-                val variable = Variable(initBin, wordSize)
+                val variable = Variable(initBin, instanceSize)
                 variable.setHex(word.toString())
                 val newInstance = MemInstance(hexAddress, variable, mark, readonly, entrysInRow)
                 memList.add(newInstance)
@@ -180,7 +180,7 @@ class Memory(
         ioBounds?.let {
             var addr = it.lowerAddr
             for (i in 0..<it.amount) {
-                editableValues.add(MemInstance.EditableValue(addr.toHex().getUResized(addressSize), Variable.Value.Hex("0", wordSize), entrysInRow))
+                editableValues.add(MemInstance.EditableValue(addr.toHex().getUResized(addressSize), Variable.Value.Hex("0", instanceSize), entrysInRow))
                 addr += Variable.Value.Hex("1", addressSize)
             }
         }
@@ -217,7 +217,7 @@ class Memory(
     }
 
     fun getInitialBinary(): Variable {
-        return Variable(initBin, wordSize)
+        return Variable(initBin, instanceSize)
     }
 
     fun getAddressSize(): Variable.Size {
@@ -225,7 +225,7 @@ class Memory(
     }
 
     fun getWordSize(): Variable.Size {
-        return wordSize
+        return instanceSize
     }
 
     open class MemInstance(val address: Variable.Value.Hex, var variable: Variable, var mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, val readonly: Boolean = false, entrysInRow: Int) {
