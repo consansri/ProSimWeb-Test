@@ -60,49 +60,11 @@ class T6502Syntax : Syntax() {
                 ZPINDIRECT_Y to Hex("B1", BYTE_SIZE)
             )
         ),
-        LDX(
-            mapOf(
-                ABSOLUTE to Hex("AE", BYTE_SIZE),
-                ABSOLUTE_Y to Hex("BE", BYTE_SIZE),
-                IMMEDIATE to Hex("A2", BYTE_SIZE),
-                ZEROPAGE to Hex("A6", BYTE_SIZE),
-                ZEROPAGE_Y to Hex("B6", BYTE_SIZE)
-            )
-        ),
-        LDY(
-            mapOf(
-                ABSOLUTE to Hex("AC", BYTE_SIZE),
-                ABSOLUTE_X to Hex("BC", BYTE_SIZE),
-                IMMEDIATE to Hex("A0", BYTE_SIZE),
-                ZEROPAGE to Hex("A4", BYTE_SIZE),
-                ZEROPAGE_X to Hex("B4", BYTE_SIZE)
-            )
-        ),
-        STA(
-            mapOf(
-                ABSOLUTE to Hex("8D", BYTE_SIZE),
-                ABSOLUTE_X to Hex("9D", BYTE_SIZE),
-                ABSOLUTE_Y to Hex("99", BYTE_SIZE),
-                ZEROPAGE to Hex("85", BYTE_SIZE),
-                ZEROPAGE_X_INDIRECT to Hex("81", BYTE_SIZE),
-                ZEROPAGE_X to Hex("95", BYTE_SIZE),
-                ZPINDIRECT_Y to Hex("91", BYTE_SIZE)
-            )
-        ),
-        STX(
-            mapOf(
-                ABSOLUTE to Hex("8E", BYTE_SIZE),
-                ZEROPAGE to Hex("86", BYTE_SIZE),
-                ZEROPAGE_Y to Hex("96", BYTE_SIZE)
-            )
-        ),
-        STY(
-            mapOf(
-                ABSOLUTE to Hex("8C", BYTE_SIZE),
-                ZEROPAGE to Hex("84", BYTE_SIZE),
-                ZEROPAGE_X to Hex("94", BYTE_SIZE)
-            )
-        ),
+        LDX(mapOf(ABSOLUTE to Hex("AE", BYTE_SIZE), ABSOLUTE_Y to Hex("BE", BYTE_SIZE), IMMEDIATE to Hex("A2", BYTE_SIZE), ZEROPAGE to Hex("A6", BYTE_SIZE), ZEROPAGE_Y to Hex("B6", BYTE_SIZE))),
+        LDY(mapOf(ABSOLUTE to Hex("AC", BYTE_SIZE), ABSOLUTE_X to Hex("BC", BYTE_SIZE), IMMEDIATE to Hex("A0", BYTE_SIZE), ZEROPAGE to Hex("A4", BYTE_SIZE), ZEROPAGE_X to Hex("B4", BYTE_SIZE))),
+        STA(mapOf(ABSOLUTE to Hex("8D", BYTE_SIZE), ABSOLUTE_X to Hex("9D", BYTE_SIZE), ABSOLUTE_Y to Hex("99", BYTE_SIZE), ZEROPAGE to Hex("85", BYTE_SIZE), ZEROPAGE_X_INDIRECT to Hex("81", BYTE_SIZE), ZEROPAGE_X to Hex("95", BYTE_SIZE), ZPINDIRECT_Y to Hex("91", BYTE_SIZE))),
+        STX(mapOf(ABSOLUTE to Hex("8E", BYTE_SIZE), ZEROPAGE to Hex("86", BYTE_SIZE), ZEROPAGE_Y to Hex("96", BYTE_SIZE))),
+        STY(mapOf(ABSOLUTE to Hex("8C", BYTE_SIZE), ZEROPAGE to Hex("84", BYTE_SIZE), ZEROPAGE_X to Hex("94", BYTE_SIZE))),
         TAX(mapOf(IMPLIED to Hex("AA", BYTE_SIZE))),
         TAY(mapOf(IMPLIED to Hex("A8", BYTE_SIZE))),
         TSX(mapOf(IMPLIED to Hex("BA", BYTE_SIZE))),
@@ -117,24 +79,10 @@ class T6502Syntax : Syntax() {
         PLP(mapOf(IMPLIED to Hex("28", BYTE_SIZE))),
 
         // decrements, increments
-        DEC(
-            mapOf(
-                ABSOLUTE to Hex("CE", BYTE_SIZE),
-                ABSOLUTE_X to Hex("DE", BYTE_SIZE),
-                ZEROPAGE to Hex("C6", BYTE_SIZE),
-                ZEROPAGE_X to Hex("D6", BYTE_SIZE)
-            )
-        ),
+        DEC(mapOf(ABSOLUTE to Hex("CE", BYTE_SIZE), ABSOLUTE_X to Hex("DE", BYTE_SIZE), ZEROPAGE to Hex("C6", BYTE_SIZE), ZEROPAGE_X to Hex("D6", BYTE_SIZE))),
         DEX(mapOf(IMPLIED to Hex("CA", BYTE_SIZE))),
         DEY(mapOf(IMPLIED to Hex("88", BYTE_SIZE))),
-        INC(
-            mapOf(
-                ABSOLUTE to Hex("EE", BYTE_SIZE),
-                ABSOLUTE_X to Hex("FE", BYTE_SIZE),
-                ZEROPAGE to Hex("E6", BYTE_SIZE),
-                ZEROPAGE_X to Hex("F6", BYTE_SIZE)
-            )
-        ),
+        INC(mapOf(ABSOLUTE to Hex("EE", BYTE_SIZE), ABSOLUTE_X to Hex("FE", BYTE_SIZE), ZEROPAGE to Hex("E6", BYTE_SIZE), ZEROPAGE_X to Hex("F6", BYTE_SIZE))),
         INX(mapOf(IMPLIED to Hex("E8", BYTE_SIZE))),
         INY(mapOf(IMPLIED to Hex("C8", BYTE_SIZE))),
 
@@ -203,42 +151,10 @@ class T6502Syntax : Syntax() {
         ),
 
         // shift & rotate
-        ASL(
-            mapOf(
-                ABSOLUTE to Hex("0E", BYTE_SIZE),
-                ABSOLUTE_X to Hex("1E", BYTE_SIZE),
-                ACCUMULATOR to Hex("0A", BYTE_SIZE),
-                ZEROPAGE to Hex("06", BYTE_SIZE),
-                ZEROPAGE_X to Hex("16", BYTE_SIZE)
-            )
-        ),
-        LSR(
-            mapOf(
-                ABSOLUTE to Hex("4E", BYTE_SIZE),
-                ABSOLUTE_X to Hex("5E", BYTE_SIZE),
-                ACCUMULATOR to Hex("4A", BYTE_SIZE),
-                ZEROPAGE to Hex("46", BYTE_SIZE),
-                ZEROPAGE_X to Hex("56", BYTE_SIZE)
-            )
-        ),
-        ROL(
-            mapOf(
-                ABSOLUTE to Hex("2E", BYTE_SIZE),
-                ABSOLUTE_X to Hex("3E", BYTE_SIZE),
-                ACCUMULATOR to Hex("2A", BYTE_SIZE),
-                ZEROPAGE to Hex("26", BYTE_SIZE),
-                ZEROPAGE_X to Hex("36", BYTE_SIZE)
-            )
-        ),
-        ROR(
-            mapOf(
-                ABSOLUTE to Hex("6E", BYTE_SIZE),
-                ABSOLUTE_X to Hex("7E", BYTE_SIZE),
-                ACCUMULATOR to Hex("6A", BYTE_SIZE),
-                ZEROPAGE to Hex("66", BYTE_SIZE),
-                ZEROPAGE_X to Hex("76", BYTE_SIZE)
-            )
-        ),
+        ASL(mapOf(ABSOLUTE to Hex("0E", BYTE_SIZE), ABSOLUTE_X to Hex("1E", BYTE_SIZE), ACCUMULATOR to Hex("0A", BYTE_SIZE), ZEROPAGE to Hex("06", BYTE_SIZE), ZEROPAGE_X to Hex("16", BYTE_SIZE))),
+        LSR(mapOf(ABSOLUTE to Hex("4E", BYTE_SIZE), ABSOLUTE_X to Hex("5E", BYTE_SIZE), ACCUMULATOR to Hex("4A", BYTE_SIZE), ZEROPAGE to Hex("46", BYTE_SIZE), ZEROPAGE_X to Hex("56", BYTE_SIZE))),
+        ROL(mapOf(ABSOLUTE to Hex("2E", BYTE_SIZE), ABSOLUTE_X to Hex("3E", BYTE_SIZE), ACCUMULATOR to Hex("2A", BYTE_SIZE), ZEROPAGE to Hex("26", BYTE_SIZE), ZEROPAGE_X to Hex("36", BYTE_SIZE))),
+        ROR(mapOf(ABSOLUTE to Hex("6E", BYTE_SIZE), ABSOLUTE_X to Hex("7E", BYTE_SIZE), ACCUMULATOR to Hex("6A", BYTE_SIZE), ZEROPAGE to Hex("66", BYTE_SIZE), ZEROPAGE_X to Hex("76", BYTE_SIZE))),
 
         // flag
         CLC(mapOf(IMPLIED to Hex("18", BYTE_SIZE))),
@@ -262,20 +178,8 @@ class T6502Syntax : Syntax() {
                 ZPINDIRECT_Y to Hex("D1", BYTE_SIZE)
             )
         ),
-        CPX(
-            mapOf(
-                ABSOLUTE to Hex("EC", BYTE_SIZE),
-                IMMEDIATE to Hex("E0", BYTE_SIZE),
-                ZEROPAGE to Hex("E4", BYTE_SIZE)
-            )
-        ),
-        CPY(
-            mapOf(
-                ABSOLUTE to Hex("CC", BYTE_SIZE),
-                IMMEDIATE to Hex("C0", BYTE_SIZE),
-                ZEROPAGE to Hex("C4", BYTE_SIZE)
-            )
-        ),
+        CPX(mapOf(ABSOLUTE to Hex("EC", BYTE_SIZE), IMMEDIATE to Hex("E0", BYTE_SIZE), ZEROPAGE to Hex("E4", BYTE_SIZE))),
+        CPY(mapOf(ABSOLUTE to Hex("CC", BYTE_SIZE), IMMEDIATE to Hex("C0", BYTE_SIZE), ZEROPAGE to Hex("C4", BYTE_SIZE))),
 
         // conditional branches
         BCC(mapOf(RELATIVE to Hex("90", BYTE_SIZE))),
@@ -297,13 +201,7 @@ class T6502Syntax : Syntax() {
         RTI(mapOf(IMPLIED to Hex("40", BYTE_SIZE))),
 
         // other
-        BIT(
-            mapOf(
-                ABSOLUTE to Hex("2C", BYTE_SIZE),
-                IMMEDIATE to Hex("89", BYTE_SIZE),
-                ZEROPAGE to Hex("24", BYTE_SIZE)
-            )
-        ),
+        BIT(mapOf(ABSOLUTE to Hex("2C", BYTE_SIZE), IMMEDIATE to Hex("89", BYTE_SIZE), ZEROPAGE to Hex("24", BYTE_SIZE))),
         NOP(mapOf(IMPLIED to Hex("EA", BYTE_SIZE)));
 
         open fun execute(arch: Architecture) {
@@ -315,7 +213,7 @@ class T6502Syntax : Syntax() {
 
     }
 
-    class E_EXTENSION(val type: AModes, constant: Compiler.Token.Constant, vararg symbols: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(), name = NAMES.E_EXTENSION){
+    class E_EXTENSION(val type: AModes, constant: Compiler.Token.Constant, vararg symbols: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(), name = NAMES.E_EXTENSION) {
 
     }
 
