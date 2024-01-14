@@ -2,6 +2,7 @@ package emulator
 
 import emulator.archs.ArchRV32
 import emulator.archs.ArchRV64
+import emulator.archs.ArchT6502
 import emulator.kit.Architecture
 
 /**
@@ -10,5 +11,6 @@ import emulator.kit.Architecture
  */
 enum class Link(val architecture: Architecture) {
     RV32I(ArchRV32()),
-    RV64I(ArchRV64());
+    RV64I(ArchRV64()),
+    T6502(ArchT6502());
 }

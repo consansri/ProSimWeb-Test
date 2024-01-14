@@ -27,7 +27,7 @@ class Compiler(
     private val architecture: Architecture,
     private val syntax: Syntax,
     private val assembly: Assembly,
-    private val regexCollection: RegexCollection,
+    val prefixes: ConstantPrefixes,
     private val hlFlagCollection: HLFlagCollection
 ) {
 
@@ -39,6 +39,19 @@ class Compiler(
     private var syntaxTree: Syntax.SyntaxTree? = null
     private var isBuildable = false
     private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
+    private val regexCollection: RegexCollection = RegexCollection(
+        Regex("""^\s+"""),
+        Regex("""^[^0-9A-Za-z]"""),
+        Regex("""^(-)?${prefixes.bin}[01]+"""),
+        Regex("""^(-)?${prefixes.hex}[0-9a-f]+""", RegexOption.IGNORE_CASE),
+        Regex("""^(-)?${prefixes.dec}[0-9]+"""),
+        Regex("""^${prefixes.udec}[0-9]+"""),
+        Regex("""^'.'"""),
+        Regex("""^".+""""),
+        Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
+        Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
+    )
+
 
     private fun initCode(code: String) {
         tokenList = mutableListOf()
@@ -670,5 +683,12 @@ class Compiler(
 
     data class LineLoc(val file: FileHandler.File, var lineID: Int, val startIndex: Int, val endIndex: Int)
     // endIndex means index after last Character
+
+    data class ConstantPrefixes(
+        val hex: String = "0x",
+        val bin: String = "0b",
+        val dec: String = "",
+        val udec: String = "u"
+    )
 
 }

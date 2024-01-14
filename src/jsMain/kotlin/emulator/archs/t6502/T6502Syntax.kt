@@ -15,14 +15,16 @@ import emulator.archs.t6502.T6502.BYTE_SIZE
  *
  */
 class T6502Syntax : Syntax() {
-    override val applyStandardHLForRest: Boolean = false
+    override val applyStandardHLForRest: Boolean = true
 
     override fun clear() {
         // nothing to do here
     }
 
     override fun check(arch: Architecture, compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
-        TODO("Not yet implemented")
+
+
+        return SyntaxTree()
     }
 
     data object NAMES {
@@ -46,7 +48,7 @@ class T6502Syntax : Syntax() {
         ZPINDIRECT_Y(2), // Zero Page Indirect Indexed with Y: (zp),y
     }
 
-    enum class INSTR_TYPE(val opCode: Map<AModes, Hex>) {
+    enum class InstrType(val opCode: Map<AModes, Hex>) {
         // load, store, interregister transfer
         LDA(
             mapOf(
@@ -209,11 +211,11 @@ class T6502Syntax : Syntax() {
         }
     }
 
-    class E_INSTR(name: Compiler.Token.Word) : TreeNode.ElementNode(highlighting = ConnectedHL(T6502Flags.instr), name = NAMES.E_INSTR, name) {
+    class EInstrName(name: Compiler.Token.Word) : TreeNode.ElementNode(highlighting = ConnectedHL(T6502Flags.instr), name = NAMES.E_INSTR, name) {
 
     }
 
-    class E_EXTENSION(val type: AModes, constant: Compiler.Token.Constant, vararg symbols: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(), name = NAMES.E_EXTENSION) {
+    class EExt(val type: AModes, constant: Compiler.Token.Constant, vararg symbols: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(), name = NAMES.E_EXTENSION) {
 
     }
 

@@ -66,22 +66,6 @@ object Settings {
     val LINEBREAKS = listOf("\n", "\r", "\r\n")
 
     /**
-     * [COMPILER_REGEX] defines the regular expression for all [Compiler.Token].
-     */
-    val COMPILER_REGEX = Compiler.RegexCollection(
-        Regex("""^\s+"""),
-        Regex("""^[^0-9A-Za-z]"""),
-        Regex("""^(-)?$PRESTRING_BINARY[01]+"""),
-        Regex("""^(-)?$PRESTRING_HEX[0-9a-f]+""", RegexOption.IGNORE_CASE),
-        Regex("""^(-)?$PRESTRING_DECIMAL[0-9]+"""),
-        Regex("""^$PRESTRING_UDECIMAL[0-9]+"""),
-        Regex("""^'.'"""),
-        Regex("""^".+""""),
-        Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
-        Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
-    )
-
-    /**
      * [COMPILER_HLCOLL] defines common highlighting colors for each [Compiler.Token].
      * Those will be overwritten by architecture specific Highlighting.
      */

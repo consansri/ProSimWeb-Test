@@ -1,5 +1,7 @@
 package emulator.archs.t6502
 
+import emulator.kit.Settings
+import emulator.kit.assembly.Compiler
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -54,7 +56,8 @@ object T6502 {
 
     val asmConfig = AsmConfig(
         syntax = T6502Syntax(),
-        assembly = T6502Assembly()
+        assembly = T6502Assembly(),
+        prefixes = Compiler.ConstantPrefixes("0x", "%", "", "u")
     )
 
 

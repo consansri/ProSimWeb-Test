@@ -72,7 +72,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             this,
             asmConfig.syntax,
             asmConfig.assembly,
-            Settings.COMPILER_REGEX,
+            asmConfig.prefixes,
             Settings.COMPILER_HLCOLL
         )
     }
