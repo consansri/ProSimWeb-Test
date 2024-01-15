@@ -1,6 +1,5 @@
 package emulator.kit.configs
 
-import emulator.kit.Settings
 import emulator.kit.assembly.Assembly
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
@@ -14,7 +13,8 @@ import emulator.kit.optional.Feature
 data class AsmConfig(
     val syntax: Syntax,
     val assembly: Assembly,
-    val prefixes: Compiler.ConstantPrefixes = Compiler.ConstantPrefixes(),
+    val compilerDetectRegistersByNames: Boolean,
+    val numberSystemPrefixes: Compiler.ConstantPrefixes = Compiler.ConstantPrefixes(),
     val features: List<Feature> = listOf(),
     val settings: List<ArchSetting> = listOf()
 )

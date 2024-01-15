@@ -72,7 +72,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             this,
             asmConfig.syntax,
             asmConfig.assembly,
-            asmConfig.prefixes,
+            asmConfig.numberSystemPrefixes,
+            asmConfig.compilerDetectRegistersByNames,
             Settings.COMPILER_HLCOLL
         )
     }

@@ -27,7 +27,8 @@ class Compiler(
     private val architecture: Architecture,
     private val syntax: Syntax,
     private val assembly: Assembly,
-    val prefixes: ConstantPrefixes,
+    private val prefixes: ConstantPrefixes,
+    private val detectRegisters: Boolean,
     private val hlFlagCollection: HLFlagCollection
 ) {
 
@@ -171,15 +172,17 @@ class Compiler(
                         continue
                     }
 
-                    val regRes = regexCollection.alphaNumeric.find(remainingLine)
-                    if (regRes != null) {
-                        val reg = architecture.getRegContainer().getAllRegs(architecture.getAllFeatures()).firstOrNull { reg -> reg.names.contains(regRes.value) || reg.aliases.contains(regRes.value) }
-                        if (reg != null) {
-                            tokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
-                            tempTokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
-                            startIndex += regRes.value.length
-                            remainingLine = line.substring(startIndex)
-                            continue
+                    if (detectRegisters) {
+                        val regRes = regexCollection.alphaNumeric.find(remainingLine)
+                        if (regRes != null) {
+                            val reg = architecture.getRegContainer().getAllRegs(architecture.getAllFeatures()).firstOrNull { reg -> reg.names.contains(regRes.value) || reg.aliases.contains(regRes.value) }
+                            if (reg != null) {
+                                tokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
+                                tempTokenList += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
+                                startIndex += regRes.value.length
+                                remainingLine = line.substring(startIndex)
+                                continue
+                            }
                         }
                     }
 
@@ -462,15 +465,17 @@ class Compiler(
                 continue
             }
 
-            val regRes = regexCollection.alphaNumeric.find(remaining)
-            if (regRes != null) {
-                val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
-                if (reg != null) {
-                    tokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, lineID)
-                    startIndex += regRes.value.length
-                    remaining = content.substring(startIndex)
-                    continue
+            if (detectRegisters) {
+                val regRes = regexCollection.alphaNumeric.find(remaining)
+                if (regRes != null) {
+                    val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
+                    if (reg != null) {
+                        tokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, lineID)
+                        startIndex += regRes.value.length
+                        remaining = content.substring(startIndex)
+                        continue
 
+                    }
                 }
             }
 

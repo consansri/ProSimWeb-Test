@@ -8,6 +8,7 @@ import emulator.kit.common.Transcript
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.T6502Syntax.AModes.*
 import emulator.archs.t6502.T6502.BYTE_SIZE
+import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 
 
 /**
@@ -32,20 +33,20 @@ class T6502Syntax : Syntax() {
         const val E_EXTENSION = "e_extension"
     }
 
-    enum class AModes(val extByteCount: Int) {
-        ACCUMULATOR(0), // Accumulator: A
+    enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq? = null) {
+        ACCUMULATOR(0, TokenSeq(Specific("A"))), // Accumulator: A
         IMPLIED(0), // Implied: i
-        IMMEDIATE(1), // Immediate: #
-        ABSOLUTE(2), // Absolute: a
-        RELATIVE(1), // Relative: r
-        INDIRECT(2), // Absolute Indirect: (a)
-        ZEROPAGE(1), // Zero Page: zp
-        ABSOLUTE_X(2), // Absolute Indexed with X: a,x
-        ABSOLUTE_Y(2), // Absolute Indexed with Y: a,y
-        ZEROPAGE_X(1), // Zero Page Indexed with X: zp,x
-        ZEROPAGE_Y(1), // Zero Page Indexed with Y: zp,y
-        ZEROPAGE_X_INDIRECT(2), // Zero Page Indexed Indirect: (zp,x)
-        ZPINDIRECT_Y(2), // Zero Page Indirect Indexed with Y: (zp),y
+        IMMEDIATE(1, TokenSeq(Specific("#"), InSpecific.Constant)), // Immediate: #
+        ABSOLUTE(2, TokenSeq(InSpecific.Constant)), // Absolute: a
+        RELATIVE(1, TokenSeq(InSpecific.Constant)), // Relative: r
+        INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true)), // Absolute Indirect: (a)
+        ZEROPAGE(1, TokenSeq(InSpecific.Constant)), // Zero Page: zp
+        ABSOLUTE_X(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true)), // Absolute Indexed with X: a,x
+        ABSOLUTE_Y(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true)), // Absolute Indexed with Y: a,y
+        ZEROPAGE_X(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true)), // Zero Page Indexed with X: zp,x
+        ZEROPAGE_Y(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true)), // Zero Page Indexed with Y: zp,y
+        ZEROPAGE_X_INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(","), Specific("X"), Specific(")"), ignoreSpaces = true)), // Zero Page Indexed Indirect: (zp,x)
+        ZPINDIRECT_Y(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), Specific(","), Specific("Y"), ignoreSpaces = true)), // Zero Page Indirect Indexed with Y: (zp),y
     }
 
     enum class InstrType(val opCode: Map<AModes, Hex>) {
@@ -215,7 +216,10 @@ class T6502Syntax : Syntax() {
 
     }
 
-    class EExt(val type: AModes, constant: Compiler.Token.Constant, vararg symbols: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(), name = NAMES.E_EXTENSION) {
+    sealed class EExt(val type: AModes, highlighting: ConnectedHL, vararg tokens: Compiler.Token) : TreeNode.ElementNode(highlighting, name = NAMES.E_EXTENSION, *tokens) {
+
+        class A()
+
 
     }
 
