@@ -42,10 +42,10 @@ class Compiler(
     private val regexCollection: RegexCollection = RegexCollection(
         Regex("""^\s+"""),
         Regex("""^[^0-9A-Za-z]"""),
-        Regex("""^(-)?${prefixes.bin}[01]+"""),
-        Regex("""^(-)?${prefixes.hex}[0-9a-f]+""", RegexOption.IGNORE_CASE),
-        Regex("""^(-)?${prefixes.dec}[0-9]+"""),
-        Regex("""^${prefixes.udec}[0-9]+"""),
+        Regex("^(-)?${prefixes.bin}[01]+"),
+        Regex("^(-)?${prefixes.hex}[0-9a-f]+", RegexOption.IGNORE_CASE),
+        Regex("^(-)?${prefixes.dec}[0-9]+"),
+        Regex("^${prefixes.udec}[0-9]+"),
         Regex("""^'.'"""),
         Regex("""^".+""""),
         Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
@@ -110,8 +110,8 @@ class Compiler(
 
                     val binary = regexCollection.binary.find(remainingLine)
                     if (binary != null) {
-                        tokenList += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
-                        tempTokenList += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), binary.value, tokenList.size)
+                        tokenList += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, tokenList.size)
+                        tempTokenList += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, tokenList.size)
                         startIndex += binary.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -119,8 +119,8 @@ class Compiler(
 
                     val hex = regexCollection.hex.find(remainingLine)
                     if (hex != null) {
-                        tokenList += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
-                        tempTokenList += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), hex.value, tokenList.size)
+                        tokenList += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, tokenList.size)
+                        tempTokenList += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, tokenList.size)
                         startIndex += hex.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -128,8 +128,8 @@ class Compiler(
 
                     val dec = regexCollection.dec.find(remainingLine)
                     if (dec != null) {
-                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
-                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, tokenList.size)
+                        tokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, tokenList.size)
+                        tempTokenList += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, tokenList.size)
                         startIndex += dec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -137,8 +137,8 @@ class Compiler(
 
                     val udec = regexCollection.udec.find(remainingLine)
                     if (udec != null) {
-                        tokenList += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
-                        tempTokenList += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), udec.value, tokenList.size)
+                        tokenList += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, tokenList.size)
+                        tempTokenList += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, tokenList.size)
                         startIndex += udec.value.length
                         remainingLine = line.substring(startIndex)
                         continue
@@ -408,7 +408,7 @@ class Compiler(
 
             val binary = regexCollection.binary.find(remaining)
             if (binary != null) {
-                tokens += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), binary.value, lineID)
+                tokens += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, lineID)
                 startIndex += binary.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -416,7 +416,7 @@ class Compiler(
 
             val hex = regexCollection.hex.find(remaining)
             if (hex != null) {
-                tokens += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), hex.value, lineID)
+                tokens += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, lineID)
                 startIndex += hex.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -424,7 +424,7 @@ class Compiler(
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), dec.value, lineID)
+                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, lineID)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -432,7 +432,7 @@ class Compiler(
 
             val udec = regexCollection.udec.find(remaining)
             if (udec != null) {
-                tokens += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), udec.value, lineID)
+                tokens += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, lineID)
                 startIndex += udec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -585,43 +585,43 @@ class Compiler(
                 }
             }
 
-            class Binary(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
+            class Binary(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return if (size != null) {
-                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-'), size) else Variable.Value.Bin(content, size)
+                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Bin(content.removePrefix(prefix), size)
                     } else {
-                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-')) else Variable.Value.Bin(content)
+                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefix)) else Variable.Value.Bin(content.removePrefix(prefix))
                     }
                 }
             }
 
-            class Hex(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
+            class Hex(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return if (size != null) {
-                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-'), size) else Variable.Value.Hex(content, size)
+                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Hex(content.removePrefix(prefix), size)
                     } else {
-                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-')) else Variable.Value.Hex(content)
+                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix)) else Variable.Value.Hex(content.removePrefix(prefix))
                     }
                 }
             }
 
-            class Dec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
+            class Dec(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
 
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return if (size != null) {
-                        Variable.Value.Dec(content, size)
+                        Variable.Value.Dec(content.removePrefix(prefix), size)
                     } else {
-                        Variable.Value.Dec(content)
+                        Variable.Value.Dec(content.removePrefix(prefix))
                     }
                 }
             }
 
-            class UDec(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
+            class UDec(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return if (size != null) {
-                        Variable.Value.UDec(content, size)
+                        Variable.Value.UDec(content.removePrefix(prefix), size)
                     } else {
-                        Variable.Value.UDec(content)
+                        Variable.Value.UDec(content.removePrefix(prefix))
                     }
                 }
             }

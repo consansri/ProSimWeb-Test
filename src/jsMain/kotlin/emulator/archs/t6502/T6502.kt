@@ -57,7 +57,7 @@ object T6502 {
     val asmConfig = AsmConfig(
         syntax = T6502Syntax(),
         assembly = T6502Assembly(),
-        prefixes = Compiler.ConstantPrefixes("0x", "%", "", "u")
+        prefixes = Compiler.ConstantPrefixes("\\$", "%", "", "u")
     )
 
 
