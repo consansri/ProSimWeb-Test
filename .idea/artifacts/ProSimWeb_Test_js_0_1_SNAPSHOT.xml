@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="ProSimWeb-Test-js-0.1-SNAPSHOT">
-    <output-path>$PROJECT_DIR$/build/libs</output-path>
-    <root id="archive" name="ProSimWeb-Test-js-0.1-SNAPSHOT.jar">
-      <element id="module-output" name="ProSimWeb-Test.jsMain" />
-    </root>
-  </artifact>
-</component>
