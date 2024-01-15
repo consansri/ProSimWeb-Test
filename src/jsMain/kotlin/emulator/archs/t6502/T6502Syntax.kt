@@ -42,11 +42,54 @@ class T6502Syntax : Syntax() {
         remainingTokens.removeComments(preElements)
 
         // RESOLVE ELEMENTS
-        errors.add(Error("Faulty Syntax!", *remainingTokens.toTypedArray()))
+        var lastInstrName: EInstrName? = null
+        while (true) {
+            if (remainingTokens.isEmpty()) break
+
+            // Skip Whitespaces
+            if (remainingTokens.first() is Compiler.Token.Space || remainingTokens.first() is Compiler.Token.NewLine) {
+                remainingTokens.removeFirst()
+                continue
+            }
+
+            // Resolve EInstr
+            if (lastInstrName == null) {
+                // Search InstrName
+                val result = Patterns.INSTRNAME_SEQUENCE.matchStart(*remainingTokens.toTypedArray())
+                if (result.matches && result.sequenceMap.size == 1) {
+                    val name = result.sequenceMap.first().token as Compiler.Token.Word
+                    val instrType = InstrType.entries.firstOrNull { it.name.uppercase() == name.content.uppercase() }
+                    if (instrType != null) {
+                        if (instrType.opCode.size == 1 && instrType.opCode.keys.first() == IMPLIED) {
+                            elements.add(EInstr(instrType, IMPLIED, listOf(), listOf(name), listOf(), listOf()))
+                            remainingTokens.remove(name)
+                            continue
+                        }
+                        lastInstrName = EInstrName(instrType, name)
+                        remainingTokens.removeFirst()
+                        continue
+                    }
+                }
+            } else {
+                // Check Extension and Addressing Mode
+
+            }
+
+
+            // Add first Token to errors
+            errors.add(Error("Faulty Syntax!", remainingTokens.first()))
+            remainingTokens.removeFirst()
+        }
 
 
 
-        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode(NAMES.C_PRES, *preElements.toTypedArray())))
+        if (remainingTokens.isNotEmpty()) {
+            errors.add(Error("Faulty Syntax!", *remainingTokens.toTypedArray()))
+        }
+
+        val sections = TreeNode.ContainerNode(NAMES.C_SECTIONS, *elements.toTypedArray())
+
+        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode(NAMES.C_PRES, *preElements.toTypedArray()), sections))
     }
 
     private fun MutableList<Compiler.Token>.removeComments(preElements: MutableList<TreeNode.ElementNode>): MutableList<Compiler.Token> {
@@ -63,6 +106,10 @@ class T6502Syntax : Syntax() {
         return this
     }
 
+    data object Patterns {
+        val INSTRNAME_SEQUENCE = TokenSeq(InSpecific.Word)
+    }
+
     data object NAMES {
         const val PRE_COMMENT = "comment"
 
@@ -70,26 +117,28 @@ class T6502Syntax : Syntax() {
         const val E_INSTRNAME = "e_instrname"
         const val E_EXTENSION = "e_extension"
 
+        const val S_TEXT = "text"
+
         const val C_PRES = "pre"
+        const val C_SECTIONS = "sections"
 
     }
 
     enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq? = null, val immSize: Variable.Size? = null) {
         ACCUMULATOR(0, TokenSeq(Specific("A"))), // Accumulator: A
-        IMPLIED(0), // Implied: i
         IMMEDIATE(1, TokenSeq(Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE), // Immediate: #
-        ABSOLUTE(2, TokenSeq(InSpecific.Constant), immSize = T6502.WORD_SIZE), // Absolute: a
         RELATIVE(1, TokenSeq(InSpecific.Constant), immSize = BYTE_SIZE), // Relative: r
-        INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indirect: (a)
         ZEROPAGE(1, TokenSeq(InSpecific.Constant), immSize = BYTE_SIZE), // Zero Page: zp
-        ABSOLUTE_X(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with X: a,x
-        ABSOLUTE_Y(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with Y: a,y
         ZEROPAGE_X(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed with X: zp,x
         ZEROPAGE_Y(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed with Y: zp,y
+        INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indirect: (a)
+        ABSOLUTE(2, TokenSeq(InSpecific.Constant), immSize = T6502.WORD_SIZE), // Absolute: a
+        ABSOLUTE_X(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with X: a,x
+        ABSOLUTE_Y(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with Y: a,y
         ZEROPAGE_X_INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(","), Specific("X"), Specific(")"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed Indirect: (zp,x)
         ZPINDIRECT_Y(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), Specific(","), Specific("Y"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indirect Indexed with Y: (zp),y
+        IMPLIED(0), // Implied: i
     }
-
 
     enum class InstrType(val opCode: Map<AModes, Hex>) {
         // load, store, interregister transfer
@@ -254,23 +303,15 @@ class T6502Syntax : Syntax() {
         }
     }
 
+    class PREComment(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.comment), NAMES.PRE_COMMENT, *tokens)
 
-    class PREComment(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.comment), NAMES.PRE_COMMENT, *tokens){
+    class EInstrName(val type: InstrType, vararg val nameTokens: Compiler.Token.Word)
+
+    class EInstr(val instrType: InstrType, val addressingMode: AModes, val constantToken: List<Compiler.Token.Constant>, nameTokens: List<Compiler.Token>, symbolTokens: List<Compiler.Token>, regTokens: List<Compiler.Token>) :
+        TreeNode.ElementNode(highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, constantToken, regTokens), name = NAMES.E_INSTR, *constantToken.toTypedArray(), *nameTokens.toTypedArray(), *symbolTokens.toTypedArray(), *regTokens.toTypedArray()) {
         init {
-            console.log("Found comment: ${tokens.joinToString("") { it.content }}")
+            console.log("found instr: ${instrType.name} ${addressingMode.name}")
         }
-    }
-
-    class EInstrName(val type: InstrType, name: Compiler.Token.Word) : TreeNode.ElementNode(highlighting = ConnectedHL(T6502Flags.instr), name = NAMES.E_INSTR, name) {
-
-    }
-
-    sealed class EExt(val type: AModes, highlighting: ConnectedHL, vararg tokens: Compiler.Token) : TreeNode.ElementNode(highlighting, name = NAMES.E_EXTENSION, *tokens) {
-
-    }
-
-    class EInstr(val instrType: InstrType, val addressingMode: AModes, val constantToken: Compiler.Token.Constant, nameTokens: List<Compiler.Token>, symbolTokens: List<Compiler.Token>, regTokens: List<Compiler.Token>) :
-        TreeNode.ElementNode(highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, listOf(constantToken), regTokens), name = NAMES.E_INSTR, constantToken, *nameTokens.toTypedArray(), *symbolTokens.toTypedArray(), *regTokens.toTypedArray()) {
 
 
     }

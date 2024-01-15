@@ -6,10 +6,11 @@ import emulator.kit.assembly.Syntax
 
 class T6502Assembly: Assembly() {
     override fun generateTranscript(architecture: Architecture, syntaxTree: Syntax.SyntaxTree) {
-        TODO("Not yet implemented")
+
     }
 
     override fun generateByteCode(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
-        TODO("Not yet implemented")
+
+        return AssemblyMap()
     }
 }
