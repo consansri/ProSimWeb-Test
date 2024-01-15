@@ -1,7 +1,7 @@
-/build/
-/.gradle/
-/.idea/
-/shell/
+build/
+.gradle/
+.idea/
+shell/
 .classpath
 .project
 *.eml
