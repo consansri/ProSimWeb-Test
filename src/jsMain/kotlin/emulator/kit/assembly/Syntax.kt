@@ -14,7 +14,7 @@ import emulator.kit.common.Transcript
 abstract class Syntax {
     abstract val applyStandardHLForRest: Boolean
     abstract fun clear()
-    abstract fun check(arch: Architecture, compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree
+    abstract fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree
     class SyntaxTree(val rootNode: TreeNode.RootNode? = null) {
         fun contains(token: Compiler.Token): SearchResult? {
             rootNode?.let {

@@ -23,7 +23,7 @@ class RV32Syntax : Syntax() {
     override val applyStandardHLForRest: Boolean = false
     override fun clear() {}
 
-    override fun check(arch: Architecture, compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
 
         /**
          *  -------------------------------------------------------------- GLOBAL LISTS --------------------------------------------------------------
@@ -130,8 +130,8 @@ class RV32Syntax : Syntax() {
         // define global start
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
-            SyntaxRegex.pre_globalStart.forEach {regex ->
-                regex.matchEntire(lineStr)?.let {match ->
+            SyntaxRegex.pre_globalStart.forEach { regex ->
+                regex.matchEntire(lineStr)?.let { match ->
                     val labelName = match.groups[SyntaxRegex.pre_globalStart_contentgroup]?.value ?: ""
                     if (globalStart == null && labelName.isNotEmpty()) {
                         val directives = remainingLines[lineID].filter { it.content == "." || it.content == "global" || it.content == "globl" }
@@ -154,7 +154,7 @@ class RV32Syntax : Syntax() {
         val equs = mutableListOf<EquDefinition>()
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
-            SyntaxRegex.pre_equ_def.matchEntire(lineStr)?.let {match ->
+            SyntaxRegex.pre_equ_def.matchEntire(lineStr)?.let { match ->
                 val name = compiler.pseudoAnalyze(match.groupValues[2])
                 val const = compiler.pseudoAnalyze(match.groupValues[3])
                 try {
@@ -275,7 +275,7 @@ class RV32Syntax : Syntax() {
                     val directiveTokens = macroTokens.filter { it.content == "." || it.content == "macro" || it.content == "endm" }
                     val constants = macroTokens.filterIsInstance<Compiler.Token.Constant>()
                     val registers = macroTokens.filterIsInstance<Compiler.Token.Register>()
-                    val instructions = macroTokens.filter {token -> R_INSTR.InstrType.entries.map { it.id.uppercase() }.contains(token.content.uppercase()) }
+                    val instructions = macroTokens.filter { token -> R_INSTR.InstrType.entries.map { it.id.uppercase() }.contains(token.content.uppercase()) }
                     val elseTokens = (macroTokens - directiveTokens.toSet() - constants.toSet() - registers.toSet() - instructions.toSet()).filter { it.content != "," }
 
                     pres.add(Pre_MACRO(ConnectedHL(Pair(RV32Flags.directive, directiveTokens), Pair(RV32Flags.constant, constants), Pair(RV32Flags.register, registers), Pair(RV32Flags.instruction, instructions), Pair(RV32Flags.pre_macro, elseTokens)), *macroTokens.toTypedArray()))
@@ -2950,7 +2950,7 @@ class RV32Syntax : Syntax() {
 
         fun addInstr(instr: R_INSTR) {
             content[RV32.TS_COMPILED_HEADERS.Instruction] = Entry(Orientation.LEFT, "${instr.instrType.id}${if (instr.instrType.pseudo && instr.instrType.relative == null) "\t(pseudo)" else ""}")
-            content[RV32.TS_COMPILED_HEADERS.Parameters] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") {param -> param.paramTokens.joinToString("") { it.content } } ?: "")
+            content[RV32.TS_COMPILED_HEADERS.Parameters] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") { param -> param.paramTokens.joinToString("") { it.content } } ?: "")
         }
 
         override fun getContent(): List<Entry> {

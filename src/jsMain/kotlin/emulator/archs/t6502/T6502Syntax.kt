@@ -1,5 +1,6 @@
 package emulator.archs.t6502
 
+import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
@@ -9,6 +10,9 @@ import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.T6502Syntax.AModes.*
 import emulator.archs.t6502.T6502.BYTE_SIZE
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 
 
 /**
@@ -16,38 +20,76 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.*
  *
  */
 class T6502Syntax : Syntax() {
-    override val applyStandardHLForRest: Boolean = true
+    override val applyStandardHLForRest: Boolean = false
 
     override fun clear() {
         // nothing to do here
     }
 
-    override fun check(arch: Architecture, compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+
+        val remainingTokens = tokens.toMutableList()
+
+        // For Root Node
+        val errors: MutableList<Error> = mutableListOf()
+        val warnings: MutableList<Warning> = mutableListOf()
+
+        val preElements = mutableListOf<TreeNode.ElementNode>()
+
+        val elements = mutableListOf<TreeNode.ElementNode>()
+
+        // RESOLVE PRE ELEMENTS
+        remainingTokens.removeComments(preElements)
+
+        // RESOLVE ELEMENTS
+        errors.add(Error("Faulty Syntax!", *remainingTokens.toTypedArray()))
 
 
-        return SyntaxTree()
+
+        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode(NAMES.C_PRES, *preElements.toTypedArray())))
+    }
+
+    private fun MutableList<Compiler.Token>.removeComments(preElements: MutableList<TreeNode.ElementNode>): MutableList<Compiler.Token> {
+        while (true) {
+            val commentStart = this.firstOrNull { it.content == ";" } ?: break
+            val startIndex = this.indexOf(commentStart)
+            val commentEnd = this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
+            val endIndex = commentEnd?.let { this.indexOf(it) } ?: this.size
+
+            val commentTokens = this.subList(startIndex, endIndex).toList()
+            this.subList(startIndex, endIndex).clear()
+            preElements.add(PREComment(*commentTokens.toTypedArray()))
+        }
+        return this
     }
 
     data object NAMES {
+        const val PRE_COMMENT = "comment"
+
         const val E_INSTR = "e_instr"
+        const val E_INSTRNAME = "e_instrname"
         const val E_EXTENSION = "e_extension"
+
+        const val C_PRES = "pre"
+
     }
 
-    enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq? = null) {
+    enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq? = null, val immSize: Variable.Size? = null) {
         ACCUMULATOR(0, TokenSeq(Specific("A"))), // Accumulator: A
         IMPLIED(0), // Implied: i
-        IMMEDIATE(1, TokenSeq(Specific("#"), InSpecific.Constant)), // Immediate: #
-        ABSOLUTE(2, TokenSeq(InSpecific.Constant)), // Absolute: a
-        RELATIVE(1, TokenSeq(InSpecific.Constant)), // Relative: r
-        INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true)), // Absolute Indirect: (a)
-        ZEROPAGE(1, TokenSeq(InSpecific.Constant)), // Zero Page: zp
-        ABSOLUTE_X(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true)), // Absolute Indexed with X: a,x
-        ABSOLUTE_Y(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true)), // Absolute Indexed with Y: a,y
-        ZEROPAGE_X(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true)), // Zero Page Indexed with X: zp,x
-        ZEROPAGE_Y(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true)), // Zero Page Indexed with Y: zp,y
-        ZEROPAGE_X_INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(","), Specific("X"), Specific(")"), ignoreSpaces = true)), // Zero Page Indexed Indirect: (zp,x)
-        ZPINDIRECT_Y(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), Specific(","), Specific("Y"), ignoreSpaces = true)), // Zero Page Indirect Indexed with Y: (zp),y
+        IMMEDIATE(1, TokenSeq(Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE), // Immediate: #
+        ABSOLUTE(2, TokenSeq(InSpecific.Constant), immSize = T6502.WORD_SIZE), // Absolute: a
+        RELATIVE(1, TokenSeq(InSpecific.Constant), immSize = BYTE_SIZE), // Relative: r
+        INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indirect: (a)
+        ZEROPAGE(1, TokenSeq(InSpecific.Constant), immSize = BYTE_SIZE), // Zero Page: zp
+        ABSOLUTE_X(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with X: a,x
+        ABSOLUTE_Y(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with Y: a,y
+        ZEROPAGE_X(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed with X: zp,x
+        ZEROPAGE_Y(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed with Y: zp,y
+        ZEROPAGE_X_INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(","), Specific("X"), Specific(")"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed Indirect: (zp,x)
+        ZPINDIRECT_Y(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), Specific(","), Specific("Y"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indirect Indexed with Y: (zp),y
     }
+
 
     enum class InstrType(val opCode: Map<AModes, Hex>) {
         // load, store, interregister transfer
@@ -212,13 +254,23 @@ class T6502Syntax : Syntax() {
         }
     }
 
-    class EInstrName(name: Compiler.Token.Word) : TreeNode.ElementNode(highlighting = ConnectedHL(T6502Flags.instr), name = NAMES.E_INSTR, name) {
+
+    class PREComment(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.comment), NAMES.PRE_COMMENT, *tokens){
+        init {
+            console.log("Found comment: ${tokens.joinToString("") { it.content }}")
+        }
+    }
+
+    class EInstrName(val type: InstrType, name: Compiler.Token.Word) : TreeNode.ElementNode(highlighting = ConnectedHL(T6502Flags.instr), name = NAMES.E_INSTR, name) {
 
     }
 
     sealed class EExt(val type: AModes, highlighting: ConnectedHL, vararg tokens: Compiler.Token) : TreeNode.ElementNode(highlighting, name = NAMES.E_EXTENSION, *tokens) {
 
-        class A()
+    }
+
+    class EInstr(val instrType: InstrType, val addressingMode: AModes, val constantToken: Compiler.Token.Constant, nameTokens: List<Compiler.Token>, symbolTokens: List<Compiler.Token>, regTokens: List<Compiler.Token>) :
+        TreeNode.ElementNode(highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, listOf(constantToken), regTokens), name = NAMES.E_INSTR, constantToken, *nameTokens.toTypedArray(), *symbolTokens.toTypedArray(), *regTokens.toTypedArray()) {
 
 
     }

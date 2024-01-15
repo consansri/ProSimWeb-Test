@@ -22,13 +22,12 @@ class RV64Syntax : Syntax() {
 
     }
 
-    override fun check(arch: Architecture, compiler: Compiler, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>,tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
 
         /**
          *  -------------------------------------------------------------- GLOBAL LISTS --------------------------------------------------------------
          *  usage:
          */
-
 
         // List which holds the actual state after the actuall scans
         val remainingLines = tokenLines.toMutableList()

@@ -7,20 +7,13 @@ import emulator.kit.assembly.Syntax
 object T6502Flags {
 
     val instr = HL.violet.getFlag()
-
     val comment = HL.base05.getFlag()
+    val constant = HL.magenta.getFlag()
+    val symbol = HL.base00.getFlag()
+    val reg = HL.base02.getFlag()
 
-    val immediate = HL.magenta.getFlag()
-    
-    fun getConstantHL(constant: Compiler.Token.Constant): HL {
-        return when(constant){
-            is Compiler.Token.Constant.Ascii -> HL.blue
-            is Compiler.Token.Constant.Binary -> HL.blue
-            is Compiler.Token.Constant.Dec -> HL.blue
-            is Compiler.Token.Constant.Hex -> HL.blue
-            is Compiler.Token.Constant.String -> HL.blue
-            is Compiler.Token.Constant.UDec -> HL.blue
-        }
+    fun getInstrHL(instrName: List<Compiler.Token>, symbols: List<Compiler.Token>, constants: List<Compiler.Token.Constant>, regLetters: List<Compiler.Token>): Syntax.ConnectedHL {
+        return Syntax.ConnectedHL(instr to instrName, constant to constants, symbol to symbols, reg to regLetters)
     }
 
 
