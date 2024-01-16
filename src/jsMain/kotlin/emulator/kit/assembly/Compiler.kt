@@ -56,7 +56,6 @@ class Compiler(
     private var isBuildable = false
     private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
 
-
     /**
      * Executes and controls the compilation
      */

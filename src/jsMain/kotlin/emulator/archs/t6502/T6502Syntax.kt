@@ -58,7 +58,7 @@ class T6502Syntax : Syntax() {
 
             // Resolve EInstr
             val eInstr = getEInstr(remainingTokens, errors, warnings)
-            if(eInstr != null){
+            if (eInstr != null) {
                 elements.add(eInstr)
                 continue
             }
@@ -562,14 +562,13 @@ class T6502Syntax : Syntax() {
         nameTokens: List<Compiler.Token>,
         symbolTokens: List<Compiler.Token>,
         regTokens: List<Compiler.Token>
-    ) :
-        TreeNode.ElementNode(
-            highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, constantToken, regTokens),
-            name = NAMES.E_INSTR,
-            *constantToken.toTypedArray(),
-            *nameTokens.toTypedArray(),
-            *symbolTokens.toTypedArray(),
-            *regTokens.toTypedArray()
-        )
+    ) : TreeNode.ElementNode(
+        highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, constantToken, regTokens),
+        name = NAMES.E_INSTR,
+        *constantToken.toTypedArray(),
+        *nameTokens.toTypedArray(),
+        *symbolTokens.toTypedArray(),
+        *regTokens.toTypedArray()
+    )
 
 }
