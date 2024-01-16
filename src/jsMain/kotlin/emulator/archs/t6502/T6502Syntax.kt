@@ -13,6 +13,7 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
+import js.core.toPrimitiveSymbolHolder
 
 
 /**
@@ -26,7 +27,14 @@ class T6502Syntax : Syntax() {
         // nothing to do here
     }
 
-    override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(
+        arch: Architecture,
+        compiler: Compiler,
+        tokens: List<Compiler.Token>,
+        tokenLines: List<List<Compiler.Token>>,
+        others: List<FileHandler.File>,
+        transcript: Transcript
+    ): SyntaxTree {
 
         val remainingTokens = tokens.toMutableList()
 
@@ -52,27 +60,10 @@ class T6502Syntax : Syntax() {
                 continue
             }
 
-            // Resolve EInstr
-            if (lastInstrName == null) {
-                // Search InstrName
-                val result = Patterns.INSTRNAME_SEQUENCE.matchStart(*remainingTokens.toTypedArray())
-                if (result.matches && result.sequenceMap.size == 1) {
-                    val name = result.sequenceMap.first().token as Compiler.Token.Word
-                    val instrType = InstrType.entries.firstOrNull { it.name.uppercase() == name.content.uppercase() }
-                    if (instrType != null) {
-                        if (instrType.opCode.size == 1 && instrType.opCode.keys.first() == IMPLIED) {
-                            elements.add(EInstr(instrType, IMPLIED, listOf(), listOf(name), listOf(), listOf()))
-                            remainingTokens.remove(name)
-                            continue
-                        }
-                        lastInstrName = EInstrName(instrType, name)
-                        remainingTokens.removeFirst()
-                        continue
-                    }
-                }
-            } else {
-                // Check Extension and Addressing Mode
 
+            // Resolve EInstr
+            getEInstr(remainingTokens, errors, warnings)?.let {
+                elements.add(it)
             }
 
 
@@ -81,7 +72,7 @@ class T6502Syntax : Syntax() {
             remainingTokens.removeFirst()
         }
 
-
+        console.log("Resolved elements: ${elements.joinToString(",") { it.name }}")
 
         if (remainingTokens.isNotEmpty()) {
             errors.add(Error("Faulty Syntax!", *remainingTokens.toTypedArray()))
@@ -89,14 +80,22 @@ class T6502Syntax : Syntax() {
 
         val sections = TreeNode.ContainerNode(NAMES.C_SECTIONS, *elements.toTypedArray())
 
-        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode(NAMES.C_PRES, *preElements.toTypedArray()), sections))
+        return SyntaxTree(
+            TreeNode.RootNode(
+                errors,
+                warnings,
+                TreeNode.ContainerNode(NAMES.C_PRES, *preElements.toTypedArray()),
+                sections
+            )
+        )
     }
 
     private fun MutableList<Compiler.Token>.removeComments(preElements: MutableList<TreeNode.ElementNode>): MutableList<Compiler.Token> {
         while (true) {
             val commentStart = this.firstOrNull { it.content == ";" } ?: break
             val startIndex = this.indexOf(commentStart)
-            val commentEnd = this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
+            val commentEnd =
+                this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
             val endIndex = commentEnd?.let { this.indexOf(it) } ?: this.size
 
             val commentTokens = this.subList(startIndex, endIndex).toList()
@@ -124,20 +123,64 @@ class T6502Syntax : Syntax() {
 
     }
 
-    enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq? = null, val immSize: Variable.Size? = null) {
-        ACCUMULATOR(0, TokenSeq(Specific("A"))), // Accumulator: A
-        IMMEDIATE(1, TokenSeq(Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE), // Immediate: #
-        RELATIVE(1, TokenSeq(InSpecific.Constant), immSize = BYTE_SIZE), // Relative: r
-        ZEROPAGE(1, TokenSeq(InSpecific.Constant), immSize = BYTE_SIZE), // Zero Page: zp
-        ZEROPAGE_X(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed with X: zp,x
-        ZEROPAGE_Y(1, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed with Y: zp,y
-        INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indirect: (a)
+    enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq, val immSize: Variable.Size? = null) {
+        ACCUMULATOR(0, TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"))), // Accumulator: A
+        IMMEDIATE(1, TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE), // Immediate: #
+        RELATIVE(1, TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Relative: r
+        ZEROPAGE(1, TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Zero Page: zp
+        ZEROPAGE_X(
+            1,
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = false),
+            immSize = BYTE_SIZE
+        ), // Zero Page Indexed with X: zp,x
+        ZEROPAGE_Y(
+            1,
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = false),
+            immSize = BYTE_SIZE
+        ), // Zero Page Indexed with Y: zp,y
+        INDIRECT(
+            2,
+            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = false),
+            immSize = T6502.WORD_SIZE
+        ), // Absolute Indirect: (a)
         ABSOLUTE(2, TokenSeq(InSpecific.Constant), immSize = T6502.WORD_SIZE), // Absolute: a
-        ABSOLUTE_X(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with X: a,x
-        ABSOLUTE_Y(2, TokenSeq(InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true), immSize = T6502.WORD_SIZE), // Absolute Indexed with Y: a,y
-        ZEROPAGE_X_INDIRECT(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(","), Specific("X"), Specific(")"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indexed Indirect: (zp,x)
-        ZPINDIRECT_Y(2, TokenSeq(Specific("("), InSpecific.Constant, Specific(")"), Specific(","), Specific("Y"), ignoreSpaces = true), immSize = BYTE_SIZE), // Zero Page Indirect Indexed with Y: (zp),y
-        IMPLIED(0), // Implied: i
+        ABSOLUTE_X(
+            2,
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = false),
+            immSize = T6502.WORD_SIZE
+        ), // Absolute Indexed with X: a,x
+        ABSOLUTE_Y(
+            2,
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = false),
+            immSize = T6502.WORD_SIZE
+        ), // Absolute Indexed with Y: a,y
+        ZEROPAGE_X_INDIRECT(
+            2,
+            TokenSeq(
+                InSpecific.Word, InSpecific.Space,
+                Specific("("),
+                InSpecific.Constant,
+                Specific(","),
+                Specific("X"),
+                Specific(")"),
+                ignoreSpaces = false
+            ),
+            immSize = BYTE_SIZE
+        ), // Zero Page Indexed Indirect: (zp,x)
+        ZPINDIRECT_Y(
+            2,
+            TokenSeq(
+                InSpecific.Word, InSpecific.Space,
+                Specific("("),
+                InSpecific.Constant,
+                Specific(")"),
+                Specific(","),
+                Specific("Y"),
+                ignoreSpaces = false
+            ),
+            immSize = BYTE_SIZE
+        ), // Zero Page Indirect Indexed with Y: (zp),y
+        IMPLIED(0, TokenSeq(InSpecific.Word)), // Implied: i
     }
 
     enum class InstrType(val opCode: Map<AModes, Hex>) {
@@ -154,11 +197,49 @@ class T6502Syntax : Syntax() {
                 ZPINDIRECT_Y to Hex("B1", BYTE_SIZE)
             )
         ),
-        LDX(mapOf(ABSOLUTE to Hex("AE", BYTE_SIZE), ABSOLUTE_Y to Hex("BE", BYTE_SIZE), IMMEDIATE to Hex("A2", BYTE_SIZE), ZEROPAGE to Hex("A6", BYTE_SIZE), ZEROPAGE_Y to Hex("B6", BYTE_SIZE))),
-        LDY(mapOf(ABSOLUTE to Hex("AC", BYTE_SIZE), ABSOLUTE_X to Hex("BC", BYTE_SIZE), IMMEDIATE to Hex("A0", BYTE_SIZE), ZEROPAGE to Hex("A4", BYTE_SIZE), ZEROPAGE_X to Hex("B4", BYTE_SIZE))),
-        STA(mapOf(ABSOLUTE to Hex("8D", BYTE_SIZE), ABSOLUTE_X to Hex("9D", BYTE_SIZE), ABSOLUTE_Y to Hex("99", BYTE_SIZE), ZEROPAGE to Hex("85", BYTE_SIZE), ZEROPAGE_X_INDIRECT to Hex("81", BYTE_SIZE), ZEROPAGE_X to Hex("95", BYTE_SIZE), ZPINDIRECT_Y to Hex("91", BYTE_SIZE))),
-        STX(mapOf(ABSOLUTE to Hex("8E", BYTE_SIZE), ZEROPAGE to Hex("86", BYTE_SIZE), ZEROPAGE_Y to Hex("96", BYTE_SIZE))),
-        STY(mapOf(ABSOLUTE to Hex("8C", BYTE_SIZE), ZEROPAGE to Hex("84", BYTE_SIZE), ZEROPAGE_X to Hex("94", BYTE_SIZE))),
+        LDX(
+            mapOf(
+                ABSOLUTE to Hex("AE", BYTE_SIZE),
+                ABSOLUTE_Y to Hex("BE", BYTE_SIZE),
+                IMMEDIATE to Hex("A2", BYTE_SIZE),
+                ZEROPAGE to Hex("A6", BYTE_SIZE),
+                ZEROPAGE_Y to Hex("B6", BYTE_SIZE)
+            )
+        ),
+        LDY(
+            mapOf(
+                ABSOLUTE to Hex("AC", BYTE_SIZE),
+                ABSOLUTE_X to Hex("BC", BYTE_SIZE),
+                IMMEDIATE to Hex("A0", BYTE_SIZE),
+                ZEROPAGE to Hex("A4", BYTE_SIZE),
+                ZEROPAGE_X to Hex("B4", BYTE_SIZE)
+            )
+        ),
+        STA(
+            mapOf(
+                ABSOLUTE to Hex("8D", BYTE_SIZE),
+                ABSOLUTE_X to Hex("9D", BYTE_SIZE),
+                ABSOLUTE_Y to Hex("99", BYTE_SIZE),
+                ZEROPAGE to Hex("85", BYTE_SIZE),
+                ZEROPAGE_X_INDIRECT to Hex("81", BYTE_SIZE),
+                ZEROPAGE_X to Hex("95", BYTE_SIZE),
+                ZPINDIRECT_Y to Hex("91", BYTE_SIZE)
+            )
+        ),
+        STX(
+            mapOf(
+                ABSOLUTE to Hex("8E", BYTE_SIZE),
+                ZEROPAGE to Hex("86", BYTE_SIZE),
+                ZEROPAGE_Y to Hex("96", BYTE_SIZE)
+            )
+        ),
+        STY(
+            mapOf(
+                ABSOLUTE to Hex("8C", BYTE_SIZE),
+                ZEROPAGE to Hex("84", BYTE_SIZE),
+                ZEROPAGE_X to Hex("94", BYTE_SIZE)
+            )
+        ),
         TAX(mapOf(IMPLIED to Hex("AA", BYTE_SIZE))),
         TAY(mapOf(IMPLIED to Hex("A8", BYTE_SIZE))),
         TSX(mapOf(IMPLIED to Hex("BA", BYTE_SIZE))),
@@ -173,10 +254,24 @@ class T6502Syntax : Syntax() {
         PLP(mapOf(IMPLIED to Hex("28", BYTE_SIZE))),
 
         // decrements, increments
-        DEC(mapOf(ABSOLUTE to Hex("CE", BYTE_SIZE), ABSOLUTE_X to Hex("DE", BYTE_SIZE), ZEROPAGE to Hex("C6", BYTE_SIZE), ZEROPAGE_X to Hex("D6", BYTE_SIZE))),
+        DEC(
+            mapOf(
+                ABSOLUTE to Hex("CE", BYTE_SIZE),
+                ABSOLUTE_X to Hex("DE", BYTE_SIZE),
+                ZEROPAGE to Hex("C6", BYTE_SIZE),
+                ZEROPAGE_X to Hex("D6", BYTE_SIZE)
+            )
+        ),
         DEX(mapOf(IMPLIED to Hex("CA", BYTE_SIZE))),
         DEY(mapOf(IMPLIED to Hex("88", BYTE_SIZE))),
-        INC(mapOf(ABSOLUTE to Hex("EE", BYTE_SIZE), ABSOLUTE_X to Hex("FE", BYTE_SIZE), ZEROPAGE to Hex("E6", BYTE_SIZE), ZEROPAGE_X to Hex("F6", BYTE_SIZE))),
+        INC(
+            mapOf(
+                ABSOLUTE to Hex("EE", BYTE_SIZE),
+                ABSOLUTE_X to Hex("FE", BYTE_SIZE),
+                ZEROPAGE to Hex("E6", BYTE_SIZE),
+                ZEROPAGE_X to Hex("F6", BYTE_SIZE)
+            )
+        ),
         INX(mapOf(IMPLIED to Hex("E8", BYTE_SIZE))),
         INY(mapOf(IMPLIED to Hex("C8", BYTE_SIZE))),
 
@@ -245,10 +340,42 @@ class T6502Syntax : Syntax() {
         ),
 
         // shift & rotate
-        ASL(mapOf(ABSOLUTE to Hex("0E", BYTE_SIZE), ABSOLUTE_X to Hex("1E", BYTE_SIZE), ACCUMULATOR to Hex("0A", BYTE_SIZE), ZEROPAGE to Hex("06", BYTE_SIZE), ZEROPAGE_X to Hex("16", BYTE_SIZE))),
-        LSR(mapOf(ABSOLUTE to Hex("4E", BYTE_SIZE), ABSOLUTE_X to Hex("5E", BYTE_SIZE), ACCUMULATOR to Hex("4A", BYTE_SIZE), ZEROPAGE to Hex("46", BYTE_SIZE), ZEROPAGE_X to Hex("56", BYTE_SIZE))),
-        ROL(mapOf(ABSOLUTE to Hex("2E", BYTE_SIZE), ABSOLUTE_X to Hex("3E", BYTE_SIZE), ACCUMULATOR to Hex("2A", BYTE_SIZE), ZEROPAGE to Hex("26", BYTE_SIZE), ZEROPAGE_X to Hex("36", BYTE_SIZE))),
-        ROR(mapOf(ABSOLUTE to Hex("6E", BYTE_SIZE), ABSOLUTE_X to Hex("7E", BYTE_SIZE), ACCUMULATOR to Hex("6A", BYTE_SIZE), ZEROPAGE to Hex("66", BYTE_SIZE), ZEROPAGE_X to Hex("76", BYTE_SIZE))),
+        ASL(
+            mapOf(
+                ABSOLUTE to Hex("0E", BYTE_SIZE),
+                ABSOLUTE_X to Hex("1E", BYTE_SIZE),
+                ACCUMULATOR to Hex("0A", BYTE_SIZE),
+                ZEROPAGE to Hex("06", BYTE_SIZE),
+                ZEROPAGE_X to Hex("16", BYTE_SIZE)
+            )
+        ),
+        LSR(
+            mapOf(
+                ABSOLUTE to Hex("4E", BYTE_SIZE),
+                ABSOLUTE_X to Hex("5E", BYTE_SIZE),
+                ACCUMULATOR to Hex("4A", BYTE_SIZE),
+                ZEROPAGE to Hex("46", BYTE_SIZE),
+                ZEROPAGE_X to Hex("56", BYTE_SIZE)
+            )
+        ),
+        ROL(
+            mapOf(
+                ABSOLUTE to Hex("2E", BYTE_SIZE),
+                ABSOLUTE_X to Hex("3E", BYTE_SIZE),
+                ACCUMULATOR to Hex("2A", BYTE_SIZE),
+                ZEROPAGE to Hex("26", BYTE_SIZE),
+                ZEROPAGE_X to Hex("36", BYTE_SIZE)
+            )
+        ),
+        ROR(
+            mapOf(
+                ABSOLUTE to Hex("6E", BYTE_SIZE),
+                ABSOLUTE_X to Hex("7E", BYTE_SIZE),
+                ACCUMULATOR to Hex("6A", BYTE_SIZE),
+                ZEROPAGE to Hex("66", BYTE_SIZE),
+                ZEROPAGE_X to Hex("76", BYTE_SIZE)
+            )
+        ),
 
         // flag
         CLC(mapOf(IMPLIED to Hex("18", BYTE_SIZE))),
@@ -272,8 +399,20 @@ class T6502Syntax : Syntax() {
                 ZPINDIRECT_Y to Hex("D1", BYTE_SIZE)
             )
         ),
-        CPX(mapOf(ABSOLUTE to Hex("EC", BYTE_SIZE), IMMEDIATE to Hex("E0", BYTE_SIZE), ZEROPAGE to Hex("E4", BYTE_SIZE))),
-        CPY(mapOf(ABSOLUTE to Hex("CC", BYTE_SIZE), IMMEDIATE to Hex("C0", BYTE_SIZE), ZEROPAGE to Hex("C4", BYTE_SIZE))),
+        CPX(
+            mapOf(
+                ABSOLUTE to Hex("EC", BYTE_SIZE),
+                IMMEDIATE to Hex("E0", BYTE_SIZE),
+                ZEROPAGE to Hex("E4", BYTE_SIZE)
+            )
+        ),
+        CPY(
+            mapOf(
+                ABSOLUTE to Hex("CC", BYTE_SIZE),
+                IMMEDIATE to Hex("C0", BYTE_SIZE),
+                ZEROPAGE to Hex("C4", BYTE_SIZE)
+            )
+        ),
 
         // conditional branches
         BCC(mapOf(RELATIVE to Hex("90", BYTE_SIZE))),
@@ -295,7 +434,13 @@ class T6502Syntax : Syntax() {
         RTI(mapOf(IMPLIED to Hex("40", BYTE_SIZE))),
 
         // other
-        BIT(mapOf(ABSOLUTE to Hex("2C", BYTE_SIZE), IMMEDIATE to Hex("89", BYTE_SIZE), ZEROPAGE to Hex("24", BYTE_SIZE))),
+        BIT(
+            mapOf(
+                ABSOLUTE to Hex("2C", BYTE_SIZE),
+                IMMEDIATE to Hex("89", BYTE_SIZE),
+                ZEROPAGE to Hex("24", BYTE_SIZE)
+            )
+        ),
         NOP(mapOf(IMPLIED to Hex("EA", BYTE_SIZE)));
 
         open fun execute(arch: Architecture) {
@@ -303,12 +448,144 @@ class T6502Syntax : Syntax() {
         }
     }
 
-    class PREComment(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.comment), NAMES.PRE_COMMENT, *tokens)
+    class PREComment(vararg tokens: Compiler.Token) :
+        TreeNode.ElementNode(ConnectedHL(T6502Flags.comment), NAMES.PRE_COMMENT, *tokens)
 
-    class EInstrName(val type: InstrType, vararg val nameTokens: Compiler.Token.Word)
 
-    class EInstr(val instrType: InstrType, val addressingMode: AModes, val constantToken: List<Compiler.Token.Constant>, nameTokens: List<Compiler.Token>, symbolTokens: List<Compiler.Token>, regTokens: List<Compiler.Token>) :
-        TreeNode.ElementNode(highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, constantToken, regTokens), name = NAMES.E_INSTR, *constantToken.toTypedArray(), *nameTokens.toTypedArray(), *symbolTokens.toTypedArray(), *regTokens.toTypedArray()) {
+    fun getEInstr(remainingTokens: MutableList<Compiler.Token>, errors: MutableList<Error>, warnings: MutableList<Warning>): EInstr? {
+        for (amode in AModes.entries) {
+            val amodeResult = amode.tokenSequence.matchStart(*remainingTokens.toTypedArray())
+
+            if (amodeResult.matches) {
+                console.log("match found!: ${amodeResult.sequenceMap}")
+                val type = InstrType.entries.firstOrNull { it.name.uppercase() == amodeResult.sequenceMap[0].token.content.uppercase() } ?: return null
+                console.log("type found: ${type.name}")
+                if (!type.opCode.keys.contains(amode)) continue
+                console.log("instrtype contains addressing mode!")
+                val imm = amode.immSize?.let { amodeResult.sequenceMap.map { it.token }.filterIsInstance<Compiler.Token.Constant>().firstOrNull() }
+
+                console.log("checking ${type.name} and ${amode.name}")
+
+                if (imm != null) {
+                    if (imm.getValue().size.bitWidth != amode.immSize.bitWidth) {
+                        warnings.add(Warning("Instruction immediate size mismatch! (${type.name} ${amode.name})", *amodeResult.sequenceMap.map { it.token }.toTypedArray()))
+                        continue
+                    }
+                }
+
+                console.log("immediate matches size!")
+
+                val eInstr = when (amode) {
+                    ACCUMULATOR -> {
+                        EInstr(type, amode, null, listOf(), listOf(amodeResult.sequenceMap[0].token), listOf(), listOf(amodeResult.sequenceMap[2].token))
+                    }
+
+                    IMMEDIATE -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[2].token), listOf())
+                    }
+
+                    RELATIVE -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(), listOf())
+                    }
+
+                    ZEROPAGE -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(), listOf())
+                    }
+
+                    ZEROPAGE_X -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
+                    }
+
+                    ZEROPAGE_Y -> {
+                        if (imm == null) continue
+                        if (amodeResult.sequenceMap.size != 3) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
+                    }
+
+                    INDIRECT -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token), listOf())
+                    }
+
+                    ABSOLUTE -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(), listOf())
+                    }
+
+                    ABSOLUTE_X -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
+                    }
+
+                    ABSOLUTE_Y -> {
+                        if (imm == null) continue
+                        EInstr(type, amode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
+                    }
+
+                    ZEROPAGE_X_INDIRECT -> {
+                        if (imm == null) continue
+                        EInstr(
+                            type,
+                            amode,
+                            imm.getValue(amode.immSize),
+                            listOf(imm),
+                            listOf(amodeResult.sequenceMap[0].token),
+                            listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[6].token),
+                            listOf(amodeResult.sequenceMap[5].token)
+                        )
+                    }
+
+                    ZPINDIRECT_Y -> {
+                        if (imm == null) continue
+                        EInstr(
+                            type,
+                            amode,
+                            imm.getValue(amode.immSize),
+                            listOf(imm),
+                            listOf(amodeResult.sequenceMap[0].token),
+                            listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[5].token),
+                            listOf(amodeResult.sequenceMap[6].token)
+                        )
+                    }
+
+                    IMPLIED -> {
+                        EInstr(type, amode, null, listOf(), listOf(amodeResult.sequenceMap[0].token), listOf(), listOf())
+                    }
+                }
+
+                remainingTokens.removeAll(eInstr.tokens.toSet())
+                warnings.add(Warning("Found instruction ${type.name} ${amode.name}", eInstr))
+                return eInstr
+            }
+        }
+        return null
+    }
+
+    class EInstrName(val type: InstrType, vararg val nameTokens: Compiler.Token.Word) {
+
+    }
+
+    class EInstr(
+        val instrType: InstrType,
+        val addressingMode: AModes,
+        val imm: Variable.Value? = null,
+        val constantToken: List<Compiler.Token.Constant>,
+        nameTokens: List<Compiler.Token>,
+        symbolTokens: List<Compiler.Token>,
+        regTokens: List<Compiler.Token>
+    ) :
+        TreeNode.ElementNode(
+            highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, constantToken, regTokens),
+            name = NAMES.E_INSTR,
+            *constantToken.toTypedArray(),
+            *nameTokens.toTypedArray(),
+            *symbolTokens.toTypedArray(),
+            *regTokens.toTypedArray()
+        ) {
         init {
             console.log("found instr: ${instrType.name} ${addressingMode.name}")
         }

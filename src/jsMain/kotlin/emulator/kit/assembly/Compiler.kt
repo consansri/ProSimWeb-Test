@@ -582,7 +582,6 @@ class Compiler(
                     } else {
                         Variable.Value.Bin(binChars)
                     }
-
                 }
             }
 
@@ -614,6 +613,7 @@ class Compiler(
 
             class Hex(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?): Variable.Value {
+                    console.log("HEX PREFIX: $prefix")
                     return if (size != null) {
                         if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Hex(content.removePrefix(prefix), size)
                     } else {
@@ -623,7 +623,6 @@ class Compiler(
             }
 
             class Dec(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return if (size != null) {
                         Variable.Value.Dec(content.removePrefix(prefix), size)

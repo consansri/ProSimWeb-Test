@@ -366,19 +366,26 @@ abstract class Syntax {
 
         fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
+            val trimmedComponents = components.toMutableList()
+            console.log("Trying to match ${tokens.joinToString("-") { it.type.name }} to $components")
             if (ignoreSpaces) {
                 for (token in trimmedTokens) {
                     if (token is Compiler.Token.Space) {
                         trimmedTokens.remove(token)
                     }
                 }
+                for(component in components){
+                    if (component is Component.InSpecific.Space){
+                        trimmedComponents.remove(component)
+                    }
+                }
             }
-            if (components.size > trimmedTokens.size) {
+            if (trimmedComponents.size > trimmedTokens.size) {
                 return SeqMatchResult(false, emptyList())
             }
             val sequenceMap = mutableListOf<SeqMap>()
-            for (component in components) {
-                val index = components.indexOf(component)
+            for (component in trimmedComponents) {
+                val index = trimmedComponents.indexOf(component)
                 val token = trimmedTokens[index]
                 sequenceMap.add(SeqMap(component, token))
                 if (!component.matches(token)) {
