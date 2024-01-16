@@ -290,106 +290,111 @@ abstract class Syntax {
 
         fun exactlyMatches(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
-            if (ignoreSpaces) {
-                for (token in trimmedTokens) {
-                    if (token is Compiler.Token.Space) {
-                        trimmedTokens.remove(token)
-                    }
-                }
-            }
-            if (components.size != trimmedTokens.size) {
+
+            if (components.size > trimmedTokens.size) {
                 return SeqMatchResult(false, emptyList())
             }
             val sequenceMap = mutableListOf<SeqMap>()
             for (component in components) {
-                val index = components.indexOf(component)
-                val token = trimmedTokens[index]
-                sequenceMap.add(SeqMap(component, token))
-                if (!component.matches(token)) {
-                    return SeqMatchResult(false, emptyList())
-                }
-            }
-            return SeqMatchResult(true, sequenceMap)
-        }
-
-        fun matches(vararg tokens: Compiler.Token): SeqMatchResult {
-            val trimmedTokens = tokens.toMutableList()
-            if (ignoreSpaces) {
-                for (token in trimmedTokens) {
-                    if (token is Compiler.Token.Space) {
-                        trimmedTokens.remove(token)
-                    }
-                }
-            }
-            if (DebugTools.KIT_showSyntaxInfo) {
-                console.log("checking: ${tokens.joinToString("") { it.content }}")
-            }
-
-            if (trimmedTokens.size < components.size) {
-                if (DebugTools.KIT_showSyntaxInfo) {
-                    console.log("result: empty trimmedTokens < components")
-                }
-                return SeqMatchResult(false, emptyList())
-            }
-
-            var foundStart = false
-            var startIndex = -1
-            val sequenceList = mutableListOf<SeqMap>()
-            for (token in trimmedTokens) {
-                if (components.first().matches(token) && !foundStart) {
-                    foundStart = true
-                    startIndex = trimmedTokens.indexOf(token)
-                }
-                if (foundStart) {
-                    val compID = trimmedTokens.indexOf(token) - startIndex
-                    if (compID < components.size) {
-                        if (components[compID].matches(token)) {
-                            sequenceList.add(SeqMap(components[compID], token))
-                        } else {
-                            foundStart = false
-                            sequenceList.clear()
-                        }
+                if (component is Component.InSpecific.Space && ignoreSpaces) {
+                    if (component.matches(trimmedTokens.first())) {
+                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
+                        trimmedTokens.removeFirst()
                     } else {
-                        break
+                        return SeqMatchResult(false, emptyList())
+                    }
+                } else {
+                    if (ignoreSpaces) {
+                        while (trimmedTokens.first() is Compiler.Token.Space) {
+                            trimmedTokens.removeFirst()
+                        }
+                    }
+
+                    if (component.matches(trimmedTokens.first())) {
+                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
+                        trimmedTokens.removeFirst()
+                    } else {
+                        return SeqMatchResult(false, emptyList())
                     }
                 }
             }
-            if (DebugTools.KIT_showSyntaxInfo) {
-                console.log("result: ${sequenceList.joinToString("") { it.token.content }}")
-            }
-            return if (sequenceList.size == components.size) {
-                SeqMatchResult(true, sequenceList)
+            return if (trimmedTokens.isEmpty()) {
+                SeqMatchResult(true, sequenceMap)
             } else {
                 SeqMatchResult(false, emptyList())
             }
         }
 
-        fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
+        fun matches(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
-            val trimmedComponents = components.toMutableList()
-            console.log("Trying to match ${tokens.joinToString("-") { it.type.name }} to $components")
-            if (ignoreSpaces) {
-                for (token in trimmedTokens) {
-                    if (token is Compiler.Token.Space) {
-                        trimmedTokens.remove(token)
-                    }
+
+            if (components.size > trimmedTokens.size) {
+                return SeqMatchResult(false, emptyList())
+            }
+
+            while (true) {
+                if (components.first().matches(trimmedTokens.first())) {
+                    break
                 }
-                for(component in components){
-                    if (component is Component.InSpecific.Space){
-                        trimmedComponents.remove(component)
+                trimmedTokens.removeFirst()
+                if (trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
+            }
+
+            val sequenceMap = mutableListOf<SeqMap>()
+            for (component in components) {
+                if (component is Component.InSpecific.Space && ignoreSpaces) {
+                    if (component.matches(trimmedTokens.first())) {
+                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
+                        trimmedTokens.removeFirst()
+                    } else {
+                        return SeqMatchResult(false, emptyList())
+                    }
+                } else {
+                    if (ignoreSpaces) {
+                        while (trimmedTokens.first() is Compiler.Token.Space) {
+                            trimmedTokens.removeFirst()
+                        }
+                    }
+
+                    if (component.matches(trimmedTokens.first())) {
+                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
+                        trimmedTokens.removeFirst()
+                    } else {
+                        return SeqMatchResult(false, emptyList())
                     }
                 }
             }
-            if (trimmedComponents.size > trimmedTokens.size) {
+            return SeqMatchResult(true, sequenceMap)
+        }
+
+        fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
+            val trimmedTokens = tokens.toMutableList()
+
+            if (components.size > trimmedTokens.size) {
                 return SeqMatchResult(false, emptyList())
             }
             val sequenceMap = mutableListOf<SeqMap>()
-            for (component in trimmedComponents) {
-                val index = trimmedComponents.indexOf(component)
-                val token = trimmedTokens[index]
-                sequenceMap.add(SeqMap(component, token))
-                if (!component.matches(token)) {
-                    return SeqMatchResult(false, emptyList())
+            for (component in components) {
+                if (component is Component.InSpecific.Space && ignoreSpaces) {
+                    if (component.matches(trimmedTokens.first())) {
+                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
+                        trimmedTokens.removeFirst()
+                    } else {
+                        return SeqMatchResult(false, emptyList())
+                    }
+                } else {
+                    if (ignoreSpaces) {
+                        while (trimmedTokens.first() is Compiler.Token.Space) {
+                            trimmedTokens.removeFirst()
+                        }
+                    }
+
+                    if (component.matches(trimmedTokens.first())) {
+                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
+                        trimmedTokens.removeFirst()
+                    } else {
+                        return SeqMatchResult(false, emptyList())
+                    }
                 }
             }
             return SeqMatchResult(true, sequenceMap)

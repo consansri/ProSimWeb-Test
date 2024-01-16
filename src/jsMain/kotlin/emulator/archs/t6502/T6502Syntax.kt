@@ -60,19 +60,15 @@ class T6502Syntax : Syntax() {
                 continue
             }
 
-
             // Resolve EInstr
             getEInstr(remainingTokens, errors, warnings)?.let {
                 elements.add(it)
             }
 
-
             // Add first Token to errors
             errors.add(Error("Faulty Syntax!", remainingTokens.first()))
             remainingTokens.removeFirst()
         }
-
-        console.log("Resolved elements: ${elements.joinToString(",") { it.name }}")
 
         if (remainingTokens.isNotEmpty()) {
             errors.add(Error("Faulty Syntax!", *remainingTokens.toTypedArray()))
@@ -132,36 +128,37 @@ class T6502Syntax : Syntax() {
 
         ZEROPAGE_X(
             1,
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = false),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true),
             immSize = BYTE_SIZE
         ), // Zero Page Indexed with X: zp,x
         ZEROPAGE_Y(
             1,
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = false),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true),
             immSize = BYTE_SIZE
         ), // Zero Page Indexed with Y: zp,y
 
 
         ABSOLUTE_X(
             2,
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = false),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true),
             immSize = T6502.WORD_SIZE
         ), // Absolute Indexed with X: a,x
         ABSOLUTE_Y(
             2,
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = false),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true),
             immSize = T6502.WORD_SIZE
         ), // Absolute Indexed with Y: a,y
         ZEROPAGE_X_INDIRECT(
             2,
             TokenSeq(
-                InSpecific.Word, InSpecific.Space,
+                InSpecific.Word,
+                InSpecific.Space,
                 Specific("("),
                 InSpecific.Constant,
                 Specific(","),
                 Specific("X"),
                 Specific(")"),
-                ignoreSpaces = false
+                ignoreSpaces = true
             ),
             immSize = BYTE_SIZE
         ), // Zero Page Indexed Indirect: (zp,x)
@@ -174,13 +171,13 @@ class T6502Syntax : Syntax() {
                 Specific(")"),
                 Specific(","),
                 Specific("Y"),
-                ignoreSpaces = false
+                ignoreSpaces = true
             ),
             immSize = BYTE_SIZE
         ), // Zero Page Indirect Indexed with Y: (zp),y
         INDIRECT(
             2,
-            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = false),
+            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true),
             immSize = T6502.WORD_SIZE
         ), // Absolute Indirect: (a)
         ACCUMULATOR(0, TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"))), // Accumulator: A
@@ -465,14 +462,9 @@ class T6502Syntax : Syntax() {
             val amodeResult = amode.tokenSequence.matchStart(*remainingTokens.toTypedArray())
 
             if (amodeResult.matches) {
-                console.log("match found!: ${amodeResult.sequenceMap}")
                 val type = InstrType.entries.firstOrNull { it.name.uppercase() == amodeResult.sequenceMap[0].token.content.uppercase() } ?: return null
-                console.log("type found: ${type.name}")
                 if (!type.opCode.keys.contains(amode)) continue
-                console.log("instrtype contains addressing mode!")
                 val imm = amode.immSize?.let { amodeResult.sequenceMap.map { it.token }.filterIsInstance<Compiler.Token.Constant>().firstOrNull() }
-
-                console.log("checking ${type.name} and ${amode.name}")
 
                 if (imm != null) {
                     if (imm.getValue().size.bitWidth != amode.immSize.bitWidth) {
@@ -480,8 +472,6 @@ class T6502Syntax : Syntax() {
                         continue
                     }
                 }
-
-                console.log("immediate matches size!")
 
                 val eInstr = when (amode) {
                     ACCUMULATOR -> {
@@ -593,12 +583,6 @@ class T6502Syntax : Syntax() {
             *nameTokens.toTypedArray(),
             *symbolTokens.toTypedArray(),
             *regTokens.toTypedArray()
-        ) {
-        init {
-            console.log("found instr: ${instrType.name} ${addressingMode.name}")
-        }
-
-
-    }
+        )
 
 }

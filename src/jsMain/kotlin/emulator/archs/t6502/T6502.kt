@@ -57,7 +57,7 @@ object T6502 {
         syntax = T6502Syntax(),
         assembly = T6502Assembly(),
         compilerDetectRegistersByNames = false,
-        numberSystemPrefixes = Compiler.ConstantPrefixes("\\$", "%", "", "u")
+        numberSystemPrefixes = Compiler.ConstantPrefixes("$", "%", "", "u")
     )
 
 
