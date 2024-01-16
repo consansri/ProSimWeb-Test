@@ -19,8 +19,9 @@ import kotlin.time.measureTime
  *
  * @param syntax gets an object of the architecture specific [Syntax]-Class implementation from the assembler configuration through the [Architecture].
  * @param assembly gets an object of the architecture specific [Assembly]-Class implementation from the assembler configuration through the [Architecture].
- * @param regexCollection contains the standard token regular expressions.
  * @param hlFlagCollection contains the standard token highlighting flags.
+ *
+ * @property regexCollection contains the standard token regular expressions.
  *
  */
 class Compiler(
