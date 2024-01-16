@@ -34,7 +34,7 @@ object Settings {
     // COMPILER
     /**
      * [COMPILER_TOKEN_PSEUDOID] defines the pseudo id of compiler tokens which have no real text representation.
-     * They are generated through the [Compiler.pseudoAnalyze] function which is used to analyze code which is for example generated through a macro.
+     * They are generated through the [Compiler.pseudoTokenize] function which is used to analyze code which is for example generated through a macro.
      */
     const val COMPILER_TOKEN_PSEUDOID = -100
 

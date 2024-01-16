@@ -12,7 +12,7 @@ import kotlin.time.measureTime
 /**
  * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. The [Compiler] fires the compilation events in the following order.
  *
- * 1. common analysis ([analyze])
+ * 1. common analysis ([tokenize])
  * 2. specific analysis ([parse] which uses the given logic from [syntax])
  * 3. highlight tokens ([highlight])
  * 4. convert syntax tree to binary ([assemble] which uses the given logic from [assembly])
@@ -32,14 +32,6 @@ class Compiler(
     private val hlFlagCollection: HLFlagCollection
 ) {
 
-    private var tokenList: MutableList<Token> = mutableListOf()
-    private var tokenLines: MutableList<MutableList<Token>> = mutableListOf()
-    private var dryLines: List<String>? = null
-    private var hlLines: MutableList<String>? = null
-    private var dryContent = ""
-    private var syntaxTree: Syntax.SyntaxTree? = null
-    private var isBuildable = false
-    private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
     private val regexCollection: RegexCollection = RegexCollection(
         Regex("""^\s+"""),
         Regex("""^[^0-9A-Za-z]"""),
@@ -53,23 +45,26 @@ class Compiler(
         Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
     )
 
+    // TEMPORARY CONTENT
+    private var tokenList: MutableList<Token> = mutableListOf()
+    private var tokenLines: MutableList<MutableList<Token>> = mutableListOf()
+    private var dryLines: List<String>? = null
+    private var hlLines: MutableList<String>? = null
+    private var dryContent = ""
+    private var syntaxTree: Syntax.SyntaxTree? = null
+    private var isBuildable = false
+    private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
 
-    private fun initCode(code: String) {
-        tokenList = mutableListOf()
-        tokenLines = mutableListOf()
-        dryContent = code
-        dryLines = dryContent.split(*Settings.LINEBREAKS.toTypedArray())
-        hlLines = dryLines?.toMutableList()
-    }
 
-    fun isBuildable(): Boolean = isBuildable
-    fun getAssemblyMap(): Assembly.AssemblyMap = assemblyMap
-    fun setCode(code: String, shouldHighlight: Boolean): Boolean {
+    /**
+     * Executes and controls the compilation
+     */
+    fun compile(code: String, shouldHighlight: Boolean, build: Boolean = true): Boolean {
         initCode(code)
 
         architecture.getConsole().clear()
         val parseTime = measureTime {
-            analyze()
+            tokenize()
             parse()
         }
         architecture.getConsole().compilerInfo("build    \ttook ${parseTime.inWholeMicroseconds}µs\t(${if (isBuildable) "success" else "has errors"})")
@@ -81,16 +76,51 @@ class Compiler(
             architecture.getConsole().compilerInfo("highlight\ttook ${hlTime.inWholeMicroseconds}µs")
         }
 
-        assemble()
+        if (build) {
+            assemble()
+        }
 
         return isBuildable
     }
 
+    /**
+     * Get the State of the last compilation (true if no errors where found in grammar tree)
+     */
+    fun isBuildable(): Boolean = isBuildable
+
+    /**
+     * Map which holds the Address to LineID connection to allow ExeUntilLine Execution Event
+     */
+    fun getAssemblyMap(): Assembly.AssemblyMap = assemblyMap
+
+    /**
+     * Only reassembles the current Grammar Tree (no lexing, no parsing, no highlighting)
+     */
     fun reassemble() {
         assemble()
     }
 
-    private fun analyze() {
+    /**
+     * Resets all local code states
+     *
+     * [dryContent]
+     * [dryLines]
+     * [tokenList]
+     * [tokenLines]
+     * [hlLines]
+     */
+    private fun initCode(code: String) {
+        tokenList = mutableListOf()
+        tokenLines = mutableListOf()
+        dryContent = code
+        dryLines = dryContent.split(*Settings.LINEBREAKS.toTypedArray())
+        hlLines = dryLines?.toMutableList()
+    }
+
+    /**
+     * Transforms the [dryContent] into a List of Compiler Tokens ([tokenList], [tokenLines])
+     */
+    private fun tokenize() {
         dryLines?.let {
             val file = architecture.getFileHandler().getCurrent()
             for (lineID in it.indices) {
@@ -236,6 +266,9 @@ class Compiler(
         }
     }
 
+    /**
+     * Calls the specific [Syntax] check function which builds the [Syntax.SyntaxTree]
+     */
     private fun parse() {
         architecture.getTranscript().clear()
         syntax.clear()
@@ -271,6 +304,9 @@ class Compiler(
         }
     }
 
+    /**
+     * Builds [hlLines] from the [Compiler] tokens which highlight flags are resolved from [Syntax.ConnectedHL] in [Syntax.SyntaxTree]
+     */
     private fun highlight() {
 
         for (lineID in tokenLines.indices) {
@@ -380,6 +416,9 @@ class Compiler(
         }
     }
 
+    /**
+     * Calls the specific [Assembly.assemble] function which analyzes the [Syntax.SyntaxTree] and stores the resulting bytes into the Memory
+     */
     private fun assemble() {
         architecture.getMemory().clear()
         architecture.getRegContainer().pc.reset()
@@ -388,13 +427,13 @@ class Compiler(
         if (isBuildable) {
             syntaxTree?.let {
                 val assembleTime = measureTime {
-                    assemblyMap = assembly.generateByteCode(architecture, it)
+                    assemblyMap = assembly.assemble(architecture, it)
                 }
                 architecture.getConsole().compilerInfo("assembl\ttook ${assembleTime.inWholeMicroseconds}µs")
 
 
                 val disassembleTime = measureTime {
-                    assembly.generateTranscript(architecture, it)
+                    assembly.disassemble(architecture)
                 }
                 architecture.getConsole().compilerInfo("disassembl\ttook ${disassembleTime.inWholeMicroseconds}µs")
 
@@ -407,7 +446,11 @@ class Compiler(
         }
     }
 
-    fun pseudoAnalyze(content: String, lineID: Int = Settings.COMPILER_TOKEN_PSEUDOID): List<Token> {
+    /**
+     * This function could be used to insert and [pseudoTokenize] custom inserted code such as macro inserts to get its resolving [Compiler.Token]'s from it.
+     * This should only be called while building the [Syntax.SyntaxTree]!
+     */
+    fun pseudoTokenize(content: String, lineID: Int = Settings.COMPILER_TOKEN_PSEUDOID): List<Token> {
         val tokens = mutableListOf<Token>()
         var remaining = content
         var startIndex = 0
@@ -523,6 +566,9 @@ class Compiler(
         return tokens
     }
 
+    /**
+     * returns the highlighted code
+     */
     fun getHLContent(): String {
         val stringBuilder = StringBuilder()
         hlLines?.let {
@@ -536,6 +582,9 @@ class Compiler(
         }
     }
 
+    /**
+     * returns the current [Syntax.SyntaxTree]
+     */
     fun getGrammarTree(): Syntax.SyntaxTree? = syntaxTree
 
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
@@ -696,9 +745,6 @@ class Compiler(
         val word: Regex,
     )
 
-    data class LineLoc(val file: FileHandler.File, var lineID: Int, val startIndex: Int, val endIndex: Int)
-    // endIndex means index after last Character
-
     data class ConstantPrefixes(
         val hex: String = "0x",
         val bin: String = "0b",
@@ -706,4 +752,6 @@ class Compiler(
         val udec: String = "u"
     )
 
+    data class LineLoc(val file: FileHandler.File, var lineID: Int, val startIndex: Int, val endIndex: Int)
+    // endIndex means index after last Character
 }

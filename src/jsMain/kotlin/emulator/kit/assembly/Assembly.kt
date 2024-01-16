@@ -7,13 +7,25 @@ import debug.DebugTools
 /**
  * This class behaves as a Template for the custom assembly integration. It has 2 main functions which are triggered from the [Compiler].
  *
- * [generateByteCode] this function converts the given syntax tree to a binary representation. Known as the assembly process.
+ * [assemble] this function converts the given syntax tree to a binary representation. Known as the assembly process.
  *
- * [generateTranscript] this function disassembles the binary representation from [generateByteCode] to resolve information and build a transcript disassembled view.
+ * [disassemble] this function disassembles the binary representation from [assemble] to resolve information and build a transcript disassembled view.
  */
 abstract class Assembly {
-    abstract fun generateTranscript(architecture: Architecture, syntaxTree: Syntax.SyntaxTree)
-    abstract fun generateByteCode(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap
+
+    /**
+     * Generates the disassembled [Architecture.transcript] from current bytes in the [Architecture.memory]
+     */
+    abstract fun disassemble(architecture: Architecture)
+
+    /**
+     * Generates and stores the bytes resolved from the [syntaxTree] in the [Architecture.memory].
+     */
+    abstract fun assemble(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap
+
+    /**
+     * Used to hold the identification of editor lines in [FileHandler.File]'s with memory addresses
+     */
     data class AssemblyMap(val lineAddressMap: Map<String, MapEntry> = mapOf()) {
         init {
             if (DebugTools.KIT_showAsmInfo) {

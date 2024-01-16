@@ -5,11 +5,11 @@ import emulator.kit.assembly.Assembly
 import emulator.kit.assembly.Syntax
 
 class T6502Assembly: Assembly() {
-    override fun generateTranscript(architecture: Architecture, syntaxTree: Syntax.SyntaxTree) {
+    override fun disassemble(architecture: Architecture) {
 
     }
 
-    override fun generateByteCode(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
+    override fun assemble(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
 
         return AssemblyMap()
     }

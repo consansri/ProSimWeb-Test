@@ -332,10 +332,7 @@ abstract class Syntax {
                 return SeqMatchResult(false, emptyList())
             }
 
-            while (true) {
-                if (components.first().matches(trimmedTokens.first())) {
-                    break
-                }
+            while (!components.first().matches(trimmedTokens.first())) {
                 trimmedTokens.removeFirst()
                 if (trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
             }

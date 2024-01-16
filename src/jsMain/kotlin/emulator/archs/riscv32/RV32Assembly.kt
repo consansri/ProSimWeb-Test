@@ -18,8 +18,8 @@ import kotlin.time.measureTime
  *
  * @property binaryMapper is needed for the exact mapping of instructions in text and binary format.
  *
- * @property labelBinAddrMap temporary contains all address mapped labels. This addresses will be mapped in [generateByteCode].
- * @property transcriptEntrys temporary contains the [RVDisassembledRow]'s which are generated in [generateTranscript].
+ * @property labelBinAddrMap temporary contains all address mapped labels. This addresses will be mapped in [assemble].
+ * @property transcriptEntrys temporary contains the [RVDisassembledRow]'s which are generated in [disassemble].
  * @property bins temporary contains all binary representations from the instructions.
  *
  */
@@ -32,7 +32,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
     /**
      * Disassembles the content of the memory and builds the [RVDisassembledRow]'s from it which are then added to the disassembled transcript view.
      */
-    override fun generateTranscript(architecture: Architecture, syntaxTree: Syntax.SyntaxTree) {
+    override fun disassemble(architecture: Architecture) {
         val transcript = architecture.getTranscript()
         if (DebugTools.RV32_showAsmInfo) {
             console.log("RISCVAssembly.generateTranscript(): labelMap -> ${labelBinAddrMap.entries.joinToString("") { "\n\t${it.key.wholeName}: ${it.value}" }}")
@@ -122,7 +122,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
     /**
      * Extracts all relevant information from the [syntaxTree] and stores it at certain points in memory.
      */
-    override fun generateByteCode(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
+    override fun assemble(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
         val dataSecStart = architecture.getAllSettings().filterIsInstance<ArchSetting.ImmSetting>().firstOrNull { it.name == RV32.SETTING.DATA.name }?.value?.get() ?: Variable.Value.Hex("10000", RV32.MEM_ADDRESS_WIDTH)
         val roDataSecStart = architecture.getAllSettings().filterIsInstance<ArchSetting.ImmSetting>().firstOrNull { it.name == RV32.SETTING.RODATA.name }?.value?.get() ?: Variable.Value.Hex("20000", RV32.MEM_ADDRESS_WIDTH)
         val bssSecStart = architecture.getAllSettings().filterIsInstance<ArchSetting.ImmSetting>().firstOrNull { it.name == RV32.SETTING.BSS.name }?.value?.get() ?: Variable.Value.Hex("30000", RV32.MEM_ADDRESS_WIDTH)
@@ -440,7 +440,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
     }
 
     /**
-     * Is used by [generateByteCode] to temporarily hold up all important information before it is actually saved to memory.
+     * Is used by [assemble] to temporarily hold up all important information before it is actually saved to memory.
      */
     sealed class Entry(val address: Variable.Value.Hex, vararg val values: Variable.Value) {
         class LabeledDataEntry(val label: RV32Syntax.E_LABEL, address: Variable.Value.Hex, vararg values: Variable.Value) : Entry(address, *values)

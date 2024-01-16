@@ -158,7 +158,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             }
             checkTimeOutRef.current = setTimeout({
                 props.archState.component1().getState().edit()
-                setvcRows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
+                setvcRows(props.archState.component1().compile(valueToCheck, build = true).split("\n"))
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
                 setState(props.archState.component1().getState().state)
             }, 0)
@@ -171,7 +171,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
                 checkTimeOutRef.current = setTimeout({
                     props.archState.component1().getState().edit()
-                    setvcRows(props.archState.component1().check(valueToCheck, currExeLine).split("\n"))
+                    setvcRows(props.archState.component1().compile(valueToCheck, build = true).split("\n"))
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
                     setState(props.archState.component1().getState().state)
                 }, delay)
@@ -188,8 +188,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
         setvcRows(value.split("\n"))
         preHLTimeoutRef.current = setTimeout({
-            val hlTaList = props.archState.component1().getPreHighlighting(value).split("\n")
+            props.archState.component1().getState().edit()
+            val hlTaList = props.archState.component1().compile(value, build = false).split("\n")
             setvcRows(hlTaList)
+            props.compileEventState.component2().invoke(!props.compileEventState.component1())
+            setState(props.archState.component1().getState().state)
         }, 1000)
     }
 
@@ -744,7 +747,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     val lineID = lines.size - 1
                                     val startIndex = lines[lineID].length
 
-                                    val grammarTree = props.archState.component1().getAssembly().getGrammarTree()
+                                    val grammarTree = props.archState.component1().getCompiler().getGrammarTree()
                                     grammarTree?.rootNode?.let { rootNode ->
                                         var path = ""
                                         rootNode.containers.forEach {
@@ -920,7 +923,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             console.log("REACT: Exe Event Changed!")
         }
 
-        val lineAddressMap = props.archState.component1().getAssembly().getAssemblyMap().lineAddressMap
+        val lineAddressMap = props.archState.component1().getCompiler().getAssemblyMap().lineAddressMap
         val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
         val entry = lineAddressMap[pcValue.toHex().getRawHexStr()]
 

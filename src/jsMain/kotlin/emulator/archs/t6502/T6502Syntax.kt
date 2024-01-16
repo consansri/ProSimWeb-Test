@@ -1,6 +1,5 @@
 package emulator.archs.t6502
 
-import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
@@ -13,7 +12,6 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
-import js.core.toPrimitiveSymbolHolder
 
 
 /**
@@ -50,9 +48,7 @@ class T6502Syntax : Syntax() {
         remainingTokens.removeComments(preElements)
 
         // RESOLVE ELEMENTS
-        var lastInstrName: EInstrName? = null
-        while (true) {
-            if (remainingTokens.isEmpty()) break
+        while (remainingTokens.isNotEmpty()) {
 
             // Skip Whitespaces
             if (remainingTokens.first() is Compiler.Token.Space || remainingTokens.first() is Compiler.Token.NewLine) {
@@ -61,8 +57,10 @@ class T6502Syntax : Syntax() {
             }
 
             // Resolve EInstr
-            getEInstr(remainingTokens, errors, warnings)?.let {
-                elements.add(it)
+            val eInstr = getEInstr(remainingTokens, errors, warnings)
+            if(eInstr != null){
+                elements.add(eInstr)
+                continue
             }
 
             // Add first Token to errors
@@ -70,6 +68,8 @@ class T6502Syntax : Syntax() {
             remainingTokens.removeFirst()
         }
 
+
+        remainingTokens.removeAll { it is Compiler.Token.Space || it is Compiler.Token.NewLine }
         if (remainingTokens.isNotEmpty()) {
             errors.add(Error("Faulty Syntax!", *remainingTokens.toTypedArray()))
         }
@@ -101,16 +101,10 @@ class T6502Syntax : Syntax() {
         return this
     }
 
-    data object Patterns {
-        val INSTRNAME_SEQUENCE = TokenSeq(InSpecific.Word)
-    }
-
     data object NAMES {
         const val PRE_COMMENT = "comment"
 
         const val E_INSTR = "e_instr"
-        const val E_INSTRNAME = "e_instrname"
-        const val E_EXTENSION = "e_extension"
 
         const val S_TEXT = "text"
 
@@ -468,7 +462,6 @@ class T6502Syntax : Syntax() {
 
                 if (imm != null) {
                     if (imm.getValue().size.bitWidth != amode.immSize.bitWidth) {
-                        warnings.add(Warning("Instruction immediate size mismatch! (${type.name} ${amode.name})", *amodeResult.sequenceMap.map { it.token }.toTypedArray()))
                         continue
                     }
                 }
@@ -556,7 +549,6 @@ class T6502Syntax : Syntax() {
                 }
 
                 remainingTokens.removeAll(eInstr.tokens.toSet())
-                warnings.add(Warning("Found instruction ${type.name} ${amode.name}", eInstr))
                 return eInstr
             }
         }

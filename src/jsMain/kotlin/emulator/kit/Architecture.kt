@@ -11,7 +11,6 @@ import emulator.kit.types.Variable
 import debug.DebugTools
 import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
-import emulator.kit.types.HTMLTools
 import web.buffer.Blob
 
 /**
@@ -78,6 +77,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         )
     }
 
+    // Getter for Architecture Components
     fun getDescription(): Config.Description = description
     fun getFileHandler(): FileHandler = fileHandler
     fun getRegContainer(): RegContainer = regContainer
@@ -86,7 +86,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getFlagsConditions(): FlagsConditions? = flagsConditions
     fun getConsole(): IConsole = iConsole
     fun getState(): ArchState = archState
-    fun getAssembly(): Compiler = compiler
+    fun getCompiler(): Compiler = compiler
     fun getFormattedFile(type: FileBuilder.ExportFormat, vararg settings: FileBuilder.Setting): Blob = FileBuilder().build(this, type, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings
@@ -163,22 +163,14 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * PreHighlight Event
-     * needs to be implemented by specific architectures if prehighlighting of certain keywords is wished
-     */
-    open fun getPreHighlighting(text: String): String {
-        return HTMLTools.encodeHTML(text)
-    }
-
-    /**
      * Compilation Event
      * already implemented
      */
-    fun check(input: String, startAtLine: Int): String {
+    fun compile(input: String, build: Boolean = true): String {
         if (DebugTools.KIT_showCheckCodeEvents) {
-            console.log("Architecture.check(): input \n $input \n, startAtLine $startAtLine")
+            console.log("Architecture.check(): input \n $input \n")
         }
-        archState.check(compiler.setCode(input, true))
+        archState.check(compiler.compile(input, true, build = build))
 
         return compiler.getHLContent()
     }
@@ -191,16 +183,5 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         val tag = "span"
         return "<$tag class='$flag ${classNames.joinToString(" ") { it }}' ${id?.let { "id='$id'" }}>$input</$tag>"
     }
-
-    fun hlText(input: String, hlPatterns: List<Regex>, title: String, flag: String, onlyOne: Boolean = false): String {
-        var result = input
-        for (pattern in hlPatterns) {
-            result = result.replace(pattern) {
-                highlight(it.value, title = title, flag = flag)
-            }
-        }
-        return result
-    }
-
 
 }

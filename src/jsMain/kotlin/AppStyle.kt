@@ -76,7 +76,7 @@ val AppStyle = FC<Props> {
                         alignItems = AlignItems.center
                         justifyContent = JustifyContent.center
                         gap = 1.5.rem
-                        transitionDuration = 1.s
+                        transitionDuration = 0.3.s
                         zIndex = StyleAttr.Header.IndexNavDropDown
                         backgroundColor = StyleAttr.Header.BgColorSec.get()
                     }
@@ -93,7 +93,7 @@ val AppStyle = FC<Props> {
                             alignItems = AlignItems.center
                             justifyContent = JustifyContent.center
                             gap = 1.5.rem
-                            transition = 1.s
+                            transition = 0.3.s
                             transform = translatey((-100).vh)
                             zIndex = StyleAttr.Header.IndexNavMobile
                             visibility = Visibility.hidden

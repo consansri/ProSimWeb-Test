@@ -154,8 +154,8 @@ class RV64Syntax : Syntax() {
         for (lineID in remainingLines.indices) {
             val lineStr = remainingLines[lineID].joinToString("") { it.content }
             SyntaxRegex.pre_equ_def.matchEntire(lineStr)?.let {
-                val name = compiler.pseudoAnalyze(it.groupValues[2])
-                val const = compiler.pseudoAnalyze(it.groupValues[3])
+                val name = compiler.pseudoTokenize(it.groupValues[2])
+                val const = compiler.pseudoTokenize(it.groupValues[3])
                 try {
                     val constMatch = (const.size == 1 && const.first() is Compiler.Token.Constant)
                     if (constMatch) {
@@ -189,7 +189,7 @@ class RV64Syntax : Syntax() {
                     val equName = equ.name.joinToString("") { it.content }
                     if (lineContent.contains(equName)) {
                         val newLineContent = lineContent.replace(equName, equ.constant.content)
-                        val newLineTokens = compiler.pseudoAnalyze(newLineContent, tokenLineID)
+                        val newLineTokens = compiler.pseudoTokenize(newLineContent, tokenLineID)
                         tokenList.clear()
                         tokenList.addAll(newLineTokens)
                         pres.add(Pre_EQU(tokens = nameTokens.toTypedArray()))
@@ -335,7 +335,7 @@ class RV64Syntax : Syntax() {
                             if (DebugTools.RV64_showGrammarScanTiers) {
                                 console.log("\tmacro insert line ${macroLineID + 1}: $replacedLine")
                             }
-                            remainingLines.add(macroLineID, compiler.pseudoAnalyze(replacedLine))
+                            remainingLines.add(macroLineID, compiler.pseudoTokenize(replacedLine))
                         }
                         skipLines = macro.replacementLines.size
                     }

@@ -4,25 +4,15 @@ import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.Architecture
 import emulator.archs.riscv64.RV64
 import emulator.archs.riscv64.RV64BinMapper
-import emulator.archs.riscv64.RV64Flags
-import emulator.kit.types.HTMLTools
-import emulator.kit.types.StringTools
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
 class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
 
-    private val instrnames = RV64Syntax.R_INSTR.InstrType.entries.map { Regex("""(?<=\s|^)(${Regex.escape(it.id)})(?=\s|$)""", RegexOption.IGNORE_CASE) }
-    val registers = this.getAllRegs().map { it.getRegexList() }.flatten()
-    val labels = listOf(Regex("""(?<=\s|^)(.+:)(?=\s|$)"""))
-    private val directivenames = listOf(".text", ".data", ".rodata", ".bss", ".globl", ".global", ".macro", ".endm", ".equ", ".byte", ".half", ".word", ".dword", ".asciz", ".string", ".2byte", ".4byte", ".8byte", ".attribute", ".option")
-    private val directive = directivenames.map { Regex("""(?<=\s|^)(${Regex.escape(it)})(?=\s|$)""") }
-    private val consts = listOf(Regex("""(?<=\s|^)(0x[0-9A-Fa-f]+)"""), Regex("""(?<=\s|^)(0b[01]+)"""), Regex("""(?<=\s|^)((-)?[0-9]+)"""), Regex("""(?<=\s|^)(u[0-9]+)"""), Regex("""('.')"""), Regex("\".+\""))
     private val mapper = RV64BinMapper()
 
-
     override fun exeContinuous() {
-        if (this.getAssembly().isBuildable()) {
+        if (this.getCompiler().isBuildable()) {
             var instrCount = 0
             val measuredTime = measureTime {
                 super.exeContinuous()
@@ -44,7 +34,7 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
     }
 
     override fun exeSingleStep() {
-        if (!this.getAssembly().isBuildable()) return
+        if (!this.getCompiler().isBuildable()) return
 
         val measuredTime = measureTime {
             super.exeSingleStep() // clears console
@@ -61,7 +51,7 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
     }
 
     override fun exeMultiStep(steps: Int) {
-        if (this.getAssembly().isBuildable()) {
+        if (this.getCompiler().isBuildable()) {
             var instrCount = 0
 
             val measuredTime = measureTime {
@@ -89,7 +79,7 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
     }
 
     override fun exeSkipSubroutine() {
-        if (this.getAssembly().isBuildable()) {
+        if (this.getCompiler().isBuildable()) {
             var instrCount = 0
 
             val measuredTime = measureTime {
@@ -123,7 +113,7 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
     }
 
     override fun exeReturnFromSubroutine() {
-        if (this.getAssembly().isBuildable()) {
+        if (this.getCompiler().isBuildable()) {
             super.exeReturnFromSubroutine()
             var instrCount = 0
             val measuredTime = measureTime {
@@ -148,11 +138,11 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
     }
 
     override fun exeUntilLine(lineID: Int) {
-        if (this.getAssembly().isBuildable()) {
+        if (this.getCompiler().isBuildable()) {
             super.exeUntilLine(lineID)
             var instrCount = 0
 
-            val lineAddressMap = getAssembly().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.file == getFileHandler().getCurrent() }
+            val lineAddressMap = getCompiler().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.file == getFileHandler().getCurrent() }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
                 if (entry.first.lineID >= lineID) {
@@ -224,27 +214,6 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
             }
         }
         getConsole().exeInfo("exe_until_address\nexecuting until address ${address.getHexStr()} \nexecuting $instrCount instructions took ${measuredTime.inWholeMicroseconds} μs")
-    }
-
-
-    override fun getPreHighlighting(text: String): String {
-        val lines = HTMLTools.encodeHTML(text).split("\n").toMutableList()
-        for (lineID in lines.indices) {
-            // REMOVE COMMENTS
-            val splitted = StringTools.splitStringAtFirstOccurrence(lines[lineID], '#')
-            val comment = highlight(splitted.second, title = "comment", flag = RV64Flags.comment)
-
-            // PREHIGHLIGHT ANYTHING ELSE
-            var preline: String = hlText(splitted.first, instrnames, "instr", RV64Flags.instruction)
-            preline = hlText(preline, labels, "lbl", RV64Flags.label)
-            preline = hlText(preline, directive, "dir", RV64Flags.directive)
-            preline = hlText(preline, registers, "reg", RV64Flags.register)
-            preline = hlText(preline, consts, "const", RV64Flags.constant)
-
-            lines[lineID] = preline + comment
-        }
-
-        return lines.joinToString("\n") { it }
     }
 
 }
