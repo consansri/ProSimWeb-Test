@@ -115,8 +115,7 @@ class T6502Syntax : Syntax() {
 
     /**
      * Addressing Modes
-     * important order for checking!
-     *
+     * IMPORTANT: The order of the enums determines the order in which the modes will be checked!
      */
     enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq, val immSize: Variable.Size? = null) {
 
@@ -451,7 +450,7 @@ class T6502Syntax : Syntax() {
         TreeNode.ElementNode(ConnectedHL(T6502Flags.comment), NAMES.PRE_COMMENT, *tokens)
 
 
-    fun getEInstr(remainingTokens: MutableList<Compiler.Token>, errors: MutableList<Error>, warnings: MutableList<Warning>): EInstr? {
+    private fun getEInstr(remainingTokens: MutableList<Compiler.Token>, errors: MutableList<Error>, warnings: MutableList<Warning>): EInstr? {
         for (amode in AModes.entries) {
             val amodeResult = amode.tokenSequence.matchStart(*remainingTokens.toTypedArray())
 
@@ -555,15 +554,11 @@ class T6502Syntax : Syntax() {
         return null
     }
 
-    class EInstrName(val type: InstrType, vararg val nameTokens: Compiler.Token.Word) {
-
-    }
-
     class EInstr(
         val instrType: InstrType,
         val addressingMode: AModes,
         val imm: Variable.Value? = null,
-        val constantToken: List<Compiler.Token.Constant>,
+        constantToken: List<Compiler.Token.Constant>,
         nameTokens: List<Compiler.Token>,
         symbolTokens: List<Compiler.Token>,
         regTokens: List<Compiler.Token>
