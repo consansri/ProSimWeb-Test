@@ -43,10 +43,10 @@ class Compiler(
     private val regexCollection: RegexCollection = RegexCollection(
         Regex("""^\s+"""),
         Regex("""^[^0-9A-Za-z]"""),
-        Regex("^(-)?${prefixes.bin}[01]+"),
-        Regex("^(-)?${prefixes.hex}[0-9a-f]+", RegexOption.IGNORE_CASE),
-        Regex("^(-)?${prefixes.dec}[0-9]+"),
-        Regex("^${prefixes.udec}[0-9]+"),
+        Regex("^(-)?${prefixes.bin.toRegex().pattern}[01]+"),
+        Regex("^(-)?${prefixes.hex.toRegex().pattern}[0-9a-f]+", RegexOption.IGNORE_CASE),
+        Regex("^(-)?${prefixes.dec.toRegex().pattern}[0-9]+"),
+        Regex("^${prefixes.udec.toRegex().pattern}[0-9]+"),
         Regex("""^'.'"""),
         Regex("""^".+""""),
         Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
@@ -615,9 +615,9 @@ class Compiler(
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     console.log("HEX PREFIX: $prefix")
                     return if (size != null) {
-                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Hex(content.removePrefix(prefix), size)
+                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').replace(Regex("^$prefix"),""), size) else Variable.Value.Hex(content.replace(Regex("^$prefix"),""), size)
                     } else {
-                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix)) else Variable.Value.Hex(content.removePrefix(prefix))
+                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').replace(Regex("^$prefix"),"")) else Variable.Value.Hex(content.replace(Regex("^$prefix"),""))
                     }
                 }
             }

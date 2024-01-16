@@ -123,11 +123,13 @@ class T6502Syntax : Syntax() {
 
     }
 
+    /**
+     * Addressing Modes
+     * important order for checking!
+     *
+     */
     enum class AModes(val extByteCount: Int, val tokenSequence: TokenSeq, val immSize: Variable.Size? = null) {
-        ACCUMULATOR(0, TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"))), // Accumulator: A
-        IMMEDIATE(1, TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE), // Immediate: #
-        RELATIVE(1, TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Relative: r
-        ZEROPAGE(1, TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Zero Page: zp
+
         ZEROPAGE_X(
             1,
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = false),
@@ -138,12 +140,8 @@ class T6502Syntax : Syntax() {
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = false),
             immSize = BYTE_SIZE
         ), // Zero Page Indexed with Y: zp,y
-        INDIRECT(
-            2,
-            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = false),
-            immSize = T6502.WORD_SIZE
-        ), // Absolute Indirect: (a)
-        ABSOLUTE(2, TokenSeq(InSpecific.Constant), immSize = T6502.WORD_SIZE), // Absolute: a
+
+
         ABSOLUTE_X(
             2,
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = false),
@@ -180,6 +178,16 @@ class T6502Syntax : Syntax() {
             ),
             immSize = BYTE_SIZE
         ), // Zero Page Indirect Indexed with Y: (zp),y
+        INDIRECT(
+            2,
+            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = false),
+            immSize = T6502.WORD_SIZE
+        ), // Absolute Indirect: (a)
+        ACCUMULATOR(0, TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"))), // Accumulator: A
+        IMMEDIATE(1, TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE), // Immediate: #
+        RELATIVE(1, TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Relative: r
+        ZEROPAGE(1, TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Zero Page: zp
+        ABSOLUTE(2, TokenSeq(InSpecific.Constant), immSize = T6502.WORD_SIZE), // Absolute: a
         IMPLIED(0, TokenSeq(InSpecific.Word)), // Implied: i
     }
 
