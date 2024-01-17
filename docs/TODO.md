@@ -6,6 +6,8 @@
 - split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
 - LD Files for Memory Initialization
 
+- ADDI with small signed dec values ISSUE
+
 # SUGAR #
 
 - Automtatic Code Screenshots
