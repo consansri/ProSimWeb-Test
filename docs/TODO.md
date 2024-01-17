@@ -6,7 +6,7 @@
 - split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
 - LD Files for Memory Initialization
 
-- ADDI with small signed dec values ISSUE
+
 
 # SUGAR #
 
@@ -27,6 +27,7 @@
 - **(done)** added RV64 M Extension
 - **(done)** store more arch setup constants in localstorage so a page reload sets the whole environment back
 - **(done)** add memory section settings to memory and make accessible
+- **(done)** ADDI with small signed dec values ISSUE
 
 ## Version 0.1.6 ##
 - **(done)** TABLE Syntax in data section (

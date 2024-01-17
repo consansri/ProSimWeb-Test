@@ -20,6 +20,7 @@ class Docs(vararg htmlFiles: HtmlFile) {
             "/documents/user-manual.html"
         ),
         HtmlFile.DefinedFile("Version - ${Constants.VERSION}", FC<Props> {
+
             h2 { +"Version - 0.1.8" }
             h3 { +"New" }
             ul {
@@ -37,6 +38,11 @@ class Docs(vararg htmlFiles: HtmlFile) {
                     |Specific: Architecture Features, Architecture Settings (e.g. risc-v data, rodata and bss section)
                 """.trimMargin()
                 }
+            }
+            h3 { +"Fixed" }
+            ul {
+                li { +"KIT RV32 & RV64 ADDI, ORI, ... decimal values wrong interpretation." }
+                li { +"Wrong paths for docs." }
             }
 
             h2 { +"Version - 0.1.7" }
