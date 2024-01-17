@@ -11,6 +11,7 @@ import emulator.kit.types.Variable
 import debug.DebugTools
 import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
+import react.memo
 import web.buffer.Blob
 
 /**
@@ -167,6 +168,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * already implemented
      */
     fun compile(input: String, build: Boolean = true): String {
+        if (build) {
+            regContainer.clear()
+        }
+
         if (DebugTools.KIT_showCheckCodeEvents) {
             console.log("Architecture.check(): input \n $input \n")
         }

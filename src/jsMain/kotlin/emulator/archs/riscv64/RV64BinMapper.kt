@@ -136,8 +136,9 @@ class RV64BinMapper {
                 }
 
                 ADDI, ADDIW, SLTI, SLTIU, XORI, ORI, ANDI -> {
-                    binValues?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.IMM12 to binValues[2]))
+                    val immediate = instrDef.paramcoll?.getValues(Bit12())?.getOrNull(2)?.toBin()
+                    if (binValues != null && immediate != null) {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.IMM12 to immediate))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -145,8 +146,9 @@ class RV64BinMapper {
                 }
 
                 SLLI, SLLIW, SRLI, SRLIW, SRAI, SRAIW -> {
-                    binValues?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.SHAMT6 to binValues[2]))
+                    val immediate = instrDef.paramcoll?.getValues(Bit6())?.getOrNull(2)?.toBin()
+                    if (binValues != null && immediate != null) {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.SHAMT6 to immediate))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -172,6 +174,7 @@ class RV64BinMapper {
                         }
                     }
                 }
+
                 CSRRWI, CSRRSI, CSRRCI -> {
                     binValues?.let {
                         val csrAddr = binValues[1].getUResized(Bit12())

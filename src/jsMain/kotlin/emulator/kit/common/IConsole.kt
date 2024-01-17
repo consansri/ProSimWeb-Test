@@ -25,11 +25,11 @@ class IConsole(val name: String) {
     }
 
     fun compilerInfo(message: String) {
-        messageArray.add(Message(MSGType.INFO, "compiler: $message"))
+        messageArray.add(Message(MSGType.INFO, "o.O $message"))
     }
 
     fun exeInfo(message: String){
-        messageArray.add(Message(MSGType.INFO, "execute: $message"))
+        messageArray.add(Message(MSGType.INFO, "> $message"))
     }
 
     fun missingFeature(message: String){

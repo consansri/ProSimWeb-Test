@@ -2903,7 +2903,7 @@ class RV32Syntax : Syntax() {
             Tail("TAIL", true, ParamType.PS_JLBL, memWords = 2);
 
             open fun execute(arch: Architecture, paramMap: Map<MaskLabel, Bin>) {
-                arch.getConsole().log("executing $id ...")
+                arch.getConsole().log("> $id {...}")
             }
         }
     }

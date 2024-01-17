@@ -137,8 +137,9 @@ class RV32BinMapper {
                 }
 
                 ADDI, SLTI, SLTIU, XORI, ORI, ANDI -> {
-                    binValues?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.IMM12 to binValues[2]))
+                    val imm12 = instrDef.paramcoll?.getValues(Variable.Size.Bit12())?.getOrNull(2)?.toBin()
+                    if (binValues != null && imm12 != null) {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.IMM12 to imm12))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -146,8 +147,9 @@ class RV32BinMapper {
                 }
 
                 SLLI, SRLI, SRAI -> {
-                    binValues?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.SHAMT to binValues[2]))
+                    val imm5 = instrDef.paramcoll?.getValues(Variable.Size.Bit5())?.getOrNull(2)?.toBin()
+                    if (binValues != null && imm5 != null) {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.RS1 to binValues[1], MaskLabel.SHAMT to imm5))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -172,6 +174,7 @@ class RV32BinMapper {
                         }
                     }
                 }
+
                 CSRRWI, CSRRSI, CSRRCI -> {
                     binValues?.let {
                         val csrAddr = binValues[1].getUResized(Variable.Size.Bit12())
@@ -186,7 +189,7 @@ class RV32BinMapper {
                 Li -> {
                     values?.let {
                         val regBin = values[0].toBin()
-                        val imm32 = when(val immediate = values[1]){
+                        val imm32 = when (val immediate = values[1]) {
                             is Variable.Value.Bin -> immediate.getUResized(RV32.XLEN).toBin()
                             is Variable.Value.Dec -> immediate.getResized(RV32.XLEN).toBin()
                             is Variable.Value.Hex -> immediate.getUResized(RV32.XLEN).toBin()
@@ -711,8 +714,6 @@ class RV32BinMapper {
                         }
                     }
                 }
-                
-                
 
 
             }

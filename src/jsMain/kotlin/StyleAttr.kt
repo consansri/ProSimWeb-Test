@@ -68,7 +68,7 @@ object StyleAttr {
                 val LineNumbersColor = ModeColor("#999999")
                 val LineActiveColor = ModeColor("#00FF00")
                 val minLineNumWidth = 35.px
-                const val tabSize = 6
+                const val tabSize = 4
                 const val lineHeight = 21
                 val IndexArea = integer(2)
                 val IndexHL = integer(1)

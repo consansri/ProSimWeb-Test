@@ -3242,7 +3242,7 @@ class RV64Syntax : Syntax() {
             Tail("TAIL", true, ParamType.PS_Jlbl, memWords = 2);
 
             open fun execute(arch: Architecture, paramMap: Map<RV64BinMapper.MaskLabel, Bin>) {
-                arch.getConsole().log("executing $id ...")
+                arch.getConsole().log("> $id {...}")
             }
         }
     }

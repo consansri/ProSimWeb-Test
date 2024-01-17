@@ -147,7 +147,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- ASYNC Events ----------------- */
 
-    fun checkCode(immediate: Boolean) {
+    fun build(immediate: Boolean) {
         val valueToCheck = props.archState.component1().getFileHandler().getCurrContent()
         val delay = 1000
 
@@ -177,7 +177,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }, delay)
             }
         }
-
     }
 
     fun preHighlight() {
@@ -206,7 +205,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        checkCode(immediate)
+        build(immediate)
         setTaValueUpdate(!taValueUpdate)
     }
 
@@ -219,7 +218,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        checkCode(true)
+        build(true)
         setTaValueUpdate(!taValueUpdate)
     }
 
@@ -233,7 +232,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        checkCode(true)
+        build(true)
         setTaValueUpdate(!taValueUpdate)
     }
 
@@ -380,7 +379,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         src = StyleAttr.Icons.build
                     }
                     onClick = {
-                        checkCode(true)
+                        build(true)
                     }
                 }
             }
@@ -397,6 +396,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     Code Editor Info
                  
                         Shortcuts
+                        - CTRL + S  (Build)
                         - CTRL + Z  (Undo)
                         - CTRL + C  (Copy)
                         - CTRL + V  (Insert)
@@ -433,7 +433,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     title = "Clear"
 
                     img {
-                        css{
+                        css {
                             filter = important(invert(100.pct))
                         }
                         src = StyleAttr.Icons.delete_black
@@ -453,7 +453,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         display = Display.block
                         writingMode = WritingMode.verticalRl
                         borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
-                        borderBottom =important(Border(0.px, LineStyle.solid))
+                        borderBottom = important(Border(0.px, LineStyle.solid))
                     }
 
                     title = "{$infoPanelText}"
@@ -771,7 +771,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                             onKeyDown = { event ->
                                 if (event.key == "Tab") {
-
                                     textareaRef.current?.let {
                                         val start =
                                             it.selectionStart
@@ -785,13 +784,24 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         event.preventDefault()
                                         edit(event.currentTarget.value, false)
                                     }
-                                } else if (event.ctrlKey && event.key == "z") {
+                                }
+
+                                if (event.ctrlKey && event.key == "z") {
                                     if (undoActive) {
                                         undo()
                                     }
-                                } else if (event.key == "Enter") {
+                                }
+
+                                if (event.ctrlKey && event.key == "s") {
+                                    event.preventDefault()
+                                    build(true)
+                                }
+
+                                if (event.key == "Enter") {
                                     edit(event.currentTarget.value, false)
-                                } else if (event.ctrlKey && event.altKey && event.key == "l") {
+                                }
+
+                                if (event.ctrlKey && event.altKey && event.key == "l") {
                                     // REFORMAT CODE
                                     val lines = event.currentTarget.value.split("\n").toMutableList()
                                     for (lineID in lines.indices) {
@@ -947,8 +957,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
 object Formatter {
     val reformats = listOf(
-        ReFormat(Regex("""(\s{2,})"""), "\t"),
-        ReFormat(Regex("""(,)\S"""), ", ")
+        ReFormat(Regex("""( {2,})"""), "\t"),
+        ReFormat(Regex("""(,)\S"""), ", "),
+        ReFormat(Regex("""\s+$"""), ""),
+        ReFormat(Regex("""\r\n?"""), "\n"),
+        ReFormat(Regex(""":\s+"""), ": ")
     )
 }
 
