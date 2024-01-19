@@ -54,7 +54,7 @@ object RV32 {
     val MEM_ADDRESS_WIDTH = XLEN
 
     private const val MAIN_REGFILE_NAME = "common"
-    private const val CSR_REGFILE_NAME = "csr"
+    const val CSR_REGFILE_NAME = "csr"
 
     enum class TsCompiledHeaders {
         Address,
