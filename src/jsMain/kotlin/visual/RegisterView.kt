@@ -222,7 +222,6 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 tbody {
                     ref = bodyRef
 
-
                     val measuredRegTypeChange = measureTime {
                         registerArray.let { regFile ->
                             for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {

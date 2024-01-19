@@ -32,14 +32,14 @@ object RV64 {
     const val CSR_REGFILE_NAME = "csr"
     private const val MAIN_REGFILE_NAME = "common"
 
-    enum class TS_COMPILED_HEADERS {
+    enum class TsCompiledHeaders {
         Address,
         Label,
         Instruction,
         Parameters
     }
 
-    enum class TS_DISASSEMBLED_HEADERS {
+    enum class TsDisassembledHeaders {
         Address,
         Label,
         Instruction,
@@ -239,11 +239,15 @@ object RV64 {
             Register(Bin("00010", REG_ADDRESS_SIZE), listOf("x2"), listOf("sp"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "stack pointer"),
             Register(Bin("00011", REG_ADDRESS_SIZE), listOf("x3"), listOf("gp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "global pointer"),
             Register(Bin("00100", REG_ADDRESS_SIZE), listOf("x4"), listOf("tp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "thread pointer"),
+
             Register(Bin("00101", REG_ADDRESS_SIZE), listOf("x5"), listOf("t0"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 0"),
             Register(Bin("00110", REG_ADDRESS_SIZE), listOf("x6"), listOf("t1"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 1"),
             Register(Bin("00111", REG_ADDRESS_SIZE), listOf("x7"), listOf("t2"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 2"),
-            Register(Bin("01000", REG_ADDRESS_SIZE), listOf("x8"), listOf("s0", "fp"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 0 / frame pointer"),
-            Register(Bin("01001", REG_ADDRESS_SIZE), listOf("x9"), listOf("s1"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 1"),
+            Register(Bin("11100", REG_ADDRESS_SIZE), listOf("x28"), listOf("t3"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 3"),
+            Register(Bin("11101", REG_ADDRESS_SIZE), listOf("x29"), listOf("t4"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 4"),
+            Register(Bin("11110", REG_ADDRESS_SIZE), listOf("x30"), listOf("t5"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 5"),
+            Register(Bin("11111", REG_ADDRESS_SIZE), listOf("x31"), listOf("t6"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 6"),
+
             Register(Bin("01010", REG_ADDRESS_SIZE), listOf("x10"), listOf("a0"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 0 / return value 0"),
             Register(Bin("01011", REG_ADDRESS_SIZE), listOf("x11"), listOf("a1"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 1 / return value 1"),
             Register(Bin("01100", REG_ADDRESS_SIZE), listOf("x12"), listOf("a2"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 2"),
@@ -252,6 +256,9 @@ object RV64 {
             Register(Bin("01111", REG_ADDRESS_SIZE), listOf("x15"), listOf("a5"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 5"),
             Register(Bin("10000", REG_ADDRESS_SIZE), listOf("x16"), listOf("a6"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 6"),
             Register(Bin("10001", REG_ADDRESS_SIZE), listOf("x17"), listOf("a7"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 7"),
+
+            Register(Bin("01000", REG_ADDRESS_SIZE), listOf("x8"), listOf("s0", "fp"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 0 / frame pointer"),
+            Register(Bin("01001", REG_ADDRESS_SIZE), listOf("x9"), listOf("s1"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 1"),
             Register(Bin("10010", REG_ADDRESS_SIZE), listOf("x18"), listOf("s2"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 2"),
             Register(Bin("10011", REG_ADDRESS_SIZE), listOf("x19"), listOf("s3"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 3"),
             Register(Bin("10100", REG_ADDRESS_SIZE), listOf("x20"), listOf("s4"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 4"),
@@ -262,10 +269,7 @@ object RV64 {
             Register(Bin("11001", REG_ADDRESS_SIZE), listOf("x25"), listOf("s9"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 9"),
             Register(Bin("11010", REG_ADDRESS_SIZE), listOf("x26"), listOf("s10"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 10"),
             Register(Bin("11011", REG_ADDRESS_SIZE), listOf("x27"), listOf("s11"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 11"),
-            Register(Bin("11100", REG_ADDRESS_SIZE), listOf("x28"), listOf("t3"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 3"),
-            Register(Bin("11101", REG_ADDRESS_SIZE), listOf("x29"), listOf("t4"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 4"),
-            Register(Bin("11110", REG_ADDRESS_SIZE), listOf("x30"), listOf("t5"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 5"),
-            Register(Bin("11111", REG_ADDRESS_SIZE), listOf("x31"), listOf("t6"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 6")
+
         )
     )
 
@@ -529,7 +533,7 @@ object RV64 {
             standardRegFileName = MAIN_REGFILE_NAME
         ),
         Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
-        Transcript(TS_COMPILED_HEADERS.entries.map { it.name }, TS_DISASSEMBLED_HEADERS.entries.map { it.name })
+        Transcript(TsCompiledHeaders.entries.map { it.name }, TsDisassembledHeaders.entries.map { it.name })
     )
 
 }

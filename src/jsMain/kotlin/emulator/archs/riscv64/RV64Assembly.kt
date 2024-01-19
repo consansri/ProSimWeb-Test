@@ -433,24 +433,24 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
      */
     class RVDisassembledRow(address: Variable.Value.Hex) : Transcript.Row(address) {
 
-        val content = RV64.TS_DISASSEMBLED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+        val content = RV64.TsDisassembledHeaders.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
 
         init {
-            content[RV64.TS_DISASSEMBLED_HEADERS.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
+            content[RV64.TsDisassembledHeaders.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
 
         fun addInstr(architecture: Architecture, instrResult: RV64BinMapper.InstrResult, labelName: String) {
             val instrName = instrResult.type.id
-            content[RV64.TS_DISASSEMBLED_HEADERS.Instruction] = Entry(Orientation.LEFT, instrName)
-            content[RV64.TS_DISASSEMBLED_HEADERS.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture, instrResult.binMap.toMutableMap(), labelName))
+            content[RV64.TsDisassembledHeaders.Instruction] = Entry(Orientation.LEFT, instrName)
+            content[RV64.TsDisassembledHeaders.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture, instrResult.binMap.toMutableMap(), labelName))
         }
 
         fun addLabel(labelName: String) {
-            content[RV64.TS_DISASSEMBLED_HEADERS.Label] = Entry(Orientation.LEFT, labelName)
+            content[RV64.TsDisassembledHeaders.Label] = Entry(Orientation.LEFT, labelName)
         }
 
         override fun getContent(): List<Entry> {
-            return RV64.TS_DISASSEMBLED_HEADERS.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
+            return RV64.TsDisassembledHeaders.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
         }
     }
 }

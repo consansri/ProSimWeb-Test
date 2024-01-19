@@ -3277,23 +3277,23 @@ class RV64Syntax : Syntax() {
      * FOR TRANSCRIPT
      */
     class RVCompiledRow(addr: Hex) : Transcript.Row(addr) {
-        val content = RV64.TS_COMPILED_HEADERS.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+        val content = RV64.TsCompiledHeaders.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
 
         init {
-            content[RV64.TS_COMPILED_HEADERS.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
+            content[RV64.TsCompiledHeaders.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
 
         fun addLabel(label: R_JLBL) {
-            content[RV64.TS_COMPILED_HEADERS.Label] = Entry(Orientation.LEFT, label.label.wholeName)
+            content[RV64.TsCompiledHeaders.Label] = Entry(Orientation.LEFT, label.label.wholeName)
         }
 
         fun addInstr(instr: R_INSTR) {
-            content[RV64.TS_COMPILED_HEADERS.Instruction] = Entry(Orientation.LEFT, "${instr.instrType.id}${if (instr.instrType.pseudo && instr.instrType.relative == null) "\t(pseudo)" else ""}")
-            content[RV64.TS_COMPILED_HEADERS.Parameters] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") { paramcoll -> paramcoll.paramTokens.joinToString("") { it.content } } ?: "")
+            content[RV64.TsCompiledHeaders.Instruction] = Entry(Orientation.LEFT, "${instr.instrType.id}${if (instr.instrType.pseudo && instr.instrType.relative == null) "\t(pseudo)" else ""}")
+            content[RV64.TsCompiledHeaders.Parameters] = Entry(Orientation.LEFT, instr.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",\t") { paramcoll -> paramcoll.paramTokens.joinToString("") { it.content } } ?: "")
         }
 
         override fun getContent(): List<Entry> {
-            return RV64.TS_COMPILED_HEADERS.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
+            return RV64.TsCompiledHeaders.entries.map { content[it] ?: Entry(Orientation.CENTER, "") }
         }
     }
 
