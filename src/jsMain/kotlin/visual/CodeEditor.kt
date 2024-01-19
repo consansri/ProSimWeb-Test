@@ -803,6 +803,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                 if (event.ctrlKey && event.altKey && event.key == "l") {
                                     // REFORMAT CODE
+                                    event.preventDefault()
                                     val lines = event.currentTarget.value.split("\n").toMutableList()
                                     for (lineID in lines.indices) {
                                         var lineContent = lines[lineID]
