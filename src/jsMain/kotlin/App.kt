@@ -229,7 +229,7 @@ val App = FC<Props> {
                     title = "architecture settings"
                     img {
                         alt = "architecture settings"
-                        src = StyleAttr.Icons.edit
+                        src = StyleAttr.Icons.settings
                     }
                     onClick = {
                         setShowSettings(!showSettings)

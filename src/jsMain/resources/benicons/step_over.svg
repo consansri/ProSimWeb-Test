@@ -1,16 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71">
-    <defs>
-        <style>
-            .cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:6px;}
-        </style>
-    </defs>
-    <g id="Ebene_2">
-        <g id="Ebene_1">
-            <rect id="Hintergrund" class="cls-1" width="90.71" height="90.71"/>
-            <circle cx="44.02" cy="57.66" r="6.29"/>
-            <path class="cls-2" d="M19.71,57.66V32.17c0-3,1.91-5.42,4.26-5.42h40.1c2.36,0,4.27,2.43,4.27,5.42V57.66"/>
-            <line class="cls-2" x1="68.34" y1="57.66" x2="83" y2="43"/>
-            <line class="cls-2" x1="53.68" y1="43" x2="68.34" y2="57.66"/>
-        </g>
-    </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71"><defs><style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:6px;}</style></defs><g id="Ebene_2" data-name="Ebene 2"><g id="Ebene_2-2" data-name="Ebene 2"><rect id="Hintergrund" class="cls-1" width="90.71" height="90.71"/></g><g id="Ebene_1-2" data-name="Ebene 1"><circle cx="44.02" cy="57.66" r="6.29"/><path class="cls-2" d="M19.71,57.66V32.42a5.67,5.67,0,0,1,5.67-5.67H62.67a5.67,5.67,0,0,1,5.67,5.67V57.66"/><line class="cls-2" x1="68.34" y1="57.66" x2="83" y2="43"/><line class="cls-2" x1="53.68" y1="43" x2="68.34" y2="57.66"/></g></g></svg>

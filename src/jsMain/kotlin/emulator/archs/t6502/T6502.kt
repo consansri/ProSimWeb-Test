@@ -28,6 +28,20 @@ object T6502 {
 
     val MEM_ADDR_SIZE = WORD_SIZE
 
+    enum class TSCompiledRow{
+        ADDRESS,
+        LABEL,
+        INSTRUCTION,
+        EXTENSION
+    }
+
+    enum class TSDisassembledRow {
+        ADDRESS,
+        LABEL,
+        INSTRUCTION,
+        EXTENSION
+    }
+
     val commonRegFile = RegContainer.RegisterFile(
         name = "common",
         unsortedRegisters = arrayOf(
@@ -50,7 +64,7 @@ object T6502 {
         FileHandler("s"),
         RegContainer(listOf(commonRegFile), WORD_SIZE, "common"),
         Memory(MEM_ADDR_SIZE, initBin = "0".repeat(BYTE_SIZE.bitWidth), BYTE_SIZE, Memory.Endianess.LittleEndian),
-        Transcript()
+        Transcript(TSCompiledRow.entries.map { it.name }, TSDisassembledRow.entries.map { it.name })
     )
 
     val asmConfig = AsmConfig(

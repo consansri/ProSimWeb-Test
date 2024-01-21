@@ -350,6 +350,7 @@ object StyleAttr {
         const val report_bug = "benicons/report_bug.svg"
         const val return_subroutine = "benicons/return_subroutine.svg"
         const val reverse = "benicons/reverse.svg"
+        const val settings = "benicons/settings.svg"
         const val single_exe = "benicons/single_exe.svg"
         const val status_error = "benicons/status_error.svg"
         const val status_fine = "benicons/status_fine.svg"

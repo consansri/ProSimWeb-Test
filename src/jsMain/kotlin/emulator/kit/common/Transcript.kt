@@ -30,7 +30,10 @@ class Transcript(private val compiledHeaders: List<String> = listOf(), private v
     }
 
     fun addRow(type: Type, row: Row) {
-        disassembled.add(row)
+        when(type){
+            Type.COMPILED -> compiled.add(row)
+            Type.DISASSEMBLED ->disassembled.add(row)
+        }
     }
 
     fun addContent(type: Type, content: List<Row>) {

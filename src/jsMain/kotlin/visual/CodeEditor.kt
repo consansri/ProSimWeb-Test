@@ -962,7 +962,6 @@ object Formatter {
         ReFormat(Regex("""(,)\S"""), ", "),
         ReFormat(Regex("""\s+$"""), ""),
         ReFormat(Regex("""\r\n?"""), "\n"),
-        ReFormat(Regex(""":\s+"""), ": ")
     )
 }
 
