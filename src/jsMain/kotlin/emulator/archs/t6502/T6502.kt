@@ -37,7 +37,6 @@ object T6502 {
 
     enum class TSDisassembledRow {
         ADDRESS,
-        LABEL,
         INSTRUCTION,
         EXTENSION
     }

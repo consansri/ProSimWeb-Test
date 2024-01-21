@@ -67,7 +67,7 @@ class T6502Assembly : Assembly() {
             val extAddr = instrPair.first + Variable.Value.Hex("1", Variable.Size.Bit16())
             val extValue = if (instr.linkedLabel != null) labelBinAddrMap.get(instr.linkedLabel) else instr.imm
 
-            architecture.getTranscript().addRow(Transcript.Type.COMPILED, CompiledRow(instrPair.first, labelBinAddrMap.toList().filter { it.second.getRawHexStr() == instrPair.first.getRawHexStr() }.map { it.first }, instr, extValue?.toHex()))
+            architecture.getTranscript().addRow(Transcript.Type.COMPILED, CompiledRow(instrPair.first, labelBinAddrMap.toList().filter { it.second.getRawHexStr() == instrPair.first.getRawHexStr() }.map { it.first }, instr, extValue?.toHex(), instr.linkedLabel))
 
             if (instr.opCodeRelevantAMode.immSize == null) continue
 
@@ -82,12 +82,25 @@ class T6502Assembly : Assembly() {
         return AssemblyMap(lineAddressMap)
     }
 
-    class CompiledRow(addr: Variable.Value, labels: List<T6502Syntax.ELabel>, instr: T6502Syntax.EInstr, ext: Variable.Value.Hex?) : Transcript.Row(addr) {
+    class CompiledRow(addr: Variable.Value, labels: List<T6502Syntax.ELabel>, instr: T6502Syntax.EInstr, ext: Variable.Value.Hex?, extLabel: T6502Syntax.ELabel?) : Transcript.Row(addr) {
 
         val content = listOf(
             Entry(Orientation.CENTER, addr.toHex().toString()),
             Entry(Orientation.LEFT, labels.joinToString(", ") { it.labelName }),
             Entry(Orientation.LEFT, "${instr.instrType.name} ${instr.opCodeRelevantAMode.name}"),
+            Entry(Orientation.LEFT, "${if(extLabel != null) "${extLabel.labelName} -> " else ""}${ext?.getHexStr() ?: ""}" )
+        )
+
+        override fun getContent(): List<Entry> {
+            return content
+        }
+    }
+
+    class DisassembledRow(addr: Variable.Value, instrType: T6502Syntax.InstrType, amode: T6502Syntax.AModes, ext: Variable.Value.Hex?): Transcript.Row(addr){
+
+        val content = listOf(
+            Entry(Orientation.CENTER, addr.toHex().toString()),
+            Entry(Orientation.LEFT, "${instrType.name} ${amode.name}"),
             Entry(Orientation.LEFT, ext?.getHexStr() ?: "")
         )
 

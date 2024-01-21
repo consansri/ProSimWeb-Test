@@ -460,6 +460,11 @@ class Variable {
                 return Bin(BinaryTools.inv(getRawBinaryStr()), size)
             }
 
+            fun getBit(index: Int): Bin? {
+                val bit = getRawBinaryStr().getOrNull(index) ?: return null
+                return Bin(bit.toString(), Size.Bit1())
+            }
+
             data class NoMatch(val size: Size, val expectedSize: Size, val needsSignExtension: Boolean = false)
 
         }

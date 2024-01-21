@@ -8,8 +8,10 @@ import emulator.kit.common.Transcript
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.T6502Syntax.AModes.*
 import emulator.archs.t6502.T6502.BYTE_SIZE
+import emulator.archs.t6502.T6502.WORD_SIZE
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
 
 /**
  * T6502 Syntax
@@ -208,266 +210,456 @@ class T6502Syntax : Syntax() {
 
     enum class InstrType(val opCode: Map<AModes, Hex>) {
         // load, store, interregister transfer
-        LDA(
-            mapOf(
-                ABS to Hex("AD", BYTE_SIZE),
-                ABS_X to Hex("BD", BYTE_SIZE),
-                ABS_Y to Hex("B9", BYTE_SIZE),
-                IMM to Hex("A9", BYTE_SIZE),
-                ZP to Hex("A5", BYTE_SIZE),
-                ZP_X_IND to Hex("A1", BYTE_SIZE),
-                ZP_X to Hex("B5", BYTE_SIZE),
-                ZPIND_Y to Hex("B1", BYTE_SIZE)
-            )
-        ),
-        LDX(
-            mapOf(
-                ABS to Hex("AE", BYTE_SIZE),
-                ABS_Y to Hex("BE", BYTE_SIZE),
-                IMM to Hex("A2", BYTE_SIZE),
-                ZP to Hex("A6", BYTE_SIZE),
-                ZP_Y to Hex("B6", BYTE_SIZE)
-            )
-        ),
-        LDY(
-            mapOf(
-                ABS to Hex("AC", BYTE_SIZE),
-                ABS_X to Hex("BC", BYTE_SIZE),
-                IMM to Hex("A0", BYTE_SIZE),
-                ZP to Hex("A4", BYTE_SIZE),
-                ZP_X to Hex("B4", BYTE_SIZE)
-            )
-        ),
-        STA(
-            mapOf(
-                ABS to Hex("8D", BYTE_SIZE),
-                ABS_X to Hex("9D", BYTE_SIZE),
-                ABS_Y to Hex("99", BYTE_SIZE),
-                ZP to Hex("85", BYTE_SIZE),
-                ZP_X_IND to Hex("81", BYTE_SIZE),
-                ZP_X to Hex("95", BYTE_SIZE),
-                ZPIND_Y to Hex("91", BYTE_SIZE)
-            )
-        ),
-        STX(
-            mapOf(
-                ABS to Hex("8E", BYTE_SIZE),
-                ZP to Hex("86", BYTE_SIZE),
-                ZP_Y to Hex("96", BYTE_SIZE)
-            )
-        ),
-        STY(
-            mapOf(
-                ABS to Hex("8C", BYTE_SIZE),
-                ZP to Hex("84", BYTE_SIZE),
-                ZP_X to Hex("94", BYTE_SIZE)
-            )
-        ),
-        TAX(mapOf(IMPLIED to Hex("AA", BYTE_SIZE))),
-        TAY(mapOf(IMPLIED to Hex("A8", BYTE_SIZE))),
-        TSX(mapOf(IMPLIED to Hex("BA", BYTE_SIZE))),
-        TXA(mapOf(IMPLIED to Hex("8A", BYTE_SIZE))),
-        TXS(mapOf(IMPLIED to Hex("9A", BYTE_SIZE))),
-        TYA(mapOf(IMPLIED to Hex("98", BYTE_SIZE))),
+        LDA(mapOf(ABS to Hex("AD", BYTE_SIZE), ABS_X to Hex("BD", BYTE_SIZE), ABS_Y to Hex("B9", BYTE_SIZE), IMM to Hex("A9", BYTE_SIZE), ZP to Hex("A5", BYTE_SIZE), ZP_X_IND to Hex("A1", BYTE_SIZE), ZP_X to Hex("B5", BYTE_SIZE), ZPIND_Y to Hex("B1", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        LDX(mapOf(ABS to Hex("AE", BYTE_SIZE), ABS_Y to Hex("BE", BYTE_SIZE), IMM to Hex("A2", BYTE_SIZE), ZP to Hex("A6", BYTE_SIZE), ZP_Y to Hex("B6", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        LDY(mapOf(ABS to Hex("AC", BYTE_SIZE), ABS_X to Hex("BC", BYTE_SIZE), IMM to Hex("A0", BYTE_SIZE), ZP to Hex("A4", BYTE_SIZE), ZP_X to Hex("B4", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        STA(mapOf(ABS to Hex("8D", BYTE_SIZE), ABS_X to Hex("9D", BYTE_SIZE), ABS_Y to Hex("99", BYTE_SIZE), ZP to Hex("85", BYTE_SIZE), ZP_X_IND to Hex("81", BYTE_SIZE), ZP_X to Hex("95", BYTE_SIZE), ZPIND_Y to Hex("91", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        STX(mapOf(ABS to Hex("8E", BYTE_SIZE), ZP to Hex("86", BYTE_SIZE), ZP_Y to Hex("96", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        STY(mapOf(ABS to Hex("8C", BYTE_SIZE), ZP to Hex("84", BYTE_SIZE), ZP_X to Hex("94", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        TAX(mapOf(IMPLIED to Hex("AA", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        TAY(mapOf(IMPLIED to Hex("A8", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        TSX(mapOf(IMPLIED to Hex("BA", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        TXA(mapOf(IMPLIED to Hex("8A", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        TXS(mapOf(IMPLIED to Hex("9A", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        TYA(mapOf(IMPLIED to Hex("98", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // stack
-        PHA(mapOf(IMPLIED to Hex("48", BYTE_SIZE))),
-        PHP(mapOf(IMPLIED to Hex("08", BYTE_SIZE))),
-        PLA(mapOf(IMPLIED to Hex("68", BYTE_SIZE))),
-        PLP(mapOf(IMPLIED to Hex("28", BYTE_SIZE))),
+        PHA(mapOf(IMPLIED to Hex("48", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        PHP(mapOf(IMPLIED to Hex("08", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        PLA(mapOf(IMPLIED to Hex("68", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        PLP(mapOf(IMPLIED to Hex("28", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // decrements, increments
-        DEC(
-            mapOf(
-                ABS to Hex("CE", BYTE_SIZE),
-                ABS_X to Hex("DE", BYTE_SIZE),
-                ZP to Hex("C6", BYTE_SIZE),
-                ZP_X to Hex("D6", BYTE_SIZE)
-            )
-        ),
-        DEX(mapOf(IMPLIED to Hex("CA", BYTE_SIZE))),
-        DEY(mapOf(IMPLIED to Hex("88", BYTE_SIZE))),
-        INC(
-            mapOf(
-                ABS to Hex("EE", BYTE_SIZE),
-                ABS_X to Hex("FE", BYTE_SIZE),
-                ZP to Hex("E6", BYTE_SIZE),
-                ZP_X to Hex("F6", BYTE_SIZE)
-            )
-        ),
-        INX(mapOf(IMPLIED to Hex("E8", BYTE_SIZE))),
-        INY(mapOf(IMPLIED to Hex("C8", BYTE_SIZE))),
+        DEC(mapOf(ABS to Hex("CE", BYTE_SIZE), ABS_X to Hex("DE", BYTE_SIZE), ZP to Hex("C6", BYTE_SIZE), ZP_X to Hex("D6", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        DEX(mapOf(IMPLIED to Hex("CA", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        DEY(mapOf(IMPLIED to Hex("88", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        INC(mapOf(ABS to Hex("EE", BYTE_SIZE), ABS_X to Hex("FE", BYTE_SIZE), ZP to Hex("E6", BYTE_SIZE), ZP_X to Hex("F6", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        INX(mapOf(IMPLIED to Hex("E8", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        INY(mapOf(IMPLIED to Hex("C8", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // arithmetic operations
-        ADC(
-            mapOf(
-                ABS to Hex("6D", BYTE_SIZE),
-                ABS_X to Hex("7D", BYTE_SIZE),
-                ABS_Y to Hex("79", BYTE_SIZE),
-                IMM to Hex("69", BYTE_SIZE),
-                ZP to Hex("65", BYTE_SIZE),
-                ZP_X_IND to Hex("61", BYTE_SIZE),
-                ZP_X to Hex("75", BYTE_SIZE),
-                ZPIND_Y to Hex("71", BYTE_SIZE)
-            )
-        ),
-        SBC(
-            mapOf(
-                ABS to Hex("ED", BYTE_SIZE),
-                ABS_X to Hex("FD", BYTE_SIZE),
-                ABS_Y to Hex("F9", BYTE_SIZE),
-                IMM to Hex("E9", BYTE_SIZE),
-                ZP to Hex("E5", BYTE_SIZE),
-                ZP_X_IND to Hex("E1", BYTE_SIZE),
-                ZP_X to Hex("F5", BYTE_SIZE),
-                ZPIND_Y to Hex("F1", BYTE_SIZE)
-            )
-        ),
+        ADC(mapOf(ABS to Hex("6D", BYTE_SIZE), ABS_X to Hex("7D", BYTE_SIZE), ABS_Y to Hex("79", BYTE_SIZE), IMM to Hex("69", BYTE_SIZE), ZP to Hex("65", BYTE_SIZE), ZP_X_IND to Hex("61", BYTE_SIZE), ZP_X to Hex("75", BYTE_SIZE), ZPIND_Y to Hex("71", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                val operand = this.getOperand(arch, amode, nextByte, nextWord)
+                val ac = arch.getRegByName("AC")
+                val x = arch.getRegByName("X")
+                val y = arch.getRegByName("Y")
+                val sr = arch.getRegByName("SR")
+                val sp = arch.getRegByName("SP")
+
+                if (ac == null || x == null || y == null || sr == null || sp == null) {
+                    arch.getConsole().error("Register missing!")
+                    return
+                }
+
+                if (operand == null) {
+                    arch.getConsole().error("Couldn't calculate operand!")
+                    return
+                }
+
+                val nflag = sr.get().toBin().getBit(0) ?: return
+                val vflag = sr.get().toBin().getBit(1) ?: return
+                val bflag = sr.get().toBin().getBit(3) ?: return
+                val dflag = sr.get().toBin().getBit(4) ?: return
+                val iflag = sr.get().toBin().getBit(5) ?: return
+                val zflag = sr.get().toBin().getBit(6) ?: return
+                val cflag = sr.get().toBin().getBit(7) ?: return
+
+
+                val result = ac.get().toBin().getUResized(WORD_SIZE) + operand + cflag
+                ac.set(result.toBin().getUResized(BYTE_SIZE))
+
+
+                val nextPC = arch.getRegContainer().pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                arch.getRegContainer().pc.set(nextPC)
+            }
+        },
+        SBC(mapOf(ABS to Hex("ED", BYTE_SIZE), ABS_X to Hex("FD", BYTE_SIZE), ABS_Y to Hex("F9", BYTE_SIZE), IMM to Hex("E9", BYTE_SIZE), ZP to Hex("E5", BYTE_SIZE), ZP_X_IND to Hex("E1", BYTE_SIZE), ZP_X to Hex("F5", BYTE_SIZE), ZPIND_Y to Hex("F1", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // logical operations
-        AND(
-            mapOf(
-                ABS to Hex("2D", BYTE_SIZE),
-                ABS_X to Hex("3D", BYTE_SIZE),
-                ABS_Y to Hex("39", BYTE_SIZE),
-                IMM to Hex("29", BYTE_SIZE),
-                ZP to Hex("25", BYTE_SIZE),
-                ZP_X_IND to Hex("21", BYTE_SIZE),
-                ZP_X to Hex("35", BYTE_SIZE),
-                ZPIND_Y to Hex("31", BYTE_SIZE)
-            )
-        ),
-        EOR(
-            mapOf(
-                ABS to Hex("0D", BYTE_SIZE),
-                ABS_X to Hex("1D", BYTE_SIZE),
-                ABS_Y to Hex("19", BYTE_SIZE),
-                IMM to Hex("09", BYTE_SIZE),
-                ZP to Hex("05", BYTE_SIZE),
-                ZP_X_IND to Hex("01", BYTE_SIZE),
-                ZP_X to Hex("15", BYTE_SIZE),
-                ZPIND_Y to Hex("11", BYTE_SIZE)
-            )
-        ),
-        ORA(
-            mapOf(
-                ABS to Hex("4D", BYTE_SIZE),
-                ABS_X to Hex("5D", BYTE_SIZE),
-                ABS_Y to Hex("59", BYTE_SIZE),
-                IMM to Hex("49", BYTE_SIZE),
-                ZP to Hex("45", BYTE_SIZE),
-                ZP_X_IND to Hex("41", BYTE_SIZE),
-                ZP_X to Hex("55", BYTE_SIZE),
-                ZPIND_Y to Hex("51", BYTE_SIZE)
-            )
-        ),
+        AND(mapOf(ABS to Hex("2D", BYTE_SIZE), ABS_X to Hex("3D", BYTE_SIZE), ABS_Y to Hex("39", BYTE_SIZE), IMM to Hex("29", BYTE_SIZE), ZP to Hex("25", BYTE_SIZE), ZP_X_IND to Hex("21", BYTE_SIZE), ZP_X to Hex("35", BYTE_SIZE), ZPIND_Y to Hex("31", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        EOR(mapOf(ABS to Hex("0D", BYTE_SIZE), ABS_X to Hex("1D", BYTE_SIZE), ABS_Y to Hex("19", BYTE_SIZE), IMM to Hex("09", BYTE_SIZE), ZP to Hex("05", BYTE_SIZE), ZP_X_IND to Hex("01", BYTE_SIZE), ZP_X to Hex("15", BYTE_SIZE), ZPIND_Y to Hex("11", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        ORA(mapOf(ABS to Hex("4D", BYTE_SIZE), ABS_X to Hex("5D", BYTE_SIZE), ABS_Y to Hex("59", BYTE_SIZE), IMM to Hex("49", BYTE_SIZE), ZP to Hex("45", BYTE_SIZE), ZP_X_IND to Hex("41", BYTE_SIZE), ZP_X to Hex("55", BYTE_SIZE), ZPIND_Y to Hex("51", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // shift & rotate
-        ASL(
-            mapOf(
-                ABS to Hex("0E", BYTE_SIZE),
-                ABS_X to Hex("1E", BYTE_SIZE),
-                ACCUMULATOR to Hex("0A", BYTE_SIZE),
-                ZP to Hex("06", BYTE_SIZE),
-                ZP_X to Hex("16", BYTE_SIZE)
-            )
-        ),
-        LSR(
-            mapOf(
-                ABS to Hex("4E", BYTE_SIZE),
-                ABS_X to Hex("5E", BYTE_SIZE),
-                ACCUMULATOR to Hex("4A", BYTE_SIZE),
-                ZP to Hex("46", BYTE_SIZE),
-                ZP_X to Hex("56", BYTE_SIZE)
-            )
-        ),
-        ROL(
-            mapOf(
-                ABS to Hex("2E", BYTE_SIZE),
-                ABS_X to Hex("3E", BYTE_SIZE),
-                ACCUMULATOR to Hex("2A", BYTE_SIZE),
-                ZP to Hex("26", BYTE_SIZE),
-                ZP_X to Hex("36", BYTE_SIZE)
-            )
-        ),
-        ROR(
-            mapOf(
-                ABS to Hex("6E", BYTE_SIZE),
-                ABS_X to Hex("7E", BYTE_SIZE),
-                ACCUMULATOR to Hex("6A", BYTE_SIZE),
-                ZP to Hex("66", BYTE_SIZE),
-                ZP_X to Hex("76", BYTE_SIZE)
-            )
-        ),
+        ASL(mapOf(ABS to Hex("0E", BYTE_SIZE), ABS_X to Hex("1E", BYTE_SIZE), ACCUMULATOR to Hex("0A", BYTE_SIZE), ZP to Hex("06", BYTE_SIZE), ZP_X to Hex("16", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        LSR(mapOf(ABS to Hex("4E", BYTE_SIZE), ABS_X to Hex("5E", BYTE_SIZE), ACCUMULATOR to Hex("4A", BYTE_SIZE), ZP to Hex("46", BYTE_SIZE), ZP_X to Hex("56", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        ROL(mapOf(ABS to Hex("2E", BYTE_SIZE), ABS_X to Hex("3E", BYTE_SIZE), ACCUMULATOR to Hex("2A", BYTE_SIZE), ZP to Hex("26", BYTE_SIZE), ZP_X to Hex("36", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        ROR(mapOf(ABS to Hex("6E", BYTE_SIZE), ABS_X to Hex("7E", BYTE_SIZE), ACCUMULATOR to Hex("6A", BYTE_SIZE), ZP to Hex("66", BYTE_SIZE), ZP_X to Hex("76", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // flag
-        CLC(mapOf(IMPLIED to Hex("18", BYTE_SIZE))),
-        CLD(mapOf(IMPLIED to Hex("D8", BYTE_SIZE))),
-        CLI(mapOf(IMPLIED to Hex("58", BYTE_SIZE))),
-        CLV(mapOf(IMPLIED to Hex("B8", BYTE_SIZE))),
-        SEC(mapOf(IMPLIED to Hex("38", BYTE_SIZE))),
-        SED(mapOf(IMPLIED to Hex("F8", BYTE_SIZE))),
-        SEI(mapOf(IMPLIED to Hex("78", BYTE_SIZE))),
+        CLC(mapOf(IMPLIED to Hex("18", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        CLD(mapOf(IMPLIED to Hex("D8", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        CLI(mapOf(IMPLIED to Hex("58", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        CLV(mapOf(IMPLIED to Hex("B8", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        SEC(mapOf(IMPLIED to Hex("38", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        SED(mapOf(IMPLIED to Hex("F8", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        SEI(mapOf(IMPLIED to Hex("78", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // comparison
-        CMP(
-            mapOf(
-                ABS to Hex("CD", BYTE_SIZE),
-                ABS_X to Hex("DD", BYTE_SIZE),
-                ABS_Y to Hex("D9", BYTE_SIZE),
-                IMM to Hex("C9", BYTE_SIZE),
-                ZP to Hex("C5", BYTE_SIZE),
-                ZP_X_IND to Hex("C1", BYTE_SIZE),
-                ZP_X to Hex("D5", BYTE_SIZE),
-                ZPIND_Y to Hex("D1", BYTE_SIZE)
-            )
-        ),
-        CPX(
-            mapOf(
-                ABS to Hex("EC", BYTE_SIZE),
-                IMM to Hex("E0", BYTE_SIZE),
-                ZP to Hex("E4", BYTE_SIZE)
-            )
-        ),
-        CPY(
-            mapOf(
-                ABS to Hex("CC", BYTE_SIZE),
-                IMM to Hex("C0", BYTE_SIZE),
-                ZP to Hex("C4", BYTE_SIZE)
-            )
-        ),
+        CMP(mapOf(ABS to Hex("CD", BYTE_SIZE), ABS_X to Hex("DD", BYTE_SIZE), ABS_Y to Hex("D9", BYTE_SIZE), IMM to Hex("C9", BYTE_SIZE), ZP to Hex("C5", BYTE_SIZE), ZP_X_IND to Hex("C1", BYTE_SIZE), ZP_X to Hex("D5", BYTE_SIZE), ZPIND_Y to Hex("D1", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        CPX(mapOf(ABS to Hex("EC", BYTE_SIZE), IMM to Hex("E0", BYTE_SIZE), ZP to Hex("E4", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        CPY(mapOf(ABS to Hex("CC", BYTE_SIZE), IMM to Hex("C0", BYTE_SIZE), ZP to Hex("C4", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // conditional branches
-        BCC(mapOf(REL to Hex("90", BYTE_SIZE))),
-        BCS(mapOf(REL to Hex("B0", BYTE_SIZE))),
-        BEQ(mapOf(REL to Hex("F0", BYTE_SIZE))),
-        BMI(mapOf(REL to Hex("30", BYTE_SIZE))),
-        BNE(mapOf(REL to Hex("D0", BYTE_SIZE))),
-        BPL(mapOf(REL to Hex("10", BYTE_SIZE))),
-        BVC(mapOf(REL to Hex("50", BYTE_SIZE))),
-        BVS(mapOf(REL to Hex("70", BYTE_SIZE))),
+        BCC(mapOf(REL to Hex("90", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        BCS(mapOf(REL to Hex("B0", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        BEQ(mapOf(REL to Hex("F0", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        BMI(mapOf(REL to Hex("30", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        BNE(mapOf(REL to Hex("D0", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        BPL(mapOf(REL to Hex("10", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        BVC(mapOf(REL to Hex("50", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        BVS(mapOf(REL to Hex("70", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // jumps, subroutines
-        JMP(mapOf(ABS to Hex("4C", BYTE_SIZE), IND to Hex("6C", BYTE_SIZE))),
-        JSR(mapOf(ABS to Hex("20", BYTE_SIZE))),
-        RTS(mapOf(IMPLIED to Hex("60", BYTE_SIZE))),
+        JMP(mapOf(ABS to Hex("4C", BYTE_SIZE), IND to Hex("6C", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        JSR(mapOf(ABS to Hex("20", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        RTS(mapOf(IMPLIED to Hex("60", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // interrupts
-        BRK(mapOf(IMPLIED to Hex("00", BYTE_SIZE))),
-        RTI(mapOf(IMPLIED to Hex("40", BYTE_SIZE))),
+        BRK(mapOf(IMPLIED to Hex("00", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        RTI(mapOf(IMPLIED to Hex("40", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
 
         // other
-        BIT(
-            mapOf(
-                ABS to Hex("2C", BYTE_SIZE),
-                IMM to Hex("89", BYTE_SIZE),
-                ZP to Hex("24", BYTE_SIZE)
-            )
-        ),
-        NOP(mapOf(IMPLIED to Hex("EA", BYTE_SIZE)));
+        BIT(mapOf(ABS to Hex("2C", BYTE_SIZE), IMM to Hex("89", BYTE_SIZE), ZP to Hex("24", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        },
+        NOP(mapOf(IMPLIED to Hex("EA", BYTE_SIZE))) {
+            override fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+                TODO("Not yet implemented")
+            }
+        };
 
-        open fun execute(arch: Architecture, nextByte: Hex, nextWord: Hex) {
-            arch.getConsole().log("executing ${this.name}...")
+        abstract fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex)
+
+        fun getOperand(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex): Hex? {
+            val pc = arch.getRegContainer().pc
+            val ac = arch.getRegByName("AC")
+            val x = arch.getRegByName("X")
+            val y = arch.getRegByName("Y")
+            val sr = arch.getRegByName("SR")
+            val sp = arch.getRegByName("SP")
+
+            if (ac == null || x == null || y == null || sr == null || sp == null) return null
+
+            return when (amode) {
+                IMM -> {
+                    nextByte
+                }
+
+                ZP -> {
+                    arch.getMemory().load(nextByte.getUResized(WORD_SIZE)).toHex()
+                }
+
+                ZP_X -> {
+                    val addr = (nextByte + x.get()).toHex().getUResized(WORD_SIZE)
+                    arch.getMemory().load(addr.toHex()).toHex()
+                }
+
+                ZP_Y -> {
+                    val addr = (nextByte + y.get()).toHex().getUResized(WORD_SIZE)
+                    arch.getMemory().load(addr.toHex()).toHex()
+                }
+
+                ABS -> {
+                    arch.getMemory().load(nextWord).toHex()
+                }
+
+                ABS_X -> {
+                    val addr = nextWord + x.get().toHex()
+                    arch.getMemory().load(addr.toHex()).toHex()
+                }
+
+                ABS_Y -> {
+                    val addr = nextWord + y.get().toHex()
+                    arch.getMemory().load(addr.toHex()).toHex()
+                }
+
+                IND -> {
+                    val loadedAddr = arch.getMemory().load(nextWord).toHex()
+                    arch.getMemory().load(loadedAddr).toHex()
+                }
+
+                ZP_X_IND -> {
+                    val addr = (nextByte + x.get()).toHex().getUResized(WORD_SIZE)
+                    val loadedAddr = arch.getMemory().load(addr.toHex()).toHex()
+                    arch.getMemory().load(loadedAddr).toHex()
+                }
+
+                ZPIND_Y -> {
+                    val loadedAddr = arch.getMemory().load(nextWord)
+                    val incAddr = loadedAddr + y.get()
+                    arch.getMemory().load(incAddr.toHex()).toHex()
+                }
+
+                ACCUMULATOR -> {
+                    ac.get().toHex()
+                }
+
+                REL -> {
+                    (pc.get() + nextByte.toBin().getResized(WORD_SIZE)).toHex()
+                }
+
+                else -> null
+            }
+        }
+
+        fun setFlags(arch: Architecture, result16: Bin, n: Boolean = false, z: Boolean = false, c: Boolean = false,  v: Boolean = false,  seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {
+            val sr = arch.getRegByName("SR") ?: return
+
+            var nflag = sr.get().toBin().getBit(0) ?: return
+            var vflag = sr.get().toBin().getBit(1) ?: return
+            var bflag = sr.get().toBin().getBit(3) ?: return
+            var dflag = sr.get().toBin().getBit(4) ?: return
+            var iflag = sr.get().toBin().getBit(5) ?: return
+            var zflag = sr.get().toBin().getBit(6) ?: return
+            var cflag = sr.get().toBin().getBit(7) ?: return
+
+            if (n) {
+                nflag = result16.getBit(8) ?: return
+            }
+            if (z) {
+                zflag = if (result16 == Bin("0", WORD_SIZE)) {
+                    Bin("1", Bit1())
+                } else {
+                    Bin("0", Bit1())
+                }
+            }
+            if (c) {
+                cflag = result16.getBit(7) ?: return
+            }
+            if (seti != null) {
+                iflag = if(seti) Bin("1", Bit1()) else Bin("0", Bit1())
+            }
+            if (setd != null) {
+                dflag = if(setd) Bin("1", Bit1()) else Bin("0", Bit1())
+            }
+            if(setb != null){
+                bflag = if(setb) Bin("1", Bit1()) else Bin("0", Bit1())
+            }
+            if (v) {
+                vflag = if (Bin(result16.getRawBinaryStr().substring(0, 8), BYTE_SIZE) == Bin("0", BYTE_SIZE)) {
+                    Bin("0", Bit1())
+                } else {
+                    Bin("1", Bit1())
+                }
+            }
+
+            sr.set(Bin("${nflag.getRawBinaryStr()}${vflag.getRawBinaryStr()}0${bflag.getRawBinaryStr()}${dflag.getRawBinaryStr()}${iflag.getRawBinaryStr()}${zflag.getRawBinaryStr()}${cflag.getRawBinaryStr()}", BYTE_SIZE))
         }
     }
 

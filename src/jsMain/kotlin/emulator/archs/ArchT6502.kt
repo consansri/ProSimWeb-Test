@@ -17,15 +17,36 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
         val currentPC = getRegContainer().pc.get().toHex()
         val opCode = getMemory().load(currentPC).toHex()
         val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) }
+        val amode = instrType?.opCode?.map { it.value to it.key }?.toMap()?.get(opCode)
 
-        if (instrType == null) {
+        if (instrType == null || amode == null) {
             getConsole().error("Couldn't resolve Instruction at Address ${currentPC}!")
             return
         }
+
         val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
 
-        instrType.execute(this, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+        instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+    }
 
+    override fun exeContinuous() {
+        super.exeContinuous()
+
+        var currentPC = getRegContainer().pc.get().toHex()
+        var opCode = getMemory().load(currentPC).toHex()
+        var instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) }
+        var amode = instrType?.opCode?.map { it.value to it.key }?.toMap()?.get(opCode)
+
+        while (instrType != null && amode != null) {
+            val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+
+            instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+
+            currentPC = getRegContainer().pc.get().toHex()
+            opCode = getMemory().load(currentPC).toHex()
+            instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) }
+            amode = instrType?.opCode?.map { it.value to it.key }?.toMap()?.get(opCode)
+        }
     }
 
 }
