@@ -152,7 +152,7 @@ class Variable {
         override fun equals(other: Any?): Boolean {
             when (other) {
                 is Value -> {
-                    return BinaryTools.isEqual(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())
+                    return BinaryTools.isEqual(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())
                 }
             }
             return super.equals(other)
@@ -211,7 +211,7 @@ class Variable {
                 }
             }
 
-            fun getRawBinaryStr(): String {
+            fun getRawBinStr(): String {
                 return binString.removePrefix(Settings.PRESTRING_BINARY)
             }
 
@@ -221,18 +221,18 @@ class Variable {
 
             fun getUResized(size: Size): Bin {
                 val paddedBinString = if (size.bitWidth < this.size.bitWidth) {
-                    getRawBinaryStr().substring(getRawBinaryStr().length - size.bitWidth)
+                    getRawBinStr().substring(getRawBinStr().length - size.bitWidth)
                 } else {
-                    getRawBinaryStr().padStart(size.bitWidth, '0')
+                    getRawBinStr().padStart(size.bitWidth, '0')
                 }
                 return Bin(paddedBinString, size)
             }
 
             fun getResized(size: Size): Bin {
                 val paddedBinString = if (size.bitWidth < this.size.bitWidth) {
-                    getRawBinaryStr().substring(getRawBinaryStr().length - size.bitWidth)
+                    getRawBinStr().substring(getRawBinStr().length - size.bitWidth)
                 } else {
-                    getRawBinaryStr().padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                    getRawBinStr().padStart(size.bitWidth, if (getRawBinStr().first() == '1') '1' else '0')
                 }
                 return Bin(paddedBinString, size)
             }
@@ -270,12 +270,12 @@ class Variable {
                     }
 
                     this.size.bitWidth > size.bitWidth -> {
-                        val exceeding = this.getRawBinaryStr().substring(0, this.size.bitWidth - size.bitWidth)
+                        val exceeding = this.getRawBinStr().substring(0, this.size.bitWidth - size.bitWidth)
                         if (exceeding.indexOf('1') == -1) null else NoMatch(this.size, size)
                     }
 
                     this.size.bitWidth < size.bitWidth -> {
-                        if (this.getRawBinaryStr().first() == '1') {
+                        if (this.getRawBinStr().first() == '1') {
                             return NoMatch(this.size, size, true)
                         }
                         return null
@@ -294,7 +294,7 @@ class Variable {
                     }
 
                     this.size.bitWidth > size.bitWidth -> {
-                        val exceeding = this.getRawBinaryStr().substring(0, this.size.bitWidth - size.bitWidth)
+                        val exceeding = this.getRawBinStr().substring(0, this.size.bitWidth - size.bitWidth)
                         return if (exceeding.first() == '0') {
                             if (exceeding.indexOf('1') == -1) null else NoMatch(this.size, size)
                         } else {
@@ -303,7 +303,7 @@ class Variable {
                     }
 
                     this.size.bitWidth < size.bitWidth -> {
-                        if (this.getRawBinaryStr().first() == '1') {
+                        if (this.getRawBinStr().first() == '1') {
                             return NoMatch(this.size, size, true)
                         }
                         return null
@@ -344,19 +344,19 @@ class Variable {
             }
 
             override fun plus(operand: Value): Value {
-                val result = BinaryTools.add(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val result = BinaryTools.add(this.getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize)
             }
 
             override fun minus(operand: Value): Value {
-                val result = BinaryTools.sub(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val result = BinaryTools.sub(this.getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize)
             }
 
             override fun times(operand: Value): Value {
-                val result = BinaryTools.multiply(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val result = BinaryTools.multiply(this.getRawBinStr(), operand.toBin().getRawBinStr())
                 //val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result)
             }
@@ -365,52 +365,52 @@ class Variable {
              * Flexible Multiplication Operation
              */
             fun flexTimesSigned(factor: Bin, resizeToLargestParamSize: Boolean = true, factorIsUnsigned: Boolean = false): Bin {
-                val result = if (factorIsUnsigned) BinaryTools.multiplyMixed(this.getRawBinaryStr(), factor.getRawBinaryStr()) else BinaryTools.multiplySigned(this.getRawBinaryStr(), factor.getRawBinaryStr())
+                val result = if (factorIsUnsigned) BinaryTools.multiplyMixed(this.getRawBinStr(), factor.getRawBinStr()) else BinaryTools.multiplySigned(this.getRawBinStr(), factor.getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > factor.size.bitWidth) this.size else factor.size
 
                 return if (resizeToLargestParamSize) Bin(result).getResized(biggerSize) else Bin(result)
             }
 
             override fun div(operand: Value): Value {
-                val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val divResult = BinaryTools.divide(this.getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(divResult.result).getUResized(biggerSize)
             }
 
             fun flexDivSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true, dividendIsUnsigned: Boolean = false): Bin {
-                val divResult =if(dividendIsUnsigned) BinaryTools.divideMixed(this.getRawBinaryStr(), divisor.getRawBinaryStr()) else BinaryTools.divideSigned(this.getRawBinaryStr(), divisor.getRawBinaryStr())
+                val divResult =if(dividendIsUnsigned) BinaryTools.divideMixed(this.getRawBinStr(), divisor.getRawBinStr()) else BinaryTools.divideSigned(this.getRawBinStr(), divisor.getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) this.size else divisor.size
                 return if (resizeToLargestParamSize) Bin(divResult.result).getResized(biggerSize) else Bin(divResult.result)
             }
 
             override fun rem(operand: Value): Value {
-                val divResult = BinaryTools.divide(this.getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val divResult = BinaryTools.divide(this.getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
             }
 
             fun flexRemSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true): Bin {
-                val divResult = BinaryTools.divideSigned(this.getRawBinaryStr(), divisor.getRawBinaryStr())
+                val divResult = BinaryTools.divideSigned(this.getRawBinStr(), divisor.getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) this.size else divisor.size
                 return if (resizeToLargestParamSize) Bin(BinaryTools.checkEmpty(divResult.remainder)).getResized(biggerSize) else Bin(divResult.remainder)
             }
 
             override fun unaryMinus(): Value {
-                return Bin(BinaryTools.negotiate(this.getRawBinaryStr()), size)
+                return Bin(BinaryTools.negotiate(this.getRawBinStr()), size)
             }
 
             override fun inc(): Value {
-                return Bin(BinaryTools.add(this.getRawBinaryStr(), "1"), size)
+                return Bin(BinaryTools.add(this.getRawBinStr(), "1"), size)
             }
 
             override fun dec(): Value {
-                return Bin(BinaryTools.sub(this.getRawBinaryStr(), "1"), size)
+                return Bin(BinaryTools.sub(this.getRawBinStr(), "1"), size)
             }
 
             override fun compareTo(other: Value): Int {
-                return if (BinaryTools.isEqual(getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                return if (BinaryTools.isEqual(getRawBinStr(), other.toBin().getRawBinStr())) {
                     0
-                } else if (BinaryTools.isGreaterThan(getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                } else if (BinaryTools.isGreaterThan(getRawBinStr(), other.toBin().getRawBinStr())) {
                     1
                 } else {
                     -1
@@ -422,46 +422,46 @@ class Variable {
             }
 
             infix fun shl(bitCount: Int): Bin {
-                val shiftedBinary = getRawBinaryStr().substring(bitCount).padEnd(size.bitWidth, '0')
+                val shiftedBinary = getRawBinStr().substring(bitCount).padEnd(size.bitWidth, '0')
                 return Bin(shiftedBinary, size)
             }
 
             infix fun ushl(bitCount: Int): Bin {
-                val shiftedBinary = getRawBinaryStr().substring(bitCount).padEnd(size.bitWidth, '0')
+                val shiftedBinary = getRawBinStr().substring(bitCount).padEnd(size.bitWidth, '0')
                 return Bin(shiftedBinary, size)
             }
 
             infix fun shr(bitCount: Int): Bin {
-                val shiftedBinary = getRawBinaryStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, if (getRawBinaryStr().first() == '1') '1' else '0')
+                val shiftedBinary = getRawBinStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, if (getRawBinStr().first() == '1') '1' else '0')
                 return Bin(shiftedBinary, size)
             }
 
             infix fun ushr(bitCount: Int): Bin {
-                val shiftedBinary = getRawBinaryStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, '0')
+                val shiftedBinary = getRawBinStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, '0')
                 return Bin(shiftedBinary, size)
             }
 
             infix fun xor(bin2: Bin): Bin {
                 val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-                return Bin(BinaryTools.xor(getRawBinaryStr(), bin2.getRawBinaryStr()), biggestSize)
+                return Bin(BinaryTools.xor(getRawBinStr(), bin2.getRawBinStr()), biggestSize)
             }
 
             infix fun or(bin2: Bin): Bin {
                 val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-                return Bin(BinaryTools.or(getRawBinaryStr(), bin2.getRawBinaryStr()), biggestSize)
+                return Bin(BinaryTools.or(getRawBinStr(), bin2.getRawBinStr()), biggestSize)
             }
 
             infix fun and(bin2: Bin): Bin {
                 val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-                return Bin(BinaryTools.and(getRawBinaryStr(), bin2.getRawBinaryStr()), biggestSize)
+                return Bin(BinaryTools.and(getRawBinStr(), bin2.getRawBinStr()), biggestSize)
             }
 
             operator fun inv(): Bin {
-                return Bin(BinaryTools.inv(getRawBinaryStr()), size)
+                return Bin(BinaryTools.inv(getRawBinStr()), size)
             }
 
             fun getBit(index: Int): Bin? {
-                val bit = getRawBinaryStr().getOrNull(index) ?: return null
+                val bit = getRawBinStr().getOrNull(index) ?: return null
                 return Bin(bit.toString(), Size.Bit1())
             }
 
@@ -541,51 +541,51 @@ class Variable {
             }
 
             override fun plus(operand: Value): Value {
-                val result = BinaryTools.add(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val result = BinaryTools.add(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize).toHex()
             }
 
             override fun minus(operand: Value): Value {
-                val result = BinaryTools.sub(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val result = BinaryTools.sub(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize).toHex()
             }
 
             override fun times(operand: Value): Value {
-                val result = BinaryTools.multiply(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val result = BinaryTools.multiply(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize).toHex()
             }
 
             override fun div(operand: Value): Value {
-                val divResult = BinaryTools.divide(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(divResult.result, biggerSize).toHex()
             }
 
             override fun rem(operand: Value): Value {
-                val divResult = BinaryTools.divide(this.toBin().getRawBinaryStr(), operand.toBin().getRawBinaryStr())
+                val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize).toHex()
             }
 
             override fun unaryMinus(): Value {
-                return Bin(BinaryTools.negotiate(this.toBin().getRawBinaryStr()), size).toHex()
+                return Bin(BinaryTools.negotiate(this.toBin().getRawBinStr()), size).toHex()
             }
 
             override fun inc(): Value {
-                return Bin(BinaryTools.add(this.toBin().getRawBinaryStr(), "1"), size).toHex()
+                return Bin(BinaryTools.add(this.toBin().getRawBinStr(), "1"), size).toHex()
             }
 
             override fun dec(): Value {
-                return Bin(BinaryTools.sub(this.toBin().getRawBinaryStr(), "1"), size).toHex()
+                return Bin(BinaryTools.sub(this.toBin().getRawBinStr(), "1"), size).toHex()
             }
 
             override fun compareTo(other: Value): Int {
-                return if (BinaryTools.isEqual(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                return if (BinaryTools.isEqual(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
                     0
-                } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinaryStr(), other.toBin().getRawBinaryStr())) {
+                } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
                     1
                 } else {
                     -1
@@ -914,7 +914,7 @@ class Variable {
             fun getHex(bin: Bin): Hex {
                 var hexStr = ""
 
-                var binStr = bin.getRawBinaryStr()
+                var binStr = bin.getRawBinStr()
                 binStr = if (binStr.length % 4 != 0) {
                     "0".repeat(4 - (binStr.length % 4)) + binStr
                 } else {
@@ -1011,7 +1011,7 @@ class Variable {
             }
 
             fun getDec(bin: Bin): Dec {
-                var binString = bin.getRawBinaryStr()
+                var binString = bin.getRawBinStr()
                 var decString = "0"
                 val negative: Boolean
 
@@ -1048,7 +1048,7 @@ class Variable {
             }
 
             fun getUDec(bin: Bin): UDec {
-                val binString = bin.getRawBinaryStr()
+                val binString = bin.getRawBinStr()
 
                 var udecString = "0"
                 if (binString.isNotEmpty()) {

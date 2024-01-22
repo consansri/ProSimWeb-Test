@@ -158,7 +158,7 @@ class Memory(
         var instanceAddress = address.getUResized(addressSize)
         for (i in 0..<amount) {
             val value = load(instanceAddress)
-            instances.add(value.toBin().getRawBinaryStr())
+            instances.add(value.toBin().getRawBinStr())
             instanceAddress = (instanceAddress + Variable.Value.Hex("01", Variable.Size.Bit8())).toHex()
         }
 

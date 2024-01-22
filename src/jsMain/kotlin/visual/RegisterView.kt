@@ -263,7 +263,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                         pattern = "[01]+"
                                                         placeholder = Settings.PRESTRING_BINARY
                                                         maxLength = reg.variable.size.bitWidth
-                                                        defaultValue = reg.variable.get().toBin().getRawBinaryStr()
+                                                        defaultValue = reg.variable.get().toBin().getRawBinStr()
                                                     }
 
                                                     Dec -> {
@@ -322,7 +322,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                                 }
 
                                                                 Bin -> {
-                                                                    currentTarget.value = reg.variable.get().toBin().getRawBinaryStr()
+                                                                    currentTarget.value = reg.variable.get().toBin().getRawBinStr()
                                                                 }
 
                                                                 Dec -> {
@@ -401,7 +401,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         }
 
                         Bin -> {
-                            reg.variable.get().toBin().getRawBinaryStr()
+                            reg.variable.get().toBin().getRawBinStr()
                         }
 
                         Dec -> {
@@ -443,7 +443,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         }
 
                         Bin -> {
-                            reg.variable.get().toBin().getRawBinaryStr()
+                            reg.variable.get().toBin().getRawBinStr()
                         }
 
                         Dec -> {
@@ -485,7 +485,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         }
 
                         Bin -> {
-                            reg.variable.get().toBin().getRawBinaryStr()
+                            reg.variable.get().toBin().getRawBinStr()
                         }
 
                         Dec -> {

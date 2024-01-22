@@ -45,17 +45,17 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                         RV64BinMapper.MaskLabel.IMM5, RV64BinMapper.MaskLabel.IMM7, RV64BinMapper.MaskLabel.IMM12, RV64BinMapper.MaskLabel.IMM20 -> {
                             when (result.type) {
                                 RV64Syntax.R_INSTR.InstrType.JAL -> {
-                                    jalOffset20 = it.value.getRawBinaryStr()
+                                    jalOffset20 = it.value.getRawBinStr()
                                 }
 
                                 RV64Syntax.R_INSTR.InstrType.BEQ, RV64Syntax.R_INSTR.InstrType.BNE, RV64Syntax.R_INSTR.InstrType.BLT, RV64Syntax.R_INSTR.InstrType.BGE, RV64Syntax.R_INSTR.InstrType.BLTU, RV64Syntax.R_INSTR.InstrType.BGEU -> {
                                     when (it.key) {
                                         RV64BinMapper.MaskLabel.IMM5 -> {
-                                            branchOffset5 = it.value.getRawBinaryStr()
+                                            branchOffset5 = it.value.getRawBinStr()
                                         }
 
                                         RV64BinMapper.MaskLabel.IMM7 -> {
-                                            branchOffset7 = it.value.getRawBinaryStr()
+                                            branchOffset7 = it.value.getRawBinStr()
                                         }
 
                                         else -> {}
@@ -346,7 +346,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
             // adding bss addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in bssList) {
                 if (alloc is Entry.LabeledDataEntry) {
-                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinStr()
                 }
                 memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
@@ -354,7 +354,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
             // adding rodata addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in rodataList) {
                 if (alloc is Entry.LabeledDataEntry) {
-                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinStr()
                 }
                 memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA, true)
             }
@@ -362,7 +362,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
             // adding data alloc addresses and labels to labelLink Map and storing alloc constants to memory
             for (alloc in dataList) {
                 if (alloc is Entry.LabeledDataEntry) {
-                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                    labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinStr()
                 }
                 memory.storeArray(address = alloc.address, values = alloc.values, StyleAttr.Main.Table.Mark.DATA)
             }
@@ -381,7 +381,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                                 instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") { param ->
                                     param.getAllTokens().joinToString("") { it.content }
                                 }
-                            } to ${binary.joinToString { it.getRawBinaryStr() }}]"
+                            } to ${binary.joinToString { it.getRawBinStr() }}]"
                         )
                     }
                     for (wordID in binary.indices) {

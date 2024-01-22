@@ -59,17 +59,17 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
                         RV32BinMapper.MaskLabel.IMM5, RV32BinMapper.MaskLabel.IMM7, RV32BinMapper.MaskLabel.IMM12, RV32BinMapper.MaskLabel.IMM20 -> {
                             when (result.type) {
                                 JAL -> {
-                                    jalOffset20 = it.value.getRawBinaryStr()
+                                    jalOffset20 = it.value.getRawBinStr()
                                 }
 
                                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
                                     when (it.key) {
                                         RV32BinMapper.MaskLabel.IMM5 -> {
-                                            branchOffset5 = it.value.getRawBinaryStr()
+                                            branchOffset5 = it.value.getRawBinStr()
                                         }
 
                                         RV32BinMapper.MaskLabel.IMM7 -> {
-                                            branchOffset7 = it.value.getRawBinaryStr()
+                                            branchOffset7 = it.value.getRawBinStr()
                                         }
 
                                         else -> {}
@@ -362,7 +362,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
             for (alloc in bssList) {
                 when (alloc) {
                     is Entry.LabeledDataEntry -> {
-                        labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                        labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinStr()
                     }
 
                     is Entry.DataEntry -> {}
@@ -375,7 +375,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
             for (alloc in roDataList) {
                 when (alloc) {
                     is Entry.LabeledDataEntry -> {
-                        labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                        labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinStr()
                     }
 
                     is Entry.DataEntry -> {}
@@ -388,7 +388,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
             for (alloc in dataList) {
                 when (alloc) {
                     is Entry.LabeledDataEntry -> {
-                        labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinaryStr()
+                        labelBinAddrMap[alloc.label] = alloc.address.toBin().getRawBinStr()
                     }
 
                     is Entry.DataEntry -> {}
@@ -408,7 +408,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
                             instr.value.paramcoll?.paramsWithOutSplitSymbols?.joinToString(",") {param -> 
                                 param.getAllTokens().joinToString("") { it.content }
                             }
-                        } to ${binary.joinToString { it.getRawBinaryStr() }}]"
+                        } to ${binary.joinToString { it.getRawBinStr() }}]"
                     )
                 }
                 for (wordID in binary.indices) {
