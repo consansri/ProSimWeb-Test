@@ -1,10 +1,10 @@
 plugins {
-    kotlin("multiplatform") version "1.9.21"
+    kotlin("multiplatform") version "1.9.22"
     id("org.jetbrains.dokka") version "1.9.0"
 }
 
 group = "me.c3"
-version = "0.1.8"
+version = "0.1.9"
 
 val doodle_version: String by project
 

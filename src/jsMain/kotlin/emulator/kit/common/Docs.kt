@@ -21,6 +21,19 @@ class Docs(vararg htmlFiles: HtmlFile) {
         ),
         HtmlFile.DefinedFile("Version - ${Constants.VERSION}", FC<Props> {
 
+            h2 { +"Version - 0.1.9" }
+            h3 { +"New" }
+            ul {
+                li { +"KIT 6502 Technology in Preview!" }
+                li { +"REACT Editor shortcut CTRL + S to build the project!" }
+            }
+            h3 { +"Changed" }
+            ul {
+                li { +"REACT Editor code reformat is a little enhanced." }
+                li { +"KIT Automatic syntax checks replace old pre highlighting." }
+                li { +"GLOBAL Upgraded to Kotlin 1.9.22" }
+            }
+
             h2 { +"Version - 0.1.8" }
             h3 { +"New" }
             ul {
