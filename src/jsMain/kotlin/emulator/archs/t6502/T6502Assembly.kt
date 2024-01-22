@@ -5,13 +5,35 @@ import emulator.kit.assembly.Assembly
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Size.*
 
 class T6502Assembly : Assembly() {
-    private val labelBinAddrMap = mutableMapOf<T6502Syntax.ELabel, Variable.Value.Hex>()
-    private val instrAddrList = mutableListOf<Pair<Variable.Value.Hex, T6502Syntax.EInstr>>()
+    private val labelBinAddrMap = mutableMapOf<T6502Syntax.ELabel, Hex>()
+    private val instrAddrList = mutableListOf<Pair<Hex, T6502Syntax.EInstr>>()
 
     override fun disassemble(architecture: Architecture) {
+        val firstAddress = instrAddrList.minBy { it.first.getRawHexStr() }.first
+        val lastAddress = instrAddrList.maxBy { it.first.getRawHexStr() }.first
+        var nextAddress = firstAddress
+        var nextOpCode = architecture.getMemory().load(nextAddress).toHex()
 
+        while (true) {
+            val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(nextOpCode) } ?: break
+            val amode = instrType.opCode.map { it.value to it.key }.toMap()[nextOpCode] ?: break
+
+            val extAddr = (nextAddress + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+            val nextByte = architecture.getMemory().load(extAddr).toHex()
+            val nextWord = architecture.getMemory().load(extAddr, 2).toHex()
+
+            val row = DisassembledRow(nextAddress, instrType, amode, nextByte, nextWord)
+            architecture.getTranscript().addRow(Transcript.Type.DISASSEMBLED, row)
+
+            if (nextAddress.getRawHexStr() == lastAddress.getRawHexStr()) break
+
+            nextAddress = (if (amode.immSize != null) nextAddress + Hex((amode.immSize.getByteCount() + 1).toString(16), T6502.WORD_SIZE) else nextAddress + Hex("1", T6502.WORD_SIZE)).toHex()
+            nextOpCode = architecture.getMemory().load(nextAddress).toHex()
+        }
     }
 
     override fun assemble(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
@@ -65,7 +87,7 @@ class T6502Assembly : Assembly() {
             architecture.getMemory().store(instrPair.first, opCode, mark = StyleAttr.Main.Table.Mark.PROGRAM)
 
             val extAddr = instrPair.first + Variable.Value.Hex("1", Variable.Size.Bit16())
-            val extValue = if (instr.linkedLabel != null) labelBinAddrMap.get(instr.linkedLabel) else instr.imm
+            val extValue = if (instr.linkedLabel != null) labelBinAddrMap[instr.linkedLabel] else instr.imm
 
             architecture.getTranscript().addRow(Transcript.Type.COMPILED, CompiledRow(instrPair.first, labelBinAddrMap.toList().filter { it.second.getRawHexStr() == instrPair.first.getRawHexStr() }.map { it.first }, instr, extValue?.toHex(), instr.linkedLabel))
 
@@ -87,8 +109,8 @@ class T6502Assembly : Assembly() {
         val content = listOf(
             Entry(Orientation.CENTER, addr.toHex().toString()),
             Entry(Orientation.LEFT, labels.joinToString(", ") { it.labelName }),
-            Entry(Orientation.LEFT, "${instr.instrType.name} ${instr.opCodeRelevantAMode.name}"),
-            Entry(Orientation.LEFT, "${if(extLabel != null) "${extLabel.labelName} -> " else ""}${ext?.getHexStr() ?: ""}" )
+            Entry(Orientation.LEFT, "${instr.instrType.name} (${instr.opCodeRelevantAMode.name})"),
+            Entry(Orientation.LEFT, instr.addressingMode.getString(ext ?: Variable.Value.Hex("0", T6502.BYTE_SIZE), ext ?: Variable.Value.Hex("0", T6502.WORD_SIZE), extLabel?.labelName))
         )
 
         override fun getContent(): List<Entry> {
@@ -96,12 +118,12 @@ class T6502Assembly : Assembly() {
         }
     }
 
-    class DisassembledRow(addr: Variable.Value, instrType: T6502Syntax.InstrType, amode: T6502Syntax.AModes, ext: Variable.Value.Hex?): Transcript.Row(addr){
+    class DisassembledRow(addr: Variable.Value, instrType: T6502Syntax.InstrType, amode: T6502Syntax.AModes, nextByte: Variable.Value.Hex, nextWord: Variable.Value.Hex) : Transcript.Row(addr) {
 
         val content = listOf(
             Entry(Orientation.CENTER, addr.toHex().toString()),
-            Entry(Orientation.LEFT, "${instrType.name} ${amode.name}"),
-            Entry(Orientation.LEFT, ext?.getHexStr() ?: "")
+            Entry(Orientation.LEFT, instrType.name),
+            Entry(Orientation.LEFT, amode.getString(nextByte, nextWord))
         )
 
         override fun getContent(): List<Entry> {
