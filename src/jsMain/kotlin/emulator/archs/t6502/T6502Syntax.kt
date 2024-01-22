@@ -1205,7 +1205,7 @@ class T6502Syntax : Syntax() {
 
     class ESetAddr(val value: Variable.Value, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.setpc to tokens.filter { it !is Compiler.Token.Constant }, T6502Flags.constant to tokens.filterIsInstance<Compiler.Token.Constant>()), NAMES.E_SETADDR, *tokens)
 
-    class SText(vararg val elements: TreeNode.ElementNode) : TreeNode.ContainerNode(NAMES.S_TEXT, *elements)
+    class SText(vararg val elements: ElementNode) : TreeNode.ContainerNode(NAMES.S_TEXT, *elements)
 
     data class Flags(
         val n: Bin,
