@@ -49,8 +49,9 @@ class RV64BinMapper {
                 }
 
                 JAL -> {
-                    binValues?.let {
-                        val imm20toWork = binValues[1].getResized(Bit20()).getRawBinStr()
+                    val imm = instrDef.paramcoll?.getValues(Bit20())?.getOrNull(1)?.toBin()
+                    if(imm != null && binValues != null) {
+                        val imm20toWork = imm.getRawBinStr()
 
                         /**
                          *      RV64IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
@@ -66,8 +67,9 @@ class RV64BinMapper {
                 }
 
                 JALR -> {
-                    binValues?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[2], MaskLabel.RS1 to binValues[1]))
+                    val imm = instrDef.paramcoll?.getValues(Bit12())?.getOrNull(2)?.toBin()
+                    if(imm != null && binValues != null) {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to imm, MaskLabel.RS1 to binValues[1]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -84,8 +86,9 @@ class RV64BinMapper {
                 }
 
                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
-                    binValues?.let {
-                        val imm12 = binValues[2].getResized(Bit12()).getRawBinStr()
+                    val imm = instrDef.paramcoll?.getValues(Bit12())?.getOrNull(2)?.toBin()
+                    if(imm != null && binValues != null){
+                        val imm12 = imm.getRawBinStr()
                         val imm5 = Bin(imm12.substring(8) + imm12[1], Bit5())
                         val imm7 = Bin(imm12[0] + imm12.substring(2, 8), Bit7())
 
@@ -114,8 +117,9 @@ class RV64BinMapper {
                 }
 
                 LB, LH, LW, LD, LBU, LHU, LWU -> {
-                    binValues?.let {
-                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to binValues[1], MaskLabel.RS1 to binValues[2]))
+                    val immediate = instrDef.paramcoll?.getValues(Bit12())?.getOrNull(2)?.toBin()
+                    if (binValues != null && immediate != null) {
+                        val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.IMM12 to immediate, MaskLabel.RS1 to binValues[2]))
                         opCode?.let {
                             binArray.add(opCode)
                         }
@@ -123,8 +127,9 @@ class RV64BinMapper {
                 }
 
                 SB, SH, SW, SD -> {
-                    if (binValues != null && binValues.size == 3) {
-                        val imm12 = binValues[1].getRawBinStr()
+                    val immediate = instrDef.paramcoll?.getValues(Bit12())?.getOrNull(2)?.toBin()
+                    if (binValues != null && immediate != null) {
+                        val imm12 = immediate.getRawBinStr()
                         val imm5 = Bin(imm12.substring(imm12.length - 5))
                         val imm7 = Bin(imm12.substring(imm12.length - 12, imm12.length - 5))
 
@@ -180,6 +185,28 @@ class RV64BinMapper {
                         val csrAddr = binValues[1].getUResized(Bit12())
                         val uimm5 = binValues[2].getUResized(Bit5())
                         val opCode = instrDef.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.CSR to csrAddr, MaskLabel.UIMM5 to uimm5))
+                        opCode?.let {
+                            binArray.add(opCode)
+                        }
+                    }
+                }
+
+                CSRW -> {
+                    binValues?.let {
+                        val csrAddr = binValues[0].getUResized(Bit12())
+                        val zero = Bin("0", Bit5())
+                        val opCode = CSRRW.opCode?.getOpCode(mapOf(MaskLabel.RD to zero, MaskLabel.CSR to csrAddr, MaskLabel.RS1 to binValues[1]))
+                        opCode?.let {
+                            binArray.add(opCode)
+                        }
+                    }
+                }
+
+                CSRR -> {
+                    binValues?.let {
+                        val csrAddr = binValues[1].getUResized(Bit12())
+                        val zero = Bin("0", Bit5())
+                        val opCode = CSRRS.opCode?.getOpCode(mapOf(MaskLabel.RD to binValues[0], MaskLabel.CSR to csrAddr, MaskLabel.RS1 to zero))
                         opCode?.let {
                             binArray.add(opCode)
                         }

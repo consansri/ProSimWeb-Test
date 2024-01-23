@@ -12,6 +12,7 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import debug.DebugTools
+import emulator.archs.riscv64.CSRegister
 
 /**
  * This class implements the RV32 Syntax.
@@ -503,14 +504,6 @@ class RV32Syntax : Syntax() {
                             break
                         } else {
                             continue
-                        }
-                    }
-
-                    is Compiler.Token.AlphaNum -> {
-                        if (dot != null) {
-                            directiveName.add(token)
-                        } else {
-                            break
                         }
                     }
 
@@ -1233,7 +1226,7 @@ class RV32Syntax : Syntax() {
                         paramcoll.getValues(immMax)[1].checkResult
                     }
 
-                    R_INSTR.ParamType.RS2_OFF5 -> {
+                    R_INSTR.ParamType.RS2_OFF12 -> {
                         paramcoll.getValues(immMax)[1].checkResult
                     }
 
@@ -1273,6 +1266,15 @@ class RV32Syntax : Syntax() {
                         val uimm5Check = paramcoll.getValues(immMax)[2].checkResult
                         Variable.CheckResult(csrCheck.valid && uimm5Check.valid, "", "${csrCheck.message} | ${uimm5Check.message}")
                     }
+
+                    R_INSTR.ParamType.PS_CSR_RS1 -> {
+                        val value = paramcoll.getValues(Bit12())[0]
+                        value.checkResult
+                    }
+                    R_INSTR.ParamType.PS_RD_CSR -> {
+                        val value = paramcoll.getValues(Bit12())[1]
+                        value.checkResult
+                    }
                 }
 
             } catch (e: IndexOutOfBoundsException) {
@@ -1304,7 +1306,7 @@ class RV32Syntax : Syntax() {
                         }
                     }
 
-                    R_INSTR.ParamType.RS2_OFF5 -> {
+                    R_INSTR.ParamType.RS2_OFF12 -> {
                         matches = if (params.size == 2) {
                             params[0] is E_PARAM.Register && params[1] is E_PARAM.Offset
                         } else {
@@ -1402,7 +1404,9 @@ class RV32Syntax : Syntax() {
                         val second = params[1]
                         val third = params[2]
 
-                        first is E_PARAM.Register && (second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV32.CSR_REGFILE_NAME) != null) && third is E_PARAM.Register
+                        // ((second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV64.CSR_REGFILE_NAME) != null) || (second is E_PARAM.Register && second.register.reg is CSRegister))
+
+                        first is E_PARAM.Register && ((second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV32.CSR_REGFILE_NAME) != null) || (second is E_PARAM.Register && second.register.reg is CSRegister)) && third is E_PARAM.Register
                     } else {
                         false
                     }
@@ -1411,8 +1415,23 @@ class RV32Syntax : Syntax() {
                         val first = params[0]
                         val second = params[1]
                         val third = params[2]
-                        first is E_PARAM.Register && (second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV32.CSR_REGFILE_NAME) != null) && third is E_PARAM.Constant
+                        first is E_PARAM.Register && ((second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV32.CSR_REGFILE_NAME) != null) || (second is E_PARAM.Register && second.register.reg is CSRegister)) && third is E_PARAM.Constant
                     } else {
+                        false
+                    }
+
+                    R_INSTR.ParamType.PS_CSR_RS1 -> matches = if(params.size == 2){
+                        val first = params[0]
+                        val second = params[1]
+                        ((first is E_PARAM.Constant && arch.getRegByAddr(first.getValue(Bit12()), RV32.CSR_REGFILE_NAME) != null) || (first is E_PARAM.Register && first.register.reg is CSRegister)) && second is E_PARAM.Register
+                    }else {
+                        false
+                    }
+                    R_INSTR.ParamType.PS_RD_CSR -> matches = if(params.size == 2){
+                        val first = params[0]
+                        val second = params[1]
+                        ((second is E_PARAM.Constant && arch.getRegByAddr(second.getValue(Bit12()), RV32.CSR_REGFILE_NAME) != null) || (second is E_PARAM.Register && second.register.reg is CSRegister)) && first is E_PARAM.Register
+                    }else {
                         false
                     }
                 }
@@ -1697,7 +1716,7 @@ class RV32Syntax : Syntax() {
                     }
                 }
             }, // rd, imm12(rs)
-            RS2_OFF5(false, "rs2, imm5(rs1)", Bit5()) {
+            RS2_OFF12(false, "rs2, imm12(rs1)", Bit12()) {
                 override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Bin>, labelName: String): String {
                     val rs2 = paramMap[RS2]
                     val rs1 = paramMap[RS1]
@@ -1806,6 +1825,8 @@ class RV32Syntax : Syntax() {
             PS_JLBL(true, "jlabel"),  // label
             PS_RD_RS1(true, "rd, rs"), // rd, rs
             PS_RS1(true, "rs1"),
+            PS_CSR_RS1(true, "csr, rs1"),
+            PS_RD_CSR(true, "rd, csr"),
 
             // NONE PARAM INSTR
             NONE(false, "none"), PS_NONE(true, "none");
@@ -2150,7 +2171,7 @@ class RV32Syntax : Syntax() {
                     }
                 }
             },
-            SB("SB", false, ParamType.RS2_OFF5, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
+            SB("SB", false, ParamType.RS2_OFF12, OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap[RS1]
@@ -2170,7 +2191,7 @@ class RV32Syntax : Syntax() {
                     }
                 }
             },
-            SH("SH", false, ParamType.RS2_OFF5, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
+            SH("SH", false, ParamType.RS2_OFF12, OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap[RS1]
@@ -2190,7 +2211,7 @@ class RV32Syntax : Syntax() {
                     }
                 }
             },
-            SW("SW", false, ParamType.RS2_OFF5, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
+            SW("SW", false, ParamType.RS2_OFF12, OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))) {
                 override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Bin>) {
                     super.execute(arch, paramMap)
                     val rs1Addr = paramMap[RS1]
@@ -2693,6 +2714,9 @@ class RV32Syntax : Syntax() {
                     }
                 }
             },
+
+            CSRW("CSRW", true, ParamType.PS_CSR_RS1, needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)),
+            CSRR("CSRR", true, ParamType.PS_RD_CSR, needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)),
 
             // M Extension
             MUL("MUL", false, ParamType.RD_RS1_RS2, OpCode("0000001 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.M.ordinal)) {
