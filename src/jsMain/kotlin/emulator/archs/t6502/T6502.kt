@@ -129,7 +129,7 @@ object T6502 {
                     }
                 }
             }
-        }))
+        }), Docs.HtmlFile.SourceFile("Syntax Examples", "/documents/t6502/syntaxexamples.html"))
     )
 
     val config = Config(

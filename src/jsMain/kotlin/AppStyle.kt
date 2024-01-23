@@ -306,13 +306,14 @@ val AppStyle = FC<Props> {
                         borderRadius = StyleAttr.borderRadius
                         background = StyleAttr.transparent
                         flexGrow = number(1.0)
-
+                        minHeight = 0.px
                     }
 
                     table {
                         width = important(100.pct)
                         borderCollapse = BorderCollapse.collapse
                         borderRadius = StyleAttr.borderRadius
+                        overflow = Overflow.hidden
                         tabSize = 6.ch
                         whiteSpace = WhiteSpace.pre
                         cursor = Cursor.text

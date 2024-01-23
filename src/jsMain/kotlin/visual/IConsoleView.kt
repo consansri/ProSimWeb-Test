@@ -49,7 +49,7 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
         css {
             display = Display.block
             backgroundColor = StyleAttr.Main.InfoView.consoleBgColor.get()
-            padding = 10.px
+            padding = StyleAttr.paddingSize
             fontFamily = FontFamily.monospace
             borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
             borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
@@ -205,7 +205,7 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
                 display = Display.block
                 position = Position.relative
                 marginTop = 5.px
-                height = 15.rem
+                height = StyleAttr.Main.ConsoleSize - 2 * StyleAttr.paddingSize - StyleAttr.iconSize
                 overflowX = Overflow.hidden
                 overflowY = Overflow.scroll
                 scrollBehavior = ScrollBehavior.smooth

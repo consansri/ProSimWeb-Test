@@ -64,6 +64,7 @@ val App = FC<Props> {
             css {
                 display = Display.flex
                 position = Position.relative
+                height = StyleAttr.Main.TContainerSize
                 //gap = StyleAttr.paddingSize
                 flexWrap = FlexWrap.nowrap
                 // padding = StyleAttr.paddingSize
@@ -74,6 +75,7 @@ val App = FC<Props> {
                 borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
                 StyleAttr.layoutSwitchMediaQuery {
                     flexDirection = FlexDirection.column
+                    height = 2 * StyleAttr.Main.TContainerSize
                 }
             }
 
@@ -82,14 +84,13 @@ val App = FC<Props> {
                 css {
                     flex = lPercentage.pct
                     position = Position.relative
-                    minHeight = max(50.vh, (StyleAttr.Main.Editor.TextField.lineHeight * 50).px)
                     if (lPercentage == 0) {
                         visibility = Visibility.hidden
                     }
                     StyleAttr.layoutSwitchMediaQuery {
                         flex = 100.pct
                         display = Display.block
-
+                        height = StyleAttr.Main.TContainerSize / 2
                     }
                 }
                 if (lPercentage != 0) {
@@ -100,9 +101,7 @@ val App = FC<Props> {
                         this.fileChangeEvent = fileChangeEvent
                     }
                 }
-
             }
-
 
             div {
                 id = "rcontainer"
@@ -117,7 +116,7 @@ val App = FC<Props> {
                     gap = StyleAttr.paddingSize
                     //padding = StyleAttr.paddingSize
                     position = Position.relative
-
+                    minHeight = 0.px
                     background = StyleAttr.Main.Processor.BgColor.get()
 
                     StyleAttr.layoutSwitchMediaQuery {
@@ -310,7 +309,6 @@ val App = FC<Props> {
                 this.compileEventState = compileEventState
                 this.exeEventState = exeEventState
                 this.fileChangeEvent = fileChangeEvent
-
             }
         }
     }

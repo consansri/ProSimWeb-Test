@@ -13,6 +13,8 @@ class T6502Assembly : Assembly() {
     private val instrAddrList = mutableListOf<Pair<Hex, T6502Syntax.EInstr>>()
 
     override fun disassemble(architecture: Architecture) {
+        if(instrAddrList.isEmpty()) return
+
         val firstAddress = instrAddrList.minBy { it.first.getRawHexStr() }.first
         val lastAddress = instrAddrList.maxBy { it.first.getRawHexStr() }.first
         var nextAddress = firstAddress
@@ -29,7 +31,7 @@ class T6502Assembly : Assembly() {
             val row = DisassembledRow(nextAddress, instrType, amode, nextByte, nextWord)
             architecture.getTranscript().addRow(Transcript.Type.DISASSEMBLED, row)
 
-            if (nextAddress.getRawHexStr() == lastAddress.getRawHexStr()) break
+            if (nextAddress > lastAddress || nextAddress == Hex("FFFF", T6502.WORD_SIZE)) break
 
             nextAddress = (if (amode.immSize != null) nextAddress + Hex((amode.immSize.getByteCount() + 1).toString(16), T6502.WORD_SIZE) else nextAddress + Hex("1", T6502.WORD_SIZE)).toHex()
             nextOpCode = architecture.getMemory().load(nextAddress).toHex()
@@ -41,10 +43,12 @@ class T6502Assembly : Assembly() {
 
         syntaxTree.rootNode ?: return AssemblyMap()
 
+        if(syntaxTree.rootNode.containers.isEmpty()) return AssemblyMap()
+
         labelBinAddrMap.clear()
         instrAddrList.clear()
 
-        var currentAddress = Variable.Value.Hex("0600", T6502.WORD_SIZE)
+        var currentAddress = Hex("0600", T6502.WORD_SIZE)
         architecture.getRegContainer().pc.set(currentAddress)
 
         // BUILD labelBinAddrMap and instrBinAddrMap
@@ -54,9 +58,9 @@ class T6502Assembly : Assembly() {
                     for (entry in container.elements) {
                         when (entry) {
                             is T6502Syntax.EInstr -> {
-                                lineAddressMap.set(currentAddress.getRawHexStr(), AssemblyMap.MapEntry(entry.tokens.first().lineLoc.file, entry.tokens.first().lineLoc.lineID))
+                                lineAddressMap[currentAddress.getRawHexStr()] = AssemblyMap.MapEntry(entry.tokens.first().lineLoc.file, entry.tokens.first().lineLoc.lineID)
                                 instrAddrList.add(currentAddress to entry)
-                                val extWidth = if (entry.opCodeRelevantAMode.immSize != null) Variable.Value.Hex((entry.opCodeRelevantAMode.immSize.getByteCount() + 1).toString(16), Variable.Size.Bit16()) else Variable.Value.Hex("1", Variable.Size.Bit16())
+                                val extWidth = if (entry.opCodeRelevantAMode.immSize != null) Hex((entry.opCodeRelevantAMode.immSize.getByteCount() + 1).toString(16), Bit16()) else Hex("1", Bit16())
                                 currentAddress = (currentAddress + extWidth).toHex()
                             }
 
@@ -65,7 +69,7 @@ class T6502Assembly : Assembly() {
                             }
 
                             is T6502Syntax.ELabel -> {
-                                labelBinAddrMap.set(entry, currentAddress)
+                                labelBinAddrMap[entry] = currentAddress
                             }
                         }
                     }
@@ -75,7 +79,7 @@ class T6502Assembly : Assembly() {
 
         for (instrPair in instrAddrList) {
             val instr = instrPair.second
-            val opCode = instr.instrType.opCode.get(instr.opCodeRelevantAMode)
+            val opCode = instr.instrType.opCode[instr.opCodeRelevantAMode]
 
             if (opCode == null) {
                 architecture.getConsole().error("Couldn't resolve OpCode of instruction: ${instr.instrType} with ${instr.opCodeRelevantAMode}!")
@@ -86,7 +90,7 @@ class T6502Assembly : Assembly() {
 
             architecture.getMemory().store(instrPair.first, opCode, mark = StyleAttr.Main.Table.Mark.PROGRAM)
 
-            val extAddr = instrPair.first + Variable.Value.Hex("1", Variable.Size.Bit16())
+            val extAddr = instrPair.first + Hex("1", Bit16())
             val extValue = if (instr.linkedLabel != null) labelBinAddrMap[instr.linkedLabel] else instr.imm
 
             architecture.getTranscript().addRow(Transcript.Type.COMPILED, CompiledRow(instrPair.first, labelBinAddrMap.toList().filter { it.second.getRawHexStr() == instrPair.first.getRawHexStr() }.map { it.first }, instr, extValue?.toHex(), instr.linkedLabel))
@@ -104,13 +108,13 @@ class T6502Assembly : Assembly() {
         return AssemblyMap(lineAddressMap)
     }
 
-    class CompiledRow(addr: Variable.Value, labels: List<T6502Syntax.ELabel>, instr: T6502Syntax.EInstr, ext: Variable.Value.Hex?, extLabel: T6502Syntax.ELabel?) : Transcript.Row(addr) {
+    class CompiledRow(addr: Variable.Value, labels: List<T6502Syntax.ELabel>, instr: T6502Syntax.EInstr, ext: Hex?, extLabel: T6502Syntax.ELabel?) : Transcript.Row(addr) {
 
         val content = listOf(
             Entry(Orientation.CENTER, addr.toHex().toString()),
             Entry(Orientation.LEFT, labels.joinToString(", ") { it.labelName }),
             Entry(Orientation.LEFT, "${instr.instrType.name} (${instr.opCodeRelevantAMode.name})"),
-            Entry(Orientation.LEFT, instr.addressingMode.getString(ext ?: Variable.Value.Hex("0", T6502.BYTE_SIZE), ext ?: Variable.Value.Hex("0", T6502.WORD_SIZE), extLabel?.labelName))
+            Entry(Orientation.LEFT, instr.addressingMode.getString(ext ?: Hex("0", T6502.BYTE_SIZE), ext ?: Hex("0", T6502.WORD_SIZE), extLabel?.labelName))
         )
 
         override fun getContent(): List<Entry> {
@@ -118,7 +122,7 @@ class T6502Assembly : Assembly() {
         }
     }
 
-    class DisassembledRow(addr: Variable.Value, instrType: T6502Syntax.InstrType, amode: T6502Syntax.AModes, nextByte: Variable.Value.Hex, nextWord: Variable.Value.Hex) : Transcript.Row(addr) {
+    class DisassembledRow(addr: Variable.Value, instrType: T6502Syntax.InstrType, amode: T6502Syntax.AModes, nextByte: Hex, nextWord: Hex) : Transcript.Row(addr) {
 
         val content = listOf(
             Entry(Orientation.CENTER, addr.toHex().toString()),

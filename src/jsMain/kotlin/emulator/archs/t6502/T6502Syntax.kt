@@ -159,14 +159,14 @@ class T6502Syntax : Syntax() {
 
         ABS_X(
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true),
-            immSize = T6502.WORD_SIZE,
+            immSize = WORD_SIZE,
             hasLabelVariant = ABS_X_LBLD,
             exampleString = "$0000, X",
             description = "absolute, X-indexed"
         ), // Absolute Indexed with X: a,x
         ABS_Y(
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true),
-            immSize = T6502.WORD_SIZE,
+            immSize = WORD_SIZE,
             hasLabelVariant = ABS_Y_LBLD,
             exampleString = "$0000, Y",
             description = "absolute, Y-indexed"
@@ -206,7 +206,7 @@ class T6502Syntax : Syntax() {
         IND_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Word, Specific(")"), ignoreSpaces = true), exampleString = "([labelname])", description = "indirect (from label)"),
         IND(
             TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true),
-            immSize = T6502.WORD_SIZE,
+            immSize = WORD_SIZE,
             hasLabelVariant = IND_LBLD,
             exampleString = "($0000)",
             description = "indirect"
@@ -217,7 +217,7 @@ class T6502Syntax : Syntax() {
         REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
         ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
         ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word), exampleString = "[labelname]", description = "absolute (from label)"),
-        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = T6502.WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
+        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
 
         IMPLIED(TokenSeq(InSpecific.Word), exampleString = "", description = "implied"); // Implied: i
 
@@ -881,7 +881,7 @@ class T6502Syntax : Syntax() {
 
         }
 
-        fun getOperand(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex): Hex? {
+        private fun getOperand(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex): Hex? {
             val pc = arch.getRegContainer().pc
             val ac = arch.getRegByName("AC")
             val x = arch.getRegByName("X")
@@ -953,7 +953,7 @@ class T6502Syntax : Syntax() {
             }
         }
 
-        fun getAddress(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex, x: Hex, y: Hex): Hex? {
+        private fun getAddress(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex, x: Hex, y: Hex): Hex? {
             return when (amode) {
                 ABS -> nextWord
                 ABS_X -> (nextWord + x.toBin().getResized(WORD_SIZE)).toHex()
@@ -967,7 +967,7 @@ class T6502Syntax : Syntax() {
             }
         }
 
-        fun getFlags(arch: Architecture): Flags? {
+        private fun getFlags(arch: Architecture): Flags? {
             val sr = arch.getRegByName("SR") ?: return null
             val nflag = sr.get().toBin().getBit(0) ?: return null
             val vflag = sr.get().toBin().getBit(1) ?: return null
@@ -979,7 +979,7 @@ class T6502Syntax : Syntax() {
             return Flags(nflag, vflag, zflag, cflag, dflag, bflag, iflag)
         }
 
-        fun setFlags(arch: Architecture, n: Bin? = null, v: Bin? = null, b: Bin? = null, d: Bin? = null, i: Bin? = null, z: Bin? = null, c: Bin? = null, checkZero: Bin? = null, seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {
+        private fun setFlags(arch: Architecture, n: Bin? = null, v: Bin? = null, b: Bin? = null, d: Bin? = null, i: Bin? = null, z: Bin? = null, c: Bin? = null, checkZero: Bin? = null, seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {
             val sr = arch.getRegByName("SR") ?: return
 
             var nflag = sr.get().toBin().getBit(0) ?: return
@@ -1016,7 +1016,7 @@ class T6502Syntax : Syntax() {
             }
 
 
-            sr.set(Bin("${nflag.getRawBinStr()}${vflag.getRawBinStr()}0${bflag.getRawBinStr()}${dflag.getRawBinStr()}${iflag.getRawBinStr()}${zflag.getRawBinStr()}${cflag.getRawBinStr()}", BYTE_SIZE))
+            sr.set(Bin("${nflag.getRawBinStr()}${vflag.getRawBinStr()}1${bflag.getRawBinStr()}${dflag.getRawBinStr()}${iflag.getRawBinStr()}${zflag.getRawBinStr()}${cflag.getRawBinStr()}", BYTE_SIZE))
         }
     }
 
@@ -1037,7 +1037,7 @@ class T6502Syntax : Syntax() {
                 val imm = amode.immSize?.let { amodeResult.sequenceMap.map { it.token }.filterIsInstance<Compiler.Token.Constant>().firstOrNull() }
 
                 if (imm != null) {
-                    if (imm.getValue().size.bitWidth != amode.immSize.bitWidth) {
+                    if (imm.getValue().size.bitWidth > amode.immSize.bitWidth) {
                         continue
                     }
                 }
@@ -1157,7 +1157,7 @@ class T6502Syntax : Syntax() {
                 return null
             }
 
-            val constant = constantToken.getValue(Variable.Size.Bit16())
+            val constant = constantToken.getValue(Bit16())
             if (!constant.checkResult.valid) {
                 errors.add(Error("Immediate value is not 8 Bit or 16 Bit!", *tokens.toTypedArray()))
                 remainingTokens.removeAll(tokens)

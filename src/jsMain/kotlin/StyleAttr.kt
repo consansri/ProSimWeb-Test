@@ -37,6 +37,9 @@ object StyleAttr {
 
         val DeleteFilter = important(invert(0.pct))
 
+        val TContainerSize = 80.vh
+        val ConsoleSize = 20.vh
+
         object Editor {
             val BgColor = ModeColor("#EEEEEE", "#222222")
             val FgColor = ModeColor("#313131", "#AABACA")

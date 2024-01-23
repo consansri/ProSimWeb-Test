@@ -57,7 +57,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
     val (editVar, setEditVar) = useState<Memory.MemInstance.EditableValue>()
 
-
     div {
         css {
             display = Display.flex
@@ -224,13 +223,15 @@ val MemoryView = FC<MemViewProps> { props ->
                 display = Display.block
                 overflowY = Overflow.scroll
                 flexGrow = number(1.0)
-                maxHeight = 50.vh
                 borderRadius = StyleAttr.borderRadius
                 paddingLeft = 12.px // center with scrollbar on the right
             }
             tabIndex = 0
 
             table {
+                css{
+                    minHeight = 100.pct
+                }
                 thead {
                     tr {
                         css {
