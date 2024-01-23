@@ -42,8 +42,7 @@ class Compiler(
         Regex("^${Regex.escape(prefixes.udec)}[0-9]+"),
         Regex("""^'.'"""),
         Regex("""^".+""""),
-        Regex("""^[a-z][a-z0-9]*""", RegexOption.IGNORE_CASE),
-        Regex("""^[a-z]+""", RegexOption.IGNORE_CASE)
+        Regex("""^[a-z_][a-z0-9_]*""", RegexOption.IGNORE_CASE),
     )
 
     // TEMPORARY CONTENT
@@ -211,7 +210,7 @@ class Compiler(
                     }
 
                     if (detectRegisters) {
-                        val regRes = regexCollection.alphaNumeric.find(remainingLine)
+                        val regRes = regexCollection.word.find(remainingLine)
                         if (regRes != null) {
                             val reg = architecture.getRegContainer().getAllRegs(architecture.getAllFeatures()).firstOrNull { reg -> reg.names.contains(regRes.value) || reg.aliases.contains(regRes.value) }
                             if (reg != null) {
@@ -226,34 +225,15 @@ class Compiler(
                     }
 
                     // apply rest
-                    val alphaNumeric = regexCollection.alphaNumeric.find(remainingLine)
                     val word = regexCollection.word.find(remainingLine)
 
-                    if (alphaNumeric != null && word != null) {
-                        if (alphaNumeric.value.length == word.value.length) {
-                            val token = Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
-                            tokenList += token
-                            tempTokenList += token
-                            startIndex += word.value.length
-                            remainingLine = line.substring(startIndex)
-                            continue
-                        } else {
-                            val token = Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
-                            tokenList += token
-                            tempTokenList += token
-                            startIndex += alphaNumeric.value.length
-                            remainingLine = line.substring(startIndex)
-                            continue
-                        }
-                    } else {
-                        if (alphaNumeric != null) {
-                            val token = Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, tokenList.size)
-                            tokenList += token
-                            tempTokenList += token
-                            startIndex += alphaNumeric.value.length
-                            remainingLine = line.substring(startIndex)
-                            continue
-                        }
+                    if (word != null) {
+                        val token = Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
+                        tokenList += token
+                        tempTokenList += token
+                        startIndex += word.value.length
+                        remainingLine = line.substring(startIndex)
+                        continue
                     }
 
                     architecture.getConsole().warn("Assembly: no match found for $remainingLine")
@@ -333,12 +313,6 @@ class Compiler(
 
                 if (syntax.applyStandardHLForRest) {
                     when (token) {
-                        is Token.AlphaNum -> {
-                            hlFlagCollection.alphaNum?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
                         is Token.Constant.Binary -> {
                             hlFlagCollection.constBin?.let {
                                 token.hl(architecture, it)
@@ -521,7 +495,7 @@ class Compiler(
             }
 
             if (detectRegisters) {
-                val regRes = regexCollection.alphaNumeric.find(remaining)
+                val regRes = regexCollection.word.find(remaining)
                 if (regRes != null) {
                     val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
                     if (reg != null) {
@@ -535,28 +509,12 @@ class Compiler(
             }
 
             // apply rest
-            val alphaNumeric = regexCollection.alphaNumeric.find(remaining)
             val word = regexCollection.word.find(remaining)
-
-            if (alphaNumeric != null && word != null) {
-                if (alphaNumeric.value.length == word.value.length) {
-                    tokens += Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, lineID)
-                    startIndex += word.value.length
-                    remaining = content.substring(startIndex)
-                    continue
-                } else {
-                    tokens += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, lineID)
-                    startIndex += alphaNumeric.value.length
-                    remaining = content.substring(startIndex)
-                    continue
-                }
-            } else {
-                if (alphaNumeric != null) {
-                    tokens += Token.AlphaNum(LineLoc(file, lineID, startIndex, startIndex + alphaNumeric.value.length), alphaNumeric.value, lineID)
-                    startIndex += alphaNumeric.value.length
-                    remaining = content.substring(startIndex)
-                    continue
-                }
+            if (word != null) {
+                tokens += Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, lineID)
+                startIndex += word.value.length
+                remaining = content.substring(startIndex)
+                continue
             }
 
             architecture.getConsole().warn("Assembly.analyze($content): no match found for $remaining")
@@ -696,10 +654,6 @@ class Compiler(
             override val type = TokenType.REGISTER
         }
 
-        class AlphaNum(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.ALPHANUM
-        }
-
         class Word(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             override val type = TokenType.WORD
         }
@@ -711,7 +665,6 @@ class Compiler(
         SYMBOL,
         CONSTANT,
         REGISTER,
-        ALPHANUM,
         WORD
     }
 
@@ -741,7 +694,6 @@ class Compiler(
         val udec: Regex,
         val ascii: Regex,
         val string: Regex,
-        val alphaNumeric: Regex,
         val word: Regex,
     )
 

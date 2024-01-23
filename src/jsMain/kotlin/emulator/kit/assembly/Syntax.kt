@@ -418,10 +418,6 @@ abstract class Syntax {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.WORD
                 }
 
-                data object AlphaNum : InSpecific() {
-                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.ALPHANUM
-                }
-
                 data object Constant : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.CONSTANT
                 }
