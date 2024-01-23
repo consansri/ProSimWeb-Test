@@ -139,29 +139,37 @@ class T6502Syntax : Syntax() {
      * Addressing Modes
      * IMPORTANT: The order of the enums determines the order in which the modes will be checked!
      */
-    enum class AModes(val tokenSequence: TokenSeq, val immSize: Variable.Size? = null, val hasLabelVariant: AModes? = null) {
+    enum class AModes(val tokenSequence: TokenSeq, val immSize: Variable.Size? = null, val hasLabelVariant: AModes? = null, val exampleString: String, val description: String) {
 
         ZP_X(
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true),
-            immSize = BYTE_SIZE
+            immSize = BYTE_SIZE,
+            exampleString = "$00, X",
+            description = "zeropage, X-indexed"
         ), // Zero Page Indexed with X: zp,x
         ZP_Y(
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true),
-            immSize = BYTE_SIZE
+            immSize = BYTE_SIZE,
+            exampleString = "$00, Y",
+            description = "zeropage, Y-indexed"
         ), // Zero Page Indexed with Y: zp,y
 
-        ABS_X_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("X"), ignoreSpaces = true)),
-        ABS_Y_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("Y"), ignoreSpaces = true)),
+        ABS_X_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("X"), ignoreSpaces = true), exampleString = "[labelname], X", description = "absolute (from label), X-indexed"),
+        ABS_Y_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("Y"), ignoreSpaces = true), exampleString = "[labelname], Y", description = "absolute (from label), Y-indexed"),
 
         ABS_X(
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true),
             immSize = T6502.WORD_SIZE,
-            hasLabelVariant = ABS_X_LBLD
+            hasLabelVariant = ABS_X_LBLD,
+            exampleString = "$0000, X",
+            description = "absolute, X-indexed"
         ), // Absolute Indexed with X: a,x
         ABS_Y(
             TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true),
             immSize = T6502.WORD_SIZE,
-            hasLabelVariant = ABS_Y_LBLD
+            hasLabelVariant = ABS_Y_LBLD,
+            exampleString = "$0000, Y",
+            description = "absolute, Y-indexed"
         ), // Absolute Indexed with Y: a,y
 
         ZP_X_IND(
@@ -175,7 +183,9 @@ class T6502Syntax : Syntax() {
                 Specific(")"),
                 ignoreSpaces = true
             ),
-            immSize = BYTE_SIZE
+            immSize = BYTE_SIZE,
+            exampleString = "($00, X)",
+            description = "X-indexed, indirect"
         ), // Zero Page Indexed Indirect: (zp,x)
 
         ZPIND_Y(
@@ -188,27 +198,31 @@ class T6502Syntax : Syntax() {
                 Specific("Y"),
                 ignoreSpaces = true
             ),
-            immSize = BYTE_SIZE
+            immSize = BYTE_SIZE,
+            exampleString = "($00), Y",
+            description = "indirect, Y-indexed"
         ), // Zero Page Indirect Indexed with Y: (zp),y
 
-        IND_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Word, Specific(")"), ignoreSpaces = true)),
+        IND_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Word, Specific(")"), ignoreSpaces = true), exampleString = "([labelname])", description = "indirect (from label)"),
         IND(
             TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true),
             immSize = T6502.WORD_SIZE,
-            hasLabelVariant = IND_LBLD
+            hasLabelVariant = IND_LBLD,
+            exampleString = "($0000)",
+            description = "indirect"
         ), // Absolute Indirect: (a)
 
-        ACCUMULATOR(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"))), // Accumulator: A
-        IMM(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE), // Immediate: #
-        REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Relative: r
-        ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE), // Zero Page: zp
-        ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word)),
-        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = T6502.WORD_SIZE, hasLabelVariant = ABS_LBLD), // Absolute: a
+        ACCUMULATOR(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A")), exampleString = "A", description = "Accumulator"), // Accumulator: A
+        IMM(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
+        REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
+        ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
+        ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word), exampleString = "[labelname]", description = "absolute (from label)"),
+        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = T6502.WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
 
-        IMPLIED(TokenSeq(InSpecific.Word)); // Implied: i
+        IMPLIED(TokenSeq(InSpecific.Word), exampleString = "", description = "implied"); // Implied: i
 
-        fun getString(nextByte: Hex, nextWord: Hex, labelName: String? = null): String{
-            return when(this){
+        fun getString(nextByte: Hex, nextWord: Hex, labelName: String? = null): String {
+            return when (this) {
                 ZP_X -> "$${nextByte.getRawHexStr()}, X"
                 ZP_Y -> "$${nextByte.getRawHexStr()}, Y"
                 ABS_X_LBLD -> "$labelName, X"
@@ -230,86 +244,86 @@ class T6502Syntax : Syntax() {
         }
     }
 
-    enum class InstrType(val opCode: Map<AModes, Hex>) {
+    enum class InstrType(val opCode: Map<AModes, Hex>, val description: String) {
         // load, store, interregister transfer
-        LDA(mapOf(ABS to Hex("AD", BYTE_SIZE), ABS_X to Hex("BD", BYTE_SIZE), ABS_Y to Hex("B9", BYTE_SIZE), IMM to Hex("A9", BYTE_SIZE), ZP to Hex("A5", BYTE_SIZE), ZP_X_IND to Hex("A1", BYTE_SIZE), ZP_X to Hex("B5", BYTE_SIZE), ZPIND_Y to Hex("B1", BYTE_SIZE))),
-        LDX(mapOf(ABS to Hex("AE", BYTE_SIZE), ABS_Y to Hex("BE", BYTE_SIZE), IMM to Hex("A2", BYTE_SIZE), ZP to Hex("A6", BYTE_SIZE), ZP_Y to Hex("B6", BYTE_SIZE))),
-        LDY(mapOf(ABS to Hex("AC", BYTE_SIZE), ABS_X to Hex("BC", BYTE_SIZE), IMM to Hex("A0", BYTE_SIZE), ZP to Hex("A4", BYTE_SIZE), ZP_X to Hex("B4", BYTE_SIZE))),
-        STA(mapOf(ABS to Hex("8D", BYTE_SIZE), ABS_X to Hex("9D", BYTE_SIZE), ABS_Y to Hex("99", BYTE_SIZE), ZP to Hex("85", BYTE_SIZE), ZP_X_IND to Hex("81", BYTE_SIZE), ZP_X to Hex("95", BYTE_SIZE), ZPIND_Y to Hex("91", BYTE_SIZE))),
-        STX(mapOf(ABS to Hex("8E", BYTE_SIZE), ZP to Hex("86", BYTE_SIZE), ZP_Y to Hex("96", BYTE_SIZE))),
-        STY(mapOf(ABS to Hex("8C", BYTE_SIZE), ZP to Hex("84", BYTE_SIZE), ZP_X to Hex("94", BYTE_SIZE))),
-        TAX(mapOf(IMPLIED to Hex("AA", BYTE_SIZE))),
-        TAY(mapOf(IMPLIED to Hex("A8", BYTE_SIZE))),
-        TSX(mapOf(IMPLIED to Hex("BA", BYTE_SIZE))),
-        TXA(mapOf(IMPLIED to Hex("8A", BYTE_SIZE))),
-        TXS(mapOf(IMPLIED to Hex("9A", BYTE_SIZE))),
-        TYA(mapOf(IMPLIED to Hex("98", BYTE_SIZE))),
+        LDA(mapOf(ABS to Hex("AD", BYTE_SIZE), ABS_X to Hex("BD", BYTE_SIZE), ABS_Y to Hex("B9", BYTE_SIZE), IMM to Hex("A9", BYTE_SIZE), ZP to Hex("A5", BYTE_SIZE), ZP_X_IND to Hex("A1", BYTE_SIZE), ZP_X to Hex("B5", BYTE_SIZE), ZPIND_Y to Hex("B1", BYTE_SIZE)), "load accumulator"),
+        LDX(mapOf(ABS to Hex("AE", BYTE_SIZE), ABS_Y to Hex("BE", BYTE_SIZE), IMM to Hex("A2", BYTE_SIZE), ZP to Hex("A6", BYTE_SIZE), ZP_Y to Hex("B6", BYTE_SIZE)), "load X"),
+        LDY(mapOf(ABS to Hex("AC", BYTE_SIZE), ABS_X to Hex("BC", BYTE_SIZE), IMM to Hex("A0", BYTE_SIZE), ZP to Hex("A4", BYTE_SIZE), ZP_X to Hex("B4", BYTE_SIZE)), "load Y"),
+        STA(mapOf(ABS to Hex("8D", BYTE_SIZE), ABS_X to Hex("9D", BYTE_SIZE), ABS_Y to Hex("99", BYTE_SIZE), ZP to Hex("85", BYTE_SIZE), ZP_X_IND to Hex("81", BYTE_SIZE), ZP_X to Hex("95", BYTE_SIZE), ZPIND_Y to Hex("91", BYTE_SIZE)), "store accumulator"),
+        STX(mapOf(ABS to Hex("8E", BYTE_SIZE), ZP to Hex("86", BYTE_SIZE), ZP_Y to Hex("96", BYTE_SIZE)), "store X"),
+        STY(mapOf(ABS to Hex("8C", BYTE_SIZE), ZP to Hex("84", BYTE_SIZE), ZP_X to Hex("94", BYTE_SIZE)), "store Y"),
+        TAX(mapOf(IMPLIED to Hex("AA", BYTE_SIZE)), "transfer accumulator to X"),
+        TAY(mapOf(IMPLIED to Hex("A8", BYTE_SIZE)), "transfer accumulator to Y"),
+        TSX(mapOf(IMPLIED to Hex("BA", BYTE_SIZE)), "transfer stack pointer to X"),
+        TXA(mapOf(IMPLIED to Hex("8A", BYTE_SIZE)), "transfer X to accumulator"),
+        TXS(mapOf(IMPLIED to Hex("9A", BYTE_SIZE)), "transfer X to stack pointer"),
+        TYA(mapOf(IMPLIED to Hex("98", BYTE_SIZE)), "transfer Y to accumulator"),
 
         // stack
-        PHA(mapOf(IMPLIED to Hex("48", BYTE_SIZE))),
-        PHP(mapOf(IMPLIED to Hex("08", BYTE_SIZE))),
-        PLA(mapOf(IMPLIED to Hex("68", BYTE_SIZE))),
-        PLP(mapOf(IMPLIED to Hex("28", BYTE_SIZE))),
+        PHA(mapOf(IMPLIED to Hex("48", BYTE_SIZE)), "push accumulator"),
+        PHP(mapOf(IMPLIED to Hex("08", BYTE_SIZE)), "push processor status (SR)"),
+        PLA(mapOf(IMPLIED to Hex("68", BYTE_SIZE)), "pull accumulator"),
+        PLP(mapOf(IMPLIED to Hex("28", BYTE_SIZE)), "pull processor status (SR)"),
 
         // decrements, increments
-        DEC(mapOf(ABS to Hex("CE", BYTE_SIZE), ABS_X to Hex("DE", BYTE_SIZE), ZP to Hex("C6", BYTE_SIZE), ZP_X to Hex("D6", BYTE_SIZE))),
-        DEX(mapOf(IMPLIED to Hex("CA", BYTE_SIZE))),
-        DEY(mapOf(IMPLIED to Hex("88", BYTE_SIZE))),
-        INC(mapOf(ABS to Hex("EE", BYTE_SIZE), ABS_X to Hex("FE", BYTE_SIZE), ZP to Hex("E6", BYTE_SIZE), ZP_X to Hex("F6", BYTE_SIZE))),
-        INX(mapOf(IMPLIED to Hex("E8", BYTE_SIZE))),
-        INY(mapOf(IMPLIED to Hex("C8", BYTE_SIZE))),
+        DEC(mapOf(ABS to Hex("CE", BYTE_SIZE), ABS_X to Hex("DE", BYTE_SIZE), ZP to Hex("C6", BYTE_SIZE), ZP_X to Hex("D6", BYTE_SIZE)), "decrement"),
+        DEX(mapOf(IMPLIED to Hex("CA", BYTE_SIZE)), "decrement X"),
+        DEY(mapOf(IMPLIED to Hex("88", BYTE_SIZE)), "decrement Y"),
+        INC(mapOf(ABS to Hex("EE", BYTE_SIZE), ABS_X to Hex("FE", BYTE_SIZE), ZP to Hex("E6", BYTE_SIZE), ZP_X to Hex("F6", BYTE_SIZE)), "increment"),
+        INX(mapOf(IMPLIED to Hex("E8", BYTE_SIZE)), "increment X"),
+        INY(mapOf(IMPLIED to Hex("C8", BYTE_SIZE)), "increment Y"),
 
         // arithmetic operations
-        ADC(mapOf(ABS to Hex("6D", BYTE_SIZE), ABS_X to Hex("7D", BYTE_SIZE), ABS_Y to Hex("79", BYTE_SIZE), IMM to Hex("69", BYTE_SIZE), ZP to Hex("65", BYTE_SIZE), ZP_X_IND to Hex("61", BYTE_SIZE), ZP_X to Hex("75", BYTE_SIZE), ZPIND_Y to Hex("71", BYTE_SIZE))),
-        SBC(mapOf(ABS to Hex("ED", BYTE_SIZE), ABS_X to Hex("FD", BYTE_SIZE), ABS_Y to Hex("F9", BYTE_SIZE), IMM to Hex("E9", BYTE_SIZE), ZP to Hex("E5", BYTE_SIZE), ZP_X_IND to Hex("E1", BYTE_SIZE), ZP_X to Hex("F5", BYTE_SIZE), ZPIND_Y to Hex("F1", BYTE_SIZE))),
+        ADC(mapOf(ABS to Hex("6D", BYTE_SIZE), ABS_X to Hex("7D", BYTE_SIZE), ABS_Y to Hex("79", BYTE_SIZE), IMM to Hex("69", BYTE_SIZE), ZP to Hex("65", BYTE_SIZE), ZP_X_IND to Hex("61", BYTE_SIZE), ZP_X to Hex("75", BYTE_SIZE), ZPIND_Y to Hex("71", BYTE_SIZE)), "add with carry"),
+        SBC(mapOf(ABS to Hex("ED", BYTE_SIZE), ABS_X to Hex("FD", BYTE_SIZE), ABS_Y to Hex("F9", BYTE_SIZE), IMM to Hex("E9", BYTE_SIZE), ZP to Hex("E5", BYTE_SIZE), ZP_X_IND to Hex("E1", BYTE_SIZE), ZP_X to Hex("F5", BYTE_SIZE), ZPIND_Y to Hex("F1", BYTE_SIZE)), "subtract with carry"),
 
         // logical operations
-        AND(mapOf(ABS to Hex("2D", BYTE_SIZE), ABS_X to Hex("3D", BYTE_SIZE), ABS_Y to Hex("39", BYTE_SIZE), IMM to Hex("29", BYTE_SIZE), ZP to Hex("25", BYTE_SIZE), ZP_X_IND to Hex("21", BYTE_SIZE), ZP_X to Hex("35", BYTE_SIZE), ZPIND_Y to Hex("31", BYTE_SIZE))),
-        EOR(mapOf(ABS to Hex("0D", BYTE_SIZE), ABS_X to Hex("1D", BYTE_SIZE), ABS_Y to Hex("19", BYTE_SIZE), IMM to Hex("09", BYTE_SIZE), ZP to Hex("05", BYTE_SIZE), ZP_X_IND to Hex("01", BYTE_SIZE), ZP_X to Hex("15", BYTE_SIZE), ZPIND_Y to Hex("11", BYTE_SIZE))),
-        ORA(mapOf(ABS to Hex("4D", BYTE_SIZE), ABS_X to Hex("5D", BYTE_SIZE), ABS_Y to Hex("59", BYTE_SIZE), IMM to Hex("49", BYTE_SIZE), ZP to Hex("45", BYTE_SIZE), ZP_X_IND to Hex("41", BYTE_SIZE), ZP_X to Hex("55", BYTE_SIZE), ZPIND_Y to Hex("51", BYTE_SIZE))),
+        AND(mapOf(ABS to Hex("2D", BYTE_SIZE), ABS_X to Hex("3D", BYTE_SIZE), ABS_Y to Hex("39", BYTE_SIZE), IMM to Hex("29", BYTE_SIZE), ZP to Hex("25", BYTE_SIZE), ZP_X_IND to Hex("21", BYTE_SIZE), ZP_X to Hex("35", BYTE_SIZE), ZPIND_Y to Hex("31", BYTE_SIZE)), "and (with accumulator)"),
+        EOR(mapOf(ABS to Hex("0D", BYTE_SIZE), ABS_X to Hex("1D", BYTE_SIZE), ABS_Y to Hex("19", BYTE_SIZE), IMM to Hex("09", BYTE_SIZE), ZP to Hex("05", BYTE_SIZE), ZP_X_IND to Hex("01", BYTE_SIZE), ZP_X to Hex("15", BYTE_SIZE), ZPIND_Y to Hex("11", BYTE_SIZE)), "exclusive or (with accumulator)"),
+        ORA(mapOf(ABS to Hex("4D", BYTE_SIZE), ABS_X to Hex("5D", BYTE_SIZE), ABS_Y to Hex("59", BYTE_SIZE), IMM to Hex("49", BYTE_SIZE), ZP to Hex("45", BYTE_SIZE), ZP_X_IND to Hex("41", BYTE_SIZE), ZP_X to Hex("55", BYTE_SIZE), ZPIND_Y to Hex("51", BYTE_SIZE)), "or (with accumulator)"),
 
         // shift & rotate
-        ASL(mapOf(ABS to Hex("0E", BYTE_SIZE), ABS_X to Hex("1E", BYTE_SIZE), ACCUMULATOR to Hex("0A", BYTE_SIZE), ZP to Hex("06", BYTE_SIZE), ZP_X to Hex("16", BYTE_SIZE))),
-        LSR(mapOf(ABS to Hex("4E", BYTE_SIZE), ABS_X to Hex("5E", BYTE_SIZE), ACCUMULATOR to Hex("4A", BYTE_SIZE), ZP to Hex("46", BYTE_SIZE), ZP_X to Hex("56", BYTE_SIZE))),
-        ROL(mapOf(ABS to Hex("2E", BYTE_SIZE), ABS_X to Hex("3E", BYTE_SIZE), ACCUMULATOR to Hex("2A", BYTE_SIZE), ZP to Hex("26", BYTE_SIZE), ZP_X to Hex("36", BYTE_SIZE))),
-        ROR(mapOf(ABS to Hex("6E", BYTE_SIZE), ABS_X to Hex("7E", BYTE_SIZE), ACCUMULATOR to Hex("6A", BYTE_SIZE), ZP to Hex("66", BYTE_SIZE), ZP_X to Hex("76", BYTE_SIZE))),
+        ASL(mapOf(ABS to Hex("0E", BYTE_SIZE), ABS_X to Hex("1E", BYTE_SIZE), ACCUMULATOR to Hex("0A", BYTE_SIZE), ZP to Hex("06", BYTE_SIZE), ZP_X to Hex("16", BYTE_SIZE)), "arithmetic shift left"),
+        LSR(mapOf(ABS to Hex("4E", BYTE_SIZE), ABS_X to Hex("5E", BYTE_SIZE), ACCUMULATOR to Hex("4A", BYTE_SIZE), ZP to Hex("46", BYTE_SIZE), ZP_X to Hex("56", BYTE_SIZE)), "logical shift right"),
+        ROL(mapOf(ABS to Hex("2E", BYTE_SIZE), ABS_X to Hex("3E", BYTE_SIZE), ACCUMULATOR to Hex("2A", BYTE_SIZE), ZP to Hex("26", BYTE_SIZE), ZP_X to Hex("36", BYTE_SIZE)), "rotate left"),
+        ROR(mapOf(ABS to Hex("6E", BYTE_SIZE), ABS_X to Hex("7E", BYTE_SIZE), ACCUMULATOR to Hex("6A", BYTE_SIZE), ZP to Hex("66", BYTE_SIZE), ZP_X to Hex("76", BYTE_SIZE)), "rotate right"),
 
         // flag
-        CLC(mapOf(IMPLIED to Hex("18", BYTE_SIZE))),
-        CLD(mapOf(IMPLIED to Hex("D8", BYTE_SIZE))),
-        CLI(mapOf(IMPLIED to Hex("58", BYTE_SIZE))),
-        CLV(mapOf(IMPLIED to Hex("B8", BYTE_SIZE))),
-        SEC(mapOf(IMPLIED to Hex("38", BYTE_SIZE))),
-        SED(mapOf(IMPLIED to Hex("F8", BYTE_SIZE))),
-        SEI(mapOf(IMPLIED to Hex("78", BYTE_SIZE))),
+        CLC(mapOf(IMPLIED to Hex("18", BYTE_SIZE)), "clear carry"),
+        CLD(mapOf(IMPLIED to Hex("D8", BYTE_SIZE)), "clear decimal"),
+        CLI(mapOf(IMPLIED to Hex("58", BYTE_SIZE)), "clear interrupt disable"),
+        CLV(mapOf(IMPLIED to Hex("B8", BYTE_SIZE)), "clear overflow"),
+        SEC(mapOf(IMPLIED to Hex("38", BYTE_SIZE)), "set carry"),
+        SED(mapOf(IMPLIED to Hex("F8", BYTE_SIZE)), "set decimal"),
+        SEI(mapOf(IMPLIED to Hex("78", BYTE_SIZE)), "set interrupt disable"),
 
         // comparison
-        CMP(mapOf(ABS to Hex("CD", BYTE_SIZE), ABS_X to Hex("DD", BYTE_SIZE), ABS_Y to Hex("D9", BYTE_SIZE), IMM to Hex("C9", BYTE_SIZE), ZP to Hex("C5", BYTE_SIZE), ZP_X_IND to Hex("C1", BYTE_SIZE), ZP_X to Hex("D5", BYTE_SIZE), ZPIND_Y to Hex("D1", BYTE_SIZE))),
-        CPX(mapOf(ABS to Hex("EC", BYTE_SIZE), IMM to Hex("E0", BYTE_SIZE), ZP to Hex("E4", BYTE_SIZE))),
-        CPY(mapOf(ABS to Hex("CC", BYTE_SIZE), IMM to Hex("C0", BYTE_SIZE), ZP to Hex("C4", BYTE_SIZE))),
+        CMP(mapOf(ABS to Hex("CD", BYTE_SIZE), ABS_X to Hex("DD", BYTE_SIZE), ABS_Y to Hex("D9", BYTE_SIZE), IMM to Hex("C9", BYTE_SIZE), ZP to Hex("C5", BYTE_SIZE), ZP_X_IND to Hex("C1", BYTE_SIZE), ZP_X to Hex("D5", BYTE_SIZE), ZPIND_Y to Hex("D1", BYTE_SIZE)), "compare (with accumulator)"),
+        CPX(mapOf(ABS to Hex("EC", BYTE_SIZE), IMM to Hex("E0", BYTE_SIZE), ZP to Hex("E4", BYTE_SIZE)), "compare with X"),
+        CPY(mapOf(ABS to Hex("CC", BYTE_SIZE), IMM to Hex("C0", BYTE_SIZE), ZP to Hex("C4", BYTE_SIZE)), "compare with Y"),
 
         // conditional branches
-        BCC(mapOf(REL to Hex("90", BYTE_SIZE))),
-        BCS(mapOf(REL to Hex("B0", BYTE_SIZE))),
-        BEQ(mapOf(REL to Hex("F0", BYTE_SIZE))),
-        BMI(mapOf(REL to Hex("30", BYTE_SIZE))),
-        BNE(mapOf(REL to Hex("D0", BYTE_SIZE))),
-        BPL(mapOf(REL to Hex("10", BYTE_SIZE))),
-        BVC(mapOf(REL to Hex("50", BYTE_SIZE))),
-        BVS(mapOf(REL to Hex("70", BYTE_SIZE))),
+        BCC(mapOf(REL to Hex("90", BYTE_SIZE)), "branch on carry clear"),
+        BCS(mapOf(REL to Hex("B0", BYTE_SIZE)), "branch on carry set"),
+        BEQ(mapOf(REL to Hex("F0", BYTE_SIZE)), "branch on equal (zero set)"),
+        BMI(mapOf(REL to Hex("30", BYTE_SIZE)), "branch on minus (negative set)"),
+        BNE(mapOf(REL to Hex("D0", BYTE_SIZE)), "branch on not equal (zero clear)"),
+        BPL(mapOf(REL to Hex("10", BYTE_SIZE)), "branch on plus (negative clear)"),
+        BVC(mapOf(REL to Hex("50", BYTE_SIZE)), "branch on overflow clear"),
+        BVS(mapOf(REL to Hex("70", BYTE_SIZE)), "branch on overflow set"),
 
         // jumps, subroutines
-        JMP(mapOf(ABS to Hex("4C", BYTE_SIZE), IND to Hex("6C", BYTE_SIZE))),
-        JSR(mapOf(ABS to Hex("20", BYTE_SIZE))),
-        RTS(mapOf(IMPLIED to Hex("60", BYTE_SIZE))),
+        JMP(mapOf(ABS to Hex("4C", BYTE_SIZE), IND to Hex("6C", BYTE_SIZE)), "jump"),
+        JSR(mapOf(ABS to Hex("20", BYTE_SIZE)), "jump subroutine"),
+        RTS(mapOf(IMPLIED to Hex("60", BYTE_SIZE)), "return from subroutine"),
 
         // interrupts
-        BRK(mapOf(IMPLIED to Hex("00", BYTE_SIZE))),
-        RTI(mapOf(IMPLIED to Hex("40", BYTE_SIZE))),
+        BRK(mapOf(IMPLIED to Hex("00", BYTE_SIZE)), "break / interrupt"),
+        RTI(mapOf(IMPLIED to Hex("40", BYTE_SIZE)), "return from interrupt"),
 
         // other
-        BIT(mapOf(ABS to Hex("2C", BYTE_SIZE), IMM to Hex("89", BYTE_SIZE), ZP to Hex("24", BYTE_SIZE))),
-        NOP(mapOf(IMPLIED to Hex("EA", BYTE_SIZE)));
+        BIT(mapOf(ABS to Hex("2C", BYTE_SIZE), IMM to Hex("89", BYTE_SIZE), ZP to Hex("24", BYTE_SIZE)), "bit test"),
+        NOP(mapOf(IMPLIED to Hex("EA", BYTE_SIZE)), "no operation");
 
         fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
 

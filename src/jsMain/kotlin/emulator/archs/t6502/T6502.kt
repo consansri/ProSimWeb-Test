@@ -1,5 +1,9 @@
 package emulator.archs.t6502
 
+import StyleAttr
+import emotion.react.css
+import emulator.archs.riscv64.RV64
+import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
@@ -7,6 +11,10 @@ import emulator.kit.configs.Config
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
+import react.FC
+import react.dom.html.ReactHTML
+import web.cssom.ClassName
+import web.cssom.Float
 
 
 /**
@@ -28,7 +36,7 @@ object T6502 {
 
     val MEM_ADDR_SIZE = WORD_SIZE
 
-    enum class TSCompiledRow{
+    enum class TSCompiledRow {
         ADDRESS,
         LABEL,
         INSTRUCTION,
@@ -44,18 +52,84 @@ object T6502 {
     val commonRegFile = RegContainer.RegisterFile(
         name = "common",
         unsortedRegisters = arrayOf(
-            RegContainer.Register(Hex("00", WORD_SIZE), listOf("AC"), listOf(), Variable("00000000", BYTE_SIZE), description = "accumulator" ),
-            RegContainer.Register(Hex("01", WORD_SIZE), listOf("X"), listOf(), Variable("00000000", BYTE_SIZE), description = "X register" ),
-            RegContainer.Register(Hex("02", WORD_SIZE), listOf("Y"), listOf(), Variable("00000000", BYTE_SIZE), description = "Y register" ),
-            RegContainer.Register(Hex("03", WORD_SIZE), listOf("SR"), listOf(), Variable("00000000", BYTE_SIZE), description = "status register [NV-BDIZC]" ),
-            RegContainer.Register(Hex("04", WORD_SIZE), listOf("SP"), listOf(), Variable("11111111", BYTE_SIZE), description = "stack pointer" )
+            RegContainer.Register(Hex("00", WORD_SIZE), listOf("AC"), listOf(), Variable("00000000", BYTE_SIZE), description = "accumulator"),
+            RegContainer.Register(Hex("01", WORD_SIZE), listOf("X"), listOf(), Variable("00000000", BYTE_SIZE), description = "X register"),
+            RegContainer.Register(Hex("02", WORD_SIZE), listOf("Y"), listOf(), Variable("00000000", BYTE_SIZE), description = "Y register"),
+            RegContainer.Register(Hex("03", WORD_SIZE), listOf("SR"), listOf(), Variable("00100000", BYTE_SIZE), description = "status register [NV-BDIZC]"),
+            RegContainer.Register(Hex("04", WORD_SIZE), listOf("SP"), listOf(), Variable("11111111", BYTE_SIZE), description = "stack pointer")
         )
     )
 
     val description = Config.Description(
         "T6502",
         "MOS Technology 6502",
-        Docs()
+        Docs(Docs.HtmlFile.DefinedFile("Implemented", FC {
+            ReactHTML.h1 {
+                +"6502 Implemented"
+            }
+            ReactHTML.h2 {
+                +"General"
+            }
+            ReactHTML.strong {
+                +"Memory"
+            }
+            ReactHTML.ul {
+                ReactHTML.li {
+                    +"address-width: $MEM_ADDR_SIZE"
+                }
+                ReactHTML.li {
+                    +"value-width: $BYTE_SIZE"
+                }
+            }
+            ReactHTML.h2 {
+                +"Instructions"
+            }
+            ReactHTML.table {
+                ReactHTML.thead {
+                    ReactHTML.tr {
+
+                        ReactHTML.th {
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                            colSpan = 2
+                            +"instruction"
+                        }
+                        ReactHTML.th {
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                            +"opcode"
+                        }
+                        ReactHTML.th {
+                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                            +"description"
+                        }
+                    }
+                }
+                ReactHTML.tbody {
+                    className = ClassName(StyleAttr.Main.Table.CLASS_STRIPED)
+                    for (instr in T6502Syntax.InstrType.entries) {
+                        ReactHTML.tr {
+
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
+                                +instr.name
+                            }
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
+                                +instr.opCode.entries.map { it.key }.joinToString("\n") { it.exampleString }
+                                +"\t"
+                            }
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
+                                +instr.opCode.entries.joinToString("\n") { "${it.value} <- ${it.key.description}" }
+                            }
+                            ReactHTML.td{
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_RIGHT)
+                                +instr.description
+                            }
+                        }
+                    }
+                }
+            }
+        }))
     )
 
     val config = Config(
