@@ -139,7 +139,20 @@ class Compiler(
                         continue
                     }
 
-                    val binary = regexCollection.binary.find(remainingLine)
+                    var foundCalcToken = false
+                    for (mode in Token.Constant.Calculated.MODE.entries) {
+                        val result = mode.regex.find(remainingLine) ?: continue
+                        val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, tokenList.size, regexCollection) ?: continue
+                        foundCalcToken = true
+                        tokenList += token
+                        tempTokenList += token
+                        startIndex += result.value.length
+                        remainingLine = line.substring(startIndex)
+                        break
+                    }
+                    if (foundCalcToken) continue
+
+                    val binary = regexCollection.bin.find(remainingLine)
                     if (binary != null) {
                         val token = Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, tokenList.size)
                         tokenList += token
@@ -240,6 +253,7 @@ class Compiler(
                     break
                 }
                 val newLineToken = Token.NewLine(LineLoc(file, lineID, line.length, line.length + 2), "\n", tokenList.size)
+
                 tokenLines.add(lineID, tempTokenList)
                 tokenList += newLineToken
             }
@@ -288,7 +302,6 @@ class Compiler(
      * Builds [hlLines] from the [Compiler] tokens which highlight flags are resolved from [Syntax.ConnectedHL] in [Syntax.SyntaxTree]
      */
     private fun highlight() {
-
         for (lineID in tokenLines.indices) {
             val tokenLine = tokenLines[lineID]
             var hlLine = ""
@@ -438,7 +451,19 @@ class Compiler(
                 continue
             }
 
-            val binary = regexCollection.binary.find(remaining)
+            var foundCalcToken = false
+            for (mode in Token.Constant.Calculated.MODE.entries) {
+                val result = mode.regex.find(remaining) ?: continue
+                val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, tokenList.size, regexCollection) ?: continue
+                tokens += token
+                foundCalcToken = true
+                startIndex += result.value.length
+                remaining = content.substring(startIndex)
+                break
+            }
+            if (foundCalcToken) continue
+
+            val binary = regexCollection.bin.find(remaining)
             if (binary != null) {
                 tokens += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, lineID)
                 startIndex += binary.value.length
@@ -608,6 +633,118 @@ class Compiler(
                 }
             }
 
+            class Calculated(lineLoc: LineLoc, val mode: MODE, val prefixes: ConstantPrefixes, val groupValues: MatchGroupCollection, val regexCollection: RegexCollection, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
+
+                override fun getValue(size: Variable.Size?): Variable.Value {
+                    val value1content = groupValues.get("val1")?.value
+                    val value2content = groupValues.get("val2")?.value
+
+                    if (value1content == null || value2content == null) throw Error("Missing number for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+
+                    val value1 = getNumber(value1content, size, regexCollection) ?: throw Error("Missing number (value1 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                    val value2 = getNumber(value2content,size, regexCollection ) ?: throw Error("Missing number (value2 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+
+                    when (mode) {
+                        MODE.SHIFTLEFT -> {
+                            val int = value2.toDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                            return value1.toBin() shl int
+                        }
+
+                        MODE.SHIFTRIGHT -> {
+                            val int = value2.toDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                            return value1.toBin() shr int
+                        }
+
+                        MODE.ADD -> {
+                            return value1 + value2
+                        }
+
+                        MODE.SUB -> {
+                            return value1 - value2
+                        }
+                    }
+                }
+
+                private fun getNumber(content: kotlin.String, size: Variable.Size?, regexCollection: RegexCollection): Variable.Value? {
+                    var result = regexCollection.bin.matchEntire(content)
+                    if (result != null) {
+                        return if (size != null) {
+                            if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefixes.bin), size) else Variable.Value.Bin(content.removePrefix(prefixes.bin), size)
+                        } else {
+                            if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefixes.bin)) else Variable.Value.Bin(content.removePrefix(prefixes.bin))
+                        }
+                    }
+                    result = regexCollection.hex.matchEntire(content)
+                    if (result != null) {
+                        return if (size != null) {
+                            if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefixes.hex), size) else Variable.Value.Hex(content.removePrefix(prefixes.hex), size)
+                        } else {
+                            if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefixes.hex)) else Variable.Value.Hex(content.removePrefix(prefixes.hex))
+                        }
+                    }
+                    result = regexCollection.udec.matchEntire(content)
+                    if (result != null) {
+                        return if (size != null) {
+                            Variable.Value.UDec(content.removePrefix(prefixes.udec), size)
+                        } else {
+                            Variable.Value.UDec(content.removePrefix(prefixes.udec))
+                        }
+                    }
+                    result = regexCollection.dec.matchEntire(content)
+                    if (result != null) {
+                        return if (size != null) {
+                            Variable.Value.Dec(content.removePrefix(prefixes.dec), size)
+                        } else {
+                            Variable.Value.Dec(content.removePrefix(prefixes.dec))
+                        }
+                    }
+                    return null
+                }
+
+                enum class MODE(val regex: Regex) {
+                    SHIFTLEFT(Regex("""^\(\s*(?<val1>\S+)\s*<<\s*(?<val2>\S+)\s*\)""")),
+                    SHIFTRIGHT(Regex("""^\(\s*(?<val1>\S+)\s*>>\s*(?<val2>\S+)\s*\)""")),
+                    ADD(Regex("""^\(\s*(?<val1>\S+)\s*\+\s*(?<val2>\S+)\s*\)""")),
+                    SUB(Regex("""^\(\s*(?<val1>\S+)\s*-\s*(?<val2>\S+)\s*\)"""));
+
+                    fun getCalcToken(lineLoc: LineLoc, prefixes: ConstantPrefixes, groupValues: MatchGroupCollection, content: kotlin.String, id: Int, regexCollection: RegexCollection): Calculated? {
+                        when (this) {
+                            SHIFTLEFT, SHIFTRIGHT, ADD, SUB -> {
+                                val value1 = groupValues.get("val1")?.value
+                                val value2 = groupValues.get("val2")?.value
+
+                                if (value1 == null || value2 == null) return null
+
+                                if (checkIfNumber(value1, regexCollection) == null) return null
+                                if (checkIfNumber(value2, regexCollection) == null) return null
+
+                                return Calculated(lineLoc, this, prefixes, groupValues, regexCollection, content, id)
+                            }
+                        }
+                    }
+
+                    private fun checkIfNumber(content: kotlin.String, regexCollection: RegexCollection): Variable.Value.Types? {
+                        var result = regexCollection.bin.matchEntire(content)
+                        if (result != null) {
+                            return Variable.Value.Types.Bin
+                        }
+                        result = regexCollection.hex.matchEntire(content)
+                        if (result != null) {
+                            return Variable.Value.Types.Hex
+                        }
+                        result = regexCollection.udec.matchEntire(content)
+                        if (result != null) {
+                            return Variable.Value.Types.UDec
+                        }
+                        result = regexCollection.dec.matchEntire(content)
+                        if (result != null) {
+                            return Variable.Value.Types.Dec
+                        }
+                        return null
+                    }
+                }
+            }
+
             class Binary(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return if (size != null) {
@@ -688,7 +825,7 @@ class Compiler(
     data class RegexCollection(
         val space: Regex,
         val symbol: Regex,
-        val binary: Regex,
+        val bin: Regex,
         val hex: Regex,
         val dec: Regex,
         val udec: Regex,

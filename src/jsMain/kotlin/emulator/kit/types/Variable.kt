@@ -138,7 +138,6 @@ class Variable {
         abstract fun toDec(): Dec
         abstract fun toUDec(): UDec
         abstract fun toASCII(): String
-        abstract fun toDouble(): Double
         abstract fun getBiggest(): Value
         abstract operator fun plus(operand: Value): Value
         abstract operator fun minus(operand: Value): Value
@@ -335,10 +334,6 @@ class Variable {
                 return Conversion.getASCII(this)
             }
 
-            override fun toDouble(): Double {
-                return this.toDec().toDouble()
-            }
-
             override fun getBiggest(): Value {
                 return Bin("1".repeat(size.bitWidth), size)
             }
@@ -378,7 +373,7 @@ class Variable {
             }
 
             fun flexDivSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true, dividendIsUnsigned: Boolean = false): Bin {
-                val divResult =if(dividendIsUnsigned) BinaryTools.divideMixed(this.getRawBinStr(), divisor.getRawBinStr()) else BinaryTools.divideSigned(this.getRawBinStr(), divisor.getRawBinStr())
+                val divResult = if (dividendIsUnsigned) BinaryTools.divideMixed(this.getRawBinStr(), divisor.getRawBinStr()) else BinaryTools.divideSigned(this.getRawBinStr(), divisor.getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) this.size else divisor.size
                 return if (resizeToLargestParamSize) Bin(divResult.result).getResized(biggerSize) else Bin(divResult.result)
             }
@@ -532,10 +527,6 @@ class Variable {
                 return Conversion.getASCII(this)
             }
 
-            override fun toDouble(): Double {
-                return this.toDec().toDouble()
-            }
-
             override fun getBiggest(): Value {
                 return Hex("F".repeat(size.hexChars), size)
             }
@@ -676,13 +667,12 @@ class Variable {
                 return Conversion.getBinary(this).toASCII()
             }
 
-            override fun toDouble(): Double {
-                return try {
-                    getRawDecStr().toDouble()
-                } catch (e: NumberFormatException) {
-                    console.warn("Value.toDouble(): NumberFormatException (dec: ${getRawDecStr()}) -> returning 0")
-                    0.0
-                }
+            fun toIntOrNull(): Int? {
+                return getRawDecStr().toIntOrNull()
+            }
+
+            fun toDoubleOrNull(): Double? {
+                return getRawDecStr().toDoubleOrNull()
             }
 
             override fun getBiggest(): Value {
@@ -820,13 +810,12 @@ class Variable {
                 return Conversion.getASCII(this)
             }
 
-            override fun toDouble(): Double {
-                return try {
-                    getRawUDecStr().toDouble()
-                } catch (e: NumberFormatException) {
-                    console.warn("Value.toDouble(): NumberFormatException (udec: ${getRawUDecStr()}) -> returning 0")
-                    0.0
-                }
+            fun toIntOrNull(): Int?{
+                return getRawUDecStr().toIntOrNull()
+            }
+
+            fun toDoubleOrNull(): Double? {
+                return getRawUDecStr().toDoubleOrNull()
             }
 
             override fun getBiggest(): Value {
