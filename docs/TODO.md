@@ -1,12 +1,9 @@
 # TODOS #
 
 - Value add exponential Numbers
-- Value string escape sequence ("\"" = ")
+- Value string escape sequence ("\"" => ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
-- split compiler syntax analysis from complete assembly process (differ between prehighlight, analysis and full compilation)
-- LD Files for Memory Initialization
-
-
+- Make Register Description collapse able instead show two rows of registers
 
 # SUGAR #
 
@@ -19,7 +16,10 @@
 
 ## Version 0.1.9 ##
 - **(done)** fix html docs paths
-- fix mobile view app controls
+- **(done)** fix mobile view app controls
+- **(done)** add 6502 Architecture
+- **(done)** improve compiler (highlighting, functionality)
+- rewrite risc-v parser
 
 ## Version 0.1.8 ##
 - **(done)** added RV inline instructions

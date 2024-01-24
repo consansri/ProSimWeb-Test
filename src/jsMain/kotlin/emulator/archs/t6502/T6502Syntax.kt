@@ -214,14 +214,14 @@ class T6502Syntax : Syntax() {
             description = "indirect"
         ), // Absolute Indirect: (a)
 
-        ACCUMULATOR(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"), InSpecific.NewLine), exampleString = "A", description = "Accumulator"), // Accumulator: A
-        IMM(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant, InSpecific.NewLine), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
-        REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
-        ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
-        ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, InSpecific.NewLine), exampleString = "[labelname]", description = "absolute (from label)"),
-        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
+        ACCUMULATOR(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "A", description = "Accumulator"), // Accumulator: A
+        IMM(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
+        REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
+        ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
+        ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, InSpecific.NewLine, ignoreSpaces = true), exampleString = "[labelname]", description = "absolute (from label)"),
+        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
 
-        IMPLIED(TokenSeq(InSpecific.Word, InSpecific.NewLine), exampleString = "", description = "implied"); // Implied: i
+        IMPLIED(TokenSeq(InSpecific.Word, InSpecific.NewLine, ignoreSpaces = true), exampleString = "", description = "implied"); // Implied: i
 
         fun getString(nextByte: Hex, nextWord: Hex, labelName: String? = null): String {
             return when (this) {
