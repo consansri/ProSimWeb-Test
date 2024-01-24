@@ -9,7 +9,10 @@ import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.T6502Syntax.AModes.*
 import emulator.archs.t6502.T6502.BYTE_SIZE
 import emulator.archs.t6502.T6502.WORD_SIZE
-import emulator.kit.assembly.Syntax.TokenSeq.Component.*
+import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
+import emulator.kit.assembly.Syntax.TokenSeq.Component.Specific
+import emulator.kit.assembly.Syntax.TokenSeq.Component.SpecConst
+import emulator.kit.assembly.Syntax.TokenSeq.Component.RegOrSpecConst
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 
@@ -119,8 +122,8 @@ class T6502Syntax : Syntax() {
     }
 
     data object Seqs {
-        val labelSeq = TokenSeq(InSpecific.Word, Specific(":"))
-        val setaddrSeq = TokenSeq(Specific("*"), Specific("="), InSpecific.Constant, ignoreSpaces = true)
+        val labelSeq = TokenSeq(Word, Specific(":"))
+        val setaddrSeq = TokenSeq(Specific("*"), Specific("="), Constant, ignoreSpaces = true)
     }
 
     data object NAMES {
@@ -141,87 +144,29 @@ class T6502Syntax : Syntax() {
      */
     enum class AModes(val tokenSequence: TokenSeq, val immSize: Variable.Size? = null, val hasLabelVariant: AModes? = null, val exampleString: String, val description: String) {
 
-        ZP_X(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), InSpecific.NewLine, ignoreSpaces = true),
-            immSize = BYTE_SIZE,
-            exampleString = "$00, X",
-            description = "zeropage, X-indexed"
-        ), // Zero Page Indexed with X: zp,x
-        ZP_Y(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), InSpecific.NewLine, ignoreSpaces = true),
-            immSize = BYTE_SIZE,
-            exampleString = "$00, Y",
-            description = "zeropage, Y-indexed"
-        ), // Zero Page Indexed with Y: zp,y
+        ZP_X(TokenSeq(Word, Space, Constant, Specific(","), Specific("X"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
+        ZP_Y(TokenSeq(Word, Space, Constant, Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00, Y", description = "zeropage, Y-indexed"), // Zero Page Indexed with Y: zp,y
 
-        ABS_X_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("X"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "[labelname], X", description = "absolute (from label), X-indexed"),
-        ABS_Y_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("Y"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "[labelname], Y", description = "absolute (from label), Y-indexed"),
+        ABS_X_LBLD(TokenSeq(Word, Space, Word, Specific(","), Specific("X"), NewLine, ignoreSpaces = true), exampleString = "[labelname], X", description = "absolute (from label), X-indexed"),
+        ABS_Y_LBLD(TokenSeq(Word, Space, Word, Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), exampleString = "[labelname], Y", description = "absolute (from label), Y-indexed"),
 
-        ABS_X(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), InSpecific.NewLine, ignoreSpaces = true),
-            immSize = WORD_SIZE,
-            hasLabelVariant = ABS_X_LBLD,
-            exampleString = "$0000, X",
-            description = "absolute, X-indexed"
-        ), // Absolute Indexed with X: a,x
-        ABS_Y(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), InSpecific.NewLine, ignoreSpaces = true),
-            immSize = WORD_SIZE,
-            hasLabelVariant = ABS_Y_LBLD,
-            exampleString = "$0000, Y",
-            description = "absolute, Y-indexed"
-        ), // Absolute Indexed with Y: a,y
+        ABS_X(TokenSeq(Word, Space, Constant, Specific(","), Specific("X"), NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_X_LBLD, exampleString = "$0000, X", description = "absolute, X-indexed"), // Absolute Indexed with X: a,x
+        ABS_Y(TokenSeq(Word, Space, Constant, Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_Y_LBLD, exampleString = "$0000, Y", description = "absolute, Y-indexed"), // Absolute Indexed with Y: a,y
+        ZP_X_IND(TokenSeq(Word, Space, Specific("("), Constant, Specific(","), Specific("X"), Specific(")"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "($00, X)", description = "X-indexed, indirect"), // Zero Page Indexed Indirect: (zp,x)
 
-        ZP_X_IND(
-            TokenSeq(
-                InSpecific.Word,
-                InSpecific.Space,
-                Specific("("),
-                InSpecific.Constant,
-                Specific(","),
-                Specific("X"),
-                Specific(")"),
-                InSpecific.NewLine,
-                ignoreSpaces = true
-            ),
-            immSize = BYTE_SIZE,
-            exampleString = "($00, X)",
-            description = "X-indexed, indirect"
-        ), // Zero Page Indexed Indirect: (zp,x)
+        ZPIND_Y(TokenSeq(Word, Space, Specific("("), Constant, Specific(")"), Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "($00), Y", description = "indirect, Y-indexed"), // Zero Page Indirect Indexed with Y: (zp),y
 
-        ZPIND_Y(
-            TokenSeq(
-                InSpecific.Word, InSpecific.Space,
-                Specific("("),
-                InSpecific.Constant,
-                Specific(")"),
-                Specific(","),
-                Specific("Y"),
-                InSpecific.NewLine,
-                ignoreSpaces = true
-            ),
-            immSize = BYTE_SIZE,
-            exampleString = "($00), Y",
-            description = "indirect, Y-indexed"
-        ), // Zero Page Indirect Indexed with Y: (zp),y
+        IND_LBLD(TokenSeq(Word, Space, Specific("("), Word, Specific(")"), NewLine, ignoreSpaces = true), exampleString = "([labelname])", description = "indirect (from label)"),
+        IND(TokenSeq(Word, Space, Specific("("), Constant, Specific(")"), NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = IND_LBLD, exampleString = "($0000)", description = "indirect"), // Absolute Indirect: (a)
 
-        IND_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Word, Specific(")"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "([labelname])", description = "indirect (from label)"),
-        IND(
-            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), InSpecific.NewLine, ignoreSpaces = true),
-            immSize = WORD_SIZE,
-            hasLabelVariant = IND_LBLD,
-            exampleString = "($0000)",
-            description = "indirect"
-        ), // Absolute Indirect: (a)
+        ACCUMULATOR(TokenSeq(Word, Space, Specific("A"), NewLine, ignoreSpaces = true), exampleString = "A", description = "Accumulator"), // Accumulator: A
+        IMM(TokenSeq(Word, Space, Specific("#"), Constant, NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
+        REL(TokenSeq(Word, Space, Constant, NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
+        ZP(TokenSeq(Word, Space, Constant, NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
+        ABS_LBLD(TokenSeq(Word, Space, Word, NewLine, ignoreSpaces = true), exampleString = "[labelname]", description = "absolute (from label)"),
+        ABS(TokenSeq(Word, Space, Constant, NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
 
-        ACCUMULATOR(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "A", description = "Accumulator"), // Accumulator: A
-        IMM(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
-        REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
-        ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
-        ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, InSpecific.NewLine, ignoreSpaces = true), exampleString = "[labelname]", description = "absolute (from label)"),
-        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
-
-        IMPLIED(TokenSeq(InSpecific.Word, InSpecific.NewLine, ignoreSpaces = true), exampleString = "", description = "implied"); // Implied: i
+        IMPLIED(TokenSeq(Word, NewLine, ignoreSpaces = true), exampleString = "", description = "implied"); // Implied: i
 
         fun getString(nextByte: Hex, nextWord: Hex, labelName: String? = null): String {
             return when (this) {
