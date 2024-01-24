@@ -232,7 +232,7 @@ object RV64 {
      * Standard Registers
      */
 
-    private val standardRegFile = RegisterFile(
+    val standardRegFile = RegisterFile(
         MAIN_REGFILE_NAME, arrayOf(
             Register(Bin("00000", REG_ADDRESS_SIZE), listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), description = "hardwired zero", hardwire = true),
             Register(Bin("00001", REG_ADDRESS_SIZE), listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "return address"),

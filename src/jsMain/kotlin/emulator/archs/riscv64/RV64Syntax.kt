@@ -13,7 +13,6 @@ import emulator.kit.types.Variable.Size.*
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel.*
 import emulator.archs.riscv64.RV64BinMapper.OpCode
 import emulator.kit.optional.Feature
-import js.core.Symbol
 
 class RV64Syntax : Syntax() {
 
@@ -1563,7 +1562,7 @@ class RV64Syntax : Syntax() {
             }
 
             object Syntax {
-                val tokenSeq = TokenSeq(TokenSeq.Component.InSpecific.Constant, TokenSeq.Component.Specific("("), TokenSeq.Component.InSpecific.Register, TokenSeq.Component.Specific(")"), ignoreSpaces = true)
+                val tokenSeq = TokenSeq(TokenSeq.Component.InSpecific.Constant, TokenSeq.Component.Specific("("), TokenSeq.Component.InSpecific.Register(), TokenSeq.Component.Specific(")"), ignoreSpaces = true)
             }
         }
 

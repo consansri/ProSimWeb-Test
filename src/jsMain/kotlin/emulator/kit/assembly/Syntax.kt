@@ -1,9 +1,10 @@
 package emulator.kit.assembly
 
-import debug.DebugTools
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
+import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
+import emulator.kit.types.Variable
 
 /**
  * This template solves as an interface for specific architecture syntax implementations. It has one main function [check] in which the whole syntax should be analyzed and a corresponding syntax tree should be build.
@@ -408,6 +409,34 @@ abstract class Syntax {
                 override fun matches(token: Compiler.Token): Boolean = content == token.content
             }
 
+            class SpecConst(val mustMatchSize: Variable.Size, val signed: Boolean? = null) : Component() {
+                override fun matches(token: Compiler.Token): Boolean {
+                    return if (signed == null) {
+                        token is Compiler.Token.Constant && token.getValue(mustMatchSize).checkResult.valid
+                    } else {
+                        token is Compiler.Token.Constant && token.getValue(mustMatchSize).checkResult.valid && signed == token.getValue(mustMatchSize).isSigned()
+                    }
+                }
+            }
+
+            class RegOrSpecConst(val mustMatchSize: Variable.Size, val regFile: RegContainer.RegisterFile? = null, val notInRegFile: RegContainer.RegisterFile? = null) : Component() {
+                override fun matches(token: Compiler.Token): Boolean {
+                    return if (regFile != null) {
+                        if (notInRegFile != null) {
+                            (token is Compiler.Token.Register && regFile.unsortedRegisters.contains(token.reg) && !notInRegFile.unsortedRegisters.contains(token.reg)) || (token is Compiler.Token.Constant && token.getValue(mustMatchSize).checkResult.valid)
+                        } else {
+                            (token is Compiler.Token.Register && regFile.unsortedRegisters.contains(token.reg)) || (token is Compiler.Token.Constant && token.getValue(mustMatchSize).checkResult.valid)
+                        }
+                    } else {
+                        if (notInRegFile != null) {
+                            (token is Compiler.Token.Register && !notInRegFile.unsortedRegisters.contains(token.reg)) || (token is Compiler.Token.Constant && token.getValue(mustMatchSize).checkResult.valid)
+                        } else {
+                            token is Compiler.Token.Register || (token is Compiler.Token.Constant && token.getValue(mustMatchSize).checkResult.valid)
+                        }
+                    }
+                }
+            }
+
             sealed class InSpecific : Component() {
 
                 data object Symbol : InSpecific() {
@@ -422,8 +451,14 @@ abstract class Syntax {
                     override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.CONSTANT
                 }
 
-                data object Register : InSpecific() {
-                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.REGISTER
+                data class Register(val regFile: RegContainer.RegisterFile? = null) : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean {
+                        return if (regFile != null) {
+                            token is Compiler.Token.Register && regFile.unsortedRegisters.contains(token.reg)
+                        } else {
+                            token.type == Compiler.TokenType.REGISTER
+                        }
+                    }
                 }
 
                 data object Space : InSpecific() {
