@@ -573,7 +573,6 @@ class Compiler(
     sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 
         var hlContent = content
-        abstract val type: TokenType
 
         fun isPseudo(): Boolean {
             return id == Settings.COMPILER_TOKEN_PSEUDOID && lineLoc.lineID == Settings.COMPILER_TOKEN_PSEUDOID
@@ -585,20 +584,13 @@ class Compiler(
 
         override fun toString(): String = content
 
-        class NewLine(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.NEWLINE
-        }
+        class NewLine(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
 
-        class Space(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.SPACE
-        }
+        class Space(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
 
-        class Symbol(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.SYMBOL
-        }
+        class Symbol(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
 
         sealed class Constant(lineLoc: LineLoc, content: kotlin.String, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.CONSTANT
             abstract fun getValue(size: Variable.Size? = null): Variable.Value
 
             class Ascii(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
@@ -634,7 +626,6 @@ class Compiler(
             }
 
             class Calculated(lineLoc: LineLoc, val mode: MODE, val prefixes: ConstantPrefixes, val groupValues: MatchGroupCollection, val regexCollection: RegexCollection, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     val value1content = groupValues.get("val1")?.value
                     val value2content = groupValues.get("val2")?.value
@@ -787,22 +778,9 @@ class Compiler(
 
         }
 
-        class Register(lineLoc: LineLoc, content: String, val reg: RegContainer.Register, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.REGISTER
-        }
+        class Register(lineLoc: LineLoc, content: String, val reg: RegContainer.Register, id: Int) : Token(lineLoc, content, id)
 
-        class Word(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            override val type = TokenType.WORD
-        }
-    }
-
-    enum class TokenType {
-        SPACE,
-        NEWLINE,
-        SYMBOL,
-        CONSTANT,
-        REGISTER,
-        WORD
+        class Word(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
     }
 
     data class HLFlagCollection(

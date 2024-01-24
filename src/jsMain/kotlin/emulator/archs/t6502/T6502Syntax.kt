@@ -142,30 +142,30 @@ class T6502Syntax : Syntax() {
     enum class AModes(val tokenSequence: TokenSeq, val immSize: Variable.Size? = null, val hasLabelVariant: AModes? = null, val exampleString: String, val description: String) {
 
         ZP_X(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), InSpecific.NewLine, ignoreSpaces = true),
             immSize = BYTE_SIZE,
             exampleString = "$00, X",
             description = "zeropage, X-indexed"
         ), // Zero Page Indexed with X: zp,x
         ZP_Y(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), InSpecific.NewLine, ignoreSpaces = true),
             immSize = BYTE_SIZE,
             exampleString = "$00, Y",
             description = "zeropage, Y-indexed"
         ), // Zero Page Indexed with Y: zp,y
 
-        ABS_X_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("X"), ignoreSpaces = true), exampleString = "[labelname], X", description = "absolute (from label), X-indexed"),
-        ABS_Y_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("Y"), ignoreSpaces = true), exampleString = "[labelname], Y", description = "absolute (from label), Y-indexed"),
+        ABS_X_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("X"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "[labelname], X", description = "absolute (from label), X-indexed"),
+        ABS_Y_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, Specific(","), Specific("Y"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "[labelname], Y", description = "absolute (from label), Y-indexed"),
 
         ABS_X(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), ignoreSpaces = true),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("X"), InSpecific.NewLine, ignoreSpaces = true),
             immSize = WORD_SIZE,
             hasLabelVariant = ABS_X_LBLD,
             exampleString = "$0000, X",
             description = "absolute, X-indexed"
         ), // Absolute Indexed with X: a,x
         ABS_Y(
-            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), ignoreSpaces = true),
+            TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, Specific(","), Specific("Y"), InSpecific.NewLine, ignoreSpaces = true),
             immSize = WORD_SIZE,
             hasLabelVariant = ABS_Y_LBLD,
             exampleString = "$0000, Y",
@@ -181,6 +181,7 @@ class T6502Syntax : Syntax() {
                 Specific(","),
                 Specific("X"),
                 Specific(")"),
+                InSpecific.NewLine,
                 ignoreSpaces = true
             ),
             immSize = BYTE_SIZE,
@@ -196,6 +197,7 @@ class T6502Syntax : Syntax() {
                 Specific(")"),
                 Specific(","),
                 Specific("Y"),
+                InSpecific.NewLine,
                 ignoreSpaces = true
             ),
             immSize = BYTE_SIZE,
@@ -203,23 +205,23 @@ class T6502Syntax : Syntax() {
             description = "indirect, Y-indexed"
         ), // Zero Page Indirect Indexed with Y: (zp),y
 
-        IND_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Word, Specific(")"), ignoreSpaces = true), exampleString = "([labelname])", description = "indirect (from label)"),
+        IND_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Word, Specific(")"), InSpecific.NewLine, ignoreSpaces = true), exampleString = "([labelname])", description = "indirect (from label)"),
         IND(
-            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), ignoreSpaces = true),
+            TokenSeq(InSpecific.Word, InSpecific.Space, Specific("("), InSpecific.Constant, Specific(")"), InSpecific.NewLine, ignoreSpaces = true),
             immSize = WORD_SIZE,
             hasLabelVariant = IND_LBLD,
             exampleString = "($0000)",
             description = "indirect"
         ), // Absolute Indirect: (a)
 
-        ACCUMULATOR(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A")), exampleString = "A", description = "Accumulator"), // Accumulator: A
-        IMM(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
-        REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
-        ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
-        ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word), exampleString = "[labelname]", description = "absolute (from label)"),
-        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
+        ACCUMULATOR(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("A"), InSpecific.NewLine), exampleString = "A", description = "Accumulator"), // Accumulator: A
+        IMM(TokenSeq(InSpecific.Word, InSpecific.Space, Specific("#"), InSpecific.Constant, InSpecific.NewLine), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
+        REL(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
+        ZP(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
+        ABS_LBLD(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Word, InSpecific.NewLine), exampleString = "[labelname]", description = "absolute (from label)"),
+        ABS(TokenSeq(InSpecific.Word, InSpecific.Space, InSpecific.Constant, InSpecific.NewLine), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
 
-        IMPLIED(TokenSeq(InSpecific.Word), exampleString = "", description = "implied"); // Implied: i
+        IMPLIED(TokenSeq(InSpecific.Word, InSpecific.NewLine), exampleString = "", description = "implied"); // Implied: i
 
         fun getString(nextByte: Hex, nextWord: Hex, labelName: String? = null): String {
             return when (this) {
@@ -483,46 +485,46 @@ class T6502Syntax : Syntax() {
                     setFlags(arch, n = inc.toBin().getBit(0), checkZero = inc.toBin())
                 }
 
-                ADC -> { // TODO("CHECK IF FLAGS GET SETTED THE RIGHT WAY")
+                ADC -> {
                     if (operand == null) {
                         arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
                         return
                     }
-                    val sum = if (flags.d == Bin("1", Bit1())) {
-                        // Decimal Add
-                        val decSumBit9 = ac.get().toDec().getResized(Bit9()) + operand + flags.c
-                        val decSumBit8 = Dec(decSumBit9.toDec().getRawDecStr(), BYTE_SIZE)
-                        val v = if (decSumBit8.checkResult.valid) Bin("0", Bit1()) else Bin("1", Bit1())
-                        val c = if (decSumBit9.toDec() > Dec("99", Bit9())) Bin("1", Bit1()) else Bin("0", Bit1())
-                        setFlags(arch, v = v, c = c)
-                        decSumBit9.toBin().getUResized(BYTE_SIZE)
-                    } else {
-                        // Binary Add
-                        val binSumBit9 = ac.get().toBin().getResized(Bit9()) + operand + flags.c
-                        val binSumBit8 = Bin(binSumBit9.toBin().getRawBinStr(), BYTE_SIZE)
-                        val v = if (binSumBit8.checkResult.valid) Bin("0", Bit1()) else Bin("1", Bit1())
-                        val c = if (binSumBit9.toBin() > Bin("11111111", Bit8())) Bin("1", Bit1()) else Bin("0", Bit1())
-                        setFlags(arch, v = v, c = c)
-                        binSumBit9.toBin().getUResized(BYTE_SIZE)
-                    }
+
+                    // Binary Add
+                    val binSumBit9 = ac.get().toBin() + operand + flags.c
+                    val sum = Bin(binSumBit9.toBin().getRawBinStr().substring(1), BYTE_SIZE)
+                    val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1())
+                    val operandBit0 = operand.toBin().getBit(0)
+                    val sumBit0 = sum.getBit(0) ?: Bin("0", Bit1())
+                    val v = if (acBit0 == operandBit0) sumBit0 xor acBit0 else Bin("0", Bit1())
+                    val c = binSumBit9.toBin().getBit(0)
+                    setFlags(arch, v = v, c = c)
 
                     ac.set(sum)
                     setFlags(arch, checkZero = sum, n = sum.getBit(0))
                 }
 
-                SBC -> { // TODO("CHECK IF FLAGS GET SETTED THE RIGHT WAY")
+                SBC -> {
                     if (operand == null) {
                         arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
                         return
                     }
 
-                    // Binary Substract
-                    val acBin = ac.get().toBin()
-                    val binSubBit8 = (acBin - operand - flags.c.inv()).toBin()
-                    val v = if ((acBin xor operand.toBin()).toBin().getBit(0) != Bin("0", Bit1()) && (acBin xor binSubBit8).toBin().getBit(0) != Bin("0", Bit1())) Bin("1", Bit1()) else Bin("0", Bit1())
-                    val c = binSubBit8.getBit(0)?.inv()
-                    ac.set(binSubBit8)
-                    setFlags(arch, v = v, c = c, checkZero = binSubBit8, n = binSubBit8.getBit(0))
+                    // Binary SBC
+                    val opInv = operand.toBin().inv()
+
+                    val binSumBit9 = ac.get().toBin() + opInv + flags.c
+                    val subBit8 = Bin(binSumBit9.toBin().getRawBinStr().substring(1), BYTE_SIZE)
+                    val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1())
+                    val opInvBit0 = opInv.toBin().getBit(0)
+                    val subBit0 = subBit8.getBit(0) ?: Bin("0", Bit1())
+                    val v = if (acBit0 == opInvBit0) subBit0 xor acBit0 else Bin("0", Bit1())
+                    val c = binSumBit9.toBin().getBit(0)
+                    setFlags(arch, v = v, c = c)
+
+                    ac.set(subBit8)
+                    setFlags(arch, checkZero = subBit8, n = subBit8.getBit(0))
                 }
 
                 AND -> {

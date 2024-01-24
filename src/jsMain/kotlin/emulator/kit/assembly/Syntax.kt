@@ -440,15 +440,15 @@ abstract class Syntax {
             sealed class InSpecific : Component() {
 
                 data object Symbol : InSpecific() {
-                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.SYMBOL
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Symbol
                 }
 
                 data object Word : InSpecific() {
-                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.WORD
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word
                 }
 
                 data object Constant : InSpecific() {
-                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.CONSTANT
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant
                 }
 
                 data class Register(val regFile: RegContainer.RegisterFile? = null) : InSpecific() {
@@ -456,13 +456,18 @@ abstract class Syntax {
                         return if (regFile != null) {
                             token is Compiler.Token.Register && regFile.unsortedRegisters.contains(token.reg)
                         } else {
-                            token.type == Compiler.TokenType.REGISTER
+                            token is Compiler.Token.Register
                         }
                     }
                 }
 
+                data object NewLine : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.NewLine
+
+                }
+
                 data object Space : InSpecific() {
-                    override fun matches(token: Compiler.Token): Boolean = token.type == Compiler.TokenType.SPACE
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Space
                 }
 
             }
