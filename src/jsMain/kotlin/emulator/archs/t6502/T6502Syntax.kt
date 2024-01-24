@@ -274,7 +274,14 @@ class T6502Syntax : Syntax() {
         INY(mapOf(IMPLIED to Hex("C8", BYTE_SIZE)), "increment Y"),
 
         // arithmetic operations
+        /**
+         *
+         */
         ADC(mapOf(ABS to Hex("6D", BYTE_SIZE), ABS_X to Hex("7D", BYTE_SIZE), ABS_Y to Hex("79", BYTE_SIZE), IMM to Hex("69", BYTE_SIZE), ZP to Hex("65", BYTE_SIZE), ZP_X_IND to Hex("61", BYTE_SIZE), ZP_X to Hex("75", BYTE_SIZE), ZPIND_Y to Hex("71", BYTE_SIZE)), "add with carry"),
+
+        /**
+         *
+         */
         SBC(mapOf(ABS to Hex("ED", BYTE_SIZE), ABS_X to Hex("FD", BYTE_SIZE), ABS_Y to Hex("F9", BYTE_SIZE), IMM to Hex("E9", BYTE_SIZE), ZP to Hex("E5", BYTE_SIZE), ZP_X_IND to Hex("E1", BYTE_SIZE), ZP_X to Hex("F5", BYTE_SIZE), ZPIND_Y to Hex("F1", BYTE_SIZE)), "subtract with carry"),
 
         // logical operations
