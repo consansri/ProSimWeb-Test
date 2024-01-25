@@ -1,5 +1,6 @@
 package emulator.kit.assembly
 
+import debug.DebugTools
 import emulator.kit.Settings
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
@@ -42,7 +43,10 @@ class Compiler(
         Regex("^${Regex.escape(prefixes.udec)}[0-9]+"),
         Regex("""^'.'"""),
         Regex("""^".+""""),
-        Regex("""^[a-z_][a-z0-9_]*""", RegexOption.IGNORE_CASE),
+        Regex("""^[a-z]+""", RegexOption.IGNORE_CASE),
+        Regex("""^[a-z][a-z0-9]+""", RegexOption.IGNORE_CASE),
+        Regex("""^[a-z_][a-z0-9_]+""", RegexOption.IGNORE_CASE),
+        Regex("""^[.a-z_][.a-z0-9_]+""", RegexOption.IGNORE_CASE)
     )
 
     // TEMPORARY CONTENT
@@ -212,18 +216,8 @@ class Compiler(
                         continue
                     }
 
-                    val symbol = regexCollection.symbol.find(remainingLine)
-                    if (symbol != null) {
-                        val token = Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += symbol.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
                     if (detectRegisters) {
-                        val regRes = regexCollection.word.find(remainingLine)
+                        val regRes = regexCollection.wordNum.find(remainingLine)
                         if (regRes != null) {
                             val reg = architecture.getRegContainer().getAllRegs(architecture.getAllFeatures()).firstOrNull { reg -> reg.names.contains(regRes.value) || reg.aliases.contains(regRes.value) }
                             if (reg != null) {
@@ -237,14 +231,61 @@ class Compiler(
                         }
                     }
 
-                    // apply rest
                     val word = regexCollection.word.find(remainingLine)
+                    val wordNum = regexCollection.wordNum.find(remainingLine)
+                    val wordNumUs = regexCollection.wordNumUs.find(remainingLine)
+                    val wordNumUsDot = regexCollection.wordNumUsDots.find(remainingLine)
 
+                    var wordToken: Token.Word? = null
                     if (word != null) {
-                        val token = Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
+                        wordToken = Token.Word.Clean(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
+                    }
+
+                    if (wordNum != null) {
+                        if (wordToken == null) {
+                            wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, tokenList.size)
+                        } else {
+                            if (wordToken.content.length < wordNum.value.length) {
+                                wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, tokenList.size)
+                            }
+                        }
+                    }
+
+                    if (wordNumUs != null) {
+                        if (wordToken == null) {
+                            wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, tokenList.size)
+                        } else {
+                            if (wordToken.content.length < wordNumUs.value.length) {
+                                wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, tokenList.size)
+                            }
+                        }
+                    }
+
+                    if (wordNumUsDot != null) {
+                        if (wordToken == null) {
+                            wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDot.value.length), wordNumUsDot.value, tokenList.size)
+                        } else {
+                            if (wordToken.content.length < wordNumUsDot.value.length) {
+                                wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDot.value.length), wordNumUsDot.value, tokenList.size)
+                            }
+                        }
+                    }
+
+                    // Add word if found
+                    if (wordToken != null) {
+                        tokenList += wordToken
+                        tempTokenList += wordToken
+                        startIndex += wordToken.content.length
+                        remainingLine = line.substring(startIndex)
+                        continue
+                    }
+
+                    val symbol = regexCollection.symbol.find(remainingLine)
+                    if (symbol != null) {
+                        val token = Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
                         tokenList += token
                         tempTokenList += token
-                        startIndex += word.value.length
+                        startIndex += symbol.value.length
                         remainingLine = line.substring(startIndex)
                         continue
                     }
@@ -517,16 +558,8 @@ class Compiler(
                 continue
             }
 
-            val symbol = regexCollection.symbol.find(remaining)
-            if (symbol != null) {
-                tokens += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, lineID)
-                startIndex += symbol.value.length
-                remaining = content.substring(startIndex)
-                continue
-            }
-
             if (detectRegisters) {
-                val regRes = regexCollection.word.find(remaining)
+                val regRes = regexCollection.wordNum.find(remaining)
                 if (regRes != null) {
                     val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
                     if (reg != null) {
@@ -539,11 +572,57 @@ class Compiler(
                 }
             }
 
-            // apply rest
             val word = regexCollection.word.find(remaining)
+            val wordNum = regexCollection.wordNum.find(remaining)
+            val wordNumUs = regexCollection.wordNumUs.find(remaining)
+            val wordNumUsDots = regexCollection.wordNumUsDots.find(remaining)
+
+            var wordToken: Token.Word? = null
             if (word != null) {
-                tokens += Token.Word(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, lineID)
-                startIndex += word.value.length
+                wordToken = Token.Word.Clean(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, lineID)
+            }
+
+            if (wordNum != null) {
+                if (wordToken == null) {
+                    wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, lineID)
+                } else {
+                    if (wordToken.content.length < wordNum.value.length) {
+                        wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, lineID)
+                    }
+                }
+            }
+
+            if (wordNumUs != null) {
+                if (wordToken == null) {
+                    wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, lineID)
+                } else {
+                    if (wordToken.content.length < wordNumUs.value.length) {
+                        wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, lineID)
+                    }
+                }
+            }
+
+            if (wordNumUsDots != null) {
+                if (wordToken == null) {
+                    wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, lineID)
+                } else {
+                    if (wordToken.content.length < wordNumUsDots.value.length) {
+                        wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, lineID)
+                    }
+                }
+            }
+
+            if (wordToken != null) {
+                tokens += wordToken
+                startIndex += wordToken.content.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val symbol = regexCollection.symbol.find(remaining)
+            if (symbol != null) {
+                tokens += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, lineID)
+                startIndex += symbol.value.length
                 remaining = content.substring(startIndex)
                 continue
             }
@@ -786,7 +865,12 @@ class Compiler(
 
         class Register(lineLoc: LineLoc, content: String, val reg: RegContainer.Register, id: Int) : Token(lineLoc, content, id)
 
-        class Word(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
+        sealed class Word(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
+            class NumDotsUs(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
+            class NumUs(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
+            class Num(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
+            class Clean(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
+        }
     }
 
     data class HLFlagCollection(
@@ -816,6 +900,9 @@ class Compiler(
         val ascii: Regex,
         val string: Regex,
         val word: Regex,
+        val wordNum: Regex,
+        val wordNumUs: Regex,
+        val wordNumUsDots: Regex
     )
 
     data class ConstantPrefixes(

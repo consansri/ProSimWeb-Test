@@ -407,9 +407,9 @@ abstract class Syntax {
 
             class Specific(val content: String, val ignoreCase: Boolean = false) : Component() {
                 override fun matches(token: Compiler.Token): Boolean {
-                    return if(ignoreCase){
+                    return if (ignoreCase) {
                         content.uppercase() == token.content.uppercase()
-                    }else{
+                    } else {
                         content == token.content
                     }
                 }
@@ -448,9 +448,17 @@ abstract class Syntax {
                 data object Symbol : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Symbol
                 }
-
                 data object Word : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word
+                }
+                data object WordNoDots : InSpecific(){
+                    override fun matches(token: Compiler.Token): Boolean =  (token is Compiler.Token.Word.Clean || token is Compiler.Token.Word.Num || token is Compiler.Token.Word.NumUs)
+                }
+                data object WordNoDotsAndUS : InSpecific(){
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word.Clean || token is Compiler.Token.Word.Num
+                }
+                data object WordOnlyAlpha : InSpecific(){
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word.Clean
                 }
 
                 data object Constant : InSpecific() {
