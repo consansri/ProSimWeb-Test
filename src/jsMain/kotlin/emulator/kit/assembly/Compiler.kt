@@ -326,6 +326,12 @@ class Compiler(
 
                 if (syntax.applyStandardHLForRest) {
                     when (token) {
+                        is Token.Constant.Calculated -> {
+                            hlFlagCollection.constDec?.let {
+                                token.hl(architecture, it)
+                            }
+                        }
+
                         is Token.Constant.Binary -> {
                             hlFlagCollection.constBin?.let {
                                 token.hl(architecture, it)
@@ -633,7 +639,7 @@ class Compiler(
                     if (value1content == null || value2content == null) throw Error("Missing number for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
 
                     val value1 = getNumber(value1content, size, regexCollection) ?: throw Error("Missing number (value1 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
-                    val value2 = getNumber(value2content,size, regexCollection ) ?: throw Error("Missing number (value2 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                    val value2 = getNumber(value2content, size, regexCollection) ?: throw Error("Missing number (value2 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
 
                     when (mode) {
                         MODE.SHIFTLEFT -> {

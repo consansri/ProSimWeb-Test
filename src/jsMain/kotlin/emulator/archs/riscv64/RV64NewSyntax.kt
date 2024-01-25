@@ -1,5 +1,6 @@
 package emulator.archs.riscv64
 
+import emulator.archs.riscv32.RV32Syntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
@@ -9,18 +10,283 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.Specific
 import emulator.kit.assembly.Syntax.TokenSeq.Component.SpecConst
 import emulator.kit.assembly.Syntax.TokenSeq.Component.RegOrSpecConst
 import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
+import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 
 class RV64NewSyntax : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
-    override fun clear() {
-        TODO("Not yet implemented")
+    override fun clear() { /* NOTHING NEEDS TO BE DONE HERE */
     }
 
     override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
-        TODO("Not yet implemented")
+
+        val remainingTokens = tokens.toMutableList()
+
+        val errors = mutableListOf<Error>()
+        val warnings = mutableListOf<Warning>()
+
+        val preElements = mutableListOf<TreeNode.ElementNode>()
+        val elements = mutableListOf<TreeNode.ElementNode>()
+
+        remainingTokens.removeComments(preElements)
+        remainingTokens.resolveEqus(preElements, errors, warnings)
+        remainingTokens.resolveMacros(preElements, errors, warnings)
+
+        // Resolve Compiler Tokens
+        while (remainingTokens.isNotEmpty()) {
+
+
+            //errors.add(Error("Couldn't be resolved!", remainingTokens.first()))
+            remainingTokens.removeFirst()
+        }
+
+        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode("pre", *preElements.toTypedArray())))
+    }
+
+    /**
+     * Removes all comments from the compiler tokens and adds them to the preElements
+     */
+    private fun MutableList<Compiler.Token>.removeComments(preElements: MutableList<TreeNode.ElementNode>): MutableList<Compiler.Token> {
+        while (true) {
+            val commentStart = this.firstOrNull { it.content == "#" } ?: break
+            val startIndex = this.indexOf(commentStart)
+            val commentEnd =
+                this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
+            val endIndex = commentEnd?.let { this.indexOf(it) } ?: this.size
+
+            val commentTokens = this.subList(startIndex, endIndex).toList()
+            this.subList(startIndex, endIndex).clear()
+            preElements.add(PREComment(*commentTokens.toTypedArray()))
+        }
+        return this
+    }
+
+    /**
+     * Resolve EQU definitions
+     */
+    private fun MutableList<Compiler.Token>.resolveEqus(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warning: MutableList<Warning>): MutableList<Compiler.Token> {
+        val defs = mutableSetOf<PreEquDef>()
+        // 1. Find definitions
+        val tokensToCheckForDef = this.toMutableList()
+        while (tokensToCheckForDef.isNotEmpty()) {
+            // Skip if not a dot for a macro start
+            if (tokensToCheckForDef.first().content != ".") {
+                tokensToCheckForDef.removeFirst()
+                continue
+            }
+
+            val equDirTokenResult = DirType.EQU.tokenSeq.matchStart(*tokensToCheckForDef.toTypedArray())
+            if (!equDirTokenResult.matches) {
+                tokensToCheckForDef.removeFirst()
+                continue
+            }
+
+            tokensToCheckForDef.removeAll(equDirTokenResult.sequenceMap.map { it.token })
+
+            val equDefTokenResult = Seqs.SeqAfterEquDir.matchStart(*tokensToCheckForDef.toTypedArray())
+            if (!equDefTokenResult.matches || equDefTokenResult.sequenceMap.size != 3) {
+                errors.add(Error("Invalid equ syntax! (.equ [name], [constant])", *equDirTokenResult.sequenceMap.map { it.token }.toTypedArray(), *equDefTokenResult.sequenceMap.map { it.token }.toTypedArray()))
+                tokensToCheckForDef.removeAll(equDefTokenResult.sequenceMap.map { it.token })
+                this.removeAll(equDirTokenResult.sequenceMap.map { it.token })
+                this.removeAll(equDefTokenResult.sequenceMap.map { it.token })
+                continue
+            }
+
+            tokensToCheckForDef.removeAll(equDefTokenResult.sequenceMap.map { it.token })
+
+            val equName = equDefTokenResult.sequenceMap.map { it.token }[0] as Compiler.Token.Word
+            val colon = equDefTokenResult.sequenceMap.map { it.token }[1] as Compiler.Token.Symbol
+            val constant = equDefTokenResult.sequenceMap.map { it.token }[2] as Compiler.Token.Constant
+
+            val equDef = PreEquDef(equDirTokenResult.sequenceMap.map { it.token }.toSet(), equName, colon, constant)
+            defs.add(equDef)
+            this.removeAll(equDef.tokens.toSet())
+        }
+
+        preElements.addAll(defs)
+
+        // 2. Resolve definitions
+        for (tokenID in this.indices) {
+            val token = this[tokenID]
+            if (token !is Compiler.Token.Word) continue
+            for (equDef in defs) {
+                if (token.content == equDef.equname.content) {
+                    preElements.add(PreEquRep(token))
+                    this[tokenID] = equDef.constant
+                    break
+                }
+            }
+        }
+
+        return this
+    }
+
+    /**
+     * Resolves all macro definitions (removes definition and replaces inserts)
+     */
+    private fun MutableList<Compiler.Token>.resolveMacros(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<Compiler.Token> {
+        val defs = mutableSetOf<PreMacroDef>()
+        // 1. Find definitions
+        val tokenBuffer = this.toMutableList()
+        while (tokenBuffer.isNotEmpty()) {
+            // Skip if not a dot for a macro start
+            if (tokenBuffer.first().content != ".") {
+                tokenBuffer.removeFirst()
+                continue
+            }
+
+            // 1.1 Search macro start directive (.macro)
+            val macroStartResult = DirType.MACRO.tokenSeq.matchStart(*tokenBuffer.toTypedArray())
+            if (!macroStartResult.matches) {
+                tokenBuffer.removeFirst()
+                continue
+            }
+            val macroStartDir = macroStartResult.sequenceMap.map { it.token }
+
+            tokenBuffer.removeAll(macroStartResult.sequenceMap.map { it.token })
+
+            // 1.2 Search macro name sequence (name)
+            if (tokenBuffer.first() is Compiler.Token.Space) tokenBuffer.removeFirst() // Remove leading spaces
+            if (tokenBuffer.first() !is Compiler.Token.Word) {
+                errors.add(Error("Invalid macro syntax! Macro name expected!", *macroStartResult.sequenceMap.map { it.token }.toTypedArray()))
+                continue
+            }
+            val macroName = tokenBuffer.first() as Compiler.Token.Word
+            tokenBuffer.remove(macroName)
+
+            // 1.3 Search parameters
+            val attributes = mutableSetOf<Compiler.Token.Word>()
+            val colons = mutableSetOf<Compiler.Token>()
+            while (true) {
+                if (tokenBuffer.first() is Compiler.Token.Space) tokenBuffer.removeFirst() // Remove leading spaces
+
+                when (attributes.size) {
+                    colons.size -> { // Expect Attribute
+                        if (tokenBuffer.first() !is Compiler.Token.Word) break
+                        attributes.add(tokenBuffer.first() as Compiler.Token.Word)
+                        tokenBuffer.removeFirst()
+                        continue
+                    }
+
+                    colons.size + 1 -> { // Expect Colon
+                        if (tokenBuffer.first().content != ",") break
+                        colons.add(tokenBuffer.first())
+                        tokenBuffer.removeFirst()
+                        continue
+                    }
+                }
+                break
+            }
+
+            if (attributes.size == colons.size) warnings.add(Warning("Unnecessary trailing colon!", colons.last()))
+
+            // 1.4 NewLine (Random Sequence)
+            if (tokenBuffer.first() !is Compiler.Token.NewLine) {
+                val errorMacroTokens = macroStartResult.sequenceMap.map { it.token }.toTypedArray() + macroName + attributes + colons
+                errors.add(Error("Invalid macro syntax! New Line expected!", *errorMacroTokens))
+                this.removeAll(errorMacroTokens.toSet())
+                continue
+            }
+            tokenBuffer.removeFirst()
+
+            // 1.5 Add All to Macro Content until a .endm token is found
+            val macroContent = mutableSetOf<Compiler.Token>()
+            val macroEndDir = mutableSetOf<Compiler.Token>()
+            while (tokenBuffer.isNotEmpty()) {
+                val endmResult = DirType.ENDM.tokenSeq.matchStart(*tokenBuffer.toTypedArray())
+                if (!endmResult.matches) {
+                    macroContent.add(tokenBuffer.first())
+                    tokenBuffer.removeFirst()
+                    continue
+                }
+                macroEndDir.addAll(endmResult.sequenceMap.map { it.token })
+                tokenBuffer.removeAll(macroEndDir)
+                break
+            }
+
+            if (macroEndDir.isEmpty()) {
+                val errorMacroTokens = arrayOf(*macroStartResult.sequenceMap.map { it.token }.toTypedArray(), macroName, *attributes.toTypedArray(), *colons.toTypedArray())
+                errors.add(Error("Invalid macro syntax! End macro directive (.${DirType.ENDM.dirname}) missing!", *errorMacroTokens))
+                this.removeAll(errorMacroTokens.toSet())
+                break
+            }
+
+            val macroDef = PreMacroDef((macroStartDir + macroEndDir).toSet(), macroName, attributes, colons, macroContent)
+            defs.add(macroDef)
+            this.removeAll(macroDef.tokens.toSet())
+        }
+        preElements.addAll(defs)
+
+        // 2. Replace Macro Defs
+        for (macro in defs) {
+            while (this.isNotEmpty()) {
+                // 2.1 Get first Macro Insertion
+                val insertReference = this.firstOrNull { it is Compiler.Token.Word && it.content == macro.macroname.content } ?: break
+                val index = this.indexOf(insertReference)
+                this.remove(insertReference)
+
+                val params = mutableListOf<Compiler.Token>()
+                val colons = mutableListOf<Compiler.Token>()
+                while (this.getOrNull(index) != null) {
+                    if (this[index] is Compiler.Token.Space) this.removeAt(index) // Remove leading spaces
+
+                    val attribOrColon = this.getOrNull(index) ?: break
+                    when (params.size) {
+                        colons.size -> { // Expect Attribute
+                            if (attribOrColon is Compiler.Token.NewLine) break
+                            params.add(attribOrColon)
+                            this.remove(attribOrColon)
+                            continue
+                        }
+
+                        colons.size + 1 -> { // Expect Colon
+                            if (attribOrColon.content != ",") break
+                            colons.add(attribOrColon)
+                            this.remove(attribOrColon)
+                            continue
+                        }
+                    }
+                    break
+                }
+
+                if (macro.attributes.size != params.size) {
+                    errors.add(Error("Wrong parameter count for macro insertion! Expected ${macro.attributes.size} parameters for this macro (${macro.macroname.content})!", insertReference, *params.toTypedArray(), *colons.toTypedArray()))
+                    continue
+                }
+
+
+                val replacement = macro.getMacroReplacement(params)
+                if (replacement == null) {
+                    errors.add(Error("Couldn't resolve macro replacement!", insertReference, *params.toTypedArray(), *colons.toTypedArray()))
+                    continue
+                }
+
+                preElements.add(PreMacroRep(insertReference, params.toSet(), colons.toSet()))
+                this.addAll(index, replacement)
+            }
+        }
+
+        return this
+    }
+
+    private fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<Compiler.Token> {
+
+        for (paramType in ParamType.entries) {
+            val result = paramType.tokenSeq.matchStart(*this.toTypedArray())
+            if(!result.matches) continue
+            val nameToken = result.sequenceMap.map { it.token }.firstOrNull() ?: continue
+            val instrType = InstrType.entries.firstOrNull { it.paramType == paramType && it.id.uppercase() == nameToken.content.uppercase() } ?: continue
+
+        }
+
+        return this
+    }
+
+    data object Seqs {
+        val SeqAfterEquDir = TokenSeq(Word, Specific(","), Constant, ignoreSpaces = true)
+        val SeqMacroAttrInsert = TokenSeq(Specific("""\"""), Word)
     }
 
     enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: TokenSeq) {
@@ -1803,5 +2069,78 @@ class RV64NewSyntax : Syntax() {
         }
     }
 
+    enum class DirMajType(val docName: String) {
+        PRE("Pre resolved directive"),
+        SECTIONSTART("Section identification"),
+        DE_ALIGNED("Data emitting aligned"),
+        DE_UNALIGNED("Data emitting unaligned")
+    }
+
+    enum class DirType(val dirname: String, val dirMajType: DirMajType, val tokenSeq: TokenSeq, val deSize: Variable.Size? = null) {
+        EQU("equ", DirMajType.PRE, TokenSeq(Specific("."), Specific("equ", ignoreCase = true))),
+        MACRO("macro", DirMajType.PRE, TokenSeq(Specific("."), Specific("macro", ignoreCase = true))),
+        ENDM("endm", DirMajType.PRE, TokenSeq(Specific("."), Specific("endm", ignoreCase = true))),
+
+        TEXT("text", DirMajType.SECTIONSTART, TokenSeq(Specific("."), Specific("text", ignoreCase = true))),
+        DATA("data", DirMajType.SECTIONSTART, TokenSeq(Specific("."), Specific("data", ignoreCase = true))),
+        RODATA("rodata", DirMajType.SECTIONSTART, TokenSeq(Specific("."), Specific("rodata", ignoreCase = true))),
+        BSS("bss", DirMajType.SECTIONSTART, TokenSeq(Specific("."), Specific("bss", ignoreCase = true))),
+
+        BYTE("byte", DirMajType.DE_ALIGNED, TokenSeq(Specific("."), Specific("byte", ignoreCase = true)), Bit8()),
+        HALF("half", DirMajType.DE_ALIGNED, TokenSeq(Specific("."), Specific("half", ignoreCase = true)), Bit16()),
+        WORD("word", DirMajType.DE_ALIGNED, TokenSeq(Specific("."), Specific("word", ignoreCase = true)), Bit32()),
+        DWORD("dword", DirMajType.DE_ALIGNED, TokenSeq(Specific("."), Specific("dword", ignoreCase = true)), Bit64()),
+        ASCIZ("asciz", DirMajType.DE_ALIGNED, TokenSeq(Specific("."), Specific("asciz", ignoreCase = true))),
+        STRING("string", DirMajType.DE_ALIGNED, TokenSeq(Specific("."), Specific("string", ignoreCase = true))),
+
+        BYTE_2("2byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific("."), Specific("2"), Specific("byte", ignoreCase = true)), Bit16()),
+        BYTE_4("4byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific("."), Specific("4"), Specific("byte", ignoreCase = true)), Bit32()),
+        BYTE_8("8byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific("."), Specific("8"), Specific("byte", ignoreCase = true)), Bit64()),
+    }
+
+    class PREComment(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.comment), "comment", *tokens)
+    class PreEquDef(directive: Set<Compiler.Token>, val equname: Compiler.Token.Word, colon: Compiler.Token.Symbol, val constant: Compiler.Token.Constant) : TreeNode.ElementNode(
+        ConnectedHL(RV64Flags.directive to directive, RV64Flags.pre_equ to setOf(equname), RV64Flags.constant to setOf(constant), RV64Flags.pre_equ to setOf(colon)),
+        "equ_def",
+        *directive.toTypedArray(),
+        equname,
+        colon,
+        constant
+    )
+
+    class PreEquRep(token: Compiler.Token.Word) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_equ), "equ_insert", token)
+    class PreMacroDef(directives: Set<Compiler.Token>, val macroname: Compiler.Token.Word, val attributes: Set<Compiler.Token.Word>, colons: Set<Compiler.Token>, val macroContent: Set<Compiler.Token>) : TreeNode.ElementNode(
+        ConnectedHL(RV64Flags.directive to directives, RV64Flags.pre_macro to setOf(macroname, *attributes.toTypedArray(), *macroContent.toTypedArray(), *colons.toTypedArray())),
+        "macro_def",
+        *directives.toTypedArray(),
+        macroname,
+        *attributes.toTypedArray(),
+        *colons.toTypedArray(),
+        *macroContent.toTypedArray()
+    ) {
+        fun getMacroReplacement(params: List<Compiler.Token>): List<Compiler.Token>? {
+            if (params.size != attributes.size) return null
+            val content = macroContent.toMutableList()
+            for (attribute in attributes) {
+                var result = Seqs.SeqMacroAttrInsert.matches(*content.toTypedArray())
+                while (result.matches) {
+                    val tokensToReplace = result.sequenceMap.map { it.token }
+                    val index = content.indexOf(tokensToReplace.firstOrNull())
+                    content.removeAll(tokensToReplace)
+                    content.add(index, params[attributes.indexOf(attribute)])
+                    result = Seqs.SeqMacroAttrInsert.matches(*content.toTypedArray())
+                }
+            }
+            return content
+        }
+    }
+
+    class PreMacroRep(macroName: Compiler.Token, attributes: Set<Compiler.Token>, colons: Set<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_macro to attributes + macroName + colons), "macro_insert", macroName, *attributes.toTypedArray(), *colons.toTypedArray())
+
+    class EInstr(val type: InstrType, val paramType: ParamType, nameToken: Compiler.Token, val params: Set<Compiler.Token>): TreeNode.ElementNode(ConnectedHL(), "instr"){
+        fun link(){
+
+        }
+    }
 
 }

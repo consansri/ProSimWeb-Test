@@ -998,49 +998,49 @@ class T6502Syntax : Syntax() {
 
                 val eInstr = when (amode) {
                     ACCUMULATOR -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), regTokens = listOf(amodeResult.sequenceMap[2].token))
+                        EInstr(type, amode, relAmode, nameTokens = setOf(amodeResult.sequenceMap[0].token), regTokens = setOf(amodeResult.sequenceMap[2].token))
                     }
 
                     IMM -> {
                         if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[2].token))
+                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), setOf(imm), setOf(amodeResult.sequenceMap[0].token), setOf(amodeResult.sequenceMap[2].token))
                     }
 
                     REL, ZP -> {
                         if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token))
+                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), setOf(imm), setOf(amodeResult.sequenceMap[0].token))
                     }
 
                     ZP_X, ZP_Y -> {
                         if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
+                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), setOf(imm), setOf(amodeResult.sequenceMap[0].token), setOf(amodeResult.sequenceMap[3].token), setOf(amodeResult.sequenceMap[4].token))
                     }
 
                     IND -> {
                         if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token))
+                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), setOf(imm), setOf(amodeResult.sequenceMap[0].token), setOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token))
                     }
 
                     IND_LBLD -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), symbolTokens = listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token), labelLink = listOf(amodeResult.sequenceMap[3].token))
+                        EInstr(type, amode, relAmode, nameTokens = setOf(amodeResult.sequenceMap[0].token), symbolTokens = setOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token), labelLink = setOf(amodeResult.sequenceMap[3].token))
                     }
 
                     ABS -> {
                         if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token))
+                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), setOf(imm), setOf(amodeResult.sequenceMap[0].token))
                     }
 
                     ABS_LBLD -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), labelLink = listOf(amodeResult.sequenceMap[2].token))
+                        EInstr(type, amode, relAmode, nameTokens = setOf(amodeResult.sequenceMap[0].token), labelLink = setOf(amodeResult.sequenceMap[2].token))
                     }
 
                     ABS_X, ABS_Y -> {
                         if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
+                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), setOf(imm), setOf(amodeResult.sequenceMap[0].token), setOf(amodeResult.sequenceMap[3].token), setOf(amodeResult.sequenceMap[4].token))
                     }
 
                     ABS_X_LBLD, ABS_Y_LBLD -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), symbolTokens = listOf(amodeResult.sequenceMap[3].token), regTokens = listOf(amodeResult.sequenceMap[4].token), labelLink = listOf(amodeResult.sequenceMap[2].token))
+                        EInstr(type, amode, relAmode, nameTokens = setOf(amodeResult.sequenceMap[0].token), symbolTokens = setOf(amodeResult.sequenceMap[3].token), regTokens = setOf(amodeResult.sequenceMap[4].token), labelLink = setOf(amodeResult.sequenceMap[2].token))
                     }
 
                     ZP_X_IND -> {
@@ -1050,10 +1050,10 @@ class T6502Syntax : Syntax() {
                             amode,
                             relAmode,
                             imm.getValue(amode.immSize),
-                            constantToken = listOf(imm),
-                            nameTokens = listOf(amodeResult.sequenceMap[0].token),
-                            symbolTokens = listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[6].token),
-                            regTokens = listOf(amodeResult.sequenceMap[5].token)
+                            constantToken = setOf(imm),
+                            nameTokens = setOf(amodeResult.sequenceMap[0].token),
+                            symbolTokens = setOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[6].token),
+                            regTokens = setOf(amodeResult.sequenceMap[5].token)
                         )
                     }
 
@@ -1064,15 +1064,15 @@ class T6502Syntax : Syntax() {
                             amode,
                             relAmode,
                             imm.getValue(amode.immSize),
-                            constantToken = listOf(imm),
-                            nameTokens = listOf(amodeResult.sequenceMap[0].token),
-                            symbolTokens = listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[5].token),
-                            regTokens = listOf(amodeResult.sequenceMap[6].token)
+                            constantToken = setOf(imm),
+                            nameTokens = setOf(amodeResult.sequenceMap[0].token),
+                            symbolTokens = setOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[5].token),
+                            regTokens = setOf(amodeResult.sequenceMap[6].token)
                         )
                     }
 
                     IMPLIED -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token))
+                        EInstr(type, amode, relAmode, nameTokens = setOf(amodeResult.sequenceMap[0].token))
                     }
                 }
 
@@ -1150,11 +1150,11 @@ class T6502Syntax : Syntax() {
         val addressingMode: AModes,
         amodeIsLabelVariantOf: AModes? = null,
         val imm: Variable.Value? = null,
-        constantToken: List<Compiler.Token.Constant> = listOf(),
-        nameTokens: List<Compiler.Token> = listOf(),
-        symbolTokens: List<Compiler.Token> = listOf(),
-        regTokens: List<Compiler.Token> = listOf(),
-        labelLink: List<Compiler.Token> = listOf()
+        constantToken: Set<Compiler.Token.Constant> = setOf(),
+        nameTokens: Set<Compiler.Token> = setOf(),
+        symbolTokens: Set<Compiler.Token> = setOf(),
+        regTokens: Set<Compiler.Token> = setOf(),
+        labelLink: Set<Compiler.Token> = setOf()
     ) : TreeNode.ElementNode(
         highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, constantToken, regTokens, labelLink),
         name = NAMES.E_INSTR,
@@ -1171,7 +1171,7 @@ class T6502Syntax : Syntax() {
 
     class ELabel(val labelName: String, vararg tokens: Compiler.Token) : TreeNode.ElementNode(highlighting = ConnectedHL(T6502Flags.label), NAMES.E_LABEL, *tokens)
 
-    class ESetAddr(val value: Variable.Value, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.setpc to tokens.filter { it !is Compiler.Token.Constant }, T6502Flags.constant to tokens.filterIsInstance<Compiler.Token.Constant>()), NAMES.E_SETADDR, *tokens)
+    class ESetAddr(val value: Variable.Value, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.setpc to tokens.filter { it !is Compiler.Token.Constant }.toSet(), T6502Flags.constant to tokens.filterIsInstance<Compiler.Token.Constant>().toSet()), NAMES.E_SETADDR, *tokens)
 
     class SText(vararg val elements: ElementNode) : TreeNode.ContainerNode(NAMES.S_TEXT, *elements)
 

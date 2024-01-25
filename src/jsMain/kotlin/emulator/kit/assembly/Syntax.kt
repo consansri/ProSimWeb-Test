@@ -405,8 +405,14 @@ abstract class Syntax {
         sealed class Component {
             abstract fun matches(token: Compiler.Token): Boolean
 
-            class Specific(val content: String) : Component() {
-                override fun matches(token: Compiler.Token): Boolean = content == token.content
+            class Specific(val content: String, val ignoreCase: Boolean = false) : Component() {
+                override fun matches(token: Compiler.Token): Boolean {
+                    return if(ignoreCase){
+                        content.uppercase() == token.content.uppercase()
+                    }else{
+                        content == token.content
+                    }
+                }
             }
 
             class SpecConst(val mustMatchSize: Variable.Size, val signed: Boolean? = null) : Component() {
@@ -474,7 +480,7 @@ abstract class Syntax {
         }
     }
 
-    class ConnectedHL(vararg hlPairs: Pair<String, List<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
+    class ConnectedHL(vararg hlPairs: Pair<String, Set<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
 
         val hlTokenMap: MutableMap<String, MutableList<Compiler.Token>> = mutableMapOf()
 
@@ -495,7 +501,7 @@ abstract class Syntax {
             }
         }
 
-        constructor(hlFlag: String) : this(hlFlag to emptyList(), global = true)
+        constructor(hlFlag: String) : this(hlFlag to emptySet<Compiler.Token>(), global = true)
         constructor() : this(applyNothing = true)
 
         fun getHLFlag(token: Compiler.Token): String? {

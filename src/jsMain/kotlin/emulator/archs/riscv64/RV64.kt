@@ -217,7 +217,7 @@ object RV64 {
     )
 
     val asmConfig = AsmConfig(
-        RV64Syntax(),
+        RV64NewSyntax(),
         RV64Assembly(RV64BinMapper()),
         compilerDetectRegistersByNames = true,
         features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) },

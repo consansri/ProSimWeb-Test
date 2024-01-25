@@ -82,7 +82,7 @@ object Settings {
         symbol = HL.cyan.getFlag(),
         instruction = HL.blue.getFlag(),
         comment = HL.base05.getFlag(),
-        whitespace = HL.whitespace.getFlag(),
+        //whitespace = HL.whitespace.getFlag(),
         error = HL.red.getFlag()
     )
 

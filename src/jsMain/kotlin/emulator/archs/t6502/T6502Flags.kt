@@ -16,7 +16,7 @@ object T6502Flags {
     val label = HL.magenta.getFlag()
     val setpc = HL.yellow.getFlag()
 
-    fun getInstrHL(instrName: List<Compiler.Token>, symbols: List<Compiler.Token>, constants: List<Compiler.Token.Constant>, regLetters: List<Compiler.Token>, labelLinks: List<Compiler.Token>): Syntax.ConnectedHL {
+    fun getInstrHL(instrName: Set<Compiler.Token>, symbols: Set<Compiler.Token>, constants: Set<Compiler.Token.Constant>, regLetters: Set<Compiler.Token>, labelLinks: Set<Compiler.Token>): Syntax.ConnectedHL {
         return Syntax.ConnectedHL(instr to instrName, constant to constants, symbol to symbols, reg to regLetters, label to labelLinks)
     }
 
