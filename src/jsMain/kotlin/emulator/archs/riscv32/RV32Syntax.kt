@@ -135,8 +135,8 @@ class RV32Syntax : Syntax() {
                 regex.matchEntire(lineStr)?.let { match ->
                     val labelName = match.groups[SyntaxRegex.pre_globalStart_contentgroup]?.value ?: ""
                     if (globalStart == null && labelName.isNotEmpty()) {
-                        val directives = remainingLines[lineID].filter { it.content == "." || it.content == "global" || it.content == "globl" }.toSet()
-                        val elseTokens = (remainingLines[lineID] - directives.toSet()).toSet()
+                        val directives = remainingLines[lineID].filter { it.content == "." || it.content == "global" || it.content == "globl" }
+                        val elseTokens = remainingLines[lineID] - directives
                         globalStart = Pre_GLOBAL(ConnectedHL(Pair(RV32Flags.directive, directives), Pair(RV32Flags.pre_global, elseTokens)), *remainingLines[lineID].toTypedArray(), labelName = labelName)
                     } else {
                         if (globalStart != null) {
@@ -162,9 +162,9 @@ class RV32Syntax : Syntax() {
                     val constMatch = (const.size == 1 && const.first() is Compiler.Token.Constant)
                     if (constMatch) {
                         equs.add(EquDefinition(name, const.first()))
-                        val directiveTokens = remainingLines[lineID].filter { it.content == "." || it.content == "equ" }.toSet()
-                        val constant = remainingLines[lineID].filter { it.content != "." && it.content != "equ" && it is Compiler.Token.Constant }.toSet()
-                        val elseTokens = remainingLines[lineID].filter { it.content != "," && !directiveTokens.contains(it) && !constant.contains(it) }.toSet()
+                        val directiveTokens = remainingLines[lineID].filter { it.content == "." || it.content == "equ" }
+                        val constant = remainingLines[lineID].filter { it.content != "." && it.content != "equ" && it is Compiler.Token.Constant }
+                        val elseTokens = remainingLines[lineID].filter { it.content != "," && !directiveTokens.contains(it) && !constant.contains(it) }
                         pres.add(Pre_EQU(ConnectedHL(Pair(RV32Flags.directive, directiveTokens), Pair(RV32Flags.constant, constant), Pair(RV32Flags.pre_equ, elseTokens)), *remainingLines[lineID].toTypedArray()))
                     } else {
                         val message = "{constant: ${match.groupValues[3]}} is not a valid constant for an equ definition! "
@@ -273,11 +273,11 @@ class RV32Syntax : Syntax() {
                     macros.add(MacroDefinition(name, arguments, replacementLines))
 
                     // for HL
-                    val directiveTokens = macroTokens.filter { it.content == "." || it.content == "macro" || it.content == "endm" }.toSet()
-                    val constants = macroTokens.filterIsInstance<Compiler.Token.Constant>().toSet()
-                    val registers = macroTokens.filterIsInstance<Compiler.Token.Register>().toSet()
-                    val instructions = macroTokens.filter { token -> R_INSTR.InstrType.entries.map { it.id.uppercase() }.contains(token.content.uppercase()) }.toSet()
-                    val elseTokens = (macroTokens - directiveTokens.toSet() - constants.toSet() - registers.toSet() - instructions.toSet()).filter { it.content != "," }.toSet()
+                    val directiveTokens = macroTokens.filter { it.content == "." || it.content == "macro" || it.content == "endm" }
+                    val constants = macroTokens.filterIsInstance<Compiler.Token.Constant>()
+                    val registers = macroTokens.filterIsInstance<Compiler.Token.Register>()
+                    val instructions = macroTokens.filter { token -> R_INSTR.InstrType.entries.map { it.id.uppercase() }.contains(token.content.uppercase()) }
+                    val elseTokens = (macroTokens - directiveTokens - constants - registers - instructions).filter { it.content != "," }
 
                     pres.add(Pre_MACRO(ConnectedHL(Pair(RV32Flags.directive, directiveTokens), Pair(RV32Flags.constant, constants), Pair(RV32Flags.register, registers), Pair(RV32Flags.instruction, instructions), Pair(RV32Flags.pre_macro, elseTokens)), *macroTokens.toTypedArray()))
 
@@ -322,9 +322,9 @@ class RV32Syntax : Syntax() {
                     if (macro.arguments.size == argumentContent.size) {
 
                         // for HL
-                        val registers = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Register>().toSet()
-                        val constants = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Constant>().toSet()
-                        val elseTokens = (remainingLines[macroLineID] - registers.toSet() - constants.toSet()).filter { it.content != "," }.toSet()
+                        val registers = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Register>()
+                        val constants = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Constant>()
+                        val elseTokens = (remainingLines[macroLineID] - registers - constants).filter { it.content != "," }
 
                         pres.add(Pre_MACRO(ConnectedHL(Pair(RV32Flags.register, registers), Pair(RV32Flags.constant, constants), Pair(RV32Flags.pre_macro, elseTokens)), *remainingLines[macroLineID].toTypedArray()))
                         remainingLines.removeAt(macroLineID)
@@ -1452,7 +1452,7 @@ class RV32Syntax : Syntax() {
         }
     }
 
-    class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toSet() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toSet() }.toTypedArray()) {
+    class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { Pair(it.paramHLFlag, it.paramTokens.toList()) }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toSet() }.toTypedArray()) {
         val paramsWithOutSplitSymbols: Array<E_PARAM>
 
         init {

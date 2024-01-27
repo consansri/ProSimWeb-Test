@@ -373,6 +373,17 @@ abstract class Syntax {
             }
             val sequenceMap = mutableListOf<SeqMap>()
             for (component in components) {
+                if(tokens.isEmpty() && components.last() == component){
+                    if(component == components.last() && component == Component.InSpecific.NewLine){
+                        break
+                    }else{
+                        return SeqMatchResult(false, emptyList())
+                    }
+                }
+                if(tokens.isEmpty()){
+                    return SeqMatchResult(false, emptyList())
+                }
+
                 if (component is Component.InSpecific.Space && ignoreSpaces) {
                     if (component.matches(trimmedTokens.first())) {
                         sequenceMap.add(SeqMap(component, trimmedTokens.first()))
@@ -488,7 +499,7 @@ abstract class Syntax {
         }
     }
 
-    class ConnectedHL(vararg hlPairs: Pair<String, Set<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
+    class ConnectedHL(vararg hlPairs: Pair<String, List<Compiler.Token>>, val global: Boolean = false, val applyNothing: Boolean = false) {
 
         val hlTokenMap: MutableMap<String, MutableList<Compiler.Token>> = mutableMapOf()
 
@@ -509,7 +520,7 @@ abstract class Syntax {
             }
         }
 
-        constructor(hlFlag: String) : this(hlFlag to emptySet<Compiler.Token>(), global = true)
+        constructor(hlFlag: String) : this(hlFlag to emptyList<Compiler.Token>(), global = true)
         constructor() : this(applyNothing = true)
 
         fun getHLFlag(token: Compiler.Token): String? {

@@ -1,6 +1,5 @@
 package emulator.kit.assembly
 
-import debug.DebugTools
 import emulator.kit.Settings
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
@@ -36,6 +35,7 @@ class Compiler(
 
     private val regexCollection: RegexCollection = RegexCollection(
         Regex("""^\s+"""),
+        Regex("^(\\r\\n|\\r|\\n)"),
         Regex("""^[^0-9A-Za-z]"""),
         Regex("^(-)?${Regex.escape(prefixes.bin)}[01]+"),
         Regex("^(-)?${Regex.escape(prefixes.hex)}[0-9a-f]+", RegexOption.IGNORE_CASE),
@@ -51,13 +51,12 @@ class Compiler(
 
     // TEMPORARY CONTENT
     private var tokenList: MutableList<Token> = mutableListOf()
-    private var tokenLines: MutableList<MutableList<Token>> = mutableListOf()
-    private var dryLines: List<String>? = null
-    private var hlLines: MutableList<String>? = null
+    private var hlContent: String? = null
     private var dryContent = ""
     private var syntaxTree: Syntax.SyntaxTree? = null
     private var isBuildable = false
     private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
+    private var pseudoID = -1
 
     /**
      * Executes and controls the compilation
@@ -110,194 +109,183 @@ class Compiler(
      * [dryLines]
      * [tokenList]
      * [tokenLines]
-     * [hlLines]
+     * [hlContent]
      */
     private fun initCode(code: String) {
         tokenList = mutableListOf()
-        tokenLines = mutableListOf()
         dryContent = code
-        dryLines = dryContent.split(*Settings.LINEBREAKS.toTypedArray())
-        hlLines = dryLines?.toMutableList()
+        hlContent = ""
+        pseudoID = -1
     }
 
     /**
      * Transforms the [dryContent] into a List of Compiler Tokens ([tokenList], [tokenLines])
      */
     private fun tokenize() {
-        dryLines?.let {
-            val file = architecture.getFileHandler().getCurrent()
-            for (lineID in it.indices) {
-                val line = it[lineID]
-                val tempTokenList = mutableListOf<Token>()
-                var remainingLine = line
-                var startIndex = 0
+        val file = architecture.getFileHandler().getCurrent()
+        var remaining = dryContent
+        var lineID = 0
+        var startIndex = 0
 
-                while (remainingLine.isNotEmpty()) {
-                    val space = regexCollection.space.find(remainingLine)
-                    if (space != null) {
-                        val token = Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += space.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    var foundCalcToken = false
-                    for (mode in Token.Constant.Calculated.MODE.entries) {
-                        val result = mode.regex.find(remainingLine) ?: continue
-                        val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, tokenList.size, regexCollection) ?: continue
-                        foundCalcToken = true
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += result.value.length
-                        remainingLine = line.substring(startIndex)
-                        break
-                    }
-                    if (foundCalcToken) continue
-
-                    val binary = regexCollection.bin.find(remainingLine)
-                    if (binary != null) {
-                        val token = Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += binary.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    val hex = regexCollection.hex.find(remainingLine)
-                    if (hex != null) {
-                        val token = Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += hex.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    val dec = regexCollection.dec.find(remainingLine)
-                    if (dec != null) {
-                        val token = Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += dec.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    val udec = regexCollection.udec.find(remainingLine)
-                    if (udec != null) {
-                        val token = Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += udec.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    val ascii = regexCollection.ascii.find(remainingLine)
-                    if (ascii != null) {
-                        val token = Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += ascii.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    val string = regexCollection.string.find(remainingLine)
-                    if (string != null) {
-                        val token = Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += string.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    if (detectRegisters) {
-                        val regRes = regexCollection.wordNum.find(remainingLine)
-                        if (regRes != null) {
-                            val reg = architecture.getRegContainer().getAllRegs(architecture.getAllFeatures()).firstOrNull { reg -> reg.names.contains(regRes.value) || reg.aliases.contains(regRes.value) }
-                            if (reg != null) {
-                                val token = Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
-                                tokenList += token
-                                tempTokenList += token
-                                startIndex += regRes.value.length
-                                remainingLine = line.substring(startIndex)
-                                continue
-                            }
-                        }
-                    }
-
-                    val word = regexCollection.word.find(remainingLine)
-                    val wordNum = regexCollection.wordNum.find(remainingLine)
-                    val wordNumUs = regexCollection.wordNumUs.find(remainingLine)
-                    val wordNumUsDot = regexCollection.wordNumUsDots.find(remainingLine)
-
-                    var wordToken: Token.Word? = null
-                    if (word != null) {
-                        wordToken = Token.Word.Clean(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
-                    }
-
-                    if (wordNum != null) {
-                        if (wordToken == null) {
-                            wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, tokenList.size)
-                        } else {
-                            if (wordToken.content.length < wordNum.value.length) {
-                                wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, tokenList.size)
-                            }
-                        }
-                    }
-
-                    if (wordNumUs != null) {
-                        if (wordToken == null) {
-                            wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, tokenList.size)
-                        } else {
-                            if (wordToken.content.length < wordNumUs.value.length) {
-                                wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, tokenList.size)
-                            }
-                        }
-                    }
-
-                    if (wordNumUsDot != null) {
-                        if (wordToken == null) {
-                            wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDot.value.length), wordNumUsDot.value, tokenList.size)
-                        } else {
-                            if (wordToken.content.length < wordNumUsDot.value.length) {
-                                wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDot.value.length), wordNumUsDot.value, tokenList.size)
-                            }
-                        }
-                    }
-
-                    // Add word if found
-                    if (wordToken != null) {
-                        tokenList += wordToken
-                        tempTokenList += wordToken
-                        startIndex += wordToken.content.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    val symbol = regexCollection.symbol.find(remainingLine)
-                    if (symbol != null) {
-                        val token = Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
-                        tokenList += token
-                        tempTokenList += token
-                        startIndex += symbol.value.length
-                        remainingLine = line.substring(startIndex)
-                        continue
-                    }
-
-                    architecture.getConsole().warn("Assembly: no match found for $remainingLine")
-                    break
-                }
-                val newLineToken = Token.NewLine(LineLoc(file, lineID, line.length, line.length + 2), "\n", tokenList.size)
-
-                tokenLines.add(lineID, tempTokenList)
-                tokenList += newLineToken
+        while (remaining.isNotEmpty()) {
+            val newLine = regexCollection.newLine.find(remaining)
+            if (newLine != null) {
+                val token = Token.NewLine(LineLoc(file, lineID, startIndex, startIndex + newLine.value.length), newLine.value, tokenList.size)
+                tokenList += token
+                startIndex += newLine.value.length
+                remaining = dryContent.substring(startIndex)
+                lineID += 1
+                continue
             }
+
+            val space = regexCollection.space.find(remaining)
+            if (space != null) {
+                val token = Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, tokenList.size)
+                tokenList += token
+                startIndex += space.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            var foundCalcToken = false
+            for (mode in Token.Constant.Calculated.MODE.entries) {
+                val result = mode.regex.find(remaining) ?: continue
+                val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, tokenList.size, regexCollection) ?: continue
+                foundCalcToken = true
+                tokenList += token
+                startIndex += result.value.length
+                remaining = dryContent.substring(startIndex)
+                break
+            }
+            if (foundCalcToken) continue
+
+            val binary = regexCollection.bin.find(remaining)
+            if (binary != null) {
+                val token = Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, tokenList.size)
+                tokenList += token
+                startIndex += binary.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            val hex = regexCollection.hex.find(remaining)
+            if (hex != null) {
+                val token = Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, tokenList.size)
+                tokenList += token
+                startIndex += hex.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            val dec = regexCollection.dec.find(remaining)
+            if (dec != null) {
+                val token = Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, tokenList.size)
+                tokenList += token
+                startIndex += dec.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            val udec = regexCollection.udec.find(remaining)
+            if (udec != null) {
+                val token = Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, tokenList.size)
+                tokenList += token
+                startIndex += udec.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            val ascii = regexCollection.ascii.find(remaining)
+            if (ascii != null) {
+                val token = Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, tokenList.size)
+                tokenList += token
+                startIndex += ascii.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            val string = regexCollection.string.find(remaining)
+            if (string != null) {
+                val token = Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
+                tokenList += token
+                startIndex += string.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            if (detectRegisters) {
+                val regRes = regexCollection.wordNum.find(remaining)
+                if (regRes != null) {
+                    val reg = architecture.getRegContainer().getAllRegs(architecture.getAllFeatures()).firstOrNull { reg -> reg.names.contains(regRes.value) || reg.aliases.contains(regRes.value) }
+                    if (reg != null) {
+                        val token = Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, tokenList.size)
+                        tokenList += token
+                        startIndex += regRes.value.length
+                        remaining = dryContent.substring(startIndex)
+                        continue
+                    }
+                }
+            }
+
+            val word = regexCollection.word.find(remaining)
+            val wordNum = regexCollection.wordNum.find(remaining)
+            val wordNumUs = regexCollection.wordNumUs.find(remaining)
+            val wordNumUsDot = regexCollection.wordNumUsDots.find(remaining)
+
+            var wordToken: Token.Word? = null
+            if (word != null) {
+                wordToken = Token.Word.Clean(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, tokenList.size)
+            }
+
+            if (wordNum != null) {
+                if (wordToken == null) {
+                    wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, tokenList.size)
+                } else {
+                    if (wordToken.content.length < wordNum.value.length) {
+                        wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, tokenList.size)
+                    }
+                }
+            }
+
+            if (wordNumUs != null) {
+                if (wordToken == null) {
+                    wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, tokenList.size)
+                } else {
+                    if (wordToken.content.length < wordNumUs.value.length) {
+                        wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, tokenList.size)
+                    }
+                }
+            }
+
+            if (wordNumUsDot != null) {
+                if (wordToken == null) {
+                    wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDot.value.length), wordNumUsDot.value, tokenList.size)
+                } else {
+                    if (wordToken.content.length < wordNumUsDot.value.length) {
+                        wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDot.value.length), wordNumUsDot.value, tokenList.size)
+                    }
+                }
+            }
+
+            // Add word if found
+            if (wordToken != null) {
+                tokenList += wordToken
+                startIndex += wordToken.content.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            val symbol = regexCollection.symbol.find(remaining)
+            if (symbol != null) {
+                val token = Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
+                tokenList += token
+                startIndex += symbol.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
+            architecture.getConsole().warn("Assembly: no match found for $remaining")
+            break
         }
     }
 
@@ -307,7 +295,17 @@ class Compiler(
     private fun parse() {
         architecture.getTranscript().clear()
         syntax.clear()
-        syntaxTree = syntax.check(architecture, this, tokenList, tokenLines, architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() }, architecture.getTranscript())
+        syntaxTree =
+            syntax.check(
+                architecture,
+                this,
+                tokenList,
+                tokenList.groupBy { token -> token.lineLoc.lineID }.map { group -> group.value.filter { it !is Token.NewLine } },
+                architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() },
+                architecture.getTranscript()
+            )
+
+        console.log("Build SyntaxTree: ${syntaxTree?.rootNode?.containers?.flatMap { cont -> cont.nodes.toList() }?.joinToString { it.name }}")
 
         syntaxTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
@@ -340,114 +338,109 @@ class Compiler(
     }
 
     /**
-     * Builds [hlLines] from the [Compiler] tokens which highlight flags are resolved from [Syntax.ConnectedHL] in [Syntax.SyntaxTree]
+     * Builds [hlContent] from the [Compiler] tokens which highlight flags are resolved from [Syntax.ConnectedHL] in [Syntax.SyntaxTree]
      */
     private fun highlight() {
-        for (lineID in tokenLines.indices) {
-            val tokenLine = tokenLines[lineID]
-            var hlLine = ""
 
-            for (token in tokenLine) {
-                if (syntaxTree?.rootNode != null) {
-                    val node = syntaxTree?.contains(token)?.elementNode
-                    if (node != null) {
-                        val hlFlag = node.highlighting.getHLFlag(token)
-                        if (hlFlag != null) {
-                            token.hl(architecture, hlFlag, node.name)
-                            hlLine += token.hlContent
-                            continue
-                        }
-                    }
-                    if (syntaxTree?.errorsContain(token) == true) {
-                        token.hl(architecture, hlFlagCollection.error ?: "", "error")
-                        hlLine += token.hlContent
+        var tempHlContent = ""
+
+        for (token in tokenList) {
+            if (syntaxTree?.rootNode != null) {
+                val node = syntaxTree?.contains(token)?.elementNode
+                if (node != null) {
+                    val hlFlag = node.highlighting.getHLFlag(token)
+                    if (hlFlag != null) {
+                        token.hl(architecture, hlFlag, node.name)
+                        tempHlContent += token.hlContent
                         continue
                     }
                 }
+                if (syntaxTree?.errorsContain(token) == true) {
+                    token.hl(architecture, hlFlagCollection.error ?: "", "error")
+                    tempHlContent += token.hlContent
+                    continue
+                }
+            }
 
-                if (syntax.applyStandardHLForRest) {
-                    when (token) {
-                        is Token.Constant.Calculated -> {
-                            hlFlagCollection.constDec?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Constant.Binary -> {
-                            hlFlagCollection.constBin?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Constant.Dec -> {
-                            hlFlagCollection.constDec?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Constant.Hex -> {
-                            hlFlagCollection.constHex?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Constant.UDec -> {
-                            hlFlagCollection.constUDec?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Constant.Ascii -> {
-                            hlFlagCollection.constAscii?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Constant.String -> {
-                            hlFlagCollection.constAscii?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Register -> {
-                            hlFlagCollection.register?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Symbol -> {
-                            hlFlagCollection.symbol?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Word -> {
-                            hlFlagCollection.word?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        is Token.Space -> {
-                            hlFlagCollection.whitespace?.let {
-                                token.hl(architecture, it)
-                            }
-                        }
-
-                        else -> {
-
+            if (syntax.applyStandardHLForRest) {
+                when (token) {
+                    is Token.Constant.Calculated -> {
+                        hlFlagCollection.constDec?.let {
+                            token.hl(architecture, it)
                         }
                     }
-                } else {
-                    token.hl(architecture, "")
+
+                    is Token.Constant.Binary -> {
+                        hlFlagCollection.constBin?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Constant.Dec -> {
+                        hlFlagCollection.constDec?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Constant.Hex -> {
+                        hlFlagCollection.constHex?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Constant.UDec -> {
+                        hlFlagCollection.constUDec?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Constant.Ascii -> {
+                        hlFlagCollection.constAscii?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Constant.String -> {
+                        hlFlagCollection.constAscii?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Register -> {
+                        hlFlagCollection.register?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Symbol -> {
+                        hlFlagCollection.symbol?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Word -> {
+                        hlFlagCollection.word?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    is Token.Space -> {
+                        hlFlagCollection.whitespace?.let {
+                            token.hl(architecture, it)
+                        }
+                    }
+
+                    else -> {
+
+                    }
                 }
-
-                hlLine += token.hlContent
+            } else {
+                token.hl(architecture, "")
             }
 
-            hlLines?.let {
-                it[lineID] = hlLine
-            }
+            tempHlContent += token.hlContent
         }
+        hlContent = tempHlContent
     }
 
     /**
@@ -485,24 +478,36 @@ class Compiler(
      * This should only be called while building the [Syntax.SyntaxTree]!
      */
     fun pseudoTokenize(content: String, lineID: Int = Settings.COMPILER_TOKEN_PSEUDOID): List<Token> {
-        val tokens = mutableListOf<Token>()
+        val pseudoTokens = mutableListOf<Token>()
         var remaining = content
         var startIndex = 0
         val file = architecture.getFileHandler().getCurrent()
         while (remaining.isNotEmpty()) {
+            pseudoID -= 1
+
+            val newLine = regexCollection.newLine.find(remaining)
+            if (newLine != null) {
+                pseudoTokens += Token.NewLine(LineLoc(file, lineID, startIndex, startIndex + newLine.value.length), newLine.value, pseudoID)
+                startIndex += newLine.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
             val space = regexCollection.space.find(remaining)
             if (space != null) {
-                tokens += Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, lineID)
+                pseudoTokens += Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, pseudoID)
                 startIndex += space.value.length
                 remaining = content.substring(startIndex)
                 continue
             }
 
+
+
             var foundCalcToken = false
             for (mode in Token.Constant.Calculated.MODE.entries) {
                 val result = mode.regex.find(remaining) ?: continue
-                val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, tokenList.size, regexCollection) ?: continue
-                tokens += token
+                val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, pseudoID, regexCollection) ?: continue
+                pseudoTokens += token
                 foundCalcToken = true
                 startIndex += result.value.length
                 remaining = content.substring(startIndex)
@@ -512,7 +517,7 @@ class Compiler(
 
             val binary = regexCollection.bin.find(remaining)
             if (binary != null) {
-                tokens += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, lineID)
+                pseudoTokens += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, pseudoID)
                 startIndex += binary.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -520,7 +525,7 @@ class Compiler(
 
             val hex = regexCollection.hex.find(remaining)
             if (hex != null) {
-                tokens += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, lineID)
+                pseudoTokens += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, pseudoID)
                 startIndex += hex.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -528,7 +533,7 @@ class Compiler(
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                tokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, lineID)
+                pseudoTokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, pseudoID)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -536,7 +541,7 @@ class Compiler(
 
             val udec = regexCollection.udec.find(remaining)
             if (udec != null) {
-                tokens += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, lineID)
+                pseudoTokens += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, pseudoID)
                 startIndex += udec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -544,7 +549,7 @@ class Compiler(
 
             val ascii = regexCollection.ascii.find(remaining)
             if (ascii != null) {
-                tokens += Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, lineID)
+                pseudoTokens += Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, pseudoID)
                 startIndex += ascii.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -552,7 +557,7 @@ class Compiler(
 
             val string = regexCollection.string.find(remaining)
             if (string != null) {
-                tokens += Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, lineID)
+                pseudoTokens += Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, pseudoID)
                 startIndex += string.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -563,7 +568,7 @@ class Compiler(
                 if (regRes != null) {
                     val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
                     if (reg != null) {
-                        tokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, lineID)
+                        pseudoTokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, pseudoID)
                         startIndex += regRes.value.length
                         remaining = content.substring(startIndex)
                         continue
@@ -579,41 +584,41 @@ class Compiler(
 
             var wordToken: Token.Word? = null
             if (word != null) {
-                wordToken = Token.Word.Clean(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, lineID)
+                wordToken = Token.Word.Clean(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, pseudoID)
             }
 
             if (wordNum != null) {
                 if (wordToken == null) {
-                    wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, lineID)
+                    wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, pseudoID)
                 } else {
                     if (wordToken.content.length < wordNum.value.length) {
-                        wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, lineID)
+                        wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, pseudoID)
                     }
                 }
             }
 
             if (wordNumUs != null) {
                 if (wordToken == null) {
-                    wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, lineID)
+                    wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, pseudoID)
                 } else {
                     if (wordToken.content.length < wordNumUs.value.length) {
-                        wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, lineID)
+                        wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, pseudoID)
                     }
                 }
             }
 
             if (wordNumUsDots != null) {
                 if (wordToken == null) {
-                    wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, lineID)
+                    wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, pseudoID)
                 } else {
                     if (wordToken.content.length < wordNumUsDots.value.length) {
-                        wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, lineID)
+                        wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, pseudoID)
                     }
                 }
             }
 
             if (wordToken != null) {
-                tokens += wordToken
+                pseudoTokens += wordToken
                 startIndex += wordToken.content.length
                 remaining = content.substring(startIndex)
                 continue
@@ -621,7 +626,7 @@ class Compiler(
 
             val symbol = regexCollection.symbol.find(remaining)
             if (symbol != null) {
-                tokens += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, lineID)
+                pseudoTokens += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, pseudoID)
                 startIndex += symbol.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -631,21 +636,15 @@ class Compiler(
             break
         }
 
-        return tokens
+        return pseudoTokens
     }
 
     /**
      * returns the highlighted code
      */
     fun getHLContent(): String {
-        val stringBuilder = StringBuilder()
-        hlLines?.let {
-            for (line in it) {
-                stringBuilder.append("$line\n")
-            }
-        }
-        val hlContent = stringBuilder.toString()
-        return hlContent.ifEmpty {
+
+        return (hlContent ?: dryContent).ifEmpty {
             dryContent
         }
     }
@@ -871,6 +870,7 @@ class Compiler(
             class Num(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
             class Clean(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
         }
+
     }
 
     data class HLFlagCollection(
@@ -892,6 +892,7 @@ class Compiler(
 
     data class RegexCollection(
         val space: Regex,
+        val newLine: Regex,
         val symbol: Regex,
         val bin: Regex,
         val hex: Regex,
@@ -913,5 +914,5 @@ class Compiler(
     )
 
     data class LineLoc(val file: FileHandler.File, var lineID: Int, val startIndex: Int, val endIndex: Int)
-    // endIndex means index after last Character
+// endIndex means index after last Character
 }

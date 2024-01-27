@@ -133,8 +133,8 @@ class RV64Syntax : Syntax() {
                 it.matchEntire(lineStr)?.let {
                     val labelName = it.groups[SyntaxRegex.PRE_GLOBALSTART_CONTENTGROUP]?.value ?: ""
                     if (globalStart == null && labelName.isNotEmpty()) {
-                        val directives = remainingLines[lineID].filter { it.content == "." || it.content == "global" || it.content == "globl" }.toSet()
-                        val elseTokens = (remainingLines[lineID] - directives.toSet()).toSet()
+                        val directives = remainingLines[lineID].filter { it.content == "." || it.content == "global" || it.content == "globl" }
+                        val elseTokens = (remainingLines[lineID] - directives.toSet())
                         globalStart = Pre_GLOBAL(ConnectedHL(RV64Flags.directive to directives, RV64Flags.pre_global to elseTokens), *remainingLines[lineID].toTypedArray(), labelName = labelName)
                     } else {
                         if (globalStart != null) {
@@ -160,9 +160,9 @@ class RV64Syntax : Syntax() {
                     val constMatch = (const.size == 1 && const.first() is Compiler.Token.Constant)
                     if (constMatch) {
                         equs.add(EquDefinition(name, const.first()))
-                        val directiveTokens = remainingLines[lineID].filter { it.content == "." || it.content == "equ" }.toSet()
-                        val constant = remainingLines[lineID].filter { it.content != "." && it.content != "equ" && it is Compiler.Token.Constant }.toSet()
-                        val elseTokens = remainingLines[lineID].filter { it.content != "," && !directiveTokens.contains(it) && !constant.contains(it) }.toSet()
+                        val directiveTokens = remainingLines[lineID].filter { it.content == "." || it.content == "equ" }
+                        val constant = remainingLines[lineID].filter { it.content != "." && it.content != "equ" && it is Compiler.Token.Constant }
+                        val elseTokens = remainingLines[lineID].filter { it.content != "," && !directiveTokens.contains(it) && !constant.contains(it) }
                         pres.add(Pre_EQU(ConnectedHL(Pair(RV64Flags.directive, directiveTokens), Pair(RV64Flags.constant, constant), Pair(RV64Flags.pre_equ, elseTokens)), *remainingLines[lineID].toTypedArray()))
                     } else {
                         val message = "{constant: ${it.groupValues[3]}} is not a valid constant for an equ definition! "
@@ -271,11 +271,11 @@ class RV64Syntax : Syntax() {
                     macros.add(MacroDefinition(name, arguments, replacementLines))
 
                     // for HL
-                    val directiveTokens = macroTokens.filter { it.content == "." || it.content == "macro" || it.content == "endm" }.toSet()
-                    val constants = macroTokens.filterIsInstance<Compiler.Token.Constant>().toSet()
-                    val registers = macroTokens.filterIsInstance<Compiler.Token.Register>().toSet()
-                    val instructions = macroTokens.filter { R_INSTR.InstrType.entries.map { it.id.uppercase() }.contains(it.content.uppercase()) }.toSet()
-                    val elseTokens = (macroTokens - directiveTokens.toSet() - constants.toSet() - registers.toSet() - instructions.toSet()).filter { it.content != "," }.toSet()
+                    val directiveTokens = macroTokens.filter { it.content == "." || it.content == "macro" || it.content == "endm" }
+                    val constants = macroTokens.filterIsInstance<Compiler.Token.Constant>()
+                    val registers = macroTokens.filterIsInstance<Compiler.Token.Register>()
+                    val instructions = macroTokens.filter { R_INSTR.InstrType.entries.map { it.id.uppercase() }.contains(it.content.uppercase()) }
+                    val elseTokens = (macroTokens - directiveTokens.toSet() - constants.toSet() - registers.toSet() - instructions.toSet()).filter { it.content != "," }
 
                     pres.add(Pre_MACRO(ConnectedHL(Pair(RV64Flags.directive, directiveTokens), Pair(RV64Flags.constant, constants), Pair(RV64Flags.register, registers), Pair(RV64Flags.instruction, instructions), Pair(RV64Flags.pre_macro, elseTokens)), *macroTokens.toTypedArray()))
 
@@ -320,9 +320,9 @@ class RV64Syntax : Syntax() {
                     if (macro.arguments.size == argumentContent.size) {
 
                         // for HL
-                        val registers = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Register>().toSet()
-                        val constants = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Constant>().toSet()
-                        val elseTokens = (remainingLines[macroLineID] - registers.toSet() - constants.toSet()).filter { it.content != "," }.toSet()
+                        val registers = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Register>()
+                        val constants = remainingLines[macroLineID].filterIsInstance<Compiler.Token.Constant>()
+                        val elseTokens = (remainingLines[macroLineID] - registers.toSet() - constants.toSet()).filter { it.content != "," }
 
                         pres.add(Pre_MACRO(ConnectedHL(Pair(RV64Flags.register, registers), Pair(RV64Flags.constant, constants), Pair(RV64Flags.pre_macro, elseTokens)), *remainingLines[macroLineID].toTypedArray()))
                         remainingLines.removeAt(macroLineID)
@@ -1462,7 +1462,7 @@ class RV64Syntax : Syntax() {
         }
     }
 
-    class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toSet() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toList() }.toTypedArray()) {
+    class E_PARAMCOLL(vararg val params: E_PARAM) : TreeNode.ElementNode(ConnectedHL(*params.map { it.paramHLFlag to it.paramTokens.toList() }.toTypedArray(), global = false, applyNothing = false), REFS.REF_E_PARAMCOLL, *params.flatMap { param -> param.paramTokens.toList() }.toTypedArray()) {
         val paramsWithOutSplitSymbols: Array<E_PARAM>
 
         init {

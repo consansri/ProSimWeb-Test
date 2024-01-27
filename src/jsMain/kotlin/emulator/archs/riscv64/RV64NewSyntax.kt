@@ -12,7 +12,6 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
-import web.cssom.atrule.overflowInline
 
 class RV64NewSyntax : Syntax() {
 
@@ -31,28 +30,41 @@ class RV64NewSyntax : Syntax() {
         val elements = mutableListOf<TreeNode.ElementNode>()
 
         remainingTokens.removeComments(preElements)
-        remainingTokens.resolveEqus(preElements, errors, warnings)
-        remainingTokens.resolveMacros(preElements, errors, warnings)
+        remainingTokens.resolveEqus(preElements, errors, warnings, arch)
+        remainingTokens.resolveMacros(preElements, errors, warnings, arch)
+
+        console.log("Pre removed: ${remainingTokens.joinToString("") { it.content }}")
 
         var currentLabel: ELabel? = null
+
+
         // Resolve Compiler Tokens
         while (remainingTokens.isNotEmpty()) {
             if (remainingTokens.first() is Compiler.Token.Space || remainingTokens.first() is Compiler.Token.NewLine) {
                 remainingTokens.removeFirst()
+                console.log("Remove Space or NewLine")
                 continue
             }
 
             val label = remainingTokens.checkLabel(elements, errors, warnings, currentLabel)
-            label?.let { if (!it.spaceSub) currentLabel = label }
-            remainingTokens.checkInstr(elements, errors, warnings, currentLabel)
+            if (label != null) {
+                if (!label.spaceSub) currentLabel = label
+                console.log("Remove Label")
+                continue
+            }
+
+            if (remainingTokens.checkInstr(elements, errors, warnings, currentLabel)) {
+                console.log("Remove Instr")
+                continue
+            }
 
             //errors.add(Error("Couldn't be resolved!", remainingTokens.first()))
-            remainingTokens.removeFirst()
+            console.log("Remaining: ${remainingTokens.take(9).joinToString("'") { it.content }}[...]")
+            errors.add(Error("(${remainingTokens.first().content}) couldn't be resolved!", remainingTokens.removeFirst()))
         }
 
         // Link
         elements.linkLabels(errors)
-
 
 
         return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode("pre", *preElements.toTypedArray()), TreeNode.ContainerNode("textsec", *elements.toTypedArray())))
@@ -79,7 +91,7 @@ class RV64NewSyntax : Syntax() {
     /**
      * Resolve EQU definitions
      */
-    private fun MutableList<Compiler.Token>.resolveEqus(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warning: MutableList<Warning>): MutableList<Compiler.Token> {
+    private fun MutableList<Compiler.Token>.resolveEqus(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warning: MutableList<Warning>, arch: Architecture): MutableList<Compiler.Token> {
         val defs = mutableSetOf<PreEquDef>()
         // 1. Find definitions
         val tokensToCheckForDef = this.toMutableList()
@@ -107,7 +119,7 @@ class RV64NewSyntax : Syntax() {
             val comma = equDefTokenResult.sequenceMap.map { it.token }[1] as Compiler.Token.Symbol
             val constant = equDefTokenResult.sequenceMap.map { it.token }[2] as Compiler.Token.Constant
 
-            val equDef = PreEquDef(equDirTokenResult.sequenceMap.map { it.token }.toSet(), equName, comma, constant)
+            val equDef = PreEquDef(equDirTokenResult.sequenceMap.map { it.token }, equName, comma, constant)
             defs.add(equDef)
             this.removeAll(equDef.tokens.toSet())
         }
@@ -115,15 +127,20 @@ class RV64NewSyntax : Syntax() {
         preElements.addAll(defs)
 
         // 2. Resolve definitions
-        for (tokenID in this.indices) {
-            val token = this[tokenID]
-            if (token !is Compiler.Token.Word) continue
-            for (equDef in defs) {
-                if (token.content == equDef.equname.content) {
-                    preElements.add(PreEquRep(token))
-                    this[tokenID] = equDef.constant
-                    break
+        for (equDef in defs) {
+            var foundToken: Compiler.Token? = this.firstOrNull { it.content == equDef.equname.content }
+            while (foundToken != null) {
+                val pseudoConst = arch.getCompiler().pseudoTokenize(equDef.constant.content).firstOrNull()
+                if (pseudoConst == null) {
+                    errors.add(Error("Couldn't create pseudo Token!", foundToken))
+                    this.remove(foundToken)
+                    continue
                 }
+                val index = this.indexOf(foundToken)
+                preElements.add(PreEquRep(foundToken))
+                this.remove(foundToken)
+                this.add(index, pseudoConst)
+                foundToken = this.firstOrNull { it.content == equDef.equname.content }
             }
         }
 
@@ -133,7 +150,7 @@ class RV64NewSyntax : Syntax() {
     /**
      * Resolves all macro definitions (removes definition and replaces inserts)
      */
-    private fun MutableList<Compiler.Token>.resolveMacros(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<Compiler.Token> {
+    private fun MutableList<Compiler.Token>.resolveMacros(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, arch: Architecture): MutableList<Compiler.Token> {
         val defs = mutableSetOf<PreMacroDef>()
         // 1. Find definitions
         val tokenBuffer = this.toMutableList()
@@ -159,8 +176,8 @@ class RV64NewSyntax : Syntax() {
 
 
             // 1.3 Search parameters
-            val attributes = mutableSetOf<Compiler.Token.Word>()
-            val commas = mutableSetOf<Compiler.Token>()
+            val attributes = mutableListOf<Compiler.Token.Word>()
+            val commas = mutableListOf<Compiler.Token>()
             while (true) {
                 if (tokenBuffer.first() is Compiler.Token.Space) tokenBuffer.removeFirst() // Remove leading spaces
 
@@ -196,8 +213,8 @@ class RV64NewSyntax : Syntax() {
             tokenBuffer.removeFirst()
 
             // 1.5 Add All to Macro Content until a .endm token is found
-            val macroContent = mutableSetOf<Compiler.Token>()
-            val macroEndDir = mutableSetOf<Compiler.Token>()
+            val macroContent = mutableListOf<Compiler.Token>()
+            val macroEndDir = mutableListOf<Compiler.Token>()
             while (tokenBuffer.isNotEmpty()) {
                 val endmResult = DirType.ENDM.tokenSeq.matchStart(*tokenBuffer.toTypedArray())
                 if (!endmResult.matches) {
@@ -217,7 +234,7 @@ class RV64NewSyntax : Syntax() {
                 break
             }
 
-            val macroDef = PreMacroDef((macroStartDir + macroEndDir).toSet(), macroName, attributes, commas, macroContent)
+            val macroDef = PreMacroDef((macroStartDir + macroEndDir), macroName, attributes, commas, macroContent)
             defs.add(macroDef)
             this.removeAll(macroDef.tokens.toSet())
         }
@@ -225,50 +242,57 @@ class RV64NewSyntax : Syntax() {
 
         // 2. Replace Macro Defs
         for (macro in defs) {
-            while (this.isNotEmpty()) {
-                // 2.1 Get first Macro Insertion
-                val insertReference = this.firstOrNull { it is Compiler.Token.Word && it.content == macro.macroname.content } ?: break
-                val index = this.indexOf(insertReference)
-                this.remove(insertReference)
+            while (true) {
+                val macroNameRef = this.firstOrNull { it is Compiler.Token.Word && it.content == macro.macroname.content } ?: break
+                val macroNewLine = this.firstOrNull { this.indexOf(macroNameRef) < this.indexOf(it) && it is Compiler.Token.NewLine } ?: this.last()
+                val macroRefTokens = this.subList(this.indexOf(macroNameRef), this.indexOf(macroNewLine))
+                val indexOfName = this.indexOf(macroNameRef)
+                macroRefTokens.remove(macroNameRef)
 
                 val params = mutableListOf<Compiler.Token>()
                 val commas = mutableListOf<Compiler.Token>()
-                while (this.getOrNull(index) != null) {
-                    if (this[index] is Compiler.Token.Space) this.removeAt(index) // Remove leading spaces
 
-                    val attribOrColon = this.getOrNull(index) ?: break
-                    when (params.size) {
-                        commas.size -> { // Expect Attribute
-                            if (attribOrColon is Compiler.Token.NewLine) break
-                            params.add(attribOrColon)
-                            this.remove(attribOrColon)
-                            continue
-                        }
-
-                        commas.size + 1 -> { // Expect Colon
-                            if (attribOrColon.content != ",") break
-                            commas.add(attribOrColon)
-                            this.remove(attribOrColon)
-                            continue
-                        }
+                var errorAtParamDetection = false
+                for (token in macroRefTokens) {
+                    if (token is Compiler.Token.NewLine) break
+                    if (token is Compiler.Token.Space) continue
+                    if (params.size == commas.size) {
+                        // Expect Param
+                        params.add(token)
+                        continue
                     }
-                    break
+
+                    if (params.size - 1 == commas.size) {
+                        // Expect Comma
+                        if (token.content != ",") {
+                            errors.add(Error("Macro Replacement expected comma!", *macroRefTokens.toTypedArray(), macroNameRef))
+                            this.remove(macroNameRef)
+                            this.removeAll(macroRefTokens)
+                            errorAtParamDetection = true
+                            break
+                        }
+                        commas.add(token)
+                        continue
+                    }
                 }
 
-                if (macro.attributes.size != params.size) {
-                    errors.add(Error("Wrong parameter count for macro insertion! Expected ${macro.attributes.size} parameters for this macro (${macro.macroname.content})!", insertReference, *params.toTypedArray(), *commas.toTypedArray()))
+                if (errorAtParamDetection) continue
+
+                if (params.size > 0 && params.size == commas.size) {
+                    warnings.add(Warning("Unnecessary trailing comma!", commas.last()))
+                }
+
+                if (params.size != macro.attributes.size) {
+                    errors.add(Error("Expected ${macro.attributes.size} parameters!", *macroRefTokens.toTypedArray(), macroNameRef))
+                    this.remove(macroNameRef)
+                    this.removeAll(macroRefTokens)
                     continue
                 }
 
-
-                val replacement = macro.getMacroReplacement(params)
-                if (replacement == null) {
-                    errors.add(Error("Couldn't resolve macro replacement!", insertReference, *params.toTypedArray(), *commas.toTypedArray()))
-                    continue
-                }
-
-                preElements.add(PreMacroRep(insertReference, params.toSet(), commas.toSet()))
-                this.addAll(index, replacement)
+                val preMacroRep = PreMacroRep(macroNameRef, params, commas)
+                this.removeAll(macroRefTokens)
+                this.addAll(indexOfName, macro.getMacroReplacement(params, arch) ?: listOf())
+                preElements.add(preMacroRep)
             }
         }
 
@@ -303,30 +327,32 @@ class RV64NewSyntax : Syntax() {
 
             val label = ELabel(currentLabel, tokens.first(), tokens[1])
             elements.add(label)
+            this.removeAll(label.tokens.toSet())
             return label
         }
 
         return null
     }
 
-    private fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): MutableList<Compiler.Token> {
+    private fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): Boolean {
         for (paramType in ParamType.entries) {
             val result = paramType.tokenSeq.matchStart(*this.toTypedArray())
             if (!result.matches) continue
-            val allTokens = result.sequenceMap.map { it.token }.toMutableList()
+            val allTokens = result.sequenceMap.map { it.token }
             val nameToken = allTokens.firstOrNull() ?: continue
-            allTokens.removeFirst()
-            val filteredTokens = allTokens.filterNot { it is Compiler.Token.Space }
-            val instrType = InstrType.entries.firstOrNull { it.paramType == paramType && it.id.uppercase() == nameToken.content.uppercase() } ?: continue
+            val filteredTokens = allTokens.filterNot { it is Compiler.Token.Space || it == nameToken }
 
-            val eInstr = EInstr(instrType, paramType, nameToken, filteredTokens.toSet(), currentLabel)
-            console.log("Found Instr: $eInstr")
+            val instrType = InstrType.entries.firstOrNull { it.paramType == paramType && it.id.uppercase() == nameToken.content.uppercase() } ?: continue
+            val eInstr = EInstr(instrType, paramType, nameToken, filteredTokens, allTokens.filterIsInstance<Compiler.Token.Space>(), currentLabel)
+
             elements.add(eInstr)
-            this.removeAll(eInstr.tokens.toSet())
-            break
+            this.remove(nameToken)
+            this.removeAll(allTokens.filterIsInstance<Compiler.Token.Space>())
+            this.removeAll(filteredTokens)
+            return true
         }
 
-        return this
+        return false
     }
 
     private fun MutableList<TreeNode.ElementNode>.linkLabels(errors: MutableList<Error>) {
@@ -345,7 +371,7 @@ class RV64NewSyntax : Syntax() {
 
     enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: TokenSeq) {
         // NORMAL INSTRUCTIONS
-        RD_I20(false, "rd, imm20", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit20()), NewLine, ignoreSpaces = true)) {
+        RD_I20(false, "rd, imm20", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit20()), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rd = paramMap[RV64BinMapper.MaskLabel.RD]
                 return if (rd != null) {
@@ -357,7 +383,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         }, // rd, imm
-        RD_Off12(false, "rd, imm12(rs)", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), Specific("("), Register(RV64.standardRegFile), Specific(")"), NewLine, ignoreSpaces = true)) {
+        RD_Off12(false, "rd, imm12(rs)", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), Specific("("), Register(RV64.standardRegFile), Specific(")"), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rd = paramMap[RV64BinMapper.MaskLabel.RD]
                 val rs1 = paramMap[RV64BinMapper.MaskLabel.RS1]
@@ -371,7 +397,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         }, // rd, imm12(rs)
-        RS2_Off12(false, "rs2, imm12(rs1)", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), Specific("("), Register(RV64.standardRegFile), Specific(")"), NewLine, ignoreSpaces = true)) {
+        RS2_Off12(false, "rs2, imm12(rs1)", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), Specific("("), Register(RV64.standardRegFile), Specific(")"), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rs2 = paramMap[RV64BinMapper.MaskLabel.RS2]
                 val rs1 = paramMap[RV64BinMapper.MaskLabel.RS1]
@@ -385,7 +411,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         }, // rs2, imm5(rs1)
-        RD_RS1_RS2(false, "rd, rs1, rs2", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)) {
+        RD_RS1_RS2(false, "rd, rs1, rs2", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rd = paramMap[RV64BinMapper.MaskLabel.RD]
                 val rs1 = paramMap[RV64BinMapper.MaskLabel.RS1]
@@ -400,7 +426,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         }, // rd, rs1, rs2
-        RD_RS1_I12(false, "rd, rs1, imm12", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), NewLine, ignoreSpaces = true)) {
+        RD_RS1_I12(false, "rd, rs1, imm12", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rd = paramMap[RV64BinMapper.MaskLabel.RD]
                 val rs1 = paramMap[RV64BinMapper.MaskLabel.RS1]
@@ -414,7 +440,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         }, // rd, rs, imm
-        RD_RS1_I6(false, "rd, rs1, shamt6", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Bit6()), NewLine, ignoreSpaces = true)) {
+        RD_RS1_I6(false, "rd, rs1, shamt6", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Bit6()), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rd = paramMap[RV64BinMapper.MaskLabel.RD]
                 val rs1 = paramMap[RV64BinMapper.MaskLabel.RS1]
@@ -428,7 +454,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         }, // rd, rs, shamt
-        RS1_RS2_I12(false, "rs1, rs2, imm12", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), NewLine, ignoreSpaces = true)) {
+        RS1_RS2_I12(false, "rs1, rs2, imm12", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Bit12()), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rs2 = paramMap[RV64BinMapper.MaskLabel.RS2]
                 val rs1 = paramMap[RV64BinMapper.MaskLabel.RS1]
@@ -442,7 +468,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         }, // rs1, rs2, imm
-        CSR_RD_OFF12_RS1(false, "rd, csr12, rs1", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)) {
+        CSR_RD_OFF12_RS1(false, "rd, csr12, rs1", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rd = paramMap[RV64BinMapper.MaskLabel.RD]
                 val csr = paramMap[RV64BinMapper.MaskLabel.CSR]
@@ -457,7 +483,7 @@ class RV64NewSyntax : Syntax() {
                 }
             }
         },
-        CSR_RD_OFF12_UIMM5(false, "rd, offset, uimm5", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), Specific(","), SpecConst(Bit5()), NewLine, ignoreSpaces = true)) {
+        CSR_RD_OFF12_UIMM5(false, "rd, offset, uimm5", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), Specific(","), SpecConst(Bit5()), NewLine, ignoreSpaces = true)) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
                 val rd = paramMap[RV64BinMapper.MaskLabel.RD]
                 val csr = paramMap[RV64BinMapper.MaskLabel.CSR]
@@ -473,23 +499,23 @@ class RV64NewSyntax : Syntax() {
         },
 
         // PSEUDO INSTRUCTIONS
-        PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)),
-        PS_RD_LI_I28Unsigned(true, "rd, imm28u", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit28(), signed = false), NewLine, ignoreSpaces = true)), // rd, imm28 unsigned
-        PS_RD_LI_I32Signed(true, "rd, imm32s", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit32(), signed = true), NewLine, ignoreSpaces = true)), // rd, imm32
-        PS_RD_LI_I40Unsigned(true, "rd, imm40u", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit40(), signed = false), NewLine, ignoreSpaces = true)),
-        PS_RD_LI_I52Unsigned(true, "rd, imm52u", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit52(), signed = false), NewLine, ignoreSpaces = true)),
-        PS_RD_LI_I64(true, "rd, imm64", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit64()), NewLine, ignoreSpaces = true)), // rd, imm64
-        PS_RS1_Jlbl(true, "rs, jlabel", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)), // rs, label
-        PS_RD_Albl(true, "rd, alabel", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)), // rd, label
-        PS_lbl(true, "jlabel", TokenSeq(Word, Space, Word, NewLine, ignoreSpaces = true)),  // label
-        PS_RD_RS1(true, "rd, rs", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)), // rd, rs
-        PS_RS1(true, "rs1", TokenSeq(Word, Space, Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)),
-        PS_CSR_RS1(true, "csr, rs1", TokenSeq(Word, Space, RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)),
-        PS_RD_CSR(true, "rd, csr", TokenSeq(Word, Space, Register(RV64.standardRegFile), Specific(","), RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), NewLine, ignoreSpaces = true)),
+        PS_RS1_RS2_Jlbl(true, "rs1, rs2, jlabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)),
+        PS_RD_LI_I28Unsigned(true, "rd, imm28u", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit28(), signed = false), NewLine, ignoreSpaces = true)), // rd, imm28 unsigned
+        PS_RD_LI_I32Signed(true, "rd, imm32s", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit32(), signed = true), NewLine, ignoreSpaces = true)), // rd, imm32
+        PS_RD_LI_I40Unsigned(true, "rd, imm40u", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit40(), signed = false), NewLine, ignoreSpaces = true)),
+        PS_RD_LI_I52Unsigned(true, "rd, imm52u", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit52(), signed = false), NewLine, ignoreSpaces = true)),
+        PS_RD_LI_I64(true, "rd, imm64", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), SpecConst(Bit64()), NewLine, ignoreSpaces = true)), // rd, imm64
+        PS_RS1_Jlbl(true, "rs, jlabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)), // rs, label
+        PS_RD_Albl(true, "rd, alabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)), // rd, label
+        PS_lbl(true, "jlabel", TokenSeq(WordNoDotsAndUS, Space, Word, NewLine, ignoreSpaces = true)),  // label
+        PS_RD_RS1(true, "rd, rs", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)), // rd, rs
+        PS_RS1(true, "rs1", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)),
+        PS_CSR_RS1(true, "csr, rs1", TokenSeq(WordNoDotsAndUS, Space, RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)),
+        PS_RD_CSR(true, "rd, csr", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), RegOrSpecConst(Bit12(), notInRegFile = RV64.standardRegFile), NewLine, ignoreSpaces = true)),
 
         // NONE PARAM INSTR
-        NONE(false, "none", TokenSeq(Word, NewLine)),
-        PS_NONE(true, "none", TokenSeq(Word, NewLine));
+        NONE(false, "none", TokenSeq(WordNoDotsAndUS, NewLine)),
+        PS_NONE(true, "none", TokenSeq(WordNoDotsAndUS, NewLine));
 
         open fun getTSParamString(arch: Architecture, paramMap: MutableMap<RV64BinMapper.MaskLabel, Bin>, labelName: String): String {
             return "pseudo param type"
@@ -2153,8 +2179,8 @@ class RV64NewSyntax : Syntax() {
     }
 
     class PREComment(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.comment), "comment", *tokens)
-    class PreEquDef(directive: Set<Compiler.Token>, val equname: Compiler.Token.Word, comma: Compiler.Token.Symbol, val constant: Compiler.Token.Constant) : TreeNode.ElementNode(
-        ConnectedHL(RV64Flags.directive to directive, RV64Flags.pre_equ to setOf(equname), RV64Flags.constant to setOf(constant), RV64Flags.pre_equ to setOf(comma)),
+    class PreEquDef(directive: List<Compiler.Token>, val equname: Compiler.Token.Word, comma: Compiler.Token.Symbol, val constant: Compiler.Token.Constant) : TreeNode.ElementNode(
+        ConnectedHL(RV64Flags.directive to directive, RV64Flags.pre_equ to listOf(equname), RV64Flags.constant to listOf(constant), RV64Flags.pre_equ to listOf(comma)),
         "equ_def",
         *directive.toTypedArray(),
         equname,
@@ -2162,9 +2188,9 @@ class RV64NewSyntax : Syntax() {
         constant
     )
 
-    class PreEquRep(token: Compiler.Token.Word) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_equ), "equ_insert", token)
-    class PreMacroDef(directives: Set<Compiler.Token>, val macroname: Compiler.Token.Word, val attributes: Set<Compiler.Token.Word>, commas: Set<Compiler.Token>, val macroContent: Set<Compiler.Token>) : TreeNode.ElementNode(
-        ConnectedHL(RV64Flags.directive to directives, RV64Flags.pre_macro to setOf(macroname, *attributes.toTypedArray(), *macroContent.toTypedArray(), *commas.toTypedArray())),
+    class PreEquRep(token: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_equ), "equ_insert", token)
+    class PreMacroDef(directives: List<Compiler.Token>, val macroname: Compiler.Token.Word, val attributes: List<Compiler.Token.Word>, commas: List<Compiler.Token>, val macroContent: List<Compiler.Token>) : TreeNode.ElementNode(
+        ConnectedHL(RV64Flags.directive to directives, RV64Flags.pre_macro to listOf(macroname, *attributes.toTypedArray(), *macroContent.toTypedArray(), *commas.toTypedArray())),
         "macro_def",
         *directives.toTypedArray(),
         macroname,
@@ -2172,24 +2198,42 @@ class RV64NewSyntax : Syntax() {
         *commas.toTypedArray(),
         *macroContent.toTypedArray()
     ) {
-        fun getMacroReplacement(params: List<Compiler.Token>): List<Compiler.Token>? {
+        fun getMacroReplacement(params: List<Compiler.Token>, arch: Architecture): List<Compiler.Token>? {
             if (params.size != attributes.size) return null
             val content = macroContent.toMutableList()
-            for (attribute in attributes) {
-                var result = Seqs.SeqMacroAttrInsert.matches(*content.toTypedArray())
-                while (result.matches) {
-                    val tokensToReplace = result.sequenceMap.map { it.token }
-                    val index = content.indexOf(tokensToReplace.firstOrNull())
-                    content.removeAll(tokensToReplace)
-                    content.add(index, params[attributes.indexOf(attribute)])
-                    result = Seqs.SeqMacroAttrInsert.matches(*content.toTypedArray())
-                }
+            val contentRep = mutableListOf<Compiler.Token>()
+
+            while (content.first() is Compiler.Token.Space) {
+                content.removeFirst()
             }
-            return content
+
+            while (content.isNotEmpty()) {
+                // Check for Attribute Insert
+                val result = Seqs.SeqMacroAttrInsert.matchStart(*content.toTypedArray())
+                if (result.matches) {
+                    val tokensToReplace = result.sequenceMap.map { it.token }
+                    val attribute = attributes.firstOrNull { it.content == tokensToReplace[1].content }
+                    if (attribute != null) {
+                        content.removeAll(tokensToReplace)
+                        val pseudoParam = arch.getCompiler().pseudoTokenize(params[attributes.indexOf(attribute)].content)
+                        contentRep.add(pseudoParam.first())
+                        continue
+                    }
+                }
+
+                // Else add to replace content
+                val pseudoToken = arch.getCompiler().pseudoTokenize(content.removeFirst().content)
+                contentRep.add(pseudoToken.first())
+            }
+            return contentRep
         }
     }
 
-    class PreMacroRep(macroName: Compiler.Token, attributes: Set<Compiler.Token>, commas: Set<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_macro to attributes + macroName + commas), "macro_insert", macroName, *attributes.toTypedArray(), *commas.toTypedArray())
+    class PreMacroRep(macroName: Compiler.Token, attributes: List<Compiler.Token>, commas: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_macro to attributes + macroName + commas), "macro_insert", macroName, *attributes.toTypedArray(), *commas.toTypedArray()) {
+        init {
+            console.log("Macro Replacement: ${macroName.content} ${attributes.joinToString(",") { it.content }}")
+        }
+    }
 
     class ELabel(currentLabel: ELabel? = null, nameToken: Compiler.Token, endSymbol: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.label), "label", *setOfNotNull(nameToken, endSymbol).toTypedArray()) {
 
@@ -2206,13 +2250,13 @@ class RV64NewSyntax : Syntax() {
         }
     }
 
-    class EInstr(val type: InstrType, val paramType: ParamType, nameToken: Compiler.Token, params: Set<Compiler.Token>, val parentLabel: ELabel? = null) : TreeNode.ElementNode(
+    class EInstr(val type: InstrType, val paramType: ParamType, nameToken: Compiler.Token, params: List<Compiler.Token>, spaces: List<Compiler.Token>, val parentLabel: ELabel? = null) : TreeNode.ElementNode(
         ConnectedHL(
-            RV64Flags.instruction to setOf(nameToken),
-            RV64Flags.register to params.filterIsInstance<Compiler.Token.Register>().toSet(),
-            RV64Flags.constant to params.filterIsInstance<Compiler.Token.Constant>().toSet(),
-            RV64Flags.label to params.filterIsInstance<Compiler.Token.Word>().toSet(),
-        ), "instr", nameToken, *params.toTypedArray()
+            RV64Flags.instruction to listOf(nameToken),
+            RV64Flags.register to params.filterIsInstance<Compiler.Token.Register>(),
+            RV64Flags.constant to params.filterIsInstance<Compiler.Token.Constant>(),
+            RV64Flags.label to params.filterIsInstance<Compiler.Token.Word>(),
+        ), "instr", nameToken, *params.toTypedArray(), *spaces.toTypedArray()
     ) {
         val registers: Collection<Compiler.Token.Register>
         val constants: Collection<Compiler.Token.Constant>
@@ -2238,10 +2282,6 @@ class RV64NewSyntax : Syntax() {
                 }
                 linkedLabels.add(label)
             }
-        }
-
-        override fun toString(): String {
-            return "${type.id} ${paramType.exampleString}"
         }
     }
 
