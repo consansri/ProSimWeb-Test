@@ -42,21 +42,18 @@ class RV64NewSyntax : Syntax() {
         while (remainingTokens.isNotEmpty()) {
             if (remainingTokens.first() is Compiler.Token.Space || remainingTokens.first() is Compiler.Token.NewLine) {
                 remainingTokens.removeFirst()
-                console.log("Remove Space or NewLine")
                 continue
             }
 
             val label = remainingTokens.checkLabel(elements, errors, warnings, currentLabel)
             if (label != null) {
                 if (!label.spaceSub) currentLabel = label
-                console.log("Remove Label")
                 continue
             }
 
-            if (remainingTokens.checkInstr(elements, errors, warnings, currentLabel)) {
-                console.log("Remove Instr")
-                continue
-            }
+            if (remainingTokens.checkData(elements, errors, warnings)) continue
+
+            if (remainingTokens.checkInstr(elements, errors, warnings, currentLabel)) continue
 
             //errors.add(Error("Couldn't be resolved!", remainingTokens.first()))
             console.log("Remaining: ${remainingTokens.take(9).joinToString("'") { it.content }}[...]")
@@ -65,7 +62,6 @@ class RV64NewSyntax : Syntax() {
 
         // Link
         elements.linkLabels(errors)
-
 
         return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode("pre", *preElements.toTypedArray()), TreeNode.ContainerNode("textsec", *elements.toTypedArray())))
     }
@@ -299,14 +295,48 @@ class RV64NewSyntax : Syntax() {
         return this
     }
 
-    private fun MutableList<Compiler.Token>.checkAllocData(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<Compiler.Token> {
-        TODO()
-        return this
-    }
+    private fun MutableList<Compiler.Token>.checkData(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): Boolean {
+        for (dirType in DirType.entries.filter { it.dirMajType == DirMajType.DE_ALIGNED || it.dirMajType == DirMajType.DE_UNALIGNED }) {
+            val result = dirType.tokenSeq.matchStart(*this.toTypedArray())
+            if (!result.matches) continue
 
-    private fun MutableList<Compiler.Token>.checkInitData(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<Compiler.Token> {
-        TODO()
-        return this
+            val dirTokens = result.sequenceMap.map { it.token }
+            this.removeAll(dirTokens)
+
+            val constants = mutableListOf<Compiler.Token.Constant>()
+            val commas = mutableListOf<Compiler.Token>()
+
+            while (this.isNotEmpty()) {
+                if (this.first() is Compiler.Token.Space || this.first() is Compiler.Token.NewLine) {
+                    this.removeFirst()
+                    continue
+                }
+                if (constants.size == commas.size) {
+                    // Expect constant
+                    if (this.first() !is Compiler.Token.Constant) break
+                    val constant = this.first() as Compiler.Token.Constant
+                    if (!constant.getValue(dirType.deSize).checkResult.valid) break
+                    constants.add(constant)
+                } else {
+                    // Expect comma
+                    if (this.first().content != ",") break
+                    commas.add(this.first())
+                }
+                this.removeFirst()
+            }
+
+            if (constants.isNotEmpty()) {
+                elements.add(EInitData(dirType, dirTokens, constants, commas))
+            } else {
+                elements.add(EUnInitData(dirType, dirTokens))
+            }
+            this.removeAll(constants)
+            this.removeAll(commas)
+
+            return true
+        }
+
+        return false
     }
 
     private fun MutableList<Compiler.Token>.checkSection(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<Compiler.Token> {
@@ -359,7 +389,10 @@ class RV64NewSyntax : Syntax() {
         val labels = this.filterIsInstance<ELabel>()
         val instrs = this.filterIsInstance<EInstr>()
         for (instr in instrs) {
-            instr.link(labels, errors)
+            val valid = instr.link(labels, errors)
+            if (!valid) {
+                this.remove(instr)
+            }
         }
     }
 
@@ -2190,7 +2223,12 @@ class RV64NewSyntax : Syntax() {
 
     class PreEquRep(token: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_equ), "equ_insert", token)
     class PreMacroDef(directives: List<Compiler.Token>, val macroname: Compiler.Token.Word, val attributes: List<Compiler.Token.Word>, commas: List<Compiler.Token>, val macroContent: List<Compiler.Token>) : TreeNode.ElementNode(
-        ConnectedHL(RV64Flags.directive to directives, RV64Flags.pre_macro to listOf(macroname, *attributes.toTypedArray(), *macroContent.toTypedArray(), *commas.toTypedArray())),
+        ConnectedHL(
+            RV64Flags.directive to directives,
+            RV64Flags.pre_macro to listOf(macroname, *attributes.toTypedArray(), *macroContent.filterNot { it is Compiler.Token.Constant || it is Compiler.Token.Register }.toTypedArray(), *commas.toTypedArray()),
+            RV64Flags.constant to macroContent.filterIsInstance<Compiler.Token.Constant>(),
+            RV64Flags.register to macroContent.filterIsInstance<Compiler.Token.Register>()
+        ),
         "macro_def",
         *directives.toTypedArray(),
         macroname,
@@ -2229,11 +2267,18 @@ class RV64NewSyntax : Syntax() {
         }
     }
 
-    class PreMacroRep(macroName: Compiler.Token, attributes: List<Compiler.Token>, commas: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_macro to attributes + macroName + commas), "macro_insert", macroName, *attributes.toTypedArray(), *commas.toTypedArray()) {
-        init {
-            console.log("Macro Replacement: ${macroName.content} ${attributes.joinToString(",") { it.content }}")
-        }
-    }
+    class PreMacroRep(macroName: Compiler.Token, attributes: List<Compiler.Token>, commas: List<Compiler.Token>) : TreeNode.ElementNode(
+        ConnectedHL(
+            RV64Flags.pre_macro to commas + macroName,
+            RV64Flags.constant to attributes.filterIsInstance<Compiler.Token.Constant>(),
+            RV64Flags.register to attributes.filterIsInstance<Compiler.Token.Register>(),
+            RV64Flags.label to attributes.filterIsInstance<Compiler.Token.Word>()
+        ),
+        "macro_insert",
+        macroName,
+        *attributes.toTypedArray(),
+        *commas.toTypedArray()
+    )
 
     class ELabel(currentLabel: ELabel? = null, nameToken: Compiler.Token, endSymbol: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.label), "label", *setOfNotNull(nameToken, endSymbol).toTypedArray()) {
 
@@ -2269,7 +2314,11 @@ class RV64NewSyntax : Syntax() {
             unlinkedlabels = params.filterIsInstance<Compiler.Token.Word>()
         }
 
-        fun link(labels: Collection<ELabel>, errors: MutableList<Error>) {
+        /**
+         * Returns true if all labels where linked correctly
+         */
+        fun link(labels: Collection<ELabel>, errors: MutableList<Error>): Boolean {
+            var linkingErrors = false
             for (unlinkedlabel in unlinkedlabels) {
                 val label = if (unlinkedlabel.content.startsWith(".")) {
                     labels.firstOrNull { it.parentLabel == parentLabel && it.nameString == unlinkedlabel.content }
@@ -2277,12 +2326,19 @@ class RV64NewSyntax : Syntax() {
                     labels.firstOrNull { if (it.parentLabel != null) "${it.parentLabel.nameString}${it.nameString}" == unlinkedlabel.content else it.nameString == unlinkedlabel.content }
                 }
                 if (label == null) {
+                    linkingErrors = true
                     errors.add(Error("(${unlinkedlabel.content}) couldn't get linked to any label!", unlinkedlabel))
                     continue
                 }
                 linkedLabels.add(label)
             }
+            return !linkingErrors
         }
     }
+
+    class EInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>, val constants: List<Compiler.Token.Constant>, commas: List<Compiler.Token>) :
+        TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens, RV64Flags.constant to constants), "init_data", *dirTokens.toTypedArray(), *constants.toTypedArray(), *commas.toTypedArray())
+
+    class EUnInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "uninit_data", *dirTokens.toTypedArray())
 
 }
