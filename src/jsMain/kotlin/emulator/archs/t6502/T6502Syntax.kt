@@ -852,16 +852,16 @@ class T6502Syntax : Syntax() {
                 }
 
                 ZP -> {
-                    arch.getMemory().load(Hex( "01${nextByte.getRawHexStr()}", WORD_SIZE)).toHex()
+                    arch.getMemory().load(Hex( "00${nextByte.getRawHexStr()}", WORD_SIZE)).toHex()
                 }
 
                 ZP_X -> {
-                    val addr = Hex("01${(nextByte + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
+                    val addr = Hex("00${(nextByte + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
                     arch.getMemory().load(addr.toHex()).toHex()
                 }
 
                 ZP_Y -> {
-                    val addr = Hex("01${(nextByte + y.get()).toHex().getRawHexStr()}", WORD_SIZE)
+                    val addr = Hex("00${(nextByte + y.get()).toHex().getRawHexStr()}", WORD_SIZE)
                     arch.getMemory().load(addr.toHex()).toHex()
                 }
 
@@ -885,13 +885,13 @@ class T6502Syntax : Syntax() {
                 }
 
                 ZP_X_IND -> {
-                    val addr = Hex("01${(nextByte + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
+                    val addr = Hex("00${(nextByte + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
                     val loadedAddr = arch.getMemory().load(addr.toHex()).toHex()
                     arch.getMemory().load(loadedAddr).toHex()
                 }
 
                 ZPIND_Y -> {
-                    val loadedAddr = arch.getMemory().load(Hex("01${nextByte.getRawHexStr()}", WORD_SIZE))
+                    val loadedAddr = arch.getMemory().load(Hex("00${nextByte.getRawHexStr()}", WORD_SIZE))
                     val incAddr = loadedAddr + y.get()
                     arch.getMemory().load(incAddr.toHex()).toHex()
                 }
@@ -913,11 +913,11 @@ class T6502Syntax : Syntax() {
                 ABS -> nextWord
                 ABS_X -> (nextWord + x.toBin().getResized(WORD_SIZE)).toHex()
                 ABS_Y -> (nextWord + y.toBin().getResized(WORD_SIZE)).toHex()
-                ZP -> Hex("01${nextByte.getRawHexStr()}", WORD_SIZE)
-                ZP_X ->Hex("01${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE)
-                ZP_Y -> Hex("01${(nextByte + y).toHex().getRawHexStr()}", WORD_SIZE)
-                ZP_X_IND -> arch.getMemory().load(Hex("01${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE), 2).toHex()
-                ZPIND_Y -> (arch.getMemory().load(Hex("01${nextByte.getRawHexStr()}", WORD_SIZE), 2) + y).toHex()
+                ZP -> Hex("00${nextByte.getRawHexStr()}", WORD_SIZE)
+                ZP_X ->Hex("00${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE)
+                ZP_Y -> Hex("00${(nextByte + y).toHex().getRawHexStr()}", WORD_SIZE)
+                ZP_X_IND -> arch.getMemory().load(Hex("00${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE), 2).toHex()
+                ZPIND_Y -> (arch.getMemory().load(Hex("00${nextByte.getRawHexStr()}", WORD_SIZE), 2) + y).toHex()
                 else -> null
             }
         }
