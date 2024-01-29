@@ -287,8 +287,6 @@ class Compiler(
             architecture.getConsole().warn("Assembly: no match found for $remaining")
             break
         }
-
-        console.log(tokenList.joinToString { it::class.simpleName.toString() })
     }
 
     /**
@@ -297,17 +295,14 @@ class Compiler(
     private fun parse() {
         architecture.getTranscript().clear()
         syntax.clear()
-        syntaxTree =
-            syntax.check(
-                architecture,
-                this,
-                tokenList,
-                tokenList.groupBy { token -> token.lineLoc.lineID }.map { group -> group.value.filter { it !is Token.NewLine } },
-                architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() },
-                architecture.getTranscript()
-            )
-
-        console.log("Build SyntaxTree: ${syntaxTree?.rootNode?.containers?.flatMap { cont -> cont.nodes.toList() }?.joinToString { it.name }}")
+        syntaxTree = syntax.check(
+            architecture,
+            this,
+            tokenList,
+            tokenList.groupBy { token -> token.lineLoc.lineID }.map { group -> group.value.filter { it !is Token.NewLine } },
+            architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() },
+            architecture.getTranscript()
+        )
 
         syntaxTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
@@ -504,7 +499,6 @@ class Compiler(
             }
 
 
-
             var foundCalcToken = false
             for (mode in Token.Constant.Calculated.MODE.entries) {
                 val result = mode.regex.find(remaining) ?: continue
@@ -696,9 +690,11 @@ class Compiler(
             }
 
             class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
+                val rawString = content.substring(1, content.length - 1)
+
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     var hexStr = ""
-                    val trimmedContent = content.substring(1, content.length - 1)
+                    val trimmedContent = rawString
                     for (char in trimmedContent) {
                         val hexChar = char.code.toString(16)
                         hexStr += hexChar

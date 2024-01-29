@@ -369,7 +369,7 @@ abstract class Syntax {
 
             for (component in components) {
                 if (component is Component.InSpecific.Space && ignoreSpaces) {
-                    if (component.matches(trimmedTokens.first())) {
+                    if ( trimmedTokens.isNotEmpty() && component.matches(trimmedTokens.first())) {
                         sequenceMap.add(SeqMap(component, trimmedTokens.first()))
                         trimmedTokens.removeFirst()
                     } else {
@@ -467,6 +467,10 @@ abstract class Syntax {
 
                 data object Constant : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant
+                }
+
+                data object StringConst : InSpecific(){
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant.String
                 }
 
                 data class Register(val regFile: RegContainer.RegisterFile? = null) : InSpecific() {

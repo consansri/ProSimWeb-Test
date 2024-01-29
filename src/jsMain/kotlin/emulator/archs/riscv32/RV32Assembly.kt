@@ -9,6 +9,7 @@ import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import debug.DebugTools
+import emulator.kit.assembly.Compiler
 import emulator.kit.optional.ArchSetting
 import kotlin.time.measureTime
 
@@ -399,7 +400,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
             }
 
             // Getting binary and store binary in memory
-            val instrIDMap = mutableMapOf<String, AssemblyMap.MapEntry>()
+            val instrIDMap = mutableMapOf<String, Compiler.LineLoc>()
             binaryMapper.setLabelLinks(labelBinAddrMap)
             for (instr in instructionMapList) {
                 val binary = binaryMapper.getBinaryFromInstrDef(instr.value, Variable.Value.Hex((bins.size * 4).toString(16), Variable.Size.Bit32()), architecture)
@@ -413,7 +414,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
                     )
                 }
                 for (wordID in binary.indices) {
-                    instrIDMap[Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), Variable.Size.Bit32()).getRawHexStr()] = AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID)
+                    instrIDMap[Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), Variable.Size.Bit32()).getRawHexStr()] = instr.value.getAllTokens().first().lineLoc
                 }
                 bins.addAll(binary)
             }

@@ -26,13 +26,11 @@ abstract class Assembly {
     /**
      * Used to hold the identification of editor lines in [FileHandler.File]'s with memory addresses
      */
-    data class AssemblyMap(val lineAddressMap: Map<String, MapEntry> = mapOf()) {
+    data class AssemblyMap(val lineAddressMap: Map<String, Compiler.LineLoc> = mapOf()) {
         init {
             if (DebugTools.KIT_showAsmInfo) {
                 console.log("Assembly.AssemblyMap(): $lineAddressMap")
             }
         }
-
-        data class MapEntry(val file: FileHandler.File, val lineID: Int)
     }
 }

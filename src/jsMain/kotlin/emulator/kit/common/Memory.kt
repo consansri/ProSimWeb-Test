@@ -76,7 +76,7 @@ class Memory(
 
     fun storeArray(address: Variable.Value, vararg values: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
-        var wordList = values.map { value -> value.toHex().getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() } }.reversed().flatten()
+        var wordList = values.map { value -> value.toHex().getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() } }.flatten()
 
         if (endianess == Endianess.BigEndian) {
             // Big Endian
@@ -120,7 +120,6 @@ class Memory(
             // Big Endian
             wordList = wordList.reversed()
         }
-
 
         if (DebugTools.KIT_showMemoryInfo) {
             console.log("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")

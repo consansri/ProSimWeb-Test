@@ -32,9 +32,9 @@ class RV64NewSyntax : Syntax() {
         remainingTokens.removeComments(preElements)
         remainingTokens.resolveEqus(preElements, errors, warnings, arch)
         remainingTokens.resolveMacros(preElements, errors, warnings, arch)
+        remainingTokens.resolveImports(preElements, sections, errors, warnings, others)
 
         var currentLabel: ELabel? = null
-
 
         // Resolve Compiler Tokens
         while (remainingTokens.isNotEmpty()) {
@@ -63,11 +63,11 @@ class RV64NewSyntax : Syntax() {
         }
 
         // Link
-        elements.linkLabels(errors)
+        elements.linkLabels(sections, errors)
 
         elements.bundleSections(sections, errors, warnings)
 
-        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode("pre", *preElements.toTypedArray()), TreeNode.ContainerNode("sections", *sections.toTypedArray())))
+        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode("pre", *preElements.toTypedArray()), CSections(*sections.toTypedArray())))
     }
 
     /**
@@ -299,6 +299,50 @@ class RV64NewSyntax : Syntax() {
         return this
     }
 
+    private fun MutableList<Compiler.Token>.resolveImports(preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<FileHandler.File>): MutableList<Compiler.Token> {
+        val result = Seqs.SeqImport.matchStart(*this.toTypedArray())
+        if (result.matches) {
+            val tokens = result.sequenceMap.map { it.token }
+            val symbol = tokens[0]
+            val word = tokens[1]
+            val space = tokens[2]
+            val string = tokens[3] as Compiler.Token.Constant.String
+
+            val file = others.firstOrNull { it.getName() == string.rawString }
+
+            if (file == null) {
+                errors.add(Error("File (${string.rawString}) not found!", *tokens.toTypedArray()))
+                this.removeAll(tokens)
+                return this
+            }
+
+            val fileTree = file.getLinkedTree()
+            if (fileTree?.rootNode == null) {
+                errors.add(Error("File (${string.rawString}) not build!", *tokens.toTypedArray()))
+                this.removeAll(tokens)
+                return this
+            }
+            val root = fileTree.rootNode
+
+            if (root.allErrors.isNotEmpty()) {
+                errors.add(Error("File (${string.rawString}) has errors which first need to be fixed!", *tokens.toTypedArray()))
+                this.removeAll(tokens)
+                return this
+            }
+
+            root.containers.forEach {
+                if (it is CSections) {
+                    sections.addAll(it.sections)
+                }
+            }
+
+            preElements.add(PreImport(symbol, word, space, string))
+            this.removeAll(tokens)
+        }
+
+        return this
+    }
+
     private fun MutableList<Compiler.Token>.checkData(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): Boolean {
         for (dirType in DirType.entries.filter { it.dirMajType == DirMajType.DE_ALIGNED || it.dirMajType == DirMajType.DE_UNALIGNED }) {
             val result = dirType.tokenSeq.matchStart(*this.toTypedArray())
@@ -410,17 +454,18 @@ class RV64NewSyntax : Syntax() {
         return false
     }
 
-    private fun MutableList<TreeNode.ElementNode>.linkLabels(errors: MutableList<Error>) {
-        val labels = this.filterIsInstance<ELabel>()
-        val eglobals = this.filterIsInstance<EGlobal>()
+    private fun MutableList<TreeNode.ElementNode>.linkLabels(sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>) {
+        val allElements = this.toList() + sections.flatMap { it.collNodes.toList().map { element -> element as TreeNode.ElementNode } }
+        val labels = allElements.filterIsInstance<ELabel>()
+        val globals = allElements.filterIsInstance<EGlobal>()
 
-        if (eglobals.isNotEmpty()) {
-            val valid = eglobals.first().link(labels)
+        if (globals.isNotEmpty()) {
+            val valid = globals.first().link(labels)
             if (!valid) {
-                this.remove(eglobals.first())
+                this.remove(globals.first())
             }
-            if (eglobals.size > 1) {
-                val rest = eglobals - eglobals.first()
+            if (globals.size > 1) {
+                val rest = globals - globals.first()
                 errors.add(Error("Mutliple definitions of a global start not possible!", *rest.toTypedArray()))
                 this.removeAll(rest)
             }
@@ -532,6 +577,7 @@ class RV64NewSyntax : Syntax() {
         val SeqAfterEquDir = TokenSeq(WordNoDots, Specific(","), Constant, ignoreSpaces = true)
         val SeqMacroAttrInsert = TokenSeq(Specific("""\"""), WordNoDots)
         val SeqLabel = TokenSeq(Word, Specific(":"))
+        val SeqImport = TokenSeq(Specific("#"), Specific("import"), Space, StringConst)
     }
 
     enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: TokenSeq) {
@@ -642,7 +688,7 @@ class RV64NewSyntax : Syntax() {
                     paramMap.remove(RV64BinMapper.MaskLabel.RD)
                     paramMap.remove(RV64BinMapper.MaskLabel.CSR)
                     paramMap.remove(RV64BinMapper.MaskLabel.RS1)
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
+                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV64.CSR_REGFILE_NAME)},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
                 } else {
                     "param missing"
                 }
@@ -656,7 +702,7 @@ class RV64NewSyntax : Syntax() {
                     paramMap.remove(RV64BinMapper.MaskLabel.RD)
                     paramMap.remove(RV64BinMapper.MaskLabel.CSR)
                     val immString = labelName.ifEmpty { paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toBin().toString() } }
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr)?.aliases?.first()},\t$immString"
+                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV64.CSR_REGFILE_NAME)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
                 }
@@ -2416,22 +2462,26 @@ class RV64NewSyntax : Syntax() {
         *commas.toTypedArray()
     )
 
+    class PreImport(symbol: Compiler.Token, word: Compiler.Token, space: Compiler.Token, filename: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.pre_import to listOf(symbol, word), RV64Flags.constant to listOf(filename)), "import", symbol, word, space, filename)
+
     class ELabel(currentLabel: ELabel? = null, nameToken: Compiler.Token, endSymbol: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.label), "label", *setOfNotNull(nameToken, endSymbol).toTypedArray()) {
 
-        val parentLabel: ELabel?
-        val nameString = nameToken.content
         val spaceSub: Boolean = nameToken.content.startsWith(".")
+        val parentLabel = if (spaceSub) {
+            currentLabel
+        } else {
+            null
+        }
+        val nameString = nameToken.content
 
-        init {
-            parentLabel = if (spaceSub) {
-                currentLabel
-            } else {
-                null
-            }
+        var address: Variable.Value? = null
+
+        fun setAddress(address: Variable.Value) {
+            this.address = address
         }
     }
 
-    class EInstr(val type: InstrType, val paramType: ParamType, nameToken: Compiler.Token, params: List<Compiler.Token>, spaces: List<Compiler.Token>, val parentLabel: ELabel? = null) : TreeNode.ElementNode(
+    class EInstr(val type: InstrType, val paramType: ParamType, nameToken: Compiler.Token, val params: List<Compiler.Token>, spaces: List<Compiler.Token>, val parentLabel: ELabel? = null) : TreeNode.ElementNode(
         ConnectedHL(
             RV64Flags.instruction to listOf(nameToken),
             RV64Flags.register to params.filterIsInstance<Compiler.Token.Register>(),
@@ -2443,6 +2493,8 @@ class RV64NewSyntax : Syntax() {
         val constants: Collection<Compiler.Token.Constant>
         val unlinkedlabels: Collection<Compiler.Token.Word>
         val linkedLabels: MutableCollection<ELabel> = mutableListOf()
+
+        var address: Variable.Value? = null
 
         init {
             registers = params.filterIsInstance<Compiler.Token.Register>()
@@ -2470,12 +2522,34 @@ class RV64NewSyntax : Syntax() {
             }
             return !linkingErrors
         }
+
+        fun setAddress(address: Variable.Value) {
+            this.address = address
+        }
     }
 
     class EInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>, val constants: List<Compiler.Token.Constant>, commas: List<Compiler.Token>) :
-        TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens, RV64Flags.constant to constants), "init_data", *dirTokens.toTypedArray(), *constants.toTypedArray(), *commas.toTypedArray())
+        TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens, RV64Flags.constant to constants), "init_data", *dirTokens.toTypedArray(), *constants.toTypedArray(), *commas.toTypedArray()) {
+            val values = constants.map { it.getValue(dirType.deSize) }
+        val bytesNeeded: Variable.Value
+        var address: Variable.Value? = null
+        init {
+            var result = 0
+            values.forEach { result += it.size.getByteCount() }
+            bytesNeeded = Hex(result.toString(16), RV64.MEM_ADDRESS_WIDTH)
+        }
+        fun setAddress(address: Variable.Value){
+            this.address = address
+        }
+    }
 
-    class EUnInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "uninit_data", *dirTokens.toTypedArray())
+    class EUnInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "uninit_data", *dirTokens.toTypedArray()){
+        var address: Variable.Value? = null
+
+        fun setAddress(address: Variable.Value){
+            this.address = address
+        }
+    }
 
     class ESecStart(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "sec_start", *dirTokens.toTypedArray())
 
@@ -2488,10 +2562,11 @@ class RV64NewSyntax : Syntax() {
         }
     }
 
-    class SText(val secStart: ESecStart? = null, vararg val elements: ElementNode) : TreeNode.SectionNode("text", collNodes = if (secStart != null) elements + secStart else elements)
-    class SData(val secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("data", secStart, *elements)
-    class SRoData(val secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("rodata", secStart, *elements)
-    class SBss(val secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("bss", secStart, *elements)
+    class SText(secStart: ESecStart? = null, vararg val elements: ElementNode) : TreeNode.SectionNode("text", collNodes = if (secStart != null) elements + secStart else elements)
+    class SData(secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("data", secStart, *elements)
+    class SRoData(secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("rodata", secStart, *elements)
+    class SBss(secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("bss", secStart, *elements)
 
+    class CSections(vararg val sections: SectionNode) : TreeNode.ContainerNode("sections", *sections)
 
 }

@@ -2,6 +2,7 @@ package emulator.archs.t6502
 
 import emulator.kit.Architecture
 import emulator.kit.assembly.Assembly
+import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
@@ -39,7 +40,7 @@ class T6502Assembly : Assembly() {
     }
 
     override fun assemble(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
-        val lineAddressMap = mutableMapOf<String, AssemblyMap.MapEntry>()
+        val lineAddressMap = mutableMapOf<String, Compiler.LineLoc>()
 
         syntaxTree.rootNode ?: return AssemblyMap()
 
@@ -58,7 +59,7 @@ class T6502Assembly : Assembly() {
                     for (entry in container.elements) {
                         when (entry) {
                             is T6502Syntax.EInstr -> {
-                                lineAddressMap[currentAddress.getRawHexStr()] = AssemblyMap.MapEntry(entry.tokens.first().lineLoc.file, entry.tokens.first().lineLoc.lineID)
+                                lineAddressMap[currentAddress.getRawHexStr()] =entry.tokens.first().lineLoc
                                 instrAddrList.add(currentAddress to entry)
                                 val extWidth = if (entry.opCodeRelevantAMode.immSize != null) Hex((entry.opCodeRelevantAMode.immSize.getByteCount() + 1).toString(16), Bit16()) else Hex("1", Bit16())
                                 currentAddress = (currentAddress + extWidth).toHex()

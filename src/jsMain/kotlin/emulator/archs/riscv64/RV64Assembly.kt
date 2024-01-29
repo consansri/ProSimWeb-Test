@@ -4,6 +4,7 @@ import debug.DebugTools
 import emulator.archs.riscv32.RV32
 import emulator.kit.Architecture
 import emulator.kit.assembly.Assembly
+import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.optional.ArchSetting
@@ -370,7 +371,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
 
             // Getting binary and store binary in memory
 
-            val instrIDMap = mutableMapOf<String, AssemblyMap.MapEntry>()
+            val instrIDMap = mutableMapOf<String, Compiler.LineLoc>()
             val binBuildingTime = measureTime {
 
                 binaryMapper.setLabelLinks(labelBinAddrMap)
@@ -386,7 +387,7 @@ class RV64Assembly(private val binaryMapper: RV64BinMapper) : Assembly() {
                         )
                     }
                     for (wordID in binary.indices) {
-                        instrIDMap[Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), RV64.MEM_ADDRESS_WIDTH).getRawHexStr()] = AssemblyMap.MapEntry(instr.value.getAllTokens().first().lineLoc.file, instr.value.getAllTokens().first().lineLoc.lineID)
+                        instrIDMap[Variable.Value.Hex(((bins.size + wordID) * 4).toString(16), RV64.MEM_ADDRESS_WIDTH).getRawHexStr()] = instr.value.getAllTokens().first().lineLoc
                     }
                     bins.addAll(binary)
                 }
