@@ -287,6 +287,8 @@ class Compiler(
             architecture.getConsole().warn("Assembly: no match found for $remaining")
             break
         }
+
+        console.log(tokenList.joinToString { it::class.simpleName.toString() })
     }
 
     /**

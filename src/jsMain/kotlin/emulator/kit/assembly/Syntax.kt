@@ -79,7 +79,7 @@ abstract class Syntax {
             }
         }
 
-        open class SectionNode(name: String, vararg val collNodes: RowNode) : TreeNode(name) {
+        open class SectionNode(name: String, vararg val collNodes: TreeNode) : TreeNode(name) {
             override fun getAllTokens(): Array<out Compiler.Token> {
                 val tokens = mutableListOf<Compiler.Token>()
                 collNodes.forEach { tokens.addAll(it.getAllTokens()) }
@@ -292,9 +292,6 @@ abstract class Syntax {
         fun exactlyMatches(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
 
-            if (components.size > trimmedTokens.size) {
-                return SeqMatchResult(false, emptyList())
-            }
             val sequenceMap = mutableListOf<SeqMap>()
             for (component in components) {
                 if (component is Component.InSpecific.Space && ignoreSpaces) {
@@ -306,7 +303,7 @@ abstract class Syntax {
                     }
                 } else {
                     if (ignoreSpaces) {
-                        while (trimmedTokens.first() is Compiler.Token.Space) {
+                        while (trimmedTokens.isNotEmpty() && trimmedTokens.first() is Compiler.Token.Space) {
                             trimmedTokens.removeFirst()
                         }
                     }
@@ -329,10 +326,6 @@ abstract class Syntax {
         fun matches(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
 
-            if (components.size > trimmedTokens.size) {
-                return SeqMatchResult(false, emptyList())
-            }
-
             while (!components.first().matches(trimmedTokens.first())) {
                 trimmedTokens.removeFirst()
                 if (trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
@@ -349,16 +342,20 @@ abstract class Syntax {
                     }
                 } else {
                     if (ignoreSpaces) {
-                        while (trimmedTokens.first() is Compiler.Token.Space) {
+                        while (trimmedTokens.isNotEmpty() && trimmedTokens.first() is Compiler.Token.Space) {
                             trimmedTokens.removeFirst()
                         }
                     }
 
-                    if (component.matches(trimmedTokens.first())) {
+                    if (trimmedTokens.isNotEmpty() && component.matches(trimmedTokens.first())) {
                         sequenceMap.add(SeqMap(component, trimmedTokens.first()))
                         trimmedTokens.removeFirst()
                     } else {
-                        return SeqMatchResult(false, emptyList())
+                        if (component == components.last() && component is Component.InSpecific.NewLine) {
+                            break
+                        } else {
+                            return SeqMatchResult(false, emptyList())
+                        }
                     }
                 }
             }
@@ -368,22 +365,9 @@ abstract class Syntax {
         fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
 
-            if (components.size > trimmedTokens.size) {
-                return SeqMatchResult(false, emptyList())
-            }
             val sequenceMap = mutableListOf<SeqMap>()
-            for (component in components) {
-                if(tokens.isEmpty() && components.last() == component){
-                    if(component == components.last() && component == Component.InSpecific.NewLine){
-                        break
-                    }else{
-                        return SeqMatchResult(false, emptyList())
-                    }
-                }
-                if(tokens.isEmpty()){
-                    return SeqMatchResult(false, emptyList())
-                }
 
+            for (component in components) {
                 if (component is Component.InSpecific.Space && ignoreSpaces) {
                     if (component.matches(trimmedTokens.first())) {
                         sequenceMap.add(SeqMap(component, trimmedTokens.first()))
@@ -393,19 +377,24 @@ abstract class Syntax {
                     }
                 } else {
                     if (ignoreSpaces) {
-                        while (trimmedTokens.first() is Compiler.Token.Space) {
+                        while (trimmedTokens.isNotEmpty() && trimmedTokens.first() is Compiler.Token.Space) {
                             trimmedTokens.removeFirst()
                         }
                     }
 
-                    if (component.matches(trimmedTokens.first())) {
+                    if (trimmedTokens.isNotEmpty() && component.matches(trimmedTokens.first())) {
                         sequenceMap.add(SeqMap(component, trimmedTokens.first()))
                         trimmedTokens.removeFirst()
                     } else {
-                        return SeqMatchResult(false, emptyList())
+                        if (component == components.last() && component is Component.InSpecific.NewLine) {
+                            break
+                        } else {
+                            return SeqMatchResult(false, emptyList())
+                        }
                     }
                 }
             }
+
             return SeqMatchResult(true, sequenceMap)
         }
 
@@ -459,16 +448,20 @@ abstract class Syntax {
                 data object Symbol : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Symbol
                 }
+
                 data object Word : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word
                 }
-                data object WordNoDots : InSpecific(){
-                    override fun matches(token: Compiler.Token): Boolean =  (token is Compiler.Token.Word.Clean || token is Compiler.Token.Word.Num || token is Compiler.Token.Word.NumUs)
+
+                data object WordNoDots : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = (token is Compiler.Token.Word.Clean || token is Compiler.Token.Word.Num || token is Compiler.Token.Word.NumUs)
                 }
-                data object WordNoDotsAndUS : InSpecific(){
+
+                data object WordNoDotsAndUS : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word.Clean || token is Compiler.Token.Word.Num
                 }
-                data object WordOnlyAlpha : InSpecific(){
+
+                data object WordOnlyAlpha : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word.Clean
                 }
 

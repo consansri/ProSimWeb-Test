@@ -20,7 +20,6 @@ class RV64NewSyntax : Syntax() {
     }
 
     override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
-
         val remainingTokens = tokens.toMutableList()
 
         val errors = mutableListOf<Error>()
@@ -28,12 +27,11 @@ class RV64NewSyntax : Syntax() {
 
         val preElements = mutableListOf<TreeNode.ElementNode>()
         val elements = mutableListOf<TreeNode.ElementNode>()
+        val sections = mutableListOf<TreeNode.SectionNode>()
 
         remainingTokens.removeComments(preElements)
         remainingTokens.resolveEqus(preElements, errors, warnings, arch)
         remainingTokens.resolveMacros(preElements, errors, warnings, arch)
-
-        console.log("Pre removed: ${remainingTokens.joinToString("") { it.content }}")
 
         var currentLabel: ELabel? = null
 
@@ -51,6 +49,10 @@ class RV64NewSyntax : Syntax() {
                 continue
             }
 
+            if (remainingTokens.checkSecDir(elements, errors, warnings)) continue
+
+            if (remainingTokens.checkAsmInfo(elements, errors, warnings)) continue
+
             if (remainingTokens.checkData(elements, errors, warnings)) continue
 
             if (remainingTokens.checkInstr(elements, errors, warnings, currentLabel)) continue
@@ -63,7 +65,9 @@ class RV64NewSyntax : Syntax() {
         // Link
         elements.linkLabels(errors)
 
-        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode("pre", *preElements.toTypedArray()), TreeNode.ContainerNode("textsec", *elements.toTypedArray())))
+        elements.bundleSections(sections, errors, warnings)
+
+        return SyntaxTree(TreeNode.RootNode(errors, warnings, TreeNode.ContainerNode("pre", *preElements.toTypedArray()), TreeNode.ContainerNode("sections", *sections.toTypedArray())))
     }
 
     /**
@@ -339,11 +343,6 @@ class RV64NewSyntax : Syntax() {
         return false
     }
 
-    private fun MutableList<Compiler.Token>.checkSection(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<Compiler.Token> {
-        TODO()
-        return this
-    }
-
     private fun MutableList<Compiler.Token>.checkLabel(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): ELabel? {
 
         val labelMatch = Seqs.SeqLabel.matchStart(*this.toTypedArray())
@@ -385,8 +384,48 @@ class RV64NewSyntax : Syntax() {
         return false
     }
 
+    private fun MutableList<Compiler.Token>.checkSecDir(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): Boolean {
+        for (dir in DirType.entries.filter { it.dirMajType == DirMajType.SECTIONSTART }) {
+            val result = dir.tokenSeq.matchStart(*this.toTypedArray())
+            if (result.matches) {
+                val eSec = ESecStart(dir, result.sequenceMap.map { it.token })
+                this.removeAll(eSec.tokens.toSet())
+                elements.add(eSec)
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun MutableList<Compiler.Token>.checkAsmInfo(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): Boolean {
+        val globalResult = DirType.GLOBAL.tokenSeq.matchStart(*this.toTypedArray())
+        val globlResult = DirType.GLOBL.tokenSeq.matchStart(*this.toTypedArray())
+        if (globlResult.matches || globalResult.matches) {
+            val tokens = if (globalResult.matches) globalResult.sequenceMap.map { it.token } else globlResult.sequenceMap.map { it.token }
+            val eGlobal = EGlobal(tokens[0], tokens[1], tokens[2])
+            this.removeAll(eGlobal.tokens.toSet())
+            elements.add(eGlobal)
+            return true
+        }
+        return false
+    }
+
     private fun MutableList<TreeNode.ElementNode>.linkLabels(errors: MutableList<Error>) {
         val labels = this.filterIsInstance<ELabel>()
+        val eglobals = this.filterIsInstance<EGlobal>()
+
+        if (eglobals.isNotEmpty()) {
+            val valid = eglobals.first().link(labels)
+            if (!valid) {
+                this.remove(eglobals.first())
+            }
+            if (eglobals.size > 1) {
+                val rest = eglobals - eglobals.first()
+                errors.add(Error("Mutliple definitions of a global start not possible!", *rest.toTypedArray()))
+                this.removeAll(rest)
+            }
+        }
+
         val instrs = this.filterIsInstance<EInstr>()
         for (instr in instrs) {
             val valid = instr.link(labels, errors)
@@ -394,6 +433,99 @@ class RV64NewSyntax : Syntax() {
                 this.remove(instr)
             }
         }
+    }
+
+    private fun MutableList<TreeNode.ElementNode>.bundleSections(sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<TreeNode.ElementNode> {
+        var currSecStart: ESecStart? = null
+        val content = mutableListOf<TreeNode.ElementNode>()
+        while (this.isNotEmpty()) {
+            if (this.first() is ESecStart) {
+                when (currSecStart?.dirType) {
+                    null, DirType.TEXT -> {
+                        sections.add(SText(currSecStart, *content.toTypedArray()))
+                    }
+
+                    DirType.DATA -> {
+                        sections.add(SData(currSecStart, *content.toTypedArray()))
+                    }
+
+                    DirType.RODATA -> {
+                        sections.add(SRoData(currSecStart, *content.toTypedArray()))
+                    }
+
+                    DirType.BSS -> {
+                        sections.add(SBss(currSecStart, *content.toTypedArray()))
+                    }
+
+                    else -> {}
+                }
+                content.clear()
+                currSecStart = this.first() as ESecStart
+                this.removeFirst()
+                continue
+            }
+
+            when (currSecStart?.dirType) {
+                null, DirType.TEXT -> {
+                    if (this.first() !is EInstr && this.first() !is ELabel && this.first() !is EGlobal) {
+                        val element = this.first()
+                        errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
+                    } else {
+                        content.add(this.removeFirst())
+                    }
+                }
+
+                DirType.DATA -> {
+                    if (this.first() !is ELabel && this.first() !is EInitData && this.first() !is EGlobal) {
+                        val element = this.first()
+                        errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
+                    } else {
+                        content.add(this.removeFirst())
+                    }
+                }
+
+                DirType.RODATA -> {
+                    if (this.first() !is ELabel && this.first() !is EInitData && this.first() !is EGlobal) {
+                        val element = this.first()
+                        errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
+                    } else {
+                        content.add(this.removeFirst())
+                    }
+                }
+
+                DirType.BSS -> {
+                    if (this.first() !is ELabel && this.first() !is EUnInitData && this.first() !is EGlobal) {
+                        val element = this.first()
+                        errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
+                    } else {
+                        content.add(this.removeFirst())
+                    }
+                }
+
+                else -> {}
+            }
+        }
+        when (currSecStart?.dirType) {
+            null, DirType.TEXT -> {
+                sections.add(SText(currSecStart, *content.toTypedArray()))
+            }
+
+            DirType.DATA -> {
+                sections.add(SData(currSecStart, *content.toTypedArray()))
+            }
+
+            DirType.RODATA -> {
+                sections.add(SRoData(currSecStart, *content.toTypedArray()))
+            }
+
+            DirType.BSS -> {
+                sections.add(SBss(currSecStart, *content.toTypedArray()))
+            }
+
+            else -> {}
+        }
+
+        return this
     }
 
     data object Seqs {
@@ -2186,7 +2318,8 @@ class RV64NewSyntax : Syntax() {
         PRE("Pre resolved directive"),
         SECTIONSTART("Section identification"),
         DE_ALIGNED("Data emitting aligned"),
-        DE_UNALIGNED("Data emitting unaligned")
+        DE_UNALIGNED("Data emitting unaligned"),
+        ASSEMLYINFO("Optional assembly information")
     }
 
     enum class DirType(val dirname: String, val dirMajType: DirMajType, val tokenSeq: TokenSeq, val deSize: Variable.Size? = null) {
@@ -2209,6 +2342,9 @@ class RV64NewSyntax : Syntax() {
         BYTE_2("2byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".2byte", ignoreCase = true)), Bit16()),
         BYTE_4("4byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".4byte", ignoreCase = true)), Bit32()),
         BYTE_8("8byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".8byte", ignoreCase = true)), Bit64()),
+
+        GLOBAL("global", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".global"), Space, WordNoDots)),
+        GLOBL(".globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl"), Space, WordNoDots))
     }
 
     class PREComment(vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.comment), "comment", *tokens)
@@ -2340,5 +2476,22 @@ class RV64NewSyntax : Syntax() {
         TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens, RV64Flags.constant to constants), "init_data", *dirTokens.toTypedArray(), *constants.toTypedArray(), *commas.toTypedArray())
 
     class EUnInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "uninit_data", *dirTokens.toTypedArray())
+
+    class ESecStart(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "sec_start", *dirTokens.toTypedArray())
+
+    class EGlobal(val directive: Compiler.Token, space: Compiler.Token, val labelname: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to listOf(directive), RV64Flags.label to listOf(labelname)), "global", directive, space, labelname) {
+        var linkedlabel: ELabel? = null
+
+        fun link(labels: List<ELabel>): Boolean {
+            linkedlabel = labels.firstOrNull { !it.spaceSub && it.nameString == labelname.content } ?: return false
+            return true
+        }
+    }
+
+    class SText(val secStart: ESecStart? = null, vararg val elements: ElementNode) : TreeNode.SectionNode("text", collNodes = if (secStart != null) elements + secStart else elements)
+    class SData(val secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("data", secStart, *elements)
+    class SRoData(val secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("rodata", secStart, *elements)
+    class SBss(val secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("bss", secStart, *elements)
+
 
 }

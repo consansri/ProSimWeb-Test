@@ -172,6 +172,7 @@ class RV32Assembly(private val binaryMapper: RV32BinMapper) : Assembly() {
                                         instrID += it.instrType.memWords
                                     }
                                 }
+                                else -> {}
                             }
                         }
                     }

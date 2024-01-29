@@ -447,7 +447,7 @@ class RV64Syntax : Syntax() {
                                     alreadyDefined = true
                                 }
                             }
-                            for (label in imports.flatMap { it.collNodes.toList() }.flatMap { it.elementNodes.toList() }.filterIsInstance<E_LABEL>().toList()) {
+                            for (label in imports.flatMap { it.collNodes.toList() }.flatMap { (it as TreeNode.RowNode).elementNodes.toList() }.filterIsInstance<E_LABEL>().toList()) {
                                 if (label.wholeName == (sublabelFrom?.wholeName ?: "") + labelNameString) {
                                     alreadyDefined = true
                                 }
@@ -828,6 +828,7 @@ class RV64Syntax : Syntax() {
                                             break
                                         }
                                     }
+                                    else -> {}
                                 }
                             }
 
@@ -868,6 +869,7 @@ class RV64Syntax : Syntax() {
                                             break
                                         }
                                     }
+                                    else -> {}
                                 }
                             }
 
