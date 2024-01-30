@@ -1,5 +1,6 @@
 <h2>Sections</h2>
-<pre><code>.data
+<pre><code>*=0x00010000
+.data
 # allocate read/write initialized memory
     dataEx:         .string "hello world"           # behaves as byte array (dependent on endianess)
     labeledArray:   .byte   0xCA, 0xFE, 0xAF, 0xFE  # classic byte array (dependent on endianess)
@@ -8,14 +9,17 @@
     .dword  0xCAFEAFFEDEADBEEF
     # ...
 
+*=0x00020000
 .rodata
 # allocate read only initialized memory
     rodataEx: .string "read only"
 
+*=0x00030000
 .bss
 # allocate read/write uninitialized memory
     bssEx: .string
 
+*=0
 .text
 # define instructions and jumplabels
 
