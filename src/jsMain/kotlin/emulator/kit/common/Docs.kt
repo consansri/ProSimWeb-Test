@@ -32,6 +32,8 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 li { +"REACT Editor code reformat is a little enhanced." }
                 li { +"KIT Automatic syntax checks replace old pre highlighting." }
                 li { +"GLOBAL Upgraded to Kotlin 1.9.22" }
+                li { +"KIT Rewrote RISC-V parser and assembler." }
+                li { +"KIT Compiler is more efficient and Lexer uses updated Tokens." }
             }
 
             h2 { +"Version - 0.1.8" }

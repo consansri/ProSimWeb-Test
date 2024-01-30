@@ -1,5 +1,6 @@
 package emulator.archs.riscv32
 
+import emulator.archs.riscv64.RV64
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
@@ -728,7 +729,7 @@ class RV32Syntax : Syntax() {
                     paramMap.remove(RV32BinMapper.MaskLabel.RD)
                     paramMap.remove(RV32BinMapper.MaskLabel.CSR)
                     paramMap.remove(RV32BinMapper.MaskLabel.RS1)
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
+                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV32.CSR_REGFILE_NAME)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
                 } else {
                     "param missing"
                 }
@@ -742,7 +743,7 @@ class RV32Syntax : Syntax() {
                     paramMap.remove(RV32BinMapper.MaskLabel.RD)
                     paramMap.remove(RV32BinMapper.MaskLabel.CSR)
                     val immString = labelName.ifEmpty { paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString(" ") { it.toBin().toString() } }
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr)?.aliases?.first()},\t$immString"
+                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV32.CSR_REGFILE_NAME)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
                 }
@@ -750,11 +751,11 @@ class RV32Syntax : Syntax() {
         },
 
         // PSEUDO INSTRUCTIONS
-        PS_RS1_RS2_JLBL(true, "rs1, rs2, jlabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), Register(RV32.standardRegFile), Specific(","), WordNoDots, NewLine, ignoreSpaces = true)),
+        PS_RS1_RS2_JLBL(true, "rs1, rs2, jlabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), Register(RV32.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)),
         PS_RD_I32(true, "rd, imm32", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), SpecConst(Bit32()), NewLine, ignoreSpaces = true)), // rd, imm
-        PS_RS1_JLBL(true, "rs, jlabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), WordNoDots, NewLine, ignoreSpaces = true)), // rs, label
-        PS_RD_ALBL(true, "rd, alabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), WordNoDots, NewLine, ignoreSpaces = true)), // rd, label
-        PS_JLBL(true, "jlabel", TokenSeq(WordNoDotsAndUS, Space, WordNoDots, NewLine, ignoreSpaces = true)),  // label
+        PS_RS1_JLBL(true, "rs, jlabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)), // rs, label
+        PS_RD_ALBL(true, "rd, alabel", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), Word, NewLine, ignoreSpaces = true)), // rd, label
+        PS_JLBL(true, "jlabel", TokenSeq(WordNoDotsAndUS, Space, Word, NewLine, ignoreSpaces = true)),  // label
         PS_RD_RS1(true, "rd, rs", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), Specific(","), Register(RV32.standardRegFile), NewLine, ignoreSpaces = true)), // rd, rs
         PS_RS1(true, "rs1", TokenSeq(WordNoDotsAndUS, Space, Register(RV32.standardRegFile), NewLine, ignoreSpaces = true)),
         PS_CSR_RS1(true, "csr, rs1", TokenSeq(WordNoDotsAndUS, Space, RegOrSpecConst(Bit12(), notInRegFile = RV32.standardRegFile), Specific(","), Register(RV32.standardRegFile), NewLine, ignoreSpaces = true)),

@@ -19,7 +19,7 @@
 - **(done)** fix mobile view app controls
 - **(done)** add 6502 Architecture
 - **(done)** improve compiler (highlighting, functionality)
-- rewrite risc-v parser
+- **(done)** rewrite risc-v parser and assembler
 
 ## Version 0.1.8 ##
 - **(done)** added RV inline instructions
