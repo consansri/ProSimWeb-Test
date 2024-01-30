@@ -7,7 +7,6 @@ import emulator.archs.riscv64.CSRegister
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
-import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 import emulator.kit.types.*
 import emulator.kit.types.Variable.Value.*
@@ -152,12 +151,12 @@ object RV32 {
                 h2 {
                     +"Directives"
                 }
-                for (majorDir in RV32NewSyntax.DirMajType.entries) {
+                for (majorDir in RV32Syntax.DirMajType.entries) {
                     ReactHTML.strong {
                         +majorDir.docName
                     }
                     ul {
-                        for (dir in RV32NewSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
+                        for (dir in RV32Syntax.DirType.entries.filter { it.dirMajType == majorDir }) {
                             li { +".${dir.dirname}" }
                         }
                     }
@@ -182,7 +181,7 @@ object RV32 {
                         }
                     }
                     tbody {
-                        for (instr in RV32NewSyntax.InstrType.entries) {
+                        for (instr in RV32Syntax.InstrType.entries) {
                             tr {
 
                                 td {
@@ -232,8 +231,8 @@ object RV32 {
     )
 
     val asmConfig = AsmConfig(
-        RV32NewSyntax(),
-        RV32NewAssembly(RV32BinMapper()),
+        RV32Syntax(),
+        RV32Assembly(RV32BinMapper()),
         compilerDetectRegistersByNames = true,
         features = RV32.EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
     )

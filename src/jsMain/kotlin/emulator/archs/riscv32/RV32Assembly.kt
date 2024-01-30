@@ -1,9 +1,5 @@
 package emulator.archs.riscv32
 
-import emulator.archs.riscv64.RV64
-import emulator.archs.riscv64.RV64BinMapper
-import emulator.archs.riscv64.RV64NewAssembly
-import emulator.archs.riscv64.RV64NewSyntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Assembly
 import emulator.kit.assembly.Compiler
@@ -13,10 +9,10 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 
-class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
+class RV32Assembly(val binMapper: RV32BinMapper) : Assembly() {
     var fromAddr = Hex("0", RV32.MEM_ADDRESS_WIDTH)
     var toAddr = Hex("0", RV32.MEM_ADDRESS_WIDTH)
-    val labels = mutableListOf<RV32NewSyntax.ELabel>()
+    val labels = mutableListOf<RV32Syntax.ELabel>()
 
     override fun disassemble(architecture: Architecture) {
         val tsRows = mutableListOf<RVDisassembledRow>()
@@ -28,7 +24,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                 val row = RVDisassembledRow(currentAddr.toHex())
                 var labelstring = ""
                 when (instrResult.type) {
-                    RV32NewSyntax.InstrType.JAL -> {
+                    RV32Syntax.InstrType.JAL -> {
                         val jalOffset20 = instrResult.binMap.get(RV32BinMapper.MaskLabel.IMM20)?.toBin()?.getRawBinStr()
                         if (jalOffset20 != null) {
                             val shiftedImm = Bin(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), Bit20()).getResized(RV32.MEM_ADDRESS_WIDTH) shl 1
@@ -40,7 +36,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                         }
                     }
 
-                    RV32NewSyntax.InstrType.BEQ, RV32NewSyntax.InstrType.BNE, RV32NewSyntax.InstrType.BLT, RV32NewSyntax.InstrType.BGE, RV32NewSyntax.InstrType.BLTU, RV32NewSyntax.InstrType.BGEU -> {
+                    RV32Syntax.InstrType.BEQ, RV32Syntax.InstrType.BNE, RV32Syntax.InstrType.BLT, RV32Syntax.InstrType.BGE, RV32Syntax.InstrType.BLTU, RV32Syntax.InstrType.BGEU -> {
                         val branchOffset7 = instrResult.binMap[RV32BinMapper.MaskLabel.IMM7]?.toBin()?.getRawBinStr()
                         val branchOffset5 = instrResult.binMap[RV32BinMapper.MaskLabel.IMM5]?.toBin()?.getRawBinStr()
                         if (branchOffset7 != null && branchOffset5 != null) {
@@ -74,7 +70,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
 
         val lineAddressMap = mutableMapOf<String, Compiler.LineLoc>()
         val root = syntaxTree.rootNode ?: return AssemblyMap()
-        val sectionContainer = root.containers.firstOrNull { it is RV32NewSyntax.CSections } ?: return AssemblyMap()
+        val sectionContainer = root.containers.firstOrNull { it is RV32Syntax.CSections } ?: return AssemblyMap()
 
         var currentAddress: Variable.Value = Hex("0", RV32.MEM_ADDRESS_WIDTH)
 
@@ -84,9 +80,9 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
         for (section in sectionContainer.nodes.filterIsInstance<Syntax.TreeNode.SectionNode>()) {
             for (element in section.collNodes.filterIsInstance<Syntax.TreeNode.ElementNode>()) {
                 when (section) {
-                    is RV32NewSyntax.SText -> {
+                    is RV32Syntax.SText -> {
                         when (element) {
-                            is RV32NewSyntax.EInstr -> {
+                            is RV32Syntax.EInstr -> {
                                 lineAddressMap[currentAddress.toHex().getRawHexStr()] = element.tokens.first().lineLoc
                                 element.setAddress(currentAddress)
                                 val row = RVCompiledRow(currentAddress.toHex())
@@ -100,20 +96,20 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                                 currentAddress += Hex("4", RV32.MEM_ADDRESS_WIDTH)
                             }
 
-                            is RV32NewSyntax.ELabel -> {
+                            is RV32Syntax.ELabel -> {
                                 element.setAddress(currentAddress)
                                 labels.add(element)
                             }
 
-                            is RV32NewSyntax.ESetPC -> {
+                            is RV32Syntax.ESetPC -> {
                                 currentAddress = element.constant.getValue(RV32.XLEN)
                             }
                         }
                     }
 
-                    is RV32NewSyntax.SData -> {
+                    is RV32Syntax.SData -> {
                         when (element) {
-                            is RV32NewSyntax.EInitData -> {
+                            is RV32Syntax.EInitData -> {
                                 val deSize = Hex(element.dirType.deSize?.getByteCount()?.toString(16) ?: "1", RV32.XLEN)
                                 val rem = (currentAddress.toBin() % deSize)
                                 if (rem != Bin("0")) {
@@ -124,7 +120,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                                 currentAddress += element.bytesNeeded
                             }
 
-                            is RV32NewSyntax.ELabel -> {
+                            is RV32Syntax.ELabel -> {
                                 element.setAddress(currentAddress)
                                 if (currentAddress == tsRows.lastOrNull()?.addr) {
                                     tsRows.last().addLabel(element)
@@ -132,15 +128,15 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                                 labels.add(element)
                             }
 
-                            is RV32NewSyntax.ESetPC -> {
+                            is RV32Syntax.ESetPC -> {
                                 currentAddress = element.constant.getValue(RV32.XLEN)
                             }
                         }
                     }
 
-                    is RV32NewSyntax.SRoData -> {
+                    is RV32Syntax.SRoData -> {
                         when (element) {
-                            is RV32NewSyntax.EInitData -> {
+                            is RV32Syntax.EInitData -> {
                                 val deSize = Hex(element.dirType.deSize?.getByteCount()?.toString(16) ?: "1", RV32.XLEN)
                                 val rem = (currentAddress.toBin() % deSize)
                                 if (rem != Bin("0")) {
@@ -151,7 +147,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                                 currentAddress += element.bytesNeeded
                             }
 
-                            is RV32NewSyntax.ELabel -> {
+                            is RV32Syntax.ELabel -> {
                                 element.setAddress(currentAddress)
                                 if (currentAddress == tsRows.lastOrNull()?.addr) {
                                     tsRows.last().addLabel(element)
@@ -159,15 +155,15 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                                 labels.add(element)
                             }
 
-                            is RV32NewSyntax.ESetPC -> {
+                            is RV32Syntax.ESetPC -> {
                                 currentAddress = element.constant.getValue(RV32.XLEN)
                             }
                         }
                     }
 
-                    is RV32NewSyntax.SBss -> {
+                    is RV32Syntax.SBss -> {
                         when (element) {
-                            is RV32NewSyntax.EUnInitData -> {
+                            is RV32Syntax.EUnInitData -> {
                                 val deSize = Hex(element.dirType.deSize?.getByteCount()?.toString(16) ?: "1", RV32.XLEN)
                                 val rem = (currentAddress.toBin() % deSize)
                                 if (rem != Bin("0")) {
@@ -184,7 +180,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                                 }
                             }
 
-                            is RV32NewSyntax.ELabel -> {
+                            is RV32Syntax.ELabel -> {
                                 element.setAddress(currentAddress)
                                 if (currentAddress == tsRows.lastOrNull()?.addr) {
                                     tsRows.last().addLabel(element)
@@ -192,7 +188,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                                 labels.add(element)
                             }
 
-                            is RV32NewSyntax.ESetPC -> {
+                            is RV32Syntax.ESetPC -> {
                                 currentAddress = element.constant.getValue(RV32.XLEN)
                             }
                         }
@@ -211,16 +207,16 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
         for (section in sectionContainer.nodes.filterIsInstance<Syntax.TreeNode.SectionNode>()) {
             for (element in section.collNodes.filterIsInstance<Syntax.TreeNode.ElementNode>()) {
                 when (section) {
-                    is RV32NewSyntax.SText -> {
+                    is RV32Syntax.SText -> {
                         when (element) {
-                            is RV32NewSyntax.EGlobal -> {
+                            is RV32Syntax.EGlobal -> {
                                 val address = element.linkedlabel?.address
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
-                            is RV32NewSyntax.EInstr -> {
+                            is RV32Syntax.EInstr -> {
                                 val address = element.address ?: continue
                                 val binary = binMapper.getBinaryFromNewInstrDef(element, architecture)
                                 architecture.getMemory().storeArray(address, *binary, mark = StyleAttr.Main.Table.Mark.PROGRAM)
@@ -228,16 +224,16 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                         }
                     }
 
-                    is RV32NewSyntax.SData -> {
+                    is RV32Syntax.SData -> {
                         when (element) {
-                            is RV32NewSyntax.EGlobal -> {
+                            is RV32Syntax.EGlobal -> {
                                 val address = element.linkedlabel?.address
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
-                            is RV32NewSyntax.EInitData -> {
+                            is RV32Syntax.EInitData -> {
                                 val address = element.address ?: continue
                                 val values = element.constants.map { it.getValue(element.dirType.deSize) }
                                 architecture.getMemory().storeArray(address, *values.toTypedArray(), mark = StyleAttr.Main.Table.Mark.DATA)
@@ -245,16 +241,16 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                         }
                     }
 
-                    is RV32NewSyntax.SRoData -> {
+                    is RV32Syntax.SRoData -> {
                         when (element) {
-                            is RV32NewSyntax.EGlobal -> {
+                            is RV32Syntax.EGlobal -> {
                                 val address = element.linkedlabel?.address
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
-                            is RV32NewSyntax.EInitData -> {
+                            is RV32Syntax.EInitData -> {
                                 val address = element.address ?: continue
                                 val values = element.constants.map { it.getValue(element.dirType.deSize) }
                                 architecture.getMemory().storeArray(address, *values.toTypedArray(), mark = StyleAttr.Main.Table.Mark.DATA, readonly = true)
@@ -262,16 +258,16 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
                         }
                     }
 
-                    is RV32NewSyntax.SBss -> {
+                    is RV32Syntax.SBss -> {
                         when (element) {
-                            is RV32NewSyntax.EGlobal -> {
+                            is RV32Syntax.EGlobal -> {
                                 val address = element.linkedlabel?.address
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
-                            is RV32NewSyntax.EUnInitData -> {
+                            is RV32Syntax.EUnInitData -> {
                                 val address = element.address ?: continue
                                 architecture.getMemory().store(address, Bin("0", element.dirType.deSize ?: Bit8()), mark = StyleAttr.Main.Table.Mark.DATA)
                             }
@@ -292,7 +288,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
     class RVDisassembledRow(address: Hex) : Transcript.Row(address) {
 
         val content = RV32.TsDisassembledHeaders.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
-        val labels = mutableListOf<RV32NewSyntax.ELabel>()
+        val labels = mutableListOf<RV32Syntax.ELabel>()
 
         init {
             content[RV32.TsDisassembledHeaders.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
@@ -304,7 +300,7 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
             content[RV32.TsDisassembledHeaders.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture, instrResult.binMap.toMutableMap(), labelName))
         }
 
-        fun addLabel(label: RV32NewSyntax.ELabel) {
+        fun addLabel(label: RV32Syntax.ELabel) {
             labels.add(label)
             content[RV32.TsDisassembledHeaders.Label] = Entry(Orientation.LEFT, labels.joinToString { it.nameString })
         }
@@ -319,18 +315,18 @@ class RV32NewAssembly(val binMapper: RV32BinMapper) : Assembly() {
      */
     class RVCompiledRow(val addr: Hex) : Transcript.Row(addr) {
         val content = RV32.TsCompiledHeaders.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
-        val labels = mutableListOf<RV32NewSyntax.ELabel>()
+        val labels = mutableListOf<RV32Syntax.ELabel>()
 
         init {
             content[RV32.TsCompiledHeaders.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
 
-        fun addLabel(label: RV32NewSyntax.ELabel) {
+        fun addLabel(label: RV32Syntax.ELabel) {
             labels.add(label)
             content[RV32.TsCompiledHeaders.Label] = Entry(Orientation.LEFT, labels.joinToString { it.nameString })
         }
 
-        fun addInstr(instr: RV32NewSyntax.EInstr) {
+        fun addInstr(instr: RV32Syntax.EInstr) {
             content[RV32.TsCompiledHeaders.Instruction] = Entry(Orientation.LEFT, "${instr.type.id}${if (instr.type.pseudo && instr.type.relative == null) "\t(pseudo)" else ""}")
             content[RV32.TsCompiledHeaders.Parameters] = Entry(Orientation.LEFT, instr.params.joinToString("") { it.content })
         }

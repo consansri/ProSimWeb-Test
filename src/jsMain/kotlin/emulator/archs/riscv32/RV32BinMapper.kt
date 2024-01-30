@@ -1,7 +1,7 @@
 package emulator.archs.riscv32
 
 import emulator.kit.Settings
-import emulator.archs.riscv32.RV32NewSyntax.InstrType.*
+import emulator.archs.riscv32.RV32Syntax.InstrType.*
 import emulator.kit.types.Variable
 import debug.DebugTools
 import emulator.kit.Architecture
@@ -14,7 +14,7 @@ import emulator.kit.types.Variable.Size.*
  */
 class RV32BinMapper {
 
-    fun getBinaryFromNewInstrDef(instr: RV32NewSyntax.EInstr, architecture: Architecture): Array<Bin> {
+    fun getBinaryFromNewInstrDef(instr: RV32Syntax.EInstr, architecture: Architecture): Array<Bin> {
         val binArray = mutableListOf<Bin>()
         val instrAddr = instr.address ?: return emptyArray()
         val regs = instr.registers.map { it.reg.address.toBin() }
@@ -628,7 +628,7 @@ class RV32BinMapper {
         return null
     }
 
-    data class InstrResult(val type: RV32NewSyntax.InstrType, val binMap: Map<MaskLabel, Bin> = mapOf())
+    data class InstrResult(val type: RV32Syntax.InstrType, val binMap: Map<MaskLabel, Bin> = mapOf())
     class OpCode(val opMask: String, val maskLabels: Array<MaskLabel>) {
 
         val opMaskList = opMask.removePrefix(Settings.PRESTRING_BINARY).split(" ")

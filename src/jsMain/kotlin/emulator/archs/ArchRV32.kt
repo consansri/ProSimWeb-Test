@@ -3,8 +3,7 @@ package emulator.archs
 import emulator.kit.Architecture
 import emulator.archs.riscv32.RV32
 import emulator.archs.riscv32.RV32BinMapper
-import emulator.archs.riscv32.RV32NewSyntax.*
-import emulator.archs.riscv32.RV32NewSyntax.InstrType
+import emulator.archs.riscv32.RV32Syntax.InstrType
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 

@@ -12,7 +12,7 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 
 
-class RV32NewSyntax : Syntax() {
+class RV32Syntax : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
     override fun clear() {}

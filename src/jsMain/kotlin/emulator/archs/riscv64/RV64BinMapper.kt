@@ -6,12 +6,12 @@ import emulator.kit.Settings
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
-import emulator.archs.riscv64.RV64NewSyntax.InstrType
-import emulator.archs.riscv64.RV64NewSyntax.InstrType.*
+import emulator.archs.riscv64.RV64Syntax.InstrType
+import emulator.archs.riscv64.RV64Syntax.InstrType.*
 
 class RV64BinMapper {
 
-    fun getBinaryFromNewInstrDef(instr: RV64NewSyntax.EInstr, architecture: Architecture): Array<Bin> {
+    fun getBinaryFromNewInstrDef(instr: RV64Syntax.EInstr, architecture: Architecture): Array<Bin> {
         val binArray = mutableListOf<Bin>()
         val instrAddr = instr.address ?: return emptyArray()
         val regs = instr.registers.map { it.reg.address.toBin() }

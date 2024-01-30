@@ -1,19 +1,17 @@
 package emulator.archs.riscv64
 
-import emulator.archs.riscv32.RV32
-import emulator.archs.riscv32.RV32NewSyntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Assembly
 import emulator.kit.assembly.Syntax
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
-import emulator.archs.riscv64.RV64NewSyntax.*
+import emulator.archs.riscv64.RV64Syntax.*
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.Transcript
-import emulator.archs.riscv64.RV64NewSyntax.InstrType.*
+import emulator.archs.riscv64.RV64Syntax.InstrType.*
 
-class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
+class RV64Assembly(val binMapper: RV64BinMapper) : Assembly() {
 
     var fromAddr = Hex("0", RV64.MEM_ADDRESS_WIDTH)
     var toAddr = Hex("0", RV64.MEM_ADDRESS_WIDTH)

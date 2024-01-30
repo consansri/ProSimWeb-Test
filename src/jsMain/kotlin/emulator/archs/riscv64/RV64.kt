@@ -15,7 +15,6 @@ import emulator.kit.common.RegContainer.RegisterFile
 import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.CSRegister.Privilege
-import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 
 object RV64 {
@@ -132,12 +131,12 @@ object RV64 {
                     +"Directives"
                 }
 
-                for (majorDir in RV64NewSyntax.DirMajType.entries) {
+                for (majorDir in RV64Syntax.DirMajType.entries) {
                     ReactHTML.strong {
                         +majorDir.docName
                     }
                     ReactHTML.ul {
-                        for (dir in RV64NewSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
+                        for (dir in RV64Syntax.DirType.entries.filter { it.dirMajType == majorDir }) {
                             ReactHTML.li { +".${dir.dirname}" }
                         }
                     }
@@ -161,7 +160,7 @@ object RV64 {
                         }
                     }
                     ReactHTML.tbody {
-                        for (instr in RV64NewSyntax.InstrType.entries) {
+                        for (instr in RV64Syntax.InstrType.entries) {
                             ReactHTML.tr {
 
                                 ReactHTML.td {
@@ -211,8 +210,8 @@ object RV64 {
     )
 
     val asmConfig = AsmConfig(
-        RV64NewSyntax(),
-        RV64NewAssembly(RV64BinMapper()),
+        RV64Syntax(),
+        RV64Assembly(RV64BinMapper()),
         compilerDetectRegistersByNames = true,
         features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
     )

@@ -1,7 +1,5 @@
 package emulator.archs.riscv64
 
-import emulator.archs.riscv32.RV32
-import emulator.archs.riscv32.RV32NewSyntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
@@ -15,7 +13,7 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 
-class RV64NewSyntax : Syntax() {
+class RV64Syntax : Syntax() {
 
     override val applyStandardHLForRest: Boolean = false
     override fun clear() { /* NOTHING NEEDS TO BE DONE HERE */
