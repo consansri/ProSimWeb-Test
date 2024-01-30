@@ -46,12 +46,6 @@ object RV64 {
         Parameters
     }
 
-    enum class SETTING {
-        DATA,
-        RODATA,
-        BSS
-    }
-
     /**
      * RV64 Extensions supplied through feature functionality
      */
@@ -220,12 +214,7 @@ object RV64 {
         RV64NewSyntax(),
         RV64NewAssembly(RV64BinMapper()),
         compilerDetectRegistersByNames = true,
-        features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) },
-        settings = listOf(
-            ArchSetting.ImmSetting(SETTING.DATA.name, Variable(Hex("00010000", XLEN))),
-            ArchSetting.ImmSetting(SETTING.RODATA.name, Variable(Hex(hexString = "00020000", size = XLEN))),
-            ArchSetting.ImmSetting(SETTING.BSS.name, Variable(Hex("00030000", XLEN)))
-        )
+        features = EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
     )
 
     /**

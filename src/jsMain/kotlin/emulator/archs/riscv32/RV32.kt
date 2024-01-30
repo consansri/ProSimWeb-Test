@@ -70,12 +70,6 @@ object RV32 {
         Parameters
     }
 
-    enum class SETTING {
-        DATA,
-        RODATA,
-        BSS
-    }
-
     /**
      * RV64 Extensions supplied through feature functionality
      */
@@ -241,12 +235,7 @@ object RV32 {
         RV32NewSyntax(),
         RV32NewAssembly(RV32BinMapper()),
         compilerDetectRegistersByNames = true,
-        features = RV32.EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) },
-        settings = listOf(
-            ArchSetting.ImmSetting(SETTING.DATA.name, Variable(Hex("00010000", Variable.Size.Bit32()))),
-            ArchSetting.ImmSetting(SETTING.RODATA.name, Variable(Hex("00020000", Variable.Size.Bit32()))),
-            ArchSetting.ImmSetting(SETTING.BSS.name, Variable(Hex("00030000", Variable.Size.Bit32())))
-        )
+        features = RV32.EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
     )
 
     val standardRegFile = RegContainer.RegisterFile(
