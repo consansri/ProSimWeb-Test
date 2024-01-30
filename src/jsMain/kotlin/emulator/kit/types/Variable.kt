@@ -199,7 +199,6 @@ class Variable {
                     } else {
                         val trimmedString = formattedInput.substring(formattedInput.length - size.bitWidth)
                         message = "Bin.check(): $string is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with a bit width <= ${size.bitWidth}!"
-                        console.warn(message)
                         CheckResult(false, trimmedString, message)
                     }
                 } else {
@@ -500,7 +499,6 @@ class Variable {
                     } else {
                         val trimmedString = formatted.substring(formatted.length - size.hexChars)
                         message = "Hex.check(): $string is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.hexChars}!"
-                        console.warn(message)
                         CheckResult(false, Settings.PRESTRING_HEX + trimmedString, message)
                     }
                 } else {
@@ -635,7 +633,6 @@ class Variable {
                 } else {
                     return if (DecTools.isGreaterThan(formatted, Bounds(size).max)) {
                         message = "Dec.check(): $formatted must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}"
-                        console.warn(message)
                         CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).min, formatted)) {
                         message = "Dec.check(): $formatted must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
@@ -778,11 +775,9 @@ class Variable {
                 } else {
                     return if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
                         message = "UDec.check(): $formatted must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}"
-                        console.warn(message)
                         CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umax, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).umin, formatted)) {
                         message = "UDec.check(): $formatted must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}"
-                        console.warn(message)
                         CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umin, message)
                     } else {
                         CheckResult(true, Settings.PRESTRING_UDECIMAL + formatted)

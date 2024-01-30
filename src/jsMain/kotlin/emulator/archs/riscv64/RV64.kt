@@ -138,12 +138,12 @@ object RV64 {
                     +"Directives"
                 }
 
-                for (majorDir in RV64Syntax.E_DIRECTIVE.MajorType.entries) {
+                for (majorDir in RV64NewSyntax.DirMajType.entries) {
                     ReactHTML.strong {
                         +majorDir.docName
                     }
                     ReactHTML.ul {
-                        for (dir in RV64Syntax.E_DIRECTIVE.DirType.entries.filter { it.majorType == majorDir }) {
+                        for (dir in RV64NewSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
                             ReactHTML.li { +".${dir.dirname}" }
                         }
                     }
@@ -167,7 +167,7 @@ object RV64 {
                         }
                     }
                     ReactHTML.tbody {
-                        for (instr in RV64Syntax.R_INSTR.InstrType.entries) {
+                        for (instr in RV64NewSyntax.InstrType.entries) {
                             ReactHTML.tr {
 
                                 ReactHTML.td {

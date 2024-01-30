@@ -9,6 +9,7 @@ import emulator.kit.types.Variable.Size.*
 import emulator.archs.riscv64.RV64NewSyntax.*
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.Transcript
+import emulator.archs.riscv64.RV64NewSyntax.InstrType.*
 
 class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
 
@@ -24,7 +25,40 @@ class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
             val instrResult = binMapper.getInstrFromBinary(bin)
             if (instrResult != null) {
                 val row = RVDisassembledRow(currentAddr.toHex())
-                row.addInstr(architecture, instrResult, labels.firstOrNull { it.address?.toHex()?.getRawHexStr() == currentAddr.toHex().getRawHexStr() }?.nameString ?: "")
+                var labelstring = ""
+                when (instrResult.type) {
+                    JAL -> {
+                        val jalOffset20 = instrResult.binMap.get(RV64BinMapper.MaskLabel.IMM20)?.toBin()?.getRawBinStr()
+                        if (jalOffset20 != null) {
+                            val shiftedImm = Bin(jalOffset20[0].toString() + jalOffset20.substring(12) + jalOffset20[11] + jalOffset20.substring(1, 11), Bit20()).getResized(RV64.MEM_ADDRESS_WIDTH) shl 1
+                            for (label in labels) {
+                                if (label.address?.toHex()?.getRawHexStr() == (row.getAddresses().first().toBin() + shiftedImm).toHex().getRawHexStr()) {
+                                    labelstring = label.nameString
+                                }
+                            }
+                        }
+                    }
+
+                    BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
+                        val branchOffset7 = instrResult.binMap[RV64BinMapper.MaskLabel.IMM7]?.toBin()?.getRawBinStr()
+                        val branchOffset5 = instrResult.binMap[RV64BinMapper.MaskLabel.IMM5]?.toBin()?.getRawBinStr()
+                        if (branchOffset7 != null && branchOffset5 != null) {
+                            val imm12 = Bin(branchOffset7[0].toString() + branchOffset5[4] + branchOffset7.substring(1) + branchOffset5.substring(0, 4), Bit12())
+                            val offset = imm12.toBin().getResized(RV64.MEM_ADDRESS_WIDTH) shl 1
+                            for (label in labels) {
+                                if (label.address?.toBin() == (row.getAddresses().first().toBin() + offset).toBin()) {
+                                    labelstring = label.nameString
+                                }
+                            }
+                        }
+                    }
+
+                    else -> {}
+                }
+
+                row.addInstr(architecture, instrResult, labelstring)
+                val label = labels.filter { it.address?.toHex()?.getRawHexStr() == currentAddr.toHex().getRawHexStr() }
+                label.forEach { row.addLabel(it) }
                 tsRows.add(row)
             }
 
@@ -57,7 +91,7 @@ class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
                                 val row = RVCompiledRow(currentAddress.toHex())
                                 row.addInstr(element)
                                 tsRows.add(row)
-                                repeat(element.type.memWords - 1){
+                                repeat(element.type.memWords - 1) {
                                     currentAddress += Hex("4", RV64.MEM_ADDRESS_WIDTH)
                                     tsRows.add(RVCompiledRow(currentAddress.toHex()))
                                 }
@@ -67,9 +101,6 @@ class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
 
                             is ELabel -> {
                                 element.setAddress(currentAddress)
-                                if (currentAddress.toHex().getRawHexStr() == tsRows.lastOrNull()?.addr?.getRawHexStr()) {
-                                    tsRows.last().addLabel(element)
-                                }
                                 labels.add(element)
                             }
                         }
@@ -130,6 +161,12 @@ class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
                     }
                 }
             }
+        }
+
+        // Add Labels to TS
+        for (label in labels) {
+            val labelAddr = label.address
+            tsRows.firstOrNull { it.addr.getRawHexStr() == labelAddr?.toHex()?.getRawHexStr() }?.addLabel(label)
         }
 
         // Store Content
@@ -217,6 +254,7 @@ class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
     class RVDisassembledRow(address: Hex) : Transcript.Row(address) {
 
         val content = RV64.TsDisassembledHeaders.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+        val labels = mutableListOf<ELabel>()
 
         init {
             content[RV64.TsDisassembledHeaders.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
@@ -228,8 +266,9 @@ class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
             content[RV64.TsDisassembledHeaders.Parameters] = Entry(Orientation.LEFT, instrResult.type.paramType.getTSParamString(architecture, instrResult.binMap.toMutableMap(), labelName))
         }
 
-        fun addLabel(labelName: String) {
-            content[RV64.TsDisassembledHeaders.Label] = Entry(Orientation.LEFT, labelName)
+        fun addLabel(label: ELabel) {
+            labels.add(label)
+            content[RV64.TsDisassembledHeaders.Label] = Entry(Orientation.LEFT, labels.joinToString { it.nameString })
         }
 
         override fun getContent(): List<Entry> {
@@ -242,13 +281,15 @@ class RV64NewAssembly(val binMapper: RV64BinMapper) : Assembly() {
      */
     class RVCompiledRow(val addr: Hex) : Transcript.Row(addr) {
         val content = RV64.TsCompiledHeaders.entries.associateWith { Entry(Orientation.CENTER, "") }.toMutableMap()
+        val labels = mutableListOf<ELabel>()
 
         init {
             content[RV64.TsCompiledHeaders.Address] = Entry(Orientation.CENTER, getAddresses().first().toHex().getRawHexStr())
         }
 
         fun addLabel(label: ELabel) {
-            content[RV64.TsCompiledHeaders.Label] = Entry(Orientation.LEFT, label.nameString)
+            labels.add(label)
+            content[RV64.TsCompiledHeaders.Label] = Entry(Orientation.LEFT, labels.joinToString { it.nameString })
         }
 
         fun addInstr(instr: EInstr) {

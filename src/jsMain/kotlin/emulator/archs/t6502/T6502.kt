@@ -1,9 +1,6 @@
 package emulator.archs.t6502
 
 import StyleAttr
-import emotion.react.css
-import emulator.archs.riscv64.RV64
-import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
@@ -14,7 +11,6 @@ import emulator.kit.types.Variable.Size.*
 import react.FC
 import react.dom.html.ReactHTML
 import web.cssom.ClassName
-import web.cssom.Float
 
 
 /**

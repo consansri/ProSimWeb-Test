@@ -1,6 +1,6 @@
 package emulator.archs
 
-import emulator.archs.riscv64.RV64Syntax
+import emulator.archs.riscv64.RV64NewSyntax
 import emulator.kit.Architecture
 import emulator.archs.riscv64.RV64
 import emulator.archs.riscv64.RV64BinMapper
@@ -88,7 +88,7 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
                 var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
                 if (result != null) {
-                    if (result.type == RV64Syntax.R_INSTR.InstrType.JAL || result.type == RV64Syntax.R_INSTR.InstrType.JALR) {
+                    if (result.type == RV64NewSyntax.InstrType.JAL || result.type == RV64NewSyntax.InstrType.JALR) {
                         val returnAddress = getRegContainer().pc.get() + Variable.Value.Hex("4", Variable.Size.Bit32())
                         while (getRegContainer().pc.get() != returnAddress) {
                             if (result != null) {
@@ -121,7 +121,7 @@ class ArchRV64 : Architecture(RV64.config, RV64.asmConfig) {
                 var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
 
-                val returnTypeList = listOf(RV64Syntax.R_INSTR.InstrType.JALR, RV64Syntax.R_INSTR.InstrType.JAL)
+                val returnTypeList = listOf(RV64NewSyntax.InstrType.JALR, RV64NewSyntax.InstrType.JAL)
 
                 while (result != null && !returnTypeList.contains(result.type)) {
                     result.type.execute(this, result.binMap)

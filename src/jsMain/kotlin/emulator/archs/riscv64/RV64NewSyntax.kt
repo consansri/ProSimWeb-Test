@@ -29,10 +29,11 @@ class RV64NewSyntax : Syntax() {
         val elements = mutableListOf<TreeNode.ElementNode>()
         val sections = mutableListOf<TreeNode.SectionNode>()
 
+        remainingTokens.resolveImports(preElements, sections, errors, warnings, others)
+
         remainingTokens.removeComments(preElements)
         remainingTokens.resolveEqus(preElements, errors, warnings, arch)
         remainingTokens.resolveMacros(preElements, errors, warnings, arch)
-        remainingTokens.resolveImports(preElements, sections, errors, warnings, others)
 
         var currentLabel: ELabel? = null
 
@@ -58,7 +59,6 @@ class RV64NewSyntax : Syntax() {
             if (remainingTokens.checkInstr(elements, errors, warnings, currentLabel)) continue
 
             //errors.add(Error("Couldn't be resolved!", remainingTokens.first()))
-            console.log("Remaining: ${remainingTokens.take(9).joinToString("'") { it.content }}[...]")
             errors.add(Error("(${remainingTokens.first().content}) couldn't be resolved!", remainingTokens.removeFirst()))
         }
 
@@ -244,7 +244,7 @@ class RV64NewSyntax : Syntax() {
         for (macro in defs) {
             while (true) {
                 val macroNameRef = this.firstOrNull { it is Compiler.Token.Word && it.content == macro.macroname.content } ?: break
-                val macroNewLine = this.firstOrNull { this.indexOf(macroNameRef) < this.indexOf(it) && it is Compiler.Token.NewLine } ?: this.last()
+                val macroNewLine = this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(macroNameRef) < this.indexOf(it) } ?: this.last()
                 val macroRefTokens = this.subList(this.indexOf(macroNameRef), this.indexOf(macroNewLine))
                 val indexOfName = this.indexOf(macroNameRef)
                 macroRefTokens.remove(macroNameRef)
@@ -254,8 +254,12 @@ class RV64NewSyntax : Syntax() {
 
                 var errorAtParamDetection = false
                 for (token in macroRefTokens) {
-                    if (token is Compiler.Token.NewLine) break
-                    if (token is Compiler.Token.Space) continue
+                    if (token is Compiler.Token.NewLine) {
+                        break
+                    }
+                    if (token is Compiler.Token.Space) {
+                        continue
+                    }
                     if (params.size == commas.size) {
                         // Expect Param
                         params.add(token)
@@ -266,8 +270,6 @@ class RV64NewSyntax : Syntax() {
                         // Expect Comma
                         if (token.content != ",") {
                             errors.add(Error("Macro Replacement expected comma!", *macroRefTokens.toTypedArray(), macroNameRef))
-                            this.remove(macroNameRef)
-                            this.removeAll(macroRefTokens)
                             errorAtParamDetection = true
                             break
                         }
@@ -290,7 +292,7 @@ class RV64NewSyntax : Syntax() {
                 }
 
                 val preMacroRep = PreMacroRep(macroNameRef, params, commas)
-                this.removeAll(macroRefTokens)
+                this.removeAll(macroRefTokens.filter { it !is Compiler.Token.NewLine })
                 this.addAll(indexOfName, macro.getMacroReplacement(params, arch) ?: listOf())
                 preElements.add(preMacroRep)
             }
@@ -300,8 +302,16 @@ class RV64NewSyntax : Syntax() {
     }
 
     private fun MutableList<Compiler.Token>.resolveImports(preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<FileHandler.File>): MutableList<Compiler.Token> {
-        val result = Seqs.SeqImport.matchStart(*this.toTypedArray())
-        if (result.matches) {
+        val tokenBuffer = this.toMutableList()
+        while (tokenBuffer.isNotEmpty()) {
+            val result = Seqs.SeqImport.matchStart(*tokenBuffer.toTypedArray())
+
+            if (!result.matches) {
+                tokenBuffer.removeFirst()
+                continue
+            }
+
+
             val tokens = result.sequenceMap.map { it.token }
             val symbol = tokens[0]
             val word = tokens[1]
@@ -312,22 +322,25 @@ class RV64NewSyntax : Syntax() {
 
             if (file == null) {
                 errors.add(Error("File (${string.rawString}) not found!", *tokens.toTypedArray()))
+                tokenBuffer.removeAll(tokens)
                 this.removeAll(tokens)
-                return this
+                continue
             }
 
             val fileTree = file.getLinkedTree()
             if (fileTree?.rootNode == null) {
                 errors.add(Error("File (${string.rawString}) not build!", *tokens.toTypedArray()))
+                tokenBuffer.removeAll(tokens)
                 this.removeAll(tokens)
-                return this
+                continue
             }
             val root = fileTree.rootNode
 
             if (root.allErrors.isNotEmpty()) {
                 errors.add(Error("File (${string.rawString}) has errors which first need to be fixed!", *tokens.toTypedArray()))
+                tokenBuffer.removeAll(tokens)
                 this.removeAll(tokens)
-                return this
+                continue
             }
 
             root.containers.forEach {
@@ -337,8 +350,10 @@ class RV64NewSyntax : Syntax() {
             }
 
             preElements.add(PreImport(symbol, word, space, string))
+            tokenBuffer.removeAll(tokens)
             this.removeAll(tokens)
         }
+
 
         return this
     }
@@ -455,9 +470,19 @@ class RV64NewSyntax : Syntax() {
     }
 
     private fun MutableList<TreeNode.ElementNode>.linkLabels(sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>) {
-        val allElements = this.toList() + sections.flatMap { it.collNodes.toList().map { element -> element as TreeNode.ElementNode } }
-        val labels = allElements.filterIsInstance<ELabel>()
+        val allElements = sections.flatMap { it.collNodes.toList().map { element -> element as TreeNode.ElementNode } } + this.toList()
+        val labels = allElements.filterIsInstance<ELabel>().toMutableList()
         val globals = allElements.filterIsInstance<EGlobal>()
+
+        // Check duplicates
+        val seenNames = mutableSetOf<String>()
+        for (label in labels) {
+            if (!seenNames.add(label.nameString)) {
+                errors.add(Error("Label (${label.nameString}) already in use!", label))
+                this.remove(label)
+                labels.remove(label)
+            }
+        }
 
         if (globals.isNotEmpty()) {
             val valid = globals.first().link(labels)
@@ -688,7 +713,7 @@ class RV64NewSyntax : Syntax() {
                     paramMap.remove(RV64BinMapper.MaskLabel.RD)
                     paramMap.remove(RV64BinMapper.MaskLabel.CSR)
                     paramMap.remove(RV64BinMapper.MaskLabel.RS1)
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV64.CSR_REGFILE_NAME)},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
+                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV64.CSR_REGFILE_NAME)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
                 } else {
                     "param missing"
                 }
@@ -2530,23 +2555,25 @@ class RV64NewSyntax : Syntax() {
 
     class EInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>, val constants: List<Compiler.Token.Constant>, commas: List<Compiler.Token>) :
         TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens, RV64Flags.constant to constants), "init_data", *dirTokens.toTypedArray(), *constants.toTypedArray(), *commas.toTypedArray()) {
-            val values = constants.map { it.getValue(dirType.deSize) }
+        val values = constants.map { it.getValue(dirType.deSize) }
         val bytesNeeded: Variable.Value
         var address: Variable.Value? = null
+
         init {
             var result = 0
             values.forEach { result += it.size.getByteCount() }
             bytesNeeded = Hex(result.toString(16), RV64.MEM_ADDRESS_WIDTH)
         }
-        fun setAddress(address: Variable.Value){
+
+        fun setAddress(address: Variable.Value) {
             this.address = address
         }
     }
 
-    class EUnInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "uninit_data", *dirTokens.toTypedArray()){
+    class EUnInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode(ConnectedHL(RV64Flags.directive to dirTokens), "uninit_data", *dirTokens.toTypedArray()) {
         var address: Variable.Value? = null
 
-        fun setAddress(address: Variable.Value){
+        fun setAddress(address: Variable.Value) {
             this.address = address
         }
     }

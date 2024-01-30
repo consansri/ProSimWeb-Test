@@ -34,7 +34,7 @@ class Compiler(
 ) {
 
     private val regexCollection: RegexCollection = RegexCollection(
-        Regex("""^\s+"""),
+        Regex("""^[\t ]+"""),
         Regex("^(\\r\\n|\\r|\\n)"),
         Regex("""^[^0-9A-Za-z]"""),
         Regex("^(-)?${Regex.escape(prefixes.bin)}[01]+"),
