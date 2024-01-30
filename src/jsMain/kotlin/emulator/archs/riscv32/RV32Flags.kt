@@ -25,4 +25,6 @@ object RV32Flags {
 
     val pre_unresolved = HL.base05.getFlag()
 
+    val setpc = HL.green.getFlag()
+
 }

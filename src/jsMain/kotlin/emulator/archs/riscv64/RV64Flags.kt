@@ -21,4 +21,6 @@ object RV64Flags {
     val pre_attribute = HL.base04.getFlag()
 
     val pre_unresolved = HL.base05.getFlag()
+
+    val set_pc = HL.green.getFlag()
 }

@@ -247,6 +247,7 @@ object BinaryTools {
                 result += "0"
             }
         }
+
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.log("BinaryTools: divide($dividend, $divisor) -> result: ${result.trimStart('0')}, remainder: ${comparison + remainingDividend}")
         }

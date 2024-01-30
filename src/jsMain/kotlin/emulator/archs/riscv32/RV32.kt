@@ -158,12 +158,12 @@ object RV32 {
                 h2 {
                     +"Directives"
                 }
-                for (majorDir in RV32Syntax.E_DIRECTIVE.MajorType.entries) {
+                for (majorDir in RV32NewSyntax.DirMajType.entries) {
                     ReactHTML.strong {
                         +majorDir.docName
                     }
                     ul {
-                        for (dir in RV32Syntax.E_DIRECTIVE.DirType.entries.filter { it.majorType == majorDir }) {
+                        for (dir in RV32NewSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
                             li { +".${dir.dirname}" }
                         }
                     }
@@ -188,7 +188,7 @@ object RV32 {
                         }
                     }
                     tbody {
-                        for (instr in RV32Syntax.R_INSTR.InstrType.entries) {
+                        for (instr in RV32NewSyntax.InstrType.entries) {
                             tr {
 
                                 td {
@@ -238,8 +238,8 @@ object RV32 {
     )
 
     val asmConfig = AsmConfig(
-        RV32Syntax(),
-        RV32Assembly(RV32BinMapper()),
+        RV32NewSyntax(),
+        RV32NewAssembly(RV32BinMapper()),
         compilerDetectRegistersByNames = true,
         features = RV32.EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) },
         settings = listOf(
@@ -249,7 +249,7 @@ object RV32 {
         )
     )
 
-    private val standardRegFile = RegContainer.RegisterFile(
+    val standardRegFile = RegContainer.RegisterFile(
         MAIN_REGFILE_NAME, arrayOf(
             Register(Bin("00000", REG_ADDRESS_SIZE), listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), description = "hardwired zero", hardwire = true),
             Register(Bin("00001", REG_ADDRESS_SIZE), listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "return address"),

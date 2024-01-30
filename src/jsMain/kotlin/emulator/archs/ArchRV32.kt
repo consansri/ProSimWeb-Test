@@ -3,7 +3,8 @@ package emulator.archs
 import emulator.kit.Architecture
 import emulator.archs.riscv32.RV32
 import emulator.archs.riscv32.RV32BinMapper
-import emulator.archs.riscv32.RV32Syntax.*
+import emulator.archs.riscv32.RV32NewSyntax.*
+import emulator.archs.riscv32.RV32NewSyntax.InstrType
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
@@ -89,7 +90,7 @@ class ArchRV32 : Architecture(RV32.config, RV32.asmConfig) {
                 var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
                 if (result != null) {
-                    if (result.type == R_INSTR.InstrType.JAL || result.type == R_INSTR.InstrType.JALR) {
+                    if (result.type == InstrType.JAL || result.type == InstrType.JALR) {
                         val returnAddress = getRegContainer().pc.get() + Variable.Value.Hex("4", Variable.Size.Bit32())
                         while (getRegContainer().pc.get() != returnAddress) {
                             if (result != null) {
@@ -121,7 +122,7 @@ class ArchRV32 : Architecture(RV32.config, RV32.asmConfig) {
                 var value = getMemory().load(getRegContainer().pc.get().toHex(), 4)
                 var result = mapper.getInstrFromBinary(value.toBin())
 
-                val returnTypeList = listOf(R_INSTR.InstrType.JALR, R_INSTR.InstrType.JAL)
+                val returnTypeList = listOf(InstrType.JALR, InstrType.JAL)
 
                 while (result != null && !returnTypeList.contains(result.type)) {
                     result.type.execute(this, result.binMap)

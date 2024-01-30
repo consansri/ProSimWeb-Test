@@ -1,5 +1,7 @@
 package emulator.archs.riscv64
 
+import emulator.archs.riscv32.RV32
+import emulator.archs.riscv32.RV32NewSyntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
@@ -466,6 +468,18 @@ class RV64NewSyntax : Syntax() {
             elements.add(eGlobal)
             return true
         }
+
+        val setPcResult = Seqs.SeqSetPC.matchStart(*this.toTypedArray())
+        if (setPcResult.matches) {
+            val tokens = setPcResult.sequenceMap.map { it.token }
+            val symbols = tokens.filter { it !is Compiler.Token.Constant }
+            val constant = tokens.first { it is Compiler.Token.Constant } as Compiler.Token.Constant
+            this.removeAll(tokens)
+            val eSetPC = ESetPC(symbols, constant)
+            elements.add(eSetPC)
+            return true
+        }
+
         return false
     }
 
@@ -537,7 +551,7 @@ class RV64NewSyntax : Syntax() {
 
             when (currSecStart?.dirType) {
                 null, DirType.TEXT -> {
-                    if (this.first() !is EInstr && this.first() !is ELabel && this.first() !is EGlobal) {
+                    if (this.first() !is EInstr && this.first() !is ELabel && this.first() !is EGlobal && this.first() !is ESetPC) {
                         val element = this.first()
                         errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
                     } else {
@@ -546,7 +560,7 @@ class RV64NewSyntax : Syntax() {
                 }
 
                 DirType.DATA -> {
-                    if (this.first() !is ELabel && this.first() !is EInitData && this.first() !is EGlobal) {
+                    if (this.first() !is ELabel && this.first() !is EInitData && this.first() !is EGlobal && this.first() !is ESetPC) {
                         val element = this.first()
                         errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
                     } else {
@@ -555,7 +569,7 @@ class RV64NewSyntax : Syntax() {
                 }
 
                 DirType.RODATA -> {
-                    if (this.first() !is ELabel && this.first() !is EInitData && this.first() !is EGlobal) {
+                    if (this.first() !is ELabel && this.first() !is EInitData && this.first() !is EGlobal && this.first() !is ESetPC) {
                         val element = this.first()
                         errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
                     } else {
@@ -564,7 +578,7 @@ class RV64NewSyntax : Syntax() {
                 }
 
                 DirType.BSS -> {
-                    if (this.first() !is ELabel && this.first() !is EUnInitData && this.first() !is EGlobal) {
+                    if (this.first() !is ELabel && this.first() !is EUnInitData && this.first() !is EGlobal && this.first() !is ESetPC) {
                         val element = this.first()
                         errors.add(Error("Wrong section for ${element::class.simpleName}!", this.removeFirst()))
                     } else {
@@ -603,6 +617,7 @@ class RV64NewSyntax : Syntax() {
         val SeqMacroAttrInsert = TokenSeq(Specific("""\"""), WordNoDots)
         val SeqLabel = TokenSeq(Word, Specific(":"))
         val SeqImport = TokenSeq(Specific("#"), Specific("import"), Space, StringConst)
+        val SeqSetPC = TokenSeq(Specific("*"), Specific("="), SpecConst(RV64.XLEN))
     }
 
     enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: TokenSeq) {
@@ -2588,6 +2603,8 @@ class RV64NewSyntax : Syntax() {
             return true
         }
     }
+
+    class ESetPC(symbols: List<Compiler.Token>, val constant: Compiler.Token.Constant) : TreeNode.ElementNode(ConnectedHL(RV64Flags.set_pc to symbols, RV64Flags.constant to listOf(constant)),"set_pc", *symbols.toTypedArray(), constant)
 
     class SText(secStart: ESecStart? = null, vararg val elements: ElementNode) : TreeNode.SectionNode("text", collNodes = if (secStart != null) elements + secStart else elements)
     class SData(secStart: ESecStart, vararg val elements: ElementNode) : TreeNode.SectionNode("data", secStart, *elements)
