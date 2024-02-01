@@ -37,6 +37,8 @@ class RV64Syntax : Syntax() {
 
         var currentLabel: ELabel? = null
 
+        var errorCount = 0
+
         // Resolve Compiler Tokens
         while (remainingTokens.isNotEmpty()) {
             if (remainingTokens.first() is Compiler.Token.Space || remainingTokens.first() is Compiler.Token.NewLine) {
@@ -59,7 +61,15 @@ class RV64Syntax : Syntax() {
             if (remainingTokens.checkInstr(elements, errors, warnings, currentLabel)) continue
 
             //errors.add(Error("Couldn't be resolved!", remainingTokens.first()))
-            errors.add(Error("(${remainingTokens.first().content}) couldn't be resolved!", remainingTokens.removeFirst()))
+            errors.add(Error("Unexpected ${remainingTokens.first()::class.simpleName} (${remainingTokens.first().content})!", remainingTokens.removeFirst()))
+            ++errorCount
+            if(errorCount > 10){
+                break
+            }
+        }
+        remainingTokens.removeAll { it is Compiler.Token.Space || it is Compiler.Token.NewLine }
+        if(remainingTokens.isNotEmpty()){
+            errors.add(Error("Faulty Syntax! Check Syntax Examples!", *remainingTokens.toTypedArray()))
         }
 
         // Link

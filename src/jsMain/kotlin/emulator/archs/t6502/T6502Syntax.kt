@@ -49,6 +49,7 @@ class T6502Syntax : Syntax() {
         // RESOLVE PRE ELEMENTS
         remainingTokens.removeComments(preElements)
 
+        var errorCount = 0
         // RESOLVE ELEMENTS
         while (remainingTokens.isNotEmpty()) {
             val tempFirstToken = remainingTokens.first()
@@ -82,19 +83,21 @@ class T6502Syntax : Syntax() {
 
             // Add first Token to errors if not already resolved
             if (remainingTokens.first() == tempFirstToken) {
-                errors.add(Error("Faulty Syntax!", remainingTokens.first()))
-                remainingTokens.removeFirst()
+                errors.add(Error("${remainingTokens.first()::class.simpleName} (${remainingTokens.first().content}) was not expected!", remainingTokens.removeFirst()))
+                ++errorCount
+                if (errorCount > 10) {
+                    break
+                }
             }
         }
 
+        remainingTokens.removeAll { it is Compiler.Token.Space || it is Compiler.Token.NewLine }
+        if (remainingTokens.isNotEmpty()) {
+            errors.add(Error("Faulty Syntax! Maybe watch some examples below the console!", *remainingTokens.toTypedArray()))
+        }
 
         // Link Labels to Instructions
         linkLabels(elements, errors, warnings)
-
-        remainingTokens.removeAll { it is Compiler.Token.Space || it is Compiler.Token.NewLine }
-        if (remainingTokens.isNotEmpty()) {
-            errors.add(Error("Faulty Syntax!", *remainingTokens.toTypedArray()))
-        }
 
         return SyntaxTree(
             TreeNode.RootNode(
@@ -852,7 +855,7 @@ class T6502Syntax : Syntax() {
                 }
 
                 ZP -> {
-                    arch.getMemory().load(Hex( "00${nextByte.getRawHexStr()}", WORD_SIZE)).toHex()
+                    arch.getMemory().load(Hex("00${nextByte.getRawHexStr()}", WORD_SIZE)).toHex()
                 }
 
                 ZP_X -> {
@@ -914,7 +917,7 @@ class T6502Syntax : Syntax() {
                 ABS_X -> (nextWord + x.toBin().getResized(WORD_SIZE)).toHex()
                 ABS_Y -> (nextWord + y.toBin().getResized(WORD_SIZE)).toHex()
                 ZP -> Hex("00${nextByte.getRawHexStr()}", WORD_SIZE)
-                ZP_X ->Hex("00${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE)
+                ZP_X -> Hex("00${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE)
                 ZP_Y -> Hex("00${(nextByte + y).toHex().getRawHexStr()}", WORD_SIZE)
                 ZP_X_IND -> arch.getMemory().load(Hex("00${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE), 2).toHex()
                 ZPIND_Y -> (arch.getMemory().load(Hex("00${nextByte.getRawHexStr()}", WORD_SIZE), 2) + y).toHex()
