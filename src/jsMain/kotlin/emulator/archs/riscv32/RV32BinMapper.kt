@@ -145,12 +145,12 @@ class RV32BinMapper {
                 }
 
                 CSRRWI, CSRRSI, CSRRCI -> {
-                    val csrAddr = if (instr.constants.size == 1) {
+                    val csrAddr = if (instr.constants.size == 2) {
                         instr.constants.first().getValue(Bit12()).toBin()
                     } else {
                         regs[1].toBin()
                     }
-                    val immediate = instr.constants.toList()[1].getValue(Bit5())
+                    val immediate = instr.constants.last().getValue(Bit5())
                     val uimm5 = immediate.toBin()
                     val opCode = instr.type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.CSR to csrAddr, MaskLabel.UIMM5 to uimm5))
                     opCode?.let {

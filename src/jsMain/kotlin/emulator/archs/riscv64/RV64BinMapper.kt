@@ -138,7 +138,7 @@ class RV64BinMapper {
                 }
 
                 CSRRWI, CSRRSI, CSRRCI -> {
-                    val csrAddr = if (instr.constants.size == 1) {
+                    val csrAddr = if (instr.constants.size == 2) {
                         instr.constants.first().getValue(Bit12()).toBin()
                     } else {
                         regs[1].toBin()

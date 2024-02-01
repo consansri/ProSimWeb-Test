@@ -1921,7 +1921,9 @@ class RV64Syntax : Syntax() {
                 val rdAddr = paramMap[RV64BinMapper.MaskLabel.RD]
                 val uimm5 = paramMap[RV64BinMapper.MaskLabel.UIMM5]
                 val csrAddr = paramMap[RV64BinMapper.MaskLabel.CSR]
+                arch.getConsole().warn(paramMap.toString())
                 if (rdAddr != null && uimm5 != null && csrAddr != null) {
+                    arch.getConsole().warn(csrAddr.toString())
                     val rd = arch.getRegByAddr(rdAddr)
                     val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
                     val pc = arch.getRegContainer().pc
