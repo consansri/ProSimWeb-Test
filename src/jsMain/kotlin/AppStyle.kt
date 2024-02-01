@@ -293,7 +293,11 @@ val AppStyle = FC<Props> {
 
                     ".${StyleAttr.Main.Processor.CLASS_REG}" {
                         width = 100.pct
-                        display = Display.block
+                        display = Display.flex
+                        flexDirection = FlexDirection.row
+                        justifyContent = JustifyContent.stretch
+                        alignItems = AlignItems.end
+
                         position = Position.relative
                         borderRadius = StyleAttr.borderRadius
                         background = StyleAttr.transparent

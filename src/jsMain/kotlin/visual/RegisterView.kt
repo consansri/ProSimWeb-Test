@@ -11,6 +11,7 @@ import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
@@ -33,6 +34,8 @@ external interface RegisterViewProps : Props {
     var archState: StateInstance<Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
+    var hideDescr: StateInstance<Boolean>
+    var isFirst: Boolean
 }
 
 val RegisterView = FC<RegisterViewProps> { props ->
@@ -54,6 +57,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             display = Display.flex
             flexDirection = FlexDirection.column
             position = Position.relative
+            flex = number(1.0)
             /*overflowY = Overflow.scroll*/
 
             table {
@@ -70,26 +74,32 @@ val RegisterView = FC<RegisterViewProps> { props ->
             css(ClassName("dcf-tabs")) {
                 border = Border(0.px, LineStyle.hidden)
                 position = Position.relative
-                display = Display.block
+                display = Display.flex
+                flexDirection = FlexDirection.row
+                alignItems = AlignItems.end
+
                 alignContent = AlignContent.center
                 backgroundColor = StyleAttr.Main.Processor.BgColor.get()
+                paddingLeft = 12.px
+                paddingRight = 12.px
 
                 button {
                     paddingTop = 0.5.rem
                 }
             }
 
-            button {
-                css {
-                    color = StyleAttr.Main.Processor.FgColor.get()
-                    backgroundColor = StyleAttr.transparent
-                    paddingLeft = 1.rem
-                    paddingRight = 1.rem
-                    border = Border(0.px, LineStyle.hidden)
-                    paddingTop = 0.5.rem
-                }
+            if (!props.hideDescr.component1() || props.isFirst) {
+                button {
+                    css {
+                        color = StyleAttr.Main.Processor.FgColor.get()
+                        backgroundColor = StyleAttr.transparent
+                        paddingRight = 12.px
+                        border = Border(0.px, LineStyle.hidden)
+                        paddingTop = 0.5.rem
+                    }
 
-                +"Register"
+                    +"Register"
+                }
             }
 
             for (regFile in allRegFiles.filter { it.getRegisters(arch.getAllFeatures()).isNotEmpty() }) {
@@ -124,24 +134,25 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
             }
 
-            button {
-                ref = pcRef
+            if (!props.hideDescr.component1() || !props.isFirst) {
+                button {
+                    ref = pcRef
 
-                css {
-                    color = StyleAttr.Main.Processor.FgColor.get()
-                    backgroundColor = StyleAttr.transparent
-                    paddingLeft = 1.rem
-                    paddingRight = 1.rem
-                    float = Float.right
-                    border = Border(0.px, LineStyle.hidden)
-                    paddingTop = 0.5.rem
-                }
+                    css {
+                        color = StyleAttr.Main.Processor.FgColor.get()
+                        backgroundColor = StyleAttr.transparent
+                        paddingLeft = 12.px
+                        float = Float.right
+                        border = Border(0.px, LineStyle.hidden)
+                        paddingTop = 0.5.rem
+                    }
 
-                +"PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+                    +"PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
 
-                onClick = { event ->
-                    pcRef.current?.let {
-                        it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+                    onClick = { event ->
+                        pcRef.current?.let {
+                            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+                        }
                     }
                 }
             }
@@ -210,12 +221,13 @@ val RegisterView = FC<RegisterViewProps> { props ->
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             +"CC"
                         }
-                        th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            scope = "col"
-                            +"Description"
+                        if (!props.hideDescr.component1()) {
+                            th {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "col"
+                                +"Description"
+                            }
                         }
-
                     }
                 }
 
@@ -229,14 +241,14 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                                 tr {
                                     td {
-                                        css{
+                                        css {
                                             textAlign = TextAlign.left
                                             paddingLeft = StyleAttr.paddingSize
                                         }
                                         +reg.names.joinToString("\\") { it }
                                     }
                                     td {
-                                        css{
+                                        css {
                                             textAlign = TextAlign.left
                                             paddingLeft = StyleAttr.paddingSize
                                         }
@@ -246,7 +258,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
 
                                         input {
-                                            id = "reg0${regFile.name}${regID}"
+                                            id = "${props.name}${regFile.name}${regID}"
                                             readOnly = false
                                             setTimeout({
                                                 when (currRegType) {
@@ -364,9 +376,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                         className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                         +reg.callingConvention.displayName
                                     }
-                                    td {
-                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                        +reg.description
+                                    if (!props.hideDescr.component1()) {
+                                        td {
+                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
+                                            +reg.description
+                                        }
                                     }
                                 }
                             }
@@ -380,7 +394,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
-    useEffect(currRegFileIndex){
+    useEffect(props.hideDescr){
+
+    }
+
+    useEffect(currRegFileIndex) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) RegisterView")
         }
@@ -394,7 +412,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
                 val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
                 try {
-                    val regRef = document.getElementById("reg0${regFile.name}$regID") as HTMLInputElement?
+                    val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = when (currRegType) {
                         Hex -> {
                             reg.variable.get().toHex().getRawHexStr()
@@ -426,7 +444,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("(update) RegisterView")
         }
-        val registers = if (currRegFileIndex <allRegFiles.size) {
+        val registers = if (currRegFileIndex < allRegFiles.size) {
             allRegFiles[currRegFileIndex]
         } else {
             setCurrRegFileIndex(0)
@@ -436,7 +454,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
                 val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
                 try {
-                    val regRef = document.getElementById("reg0${regFile.name}$regID") as HTMLInputElement?
+                    val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = when (currRegType) {
                         Hex -> {
                             reg.variable.get().toHex().getRawHexStr()
@@ -478,7 +496,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
                 val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
                 try {
-                    val regRef = document.getElementById("reg0${regFile.name}$regID") as HTMLInputElement?
+                    val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = when (currRegType) {
                         Hex -> {
                             reg.variable.get().toHex().getRawHexStr()

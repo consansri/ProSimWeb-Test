@@ -34,6 +34,7 @@ external interface MemViewProps : Props {
     var archState: StateInstance<Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
+    var hideRegDescr: StateInstance<Boolean>
     var length: Int
 }
 
@@ -163,6 +164,21 @@ val MemoryView = FC<MemViewProps> { props ->
                     src = StyleAttr.Icons.refresh
                 }
             }*/
+
+            button{
+                type = ButtonType.button
+                onClick = {
+                    props.hideRegDescr.component2().invoke(!props.hideRegDescr.component1())
+                }
+
+                img{
+                    src = if(props.hideRegDescr.component1()){
+                        StyleAttr.Icons.combine_view
+                    }else{
+                        StyleAttr.Icons.split_view
+                    }
+                }
+            }
 
             select {
 

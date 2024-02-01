@@ -16,7 +16,6 @@ import visual.ExecutionType.*
 import web.cssom.ClassName
 import web.cssom.Color
 import web.cssom.important
-import web.html.HTMLAnchorElement
 import web.html.HTMLInputElement
 import web.html.InputType
 import web.timers.Timeout
@@ -36,6 +35,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     val (mStepAmount, setMStepAmount) = useState(localStorage.getItem(StorageKey.MSTEP_VALUE) ?: 10)
 
     val (allowExe, setAllowExe) = useState(true)
+    val hideRegDescr = useState(true)
     val arch = props.archState.component1()
 
     fun queueExecution(executionType: ExecutionType, steps: Int = 1) {
@@ -217,38 +217,44 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 }
             }
         }
-
-
     }
 
-   /* div {
-        css {
-            color = StyleAttr.Main.FgColor.get()
-            fontWeight = StyleAttr.Main.Processor.fontWeight
-            fontSize = StyleAttr.Main.Processor.fontSizeTitle
-            fontStyle = StyleAttr.Main.Processor.fontStyle
-        }
-        a {
-            ref = titleRef
-            +arch.getDescription().name
-        }
-    }*/
+    /* div {
+         css {
+             color = StyleAttr.Main.FgColor.get()
+             fontWeight = StyleAttr.Main.Processor.fontWeight
+             fontSize = StyleAttr.Main.Processor.fontSizeTitle
+             fontStyle = StyleAttr.Main.Processor.fontStyle
+         }
+         a {
+             ref = titleRef
+             +arch.getDescription().name
+         }
+     }*/
 
     div {
         className = ClassName(StyleAttr.Main.Processor.CLASS_REG)
 
         RegisterView {
-            this.name = "Register"
+            this.key = "reg1"
+            this.name = "Reg1"
             this.archState = props.archState
             this.compileEventState = props.compileEventState
             this.exeEventState = props.exeEventState
+            this.hideDescr = hideRegDescr
+            this.isFirst = true
         }
 
-        FlagsCondsView {
-            this.name = "Flags & Conditions"
-            this.archState = props.archState
-            this.compileEventState = props.compileEventState
-            this.exeEventState = props.exeEventState
+        if (hideRegDescr.component1()) {
+            RegisterView {
+                this.key = "reg2"
+                this.name = "Reg2"
+                this.archState = props.archState
+                this.compileEventState = props.compileEventState
+                this.exeEventState = props.exeEventState
+                this.hideDescr = hideRegDescr
+                this.isFirst = false
+            }
         }
     }
 
@@ -261,6 +267,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.archState = props.archState
             this.compileEventState = props.compileEventState
             this.exeEventState = props.exeEventState
+            this.hideRegDescr = hideRegDescr
         }
     }
 

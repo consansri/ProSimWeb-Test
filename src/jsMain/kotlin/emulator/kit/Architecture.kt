@@ -5,7 +5,6 @@ import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.Cache
-import emulator.kit.optional.FlagsConditions
 import emulator.kit.types.Variable
 
 import debug.DebugTools
@@ -52,7 +51,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val archState = ArchState()
     private val compiler: Compiler
     private val transcript: Transcript
-    private val flagsConditions: FlagsConditions?
     private val cache: Cache?
     private val features: List<Feature>
     private val settings: List<ArchSetting>
@@ -63,7 +61,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.regContainer = config.regContainer
         this.memory = config.memory
         this.transcript = config.transcript
-        this.flagsConditions = config.flagsConditions
         this.cache = config.cache
         this.iConsole = IConsole("${config.description.name} Console")
         this.features = asmConfig.features
@@ -84,7 +81,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getRegContainer(): RegContainer = regContainer
     fun getTranscript(): Transcript = transcript
     fun getMemory(): Memory = memory
-    fun getFlagsConditions(): FlagsConditions? = flagsConditions
     fun getConsole(): IConsole = iConsole
     fun getState(): ArchState = archState
     fun getCompiler(): Compiler = compiler

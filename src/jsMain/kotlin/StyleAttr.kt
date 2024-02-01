@@ -363,6 +363,8 @@ object StyleAttr {
         const val step_out = "benicons/step_out.svg"
         const val step_over = "benicons/step_over.svg"
         const val tag = "benicons/tag.svg"
+        const val split_view = "benicons/split-two-svgrepo-com.svg"
+        const val combine_view = "benicons/combine-cells-svgrepo-com.svg"
     }
 
     class ModeColor(light: String, dark: String? = null) {
