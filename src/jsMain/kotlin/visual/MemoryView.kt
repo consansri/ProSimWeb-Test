@@ -165,16 +165,16 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
             }*/
 
-            button{
+            button {
                 type = ButtonType.button
                 onClick = {
                     props.hideRegDescr.component2().invoke(!props.hideRegDescr.component1())
                 }
 
-                img{
-                    src = if(props.hideRegDescr.component1()){
+                img {
+                    src = if (props.hideRegDescr.component1()) {
                         StyleAttr.Icons.combine_view
-                    }else{
+                    } else {
                         StyleAttr.Icons.split_view
                     }
                 }
@@ -245,7 +245,7 @@ val MemoryView = FC<MemViewProps> { props ->
             tabIndex = 0
 
             table {
-                css{
+                css {
                     minHeight = 100.pct
                 }
                 thead {
@@ -292,7 +292,15 @@ val MemoryView = FC<MemViewProps> { props ->
                         console.log("REACT: Memory Map Updated!")
                     }
                     for (memRow in if (lowFirst) tempMemRows else tempRevMemRows) {
-                        if (previousAddress != null && Hex(memRow.key) - previousAddress > Hex(props.archState.component1().getMemory().getEntrysInRow().toString(16), props.archState.component1().getMemory().getAddressSize())) {
+                        val rowsBetween = if (previousAddress != null) {
+                            if (lowFirst) {
+                                Hex(memRow.key) - previousAddress > Hex(props.archState.component1().getMemory().getEntrysInRow().toString(16), props.archState.component1().getMemory().getAddressSize())
+                            } else {
+                                previousAddress - Hex(memRow.key) > Hex(props.archState.component1().getMemory().getEntrysInRow().toString(16), props.archState.component1().getMemory().getAddressSize())
+                            }
+                        } else false
+
+                        if (rowsBetween) {
                             tr {
                                 th {
                                     css {
