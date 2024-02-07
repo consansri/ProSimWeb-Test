@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 plugins {
     kotlin("multiplatform") version "1.9.22"
     id("org.jetbrains.dokka") version "1.9.0"
@@ -6,7 +8,7 @@ plugins {
 group = "me.c3"
 version = "0.1.9"
 
-val doodle_version: String by project
+val doodleVersion: String by project
 
 repositories {
     mavenCentral()
@@ -25,6 +27,7 @@ kotlin {
         }
     }
 
+    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         binaries.executable()
         browser {
