@@ -23,6 +23,7 @@ import emulator.kit.common.ArchState
 import web.cssom.ClassName
 import web.timers.*
 import web.cssom.*
+import kotlin.time.measureTime
 
 external interface CodeEditorProps : Props {
     var archState: StateInstance<Architecture>
@@ -69,6 +70,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (tsActive, setTSActive) = useState(false)
     val (undoActive, setUndoActive) = useState(false)
     val (redoActive, setRedoActive) = useState(false)
+
+    val (lowPerformanceMode, setLowPerformanceMode) = useState(false)
     /* ----------------- localStorage Sync Objects ----------------- */
 
     val (vcRows, setvcRows) = useState<List<String>>(emptyList())
@@ -147,56 +150,53 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- ASYNC Events ----------------- */
 
-    fun build(immediate: Boolean) {
+    fun build() {
         val valueToCheck = props.archState.component1().getFileHandler().getCurrContent()
-        val delay = 1000
 
-        if (immediate) {
-            /* ----------------- COROUTINES ----------------- */
-            checkTimeOutRef.current?.let {
-                clearTimeout(it)
-            }
-            checkTimeOutRef.current = setTimeout({
+        /* ----------------- COROUTINES ----------------- */
+        checkTimeOutRef.current?.let {
+            clearTimeout(it)
+        }
+        checkTimeOutRef.current = setTimeout({
+            val analysisTime = measureTime {
                 props.archState.component1().getState().edit()
                 setvcRows(props.archState.component1().compile(valueToCheck, build = true).split("\n"))
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
                 setState(props.archState.component1().getState().state)
-            }, 0)
-
-        } else {
-            val size = valueToCheck.split("\n").size
-            if (size < 250 && !DebugTools.REACT_deactivateAutomaticBuilds) {
-                checkTimeOutRef.current?.let {
-                    clearTimeout(it)
-                }
-                checkTimeOutRef.current = setTimeout({
-                    props.archState.component1().getState().edit()
-                    setvcRows(props.archState.component1().compile(valueToCheck, build = true).split("\n"))
-                    props.compileEventState.component2().invoke(!props.compileEventState.component1())
-                    setState(props.archState.component1().getState().state)
-                }, delay)
             }
-        }
+            if (analysisTime.inWholeMilliseconds <= Constants.EDITOR_MAX_ANALYSIS_MILLIS) {
+                setLowPerformanceMode(false)
+            }
+        }, 0)
     }
 
     fun preHighlight() {
         val value = props.archState.component1().getFileHandler().getCurrContent()
-        setvcRows(value.split("\n"))
+        val rows = value.split("\n")
+        setvcRows(rows)
+        val delay = 1500
         preHLTimeoutRef.current?.let {
             clearTimeout(it)
         }
-        setvcRows(value.split("\n"))
-        preHLTimeoutRef.current = setTimeout({
-            props.archState.component1().getState().edit()
-            val hlTaList = props.archState.component1().compile(value, build = false).split("\n")
-            setvcRows(hlTaList)
-            props.compileEventState.component2().invoke(!props.compileEventState.component1())
-            setState(props.archState.component1().getState().state)
-        }, 1000)
+        if (!lowPerformanceMode) {
+            preHLTimeoutRef.current = setTimeout({
+                val analysisTime = measureTime {
+                    props.archState.component1().getState().edit()
+                    val hlTaList = props.archState.component1().compile(value, build = false).split("\n")
+                    setvcRows(hlTaList)
+                    props.compileEventState.component2().invoke(!props.compileEventState.component1())
+                    setState(props.archState.component1().getState().state)
+                }
+                if (analysisTime.inWholeMilliseconds > Constants.EDITOR_MAX_ANALYSIS_MILLIS) {
+                    setLowPerformanceMode(true)
+                    props.archState.component1().getConsole().compilerInfo("Automatic syntax analysis disabled cause last analysis took more than ${Constants.EDITOR_MAX_ANALYSIS_MILLIS}ms!\nBuild the project to recheck performance. If analysis time improved automatic syntax analysis will be reactivated.")
+                }
+            }, delay)
+        }
     }
 
     /* ----------------- CHANGE EVENTS ----------------- */
-    fun edit(content: String, immediate: Boolean) {
+    fun edit(content: String) {
         props.archState.component1().getState().edit()
 
         props.archState.component1().getFileHandler().editCurr(content)
@@ -205,7 +205,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        build(immediate)
         setTaValueUpdate(!taValueUpdate)
     }
 
@@ -218,13 +217,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        build(true)
         setTaValueUpdate(!taValueUpdate)
     }
 
     fun redo() {
         props.archState.component1().getState().edit()
-
 
         props.archState.component1().getFileHandler().redoCurr()
         textareaRef.current?.let {
@@ -232,7 +229,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
 
         preHighlight()
-        build(true)
         setTaValueUpdate(!taValueUpdate)
     }
 
@@ -379,7 +375,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         src = StyleAttr.Icons.build
                     }
                     onClick = {
-                        build(true)
+                        build()
                     }
                 }
             }
@@ -440,7 +436,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     }
 
                     onClick = {
-                        edit("", false)
+                        edit("")
                     }
                 }
 
@@ -585,7 +581,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         val response = window.confirm("Do you really want to delete the file '${file.getName()}'?\nThis can't be undone!")
                                         if (response) {
                                             props.archState.component1().getFileHandler().remove(file)
-                                            edit(props.archState.component1().getFileHandler().getCurrContent(), false)
+                                            edit(props.archState.component1().getFileHandler().getCurrContent())
                                             setShowAddTab(false)
                                             setTaValueUpdate(!taValueUpdate)
                                         }
@@ -602,7 +598,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                     onClick = {
                                         props.archState.component1().getFileHandler().setCurrent(fileID)
-                                        edit(props.archState.component1().getFileHandler().getCurrContent(), false)
+                                        edit(props.archState.component1().getFileHandler().getCurrContent())
                                         setShowAddTab(false)
                                         setTaValueUpdate(!taValueUpdate)
                                     }
@@ -630,7 +626,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         input?.let {
                                             val success = props.archState.component1().getFileHandler().import(FileHandler.File(it.value, ""))
                                             if (success) {
-                                                edit(props.archState.component1().getFileHandler().getCurrContent(), false)
+                                                edit(props.archState.component1().getFileHandler().getCurrContent())
                                                 setTaValueUpdate(!taValueUpdate)
                                                 setShowAddTab(false)
                                             } else {
@@ -652,7 +648,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     input?.let {
                                         val success = props.archState.component1().getFileHandler().import(FileHandler.File(it.value, ""))
                                         if (success) {
-                                            edit(props.archState.component1().getFileHandler().getCurrContent(), false)
+                                            edit(props.archState.component1().getFileHandler().getCurrContent())
                                             setTaValueUpdate(!taValueUpdate)
                                             setShowAddTab(false)
                                         } else {
@@ -766,7 +762,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             }
 
                             onChange = { event ->
-                                edit(event.currentTarget.value, false)
+                                edit(event.currentTarget.value)
                             }
 
                             onKeyDown = { event ->
@@ -782,7 +778,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         it.selectionEnd = end + 1
 
                                         event.preventDefault()
-                                        edit(event.currentTarget.value, false)
+                                        edit(event.currentTarget.value)
                                     }
                                 }
 
@@ -794,11 +790,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                 if (event.ctrlKey && event.key == "s") {
                                     event.preventDefault()
-                                    build(true)
+                                    build()
                                 }
 
                                 if (event.key == "Enter") {
-                                    edit(event.currentTarget.value, false)
+                                    edit(event.currentTarget.value)
                                 }
 
                                 if (event.ctrlKey && event.altKey && event.key == "l") {
@@ -817,7 +813,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                                     val formatted = lines.joinToString("\n") { it }
                                     event.currentTarget.value = formatted
-                                    edit(formatted, false)
+                                    edit(formatted)
                                 }
                             }
                         }
@@ -885,7 +881,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         setFiles(props.archState.component1().getFileHandler().getAllFiles())
         textareaRef.current?.let {
             it.value = props.archState.component1().getFileHandler().getCurrContent()
-            edit(it.value, false)
+            edit(it.value)
         }
     }
 

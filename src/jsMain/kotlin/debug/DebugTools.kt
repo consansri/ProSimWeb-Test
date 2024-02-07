@@ -112,6 +112,8 @@ object DebugTools {
     const val KIT_showValDecToolsCalculations = false
     const val KIT_showValDecToolsCalculationDetails = false
 
+
+
     /**
      * **KIT types**
      *
@@ -163,7 +165,5 @@ object DebugTools {
      */
 
     const val REACT_showUpdateInfo = false
-    const val REACT_deactivateAutomaticBuilds = true
-
 
 }
