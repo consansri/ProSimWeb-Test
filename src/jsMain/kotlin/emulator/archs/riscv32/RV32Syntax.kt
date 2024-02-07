@@ -1268,7 +1268,7 @@ class RV32Syntax : Syntax() {
                     val imm12 = paramMap[RV32BinMapper.MaskLabel.IMM12]
                     val pc = arch.getRegContainer().pc
                     if (rd != null && imm12 != null && rs1 != null) {
-                        val paddedImm64 = imm12.getUResized(RV32.XLEN)
+                        val paddedImm64 = imm12.getResized(RV32.XLEN)
                         rd.set(rs1.get().toBin() xor paddedImm64)
                         pc.set(pc.get() + Hex("4"))
                     }
@@ -1286,7 +1286,7 @@ class RV32Syntax : Syntax() {
                     val imm12 = paramMap[RV32BinMapper.MaskLabel.IMM12]
                     val pc = arch.getRegContainer().pc
                     if (rd != null && imm12 != null && rs1 != null) {
-                        val paddedImm64 = imm12.getUResized(RV32.XLEN)
+                        val paddedImm64 = imm12.getResized(RV32.XLEN)
                         rd.set(rs1.get().toBin() or paddedImm64)
                         pc.set(pc.get() + Hex("4"))
                     }
@@ -1304,7 +1304,7 @@ class RV32Syntax : Syntax() {
                     val imm12 = paramMap[RV32BinMapper.MaskLabel.IMM12]
                     val pc = arch.getRegContainer().pc
                     if (rd != null && imm12 != null && rs1 != null) {
-                        val paddedImm64 = imm12.getUResized(RV32.XLEN)
+                        val paddedImm64 = imm12.getResized(RV32.XLEN)
                         rd.set(rs1.get().toBin() and paddedImm64)
                         pc.set(pc.get() + Hex("4"))
                     }
