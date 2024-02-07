@@ -12,6 +12,8 @@ import emulator.kit.types.Variable.Value.*
 
 data object IKRMini {
 
+    val WORDSIZE = Bit16()
+
 
     val descr = Config.Description(
         "IKR Mini",
@@ -24,16 +26,17 @@ data object IKRMini {
             listOf(
                 RegContainer.RegisterFile(
                     "common", arrayOf(
-                        RegContainer.Register(Hex("0", Bit3()), listOf("AA"), listOf(), Variable("0", Bit16()), description = "Operand to address memory"),
-                        RegContainer.Register(Hex("1", Bit3()), listOf("IR"), listOf(), Variable("0", Bit16()), description = "Instruction Register"),
-                        RegContainer.Register(Hex("2", Bit3()), listOf("MX"), listOf(), Variable("0", Bit16()), description = "Operand for ALU and PC"),
-                        RegContainer.Register(Hex("3", Bit3()), listOf("AC"), listOf(), Variable("0", Bit16()), description = "Accumulator"),
+                        RegContainer.Register(Hex("0", Bit3()), listOf("AA"), listOf(), Variable("0", WORDSIZE), description = "Operand to address memory"),
+                        RegContainer.Register(Hex("1", Bit3()), listOf("IR"), listOf(), Variable("0", WORDSIZE), description = "Instruction Register"),
+                        RegContainer.Register(Hex("2", Bit3()), listOf("MX"), listOf(), Variable("0", WORDSIZE), description = "Operand for ALU and PC"),
+                        RegContainer.Register(Hex("3", Bit3()), listOf("AC"), listOf(), Variable("0", WORDSIZE), description = "Accumulator"),
+                        RegContainer.Register(Hex("4", Bit3()), listOf("NZVC"), listOf(), Variable("0", Bit4()), description = "NZVC ALU flags")
                     )
                 )
             ),
-            Bit16(),
+            WORDSIZE,
             "common"
-        ), Memory(Bit16(), "0", Bit16(), Memory.Endianess.BigEndian)
+        ), Memory(WORDSIZE, "0", WORDSIZE, Memory.Endianess.BigEndian)
     )
 
     val asmConfig = AsmConfig(IKRMiniSyntax(), IKRMiniAssembly(), false)
