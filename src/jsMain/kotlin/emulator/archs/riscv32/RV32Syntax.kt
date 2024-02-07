@@ -18,7 +18,7 @@ class RV32Syntax : Syntax() {
     override val applyStandardHLForRest: Boolean = false
     override fun clear() {}
 
-    override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, tokenLines: List<List<Compiler.Token>>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
         val remainingTokens = tokens.toMutableList()
 
         val errors = mutableListOf<Error>()

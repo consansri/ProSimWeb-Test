@@ -31,7 +31,6 @@ class T6502Syntax : Syntax() {
         arch: Architecture,
         compiler: Compiler,
         tokens: List<Compiler.Token>,
-        tokenLines: List<List<Compiler.Token>>,
         others: List<FileHandler.File>,
         transcript: Transcript
     ): SyntaxTree {

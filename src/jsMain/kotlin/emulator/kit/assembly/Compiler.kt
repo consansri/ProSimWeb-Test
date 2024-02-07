@@ -299,7 +299,6 @@ class Compiler(
             architecture,
             this,
             tokenList,
-            tokenList.groupBy { token -> token.lineLoc.lineID }.map { group -> group.value.filter { it !is Token.NewLine } },
             architecture.getFileHandler().getAllFiles().filter { it != architecture.getFileHandler().getCurrent() },
             architecture.getTranscript()
         )
