@@ -1129,6 +1129,7 @@ class Variable {
         class Original(bitWidth: Int) : Size("original", bitWidth)
         class Bit1 : Size("1 Bit", 1)
         class Bit3 : Size("3 Bit", 3)
+        class Bit4 : Size("4 Bit", 4)
         class Bit5 : Size("5 Bit", 5)
         class Bit6 : Size("6 Bit", 6)
         class Bit7 : Size("7 Bit", 7)
@@ -1205,6 +1206,13 @@ class Variable {
                     this.max = "3"
                     this.umin = "0"
                     this.umax = "7"
+                }
+
+                is Size.Bit4 -> {
+                    this.min = "-8"
+                    this.max = "7"
+                    this.umin = "0"
+                    this.umax = "15"
                 }
 
                 is Size.Bit5 -> {
