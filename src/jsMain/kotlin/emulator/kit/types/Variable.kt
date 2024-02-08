@@ -489,6 +489,11 @@ class Variable {
                 return Hex(getRawHexStr(), size)
             }
 
+            fun splitToByteArray(): Array<Hex> {
+                val paddedString = if (this.getRawHexStr().length % 2 == 0) this.getRawHexStr() else this.getRawHexStr().padStart(this.getRawHexStr().length + 1, '0')
+                return paddedString.chunked(2).map { Hex(it, Size.Bit8()) }.toTypedArray()
+            }
+
             override fun check(string: String, size: Size): CheckResult {
                 var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.hexChars, '0').uppercase()
                 val message: String
@@ -805,7 +810,7 @@ class Variable {
                 return Conversion.getASCII(this)
             }
 
-            fun toIntOrNull(): Int?{
+            fun toIntOrNull(): Int? {
                 return getRawUDecStr().toIntOrNull()
             }
 
@@ -1138,6 +1143,7 @@ class Variable {
         class Bit12 : Size("12 Bit", 12)
         class Bit16 : Size("16 Bit", 16)
         class Bit20 : Size("20 Bit", 20)
+        class Bit24 : Size("24 Bit", 24)
         class Bit28 : Size("28 Bit", 28)
         class Bit32 : Size("32 Bit", 32)
         class Bit40 : Size("40 Bit", 40)
@@ -1255,6 +1261,13 @@ class Variable {
                     this.max = "524287"
                     this.umin = "0"
                     this.umax = "1048575"
+                }
+
+                is Size.Bit24 -> {
+                    this.min = "-8388608"
+                    this.max = "8388607"
+                    this.umin = "0"
+                    this.umax = "16777215"
                 }
 
                 is Size.Bit28 -> {

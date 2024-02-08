@@ -443,6 +443,12 @@ abstract class Syntax {
                 }
             }
 
+            class WordOrSpecConst(val mustMatchSize: Variable.Size) : Component(){
+                override fun matches(token: Compiler.Token): Boolean {
+                    return token is Compiler.Token.Word || (token is Compiler.Token.Constant && token.getValue(mustMatchSize).checkResult.valid)
+                }
+            }
+
             sealed class InSpecific : Component() {
 
                 data object Symbol : InSpecific() {

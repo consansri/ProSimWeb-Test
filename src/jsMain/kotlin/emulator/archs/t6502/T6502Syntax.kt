@@ -2,9 +2,6 @@ package emulator.archs.t6502
 
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
-import emulator.kit.assembly.Syntax
-import emulator.kit.common.FileHandler
-import emulator.kit.common.Transcript
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.T6502Syntax.AModes.*
 import emulator.archs.t6502.T6502.BYTE_SIZE
@@ -12,7 +9,8 @@ import emulator.archs.t6502.T6502.WORD_SIZE
 import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembly.Syntax.TokenSeq.Component.Specific
 import emulator.kit.assembly.Syntax.TokenSeq.Component.SpecConst
-import emulator.kit.assembly.Syntax.TokenSeq.Component.RegOrSpecConst
+import emulator.kit.assembly.Syntax.TokenSeq.Component.WordOrSpecConst
+import emulator.kit.assembly.standards.StandardSyntax
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 
@@ -20,175 +18,70 @@ import emulator.kit.types.Variable.Size.*
  * T6502 Syntax
  *
  */
-class T6502Syntax : Syntax() {
-    override val applyStandardHLForRest: Boolean = false
+class T6502Syntax : StandardSyntax(T6502.MEM_ADDR_SIZE, commentStartSymbol = ';', instrParamsCanContainWordsBesideLabels = true) {
+    override fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): Boolean {
+        for (amode in AModes.entries) {
+            val amodeResult = amode.tokenSequence.matchStart(*this.toTypedArray())
 
-    override fun clear() {
-        // nothing to do here
-    }
+            if (amodeResult.matches) {
 
-    override fun check(
-        arch: Architecture,
-        compiler: Compiler,
-        tokens: List<Compiler.Token>,
-        others: List<FileHandler.File>,
-        transcript: Transcript
-    ): SyntaxTree {
+                val type = InstrType.entries.firstOrNull { it.name.uppercase() == amodeResult.sequenceMap[0].token.content.uppercase() } ?: return false
 
-        val remainingTokens = tokens.toMutableList()
+                if (!type.opCode.keys.contains(amode)) continue
 
-        // For Root Node
-        val errors: MutableList<Error> = mutableListOf()
-        val warnings: MutableList<Warning> = mutableListOf()
-
-        val preElements = mutableListOf<TreeNode.ElementNode>()
-
-        val elements = mutableListOf<TreeNode.ElementNode>()
-
-        // RESOLVE PRE ELEMENTS
-        remainingTokens.removeComments(preElements)
-
-        var errorCount = 0
-        // RESOLVE ELEMENTS
-        while (remainingTokens.isNotEmpty()) {
-            val tempFirstToken = remainingTokens.first()
-
-            // Skip Whitespaces
-            if (remainingTokens.first() is Compiler.Token.Space || remainingTokens.first() is Compiler.Token.NewLine) {
-                remainingTokens.removeFirst()
-                continue
-            }
-
-            // Resolve ESetPC
-            val eSetPC = getESetPC(remainingTokens, errors, warnings)
-            if (eSetPC != null) {
-                elements.add(eSetPC)
-                continue
-            }
-
-            // Resolve EInstr
-            val eInstr = getEInstr(remainingTokens, errors, warnings)
-            if (eInstr != null) {
+                val eInstr = T6502Instr(type, amode, parentLabel = currentLabel, nameToken = amodeResult.sequenceMap[0].token, params = amodeResult.sequenceMap.map { it.token }.drop(1))
                 elements.add(eInstr)
-                continue
-            }
-
-            // Resolve ELabel
-            val eLabel = getELabel(remainingTokens, errors, warnings)
-            if (eLabel != null) {
-                elements.add(eLabel)
-                continue
-            }
-
-            // Add first Token to errors if not already resolved
-            if (remainingTokens.first() == tempFirstToken) {
-                errors.add(Error("${remainingTokens.first()::class.simpleName} (${remainingTokens.first().content}) was not expected!", remainingTokens.removeFirst()))
-                ++errorCount
-                if (errorCount > 10) {
-                    break
+                eInstr.tokens.forEach {
+                    this.remove(it)
                 }
+                return true
             }
         }
-
-        remainingTokens.removeAll { it is Compiler.Token.Space || it is Compiler.Token.NewLine }
-        if (remainingTokens.isNotEmpty()) {
-            errors.add(Error("Faulty Syntax! Maybe watch some examples below the console!", *remainingTokens.toTypedArray()))
-        }
-
-        // Link Labels to Instructions
-        linkLabels(elements, errors, warnings)
-
-        return SyntaxTree(
-            TreeNode.RootNode(
-                errors,
-                warnings,
-                TreeNode.ContainerNode(NAMES.C_PRES, *preElements.toTypedArray()),
-                *getSections(elements, errors, warnings).toTypedArray()
-            )
-        )
+        return false
     }
 
-    private fun MutableList<Compiler.Token>.removeComments(preElements: MutableList<TreeNode.ElementNode>): MutableList<Compiler.Token> {
-        console.log(this.joinToString { it::class.simpleName.toString() })
-        while (true) {
-            val commentStart = this.firstOrNull { it.content == ";" } ?: break
-            val startIndex = this.indexOf(commentStart)
-            val commentEnd = this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
-            console.log("Comment End: ${commentEnd?.lineLoc}")
-            val endIndex = commentEnd?.let { this.indexOf(it) } ?: this.size
-
-            val commentTokens = this.subList(startIndex, endIndex).toList()
-            this.subList(startIndex, endIndex).clear()
-            preElements.add(PREComment(*commentTokens.toTypedArray()))
-        }
-        return this
-    }
-
-    data object Seqs {
-        val labelSeq = TokenSeq(Word, Specific(":"))
-        val setaddrSeq = TokenSeq(Specific("*"), Specific("="), Constant, ignoreSpaces = true)
-    }
-
-    data object NAMES {
-        const val PRE_COMMENT = "comment"
-
-        const val E_INSTR = "e_instr"
-        const val E_LABEL = "e_label"
-        const val E_SETADDR = "e_setaddr"
-
-        const val S_TEXT = "text"
-
-        const val C_PRES = "pre"
-    }
 
     /**
      * Addressing Modes
      * IMPORTANT: The order of the enums determines the order in which the modes will be checked!
      */
-    enum class AModes(val tokenSequence: TokenSeq, val immSize: Variable.Size? = null, val hasLabelVariant: AModes? = null, val exampleString: String, val description: String) {
+    enum class AModes(val tokenSequence: TokenSeq, val byteAmount: Int, val exampleString: String, val description: String) {
 
-        ZP_X(TokenSeq(Word, Space, Constant, Specific(","), Specific("X"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
-        ZP_Y(TokenSeq(Word, Space, Constant, Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00, Y", description = "zeropage, Y-indexed"), // Zero Page Indexed with Y: zp,y
+        ZP_X(TokenSeq(Word, Space, SpecConst(BYTE_SIZE), Specific(","), Specific("X"), NewLine, ignoreSpaces = true), 2, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
+        ZP_Y(TokenSeq(Word, Space, SpecConst(BYTE_SIZE), Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), 2, exampleString = "$00, Y", description = "zeropage, Y-indexed"), // Zero Page Indexed with Y: zp,y
 
-        ABS_X_LBLD(TokenSeq(Word, Space, Word, Specific(","), Specific("X"), NewLine, ignoreSpaces = true), exampleString = "[labelname], X", description = "absolute (from label), X-indexed"),
-        ABS_Y_LBLD(TokenSeq(Word, Space, Word, Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), exampleString = "[labelname], Y", description = "absolute (from label), Y-indexed"),
+        ABS_X(TokenSeq(Word, Space, WordOrSpecConst(WORD_SIZE), Specific(","), Specific("X"), NewLine, ignoreSpaces = true), 3, exampleString = "$0000, X", description = "absolute, X-indexed"), // Absolute Indexed with X: a,x
+        ABS_Y(TokenSeq(Word, Space, WordOrSpecConst(WORD_SIZE), Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), 3, exampleString = "$0000, Y", description = "absolute, Y-indexed"), // Absolute Indexed with Y: a,y
+        ZP_X_IND(TokenSeq(Word, Space, Specific("("), SpecConst(BYTE_SIZE), Specific(","), Specific("X"), Specific(")"), NewLine, ignoreSpaces = true), 2, exampleString = "($00, X)", description = "X-indexed, indirect"), // Zero Page Indexed Indirect: (zp,x)
 
-        ABS_X(TokenSeq(Word, Space, Constant, Specific(","), Specific("X"), NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_X_LBLD, exampleString = "$0000, X", description = "absolute, X-indexed"), // Absolute Indexed with X: a,x
-        ABS_Y(TokenSeq(Word, Space, Constant, Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_Y_LBLD, exampleString = "$0000, Y", description = "absolute, Y-indexed"), // Absolute Indexed with Y: a,y
-        ZP_X_IND(TokenSeq(Word, Space, Specific("("), Constant, Specific(","), Specific("X"), Specific(")"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "($00, X)", description = "X-indexed, indirect"), // Zero Page Indexed Indirect: (zp,x)
+        ZPIND_Y(TokenSeq(Word, Space, Specific("("), SpecConst(BYTE_SIZE), Specific(")"), Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), 2, exampleString = "($00), Y", description = "indirect, Y-indexed"), // Zero Page Indirect Indexed with Y: (zp),y
 
-        ZPIND_Y(TokenSeq(Word, Space, Specific("("), Constant, Specific(")"), Specific(","), Specific("Y"), NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "($00), Y", description = "indirect, Y-indexed"), // Zero Page Indirect Indexed with Y: (zp),y
+        IND(TokenSeq(Word, Space, Specific("("), WordOrSpecConst(WORD_SIZE), Specific(")"), NewLine, ignoreSpaces = true), 3, exampleString = "($0000)", description = "indirect"), // Absolute Indirect: (a)
 
-        IND_LBLD(TokenSeq(Word, Space, Specific("("), Word, Specific(")"), NewLine, ignoreSpaces = true), exampleString = "([labelname])", description = "indirect (from label)"),
-        IND(TokenSeq(Word, Space, Specific("("), Constant, Specific(")"), NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = IND_LBLD, exampleString = "($0000)", description = "indirect"), // Absolute Indirect: (a)
+        ACCUMULATOR(TokenSeq(Word, Space, Specific("A"), NewLine, ignoreSpaces = true), 1, exampleString = "A", description = "Accumulator"), // Accumulator: A
+        IMM(TokenSeq(Word, Space, Specific("#"), SpecConst(BYTE_SIZE), NewLine, ignoreSpaces = true), 2, exampleString = "#$00", description = "immediate"), // Immediate: #
+        REL(TokenSeq(Word, Space, SpecConst(BYTE_SIZE), NewLine, ignoreSpaces = true), 2, exampleString = "$00", description = "relative"), // Relative: r
+        ZP(TokenSeq(Word, Space, SpecConst(BYTE_SIZE), NewLine, ignoreSpaces = true), 2, exampleString = "$00", description = "zeropage"), // Zero Page: zp
+        ABS(TokenSeq(Word, Space, WordOrSpecConst(WORD_SIZE), NewLine, ignoreSpaces = true), 3, exampleString = "$0000", description = "absolute"), // Absolute: a
 
-        ACCUMULATOR(TokenSeq(Word, Space, Specific("A"), NewLine, ignoreSpaces = true), exampleString = "A", description = "Accumulator"), // Accumulator: A
-        IMM(TokenSeq(Word, Space, Specific("#"), Constant, NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "#$00", description = "immediate"), // Immediate: #
-        REL(TokenSeq(Word, Space, Constant, NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "relative"), // Relative: r
-        ZP(TokenSeq(Word, Space, Constant, NewLine, ignoreSpaces = true), immSize = BYTE_SIZE, exampleString = "$00", description = "zeropage"), // Zero Page: zp
-        ABS_LBLD(TokenSeq(Word, Space, Word, NewLine, ignoreSpaces = true), exampleString = "[labelname]", description = "absolute (from label)"),
-        ABS(TokenSeq(Word, Space, Constant, NewLine, ignoreSpaces = true), immSize = WORD_SIZE, hasLabelVariant = ABS_LBLD, exampleString = "$0000", description = "absolute"), // Absolute: a
+        IMPLIED(TokenSeq(Word, NewLine, ignoreSpaces = true), 1, exampleString = "", description = "implied"); // Implied: i
 
-        IMPLIED(TokenSeq(Word, NewLine, ignoreSpaces = true), exampleString = "", description = "implied"); // Implied: i
-
-        fun getString(nextByte: Hex, nextWord: Hex, labelName: String? = null): String {
+        fun getString(threeByte: Array<Bin>): String {
+            val smallVal = threeByte.get(1).toHex().getRawHexStr()
+            val bigVal = threeByte.drop(1).joinToString("") { it.toHex().getRawHexStr() }
             return when (this) {
-                ZP_X -> "$${nextByte.getRawHexStr()}, X"
-                ZP_Y -> "$${nextByte.getRawHexStr()}, Y"
-                ABS_X_LBLD -> "$labelName, X"
-                ABS_Y_LBLD -> "$labelName, Y"
-                ABS_X -> "$${nextWord.getRawHexStr()}, X"
-                ABS_Y -> "$${nextWord.getRawHexStr()}, Y"
-                ZP_X_IND -> "($${nextByte.getRawHexStr()}, X)"
-                ZPIND_Y -> "($${nextByte.getRawHexStr()}), Y"
-                IND_LBLD -> "($labelName)"
-                IND -> "(${nextWord.getRawHexStr()})"
+                ZP_X -> "$${smallVal}, X"
+                ZP_Y -> "$${smallVal}, Y"
+                ABS_X -> "$${bigVal}, X"
+                ABS_Y -> "$${bigVal}, Y"
+                ZP_X_IND -> "($${smallVal}, X)"
+                ZPIND_Y -> "($${smallVal}), Y"
+                IND -> "(${bigVal})"
                 ACCUMULATOR -> "A"
-                IMM -> "#$${nextByte.getRawHexStr()}"
-                REL -> "$${nextByte.getRawHexStr()}"
-                ZP -> "$${nextByte.getRawHexStr()}"
-                ABS_LBLD -> "$labelName"
-                ABS -> "$${nextWord.getRawHexStr()}"
+                IMM -> "#$${smallVal}"
+                REL -> "$${smallVal}"
+                ZP -> "$${smallVal}"
+                ABS -> "$${bigVal}"
                 IMPLIED -> ""
             }
         }
@@ -282,7 +175,10 @@ class T6502Syntax : Syntax() {
         BIT(mapOf(ABS to Hex("2C", BYTE_SIZE), IMM to Hex("89", BYTE_SIZE), ZP to Hex("24", BYTE_SIZE)), "bit test"),
         NOP(mapOf(IMPLIED to Hex("EA", BYTE_SIZE)), "no operation");
 
-        fun execute(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex) {
+        fun execute(arch: Architecture, amode: AModes, threeBytes: Array<Bin>) {
+
+            val smallVal = threeBytes.drop(1).first().toHex()
+            val bigVal = Hex(threeBytes.drop(1).joinToString("") { it.toHex().getRawHexStr() }, WORD_SIZE)
 
             val flags = this.getFlags(arch)
             val pc = arch.getRegContainer().pc
@@ -296,8 +192,8 @@ class T6502Syntax : Syntax() {
                 arch.getConsole().error("Register missing!")
                 return
             }
-            val operand = this.getOperand(arch, amode, nextByte, nextWord)
-            val address = this.getAddress(arch, amode, nextByte, nextWord, x.get().toHex(), y.get().toHex())
+            val operand = this.getOperand(arch, amode, smallVal, bigVal)
+            val address = this.getAddress(arch, amode, smallVal, bigVal, x.get().toHex(), y.get().toHex())
 
             // EXECUTION TYPE SPECIFIC
             when (this) {
@@ -639,7 +535,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // Carry not clear
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -654,7 +550,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // Carry not set
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -669,7 +565,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // not zero
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -684,7 +580,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // not negative
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -699,7 +595,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // zero
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -714,7 +610,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // not positive
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -729,7 +625,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // overflow set
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -744,7 +640,7 @@ class T6502Syntax : Syntax() {
                         pc.set(operand)
                     } else {
                         // overflow clear
-                        val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                        val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                         arch.getRegContainer().pc.set(nextPC)
                     }
                 }
@@ -752,11 +648,11 @@ class T6502Syntax : Syntax() {
                 JMP -> {
                     when (amode) {
                         ABS -> {
-                            pc.set(nextWord)
+                            pc.set(bigVal)
                         }
 
                         IND -> {
-                            pc.set(Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.getMemory().load(nextWord).getRawBinStr(), WORD_SIZE))
+                            pc.set(Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.getMemory().load(bigVal).getRawBinStr(), WORD_SIZE))
                         }
 
                         else -> {}
@@ -764,10 +660,10 @@ class T6502Syntax : Syntax() {
                 }
 
                 JSR -> {
-                    val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                     arch.getMemory().store(sp.get().toBin().getUResized(WORD_SIZE) - Bin("1", WORD_SIZE), nextPC)
                     sp.set(sp.get().toBin() - Bin("10", BYTE_SIZE))
-                    pc.set(nextWord)
+                    pc.set(bigVal)
                 }
 
                 RTS -> {
@@ -778,7 +674,7 @@ class T6502Syntax : Syntax() {
 
                 BRK -> {
                     // Store Return Address
-                    val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                     arch.getMemory().store(sp.get().toBin().getUResized(WORD_SIZE) - Bin("1", WORD_SIZE), nextPC)
                     sp.set(sp.get().toBin() - Bin("10", BYTE_SIZE))
 
@@ -827,7 +723,7 @@ class T6502Syntax : Syntax() {
             when (this) {
                 LDA, LDX, LDY, STA, STX, STY, TAX, TAY, TSX, TXA, TXS, TYA, PHA, PHP, PLA, PLP, DEC, DEX, DEY, INC, INX, INY, ADC, SBC, AND, EOR, ORA, ASL, LSR, ROL, ROR, CLC, CLD, CLI, CLV, SEC, SED, SEI, CMP, CPX, CPY, BIT, NOP -> {
                     // Standard PC Increment
-                    val nextPC = pc.get() + if (amode.immSize == null) Hex("1", WORD_SIZE) else Hex((amode.immSize.getByteCount() + 1).toString(16), WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), WORD_SIZE)
                     arch.getRegContainer().pc.set(nextPC)
                 }
 
@@ -838,7 +734,7 @@ class T6502Syntax : Syntax() {
 
         }
 
-        private fun getOperand(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex): Hex? {
+        private fun getOperand(arch: Architecture, amode: AModes, smallVal: Hex, bigVal: Hex): Hex? {
             val pc = arch.getRegContainer().pc
             val ac = arch.getRegByName("AC")
             val x = arch.getRegByName("X")
@@ -850,50 +746,50 @@ class T6502Syntax : Syntax() {
 
             return when (amode) {
                 IMM -> {
-                    nextByte
+                    smallVal
                 }
 
                 ZP -> {
-                    arch.getMemory().load(Hex("00${nextByte.getRawHexStr()}", WORD_SIZE)).toHex()
+                    arch.getMemory().load(Hex("00${smallVal.getRawHexStr()}", WORD_SIZE)).toHex()
                 }
 
                 ZP_X -> {
-                    val addr = Hex("00${(nextByte + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
+                    val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
                     arch.getMemory().load(addr.toHex()).toHex()
                 }
 
                 ZP_Y -> {
-                    val addr = Hex("00${(nextByte + y.get()).toHex().getRawHexStr()}", WORD_SIZE)
+                    val addr = Hex("00${(smallVal + y.get()).toHex().getRawHexStr()}", WORD_SIZE)
                     arch.getMemory().load(addr.toHex()).toHex()
                 }
 
                 ABS -> {
-                    arch.getMemory().load(nextWord).toHex()
+                    arch.getMemory().load(bigVal).toHex()
                 }
 
                 ABS_X -> {
-                    val addr = nextWord + x.get().toHex()
+                    val addr = bigVal + x.get().toHex()
                     arch.getMemory().load(addr.toHex()).toHex()
                 }
 
                 ABS_Y -> {
-                    val addr = nextWord + y.get().toHex()
+                    val addr = bigVal + y.get().toHex()
                     arch.getMemory().load(addr.toHex()).toHex()
                 }
 
                 IND -> {
-                    val loadedAddr = arch.getMemory().load(nextWord).toHex()
+                    val loadedAddr = arch.getMemory().load(bigVal).toHex()
                     arch.getMemory().load(loadedAddr).toHex()
                 }
 
                 ZP_X_IND -> {
-                    val addr = Hex("00${(nextByte + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
+                    val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", WORD_SIZE)
                     val loadedAddr = arch.getMemory().load(addr.toHex()).toHex()
                     arch.getMemory().load(loadedAddr).toHex()
                 }
 
                 ZPIND_Y -> {
-                    val loadedAddr = arch.getMemory().load(Hex("00${nextByte.getRawHexStr()}", WORD_SIZE))
+                    val loadedAddr = arch.getMemory().load(Hex("00${smallVal.getRawHexStr()}", WORD_SIZE))
                     val incAddr = loadedAddr + y.get()
                     arch.getMemory().load(incAddr.toHex()).toHex()
                 }
@@ -903,23 +799,23 @@ class T6502Syntax : Syntax() {
                 }
 
                 REL -> {
-                    (pc.get() + nextByte.toBin().getResized(WORD_SIZE)).toHex()
+                    (pc.get() + smallVal.toBin().getResized(WORD_SIZE)).toHex()
                 }
 
                 else -> null
             }
         }
 
-        private fun getAddress(arch: Architecture, amode: AModes, nextByte: Hex, nextWord: Hex, x: Hex, y: Hex): Hex? {
+        private fun getAddress(arch: Architecture, amode: AModes, smallVal: Hex, bigVal: Hex, x: Hex, y: Hex): Hex? {
             return when (amode) {
-                ABS -> nextWord
-                ABS_X -> (nextWord + x.toBin().getResized(WORD_SIZE)).toHex()
-                ABS_Y -> (nextWord + y.toBin().getResized(WORD_SIZE)).toHex()
-                ZP -> Hex("00${nextByte.getRawHexStr()}", WORD_SIZE)
-                ZP_X -> Hex("00${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE)
-                ZP_Y -> Hex("00${(nextByte + y).toHex().getRawHexStr()}", WORD_SIZE)
-                ZP_X_IND -> arch.getMemory().load(Hex("00${(nextByte + x).toHex().getRawHexStr()}", WORD_SIZE), 2).toHex()
-                ZPIND_Y -> (arch.getMemory().load(Hex("00${nextByte.getRawHexStr()}", WORD_SIZE), 2) + y).toHex()
+                ABS -> bigVal
+                ABS_X -> (bigVal + x.toBin().getResized(WORD_SIZE)).toHex()
+                ABS_Y -> (bigVal + y.toBin().getResized(WORD_SIZE)).toHex()
+                ZP -> Hex("00${smallVal.getRawHexStr()}", WORD_SIZE)
+                ZP_X -> Hex("00${(smallVal + x).toHex().getRawHexStr()}", WORD_SIZE)
+                ZP_Y -> Hex("00${(smallVal + y).toHex().getRawHexStr()}", WORD_SIZE)
+                ZP_X_IND -> arch.getMemory().load(Hex("00${(smallVal + x).toHex().getRawHexStr()}", WORD_SIZE), 2).toHex()
+                ZPIND_Y -> (arch.getMemory().load(Hex("00${smallVal.getRawHexStr()}", WORD_SIZE), 2) + y).toHex()
                 else -> null
             }
         }
@@ -977,206 +873,68 @@ class T6502Syntax : Syntax() {
         }
     }
 
-    class PREComment(vararg tokens: Compiler.Token) :
-        TreeNode.ElementNode(ConnectedHL(T6502Flags.comment), NAMES.PRE_COMMENT, *tokens)
-
-
-    private fun getEInstr(remainingTokens: MutableList<Compiler.Token>, errors: MutableList<Error>, warnings: MutableList<Warning>): EInstr? {
-        for (amode in AModes.entries) {
-            val amodeResult = amode.tokenSequence.matchStart(*remainingTokens.toTypedArray())
-
-            if (amodeResult.matches) {
-                val type = InstrType.entries.firstOrNull { it.name.uppercase() == amodeResult.sequenceMap[0].token.content.uppercase() } ?: return null
-
-                val relAmode = type.opCode.keys.firstOrNull { it.hasLabelVariant == amode }
-
-                if (!type.opCode.keys.contains(amode) && !type.opCode.keys.mapNotNull { it.hasLabelVariant }.contains(amode)) continue
-                val imm = amode.immSize?.let { amodeResult.sequenceMap.map { it.token }.filterIsInstance<Compiler.Token.Constant>().firstOrNull() }
-
-                if (imm != null) {
-                    if (imm.getValue().size.bitWidth > amode.immSize.bitWidth) {
-                        continue
-                    }
-                }
-
-                val eInstr = when (amode) {
-                    ACCUMULATOR -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), regTokens = listOf(amodeResult.sequenceMap[2].token))
-                    }
-
-                    IMM -> {
-                        if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[2].token))
-                    }
-
-                    REL, ZP -> {
-                        if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token))
-                    }
-
-                    ZP_X, ZP_Y -> {
-                        if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
-                    }
-
-                    IND -> {
-                        if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token))
-                    }
-
-                    IND_LBLD -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), symbolTokens = listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token), labelLink = listOf(amodeResult.sequenceMap[3].token))
-                    }
-
-                    ABS -> {
-                        if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token))
-                    }
-
-                    ABS_LBLD -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), labelLink = listOf(amodeResult.sequenceMap[2].token))
-                    }
-
-                    ABS_X, ABS_Y -> {
-                        if (imm == null) continue
-                        EInstr(type, amode, relAmode, imm.getValue(amode.immSize), listOf(imm), listOf(amodeResult.sequenceMap[0].token), listOf(amodeResult.sequenceMap[3].token), listOf(amodeResult.sequenceMap[4].token))
-                    }
-
-                    ABS_X_LBLD, ABS_Y_LBLD -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token), symbolTokens = listOf(amodeResult.sequenceMap[3].token), regTokens = listOf(amodeResult.sequenceMap[4].token), labelLink = listOf(amodeResult.sequenceMap[2].token))
-                    }
-
-                    ZP_X_IND -> {
-                        if (imm == null) continue
-                        EInstr(
-                            type,
-                            amode,
-                            relAmode,
-                            imm.getValue(amode.immSize),
-                            constantToken = listOf(imm),
-                            nameTokens = listOf(amodeResult.sequenceMap[0].token),
-                            symbolTokens = listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[6].token),
-                            regTokens = listOf(amodeResult.sequenceMap[5].token)
-                        )
-                    }
-
-                    ZPIND_Y -> {
-                        if (imm == null) continue
-                        EInstr(
-                            type,
-                            amode,
-                            relAmode,
-                            imm.getValue(amode.immSize),
-                            constantToken = listOf(imm),
-                            nameTokens = listOf(amodeResult.sequenceMap[0].token),
-                            symbolTokens = listOf(amodeResult.sequenceMap[2].token, amodeResult.sequenceMap[4].token, amodeResult.sequenceMap[5].token),
-                            regTokens = listOf(amodeResult.sequenceMap[6].token)
-                        )
-                    }
-
-                    IMPLIED -> {
-                        EInstr(type, amode, relAmode, nameTokens = listOf(amodeResult.sequenceMap[0].token))
-                    }
-                }
-
-                remainingTokens.removeAll(eInstr.tokens.toSet())
-                return eInstr
-            }
-        }
-        return null
-    }
-
-    private fun getELabel(remainingTokens: MutableList<Compiler.Token>, errors: MutableList<Error>, warnings: MutableList<Warning>): ELabel? {
-        val labelResult = Seqs.labelSeq.matchStart(*remainingTokens.toTypedArray())
-        if (labelResult.matches) {
-            val tokens = labelResult.sequenceMap.map { it.token }
-            val name = tokens.joinToString("") { it.content }.removeSuffix(":")
-            if (InstrType.entries.firstOrNull { it.name.uppercase() == name.uppercase() } != null) {
-                errors.add(Error("Illegal label name!", *tokens.toTypedArray()))
-                remainingTokens.removeAll(tokens)
-                return null
-            }
-            val eLabel = ELabel(name, *tokens.toTypedArray())
-            remainingTokens.removeAll(tokens)
-            return eLabel
-        }
-        return null
-    }
-
-    private fun getESetPC(remainingTokens: MutableList<Compiler.Token>, errors: MutableList<Error>, warnings: MutableList<Warning>): ESetAddr? {
-        val setpcResult = Seqs.setaddrSeq.matchStart(*remainingTokens.toTypedArray())
-        if (setpcResult.matches) {
-            val tokens = setpcResult.sequenceMap.map { it.token }
-            val constantToken = tokens.firstOrNull { it is Compiler.Token.Constant } as Compiler.Token.Constant?
-
-            if (constantToken == null) {
-                warnings.add(Warning("Set PC value missing: *=[8Bit or 16Bit]", *tokens.toTypedArray()))
-                return null
-            }
-
-            val constant = constantToken.getValue(Bit16())
-            if (!constant.checkResult.valid) {
-                errors.add(Error("Immediate value is not 8 Bit or 16 Bit!", *tokens.toTypedArray()))
-                remainingTokens.removeAll(tokens)
-                return null
-            }
-
-            val eSetAddr = ESetAddr(constant, *tokens.toTypedArray())
-            remainingTokens.removeAll(tokens)
-            return eSetAddr
-        }
-        return null
-    }
-
-    private fun linkLabels(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>) {
-        val labels = elements.filterIsInstance<ELabel>()
-        val instrToLink = elements.filterIsInstance<EInstr>().filter { it.labelName != null }
-
-        for (instr in instrToLink) {
-            val matchingLabel = labels.firstOrNull { it.labelName == instr.labelName }
-            if (matchingLabel == null) {
-                elements.remove(instr)
-                errors.add(Error("${instr.labelName} couldn't get linked to any label!", instr))
-                continue
-            }
-
-            instr.linkedLabel = matchingLabel
-        }
-    }
-
-    private fun getSections(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): List<TreeNode.ContainerNode> {
-        return listOf(SText(*elements.toTypedArray()))
-    }
-
-    class EInstr(
-        val instrType: InstrType,
+    class T6502Instr(
+        val type: InstrType,
         val addressingMode: AModes,
-        amodeIsLabelVariantOf: AModes? = null,
-        val imm: Variable.Value? = null,
-        constantToken: List<Compiler.Token.Constant> = listOf(),
-        nameTokens: List<Compiler.Token> = listOf(),
-        symbolTokens: List<Compiler.Token> = listOf(),
-        regTokens: List<Compiler.Token> = listOf(),
-        labelLink: List<Compiler.Token> = listOf()
-    ) : TreeNode.ElementNode(
-        highlighting = T6502Flags.getInstrHL(nameTokens, symbolTokens, constantToken, regTokens, labelLink),
-        name = NAMES.E_INSTR,
-        *constantToken.toTypedArray(),
-        *nameTokens.toTypedArray(),
-        *labelLink.toTypedArray(),
-        *symbolTokens.toTypedArray(),
-        *regTokens.toTypedArray(),
+        parentLabel: ELabel?,
+        nameToken: Compiler.Token,
+        params: List<Compiler.Token>
+
+    ) : EInstr(
+        nameToken,
+        params,
+        parentLabel
     ) {
-        val labelName = if (labelLink.isNotEmpty()) labelLink.joinToString("") { it.content } else null
-        val opCodeRelevantAMode = amodeIsLabelVariantOf ?: addressingMode
-        var linkedLabel: ELabel? = null
+        fun getOpBin(arch: Architecture): Array<Hex> {
+            val opCode = type.opCode[addressingMode]
+            val addr = address
+            val lblAddr = linkedLabels.firstOrNull()?.address
+            if (opCode == null) {
+                arch.getConsole().error("Couldn't resolve opcode for the following combination: ${type.name} and ${addressingMode.name}")
+                return emptyArray()
+            }
+
+            val codeWithExt: Array<Hex> = when (addressingMode) {
+                ZP_X, ZP_Y, ZPIND_Y, ZP_X_IND, ZP, IMM -> {
+                    val const = this.constants.firstOrNull()
+                    if (const == null) {
+                        arch.getConsole().error("Missing imm for the following combination: ${type.name} and ${addressingMode.name}")
+                        return emptyArray()
+                    }
+                    arrayOf(opCode, const.getValue(BYTE_SIZE).toHex())
+                }
+
+                ABS_X, ABS_Y, ABS, IND -> {
+                    if (lblAddr != null) {
+                        arrayOf(opCode, *lblAddr.toHex().splitToByteArray())
+                    } else {
+                        val const = this.constants.firstOrNull()
+                        if (const == null) {
+                            arch.getConsole().error("Missing imm for the following combination: ${type.name} and ${addressingMode.name}")
+                            return emptyArray()
+                        }
+                        arrayOf(opCode, *const.getValue(WORD_SIZE).toHex().splitToByteArray())
+                    }
+                }
+
+                ACCUMULATOR, IMPLIED -> arrayOf(opCode)
+
+                REL -> {
+                    if (lblAddr != null && addr != null) {
+                        arrayOf(opCode, (addr.toHex() - lblAddr).toHex().getUResized(BYTE_SIZE))
+                    } else {
+                        val const = this.constants.firstOrNull()
+                        if (const == null) {
+                            arch.getConsole().error("Missing imm for the following combination: ${type.name} and ${addressingMode.name}")
+                            return emptyArray()
+                        }
+                        arrayOf(opCode, const.getValue(BYTE_SIZE).toHex())
+                    }
+                }
+            }
+            return codeWithExt
+        }
     }
-
-    class ELabel(val labelName: String, vararg tokens: Compiler.Token) : TreeNode.ElementNode(highlighting = ConnectedHL(T6502Flags.label), NAMES.E_LABEL, *tokens)
-
-    class ESetAddr(val value: Variable.Value, vararg tokens: Compiler.Token) : TreeNode.ElementNode(ConnectedHL(T6502Flags.setpc to tokens.filter { it !is Compiler.Token.Constant }, T6502Flags.constant to tokens.filterIsInstance<Compiler.Token.Constant>()), NAMES.E_SETADDR, *tokens)
-
-    class SText(vararg val elements: ElementNode) : TreeNode.ContainerNode(NAMES.S_TEXT, *elements)
 
     data class Flags(
         val n: Bin,

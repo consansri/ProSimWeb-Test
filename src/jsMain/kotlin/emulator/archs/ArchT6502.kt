@@ -19,13 +19,18 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
         val measuredTime = measureTimedValue {
             while (counter < 1000) {
                 val currentPC = getRegContainer().pc.get().toHex()
-                val opCode = getMemory().load(currentPC).toHex()
-                val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) } ?: break
-                val amode = instrType.opCode.map { it.value to it.key }.toMap()[opCode] ?: break
+                val threeBytes = getMemory().loadArray(currentPC, 3)
 
-                val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+                var paramType: T6502Syntax.AModes? = null
+                val instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                    paramType = type.opCode.entries.firstOrNull {
+                        threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
+                    }?.key
+                    paramType != null
+                } ?: break
+                val actualParamType = paramType ?: break
 
-                instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+                instrType.execute(this, actualParamType, threeBytes)
                 counter++
             }
         }
@@ -35,18 +40,17 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
     override fun exeSingleStep() {
         val measuredTime = measureTimedValue {
             val currentPC = getRegContainer().pc.get().toHex()
-            val opCode = getMemory().load(currentPC).toHex()
-            val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) }
-            val amode = instrType?.opCode?.map { it.value to it.key }?.toMap()?.get(opCode)
+            val threeBytes = getMemory().loadArray(currentPC, 3)
 
-            if (instrType == null || amode == null) {
-                getConsole().error("Couldn't resolve Instruction at Address ${currentPC}!")
-                return
-            }
+            var paramType: T6502Syntax.AModes? = null
+            val instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                paramType = type.opCode.entries.firstOrNull {threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
+                }?.key
+                paramType != null
+            } ?: return
+            val actualParamType = paramType ?: return
 
-            val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
-
-            instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+            instrType.execute(this, actualParamType, threeBytes)
         }
         getConsole().exeInfo("1 instruction in ${measuredTime.duration.inWholeMicroseconds}µs")
     }
@@ -56,13 +60,18 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
         val measuredTime = measureTimedValue {
             while (counter < steps) {
                 val currentPC = getRegContainer().pc.get().toHex()
-                val opCode = getMemory().load(currentPC).toHex()
-                val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) } ?: break
-                val amode = instrType.opCode.map { it.value to it.key }.toMap()[opCode] ?: break
+                val threeBytes = getMemory().loadArray(currentPC, 3)
 
-                val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+                var paramType: T6502Syntax.AModes? = null
+                val instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                    paramType = type.opCode.entries.firstOrNull {threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
 
-                instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+                    }?.key
+                    paramType != null
+                } ?: break
+                val actualParamType = paramType ?: break
+
+                instrType.execute(this, actualParamType, threeBytes)
                 counter++
             }
         }
@@ -73,27 +82,36 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
         var counter = 0
         val measureTimed = measureTimedValue {
             var currentPC = getRegContainer().pc.get().toHex()
-            var opCode = getMemory().load(currentPC).toHex()
-            var instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) } ?: return
-            var amode = instrType.opCode.map { it.value to it.key }.toMap()[opCode] ?: return
+            var threeBytes = getMemory().loadArray(currentPC, 3)
 
-            var extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+            var paramType: T6502Syntax.AModes? = null
+            var instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                paramType = type.opCode.entries.firstOrNull {threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
+                }?.key
+                paramType != null
+            }
 
             if (instrType == T6502Syntax.InstrType.JSR) {
                 while (counter < 1000) {
                     currentPC = getRegContainer().pc.get().toHex()
-                    opCode = getMemory().load(currentPC).toHex()
-                    instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) } ?: break
-                    amode = instrType.opCode.map { it.value to it.key }.toMap()[opCode] ?: break
+                    threeBytes = getMemory().loadArray(currentPC, 3)
 
-                    extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+                    instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                        paramType = type.opCode.entries.firstOrNull {
+                            threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
+                        }?.key
+                        paramType != null
+                    } ?: break
+                    val actualParamType = paramType ?: break
 
-                    instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+                    instrType.execute(this, actualParamType, threeBytes)
                     if (instrType == T6502Syntax.InstrType.RTS) break
                     counter++
                 }
             } else {
-                instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+                val actualParamType = paramType ?: return
+
+                instrType?.execute(this, actualParamType, threeBytes)
                 counter++
             }
         }
@@ -108,13 +126,18 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
         val measureTimed = measureTimedValue {
             while (counter < 1000) {
                 val currentPC = getRegContainer().pc.get().toHex()
-                val opCode = getMemory().load(currentPC).toHex()
-                val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) } ?: break
-                val amode = instrType.opCode.map { it.value to it.key }.toMap()[opCode] ?: break
+                val threeBytes = getMemory().loadArray(currentPC, 3)
 
-                val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+                var paramType: T6502Syntax.AModes? = null
+                val instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                    paramType = type.opCode.entries.firstOrNull {threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
 
-                instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+                    }?.key
+                    paramType != null
+                } ?: break
+                val actualParamType = paramType ?: break
+
+                instrType.execute(this, actualParamType,threeBytes)
                 if (instrType == T6502Syntax.InstrType.RTS) break
                 counter++
             }
@@ -143,16 +166,19 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
         val measureTimed = measureTimedValue {
             while (counter < 1000) {
                 val currentPC = getRegContainer().pc.get().toHex()
-
                 if (currentPC.getRawHexStr() == destAddrString) break
+                val threeBytes = getMemory().loadArray(currentPC, 3)
 
-                val opCode = getMemory().load(currentPC).toHex()
-                val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) } ?: break
-                val amode = instrType.opCode.map { it.value to it.key }.toMap()[opCode] ?: break
+                var paramType: T6502Syntax.AModes? = null
+                val instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                    paramType = type.opCode.entries.firstOrNull {threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
 
-                val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+                    }?.key
+                    paramType != null
+                } ?: break
+                val actualParamType = paramType ?: break
 
-                instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+                instrType.execute(this, actualParamType, threeBytes)
 
                 counter++
             }
@@ -168,14 +194,18 @@ class ArchT6502 : Architecture(T6502.config, T6502.asmConfig) {
                 val currentPC = getRegContainer().pc.get().toHex()
 
                 if (currentPC.getRawHexStr() == address.getRawHexStr()) break
+                val threeBytes = getMemory().loadArray(currentPC, 3)
 
-                val opCode = getMemory().load(currentPC).toHex()
-                val instrType = T6502Syntax.InstrType.entries.firstOrNull { it.opCode.values.contains(opCode) } ?: break
-                val amode = instrType.opCode.map { it.value to it.key }.toMap()[opCode] ?: break
+                var paramType: T6502Syntax.AModes? = null
+                val instrType = T6502Syntax.InstrType.entries.firstOrNull { type ->
+                    paramType = type.opCode.entries.firstOrNull {threeBytes.first().toHex().getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase()
 
-                val extAddr = (currentPC + Hex("1", T6502.MEM_ADDR_SIZE)).toHex()
+                    }?.key
+                    paramType != null
+                } ?: break
+                val actualParamType = paramType ?: break
 
-                instrType.execute(this, amode, getMemory().load(extAddr).toHex(), getMemory().load(extAddr, 2).toHex())
+                instrType.execute(this, actualParamType, threeBytes)
 
                 counter++
             }

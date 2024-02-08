@@ -1,5 +1,6 @@
 package emulator.archs.ikrmini
 
+import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
 import emulator.kit.common.FileHandler
 import emulator.kit.common.Memory
@@ -13,7 +14,9 @@ import emulator.kit.types.Variable.Value.*
 data object IKRMini {
 
 
+    val BYTESIZE = Bit8()
     val WORDSIZE = Bit16()
+    val INSTRWITHEXT = Bit32()
     val MEM_ADDRESS_WIDTH = WORDSIZE
 
     val descr = Config.Description(
@@ -37,10 +40,10 @@ data object IKRMini {
             ),
             WORDSIZE,
             "common"
-        ), Memory(WORDSIZE, "0", WORDSIZE, Memory.Endianess.BigEndian)
+        ), Memory(WORDSIZE, "0", BYTESIZE, Memory.Endianess.BigEndian)
     )
 
-    val asmConfig = AsmConfig(IKRMiniSyntax(), IKRMiniAssembly(), false)
+    val asmConfig = AsmConfig(IKRMiniSyntax(), IKRMiniAssembly(), false, numberSystemPrefixes = Compiler.ConstantPrefixes("$","%","","u"))
 
 
 }

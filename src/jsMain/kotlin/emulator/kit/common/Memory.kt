@@ -168,6 +168,16 @@ class Memory(
         return Variable.Value.Bin(instances.joinToString("") { it })
     }
 
+    fun loadArray(address: Variable.Value.Hex, amount: Int): Array<Variable.Value.Bin> {
+        val firstInstance = memList.firstOrNull { it.address.getRawHexStr() == address.toHex().getRawHexStr() }
+        val firstIndex = memList.indexOf(firstInstance)
+        val loaded = mutableListOf<Variable.Value.Bin>()
+        for (index in firstIndex..<firstIndex + amount) {
+            loaded.add(memList.getOrNull(index)?.variable?.value?.toBin() ?: Variable.Value.Bin("0", instanceSize))
+        }
+        return loaded.toTypedArray()
+    }
+
     fun clear() {
         this.memList.clear()
         resetEditSection()

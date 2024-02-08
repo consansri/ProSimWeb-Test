@@ -27,6 +27,10 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 li { +"KIT 6502 Technology in Preview!" }
                 li { +"REACT Editor shortcut CTRL + S to build the project!" }
                 li { +"REACT Switchable register view (either 2 independent views or one view with descriptions)!"}
+                li {+"""KIT There now is a standardized Assembler and Syntax implementation, which can but must not be used.
+                    |It provides features like imports, equs, macros, multiple sections (data, rodata, bss), labels, pc setter and global start definitions.
+                    |This simplifies the integration of new architectures and makes all features easily accessible for every architecture.
+                """.trimMargin()}
             }
             h3 { +"Changed" }
             ul {
