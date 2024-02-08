@@ -12,8 +12,9 @@ import emulator.kit.types.Variable.Value.*
 
 data object IKRMini {
 
-    val WORDSIZE = Bit16()
 
+    val WORDSIZE = Bit16()
+    val MEM_ADDRESS_WIDTH = WORDSIZE
 
     val descr = Config.Description(
         "IKR Mini",
