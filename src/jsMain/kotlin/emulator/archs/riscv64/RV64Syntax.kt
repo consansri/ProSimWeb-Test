@@ -311,6 +311,9 @@ class RV64Syntax : Syntax() {
         return this
     }
 
+    /**
+     * Resolves other file imports
+     */
     private fun MutableList<Compiler.Token>.resolveImports(preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<FileHandler.File>): MutableList<Compiler.Token> {
         val tokenBuffer = this.toMutableList()
         while (tokenBuffer.isNotEmpty()) {
@@ -368,6 +371,9 @@ class RV64Syntax : Syntax() {
         return this
     }
 
+    /**
+     * Checks beginning for data
+     */
     private fun MutableList<Compiler.Token>.checkData(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): Boolean {
         for (dirType in DirType.entries.filter { it.dirMajType == DirMajType.DE_ALIGNED || it.dirMajType == DirMajType.DE_UNALIGNED }) {
             val result = dirType.tokenSeq.matchStart(*this.toTypedArray())
@@ -412,6 +418,9 @@ class RV64Syntax : Syntax() {
         return false
     }
 
+    /**
+     * Checks beginning for a label
+     */
     private fun MutableList<Compiler.Token>.checkLabel(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): ELabel? {
 
         val labelMatch = Seqs.SeqLabel.matchStart(*this.toTypedArray())
@@ -432,6 +441,9 @@ class RV64Syntax : Syntax() {
         return null
     }
 
+    /**
+     * Checks beginning for a Instruction
+     */
     private fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): Boolean {
         for (paramType in ParamType.entries) {
             val result = paramType.tokenSeq.matchStart(*this.toTypedArray())
@@ -453,6 +465,9 @@ class RV64Syntax : Syntax() {
         return false
     }
 
+    /**
+     * Checks beginning for a section start
+     */
     private fun MutableList<Compiler.Token>.checkSecDir(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): Boolean {
         for (dir in DirType.entries.filter { it.dirMajType == DirMajType.SECTIONSTART }) {
             val result = dir.tokenSeq.matchStart(*this.toTypedArray())
@@ -466,6 +481,9 @@ class RV64Syntax : Syntax() {
         return false
     }
 
+    /**
+     * Checks beginning for other assembler information
+     */
     private fun MutableList<Compiler.Token>.checkAsmInfo(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): Boolean {
         val globalResult = DirType.GLOBAL.tokenSeq.matchStart(*this.toTypedArray())
         val globlResult = DirType.GLOBL.tokenSeq.matchStart(*this.toTypedArray())
@@ -491,6 +509,9 @@ class RV64Syntax : Syntax() {
         return false
     }
 
+    /**
+     * Links all labels
+     */
     private fun MutableList<TreeNode.ElementNode>.linkLabels(sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>) {
         val allElements = sections.flatMap { it.collNodes.toList().map { element -> element as TreeNode.ElementNode } } + this.toList()
         val labels = allElements.filterIsInstance<ELabel>().toMutableList()
@@ -527,6 +548,9 @@ class RV64Syntax : Syntax() {
         }
     }
 
+    /**
+     * Bundles the nodes to sections
+     */
     private fun MutableList<TreeNode.ElementNode>.bundleSections(sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>): MutableList<TreeNode.ElementNode> {
         var currSecStart: ESecStart? = null
         val content = mutableListOf<TreeNode.ElementNode>()
