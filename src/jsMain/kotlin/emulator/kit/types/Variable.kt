@@ -343,10 +343,22 @@ class Variable {
                 return Bin(result, biggerSize)
             }
 
+            fun detailedPlus(operand: Value): AddResult {
+                val result = BinaryTools.addWithCarry(this.getRawBinStr(), operand.toBin().getRawBinStr())
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return AddResult(Bin(result.result, biggerSize),result.carry == '1')
+            }
+
             override fun minus(operand: Value): Value {
                 val result = BinaryTools.sub(this.getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize)
+            }
+
+            fun detailedMinus(operand: Value): SubResult {
+                val result = BinaryTools.subWithBorrow(this.getRawBinStr(), operand.toBin().getRawBinStr())
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return SubResult(Bin(result.result, biggerSize), result.borrow == '1')
             }
 
             override fun times(operand: Value): Value {
@@ -433,6 +445,20 @@ class Variable {
             infix fun ushr(bitCount: Int): Bin {
                 val shiftedBinary = getRawBinStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, '0')
                 return Bin(shiftedBinary, size)
+            }
+
+            fun rotateLeft(bitCount: Int): Bin {
+                val normalizedShift = bitCount % getRawBinStr().length
+                val doubled = getRawBinStr() + getRawBinStr()
+                val rotatedBinStr = doubled.substring(normalizedShift, normalizedShift + getRawBinStr().length)
+                return Bin(rotatedBinStr, size)
+            }
+
+            fun rotateRight(bitCount: Int): Bin {
+                val normalizedShift = bitCount % getRawBinStr().length
+                val doubled = getRawBinStr() + getRawBinStr()
+                val rotatedBinStr = doubled.substring(getRawBinStr().length - normalizedShift, 2 * getRawBinStr().length - normalizedShift)
+                return Bin(rotatedBinStr, size)
             }
 
             infix fun xor(bin2: Bin): Bin {
@@ -1419,5 +1445,8 @@ class Variable {
     }
 
     data class CheckResult(val valid: Boolean, val corrected: String, val message: String = "")
+    data class AddResult(val result: Value.Bin, val carry: Boolean)
+    data class SubResult(val result: Value.Bin, val borrow: Boolean)
+
 
 }

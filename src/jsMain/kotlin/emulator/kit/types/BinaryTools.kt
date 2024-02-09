@@ -32,9 +32,7 @@ object BinaryTools {
         return checkEmpty(result)
     }
 
-    fun add(aBin: String, bBin: String): String {
-        return addWithCarry(aBin, bBin).result
-    }
+    fun add(aBin: String, bBin: String): String = addWithCarry(aBin, bBin).result
 
     fun addWithCarry(aBin: String, bBin: String): AdditionResult {
 
@@ -74,8 +72,9 @@ object BinaryTools {
         return AdditionResult(checkEmpty(result.trimStart('0')), carryChar)
     }
 
-    fun sub(aBin: String, bBin: String): String {
+    fun sub(aBin: String, bBin: String): String = subWithBorrow(aBin, bBin).result
 
+    fun subWithBorrow(aBin: String, bBin: String): SubtractionResult {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
 
@@ -143,7 +142,7 @@ object BinaryTools {
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
             console.info("BinaryTools: sub($a, $b) -> result: ${result.trimStart('0')} should be: ${(a.toLong(2) - b.toLong(2)).toString(2)}")
         }
-        return checkEmpty(result.trimStart('0'))
+        return SubtractionResult(checkEmpty(result.trimStart('0')), borrow)
     }
 
     fun multiply(aBin: String, bBin: String): String {
@@ -193,12 +192,12 @@ object BinaryTools {
             val aSign = a[0]
             val bSign = b[0]
 
-            val aAbs = if(aSign == '1') negotiate(a.substring(1)) else a.substring(1)
-            val bAbs = if(bSign == '1') negotiate(b.substring(1)) else b.substring(1)
+            val aAbs = if (aSign == '1') negotiate(a.substring(1)) else a.substring(1)
+            val bAbs = if (bSign == '1') negotiate(b.substring(1)) else b.substring(1)
 
             val unsignedResult = multiply(aAbs, bAbs)
             val resultSign = if (aSign == bSign || !unsignedResult.contains('1')) '0' else '1'
-            if(resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
+            if (resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
         } else {
             console.warn("BinaryTools: multiplication factor is empty!")
             "0"
@@ -216,7 +215,7 @@ object BinaryTools {
 
             val unsignedResult = multiply(aAbs, b)
             val resultSign = if (aSign == '0' || !unsignedResult.contains('1')) '0' else '1'
-            if(resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
+            if (resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
         } else {
             console.warn("BinaryTools: multiplication factor is empty!")
             "0"
@@ -404,7 +403,6 @@ object BinaryTools {
     }
 
     fun isEqual(aBin: String, bBin: String): Boolean {
-
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val b = bBin.trim().removePrefix(Settings.PRESTRING_BINARY)
         val maxLength = maxOf(a.length, b.length)
@@ -445,5 +443,6 @@ object BinaryTools {
     }
 
     data class AdditionResult(val result: String, val carry: Char)
+    data class SubtractionResult(val result: String, val borrow: Char)
     data class DivisionResult(val result: String, val remainder: String)
 }
