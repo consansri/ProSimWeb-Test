@@ -336,7 +336,7 @@ class T6502Syntax : StandardSyntax(T6502.MEM_ADDR_SIZE, commentStartSymbol = ';'
                     }
 
                     // Binary Add
-                    val binSumBit9 = ac.get().toBin() + operand + flags.c
+                    val binSumBit9 = ac.get().toBin().getUResized(Bit9()) + operand + flags.c
                     val sum = Bin(binSumBit9.toBin().getRawBinStr().substring(1), BYTE_SIZE)
                     val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1())
                     val operandBit0 = operand.toBin().getBit(0)

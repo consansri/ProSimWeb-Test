@@ -22,6 +22,7 @@ SCREEN:			;gets associated with this label
 ; normally this emulator starts execution at $600.	We messed up the
 ; counter, so we have to put it back.
 
+.globl BEGIN
 *=$600			;we messed with the counter, so set it back
 BEGIN:			;this is where execution starts
 

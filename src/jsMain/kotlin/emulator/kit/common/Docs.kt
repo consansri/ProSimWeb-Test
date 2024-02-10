@@ -25,12 +25,15 @@ class Docs(vararg htmlFiles: HtmlFile) {
             h3 { +"New" }
             ul {
                 li { +"KIT 6502 Technology in Preview!" }
+                li { +"KIT IKR Mini in Preview!" }
                 li { +"REACT Editor shortcut CTRL + S to build the project!" }
-                li { +"REACT Switchable register view (either 2 independent views or one view with descriptions)!"}
-                li {+"""KIT There now is a standardized Assembler and Syntax implementation, which can but must not be used.
+                li { +"REACT Switchable register view (either 2 independent views or one view with descriptions)!" }
+                li {
+                    +"""KIT There now is a standardized Assembler and Syntax implementation, which can but must not be used.
                     |It provides features like imports, equs, macros, multiple sections (data, rodata, bss), labels, pc setter and global start definitions.
                     |This simplifies the integration of new architectures and makes all features easily accessible for every architecture.
-                """.trimMargin()}
+                """.trimMargin()
+                }
             }
             h3 { +"Changed" }
             ul {
@@ -38,7 +41,7 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 li { +"KIT Automatic syntax checks replace old pre highlighting." }
                 li { +"GLOBAL Upgraded to Kotlin 1.9.22" }
                 li { +"KIT Rewrote RISC-V parser and assembler." }
-                li { +"KIT Direct syntax analysis on every change."}
+                li { +"KIT Direct syntax analysis on every change." }
                 li { +"KIT Compiler is more efficient and Lexer uses updated Tokens." }
             }
 

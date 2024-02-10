@@ -31,7 +31,6 @@ class IKRMiniAssembly : StandardAssembler(IKRMini.MEM_ADDRESS_WIDTH, IKRMini.WOR
 
         var paramType: IKRMiniSyntax.ParamType? = null
         val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { type ->
-            arch.getConsole().info("${opCode.toString()} -> ${type.name} search in ${type.paramMap.entries.joinToString(",") { it.value.toString() } }")
             paramType = type.paramMap.entries.firstOrNull { opCode.getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase() }?.key
             paramType != null
         }
