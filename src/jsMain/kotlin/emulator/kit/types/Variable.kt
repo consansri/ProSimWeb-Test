@@ -235,6 +235,11 @@ class Variable {
                 return Bin(paddedBinString, size)
             }
 
+            fun splitToByteArray(): Array<Bin> {
+                val paddedString = if (this.getRawBinStr().length % 8 == 0) this.getRawBinStr() else this.getRawBinStr().padStart(this.getRawBinStr().length + (8 - this.getRawBinStr().length % 8), '0')
+                return paddedString.chunked(8).map { Bin(it, Size.Bit8()) }.toTypedArray()
+            }
+
             /**
              * Returns null if Matches
              */
