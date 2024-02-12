@@ -23,7 +23,6 @@ class Docs(vararg htmlFiles: HtmlFile) {
             "/documents/user-manual.html"
         ),
         HtmlFile.DefinedFile("Version - ${Constants.VERSION}", FC<Props> {
-
             h2 { +"Version - 0.1.9" }
             h3 { +"New" }
             ul {
@@ -32,7 +31,7 @@ class Docs(vararg htmlFiles: HtmlFile) {
                 li { +"REACT Editor shortcut CTRL + S to build the project!" }
                 li { +"REACT Switchable register view (either 2 independent views or one view with descriptions)!" }
                 li {
-                    +"""KIT There now is a standardized Assembler and Syntax implementation, which can but must not be used.
+                    +"""KIT There now is a standardized Assembler and Syntax implementation, which can be used. (currently used by RV32, RV64, T6502 and IKR Mini)
                     |It provides features like imports, equs, macros, multiple sections (data, rodata, bss), labels, pc setter and global start definitions.
                     |This simplifies the integration of new architectures and makes all features easily accessible for every architecture.
                 """.trimMargin()
