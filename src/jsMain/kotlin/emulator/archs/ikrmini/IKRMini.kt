@@ -1,7 +1,5 @@
 package emulator.archs.ikrmini
 
-import emulator.archs.t6502.T6502
-import emulator.archs.t6502.T6502Syntax
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
 import emulator.kit.common.FileHandler
@@ -14,7 +12,6 @@ import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
 import react.FC
 import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.h2
 import web.cssom.ClassName
 
 data object IKRMini {
@@ -28,7 +25,7 @@ data object IKRMini {
     val descr = Config.Description(
         "IKR Mini",
         "IKR Minimalprozessor",
-        Docs(Docs.HtmlFile.DefinedFile("Implemented", FC {
+        Docs(usingStandard = true,Docs.HtmlFile.DefinedFile("Implemented", FC {
             ReactHTML.h1 {
                 +"IKR Mini Implemented"
             }

@@ -1,6 +1,5 @@
 package emulator.kit.common
 
-import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.assembly.standards.StandardSyntax
 import react.FC
 import react.Props
@@ -16,8 +15,8 @@ import react.dom.html.ReactHTML.ul
  * This class contains all documents which are partly supplied by specific architectures. There are two options to define a documentation file.
  * The first is by linking a source path to a specific html source file and the second is by directly defining a file as a React component, inwhich information can be generated directly from the implemented architecture.
  */
-class Docs(vararg htmlFiles: HtmlFile) {
-    var files = mutableListOf(
+class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
+    var files = (mutableListOf(
         HtmlFile.SourceFile(
             "User Manual",
             "/documents/user-manual.html"
@@ -227,30 +226,82 @@ class Docs(vararg htmlFiles: HtmlFile) {
             ul {
                 li { +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!""" }
             }
-        }),
-        HtmlFile.DefinedFile("Standard Syntax", FC{
-            ReactHTML.h2 {
-                +"Directives"
-            }
-
-            for (majorDir in StandardSyntax.DirMajType.entries) {
-                ReactHTML.strong {
-                    +majorDir.docName
-                }
-                ReactHTML.ul {
-                    for (dir in StandardSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
-                        ReactHTML.li { +".${dir.dirname}" }
-                    }
-                }
-            }
         })
-    )
+    ) + if(usingStandard) HtmlFile.DefinedFile("Standard Syntax", FC {
+        ReactHTML.h2 {
+            +"Directives"
+        }
+
+        for (majorDir in StandardSyntax.DirMajType.entries) {
+            ReactHTML.strong {
+                +majorDir.docName
+            }
+            ReactHTML.ul {
+                for (dir in StandardSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
+                    ReactHTML.li { +".${dir.dirname}" }
+                }
+            }
+        }
+
+        h2{
+            +"Example"
+        }
+
+        pre{
+            code{
+                +"""
+                    #import "anotherfile.s"
+
+                    # Important!
+                    # -> The symbol which indicates a comment is set by arch
+                    # -> The prefix of bin,hex,dec and udec is set by arch
+                    # -> Instruction Syntax is completely handled by arch
+
+                    .equ SOME_VALUE0, "This is a constant which will be written on address 0x0F04"
+
+                    .macro MACRO_NAME attr1, attr2
+                    	# some content insert attributes with leading '\'
+                    	# ex. "\attr1"
+                    .endm
+
+                    *=0xA000
+                    label_on_0xA000:
+                    .data
+                    			.byte 	(1 << 1)
+                    			.half 	(0xA000 >> 12)
+                    			.word 	(-10 * 0xFFFFFFFF)
+                    			.dword	0x0123456789ABCDEF
+                    			.asciz	'#'
+                    string: 	.string SOME_VALUE0
+
+                    *=0xA100
+                    byte_array:	.half 0, 1, 2, 3, (0b1 << 2), 5, (0xC / 2), 7,
+                    			8, 9, 10, 11, 12, 13, 14, 15,
+                    			16, 17, 18, (20 - 1), 20, 21, (20 + 2), 23
+
+                    *=0xB000
+                    .rodata
+                    	.string "This can't be overwritten!"
+
+                    *=0xC000
+                    .bss
+                    	.byte
+                    	.half
+                    	.half
+                    	.word
+
+                    .text
+
+                """.trimIndent()
+            }
+        }
+
+
+    }) else null).filterNotNull().toMutableList()
 
     init {
         files.addAll(htmlFiles)
     }
-
-    constructor() : this(*emptyArray<HtmlFile>())
 
     sealed class HtmlFile(val title: String) {
 

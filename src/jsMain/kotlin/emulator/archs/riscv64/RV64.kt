@@ -83,7 +83,7 @@ object RV64 {
     /**
      * RV64 Generated Documenation
      */
-    private val riscVDocs = Docs(
+    private val riscVDocs = Docs(usingStandard = true,
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
             "/documents/rv64/syntaxexamples.html"

@@ -708,32 +708,31 @@ class Compiler(
 
             class Calculated(lineLoc: LineLoc, val mode: MODE, val prefixes: ConstantPrefixes, val groupValues: MatchGroupCollection, val regexCollection: RegexCollection, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?): Variable.Value {
-                    val value1content = groupValues.get("val1")?.value
-                    val value2content = groupValues.get("val2")?.value
+                    val value1content = groupValues["val1"]?.value
+                    val value2content = groupValues["val2"]?.value
 
                     if (value1content == null || value2content == null) throw Error("Missing number for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
 
                     val value1 = getNumber(value1content, size, regexCollection) ?: throw Error("Missing number (value1 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
                     val value2 = getNumber(value2content, size, regexCollection) ?: throw Error("Missing number (value2 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
 
-                    when (mode) {
+                    return when (mode) {
                         MODE.SHIFTLEFT -> {
                             val int = value2.toDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
-                            return value1.toBin() shl int
+                            value1.toBin() shl int
                         }
 
                         MODE.SHIFTRIGHT -> {
                             val int = value2.toDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
-                            return value1.toBin() shr int
+                            value1.toBin() shr int
                         }
 
-                        MODE.ADD -> {
-                            return value1 + value2
-                        }
+                        MODE.ADD -> value1 + value2
 
-                        MODE.SUB -> {
-                            return value1 - value2
-                        }
+                        MODE.SUB -> value1 - value2
+
+                        MODE.MUL -> value1 * value2
+                        MODE.DIV -> value1 / value2
                     }
                 }
 
@@ -777,11 +776,13 @@ class Compiler(
                     SHIFTLEFT(Regex("""^\(\s*(?<val1>\S+)\s*<<\s*(?<val2>\S+)\s*\)""")),
                     SHIFTRIGHT(Regex("""^\(\s*(?<val1>\S+)\s*>>\s*(?<val2>\S+)\s*\)""")),
                     ADD(Regex("""^\(\s*(?<val1>\S+)\s*\+\s*(?<val2>\S+)\s*\)""")),
-                    SUB(Regex("""^\(\s*(?<val1>\S+)\s*-\s*(?<val2>\S+)\s*\)"""));
+                    SUB(Regex("""^\(\s*(?<val1>\S+)\s*-\s*(?<val2>\S+)\s*\)""")),
+                    MUL(Regex("""^\(\s*(?<val1>\S+)\s*\*\s*(?<val2>\S+)\s*\)""")),
+                    DIV(Regex("""^\(\s*(?<val1>\S+)\s*/\s*(?<val2>\S+)\s*\)"""));
 
                     fun getCalcToken(lineLoc: LineLoc, prefixes: ConstantPrefixes, groupValues: MatchGroupCollection, content: kotlin.String, id: Int, regexCollection: RegexCollection): Calculated? {
                         when (this) {
-                            SHIFTLEFT, SHIFTRIGHT, ADD, SUB -> {
+                            SHIFTLEFT, SHIFTRIGHT, ADD, SUB, MUL, DIV -> {
                                 val value1 = groupValues.get("val1")?.value
                                 val value2 = groupValues.get("val2")?.value
 

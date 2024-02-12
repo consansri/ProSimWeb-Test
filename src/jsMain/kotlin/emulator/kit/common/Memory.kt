@@ -41,19 +41,13 @@ class Memory(
 
     fun getEndianess(): Endianess = endianess
     fun store(address: Variable.Value, variable: Variable, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
-        // Little Endian
-        var wordList = variable.get().toHex().getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() }
-
-        if (endianess == Endianess.BigEndian) {
-            // Big Endian
-            wordList = wordList.reversed()
-        }
+        val bytes = if(endianess == Endianess.LittleEndian) variable.get().toHex().splitToByteArray().reversed() else variable.get().toHex().splitToByteArray().toList()
 
         val hexAddress = address.toHex()
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("saving...  ${variable.get().toHex().getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+            console.log("saving...  ${variable.get().toHex().getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")
         }
-        for (word in wordList) {
+        for (word in bytes) {
             val instance = memList.firstOrNull { it.address == hexAddress }
 
             if (instance != null) {
@@ -76,12 +70,7 @@ class Memory(
 
     fun storeArray(address: Variable.Value, vararg values: Variable.Value, mark: StyleAttr.Main.Table.Mark = StyleAttr.Main.Table.Mark.ELSE, readonly: Boolean = false) {
         // Little Endian
-        var wordList = values.map { value -> value.toHex().getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() } }.flatten()
-
-        if (endianess == Endianess.BigEndian) {
-            // Big Endian
-            wordList = wordList.reversed()
-        }
+        val wordList = values.flatMap { if(endianess == Endianess.LittleEndian ) it.toHex().splitToByteArray().reversed() else it.toHex().splitToByteArray().toList() }
 
         var hexAddress = address.toHex()
         if (DebugTools.KIT_showMemoryInfo) {
@@ -113,19 +102,13 @@ class Memory(
         val hexValue = value.toHex()
         var hexAddress = address.toHex()
 
-        // Little Endian
-        var wordList = hexValue.getRawHexStr().reversed().chunked(instanceSize.bitWidth / 4) { it.reversed() }
-
-        if (endianess == Endianess.BigEndian) {
-            // Big Endian
-            wordList = wordList.reversed()
-        }
+        val bytes = if(endianess == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
 
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $wordList to ${hexAddress.getRawHexStr()}")
+            console.log("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")
         }
 
-        for (word in wordList) {
+        for (word in bytes) {
             val instance = memList.firstOrNull { it.address.getRawHexStr() == hexAddress.getRawHexStr() }
             if (instance != null) {
                 if (!instance.readonly) {

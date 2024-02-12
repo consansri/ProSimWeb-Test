@@ -59,7 +59,7 @@ object T6502 {
     val description = Config.Description(
         "T6502",
         "MOS Technology 6502",
-        Docs(Docs.HtmlFile.DefinedFile("Implemented", FC {
+        Docs(usingStandard = true,Docs.HtmlFile.DefinedFile("Implemented", FC {
             ReactHTML.h1 {
                 +"6502 Implemented"
             }

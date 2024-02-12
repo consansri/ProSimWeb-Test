@@ -103,7 +103,7 @@ object RV32 {
         Z(false, "Reserved", invisible = true),
     }
 
-    private val riscVDocs = Docs(
+    private val riscVDocs = Docs(usingStandard = true,
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
             "/documents/rv32/syntaxexamples.html"
