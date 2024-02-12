@@ -21,7 +21,9 @@ object RV64 {
 
     private const val MEM_INIT: String = "0"
     private const val REG_INIT: String = "0"
+
     val XLEN: Variable.Size = Bit64()
+    val WORD_WIDTH: Variable.Size = Bit32()
     private val REG_VALUE_SIZE = XLEN
     private val REG_ADDRESS_SIZE = Bit5()
     private val CSR_REG_ADDRESS_SIZE = Bit12()
@@ -127,20 +129,7 @@ object RV64 {
                         }
                     }
                 }
-                ReactHTML.h2 {
-                    +"Directives"
-                }
 
-                for (majorDir in RV64Syntax.DirMajType.entries) {
-                    ReactHTML.strong {
-                        +majorDir.docName
-                    }
-                    ReactHTML.ul {
-                        for (dir in RV64Syntax.DirType.entries.filter { it.dirMajType == majorDir }) {
-                            ReactHTML.li { +".${dir.dirname}" }
-                        }
-                    }
-                }
                 ReactHTML.h2 {
                     +"Instructions"
                 }

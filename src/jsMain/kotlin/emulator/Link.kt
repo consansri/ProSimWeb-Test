@@ -1,9 +1,6 @@
 package emulator
 
-import emulator.archs.ArchIKRMini
-import emulator.archs.ArchRV32
-import emulator.archs.ArchRV64
-import emulator.archs.ArchT6502
+import emulator.archs.*
 import emulator.kit.Architecture
 
 /**

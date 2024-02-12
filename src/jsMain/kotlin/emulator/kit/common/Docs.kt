@@ -1,7 +1,10 @@
 package emulator.kit.common
 
+import emulator.archs.riscv64.RV64Syntax
+import emulator.kit.assembly.standards.StandardSyntax
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.code
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h3
@@ -224,6 +227,22 @@ class Docs(vararg htmlFiles: HtmlFile) {
             h3 { +"Fixed" }
             ul {
                 li { +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!""" }
+            }
+        }),
+        HtmlFile.DefinedFile("Standard Syntax", FC{
+            ReactHTML.h2 {
+                +"Directives"
+            }
+
+            for (majorDir in StandardSyntax.DirMajType.entries) {
+                ReactHTML.strong {
+                    +majorDir.docName
+                }
+                ReactHTML.ul {
+                    for (dir in StandardSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
+                        ReactHTML.li { +".${dir.dirname}" }
+                    }
+                }
             }
         })
     )
