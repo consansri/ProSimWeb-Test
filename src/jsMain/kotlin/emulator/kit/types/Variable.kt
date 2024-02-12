@@ -1134,7 +1134,7 @@ class Variable {
      */
     sealed class Size(val name: String, val bitWidth: Int) {
 
-        val hexChars = bitWidth / 4
+        val hexChars = bitWidth / 4 + if(bitWidth % 4 == 0) 0 else 1
 
         override fun equals(other: Any?): Boolean {
             when (other) {
