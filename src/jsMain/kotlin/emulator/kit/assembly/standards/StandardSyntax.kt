@@ -667,7 +667,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         BYTE_8("8byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".8byte", ignoreCase = true)), Variable.Size.Bit64()),
 
         GLOBAL("global", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".global"), InSpecific.Space, InSpecific.WordNoDots)),
-        GLOBL(".globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl"), InSpecific.Space, InSpecific.WordNoDots))
+        GLOBL("globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl"), InSpecific.Space, InSpecific.WordNoDots))
     }
 
 
