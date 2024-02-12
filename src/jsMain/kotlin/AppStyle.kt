@@ -301,6 +301,7 @@ val AppStyle = FC<Props> {
                         position = Position.relative
                         borderRadius = StyleAttr.borderRadius
                         background = StyleAttr.transparent
+                        overflowX = Overflow.clip
                     }
 
                     ".${StyleAttr.Main.Processor.CLASS_MEM}" {
