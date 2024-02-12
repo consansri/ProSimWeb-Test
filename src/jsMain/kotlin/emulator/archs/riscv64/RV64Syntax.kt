@@ -20,7 +20,6 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             val eInstr = RV64Instr(instrType, paramType, nameToken, params, currentLabel)
 
             elements.add(eInstr)
-            this.remove(nameToken)
             allTokens.forEach {
                 this.remove(it)
             }

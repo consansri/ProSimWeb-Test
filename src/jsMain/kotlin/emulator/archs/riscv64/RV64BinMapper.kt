@@ -738,7 +738,7 @@ class RV64BinMapper {
             architecture.getConsole().error(e.message.toString())
         }
 
-        return binArray.map { it.splitToByteArray() }.flatMap { it.toList() }.toTypedArray()
+        return binArray.flatMap { it.splitToByteArray().toList() }.toTypedArray()
     }
 
     fun getInstrFromBinary(bin: Variable.Value.Bin): InstrResult? {

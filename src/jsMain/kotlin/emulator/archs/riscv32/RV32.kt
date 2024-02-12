@@ -45,6 +45,7 @@ object RV32 {
     private const val MEM_INIT: String = "0"
     private const val REG_INIT: String = "0"
     val XLEN = Variable.Size.Bit32()
+    val WORD_WIDTH = Variable.Size.Bit32()
 
     private val REG_VALUE_SIZE = XLEN
     private val REG_ADDRESS_SIZE = Variable.Size.Bit5()
@@ -145,19 +146,6 @@ object RV32 {
                     for (feature in RV32.EXTENSION.entries.filter { !it.invisible }) {
                         ReactHTML.li {
                             +"${feature.name} (${if (feature.static) "fixed" else "switchable"}): ${feature.descr}"
-                        }
-                    }
-                }
-                h2 {
-                    +"Directives"
-                }
-                for (majorDir in RV32Syntax.DirMajType.entries) {
-                    ReactHTML.strong {
-                        +majorDir.docName
-                    }
-                    ul {
-                        for (dir in RV32Syntax.DirType.entries.filter { it.dirMajType == majorDir }) {
-                            li { +".${dir.dirname}" }
                         }
                     }
                 }
