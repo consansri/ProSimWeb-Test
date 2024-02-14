@@ -445,7 +445,7 @@ class Compiler(
     private fun assemble() {
         architecture.getMemory().clear()
         architecture.getRegContainer().pc.reset()
-        architecture.getTranscript().clear(Transcript.Type.DISASSEMBLED)
+        architecture.getTranscript().clear()
 
         if (isBuildable) {
             syntaxTree?.let {

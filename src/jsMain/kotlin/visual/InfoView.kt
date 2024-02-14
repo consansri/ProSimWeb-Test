@@ -52,6 +52,7 @@ val InfoView = FC<InfoViewProps> { props ->
                 justifyContent = JustifyContent.center
                 alignItems = AlignItems.center
                 gap = StyleAttr.paddingSize
+                flexWrap = FlexWrap.wrap
             }
             for (docID in arch.getDescription().docs.files.indices) {
                 val doc = arch.getDescription().docs.files[docID]
@@ -189,7 +190,6 @@ val InfoView = FC<InfoViewProps> { props ->
                     }
 
                     StyleAttr.layoutSwitchMediaQuery {
-                        width = 100.pct
                         flexWrap = FlexWrap.wrap
                         overflowWrap = OverflowWrap.breakWord
                     }

@@ -148,6 +148,7 @@ val App = FC<Props> {
                         flexDirection = FlexDirection.row
                         borderLeft = Border(0.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
                         borderTop = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                        gap = 1.px
                     }
 
                     div {
@@ -166,7 +167,7 @@ val App = FC<Props> {
 
                         StyleAttr.layoutSwitchMediaQuery {
                             borderBottom = Border(0.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
-                            borderRight = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
+                            //borderRight = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
                         }
 
                         img {
