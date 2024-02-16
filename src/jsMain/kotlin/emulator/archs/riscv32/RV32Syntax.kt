@@ -654,7 +654,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedByte = arch.getMemory().load(memAddr.toHex())
-                        rd.set(Variable.Value.Bin(rd.get().toBin().getRawBinStr().substring(0, RV32.XLEN.bitWidth - 8) + loadedByte.toBin().getRawBinStr(), RV32.XLEN))
+                        rd.set(loadedByte.getUResized(RV32.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
@@ -673,7 +673,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedByte = arch.getMemory().load(memAddr.toHex(), 2)
-                        rd.set(Variable.Value.Bin(rd.get().toBin().getRawBinStr().substring(0, RV32.XLEN.bitWidth - 16) + loadedByte.toBin().getRawBinStr(), RV32.XLEN))
+                        rd.set(loadedByte.getUResized(RV32.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
