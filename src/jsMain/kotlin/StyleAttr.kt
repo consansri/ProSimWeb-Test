@@ -310,13 +310,6 @@ object StyleAttr {
     // FONTS
     const val logoFont = "font-family: 'Bungee Shade', cursive"
 
-    // PROCESSOR.FLAGSCONDSVIEW
-    const val CLASS_PROC_FC_CONTAINER = "proc-fc-container"
-    const val CLASS_PROC_FC_COND = "proc-fc-cond"
-    const val CLASS_PROC_FC_FLAG = "proc-fc-flag"
-    const val CLASS_PROC_FC_COND_ACTIVE = "proc-fc-cond-active"
-    const val CLASS_PROC_FC_FLAG_ACTIVE = "proc-fc-flag-active"
-
     // ANIM
     const val ANIM_SHAKERED = "anim-shakered"
     const val ANIM_BLINKGREEN = "anim-blinkgreen"
