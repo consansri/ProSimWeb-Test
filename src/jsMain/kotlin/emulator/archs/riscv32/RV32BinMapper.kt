@@ -111,7 +111,7 @@ class RV32BinMapper {
                 }
 
                 SLLI, SRLI, SRAI -> {
-                    val imm5 = instr.constants.first().getValue(Variable.Size.Bit5()).toBin()
+                    val imm5 = instr.constants.first().getValue(Variable.Size.Bit5(), onlyUnsigned = true).toBin()
                     val opCode = instr.type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.RS1 to regs[1], MaskLabel.SHAMT to imm5))
                     opCode?.let {
                         binArray.add(opCode)

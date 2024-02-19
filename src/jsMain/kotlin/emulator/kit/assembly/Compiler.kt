@@ -7,6 +7,7 @@ import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.types.HTMLTools
+import kotlin.math.sign
 import kotlin.time.measureTime
 
 /**
@@ -670,10 +671,10 @@ class Compiler(
         class Symbol(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
 
         sealed class Constant(lineLoc: LineLoc, content: kotlin.String, id: Int) : Token(lineLoc, content, id) {
-            abstract fun getValue(size: Variable.Size? = null): Variable.Value
+            abstract fun getValue(size: Variable.Size? = null, onlyUnsigned: Boolean = false): Variable.Value
 
             class Ascii(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     var binChars = ""
                     val byteArray = content.substring(1, content.length - 1).encodeToByteArray()
                     for (byte in byteArray) {
@@ -691,7 +692,7 @@ class Compiler(
             class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 val rawString = content.substring(1, content.length - 1)
 
-                override fun getValue(size: Variable.Size?): Variable.Value {
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     var hexStr = ""
                     val trimmedContent = rawString
                     for (char in trimmedContent) {
@@ -707,23 +708,25 @@ class Compiler(
             }
 
             class Calculated(lineLoc: LineLoc, val mode: MODE, val prefixes: ConstantPrefixes, val groupValues: MatchGroupCollection, val regexCollection: RegexCollection, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     val value1content = groupValues["val1"]?.value
                     val value2content = groupValues["val2"]?.value
 
                     if (value1content == null || value2content == null) throw Error("Missing number for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
 
-                    val value1 = getNumber(value1content, size, regexCollection) ?: throw Error("Missing number (value1 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
-                    val value2 = getNumber(value2content, size, regexCollection) ?: throw Error("Missing number (value2 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                    val value1 = getNumber(value1content, size, regexCollection, onlyUnsigned) ?: throw Error("Missing number (value1 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                    val value2 = getNumber(value2content, size, regexCollection, onlyUnsigned) ?: throw Error("Missing number (value2 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+
+
 
                     return when (mode) {
                         MODE.SHIFTLEFT -> {
-                            val int = value2.toDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                            val int = value2.toUDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
                             value1.toBin() shl int
                         }
 
                         MODE.SHIFTRIGHT -> {
-                            val int = value2.toDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                            val int = value2.toUDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
                             value1.toBin() shr int
                         }
 
@@ -736,7 +739,7 @@ class Compiler(
                     }
                 }
 
-                private fun getNumber(content: kotlin.String, size: Variable.Size?, regexCollection: RegexCollection): Variable.Value? {
+                private fun getNumber(content: kotlin.String, size: Variable.Size?, regexCollection: RegexCollection, onlyUnsigned: Boolean): Variable.Value? {
                     var result = regexCollection.bin.matchEntire(content)
                     if (result != null) {
                         return if (size != null) {
@@ -764,9 +767,9 @@ class Compiler(
                     result = regexCollection.dec.matchEntire(content)
                     if (result != null) {
                         return if (size != null) {
-                            Variable.Value.Dec(content.removePrefix(prefixes.dec), size)
+                            if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefixes.dec), size) else Variable.Value.Dec(content.removePrefix(prefixes.dec), size)
                         } else {
-                            Variable.Value.Dec(content.removePrefix(prefixes.dec))
+                            if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefixes.dec)) else Variable.Value.Dec(content.removePrefix(prefixes.dec))
                         }
                     }
                     return null
@@ -819,7 +822,7 @@ class Compiler(
             }
 
             class Binary(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return if (size != null) {
                         if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Bin(content.removePrefix(prefix), size)
                     } else {
@@ -829,7 +832,7 @@ class Compiler(
             }
 
             class Hex(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return if (size != null) {
                         if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Hex(content.removePrefix(prefix), size)
                     } else {
@@ -839,17 +842,17 @@ class Compiler(
             }
 
             class Dec(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return if (size != null) {
-                        Variable.Value.Dec(content.removePrefix(prefix), size)
+                        if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefix), size) else Variable.Value.Dec(content.removePrefix(prefix), size)
                     } else {
-                        Variable.Value.Dec(content.removePrefix(prefix))
+                        if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefix)) else Variable.Value.Dec(content.removePrefix(prefix))
                     }
                 }
             }
 
             class UDec(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return if (size != null) {
                         Variable.Value.UDec(content.removePrefix(prefix), size)
                     } else {

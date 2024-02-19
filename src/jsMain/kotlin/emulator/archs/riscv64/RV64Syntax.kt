@@ -5,6 +5,8 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.standards.StandardSyntax
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
+import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
+import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 
 class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
 
@@ -33,19 +35,19 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         // NORMAL INSTRUCTIONS
         RD_I20(
             false, "rd, imm20", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit20()),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit20()),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
                 val rd = paramMap[MaskLabel.RD]
                 return if (rd != null) {
                     paramMap.remove(MaskLabel.RD)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -54,15 +56,15 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         }, // rd, imm
         RD_Off12(
             false, "rd, imm12(rs)", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit12()),
-                TokenSeq.Component.Specific("("),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(")"),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit12()),
+                Specific("("),
+                Register(RV64.standardRegFile),
+                Specific(")"),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -71,7 +73,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
                 return if (rd != null && rs1 != null) {
                     paramMap.remove(MaskLabel.RD)
                     paramMap.remove(MaskLabel.RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
                 } else {
                     "param missing"
@@ -80,15 +82,15 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         }, // rd, imm12(rs)
         RS2_Off12(
             false, "rs2, imm12(rs1)", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit12()),
-                TokenSeq.Component.Specific("("),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(")"),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit12()),
+                Specific("("),
+                Register(RV64.standardRegFile),
+                Specific(")"),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -97,7 +99,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
                 return if (rs2 != null && rs1 != null) {
                     paramMap.remove(MaskLabel.RS2)
                     paramMap.remove(MaskLabel.RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
                 } else {
                     "param missing"
@@ -106,14 +108,14 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         }, // rs2, imm5(rs1)
         RD_RS1_RS2(
             false, "rd, rs1, rs2", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -132,14 +134,14 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         }, // rd, rs1, rs2
         RD_RS1_I12(
             false, "rd, rs1, imm12", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit12()),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit12()),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -155,16 +157,16 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
                 }
             }
         }, // rd, rs, imm
-        RD_RS1_I6(
+        RD_RS1_SHAMT6(
             false, "rd, rs1, shamt6", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit6()),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit6(), onlyUnsigned = true),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -173,7 +175,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
                 return if (rd != null && rs1 != null) {
                     paramMap.remove(MaskLabel.RD)
                     paramMap.remove(MaskLabel.RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -181,16 +183,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             }
         }, // rd, rs, shamt
         RS1_RS2_I12(
-            false, "rs1, rs2, imm12", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit12()),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
-            )
+            false, "rs1, rs2, imm12", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Variable.Size.Bit12()), NewLine, ignoreSpaces = true)
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
                 val rs2 = paramMap[MaskLabel.RS2]
@@ -198,7 +191,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
                 return if (rs2 != null && rs1 != null) {
                     paramMap.remove(MaskLabel.RS2)
                     paramMap.remove(MaskLabel.RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -207,14 +200,14 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         }, // rs1, rs2, imm
         CSR_RD_OFF12_RS1(
             false, "rd, csr12, rs1", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -233,14 +226,14 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         },
         CSR_RD_OFF12_UIMM5(
             false, "rd, offset, uimm5", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit5()),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit5()),
+                NewLine, ignoreSpaces = true
             )
         ) {
             override fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -249,7 +242,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
                 return if (rd != null && csr != null) {
                     paramMap.remove(MaskLabel.RD)
                     paramMap.remove(MaskLabel.CSR)
-                    val immString =  paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toBin().toString() }
+                    val immString = paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toBin().toString() }
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV64.CSR_REGFILE_NAME)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -260,122 +253,122 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         // PSEUDO INSTRUCTIONS
         PS_RS1_RS2_Jlbl(
             true, "rs1, rs2, jlabel", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Word,
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Word,
+                NewLine, ignoreSpaces = true
             )
         ),
         PS_RD_LI_I28Unsigned(
             true, "rd, imm28u", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit28(), signed = false),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit28(), signed = false),
+                NewLine, ignoreSpaces = true
             )
         ), // rd, imm28 unsigned
         PS_RD_LI_I32Signed(
             true, "rd, imm32s", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit32(), signed = true),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit32(), signed = true),
+                NewLine, ignoreSpaces = true
             )
         ), // rd, imm32
         PS_RD_LI_I40Unsigned(
             true, "rd, imm40u", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit40(), signed = false),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit40(), signed = false),
+                NewLine, ignoreSpaces = true
             )
         ),
         PS_RD_LI_I52Unsigned(
             true, "rd, imm52u", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit52(), signed = false),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit52(), signed = false),
+                NewLine, ignoreSpaces = true
             )
         ),
         PS_RD_LI_I64(
             true, "rd, imm64", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.SpecConst(Variable.Size.Bit64()),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                SpecConst(Variable.Size.Bit64()),
+                NewLine, ignoreSpaces = true
             )
         ), // rd, imm64
         PS_RS1_Jlbl(
             true, "rs, jlabel", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Word,
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Word,
+                NewLine, ignoreSpaces = true
             )
         ), // rs, label
         PS_RD_Albl(
             true, "rd, alabel", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Word,
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Word,
+                NewLine, ignoreSpaces = true
             )
         ), // rd, label
-        PS_lbl(true, "jlabel", TokenSeq(TokenSeq.Component.InSpecific.WordNoDotsAndUS, TokenSeq.Component.InSpecific.Space, TokenSeq.Component.InSpecific.Word, TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true)),  // label
+        PS_lbl(true, "jlabel", TokenSeq(WordNoDotsAndUS, Space, Word, NewLine, ignoreSpaces = true)),  // label
         PS_RD_RS1(
             true, "rd, rs", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                NewLine, ignoreSpaces = true
             )
         ), // rd, rs
-        PS_RS1(true, "rs1", TokenSeq(TokenSeq.Component.InSpecific.WordNoDotsAndUS, TokenSeq.Component.InSpecific.Space, TokenSeq.Component.InSpecific.Register(RV64.standardRegFile), TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true)),
+        PS_RS1(true, "rs1", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)),
         PS_CSR_RS1(
             true, "csr, rs1", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
+                Specific(","),
+                Register(RV64.standardRegFile),
+                NewLine, ignoreSpaces = true
             )
         ),
         PS_RD_CSR(
             true, "rd, csr", TokenSeq(
-                TokenSeq.Component.InSpecific.WordNoDotsAndUS,
-                TokenSeq.Component.InSpecific.Space,
-                TokenSeq.Component.InSpecific.Register(RV64.standardRegFile),
-                TokenSeq.Component.Specific(","),
-                TokenSeq.Component.RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
-                TokenSeq.Component.InSpecific.NewLine, ignoreSpaces = true
+                WordNoDotsAndUS,
+                Space,
+                Register(RV64.standardRegFile),
+                Specific(","),
+                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
+                NewLine, ignoreSpaces = true
             )
         ),
 
         // NONE PARAM INSTR
-        NONE(false, "none", TokenSeq(TokenSeq.Component.InSpecific.WordNoDotsAndUS, TokenSeq.Component.InSpecific.NewLine)),
-        PS_NONE(true, "none", TokenSeq(TokenSeq.Component.InSpecific.WordNoDotsAndUS, TokenSeq.Component.InSpecific.NewLine));
+        NONE(false, "none", TokenSeq(WordNoDotsAndUS, NewLine)),
+        PS_NONE(true, "none", TokenSeq(WordNoDotsAndUS, NewLine));
 
         open fun getTSParamString(arch: Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
             return "pseudo param type"
@@ -982,7 +975,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             }
         },
         SLLI(
-            "SLLI", false, ParamType.RD_RS1_I6,
+            "SLLI", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 001 00000 0010011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -1002,7 +995,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             }
         },
         SLLIW(
-            "SLLIW", false, ParamType.RD_RS1_I6,
+            "SLLIW", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 001 00000 0011011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -1022,7 +1015,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             }
         },
         SRLI(
-            "SRLI", false, ParamType.RD_RS1_I6,
+            "SRLI", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -1042,7 +1035,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             }
         },
         SRLIW(
-            "SRLIW", false, ParamType.RD_RS1_I6,
+            "SRLIW", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 101 00000 0011011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -1062,7 +1055,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             }
         },
         SRAI(
-            "SRAI", false, ParamType.RD_RS1_I6,
+            "SRAI", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("010000 000000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -1082,7 +1075,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
             }
         },
         SRAIW(
-            "SRAIW", false, ParamType.RD_RS1_I6,
+            "SRAIW", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("010000 000000 00000 101 00000 0011011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -2009,9 +2002,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         }
     }
 
-    class RV64Instr(val instrType: InstrType, val paramType: ParamType, nameToken: Compiler.Token, params: List<Compiler.Token>, parentLabel: ELabel?) : EInstr(nameToken, params, parentLabel) {
-
-    }
+    class RV64Instr(val instrType: InstrType, val paramType: ParamType, nameToken: Compiler.Token, params: List<Compiler.Token>, parentLabel: ELabel?) : EInstr(nameToken, params, parentLabel)
 
 
 }

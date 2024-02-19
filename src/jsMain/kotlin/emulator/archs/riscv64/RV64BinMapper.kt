@@ -108,7 +108,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.SLLI, InstrType.SLLIW, InstrType.SRLI, InstrType.SRLIW, InstrType.SRAI, InstrType.SRAIW -> {
-                    val imm = instr.constants.first().getValue(Variable.Size.Bit6()).toBin()
+                    val imm = instr.constants.first().getValue(Variable.Size.Bit6(), onlyUnsigned = true).toBin()
                     val opCode = instr.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.RS1 to regs[1], MaskLabel.SHAMT6 to imm))
                     opCode?.let {
                         binArray.add(opCode)

@@ -139,7 +139,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 }
             }
         }, // rd, rs, imm
-        RD_RS1_I5(
+        RD_RS1_SHAMT5(
             false, "rd, rs1, shamt5", TokenSeq(
                 WordNoDotsAndUS,
                 Space,
@@ -147,7 +147,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 Specific(","),
                 Register(RV32.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit5()),
+                SpecConst(Variable.Size.Bit5(), onlyUnsigned = true),
                 NewLine, ignoreSpaces = true
             )
         ) {
@@ -858,7 +858,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
             }
         },
         SLLI(
-            "SLLI", false, ParamType.RD_RS1_I5,
+            "SLLI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -878,7 +878,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
             }
         },
         SRLI(
-            "SRLI", false, ParamType.RD_RS1_I5,
+            "SRLI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -898,7 +898,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
             }
         },
         SRAI(
-            "SRAI", false, ParamType.RD_RS1_I5,
+            "SRAI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
             override fun execute(arch: Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
