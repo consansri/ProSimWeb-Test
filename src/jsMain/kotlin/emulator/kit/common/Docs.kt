@@ -25,6 +25,7 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
             h2 { +"Version - 0.1.9" }
             h3 { +"New" }
             ul {
+                li { +"REACT Editor supports multiline indentation!" }
                 li { +"KIT 6502 Technology in Preview!" }
                 li { +"KIT IKR Mini in Preview!" }
                 li { +"REACT Editor shortcut CTRL + S to build the project!" }
@@ -227,7 +228,7 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                 li { +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!""" }
             }
         })
-    ) + if(usingStandard) HtmlFile.DefinedFile("Standard Syntax", FC {
+    ) + if (usingStandard) HtmlFile.DefinedFile("Standard Syntax", FC {
         ReactHTML.h2 {
             +"Directives"
         }
@@ -243,12 +244,12 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
             }
         }
 
-        h2{
+        h2 {
             +"Example"
         }
 
-        pre{
-            code{
+        pre {
+            code {
                 +"""
                     #import "anotherfile.s"
 

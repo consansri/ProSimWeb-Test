@@ -189,7 +189,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
                 if (analysisTime.inWholeMilliseconds > Constants.EDITOR_MAX_ANALYSIS_MILLIS) {
                     setLowPerformanceMode(true)
-                    props.archState.component1().getConsole().compilerInfo("Automatic syntax analysis disabled cause last analysis took more than ${Constants.EDITOR_MAX_ANALYSIS_MILLIS}ms!\nBuild the project to recheck performance. If analysis time improved automatic syntax analysis will be reactivated.")
+                    props.archState.component1().getConsole()
+                        .compilerInfo("Automatic syntax analysis disabled cause last analysis took more than ${Constants.EDITOR_MAX_ANALYSIS_MILLIS}ms!\nBuild the project to recheck performance. If analysis time improved automatic syntax analysis will be reactivated.")
                 }
             }, delay)
         }
@@ -397,8 +398,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         - CTRL + C  (Copy)
                         - CTRL + V  (Insert)
                         - CTRL + A  (Select All)
-                        - TAB       (Insert Tab)
-                        - CTRL + ALT + L (Reformat)
+                        - TAB       (Insert Tab or Indent Selection)                        
+                        - SHIFT + TAB       (Trim Indent of Selection)
+                        - CTRL + ALT + L    (Reformat)
                         
                         Features
                         - Tab Handling
@@ -767,18 +769,65 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
                             onKeyDown = { event ->
                                 if (event.key == "Tab") {
-                                    textareaRef.current?.let {
-                                        val start =
-                                            it.selectionStart
-                                        val end =
-                                            it.selectionEnd
+                                    if (event.shiftKey) {
+                                        textareaRef.current?.let {
+                                            val start =
+                                                it.selectionStart
+                                            val end =
+                                                it.selectionEnd
 
-                                        it.value = it.value.substring(0, start) + '\t' + it.value.substring(end)
+                                            // multi line remove indent
+                                            val lastLineBreakBeforeSelStart = it.value.lastIndexOf('\n', start - 1)
+                                            val indentStart = if (lastLineBreakBeforeSelStart != -1) lastLineBreakBeforeSelStart else 0
+                                            val content = it.value.substring(indentStart, end)
+                                            val before = it.value.substring(0, indentStart)
+                                            val after = it.value.substring(end)
 
-                                        it.selectionEnd = end + 1
+                                            val indentContent = if (indentStart == 0) {
+                                                content.removePrefix("\t").replace("\n\t", "\n")
+                                            } else {
+                                                content.replace("\n\t", "\n")
+                                            }
+                                            it.value = before + indentContent + after
+                                            it.selectionStart = start
+                                            it.selectionEnd = end + indentContent.length - content.length
 
-                                        event.preventDefault()
-                                        edit(event.currentTarget.value)
+                                            event.preventDefault()
+                                            edit(event.currentTarget.value)
+                                        }
+                                    } else {
+                                        textareaRef.current?.let {
+                                            val start =
+                                                it.selectionStart
+                                            val end =
+                                                it.selectionEnd
+
+                                            if (start == end) {
+                                                // insert tab
+                                                it.value = it.value.substring(0, start) + '\t' + it.value.substring(end)
+                                                it.selectionEnd = end + 1
+                                            } else {
+                                                // multi line prepend indent
+                                                val lastLineBreakBeforeSelStart = it.value.lastIndexOf('\n', start - 1)
+                                                val indentStart = if (lastLineBreakBeforeSelStart != -1) lastLineBreakBeforeSelStart else 0
+                                                val content = it.value.substring(indentStart, end)
+                                                val before = it.value.substring(0, indentStart)
+                                                val after = it.value.substring(end)
+
+                                                val indentContent = if (indentStart == 0) {
+                                                    ("\t" + content).replace("\n", "\n\t")
+                                                } else {
+                                                    content.replace("\n", "\n\t")
+                                                }
+
+                                                it.value = before + indentContent + after
+                                                it.selectionStart = start
+                                                it.selectionEnd = end + indentContent.length - content.length
+                                            }
+
+                                            event.preventDefault()
+                                            edit(event.currentTarget.value)
+                                        }
                                     }
                                 }
 
