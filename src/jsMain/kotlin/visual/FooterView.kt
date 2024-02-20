@@ -28,7 +28,7 @@ val FooterView = FC<FooterViewProps>{ props ->
 
         p{
             a{
-                href = "mailto:constantin.birkert@web.de?subject=ProSimWeb: BugReport"
+                href = "mailto:st168269@stud.uni-stuttgart.de?subject=ProSimWeb: BugReport"
                 img{
                     css {
                         width = 4.rem
