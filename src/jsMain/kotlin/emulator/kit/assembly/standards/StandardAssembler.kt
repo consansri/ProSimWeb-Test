@@ -8,7 +8,7 @@ import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
-abstract class StandardAssembler(val memAddressWidth: Variable.Size, val wordWidth: Variable.Size, val instrsAreWordAligned: Boolean) : Assembly() {
+abstract class StandardAssembler(private val memAddressWidth: Variable.Size, private val wordWidth: Variable.Size, val instrsAreWordAligned: Boolean) : Assembly() {
 
     var fromAddr = Hex("0", memAddressWidth)
     var toAddr = Hex("0", memAddressWidth)

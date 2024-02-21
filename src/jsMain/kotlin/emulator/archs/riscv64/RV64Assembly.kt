@@ -24,9 +24,9 @@ class RV64Assembly(val binMapper: RV64BinMapper) : StandardAssembler(RV64.MEM_AD
     }
 
     override fun getInstrFromBinary(arch: Architecture, currentAddress: Variable.Value.Hex): ResolvedInstr? {
-        val opCode = Variable.Value.Bin(arch.getMemory().loadArray(currentAddress, RV64.WORD_WIDTH.getByteCount()).joinToString("") { it.toBin().getRawBinStr() }, RV64.WORD_WIDTH)
-        val result = binMapper.getInstrFromBinary(opCode) ?: return null
-        return ResolvedInstr(result.type.id, result.type.paramType.getTSParamString(arch, result.binMap.toMutableMap()),1)
+        val instrBin = arch.getMemory().load(currentAddress, RV64.WORD_WIDTH.getByteCount())
+        val result = binMapper.getInstrFromBinary(instrBin) ?: return null
+        return ResolvedInstr(result.type.id, result.type.paramType.getTSParamString(arch, result.binMap.toMutableMap()), 1)
     }
 
 }

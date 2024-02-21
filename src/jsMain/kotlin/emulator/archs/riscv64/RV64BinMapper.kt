@@ -5,6 +5,7 @@ import emulator.kit.Architecture
 import emulator.kit.Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64Syntax.InstrType
+import emulator.kit.common.Memory
 
 class RV64BinMapper {
 
@@ -737,8 +738,8 @@ class RV64BinMapper {
         } catch (e: Exception) {
             architecture.getConsole().error(e.message.toString())
         }
-
-        return binArray.flatMap { it.splitToByteArray().toList() }.toTypedArray()
+        val endianess = architecture.getMemory().getEndianess()
+        return binArray.flatMap { if(endianess == Memory.Endianess.BigEndian) it.splitToByteArray().toList() else it.splitToByteArray().reversed() }.toTypedArray()
     }
 
     fun getInstrFromBinary(bin: Variable.Value.Bin): InstrResult? {

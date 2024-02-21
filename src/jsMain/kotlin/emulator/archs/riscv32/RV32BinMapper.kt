@@ -5,6 +5,7 @@ import emulator.kit.Architecture
 import emulator.kit.Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv32.RV32Syntax.InstrType.*
+import emulator.kit.common.Memory
 
 class RV32BinMapper {
     fun getBinaryFromInstrDef(instr: RV32Syntax.RV32Instr, architecture: Architecture): Array<Variable.Value.Bin> {
@@ -606,7 +607,8 @@ class RV32BinMapper {
             architecture.getConsole().error("BinMapper: values and labels not matching for ${instr.type::class.simpleName}!")
         }
 
-        return binArray.flatMap { it.splitToByteArray().toList() }.toTypedArray()
+        val endianess = architecture.getMemory().getEndianess()
+        return binArray.flatMap { if(endianess == Memory.Endianess.BigEndian) it.splitToByteArray().toList() else it.splitToByteArray().reversed() }.toTypedArray()
     }
 
     fun getInstrFromBinary(bin: Variable.Value.Bin): InstrResult? {
