@@ -47,6 +47,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                                 if (instrsAreWordAligned) {
                                     repeat(getInstrSpace(architecture, element) - 1) {
                                         currentAddress += Hex(wordWidth.getByteCount().toString(16), memAddressWidth)
+                                        lineAddressMap[currentAddress.toHex().getRawHexStr()] = element.tokens.first().lineLoc
                                         tsRows.add(CompiledRow(currentAddress.toHex()))
                                     }
                                     toAddr = currentAddress.toHex()
@@ -54,6 +55,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                                 } else {
                                     repeat(getInstrSpace(architecture, element) - 1) {
                                         currentAddress += Hex("1", memAddressWidth)
+                                        lineAddressMap[currentAddress.toHex().getRawHexStr()] = element.tokens.first().lineLoc
                                         tsRows.add(CompiledRow(currentAddress.toHex()))
                                     }
                                     toAddr = currentAddress.toHex()
@@ -343,7 +345,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
 
         fun addInstr(instr: StandardSyntax.EInstr) {
             content[Standards.TsCompiledHeaders.Instruction] = Entry(Orientation.LEFT, instr.nameToken.content)
-            content[Standards.TsCompiledHeaders.Parameters] = Entry(Orientation.LEFT, instr.params.joinToString("") { it.content })
+            content[Standards.TsCompiledHeaders.Parameters] = Entry(Orientation.LEFT, instr.params.filter { it !is Compiler.Token.Space }.joinToString("") { it.content })
         }
 
         override fun getContent(): List<Entry> {

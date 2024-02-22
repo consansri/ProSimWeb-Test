@@ -121,7 +121,7 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : Architecture
             val lineAddressMap = getCompiler().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.file == getFileHandler().getCurrent() }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
-                if (entry.first.lineID >= lineID) {
+                if (entry.first.lineID >= lineID && entry.first.lineID != closestID) {
                     if (closestID != null) {
                         if (entry.first.lineID < closestID) {
                             closestID = entry.first.lineID
@@ -130,8 +130,9 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : Architecture
                         closestID = entry.first.lineID
                     }
                 }
+                if (closestID == lineID) break
             }
-            val destAddrString = lineAddressMap.associate { it.first.lineID to it.second }[closestID] ?: ""
+            val destAddrString = lineAddressMap.map { it.first.lineID to it.second }.firstOrNull { it.first == closestID }?.second ?: ""
 
             var result: ExecutionResult? = null
 

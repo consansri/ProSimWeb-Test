@@ -136,7 +136,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         for (equDef in defs) {
             var foundToken: Compiler.Token? = this.firstOrNull { it.content == equDef.equname.content }
             while (foundToken != null) {
-                val pseudoConst = arch.getCompiler().pseudoTokenize(equDef.constant.content).firstOrNull()
+                val pseudoConst = arch.getCompiler().pseudoTokenize(equDef.constant.content, foundToken.lineLoc).firstOrNull()
                 if (pseudoConst == null) {
                     errors.add(Error("Couldn't create pseudo Token!", foundToken))
                     this.remove(foundToken)
@@ -299,7 +299,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
                 val preMacroRep = PreMacroRep(macroNameRef, params, commas)
                 this.removeAll(macroRefTokens.filter { it !is Compiler.Token.NewLine })
-                this.addAll(indexOfName, macro.getMacroReplacement(params, arch) ?: listOf())
+                this.addAll(indexOfName, macro.getMacroReplacement(params, macroNameRef.lineLoc,arch) ?: listOf())
                 preElements.add(preMacroRep)
             }
         }
@@ -700,7 +700,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         *commas.toTypedArray(),
         *macroContent.toTypedArray()
     ) {
-        fun getMacroReplacement(params: List<Compiler.Token>, arch: Architecture): List<Compiler.Token>? {
+        fun getMacroReplacement(params: List<Compiler.Token>, lineLoc: Compiler.LineLoc,arch: Architecture): List<Compiler.Token>? {
             if (params.size != attributes.size) return null
             val content = macroContent.toMutableList()
             val contentRep = mutableListOf<Compiler.Token>()
@@ -717,14 +717,14 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                     val attribute = attributes.firstOrNull { it.content == tokensToReplace[1].content }
                     if (attribute != null) {
                         content.removeAll(tokensToReplace)
-                        val pseudoParam = arch.getCompiler().pseudoTokenize(params[attributes.indexOf(attribute)].content)
+                        val pseudoParam = arch.getCompiler().pseudoTokenize(params[attributes.indexOf(attribute)].content, lineLoc)
                         contentRep.add(pseudoParam.first())
                         continue
                     }
                 }
 
                 // Else add to replace content
-                val pseudoToken = arch.getCompiler().pseudoTokenize(content.removeFirst().content)
+                val pseudoToken = arch.getCompiler().pseudoTokenize(content.removeFirst().content, lineLoc)
                 contentRep.add(pseudoToken.first())
             }
             return contentRep

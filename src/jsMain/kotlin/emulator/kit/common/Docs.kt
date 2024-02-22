@@ -39,6 +39,7 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
             }
             h3 { +"Changed" }
             ul {
+                li { +"REACT Editor improved current line information for macros and pseudo instructions" }
                 li { +"REACT Editor code reformat is a little enhanced." }
                 li { +"KIT Automatic syntax checks replace old pre highlighting." }
                 li { +"GLOBAL Upgraded to Kotlin 1.9.22" }

@@ -307,11 +307,7 @@ class Compiler(
         syntaxTree?.rootNode?.allWarnings?.let {
             for (warning in it) {
                 if (warning.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    if (warning.linkedTreeNode.getAllTokens().first().isPseudo()) {
-                        architecture.getConsole().warn("pseudo: Warning ${warning.message}")
-                    } else {
-                        architecture.getConsole().warn("line ${warning.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Warning ${warning.message}")
-                    }
+                    architecture.getConsole().warn("line ${warning.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Warning ${warning.message}")
                 } else {
                     architecture.getConsole().error("GlobalWarning: " + warning.message)
                 }
@@ -321,11 +317,7 @@ class Compiler(
         syntaxTree?.rootNode?.allErrors?.let { errors ->
             for (error in errors) {
                 if (error.linkedTreeNode.getAllTokens().isNotEmpty()) {
-                    if (error.linkedTreeNode.getAllTokens().first().isPseudo()) {
-                        architecture.getConsole().error("pseudo: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}]")
-                    } else {
-                        architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}]")
-                    }
+                    architecture.getConsole().error("line ${error.linkedTreeNode.getAllTokens().first().lineLoc.lineID + 1}: Error ${error.message} \n[${error.linkedTreeNode.getAllTokens().joinToString(" ") { it.content }}]")
                 } else {
                     architecture.getConsole().error("GlobalError: " + error.message)
                 }
@@ -474,7 +466,7 @@ class Compiler(
      * This function could be used to insert and [pseudoTokenize] custom inserted code such as macro inserts to get its resolving [Compiler.Token]'s from it.
      * This should only be called while building the [Syntax.SyntaxTree]!
      */
-    fun pseudoTokenize(content: String, lineID: Int = Settings.COMPILER_TOKEN_PSEUDOID): List<Token> {
+    fun pseudoTokenize(content: String, lineLoc: LineLoc): List<Token> {
         val pseudoTokens = mutableListOf<Token>()
         var remaining = content
         var startIndex = 0
@@ -484,7 +476,7 @@ class Compiler(
 
             val newLine = regexCollection.newLine.find(remaining)
             if (newLine != null) {
-                pseudoTokens += Token.NewLine(LineLoc(file, lineID, startIndex, startIndex + newLine.value.length), newLine.value, pseudoID)
+                pseudoTokens += Token.NewLine(lineLoc, newLine.value, pseudoID)
                 startIndex += newLine.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -492,7 +484,7 @@ class Compiler(
 
             val space = regexCollection.space.find(remaining)
             if (space != null) {
-                pseudoTokens += Token.Space(LineLoc(file, lineID, startIndex, startIndex + space.value.length), space.value, pseudoID)
+                pseudoTokens += Token.Space(lineLoc, space.value, pseudoID)
                 startIndex += space.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -502,7 +494,7 @@ class Compiler(
             var foundCalcToken = false
             for (mode in Token.Constant.Calculated.MODE.entries) {
                 val result = mode.regex.find(remaining) ?: continue
-                val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, pseudoID, regexCollection) ?: continue
+                val token = mode.getCalcToken(lineLoc, prefixes, result.groups, result.value, pseudoID, regexCollection) ?: continue
                 pseudoTokens += token
                 foundCalcToken = true
                 startIndex += result.value.length
@@ -513,7 +505,7 @@ class Compiler(
 
             val binary = regexCollection.bin.find(remaining)
             if (binary != null) {
-                pseudoTokens += Token.Constant.Binary(LineLoc(file, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, pseudoID)
+                pseudoTokens += Token.Constant.Binary(lineLoc, prefixes.bin, binary.value, pseudoID)
                 startIndex += binary.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -521,7 +513,7 @@ class Compiler(
 
             val hex = regexCollection.hex.find(remaining)
             if (hex != null) {
-                pseudoTokens += Token.Constant.Hex(LineLoc(file, lineID, startIndex, startIndex + hex.value.length), prefixes.hex, hex.value, pseudoID)
+                pseudoTokens += Token.Constant.Hex(lineLoc, prefixes.hex, hex.value, pseudoID)
                 startIndex += hex.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -529,7 +521,7 @@ class Compiler(
 
             val dec = regexCollection.dec.find(remaining)
             if (dec != null) {
-                pseudoTokens += Token.Constant.Dec(LineLoc(file, lineID, startIndex, startIndex + dec.value.length), prefixes.dec, dec.value, pseudoID)
+                pseudoTokens += Token.Constant.Dec(lineLoc, prefixes.dec, dec.value, pseudoID)
                 startIndex += dec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -537,7 +529,7 @@ class Compiler(
 
             val udec = regexCollection.udec.find(remaining)
             if (udec != null) {
-                pseudoTokens += Token.Constant.UDec(LineLoc(file, lineID, startIndex, startIndex + udec.value.length), prefixes.udec, udec.value, pseudoID)
+                pseudoTokens += Token.Constant.UDec(lineLoc, prefixes.udec, udec.value, pseudoID)
                 startIndex += udec.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -545,7 +537,7 @@ class Compiler(
 
             val ascii = regexCollection.ascii.find(remaining)
             if (ascii != null) {
-                pseudoTokens += Token.Constant.Ascii(LineLoc(file, lineID, startIndex, startIndex + ascii.value.length), ascii.value, pseudoID)
+                pseudoTokens += Token.Constant.Ascii(lineLoc, ascii.value, pseudoID)
                 startIndex += ascii.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -553,7 +545,7 @@ class Compiler(
 
             val string = regexCollection.string.find(remaining)
             if (string != null) {
-                pseudoTokens += Token.Constant.String(LineLoc(file, lineID, startIndex, startIndex + string.value.length), string.value, pseudoID)
+                pseudoTokens += Token.Constant.String(lineLoc, string.value, pseudoID)
                 startIndex += string.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -564,7 +556,7 @@ class Compiler(
                 if (regRes != null) {
                     val reg = architecture.getRegContainer().getReg(regRes.value, architecture.getAllFeatures())
                     if (reg != null) {
-                        pseudoTokens += Token.Register(LineLoc(file, lineID, startIndex, startIndex + regRes.value.length), regRes.value, reg, pseudoID)
+                        pseudoTokens += Token.Register(lineLoc, regRes.value, reg, pseudoID)
                         startIndex += regRes.value.length
                         remaining = content.substring(startIndex)
                         continue
@@ -580,35 +572,35 @@ class Compiler(
 
             var wordToken: Token.Word? = null
             if (word != null) {
-                wordToken = Token.Word.Clean(LineLoc(file, lineID, startIndex, startIndex + word.value.length), word.value, pseudoID)
+                wordToken = Token.Word.Clean(lineLoc, word.value, pseudoID)
             }
 
             if (wordNum != null) {
                 if (wordToken == null) {
-                    wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, pseudoID)
+                    wordToken = Token.Word.Num(lineLoc, wordNum.value, pseudoID)
                 } else {
                     if (wordToken.content.length < wordNum.value.length) {
-                        wordToken = Token.Word.Num(LineLoc(file, lineID, startIndex, startIndex + wordNum.value.length), wordNum.value, pseudoID)
+                        wordToken = Token.Word.Num(lineLoc, wordNum.value, pseudoID)
                     }
                 }
             }
 
             if (wordNumUs != null) {
                 if (wordToken == null) {
-                    wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, pseudoID)
+                    wordToken = Token.Word.NumUs(lineLoc, wordNumUs.value, pseudoID)
                 } else {
                     if (wordToken.content.length < wordNumUs.value.length) {
-                        wordToken = Token.Word.NumUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUs.value.length), wordNumUs.value, pseudoID)
+                        wordToken = Token.Word.NumUs(lineLoc, wordNumUs.value, pseudoID)
                     }
                 }
             }
 
             if (wordNumUsDots != null) {
                 if (wordToken == null) {
-                    wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, pseudoID)
+                    wordToken = Token.Word.NumDotsUs(lineLoc, wordNumUsDots.value, pseudoID)
                 } else {
                     if (wordToken.content.length < wordNumUsDots.value.length) {
-                        wordToken = Token.Word.NumDotsUs(LineLoc(file, lineID, startIndex, startIndex + wordNumUsDots.value.length), wordNumUsDots.value, pseudoID)
+                        wordToken = Token.Word.NumDotsUs(lineLoc, wordNumUsDots.value, pseudoID)
                     }
                 }
             }
@@ -622,7 +614,7 @@ class Compiler(
 
             val symbol = regexCollection.symbol.find(remaining)
             if (symbol != null) {
-                pseudoTokens += Token.Symbol(LineLoc(file, lineID, startIndex, startIndex + symbol.value.length), symbol.value, pseudoID)
+                pseudoTokens += Token.Symbol(lineLoc, symbol.value, pseudoID)
                 startIndex += symbol.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -655,7 +647,7 @@ class Compiler(
         var hlContent = content
 
         fun isPseudo(): Boolean {
-            return id == Settings.COMPILER_TOKEN_PSEUDOID && lineLoc.lineID == Settings.COMPILER_TOKEN_PSEUDOID
+            return id < 0
         }
 
         fun hl(architecture: Architecture, hlFlag: String, title: String = "") {
