@@ -1,6 +1,6 @@
 import io.nacular.doodle.application.Application
 
-class App: Application {
+class DoodleApp: Application {
     init {
         println("Hi!")
     }
