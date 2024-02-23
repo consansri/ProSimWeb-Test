@@ -771,7 +771,7 @@ class RV64BinMapper {
                     // check static labels
                     val binMap = mutableMapOf<MaskLabel, Variable.Value.Bin>()
                     if (DebugTools.RV64_showBinMapperInfo) {
-                        console.log("BinMapper.OpCode.checkOpCode(): found instr $binaryOpCode")
+                        println("BinMapper.OpCode.checkOpCode(): found instr $binaryOpCode")
                     }
                     for (labelID in maskLabels.indices) {
                         val label = maskLabels[labelID]

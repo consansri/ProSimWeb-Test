@@ -169,7 +169,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         }
 
         if (DebugTools.KIT_showCheckCodeEvents) {
-            console.log("Architecture.check(): input \n $input \n")
+            println("Architecture.check(): input \n $input \n")
         }
         archState.check(compiler.compile(input, true, build = build))
 

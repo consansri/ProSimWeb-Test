@@ -29,22 +29,41 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
+        browser()
         binaries.executable()
-        browser {
 
+        // Apply binaryen to optimize output
+        if (project.gradle.startParameter.taskNames.find { it.contains("wasmJsBrowserProductionWebpack") } != null) {
+            applyBinaryen {
+                binaryenArgs = mutableListOf(
+                    "--enable-nontrapping-float-to-int",
+                    "--enable-gc",
+                    "--enable-reference-types",
+                    "--enable-exception-handling",
+                    "--enable-bulk-memory",
+                    "--inline-functions-with-loops",
+                    "--traps-never-happen",
+                    "--fast-math",
+                    "--closed-world",
+                    "--metrics",
+                    "-O3", "--gufa", "--metrics",
+                    "-O3", "--gufa", "--metrics",
+                    "-O3", "--gufa", "--metrics",
+                )
+            }
         }
     }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                /*implementation("io.nacular.doodle:core:$doodle_version")
-                implementation("io.nacular.doodle:browser:$doodle_version")
+                implementation("io.nacular.doodle:core:$doodleVersion")
+                implementation("io.nacular.doodle:browser:$doodleVersion")
 
                 // Optional
-                implementation("io.nacular.doodle:controls:$doodle_version")
-                implementation("io.nacular.doodle:animation:$doodle_version")
-                implementation("io.nacular.doodle:themes:$doodle_version")*/
+                implementation("io.nacular.doodle:controls:$doodleVersion")
+                implementation("io.nacular.doodle:animation:$doodleVersion")
+                implementation("io.nacular.doodle:themes:$doodleVersion")
             }
         }
         val commonTest by getting {

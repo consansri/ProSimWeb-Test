@@ -29,7 +29,7 @@ class Memory(
     fun setEndianess(endianess: Endianess) {
         this.endianess = endianess
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("Memory: switched Endianess to ${endianess.name}")
+            println("Memory: switched Endianess to ${endianess.name}")
         }
     }
 
@@ -45,7 +45,7 @@ class Memory(
 
         val hexAddress = address.toHex()
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("saving...  ${variable.get().toHex().getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")
+            println("saving...  ${variable.get().toHex().getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")
         }
         for (word in bytes) {
             val instance = memList.firstOrNull { it.address == hexAddress }
@@ -74,7 +74,7 @@ class Memory(
 
         var hexAddress = address.toHex()
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("Memory: saving... ${endianess.name} {${values.joinToString(" ") { it.toHex().getHexStr() }}}, $wordList to ${hexAddress.getRawHexStr()}")
+            println("Memory: saving... ${endianess.name} {${values.joinToString(" ") { it.toHex().getHexStr() }}}, $wordList to ${hexAddress.getRawHexStr()}")
         }
 
         for (word in wordList) {
@@ -105,7 +105,7 @@ class Memory(
         val bytes = if(endianess == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
 
         if (DebugTools.KIT_showMemoryInfo) {
-            console.log("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")
+            println("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")
         }
 
         for (word in bytes) {

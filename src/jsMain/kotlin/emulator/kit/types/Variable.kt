@@ -784,7 +784,7 @@ class Variable {
 
             constructor(udecString: String) : this(udecString, Tools.getNearestUDecSize(udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL))) {
                 if (DebugTools.KIT_showValCheckWarnings) {
-                    console.log("UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
+                    println("UDec(): Calculated Size from $udecString as hex ${this.toHex().getRawHexStr()} -> ${size.bitWidth}")
                 }
             }
 

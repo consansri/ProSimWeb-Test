@@ -15,7 +15,7 @@ class RV32BinMapper {
         val labels = instr.linkedLabels.mapNotNull { it.address?.toBin() }
 
         if (DebugTools.RV32_showBinMapperInfo) {
-            console.log("BinMapper.getBinaryFromInstrDef(): \t${instr.type.id} -> values: ${instr.params.joinToString { it.content }}")
+            println("BinMapper.getBinaryFromInstrDef(): \t${instr.type.id} -> values: ${instr.params.joinToString { it.content }}")
         }
 
         try {
@@ -640,7 +640,7 @@ class RV32BinMapper {
                     // check static labels
                     val binMap = mutableMapOf<MaskLabel, Variable.Value.Bin>()
                     if (DebugTools.RV32_showBinMapperInfo) {
-                        console.log("BinMapper.OpCode.checkOpCode(): found instr $binaryOpCode")
+                        println("BinMapper.OpCode.checkOpCode(): found instr $binaryOpCode")
                     }
                     for (labelID in maskLabels.indices) {
                         val label = maskLabels[labelID]

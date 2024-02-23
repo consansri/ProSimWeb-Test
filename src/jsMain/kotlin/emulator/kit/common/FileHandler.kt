@@ -33,7 +33,7 @@ class FileHandler(private val fileEnding: String) {
             this.files.add(file)
             this.currentID = this.files.indexOf(file)
             if (DebugTools.KIT_showFileHandlerInfo) {
-                console.log("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
+                println("FileHandler: import file ${file.getName()}\n\t${file.getContent().replace("\n", "\n\t")}")
             }
             refreshLocalStorage(true)
             true
@@ -59,7 +59,7 @@ class FileHandler(private val fileEnding: String) {
             false
         } else {
             if (DebugTools.KIT_showFileHandlerInfo) {
-                console.log("FileHandler: rename file ${files[currentID].getName()} to $newName")
+                println("FileHandler: rename file ${files[currentID].getName()} to $newName")
             }
             files[currentID].rename(newName)
             refreshLocalStorage(true)
@@ -128,7 +128,7 @@ class FileHandler(private val fileEnding: String) {
 
                 if (filename != null && filecontent != null) {
                     if (DebugTools.KIT_showFileHandlerInfo) {
-                        console.log("found file: $filename $filecontent ${fileUndoStates.size} ${fileRedoStates.size}")
+                        println("found file: $filename $filecontent ${fileUndoStates.size} ${fileRedoStates.size}")
                     }
                     files.add(File(filename, filecontent, undoStates =  fileUndoStates, redoStates =  fileRedoStates))
                 }
@@ -138,7 +138,7 @@ class FileHandler(private val fileEnding: String) {
         }
         setCurrent(localStorage.getItem(StorageKey.FILE_CURR)?.toIntOrNull() ?: 0)
         if (DebugTools.KIT_showFileHandlerInfo) {
-            console.log("FileHandler.init(): ${files.joinToString { "\n\t" + it.getName() }}")
+            println("FileHandler.init(): ${files.joinToString { "\n\t" + it.getName() }}")
         }
     }
 

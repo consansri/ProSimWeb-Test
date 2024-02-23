@@ -29,7 +29,7 @@ abstract class Assembly {
     data class AssemblyMap(val lineAddressMap: Map<String, Compiler.LineLoc> = mapOf()) {
         init {
             if (DebugTools.KIT_showAsmInfo) {
-                console.log("Assembly.AssemblyMap(): $lineAddressMap")
+                println("Assembly.AssemblyMap(): $lineAddressMap")
             }
         }
     }
