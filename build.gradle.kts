@@ -1,8 +1,11 @@
+import org.jetbrains.kotlin.builtins.StandardNames.FqNames.target
+import org.jetbrains.kotlin.cli.jvm.compiler.findMainClass
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform") version "1.9.22"
     id("org.jetbrains.dokka") version "1.9.0"
+    application
 }
 
 group = "me.c3"
@@ -13,9 +16,13 @@ val doodleVersion: String by project
 repositories {
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
+    maven {
+        url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
 }
 
 kotlin {
+
     js(IR) {
         binaries.executable()
         browser {
