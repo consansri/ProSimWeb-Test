@@ -22,7 +22,6 @@ class ArchIKRMini : StandardArch(IKRMini.config, IKRMini.asmConfig) {
             paramType != null
         }
         val actualParamType = paramType
-        console.log("$opCode with $possibleExt got $actualParamType")
         if (instrType != null && actualParamType != null) {
             this.getConsole().log("> executing: ${instrType.name} -> ${actualParamType.name}")
             instrType.execute(this, actualParamType, possibleExt)
