@@ -40,7 +40,6 @@ class IKRMiniAssembly : StandardAssembler(IKRMini.MEM_ADDRESS_WIDTH, IKRMini.WOR
             return null
         }
 
-
         val extString: String = when (actualParamType) {
             IKRMiniSyntax.ParamType.INDIRECT -> "(($${ext.uppercase()}))"
             IKRMiniSyntax.ParamType.DIRECT -> "($${ext.uppercase()})"

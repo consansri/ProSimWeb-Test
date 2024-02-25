@@ -102,7 +102,7 @@ data object IKRMini {
                 RegContainer.RegisterFile(
                     "common", arrayOf(
                         RegContainer.Register(Hex("0", Bit1()), listOf("AC"), listOf(), Variable("0", WORDSIZE), description = "Accumulator"),
-                        RegContainer.Register(Hex("1", Bit1()), listOf("NZVC"), listOf(), Variable("0", Bit4()), description = "NZVC ALU flags")
+                        RegContainer.Register(Hex("1", Bit1()), listOf("NZVC"), listOf(), Variable("0", Bit4()), description = "NZVC ALU flags", containsFlags = true)
                     )
                 )
             ),

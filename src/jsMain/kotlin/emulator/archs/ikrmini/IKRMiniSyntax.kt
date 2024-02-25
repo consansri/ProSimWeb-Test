@@ -561,7 +561,7 @@ class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, commentStartSymb
 
                 ParamType.IMPLIED -> {}
             }
-            return opCodeArray.reversed().toTypedArray()
+            return opCodeArray.toTypedArray()
         }
     }
 

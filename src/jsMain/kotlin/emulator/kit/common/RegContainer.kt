@@ -71,7 +71,8 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         val description: String,
         val needsFeatureID: List<Int>? = null,
         val privilegeID: String? = null,
-        val hardwire: Boolean = false
+        val hardwire: Boolean = false,
+        val containsFlags: Boolean = false
     ) {
 
         private val regexList: List<Regex>
