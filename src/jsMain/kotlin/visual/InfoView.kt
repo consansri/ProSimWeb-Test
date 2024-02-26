@@ -7,7 +7,6 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import web.cssom.*
 import StyleAttr.Main.InfoView
-import emulator.kit.Architecture
 import emulator.kit.common.Docs
 import emulator.kit.common.FileHandler
 import js.core.asList
@@ -16,6 +15,7 @@ import kotlinx.coroutines.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
+import visual.StyleExt.render
 import web.events.EventType
 import web.http.fetch
 import web.window.window
@@ -199,8 +199,11 @@ val InfoView = FC<InfoViewProps> { props ->
                 currMDID?.let { id ->
                     arch.getDescription().docs.files.getOrNull(id)?.let { file ->
                         if (file is Docs.HtmlFile.DefinedFile) {
-                            file.fc {
+                            file.chapters.forEach {
+                                val fc = it.render()
+                                fc {
 
+                                }
                             }
                         }
                     }

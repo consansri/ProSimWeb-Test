@@ -2,27 +2,53 @@ package emulator.kit.common
 
 import Constants
 import emulator.kit.assembly.standards.StandardSyntax
-import react.FC
-import react.Props
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.code
-import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.pre
-import react.dom.html.ReactHTML.ul
+import emulator.kit.common.Docs.DocComponent.*
 
 /**
  * This class contains all documents which are partly supplied by specific architectures. There are two options to define a documentation file.
  * The first is by linking a source path to a specific html source file and the second is by directly defining a file as a React component, inwhich information can be generated directly from the implemented architecture.
  */
 class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
-    var files = (mutableListOf(
+    var files: MutableList<HtmlFile> = (mutableListOf(
         HtmlFile.SourceFile(
             "User Manual",
             "/documents/user-manual.html"
         ),
-        HtmlFile.DefinedFile("Version - ${Constants.VERSION}", FC<Props> {
+        HtmlFile.DefinedFile(
+            "Version - ${Constants.VERSION}",
+            Chapter(
+                "Version - 0.1.9",
+                Section(
+                    "New",
+                    UnlinkedList(
+                        Text("REACT Editor supports multiline indentation!"),
+                        Text("KIT 6502 Technology in Preview!"),
+                        Text("KIT IKR Mini in Preview!"),
+                        Text("REACT Editor shortcut CTRL + S to build the project!"),
+                        Text("REACT Switchable register view (either 2 independent views or one view with descriptions)!"),
+                        Text(
+                            """KIT There now is a standardized Assembler and Syntax implementation, which can be used. (currently used by RV32, RV64, T6502 and IKR Mini)
+                               It provides features like imports, equs, macros, multiple sections (data, rodata, bss), labels, pc setter and global start definitions.
+                               This simplifies the integration of new architectures and makes all features easily accessible for every architecture.
+                            """.trimIndent()
+                        ),
+                    )
+                ),
+                Section(
+                    "Changed",
+                    UnlinkedList(
+                        Text("REACT Editor improved current line information for macros and pseudo instructions"),
+                        Text("REACT Editor code reformat is a little enhanced."),
+                        Text("KIT Automatic syntax checks replace old pre highlighting."),
+                        Text("GLOBAL Upgraded to Kotlin 1.9.22"),
+                        Text("KIT Rewrote RISC-V parser and assembler."),
+                        Text("KIT Direct syntax analysis on every change."),
+                        Text("KIT Compiler is more efficient and Lexer uses updated Tokens."),
+                    )
+                )
+            )
+
+            /*FC<Props> {
             h2 { +"Version - 0.1.9" }
             h3 { +"New" }
             ul {
@@ -229,30 +255,18 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
             ul {
                 li { +"""RV64 & RV32: Resolved wrong jumps from faulty call and tail immediate calculations!""" }
             }
-        })
-    ) + if (usingStandard) HtmlFile.DefinedFile("Standard Syntax", FC {
-        ReactHTML.h2 {
-            +"Directives"
-        }
-
-        for (majorDir in StandardSyntax.DirMajType.entries) {
-            ReactHTML.strong {
-                +majorDir.docName
-            }
-            ReactHTML.ul {
-                for (dir in StandardSyntax.DirType.entries.filter { it.dirMajType == majorDir }) {
-                    ReactHTML.li { +".${dir.dirname}" }
-                }
-            }
-        }
-
-        h2 {
-            +"Example"
-        }
-
-        pre {
-            code {
-                +"""
+        }*/
+        )
+    ) + if (usingStandard) HtmlFile.DefinedFile(
+        "Standard Syntax",
+        Chapter(
+            "Directives",
+            *StandardSyntax.DirMajType.entries.map { maj -> Section(maj.docName, UnlinkedList(*StandardSyntax.DirType.entries.filter { it.dirMajType == maj }.map { Text(".${it.dirname}") }.toTypedArray())) }.toTypedArray()
+        ),
+        Chapter(
+            "Example",
+            Code(
+                """
                     #import "anotherfile.s"
 
                     # Important!
@@ -296,20 +310,26 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                     .text
 
                 """.trimIndent()
-            }
-        }
-
-
-    }) else null).filterNotNull().toMutableList()
+            )
+        )
+    ) else null).filterNotNull().toMutableList()
 
     init {
-        files.addAll(htmlFiles)
+        files.addAll(htmlFiles.toList())
     }
 
     sealed class HtmlFile(val title: String) {
-
         class SourceFile(title: String, val src: String) : HtmlFile(title)
-        class DefinedFile(title: String, val fc: FC<Props>) : HtmlFile(title)
-
+        class DefinedFile(title: String, vararg val chapters: Chapter) : HtmlFile(title)
     }
+
+    sealed class DocComponent {
+        class Table(val header: List<String>, vararg val contentRows: List<DocComponent>) : DocComponent()
+        class Text(val content: String) : DocComponent()
+        class Code(val content: String) : DocComponent()
+        class Chapter(val chapterTitle: String, vararg val chapterContent: DocComponent) : DocComponent()
+        class Section(val sectionTitle: String, vararg val sectionContent: DocComponent): DocComponent()
+        class UnlinkedList(vararg val entrys: DocComponent) : DocComponent()
+    }
+
 }

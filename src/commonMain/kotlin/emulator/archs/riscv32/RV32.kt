@@ -12,6 +12,7 @@ import emulator.kit.types.Variable.Value.*
 import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.common.RegContainer.Register
 import emulator.archs.riscv64.CSRegister.Privilege
+import emulator.kit.common.Docs.DocComponent.*
 
 
 /**
@@ -88,119 +89,44 @@ object RV32 {
         Z(false, "Reserved", invisible = true),
     }
 
-    private val riscVDocs = Docs(usingStandard = true,
+    private val riscVDocs = Docs(
+        usingStandard = true,
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
             "/documents/rv32/syntaxexamples.html"
-        )/*,
+        ),
         Docs.HtmlFile.DefinedFile(
-            "Implemented",
-            FC {
-                h1 {
-                    +"RV32 Implemented"
-                }
-                h2 {
-                    +"General"
-                }
-                ReactHTML.strong {
-                    +"Registers"
-                }
-                ul {
-                    li {
-                        +"address-width: ${REG_ADDRESS_SIZE.bitWidth}bit"
-                    }
-                    li {
-                        +"value-width: ${REG_VALUE_SIZE.bitWidth}bit"
-                    }
-                }
-                ReactHTML.strong {
-                    +"Memory"
-                }
-                ul {
-                    li {
-                        +"address-width: ${MEM_ADDRESS_WIDTH.bitWidth}bit"
-                    }
-                    li {
-                        +"value-width: ${MEM_VALUE_WIDTH.bitWidth}bit"
-                    }
-                }
-                ReactHTML.h2 {
-                    +"Extensions"
-                }
-                ReactHTML.ul {
-                    for (feature in RV32.EXTENSION.entries.filter { !it.invisible }) {
-                        ReactHTML.li {
-                            +"${feature.name} (${if (feature.static) "fixed" else "switchable"}): ${feature.descr}"
-                        }
-                    }
-                }
+            "RV32 Implemented",
 
-                h2 {
-                    +"Instructions"
-                }
-                table {
-                    thead {
-                        tr {
+            Chapter(
+                "Extensions",
+                UnlinkedList(entrys = EXTENSION.entries.filter { !it.invisible }.map { feature -> Text("${feature.name} (${if (feature.static) "fixed" else "switchable"}): ${feature.descr}") }.toTypedArray())
+            ),
+            Chapter(
+                "Instructions",
+                Table(
+                    listOf("instruction", "params", "opcode"),
+                    contentRows = RV32Syntax.InstrType.entries.map { instr ->
+                        listOf(Text(instr.id), Text(instr.paramType.exampleString),
+                            Table(
+                                header = instr.opCode?.maskLabels?.map { it.name } ?: listOf(),
+                                contentRows = arrayOf(instr.opCode?.opMaskList?.map { Text(it) } ?: listOf())))
+                    }.toTypedArray()
+                )
+            ),
+            Chapter(
+                "Registers",
+                Text("address-width: ${REG_ADDRESS_SIZE.bitWidth}bit"),
+                Text("value-width: ${REG_VALUE_SIZE.bitWidth}bit")
+            ),
+            Chapter(
+                "Memory",
+                Text("address-width: ${MEM_ADDRESS_WIDTH.bitWidth}bit"),
+                Text("value-width: ${MEM_VALUE_WIDTH.bitWidth}bit")
+            )
+        )
 
-                            th {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                colSpan = 2
-                                +"instruction"
-                            }
-                            th {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                +"opcode"
-                            }
-                        }
-                    }
-                    tbody {
-                        for (instr in RV32Syntax.InstrType.entries) {
-                            tr {
 
-                                td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                    +instr.id
-                                }
-                                td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                    +"${instr.paramType.exampleString}\t"
-                                }
-                                td {
-                                    css {
-                                        float = Float.right
-                                    }
-                                    instr.opCode?.let {
-                                        table {
-                                            thead {
-                                                tr {
-                                                    for (mask in it.maskLabels) {
-                                                        th {
-                                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                                            +mask.name
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            tbody {
-                                                tr {
-                                                    for (opcode in it.opMaskList) {
-                                                        td {
-                                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                                            +opcode
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (instr.pseudo) +"pseudo" else +""
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        )*/
     )
 
     val asmConfig = AsmConfig(
@@ -217,7 +143,7 @@ object RV32 {
             Register(Bin("00010", REG_ADDRESS_SIZE), listOf("x2"), listOf("sp"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "stack pointer"),
             Register(Bin("00011", REG_ADDRESS_SIZE), listOf("x3"), listOf("gp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "global pointer"),
             Register(Bin("00100", REG_ADDRESS_SIZE), listOf("x4"), listOf("tp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "thread pointer"),
-            
+
             Register(Bin("00101", REG_ADDRESS_SIZE), listOf("x5"), listOf("t0"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 0"),
             Register(Bin("00110", REG_ADDRESS_SIZE), listOf("x6"), listOf("t1"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 1"),
             Register(Bin("00111", REG_ADDRESS_SIZE), listOf("x7"), listOf("t2"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 2"),
@@ -225,7 +151,7 @@ object RV32 {
             Register(Bin("11101", REG_ADDRESS_SIZE), listOf("x29"), listOf("t4"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 4"),
             Register(Bin("11110", REG_ADDRESS_SIZE), listOf("x30"), listOf("t5"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 5"),
             Register(Bin("11111", REG_ADDRESS_SIZE), listOf("x31"), listOf("t6"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "temporary register 6"),
-            
+
             Register(Bin("01010", REG_ADDRESS_SIZE), listOf("x10"), listOf("a0"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 0 / return value 0"),
             Register(Bin("01011", REG_ADDRESS_SIZE), listOf("x11"), listOf("a1"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 1 / return value 1"),
             Register(Bin("01100", REG_ADDRESS_SIZE), listOf("x12"), listOf("a2"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 2"),
@@ -234,7 +160,7 @@ object RV32 {
             Register(Bin("01111", REG_ADDRESS_SIZE), listOf("x15"), listOf("a5"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 5"),
             Register(Bin("10000", REG_ADDRESS_SIZE), listOf("x16"), listOf("a6"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 6"),
             Register(Bin("10001", REG_ADDRESS_SIZE), listOf("x17"), listOf("a7"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLER, "function argument 7"),
-            
+
             Register(Bin("01000", REG_ADDRESS_SIZE), listOf("x8"), listOf("s0", "fp"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 0 / frame pointer"),
             Register(Bin("01001", REG_ADDRESS_SIZE), listOf("x9"), listOf("s1"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 1"),
             Register(Bin("10010", REG_ADDRESS_SIZE), listOf("x18"), listOf("s2"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 2"),

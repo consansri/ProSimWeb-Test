@@ -8,6 +8,7 @@ import emulator.kit.configs.Config
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
+import emulator.kit.common.Docs.DocComponent.*
 
 
 /**
@@ -56,73 +57,36 @@ object T6502 {
     val description = Config.Description(
         "T6502",
         "MOS Technology 6502",
-        Docs(usingStandard = true,/*Docs.HtmlFile.DefinedFile("Implemented", FC {
-            ReactHTML.h1 {
-                +"6502 Implemented"
-            }
-            ReactHTML.h2 {
-                +"General"
-            }
-            ReactHTML.strong {
-                +"Memory"
-            }
-            ReactHTML.ul {
-                ReactHTML.li {
-                    +"address-width: $MEM_ADDR_SIZE"
-                }
-                ReactHTML.li {
-                    +"value-width: $BYTE_SIZE"
-                }
-            }
-            ReactHTML.h2 {
-                +"Instructions"
-            }
-            ReactHTML.table {
-                ReactHTML.thead {
-                    ReactHTML.tr {
-
-                        ReactHTML.th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            colSpan = 2
-                            +"instruction"
-                        }
-                        ReactHTML.th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            +"opcode"
-                        }
-                        ReactHTML.th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            +"description"
-                        }
-                    }
-                }
-                ReactHTML.tbody {
-                    className = ClassName(StyleAttr.Main.Table.CLASS_STRIPED)
-                    for (instr in T6502Syntax.InstrType.entries) {
-                        ReactHTML.tr {
-
-                            ReactHTML.td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                +instr.name
-                            }
-                            ReactHTML.td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                +instr.opCode.entries.map { it.key }.joinToString("\n") { it.exampleString }
-                                +"\t"
-                            }
-                            ReactHTML.td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                +instr.opCode.entries.joinToString("\n") { "${it.value} <- ${it.key.description}" }
-                            }
-                            ReactHTML.td{
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_RIGHT)
-                                +instr.description
-                            }
-                        }
-                    }
-                }
-            }
-        }),*/ Docs.HtmlFile.SourceFile("Syntax Examples", "/documents/t6502/syntaxexamples.html"))
+        Docs(
+            usingStandard = true,
+            Docs.HtmlFile.DefinedFile(
+                "6502 Implemented",
+                Chapter(
+                    "Memory",
+                    UnlinkedList(
+                        Text("address-width: $MEM_ADDR_SIZE"),
+                        Text("value-width: $BYTE_SIZE")
+                    )
+                ),
+                Chapter(
+                    "Instructions",
+                    Table(
+                        listOf("instruction", "params", "opcode", "description"),
+                        *T6502Syntax.InstrType.entries.map { instr ->
+                            listOf(
+                                Text(instr.name),
+                                Text(instr.opCode.entries.map { it.key }.joinToString("\n") { it.exampleString }),
+                                Text(instr.opCode.entries.joinToString("\n") { "${it.value} <- ${it.key.description}" }),
+                                Text(instr.description)
+                            )
+                        }.toTypedArray()
+                    )
+                )
+            ),
+            Docs.HtmlFile.SourceFile(
+                "Syntax Examples", "/documents/t6502/syntaxexamples.html"
+            )
+        )
     )
 
     val config = Config(

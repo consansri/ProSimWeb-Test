@@ -1,6 +1,5 @@
 package emulator.archs.riscv64
 
-
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -12,6 +11,7 @@ import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.CSRegister.Privilege
 import emulator.kit.optional.Feature
+import emulator.kit.common.Docs.DocComponent.*
 
 object RV64 {
 
@@ -79,119 +79,41 @@ object RV64 {
     /**
      * RV64 Generated Documenation
      */
-    private val riscVDocs = Docs(usingStandard = true,
+    private val riscVDocs = Docs(
+        usingStandard = true,
         Docs.HtmlFile.SourceFile(
             "Syntax Examples",
             "/documents/rv64/syntaxexamples.html"
-        )/*,
+        ),
         Docs.HtmlFile.DefinedFile(
-            "Implemented",
-            FC {
-                ReactHTML.h1 {
-                    +"RV64 Implemented"
-                }
-                ReactHTML.h2 {
-                    +"General"
-                }
-                ReactHTML.strong {
-                    +"Registers"
-                }
-                ReactHTML.ul {
-                    ReactHTML.li {
-                        +"address-width: ${REG_ADDRESS_SIZE.bitWidth}bit"
-                    }
-                    ReactHTML.li {
-                        +"value-width: ${REG_VALUE_SIZE.bitWidth}bit"
-                    }
-                }
-                ReactHTML.strong {
-                    +"Memory"
-                }
-                ReactHTML.ul {
-                    ReactHTML.li {
-                        +"address-width: ${MEM_ADDRESS_WIDTH.bitWidth}bit"
-                    }
-                    ReactHTML.li {
-                        +"value-width: ${MEM_VALUE_WIDTH.bitWidth}bit"
-                    }
-                }
-                ReactHTML.h2 {
-                    +"Extensions"
-                }
-                ReactHTML.ul {
-                    for (feature in EXTENSION.entries.filter { !it.invisible }) {
-                        ReactHTML.li {
-                            +"${feature.name} (${if (feature.static) "fixed" else "switchable"}): ${feature.descr}"
-                        }
-                    }
-                }
-
-                ReactHTML.h2 {
-                    +"Instructions"
-                }
-                ReactHTML.table {
-                    ReactHTML.thead {
-                        ReactHTML.tr {
-
-                            ReactHTML.th {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                colSpan = 2
-                                +"instruction"
-                            }
-                            ReactHTML.th {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                +"opcode"
-                            }
-                        }
-                    }
-                    ReactHTML.tbody {
-                        for (instr in RV64Syntax.InstrType.entries) {
-                            ReactHTML.tr {
-
-                                ReactHTML.td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                    +instr.id
-                                }
-                                ReactHTML.td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
-                                    +"${instr.paramType.exampleString}\t"
-                                }
-                                ReactHTML.td {
-                                    css {
-                                        float = Float.right
-                                    }
-                                    instr.opCode?.let {
-                                        ReactHTML.table {
-                                            ReactHTML.thead {
-                                                ReactHTML.tr {
-                                                    for (mask in it.maskLabels) {
-                                                        ReactHTML.th {
-                                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                                            +mask.name
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            ReactHTML.tbody {
-                                                ReactHTML.tr {
-                                                    for (opcode in it.opMaskList) {
-                                                        ReactHTML.td {
-                                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                                            +opcode
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (instr.pseudo) +"pseudo" else +""
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        )*/
+            "RV32 Implemented",
+            Chapter(
+                "Extensions",
+                UnlinkedList(entrys = RV64.EXTENSION.entries.filter { !it.invisible }.map { feature -> Text("${feature.name} (${if (feature.static) "fixed" else "switchable"}): ${feature.descr}") }.toTypedArray())
+            ),
+            Chapter(
+                "Instructions",
+                Table(
+                    listOf("instruction", "params", "opcode"),
+                    contentRows = RV64Syntax.InstrType.entries.map { instr ->
+                        listOf(Text(instr.id), Text(instr.paramType.exampleString),
+                            Table(
+                                header = instr.opCode?.maskLabels?.map { it.name } ?: listOf(),
+                                contentRows = arrayOf(instr.opCode?.opMaskList?.map { Text(it) } ?: listOf())))
+                    }.toTypedArray()
+                )
+            ),
+            Chapter(
+                "Registers",
+                Text("address-width: ${REG_ADDRESS_SIZE.bitWidth}bit"),
+                Text("value-width: ${REG_VALUE_SIZE.bitWidth}bit")
+            ),
+            Chapter(
+                "Memory",
+                Text("address-width: ${MEM_ADDRESS_WIDTH.bitWidth}bit"),
+                Text("value-width: ${MEM_VALUE_WIDTH.bitWidth}bit")
+            )
+        )
     )
 
     val asmConfig = AsmConfig(
@@ -243,7 +165,7 @@ object RV64 {
             Register(Bin("11010", REG_ADDRESS_SIZE), listOf("x26"), listOf("s10"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 10"),
             Register(Bin("11011", REG_ADDRESS_SIZE), listOf("x27"), listOf("s11"), Variable(REG_INIT, REG_VALUE_SIZE), CallingConvention.CALLEE, "saved register 11"),
 
-        )
+            )
     )
 
     /**
