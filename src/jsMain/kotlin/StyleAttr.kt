@@ -242,18 +242,6 @@ object StyleAttr {
 
             const val CLASS_BORDERED = "table-bordered"
             const val CLASS_STRIPED = "table-striped"
-
-            enum class Mark(val color: ModeColor) {
-                PROGRAM(ModeColor("#A040A0")),
-                DATA(ModeColor("#40A0A0")),
-                EDITABLE(ModeColor("#222222", "#A0A0A0")),
-                NOTUSED(ModeColor("#77777731")),
-                ELSE(ModeColor("#A0A040"));
-
-                fun get(): Color {
-                    return this.color.get()
-                }
-            }
         }
 
         object Window {

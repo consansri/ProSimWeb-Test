@@ -1,7 +1,6 @@
 package visual
 
 import Constants
-import StorageKey
 import StyleAttr
 import emotion.react.css
 import emulator.Link
@@ -34,7 +33,7 @@ import web.timers.setTimeout
 import web.url.URL
 
 external interface MenuProps : Props {
-    var archState: StateInstance<Architecture>
+    var archState: StateInstance<emulator.kit.Architecture>
     var fileChangeEvent: StateInstance<Boolean>
 }
 
@@ -214,7 +213,7 @@ val Menu = FC<MenuProps> { props ->
                     onClick = { event ->
                         showArchs(false)
                         setArch(archLink.architecture)
-                        localStorage.setItem(StorageKey.ARCH_TYPE, Link.entries.indexOf(archLink).toString())
+                        localStorage.setItem(Constants.WebStorageKey.ARCH_TYPE, Link.entries.indexOf(archLink).toString())
 
                         event.currentTarget.classList.toggle("nav-arch-active")
                         props.archState.component1().exeReset()
@@ -331,7 +330,7 @@ val Menu = FC<MenuProps> { props ->
                         }
 
                         downloadAsyncRef.current = setTimeout({
-                            val blob = arch.getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW))
+                            val blob = Blob(arch.getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW)).toTypedArray())
                             val anchor = document.createElement("a") as HTMLAnchorElement
                             anchor.href = URL.createObjectURL(blob)
                             anchor.style.display = "none"

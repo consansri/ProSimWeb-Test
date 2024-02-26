@@ -21,7 +21,7 @@ import web.http.fetch
 import web.window.window
 
 external interface InfoViewProps : Props {
-    var archState: StateInstance<Architecture>
+    var archState: StateInstance<emulator.kit.Architecture>
     var footerRef: MutableRefObject<HTMLElement>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>

@@ -10,28 +10,7 @@ data object Styles {
         fg = UITools.col(0x313131),
         border = UITools.col(0x6b7394),
         tabsBg = UITools.col(0x293256),
-        controlsBg = UITools.col(0x5e6687),
-        hlGrayscale = EditorTheme.HLGrayscale(
-            UITools.col(0x202746),
-            UITools.col(0x293256),
-            UITools.col(0x5e6687),
-            UITools.col(0x6b7394),
-            UITools.col(0x898ea4),
-            UITools.col(0x979db4),
-            UITools.col(0xdfe2f1),
-            UITools.col(0xf5f7ff)
-        ),
-        hlColors = EditorTheme.HLColors(
-            red = UITools.col(0xc94922),
-            orange = UITools.col(0xc76b29),
-            yellow = UITools.col(0xc08b30),
-            green = UITools.col(0xac9739),
-            greenPCMark = UITools.col(0x008b19),
-            cyan = UITools.col(0x22a2c9),
-            blue = UITools.col(0x3d8fd1),
-            violet = UITools.col(0x6679cc),
-            magenta = UITools.col(0x9c637a),
-        )
+        controlsBg = UITools.col(0x5e6687)
     )
 
     val darkEditorTheme = EditorTheme(
@@ -40,28 +19,7 @@ data object Styles {
         fg = UITools.col(0xEEEEEE),
         border = UITools.col(0x6b7394),
         tabsBg = UITools.col(0x293256),
-        controlsBg = UITools.col(0x5e6687),
-        hlGrayscale = EditorTheme.HLGrayscale(
-            UITools.col(0xf5f7ff),
-            UITools.col(0xdfe2f1),
-            UITools.col(0x979db4),
-            UITools.col(0x898ea4),
-            UITools.col(0x6b7394),
-            UITools.col(0x5e6687),
-            UITools.col(0x293256),
-            UITools.col(0x202746),
-        ),
-        hlColors = EditorTheme.HLColors(
-            red = UITools.col(0xc94922),
-            orange = UITools.col(0xc76b29),
-            yellow = UITools.col(0xc08b30),
-            green = UITools.col(0xac9739),
-            greenPCMark = UITools.col(0x008b19),
-            cyan = UITools.col(0x22a2c9),
-            blue = UITools.col(0x3d8fd1),
-            violet = UITools.col(0x6679cc),
-            magenta = UITools.col(0x9c637a),
-        )
+        controlsBg = UITools.col(0x5e6687)
     )
 
     val darkTheme = AppTheme(

@@ -19,7 +19,7 @@ import web.cssom.*
 
 external interface TranscriptProps : Props {
     var taVal: String
-    var arch: StateInstance<Architecture>
+    var arch: StateInstance<emulator.kit.Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
 }

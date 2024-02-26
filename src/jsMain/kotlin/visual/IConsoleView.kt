@@ -1,6 +1,6 @@
 package visual
 
-import StorageKey
+import Constants.WebStorageKey
 import StyleAttr
 import emotion.react.css
 import kotlinx.browser.document
@@ -19,7 +19,7 @@ import web.timers.*
 import web.cssom.*
 
 external interface IConsoleViewProps : Props {
-    var archState: StateInstance<Architecture>
+    var archState: StateInstance<emulator.kit.Architecture>
     var footerRef: MutableRefObject<HTMLElement>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
@@ -38,9 +38,9 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
     val iConsole = props.archState.component1().getConsole()
 
     val (shadow, setShadow) = useState(false)
-    val (scrollDown, setScrollDown) = useState(localStorage.getItem(StorageKey.CONSOLE_SDOWN)?.toBoolean() ?: true)
-    val (pin, setPin) = useState(localStorage.getItem(StorageKey.CONSOLE_PIN)?.toBoolean() ?: false)
-    val (showLog, setShowLog) = useState(localStorage.getItem(StorageKey.CONSOLE_SHOWINFO)?.toBoolean() ?: false)
+    val (scrollDown, setScrollDown) = useState(localStorage.getItem(WebStorageKey.CONSOLE_SDOWN)?.toBoolean() ?: true)
+    val (pin, setPin) = useState(localStorage.getItem(WebStorageKey.CONSOLE_PIN)?.toBoolean() ?: false)
+    val (showLog, setShowLog) = useState(localStorage.getItem(WebStorageKey.CONSOLE_SHOWINFO)?.toBoolean() ?: false)
 
     div {
 
@@ -300,11 +300,11 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
                     it1.style.marginBottom = "0"
                 }
             }
-            localStorage.setItem(StorageKey.CONSOLE_PIN, pin.toString())
+            localStorage.setItem(WebStorageKey.CONSOLE_PIN, pin.toString())
         }
 
         useEffect(showLog) {
-            localStorage.setItem(StorageKey.CONSOLE_PIN, showLog.toString())
+            localStorage.setItem(WebStorageKey.CONSOLE_PIN, showLog.toString())
         }
 
         useEffect(scrollDown) {
@@ -319,7 +319,7 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
                     clearInterval(it)
                 }
             }
-            localStorage.setItem(StorageKey.CONSOLE_SDOWN, scrollDown.toString())
+            localStorage.setItem(WebStorageKey.CONSOLE_SDOWN, scrollDown.toString())
         }
 
         useEffect(document.body?.onresize) {

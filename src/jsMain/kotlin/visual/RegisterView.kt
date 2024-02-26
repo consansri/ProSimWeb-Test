@@ -4,14 +4,13 @@ import StyleAttr
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Architecture
-import emulator.kit.Settings
+import Settings
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.Types.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
@@ -31,7 +30,7 @@ import kotlin.time.measureTime
 
 external interface RegisterViewProps : Props {
     var name: String
-    var archState: StateInstance<Architecture>
+    var archState: StateInstance<emulator.kit.Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
     var hideDescr: StateInstance<Boolean>

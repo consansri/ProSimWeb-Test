@@ -8,31 +8,6 @@ data class EditorTheme(
     val fg: Color,
     val border: Color,
     val controlsBg: Color,
-    val tabsBg: Color,
-    val hlGrayscale: HLGrayscale,
-    val hlColors: HLColors
+    val tabsBg: Color
 
-){
-    data class HLGrayscale(
-        val base0: Color,
-        val base1: Color,
-        val base2: Color,
-        val base3: Color,
-        val base4: Color,
-        val base5: Color,
-        val base6: Color,
-        val base7: Color,
-    )
-
-    data class HLColors(
-        val red: Color,
-        val orange: Color,
-        val yellow: Color,
-        val green: Color,
-        val greenPCMark: Color,
-        val cyan: Color,
-        val blue: Color,
-        val violet: Color,
-        val magenta: Color
-    )
-}
+)

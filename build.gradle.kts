@@ -64,6 +64,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+
                 implementation("io.nacular.doodle:core:$doodleVersion")
                 implementation("io.nacular.doodle:browser:$doodleVersion")
 
@@ -83,7 +86,6 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react:18.2.0-pre.607")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.2.0-pre.607")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion:11.11.1-pre.607")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.7.3")
             }
         }
 

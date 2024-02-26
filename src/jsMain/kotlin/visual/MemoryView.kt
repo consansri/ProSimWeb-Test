@@ -1,11 +1,12 @@
 package visual
 
-import StorageKey
+import Constants
+import Constants.WebStorageKey
 import StyleAttr
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Architecture
-import emulator.kit.Settings
+import Settings
 import emulator.kit.common.Memory
 import emulator.kit.types.Variable.Value.Hex
 import kotlinx.browser.localStorage
@@ -26,12 +27,13 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import visual.StyleExt.get
 import web.cssom.*
 import web.html.*
 
 external interface MemViewProps : Props {
     var name: String
-    var archState: StateInstance<Architecture>
+    var archState: StateInstance<emulator.kit.Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
     var hideRegDescr: StateInstance<Boolean>
@@ -51,10 +53,10 @@ val MemoryView = FC<MemViewProps> { props ->
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
 
-    val (useBounds, setUseBounds) = useState(localStorage.getItem("${StorageKey.MIO_ACTIVE}-${props.archState.component1().getDescription().name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().getMemory().getIOBounds() != null))
-    val (startAddr, setStartAddr) = useState(localStorage.getItem("${StorageKey.MIO_START}-${props.archState.component1().getDescription().name}")?.let { Hex(it, props.archState.component1().getMemory().getAddressSize()) } ?: props.archState.component1().getMemory()
+    val (useBounds, setUseBounds) = useState(localStorage.getItem("${WebStorageKey.MIO_ACTIVE}-${props.archState.component1().getDescription().name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().getMemory().getIOBounds() != null))
+    val (startAddr, setStartAddr) = useState(localStorage.getItem("${WebStorageKey.MIO_START}-${props.archState.component1().getDescription().name}")?.let { Hex(it, props.archState.component1().getMemory().getAddressSize()) } ?: props.archState.component1().getMemory()
         .getIOBounds()?.lowerAddr?.toHex())
-    val (amount, setAmount) = useState(localStorage.getItem("${StorageKey.MIO_AMOUNT}-${props.archState.component1().getDescription().name}")?.toLongOrNull() ?: props.archState.component1().getMemory().getIOBounds()?.amount ?: 32)
+    val (amount, setAmount) = useState(localStorage.getItem("${WebStorageKey.MIO_AMOUNT}-${props.archState.component1().getDescription().name}")?.toLongOrNull() ?: props.archState.component1().getMemory().getIOBounds()?.amount ?: 32)
 
     val (editVar, setEditVar) = useState<Memory.MemInstance.EditableValue>()
 
@@ -210,7 +212,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                 onInput = {
                     props.archState.component1().getMemory().setEntrysInRow(it.currentTarget.valueAsNumber.toInt())
-                    localStorage.setItem(StorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
+                    localStorage.setItem(WebStorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
                     setMemList(props.archState.component1().getMemory().getMemList())
                 }
             }
@@ -304,7 +306,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             tr {
                                 th {
                                     css {
-                                        color = important(StyleAttr.Main.Table.Mark.NOTUSED.get())
+                                        color = important(Memory.InstanceType.NOTUSED.get(StyleAttr.mode))
                                     }
                                     colSpan = 2 + props.archState.component1().getMemory().getEntrysInRow()
                                     scope = "row"
@@ -326,7 +328,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                 if (memInstance == null) {
                                     td {
                                         css {
-                                            color = important(StyleAttr.Main.Table.Mark.NOTUSED.get())
+                                            color = important(Memory.InstanceType.NOTUSED.get(StyleAttr.mode))
                                             fontWeight = important(FontWeight.lighter)
                                         }
                                         title = "unused"
@@ -340,7 +342,7 @@ val MemoryView = FC<MemViewProps> { props ->
                                                 color = important(StyleAttr.Main.Table.FgPC)
                                                 fontWeight = important(FontWeight.bold)
                                             } else {
-                                                color = important(memInstance.mark.get())
+                                                color = important(memInstance.mark.get(StyleAttr.mode))
                                             }
                                         }
 
@@ -521,11 +523,11 @@ val MemoryView = FC<MemViewProps> { props ->
         } else {
             props.archState.component1().getMemory().removeIOBounds()
         }
-        localStorage.setItem("${StorageKey.MIO_ACTIVE}-${props.archState.component1().getDescription().name}", useBounds.toString())
+        localStorage.setItem("${WebStorageKey.MIO_ACTIVE}-${props.archState.component1().getDescription().name}", useBounds.toString())
         startAddr?.let {
-            localStorage.setItem("${StorageKey.MIO_START}-${props.archState.component1().getDescription().name}", startAddr.getHexStr())
+            localStorage.setItem("${WebStorageKey.MIO_START}-${props.archState.component1().getDescription().name}", startAddr.getHexStr())
         }
-        localStorage.setItem("${StorageKey.MIO_AMOUNT}-${props.archState.component1().getDescription().name}", amount.toString())
+        localStorage.setItem("${WebStorageKey.MIO_AMOUNT}-${props.archState.component1().getDescription().name}", amount.toString())
     }
 
     useEffect(props.exeEventState.component1()) {
