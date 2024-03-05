@@ -32,11 +32,11 @@ actual fun FileHandler.loadFiles(files: MutableList<FileHandler.File>) {
                 if (DebugTools.KIT_showFileHandlerInfo) {
                     println("found file: $filename $filecontent ${fileUndoStates.size} ${fileRedoStates.size}")
                 }
-                files.add(emulator.kit.common.FileHandler.File(filename, filecontent, undoStates = fileUndoStates, redoStates = fileRedoStates))
+                files.add(FileHandler.File(filename, filecontent, undoStates = fileUndoStates, redoStates = fileRedoStates))
             }
         }
     } else {
-        files.add(emulator.kit.common.FileHandler.File("main.$fileEnding", "", undoStates = mutableListOf(), redoStates = mutableListOf()))
+        files.add(FileHandler.File("main.$fileEnding", "", undoStates = mutableListOf(), redoStates = mutableListOf()))
     }
     setCurrent(localStorage.getItem(WebStorageKey.FILE_CURR)?.toIntOrNull() ?: 0)
     if (DebugTools.KIT_showFileHandlerInfo) {

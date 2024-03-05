@@ -2,14 +2,18 @@ package visual
 
 import StyleAttr
 import emotion.react.css
+import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
+import emulator.kit.common.FileHandler
 import emulator.kit.common.Memory
 import react.FC
 import react.Props
+import react.StateInstance
 import react.dom.html.ReactHTML
 import web.cssom.Color
 import web.cssom.TextAlign
+import web.window.window
 
 object StyleExt {
 
@@ -48,7 +52,7 @@ object StyleExt {
         return "<$tag class='${classes.joinToString(" ") { it }}' ${id?.let { "id='$id'" }}>$input</$tag>"
     }
 
-    fun Docs.DocComponent.render(): FC<Props> {
+    fun Docs.DocComponent.render(arch: Architecture, fileChangeEvent: StateInstance<Boolean>): FC<Props> {
         val component = this
         return  FC {
             when (component) {
@@ -56,6 +60,22 @@ object StyleExt {
                     ReactHTML.pre {
                         ReactHTML.code {
                             +component.content
+
+                            onClick = {event ->
+                                if (arch.getFileHandler().getAllFiles().none { it.getName() == "example" }) {
+                                    arch.getFileHandler().import(FileHandler.File("example", component.content))
+                                    window.scrollTo(0, 0)
+                                    arch.getConsole().info("Successfully imported 'example'!")
+                                    fileChangeEvent.component2().invoke(!fileChangeEvent.component1())
+                                } else {
+                                    val currentTarget = event.currentTarget
+                                    currentTarget.classList.add(StyleAttr.ANIM_SHAKERED)
+                                    web.timers.setTimeout({
+                                        currentTarget.classList.remove(StyleAttr.ANIM_SHAKERED)
+                                    }, 100)
+                                    arch.getConsole().warn("Documentation couldn't import code example cause filename 'example' already exists!")
+                                }
+                            }
                         }
                     }
                 }
@@ -65,7 +85,7 @@ object StyleExt {
                         +component.chapterTitle
                     }
                     component.chapterContent.forEach {
-                        val fc = it.render()
+                        val fc = it.render(arch, fileChangeEvent)
                         fc {
 
                         }
@@ -91,7 +111,7 @@ object StyleExt {
                                             css {
                                                 textAlign = TextAlign.left
                                             }
-                                            val fc = rowEntry.render()
+                                            val fc = rowEntry.render(arch, fileChangeEvent)
                                             fc{
 
                                             }
@@ -113,7 +133,7 @@ object StyleExt {
                     ReactHTML.ul {
                         component.entrys.forEach { entry ->
                             ReactHTML.li {
-                                val fc = entry.render()
+                                val fc = entry.render(arch, fileChangeEvent)
                                 fc{
 
                                 }
@@ -127,7 +147,7 @@ object StyleExt {
                         +component.sectionTitle
                     }
                     component.sectionContent.forEach {
-                        val fc = it.render()
+                        val fc = it.render(arch, fileChangeEvent)
                         fc {
 
                         }
