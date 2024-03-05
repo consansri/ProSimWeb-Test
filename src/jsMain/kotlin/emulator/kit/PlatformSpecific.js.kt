@@ -44,7 +44,6 @@ actual fun FileHandler.loadFiles(files: MutableList<FileHandler.File>) {
     }
 }
 
-
 /**
  * Updates local Files to content of [FileHandler.files]
  */
