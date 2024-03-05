@@ -37,8 +37,6 @@ val InfoView = FC<InfoViewProps> { props ->
     val arch = props.archState.component1()
     val (currMDID, setCurrMDID) = useState<Int>()
 
-    var job: Job? = null
-
     div {
         IConsoleView {
             this.archState = props.archState
@@ -174,6 +172,7 @@ val InfoView = FC<InfoViewProps> { props ->
                             padding = StyleAttr.paddingSize
                         }
                         ReactHTML.th {
+                            textAlign = TextAlign.center
                             paddingRight = StyleAttr.paddingSize
                         }
                     }
@@ -200,7 +199,7 @@ val InfoView = FC<InfoViewProps> { props ->
                     arch.getDescription().docs.files.getOrNull(id)?.let { file ->
                         if (file is Docs.HtmlFile.DefinedFile) {
                             file.chapters.forEach {
-                                val fc = it.render()
+                                val fc = it.render(props.archState.component1(), props.fileChangeEvent)
                                 fc {
 
                                 }
@@ -216,7 +215,7 @@ val InfoView = FC<InfoViewProps> { props ->
         if (currMDID != null) {
             val file = arch.getDescription().docs.files[currMDID]
             if (file is Docs.HtmlFile.SourceFile) {
-                job = GlobalScope.launch {
+                GlobalScope.launch {
                     val snippet = fetch(file.src).text()
                     docDiv.current?.let { input ->
                         input.innerHTML = snippet.await()
