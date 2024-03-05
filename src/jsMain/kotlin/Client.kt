@@ -2,10 +2,7 @@ import react.create
 import react.dom.client.createRoot
 import web.dom.*
 import debug.DebugTools
-import io.nacular.doodle.application.application
 import io.nacular.doodle.core.Internal
-import org.kodein.di.instance
-import webassembly.instantiate
 
 @OptIn(Internal::class)
 fun main() {

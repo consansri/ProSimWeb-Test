@@ -1,5 +1,6 @@
 package visual
 
+import Constants
 import StyleAttr
 import emotion.react.css
 import emulator.kit.common.FileHandler
@@ -19,14 +20,17 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import debug.DebugTools
 import emulator.kit.Architecture
+import emulator.kit.assembly.Compiler
 import emulator.kit.common.ArchState
+import visual.StyleExt.get
+import visual.StyleExt.getVCRows
 import web.cssom.ClassName
 import web.timers.*
 import web.cssom.*
 import kotlin.time.measureTime
 
 external interface CodeEditorProps : Props {
-    var archState: StateInstance<Architecture>
+    var archState: StateInstance<emulator.kit.Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
     var fileChangeEvent: StateInstance<Boolean>
@@ -160,7 +164,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         checkTimeOutRef.current = setTimeout({
             val analysisTime = measureTime {
                 props.archState.component1().getState().edit()
-                setvcRows(props.archState.component1().compile(valueToCheck, build = true).split("\n"))
+                setvcRows(props.archState.component1().compile(valueToCheck, build = true).getVCRows())
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
                 setState(props.archState.component1().getState().state)
             }
@@ -182,7 +186,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             preHLTimeoutRef.current = setTimeout({
                 val analysisTime = measureTime {
                     props.archState.component1().getState().edit()
-                    val hlTaList = props.archState.component1().compile(value, build = false).split("\n")
+                    val hlTaList = props.archState.component1().compile(value, build = false).getVCRows()
                     setvcRows(hlTaList)
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
                     setState(props.archState.component1().getState().state)
@@ -886,17 +890,16 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     background = StyleAttr.transparent
                                     resize = Resize.block
 
-                                    for (entry in StyleAttr.Main.Editor.HL.entries) {
-                                        ".${entry.getFlag()}" {
-                                            when (entry.appendsOn) {
-                                                StyleAttr.Main.Editor.On.BackgroundColor -> {
-                                                    backgroundColor = important(entry.color.get())
-                                                }
+                                    Compiler.CodeStyle.entries.forEach {
+                                        ".${it.name}" {
+                                            color = important(it.get(StyleAttr.mode))
+                                        }
+                                    }
 
-                                                StyleAttr.Main.Editor.On.Color -> {
-                                                    color = important(entry.color.get())
-                                                }
-                                            }
+                                    Compiler.SeverityType.entries.forEach {
+                                        ".${it.name}" {
+                                            textDecoration = important(TextDecoration.underline)
+                                            textDecorationColor = important(it.codeStyle.get(StyleAttr.mode))
                                         }
                                     }
                                 }

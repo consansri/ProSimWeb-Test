@@ -1,6 +1,6 @@
 package visual
 
-import StorageKey
+import Constants.WebStorageKey
 import StyleAttr
 import emotion.react.css
 import emulator.kit.Architecture
@@ -22,7 +22,7 @@ import web.timers.Timeout
 import web.timers.setTimeout
 
 external interface ProcessorViewProps : Props {
-    var archState: StateInstance<Architecture>
+    var archState: StateInstance<emulator.kit.Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
 }
@@ -32,7 +32,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     val mStepInputRef = useRef<HTMLInputElement>()
     val executionQueue = useRef<Timeout>(null)
 
-    val (mStepAmount, setMStepAmount) = useState(localStorage.getItem(StorageKey.MSTEP_VALUE) ?: 10)
+    val (mStepAmount, setMStepAmount) = useState(localStorage.getItem(WebStorageKey.MSTEP_VALUE) ?: 10)
 
     val (allowExe, setAllowExe) = useState(true)
     val hideRegDescr = useState(true)
@@ -263,7 +263,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
 
         MemoryView {
             this.name = "Memory"
-            this.length = localStorage.getItem(StorageKey.MEM_LENGTH)?.toInt() ?: 4
+            this.length = localStorage.getItem(WebStorageKey.MEM_LENGTH)?.toInt() ?: 4
             this.archState = props.archState
             this.compileEventState = props.compileEventState
             this.exeEventState = props.exeEventState
@@ -272,7 +272,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     }
 
     useEffect(mStepAmount) {
-        localStorage.setItem(StorageKey.MSTEP_VALUE, mStepAmount.toString())
+        localStorage.setItem(WebStorageKey.MSTEP_VALUE, mStepAmount.toString())
     }
 }
 
