@@ -27,17 +27,15 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                         Text("REACT Editor shortcut CTRL + S to build the project!"),
                         Text("REACT Switchable register view (either 2 independent views or one view with descriptions)!"),
                         Text(
-                            """KIT There now is a standardized Assembler and Syntax implementation, which can be used. (currently used by RV32, RV64, T6502 and IKR Mini)
-                               It provides features like imports, equs, macros, multiple sections (data, rodata, bss), labels, pc setter and global start definitions.
-                               This simplifies the integration of new architectures and makes all features easily accessible for every architecture.
-                            """.trimIndent()
+                            "KIT There now is a standardized Assembler and Syntax implementation, which can be used. (currently used by RV32, RV64, T6502 and IKR Mini)\nIt provides features like imports, equs, macros, multiple sections (data, rodata, bss), labels, pc setter and global start definitions.\nThis simplifies the integration of new architectures and makes all features easily accessible for every architecture."
                         ),
                     )
                 ),
                 Section(
                     "Changed",
                     UnlinkedList(
-                        Text("REACT Editor improved current line information for macros and pseudo instructions"),
+                        Text("KIT moved from javascript target to common target which allows a parallel development of the wasm target, with a new ui."),
+                        Text("REACT Editor improved current line information for macros and pseudo instructions."),
                         Text("REACT Editor code reformat is a little enhanced."),
                         Text("KIT Automatic syntax checks replace old pre highlighting."),
                         Text("GLOBAL Upgraded to Kotlin 1.9.22"),
@@ -328,7 +326,7 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
         class Text(val content: String) : DocComponent()
         class Code(val content: String) : DocComponent()
         class Chapter(val chapterTitle: String, vararg val chapterContent: DocComponent) : DocComponent()
-        class Section(val sectionTitle: String, vararg val sectionContent: DocComponent): DocComponent()
+        class Section(val sectionTitle: String, vararg val sectionContent: DocComponent) : DocComponent()
         class UnlinkedList(vararg val entrys: DocComponent) : DocComponent()
     }
 
