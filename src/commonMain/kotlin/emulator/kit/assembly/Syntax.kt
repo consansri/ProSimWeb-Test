@@ -280,7 +280,7 @@ abstract class Syntax {
 
         init {
             if (components.isEmpty()) {
-                Console.warn("Empty TokenSequence Defined!")
+                CommonConsole.warn("Empty TokenSequence Defined!")
             }
         }
 

@@ -11,4 +11,13 @@ object Coroutines {
         }
     }
 
+    fun loop(delayMillis: Long, block: suspend () -> Unit): Job {
+        return context.launch {
+            while (true) {
+                delay(delayMillis)
+                block()
+            }
+        }
+    }
+
 }

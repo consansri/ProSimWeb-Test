@@ -18,11 +18,11 @@ class FileHandler(val fileEnding: String) {
 
     fun import(file: File): Boolean {
         return if (files.map { it.getName() }.contains(file.getName())) {
-            Console.warn("couldn't import file cause filename duplicate recognized!")
+            CommonConsole.warn("couldn't import file cause filename duplicate recognized!")
             false
 
         } else if (file.getName().isEmpty()) {
-            Console.warn("couldn't import file cause filename is empty!")
+            CommonConsole.warn("couldn't import file cause filename is empty!")
             false
         } else {
             this.files.add(file)
@@ -46,11 +46,11 @@ class FileHandler(val fileEnding: String) {
 
     fun renameCurrent(newName: String): Boolean {
         return if (files.map { it.getName() }.contains(newName)) {
-            Console.warn("couldn't import file cause filename duplicate recognized!")
+            CommonConsole.warn("couldn't import file cause filename duplicate recognized!")
             false
 
         } else if (newName.isEmpty()) {
-            Console.warn("couldn't import file cause filename is empty!")
+            CommonConsole.warn("couldn't import file cause filename is empty!")
             false
         } else {
             if (DebugTools.KIT_showFileHandlerInfo) {

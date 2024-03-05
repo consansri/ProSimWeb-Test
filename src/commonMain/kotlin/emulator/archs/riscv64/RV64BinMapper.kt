@@ -1,7 +1,6 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
-import emulator.kit.Architecture
 import Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64Syntax.InstrType
@@ -807,11 +806,11 @@ class RV64BinMapper {
             var length = 0
             opCode.forEach { length += it.length }
             if (length != Variable.Size.Bit32().bitWidth) {
-                Console.warn("BinMapper.OpCode: OpMask isn't 32Bit Binary! -> returning null")
+                CommonConsole.warn("BinMapper.OpCode: OpMask isn't 32Bit Binary! -> returning null")
                 return null
             }
             if (opCode.size != maskLabels.size) {
-                Console.warn("BinMapper.OpCode: OpMask [$opMask] and Labels [${maskLabels.joinToString { it.name }}] aren't the same size! -> returning null")
+                CommonConsole.warn("BinMapper.OpCode: OpMask [$opMask] and Labels [${maskLabels.joinToString { it.name }}] aren't the same size! -> returning null")
                 return null
             }
 
@@ -824,11 +823,11 @@ class RV64BinMapper {
                         if (size != null) {
                             opCode[labelID] = param.getUResized(size).getRawBinStr()
                         } else {
-                            Console.warn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
+                            CommonConsole.warn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
                             return null
                         }
                     } else {
-                        Console.warn("BinMapper.OpCode.getOpCode(): parameter [${maskLabel.name}] not found! -> inserting zeros")
+                        CommonConsole.warn("BinMapper.OpCode.getOpCode(): parameter [${maskLabel.name}] not found! -> inserting zeros")
                         val bitWidth = maskLabel.maxSize?.bitWidth
                         bitWidth?.let {
                             opCode[labelID] = "0".repeat(it)

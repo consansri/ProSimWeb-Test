@@ -36,7 +36,7 @@ object DecTools {
             if (isAAbsGreater) "$aSign$resultAbs" else "$bSign$resultAbs"
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            Console.info("DecTools: $a + $b = $result")
+            CommonConsole.info("DecTools: $a + $b = $result")
         }
         return checkEmpty(result)
     }
@@ -47,7 +47,7 @@ object DecTools {
 
         val result = add(aTrimmed, negotiate(bTrimmed))
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            Console.info("DecTools: $a - $b = $result")
+            CommonConsole.info("DecTools: $a - $b = $result")
         }
         return checkEmpty(result)
     }
@@ -62,7 +62,7 @@ object DecTools {
             multiplyUnsigned(abs(aTrimmed), abs(bTrimmed))
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            Console.info("DecTools: $a * $b = $result")
+            CommonConsole.info("DecTools: $a * $b = $result")
         }
         return checkEmpty(result)
     }
@@ -79,7 +79,7 @@ object DecTools {
             divideUnsigned(abs(dividendTrimmed), abs(divisorTrimmed))
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            Console.info("DecTools: $dividend / $divisor = $result")
+            CommonConsole.info("DecTools: $dividend / $divisor = $result")
         }
         return checkEmpty(result)
     }
@@ -92,7 +92,7 @@ object DecTools {
         val absExponent = abs(exponentTrimmed)
 
         if (isNegative(exponentTrimmed)) {
-            Console.warn("DecTools.pow(): exponent = $exponent must be greater equal 0! (using $absExponent for calculation!)")
+            CommonConsole.warn("DecTools.pow(): exponent = $exponent must be greater equal 0! (using $absExponent for calculation!)")
         }
 
         val result = if (isNegative(baseTrimmed)) {
@@ -301,7 +301,7 @@ object DecTools {
             val buffer = paddedA
             paddedA = paddedB
             paddedB = buffer
-            Console.warn("DecTools.subUnsigned(): a (${aTrimmed}) was smaller than b (${bTrimmed}) so they where switched up!")
+            CommonConsole.warn("DecTools.subUnsigned(): a (${aTrimmed}) was smaller than b (${bTrimmed}) so they where switched up!")
         }
 
         var difference = ""
@@ -374,7 +374,7 @@ object DecTools {
         }
 
         if (isGreaterThan(divisorTrimmed, dividendTrimmed)) {
-            Console.warn("No Division possible!")
+            CommonConsole.warn("No Division possible!")
             return DivisionResult("0", dividendTrimmed)
         }
 
@@ -426,7 +426,7 @@ object DecTools {
                     }
                     loop++
                 } else {
-                    Console.warn("DecTools: Division took to long!")
+                    CommonConsole.warn("DecTools: Division took to long!")
                     return DivisionResult(result.trimStart('0'), rest)
                 }
             }
@@ -454,7 +454,7 @@ object DecTools {
 
                     loop++
                 } else {
-                    Console.warn("DecTools: Division took to long!")
+                    CommonConsole.warn("DecTools: Division took to long!")
                     return DivisionResult(result.trimStart('0'), dividendTemp)
                 }
             }

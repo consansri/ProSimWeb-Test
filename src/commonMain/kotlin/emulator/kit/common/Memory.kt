@@ -56,7 +56,7 @@ class Memory(
                         instance.mark = mark
                     }
                 } else {
-                    Console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
+                    CommonConsole.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
                 val zeroValue = Variable(initBin, instanceSize)
@@ -85,7 +85,7 @@ class Memory(
                         instance.mark = mark
                     }
                 } else {
-                    Console.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
+                    CommonConsole.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, instanceSize)
@@ -116,7 +116,7 @@ class Memory(
                         instance.mark = mark
                     }
                 } else {
-                    Console.warn("Memory: Denied writing data (address: ${hexAddress.getHexStr()}, value: ${hexValue.getHexStr()}) in readonly Memory!")
+                    CommonConsole.warn("Memory: Denied writing data (address: ${hexAddress.getHexStr()}, value: ${hexValue.getHexStr()}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, instanceSize)
@@ -230,7 +230,7 @@ class Memory(
             addrRelevantForOffset = if (tempAddrRelevantForOffset != null) {
                 tempAddrRelevantForOffset
             } else {
-                Console.error("couldn't extract relevant address part (from ${address.getRawHexStr()}) for offset calculation!")
+                CommonConsole.error("couldn't extract relevant address part (from ${address.getRawHexStr()}) for offset calculation!")
                 0
             }
 

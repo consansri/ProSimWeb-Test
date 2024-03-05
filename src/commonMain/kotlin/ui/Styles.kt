@@ -1,5 +1,6 @@
 package ui
 
+import io.nacular.doodle.drawing.Font
 import ui.editor.EditorTheme
 
 data object Styles {

@@ -1,14 +1,17 @@
 package ui.editor
 
+import emulator.kit.assembly.Compiler
+import io.nacular.doodle.animation.Animator
+import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.*
+import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.constraints.center
 import io.nacular.doodle.layout.constraints.constrain
-import io.nacular.doodle.layout.constraints.fill
+import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.Direction
 import io.nacular.doodle.utils.Resizer
 import ui.editor.controls.EditorControls
@@ -16,17 +19,27 @@ import ui.editor.field.EditorTextField
 import ui.editor.tabs.EditorTabs
 import kotlin.math.min
 
-class Editor(display: Display, textMetrics: TextMetrics, val theme: EditorTheme) : View() {
+class Editor(display: Display, focusManager: FocusManager, textMetrics: TextMetrics, animator: Animator, fontLoader: FontLoader, val theme: EditorTheme) : View() {
+
     init {
         // Layout Childviews
         val controls = EditorControls(theme).apply {
             backgroundColor = theme.controlsBg
             width = 32.0
         }
-        val textField = EditorTextField(theme).apply {
-            minimumSize = Size(0.0, 0.0)
+        val textField = EditorTextField(
+            focusManager = focusManager,
+            animate = animator,
+            fontLoader = fontLoader,
+            textMetrics = textMetrics,
+            editorTheme = theme
+        ).apply {
+            width = 600.0
+            height = 50.0
             Resizer(this, manageCursor = true).apply { directions = setOf(Direction.North); movable = false }
+            scrollTo(io.nacular.doodle.geometry.Vector2D(0, 0))
         }
+
         val tabs = EditorTabs(theme).apply {
             backgroundColor = theme.tabsBg
             height = 32.0

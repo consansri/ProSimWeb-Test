@@ -1,6 +1,5 @@
 package ui
 
-import io.nacular.doodle.drawing.Color
 import ui.editor.EditorTheme
 
 data class AppTheme(

@@ -1,6 +1,7 @@
 package ui.editor
 
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.Font
 
 data class EditorTheme(
     val name: String,
@@ -9,5 +10,4 @@ data class EditorTheme(
     val border: Color,
     val controlsBg: Color,
     val tabsBg: Color
-
 )

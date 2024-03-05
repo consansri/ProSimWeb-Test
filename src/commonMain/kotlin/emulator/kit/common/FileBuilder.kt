@@ -67,7 +67,7 @@ class FileBuilder {
                         if (oldValue != null) {
                             val oldValueList = oldValue.chunked(2).toMutableList()
                             if (first.id >= oldValueList.size) {
-                                Console.warn("out of range for id: ${first.id} content: ${first.hexContent} in $oldValueList")
+                                CommonConsole.warn("out of range for id: ${first.id} content: ${first.hexContent} in $oldValueList")
                             }
                             oldValueList[first.id] = first.hexContent
                             oldValue = oldValueList.joinToString("") { it.lowercase() }
@@ -184,11 +184,11 @@ class FileBuilder {
                             else -> {}
                         }
                     } catch (ne: NumberFormatException) {
-                        Console.error(ne.toString())
+                        CommonConsole.error(ne.toString())
                     }
 
                 } catch (e: IndexOutOfBoundsException) {
-                    Console.error(e.toString())
+                    CommonConsole.error(e.toString())
                 }
 
                 return content
