@@ -6,24 +6,26 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Memory
 import emulator.kit.common.Transcript
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
 abstract class StandardAssembler(private val memAddressWidth: Variable.Size, private val wordWidth: Variable.Size, val instrsAreWordAligned: Boolean) : Assembly() {
 
-    var fromAddr = Hex("0", memAddressWidth)
-    var toAddr = Hex("0", memAddressWidth)
     val labels = mutableListOf<StandardSyntax.ELabel>()
+    var instrHexStrings = mutableListOf<String>()
 
     /**
      * Word Amount or Byte Amount
      */
-    abstract fun getInstrSpace(arch: emulator.kit.Architecture, instr: StandardSyntax.EInstr): Int
-    abstract fun getOpBinFromInstr(arch: emulator.kit.Architecture, instr: StandardSyntax.EInstr): Array<Bin>
-    abstract fun getInstrFromBinary(arch: emulator.kit.Architecture, currentAddress: Hex): ResolvedInstr?
+    abstract fun getInstrSpace(arch: Architecture, instr: StandardSyntax.EInstr): Int
+    abstract fun getOpBinFromInstr(arch: Architecture, instr: StandardSyntax.EInstr): Array<Bin>
+    abstract fun getInstrFromBinary(arch: Architecture, currentAddress: Hex): ResolvedInstr?
 
-    override fun assemble(architecture: emulator.kit.Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
+    override fun assemble(architecture: Architecture, syntaxTree: Syntax.SyntaxTree): AssemblyMap {
+        instrHexStrings.clear()
         labels.clear()
+        architecture.getTranscript().clear(Transcript.Type.COMPILED)
 
         val lineAddressMap = mutableMapOf<String, Compiler.LineLoc>()
         val root = syntaxTree.rootNode ?: return AssemblyMap()
@@ -31,7 +33,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
 
         var currentAddress: Variable.Value = Hex("0", memAddressWidth)
 
-        val tsRows = mutableListOf<CompiledRow>()
+        val tsCompiledRows = mutableListOf<CompiledRow>()
 
         // Calculate Addresses
         for (section in sectionContainer.nodes.filterIsInstance<Syntax.TreeNode.SectionNode>()) {
@@ -44,22 +46,24 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                                 element.setAddress(currentAddress)
                                 val row = CompiledRow(currentAddress.toHex())
                                 row.addInstr(element)
-                                tsRows.add(row)
+                                tsCompiledRows.add(row)
                                 if (instrsAreWordAligned) {
                                     repeat(getInstrSpace(architecture, element) - 1) {
+                                        instrHexStrings += currentAddress.toHex().getRawHexStr()
                                         currentAddress += Hex(wordWidth.getByteCount().toString(16), memAddressWidth)
                                         lineAddressMap[currentAddress.toHex().getRawHexStr()] = element.tokens.first().lineLoc
-                                        tsRows.add(CompiledRow(currentAddress.toHex()))
+                                        tsCompiledRows.add(CompiledRow(currentAddress.toHex()))
                                     }
-                                    toAddr = currentAddress.toHex()
+                                    instrHexStrings += currentAddress.toHex().getRawHexStr()
                                     currentAddress += Hex(wordWidth.getByteCount().toString(16), memAddressWidth)
                                 } else {
                                     repeat(getInstrSpace(architecture, element) - 1) {
+                                        instrHexStrings += currentAddress.toHex().getRawHexStr()
                                         currentAddress += Hex("1", memAddressWidth)
                                         lineAddressMap[currentAddress.toHex().getRawHexStr()] = element.tokens.first().lineLoc
-                                        tsRows.add(CompiledRow(currentAddress.toHex()))
+                                        tsCompiledRows.add(CompiledRow(currentAddress.toHex()))
                                     }
-                                    toAddr = currentAddress.toHex()
+                                    instrHexStrings += currentAddress.toHex().getRawHexStr()
                                     currentAddress += Hex("1", memAddressWidth)
                                 }
                             }
@@ -97,8 +101,8 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
 
                             is StandardSyntax.ELabel -> {
                                 element.setAddress(currentAddress)
-                                if (currentAddress == tsRows.lastOrNull()?.addr) {
-                                    tsRows.last().addLabel(element)
+                                if (currentAddress == tsCompiledRows.lastOrNull()?.addr) {
+                                    tsCompiledRows.last().addLabel(element)
                                 }
                                 labels.add(element)
                             }
@@ -131,8 +135,8 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
 
                             is StandardSyntax.ELabel -> {
                                 element.setAddress(currentAddress)
-                                if (currentAddress == tsRows.lastOrNull()?.addr) {
-                                    tsRows.last().addLabel(element)
+                                if (currentAddress == tsCompiledRows.lastOrNull()?.addr) {
+                                    tsCompiledRows.last().addLabel(element)
                                 }
                                 labels.add(element)
                             }
@@ -171,8 +175,8 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
 
                             is StandardSyntax.ELabel -> {
                                 element.setAddress(currentAddress)
-                                if (currentAddress == tsRows.lastOrNull()?.addr) {
-                                    tsRows.last().addLabel(element)
+                                if (currentAddress == tsCompiledRows.lastOrNull()?.addr) {
+                                    tsCompiledRows.last().addLabel(element)
                                 }
                                 labels.add(element)
                             }
@@ -189,7 +193,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
         // Add Labels to TS
         for (label in labels) {
             val labelAddr = label.address
-            tsRows.firstOrNull { it.addr.getRawHexStr() == labelAddr?.toHex()?.getRawHexStr() }?.addLabel(label)
+            tsCompiledRows.firstOrNull { it.addr.getRawHexStr() == labelAddr?.toHex()?.getRawHexStr() }?.addLabel(label)
         }
 
         // Store Content
@@ -266,39 +270,39 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
             }
         }
 
-        architecture.getTranscript().addContent(Transcript.Type.COMPILED, tsRows)
+        architecture.getTranscript().addContent(Transcript.Type.COMPILED, tsCompiledRows)
 
         return AssemblyMap(lineAddressMap)
     }
 
-    override fun disassemble(architecture: emulator.kit.Architecture) {
-        val tsRows = mutableListOf<DisassembledRow>()
-        var currentAddr: Variable.Value = fromAddr
-        while (currentAddr <= toAddr) {
+    override fun disassemble(architecture: Architecture) {
+        architecture.getTranscript().clear(Transcript.Type.DISASSEMBLED)
+        val tsDisassembledRows = mutableListOf<DisassembledRow>()
+
+        instrHexStrings.forEach {
+            var currentAddr: Variable.Value = Hex(it, memAddressWidth)
             val instrResult = getInstrFromBinary(architecture, currentAddr.toHex())
             if (instrResult != null) {
                 val row = DisassembledRow(currentAddr.toHex())
                 row.addInstr(instrResult)
                 val label = labels.filter { it.address?.toHex()?.getRawHexStr() == currentAddr.toHex().getRawHexStr() }
                 label.forEach { row.addLabel(it) }
-                tsRows.add(row)
+                tsDisassembledRows.add(row)
                 if (instrsAreWordAligned) {
                     repeat(instrResult.wordOrByteAmount - 1) {
                         currentAddr += Hex(wordWidth.getByteCount().toString(16), memAddressWidth)
-                        tsRows.add(DisassembledRow(currentAddr.toHex()))
+                        tsDisassembledRows.add(DisassembledRow(currentAddr.toHex()))
                     }
                 } else {
                     repeat(instrResult.wordOrByteAmount - 1) {
                         currentAddr += Hex("1", memAddressWidth)
-                        tsRows.add(DisassembledRow(currentAddr.toHex()))
+                        tsDisassembledRows.add(DisassembledRow(currentAddr.toHex()))
                     }
                 }
             }
-
-            currentAddr += if (instrsAreWordAligned) Hex(wordWidth.getByteCount().toString(16), memAddressWidth) else Hex("1", memAddressWidth)
         }
 
-        architecture.getTranscript().addContent(Transcript.Type.DISASSEMBLED, tsRows)
+        architecture.getTranscript().addContent(Transcript.Type.DISASSEMBLED, tsDisassembledRows)
     }
 
     /**

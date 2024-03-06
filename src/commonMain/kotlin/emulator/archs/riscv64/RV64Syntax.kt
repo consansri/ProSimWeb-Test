@@ -1,6 +1,5 @@
 package emulator.archs.riscv64
 
-import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.standards.StandardSyntax
 import emulator.kit.types.Variable
@@ -1970,7 +1969,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
         Li40Unsigned("LI", true, ParamType.PS_RD_LI_I40Unsigned, memWords = 4),
         Li52Unsigned("LI", true, ParamType.PS_RD_LI_I52Unsigned, memWords = 6),
         Li64("LI", true, ParamType.PS_RD_LI_I64, memWords = 8),
-        La64("LA", true, ParamType.PS_RD_Albl, memWords = 8),
+        La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
         Not("NOT", true, ParamType.PS_RD_RS1),
         Neg("NEG", true, ParamType.PS_RD_RS1),
         Seqz("SEQZ", true, ParamType.PS_RD_RS1),

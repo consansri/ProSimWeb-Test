@@ -1,7 +1,8 @@
 package ui.editor.field
 
-import CommonConsole
 import Coroutines
+import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 import io.nacular.doodle.animation.*
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.drawing.*
@@ -71,7 +72,7 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
             }
             font = loadedFont
 
-            CommonConsole.log("loaded this font: ${font?.family}")
+            nativeLog("loaded this font: ${font?.family}")
         }
 
         styledText = text
@@ -102,7 +103,7 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
             val measure = measureTime {
                 setCursorPosition(it.location)
             }
-            CommonConsole.warn("${this::class.simpleName} -> Cursor Update in ${measure.inWholeMilliseconds}ms")
+            nativeWarn("${this::class.simpleName} -> Cursor Update in ${measure.inWholeMilliseconds}ms")
         }
 
         keyChanged += KeyListener.pressed {
@@ -128,7 +129,7 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
                             }
                         }
                     }
-                    CommonConsole.warn("${this::class.simpleName} -> Text Update in ${measure.inWholeMilliseconds}ms")
+                    nativeWarn("${this::class.simpleName} -> Text Update in ${measure.inWholeMilliseconds}ms")
                 }
             }
         }
@@ -165,7 +166,7 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
     private fun insertText(insertion: String) {
         text = text.substring(0, cursorLoc.pos + 1) + insertion + text.substring(cursorLoc.pos + 1)
         setCursorPosition(cursorLoc.pos + insertion.length)
-        CommonConsole.log("Inserted: $insertion")
+        nativeLog("Inserted: $insertion")
     }
 
     private fun removeText() {
@@ -197,7 +198,7 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
         val size = textMetrics.size(visibleStyledText)
         lineHeight = size.height / (text.split("\n").size - 1)
         this.size = size
-        CommonConsole.log("$size")
+        nativeLog("$size")
         return size
     }
 }

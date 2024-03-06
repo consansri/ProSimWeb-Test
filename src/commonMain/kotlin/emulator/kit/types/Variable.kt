@@ -2,6 +2,9 @@ package emulator.kit.types
 
 import Settings
 import debug.DebugTools
+import emulator.kit.nativeError
+import emulator.kit.nativeInfo
+import emulator.kit.nativeWarn
 import kotlin.math.roundToInt
 
 
@@ -132,7 +135,8 @@ class Variable {
          * This function implements the [String] format checks, of each specific type.
          * This function can write errors and warnings such as applied changes to the Console if any input isn't valid.
          */
-        abstract fun check(string: String, size: Size): CheckResult
+        protected abstract fun check(string: String, size: Size): CheckResult
+        abstract fun check(size: Size): CheckResult
         abstract fun toBin(): Bin
         abstract fun toHex(): Hex
         abstract fun toDec(): Dec
@@ -204,9 +208,13 @@ class Variable {
                 } else {
                     val zeroString = Settings.PRESTRING_BINARY + "0".repeat(size.bitWidth)
                     message = "Bin.check(): $string does not match the binary Pattern (${Settings.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning $zeroString instead!"
-                    CommonConsole.error(message)
+                    nativeError(message)
                     return CheckResult(false, formattedInput, message)
                 }
+            }
+
+            override fun check(size: Size): CheckResult {
+                return check(getRawBinStr(), size)
             }
 
             fun getRawBinStr(): String {
@@ -243,29 +251,6 @@ class Variable {
             /**
              * Returns null if Matches
              */
-            fun uCheckSize(size: Size): NoMatch? {
-                return when {
-                    this.size.bitWidth == size.bitWidth -> {
-                        null
-                    }
-
-                    this.size.bitWidth > size.bitWidth -> {
-                        NoMatch(this.size, size)
-                    }
-
-                    this.size.bitWidth < size.bitWidth -> {
-                        null
-                    }
-
-                    else -> {
-                        null
-                    }
-                }
-            }
-
-            /**
-             * Returns null if Matches
-             */
             fun checkSizeUnsigned(size: Size): NoMatch? {
                 return when {
                     this.size.bitWidth == size.bitWidth -> {
@@ -290,7 +275,7 @@ class Variable {
                 }
             }
 
-            fun checkSize(size: Size): NoMatch? {
+            fun checkSizeSigned(size: Size): NoMatch? {
                 return when {
                     this.size.bitWidth == size.bitWidth -> {
                         null
@@ -540,9 +525,13 @@ class Variable {
                 } else {
                     val zeroString = Settings.PRESTRING_HEX + "0".repeat(size.hexChars)
                     message = "Hex.check(): $string does not match the hex Pattern (${Settings.PRESTRING_HEX + "X".repeat(size.hexChars)} where X is element of [0-9,A-F]), returning $zeroString instead!"
-                    CommonConsole.error(message)
+                    nativeError(message)
                     return CheckResult(false, zeroString, message)
                 }
+            }
+
+            override fun check(size: Size): CheckResult {
+                return check(getRawHexStr(), size)
             }
 
             override fun toBin(): Bin {
@@ -664,7 +653,7 @@ class Variable {
                 if (!posRegex.matches(formatted.replace("-", ""))) {
                     val zeroString = "0"
                     message = "Dec.check(): $formatted does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning $zeroString instead!"
-                    CommonConsole.error(message)
+                    nativeError(message)
                     return CheckResult(false, Settings.PRESTRING_DECIMAL + zeroString, message)
                 } else {
                     return if (DecTools.isGreaterThan(formatted, Bounds(size).max)) {
@@ -672,12 +661,16 @@ class Variable {
                         CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
                     } else if (DecTools.isGreaterThan(Bounds(size).min, formatted)) {
                         message = "Dec.check(): $formatted must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
-                        CommonConsole.warn(message)
+                        nativeWarn(message)
                         CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min, message)
                     } else {
                         CheckResult(true, Settings.PRESTRING_DECIMAL + formatted)
                     }
                 }
+            }
+
+            override fun check(size: Size): CheckResult {
+                return check(getRawDecStr(), size)
             }
 
             override fun toBin(): Bin {
@@ -806,7 +799,7 @@ class Variable {
                 if (!posRegex.matches(formatted)) {
                     val zeroString = "0"
                     message = "UDec.check(): $formatted does not match the udec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning $zeroString instead!"
-                    CommonConsole.error(message)
+                    nativeError(message)
                     return CheckResult(false, Settings.PRESTRING_UDECIMAL + zeroString, message)
                 } else {
                     return if (DecTools.isGreaterThan(formatted, Bounds(size).umax)) {
@@ -819,6 +812,10 @@ class Variable {
                         CheckResult(true, Settings.PRESTRING_UDECIMAL + formatted)
                     }
                 }
+            }
+
+            override fun check(size: Size): CheckResult {
+                return check(getRawUDecStr(), size)
             }
 
             override fun toBin(): Bin {
@@ -884,7 +881,7 @@ class Variable {
             }
 
             override fun unaryMinus(): Value {
-                CommonConsole.warn("Value.UDec: Executing unaryMinus on unsigned decimal! -> no affect!")
+                nativeWarn("Value.UDec: Executing unaryMinus on unsigned decimal! -> no affect!")
                 return UDec(this.getRawUDecStr(), size)
             }
 
@@ -947,7 +944,7 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    CommonConsole.info("Conversion: ${bin.getBinaryStr()} to $hexStr")
+                    nativeInfo("Conversion: ${bin.getBinaryStr()} to $hexStr")
                 }
 
                 return Hex(hexStr, bin.size)
@@ -962,7 +959,7 @@ class Variable {
                     binStr += BinaryTools.hexToBinDigit[hexStr[i]]
                 }
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    CommonConsole.info("Conversion: ${hex.getHexStr()} to $binStr")
+                    nativeInfo("Conversion: ${hex.getHexStr()} to $binStr")
                 }
                 return Bin(binStr, hex.size)
             }
@@ -989,7 +986,7 @@ class Variable {
                 }
 
                 if (binaryStr == "") {
-                    CommonConsole.warn("Conversion.getBinary(dec: Dec) : error in calculation ${dec.getRawDecStr()} to $binaryStr")
+                    nativeWarn("Conversion.getBinary(dec: Dec) : error in calculation ${dec.getRawDecStr()} to $binaryStr")
                 }
 
                 if (dec.isNegative()) {
@@ -997,7 +994,7 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    CommonConsole.info("Conversion: ${dec.getDecStr()} to $binaryStr")
+                    nativeInfo("Conversion: ${dec.getDecStr()} to $binaryStr")
                 }
 
                 return Bin(binaryStr, dec.size)
@@ -1020,11 +1017,11 @@ class Variable {
                 }
 
                 if (binaryStr == "") {
-                    CommonConsole.warn("Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to $binaryStr")
+                    nativeWarn("Conversion.getBinary(udec: UDec) : error in calculation ${udec.getRawUDecStr()} to $binaryStr")
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    CommonConsole.info("Conversion: ${udec.getUDecStr()} to $binaryStr")
+                    nativeInfo("Conversion: ${udec.getUDecStr()} to $binaryStr")
                 }
 
                 return Bin(binaryStr, udec.size)
@@ -1061,7 +1058,7 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    CommonConsole.info("Conversion: ${bin.getBinaryStr()} to $decString")
+                    nativeInfo("Conversion: ${bin.getBinaryStr()} to $decString")
                 }
 
                 return Dec(decString, bin.size)
@@ -1084,7 +1081,7 @@ class Variable {
                     }
                 }
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    CommonConsole.info("Conversion: ${bin.getBinaryStr()} to $udecString")
+                    nativeInfo("Conversion: ${bin.getBinaryStr()} to $udecString")
                 }
 
                 return UDec(udecString, bin.size)
@@ -1114,7 +1111,7 @@ class Variable {
                 }
 
                 if (DebugTools.KIT_showValTypeConversionInfo) {
-                    CommonConsole.info("Conversion: ${value.toHex().getHexStr()} to $stringBuilder")
+                    nativeInfo("Conversion: ${value.toHex().getHexStr()} to $stringBuilder")
                 }
 
                 return stringBuilder.toString()
@@ -1323,7 +1320,7 @@ class Variable {
                 }
 
                 is Size.Original -> {
-                    CommonConsole.error("Variable.Bounds: Can't get bounds from original Size Type! Use getNearestSize() or getNearestDecSize() first!")
+                    nativeError("Variable.Bounds: Can't get bounds from original Size Type! Use getNearestSize() or getNearestDecSize() first!")
 
                     this.min = "not identified"
                     this.max = "not identified"
@@ -1370,7 +1367,7 @@ class Variable {
                 }
 
                 else -> {
-                    CommonConsole.warn("Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128()")
+                    nativeWarn("Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128()")
                     return Size.Bit128()
                 }
             }
@@ -1400,7 +1397,7 @@ class Variable {
                 }
 
                 else -> {
-                    CommonConsole.warn("Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).max}, min: ${Bounds(Size.Bit128()).min}] -> returning Size.Bit128()")
+                    nativeWarn("Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).max}, min: ${Bounds(Size.Bit128()).min}] -> returning Size.Bit128()")
                     return Size.Bit128()
                 }
             }
@@ -1430,7 +1427,7 @@ class Variable {
                 }
 
                 else -> {
-                    CommonConsole.warn("Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).umax}, min: ${Bounds(Size.Bit128()).umin}] -> returning Size.Bit128()")
+                    nativeWarn("Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).umax}, min: ${Bounds(Size.Bit128()).umin}] -> returning Size.Bit128()")
                     return Size.Bit128()
                 }
             }

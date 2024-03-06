@@ -5,6 +5,7 @@ import Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv32.RV32Syntax.InstrType.*
 import emulator.kit.common.Memory
+import emulator.kit.nativeWarn
 
 class RV32BinMapper {
     fun getBinaryFromInstrDef(instr: RV32Syntax.RV32Instr, architecture: emulator.kit.Architecture): Array<Variable.Value.Bin> {
@@ -71,10 +72,14 @@ class RV32BinMapper {
                 }
 
                 BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
-                    val lblAddr = labels.first()
-                    val imm12offset = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
-                    val imm5 = Variable.Value.Bin(imm12offset.substring(8) + imm12offset[1], Variable.Size.Bit5())
-                    val imm7 = Variable.Value.Bin(imm12offset[0] + imm12offset.substring(2, 8), Variable.Size.Bit7())
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
+                    val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
                     val opCode = instr.type.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to regs[0], MaskLabel.RS2 to regs[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                     opCode?.let {
@@ -203,8 +208,10 @@ class RV32BinMapper {
                 La -> {
                     val regBin = regs[0]
                     val address = labels.first()
-                    val hi20 = address.getRawBinStr().substring(0, 20)
-                    val low12 = address.getRawBinStr().substring(20)
+                    val offset = (address - instrAddr).toBin()
+
+                    val hi20 = offset.getRawBinStr().substring(0, 20)
+                    val low12 = offset.getRawBinStr().substring(20)
 
                     val imm12 = Variable.Value.Bin(low12, Variable.Size.Bit12())
 
@@ -215,11 +222,11 @@ class RV32BinMapper {
                         imm20temp
                     }
 
-                    val luiOpCode = LUI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
+                    val auipcOpCode = AUIPC.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.IMM20 to imm20))
                     val addiOpCode = ADDI.opCode?.getOpCode(mapOf(MaskLabel.RD to regBin, MaskLabel.RS1 to regBin, MaskLabel.IMM12 to imm12))
 
-                    if (luiOpCode != null && addiOpCode != null) {
-                        binArray.add(luiOpCode)
+                    if (auipcOpCode != null && addiOpCode != null) {
+                        binArray.add(auipcOpCode)
                         binArray.add(addiOpCode)
                     }
                 }
@@ -454,10 +461,16 @@ class RV32BinMapper {
                 }
 
                 Beqz -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val beqOpCode = BEQ.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -468,10 +481,14 @@ class RV32BinMapper {
                 }
 
                 Bnez -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bneOpCode = BNE.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -482,10 +499,14 @@ class RV32BinMapper {
                 }
 
                 Blez -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bgeOpCode = BGE.opCode?.getOpCode(mapOf(MaskLabel.RS1 to x0, MaskLabel.RS2 to rs1, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -496,11 +517,15 @@ class RV32BinMapper {
                 }
 
                 Bgez -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
 
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bgeOpCode = BGE.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -511,10 +536,14 @@ class RV32BinMapper {
                 }
 
                 Bltz -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bltOpCode = BLT.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -525,10 +554,14 @@ class RV32BinMapper {
                 }
 
                 BGTZ -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bltOpCode = BLT.opCode?.getOpCode(mapOf(MaskLabel.RS1 to x0, MaskLabel.RS2 to rs1, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -539,10 +572,14 @@ class RV32BinMapper {
                 }
 
                 Bgt -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -554,10 +591,14 @@ class RV32BinMapper {
                 }
 
                 Ble -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -569,10 +610,14 @@ class RV32BinMapper {
                 }
 
                 Bgtu -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -584,10 +629,14 @@ class RV32BinMapper {
                 }
 
                 Bleu -> {
-                    val lblAddr = labels.first()
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val imm12 = (lblAddr - instrAddr).toBin().getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val offset = (labels.first() - instrAddr).toBin()
+                    offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                        architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                    }
+
+                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -675,11 +724,11 @@ class RV32BinMapper {
             var length = 0
             opCode.forEach { length += it.length }
             if (length != Variable.Size.Bit32().bitWidth) {
-                CommonConsole.warn("BinMapper.OpCode: OpMask isn't 32Bit Binary! -> returning null")
+                nativeWarn("BinMapper.OpCode: OpMask isn't 32Bit Binary! -> returning null")
                 return null
             }
             if (opCode.size != maskLabels.size) {
-                CommonConsole.warn("BinMapper.OpCode: OpMask [$opMask] and Labels [${maskLabels.joinToString { it.name }}] aren't the same size! -> returning null")
+                nativeWarn("BinMapper.OpCode: OpMask [$opMask] and Labels [${maskLabels.joinToString { it.name }}] aren't the same size! -> returning null")
                 return null
             }
 
@@ -692,11 +741,11 @@ class RV32BinMapper {
                         if (size != null) {
                             opCode[labelID] = param.getUResized(size).getRawBinStr()
                         } else {
-                            CommonConsole.warn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
+                            nativeWarn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
                             return null
                         }
                     } else {
-                        CommonConsole.warn("BinMapper.OpCode.getOpCode(): parameter [${maskLabel.name}] not found! -> inserting zeros")
+                        nativeWarn("BinMapper.OpCode.getOpCode(): parameter [${maskLabel.name}] not found! -> inserting zeros")
                         val bitWidth = maskLabel.maxSize?.bitWidth
                         bitWidth?.let {
                             opCode[labelID] = "0".repeat(it)

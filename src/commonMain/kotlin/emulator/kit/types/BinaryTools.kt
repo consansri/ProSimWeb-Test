@@ -2,6 +2,9 @@ package emulator.kit.types
 
 import Settings
 import debug.DebugTools
+import emulator.kit.nativeError
+import emulator.kit.nativeInfo
+import emulator.kit.nativeWarn
 
 /**
  * This Object contains all performant relevant binary calculations based on [String] representations.
@@ -26,7 +29,7 @@ object BinaryTools {
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
-            CommonConsole.info("BinaryTools: negotiate($aBin) -> $result")
+            nativeInfo("BinaryTools: negotiate($aBin) -> $result")
         }
 
         return checkEmpty(result)
@@ -66,7 +69,7 @@ object BinaryTools {
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
-            CommonConsole.info("BinaryTools: addWithCarry($aBin, $bBin) -> result: ${result.trimStart('0')}, carry: $carryChar")
+            nativeInfo("BinaryTools: addWithCarry($aBin, $bBin) -> result: ${result.trimStart('0')}, carry: $carryChar")
         }
 
         return AdditionResult(checkEmpty(result.trimStart('0')), carryChar)
@@ -131,7 +134,7 @@ object BinaryTools {
                 }
 
                 else -> {
-                    CommonConsole.error("$digitA or $digitB is not a '1' or '0'!")
+                    nativeError("$digitA or $digitB is not a '1' or '0'!")
                     '0'
                 }
             }
@@ -140,7 +143,7 @@ object BinaryTools {
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
-            CommonConsole.info("BinaryTools: sub($a, $b) -> result: ${result.trimStart('0')} should be: ${(a.toLong(2) - b.toLong(2)).toString(2)}")
+            nativeInfo("BinaryTools: sub($a, $b) -> result: ${result.trimStart('0')} should be: ${(a.toLong(2) - b.toLong(2)).toString(2)}")
         }
         return SubtractionResult(checkEmpty(result.trimStart('0')), borrow)
     }
@@ -173,12 +176,12 @@ object BinaryTools {
                 val aPair = addWithCarry(aPuffer, aPuffer)
                 aPuffer = aPair.carry + aPair.result
             } catch (e: NumberFormatException) {
-                CommonConsole.warn("BinaryTools.multiply(): $digit is not a digit!")
+                nativeWarn("BinaryTools.multiply(): $digit is not a digit!")
             }
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
-            CommonConsole.info("BinaryTools: multiply($aBin, $bBin) -> ${result.trimStart('0')}")
+            nativeInfo("BinaryTools: multiply($aBin, $bBin) -> ${result.trimStart('0')}")
         }
 
         return checkEmpty(result.trimStart('0'))
@@ -199,7 +202,7 @@ object BinaryTools {
             val resultSign = if (aSign == bSign || !unsignedResult.contains('1')) '0' else '1'
             if (resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
         } else {
-            CommonConsole.warn("BinaryTools: multiplication factor is empty!")
+            nativeWarn("BinaryTools: multiplication factor is empty!")
             "0"
         }
     }
@@ -217,7 +220,7 @@ object BinaryTools {
             val resultSign = if (aSign == '0' || !unsignedResult.contains('1')) '0' else '1'
             if (resultSign == '1') negotiate("0$unsignedResult") else "0$unsignedResult"
         } else {
-            CommonConsole.warn("BinaryTools: multiplication factor is empty!")
+            nativeWarn("BinaryTools: multiplication factor is empty!")
             "0"
         }
     }
@@ -227,7 +230,7 @@ object BinaryTools {
         val sor = divisor.trim().removePrefix(Settings.PRESTRING_BINARY).trimStart('0')
 
         if (isEqual(sor, "0")) {
-            CommonConsole.warn("BinaryTools.divide(): No Division Possible! divisor is zero! returning 0b0")
+            nativeWarn("BinaryTools.divide(): No Division Possible! divisor is zero! returning 0b0")
             return DivisionResult("0", "")
         }
 
@@ -259,7 +262,7 @@ object BinaryTools {
         val sor = divisor.trim().removePrefix(Settings.PRESTRING_BINARY)
 
         if (dend.isEmpty() || sor.isEmpty()) {
-            CommonConsole.warn("BinaryTools: Dividend or Divisor are empty!")
+            nativeWarn("BinaryTools: Dividend or Divisor are empty!")
             return DivisionResult("0", "")
         }
         val dendSign = dend[0]
@@ -282,7 +285,7 @@ object BinaryTools {
         val sor = sDivisor.trim().removePrefix(Settings.PRESTRING_BINARY)
 
         if (dend.isEmpty() || sor.isEmpty()) {
-            CommonConsole.warn("BinaryTools: Dividend or Divisor are empty!")
+            nativeWarn("BinaryTools: Dividend or Divisor are empty!")
             return DivisionResult("0", "")
         }
 
@@ -316,7 +319,7 @@ object BinaryTools {
         }
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
-            CommonConsole.info("BinaryTools: inv($aBin) -> $result")
+            nativeInfo("BinaryTools: inv($aBin) -> $result")
         }
         return checkEmpty(result)
     }

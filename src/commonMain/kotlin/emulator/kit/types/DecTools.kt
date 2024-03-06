@@ -2,6 +2,8 @@ package emulator.kit.types
 
 import Settings
 import debug.DebugTools
+import emulator.kit.nativeInfo
+import emulator.kit.nativeWarn
 
 /**
  * This Object contains all performant relevant decimal calculations based on [String] representations.
@@ -36,7 +38,7 @@ object DecTools {
             if (isAAbsGreater) "$aSign$resultAbs" else "$bSign$resultAbs"
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            CommonConsole.info("DecTools: $a + $b = $result")
+            nativeInfo("DecTools: $a + $b = $result")
         }
         return checkEmpty(result)
     }
@@ -47,7 +49,7 @@ object DecTools {
 
         val result = add(aTrimmed, negotiate(bTrimmed))
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            CommonConsole.info("DecTools: $a - $b = $result")
+            nativeInfo("DecTools: $a - $b = $result")
         }
         return checkEmpty(result)
     }
@@ -62,7 +64,7 @@ object DecTools {
             multiplyUnsigned(abs(aTrimmed), abs(bTrimmed))
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            CommonConsole.info("DecTools: $a * $b = $result")
+            nativeInfo("DecTools: $a * $b = $result")
         }
         return checkEmpty(result)
     }
@@ -79,7 +81,7 @@ object DecTools {
             divideUnsigned(abs(dividendTrimmed), abs(divisorTrimmed))
         }
         if (DebugTools.KIT_showValDecToolsCalculations) {
-            CommonConsole.info("DecTools: $dividend / $divisor = $result")
+            nativeInfo("DecTools: $dividend / $divisor = $result")
         }
         return checkEmpty(result)
     }
@@ -92,7 +94,7 @@ object DecTools {
         val absExponent = abs(exponentTrimmed)
 
         if (isNegative(exponentTrimmed)) {
-            CommonConsole.warn("DecTools.pow(): exponent = $exponent must be greater equal 0! (using $absExponent for calculation!)")
+            nativeWarn("DecTools.pow(): exponent = $exponent must be greater equal 0! (using $absExponent for calculation!)")
         }
 
         val result = if (isNegative(baseTrimmed)) {
@@ -301,7 +303,7 @@ object DecTools {
             val buffer = paddedA
             paddedA = paddedB
             paddedB = buffer
-            CommonConsole.warn("DecTools.subUnsigned(): a (${aTrimmed}) was smaller than b (${bTrimmed}) so they where switched up!")
+            nativeWarn("DecTools.subUnsigned(): a (${aTrimmed}) was smaller than b (${bTrimmed}) so they where switched up!")
         }
 
         var difference = ""
@@ -374,7 +376,7 @@ object DecTools {
         }
 
         if (isGreaterThan(divisorTrimmed, dividendTrimmed)) {
-            CommonConsole.warn("No Division possible!")
+            nativeWarn("No Division possible!")
             return DivisionResult("0", dividendTrimmed)
         }
 
@@ -426,7 +428,7 @@ object DecTools {
                     }
                     loop++
                 } else {
-                    CommonConsole.warn("DecTools: Division took to long!")
+                    nativeWarn("DecTools: Division took to long!")
                     return DivisionResult(result.trimStart('0'), rest)
                 }
             }
@@ -454,7 +456,7 @@ object DecTools {
 
                     loop++
                 } else {
-                    CommonConsole.warn("DecTools: Division took to long!")
+                    nativeWarn("DecTools: Division took to long!")
                     return DivisionResult(result.trimStart('0'), dividendTemp)
                 }
             }

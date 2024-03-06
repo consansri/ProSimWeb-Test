@@ -3,6 +3,7 @@ package emulator.kit.assembly
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
 import emulator.kit.common.RegContainer
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
@@ -56,7 +57,7 @@ class Compiler(
     /**
      * Executes and controls the compilation
      */
-    fun compile(code: String, shouldHighlight: Boolean, build: Boolean = true): Boolean {
+    fun compile(code: String, build: Boolean = true): Boolean {
         initCode(code)
 
         architecture.getConsole().clear()
@@ -327,7 +328,6 @@ class Compiler(
                     assemblyMap = assembly.assemble(architecture, it)
                 }
                 architecture.getConsole().compilerInfo("assembl\ttook ${assembleTime.inWholeMicroseconds}µs")
-
                 val disassembleTime = measureTime {
                     assembly.disassemble(architecture)
                 }

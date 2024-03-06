@@ -1,5 +1,6 @@
 package emulator.kit.common
 
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 
 /**
@@ -32,7 +33,7 @@ class Transcript(private val compiledHeaders: List<String> = listOf(), private v
     fun addRow(type: Type, row: Row) {
         when(type){
             Type.COMPILED -> compiled.add(row)
-            Type.DISASSEMBLED ->disassembled.add(row)
+            Type.DISASSEMBLED -> disassembled.add(row)
         }
     }
 

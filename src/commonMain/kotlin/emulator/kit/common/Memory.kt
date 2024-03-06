@@ -2,6 +2,8 @@ package emulator.kit.common
 
 import emulator.kit.types.Variable
 import debug.DebugTools
+import emulator.kit.nativeError
+import emulator.kit.nativeWarn
 
 /**
  * For emulating the [Memory] of architectures, this class is used. [store] and [load] functions are already implemented which depend on the [endianess].
@@ -56,7 +58,7 @@ class Memory(
                         instance.mark = mark
                     }
                 } else {
-                    CommonConsole.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
+                    nativeWarn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, value: ${variable.get().toHex().getHexStr()}) in readonly Memory!")
                 }
             } else {
                 val zeroValue = Variable(initBin, instanceSize)
@@ -85,7 +87,7 @@ class Memory(
                         instance.mark = mark
                     }
                 } else {
-                    CommonConsole.warn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
+                    nativeWarn("Memory: Denied writing data (address: ${address.toHex().getHexStr()}, values: {${values.joinToString(" ") { it.toHex().getHexStr() }}}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, instanceSize)
@@ -116,7 +118,7 @@ class Memory(
                         instance.mark = mark
                     }
                 } else {
-                    CommonConsole.warn("Memory: Denied writing data (address: ${hexAddress.getHexStr()}, value: ${hexValue.getHexStr()}) in readonly Memory!")
+                    nativeWarn("Memory: Denied writing data (address: ${hexAddress.getHexStr()}, value: ${hexValue.getHexStr()}) in readonly Memory!")
                 }
             } else {
                 val variable = Variable(initBin, instanceSize)
@@ -230,7 +232,7 @@ class Memory(
             addrRelevantForOffset = if (tempAddrRelevantForOffset != null) {
                 tempAddrRelevantForOffset
             } else {
-                CommonConsole.error("couldn't extract relevant address part (from ${address.getRawHexStr()}) for offset calculation!")
+                nativeError("couldn't extract relevant address part (from ${address.getRawHexStr()}) for offset calculation!")
                 0
             }
 

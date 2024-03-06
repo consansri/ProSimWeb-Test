@@ -4,6 +4,7 @@ import Coroutines
 import debug.DebugTools
 import emulator.kit.assembly.Syntax
 import emulator.kit.loadFiles
+import emulator.kit.nativeWarn
 import emulator.kit.updateFiles
 import kotlinx.coroutines.*
 
@@ -18,11 +19,11 @@ class FileHandler(val fileEnding: String) {
 
     fun import(file: File): Boolean {
         return if (files.map { it.getName() }.contains(file.getName())) {
-            CommonConsole.warn("couldn't import file cause filename duplicate recognized!")
+            nativeWarn("couldn't import file cause filename duplicate recognized!")
             false
 
         } else if (file.getName().isEmpty()) {
-            CommonConsole.warn("couldn't import file cause filename is empty!")
+            nativeWarn("couldn't import file cause filename is empty!")
             false
         } else {
             this.files.add(file)
@@ -46,11 +47,11 @@ class FileHandler(val fileEnding: String) {
 
     fun renameCurrent(newName: String): Boolean {
         return if (files.map { it.getName() }.contains(newName)) {
-            CommonConsole.warn("couldn't import file cause filename duplicate recognized!")
+            nativeWarn("couldn't import file cause filename duplicate recognized!")
             false
 
         } else if (newName.isEmpty()) {
-            CommonConsole.warn("couldn't import file cause filename is empty!")
+            nativeWarn("couldn't import file cause filename is empty!")
             false
         } else {
             if (DebugTools.KIT_showFileHandlerInfo) {

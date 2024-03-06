@@ -83,3 +83,19 @@ actual fun FileHandler.updateFiles(files: MutableList<FileHandler.File>, onlyCur
         }
     }
 }
+
+actual fun nativeWarn(message: String) {
+    console.warn(message)
+}
+
+actual fun nativeLog(message: String) {
+    console.log(message)
+}
+
+actual fun nativeError(message: String) {
+    console.error(message)
+}
+
+actual fun nativeInfo(message: String) {
+    console.info(message)
+}

@@ -2,6 +2,8 @@ package emulator.kit.common
 
 import Settings
 import emulator.kit.Architecture
+import emulator.kit.nativeError
+import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -67,7 +69,7 @@ class FileBuilder {
                         if (oldValue != null) {
                             val oldValueList = oldValue.chunked(2).toMutableList()
                             if (first.id >= oldValueList.size) {
-                                CommonConsole.warn("out of range for id: ${first.id} content: ${first.hexContent} in $oldValueList")
+                                nativeWarn("out of range for id: ${first.id} content: ${first.hexContent} in $oldValueList")
                             }
                             oldValueList[first.id] = first.hexContent
                             oldValue = oldValueList.joinToString("") { it.lowercase() }
@@ -184,11 +186,11 @@ class FileBuilder {
                             else -> {}
                         }
                     } catch (ne: NumberFormatException) {
-                        CommonConsole.error(ne.toString())
+                        nativeError(ne.toString())
                     }
 
                 } catch (e: IndexOutOfBoundsException) {
-                    CommonConsole.error(e.toString())
+                    nativeError(e.toString())
                 }
 
                 return content
