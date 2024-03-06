@@ -77,7 +77,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -469,7 +469,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
 
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
@@ -488,7 +488,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bneOpCode = BNE.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -506,7 +506,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bgeOpCode = BGE.opCode?.getOpCode(mapOf(MaskLabel.RS1 to x0, MaskLabel.RS2 to rs1, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -525,7 +525,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bgeOpCode = BGE.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -543,7 +543,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bltOpCode = BLT.opCode?.getOpCode(mapOf(MaskLabel.RS1 to rs1, MaskLabel.RS2 to x0, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -561,7 +561,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
                     val bltOpCode = BLT.opCode?.getOpCode(mapOf(MaskLabel.RS1 to x0, MaskLabel.RS2 to rs1, MaskLabel.IMM7 to imm7, MaskLabel.IMM5 to imm5))
@@ -579,7 +579,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -598,7 +598,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -617,7 +617,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -636,7 +636,7 @@ class RV32BinMapper {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
 
-                    val imm12 = offset.getResized(Variable.Size.Bit12()).shr(1).getRawBinStr()
+                    val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
