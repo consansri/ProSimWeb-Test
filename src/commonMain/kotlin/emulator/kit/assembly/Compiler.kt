@@ -1,11 +1,16 @@
 package emulator.kit.assembly
 
+import kotlin.time.measureTime
 import emulator.kit.Architecture
 import emulator.kit.common.FileHandler
 import emulator.kit.common.RegContainer
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable
-import kotlin.time.measureTime
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.assembly.Syntax.TokenSeq
+import emulator.kit.assembly.Syntax.TokenSeq.Component.*
+import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
+import emulator.kit.nativeError
+import emulator.kit.nativeLog
 
 /**
  * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. The [Compiler] fires the compilation events in the following order.
@@ -135,7 +140,7 @@ class Compiler(
                 continue
             }
 
-            var foundCalcToken = false
+            /*var foundCalcToken = false
             for (mode in Token.Constant.Calculated.MODE.entries) {
                 val result = mode.regex.find(remaining) ?: continue
                 val token = mode.getCalcToken(LineLoc(file, lineID, startIndex, startIndex + result.value.length), prefixes, result.groups, result.value, tokenList.size, regexCollection) ?: continue
@@ -145,7 +150,7 @@ class Compiler(
                 remaining = dryContent.substring(startIndex)
                 break
             }
-            if (foundCalcToken) continue
+            if (foundCalcToken) continue*/
 
             val binary = regexCollection.bin.find(remaining)
             if (binary != null) {
@@ -275,6 +280,9 @@ class Compiler(
             architecture.getConsole().warn("Assembly: no match found for $remaining")
             break
         }
+
+        tokenList.resolveExpressions()
+
     }
 
     /**
@@ -370,8 +378,7 @@ class Compiler(
                 continue
             }
 
-
-            var foundCalcToken = false
+            /*var foundCalcToken = false
             for (mode in Token.Constant.Calculated.MODE.entries) {
                 val result = mode.regex.find(remaining) ?: continue
                 val token = mode.getCalcToken(lineLoc, prefixes, result.groups, result.value, pseudoID, regexCollection) ?: continue
@@ -381,7 +388,7 @@ class Compiler(
                 remaining = content.substring(startIndex)
                 break
             }
-            if (foundCalcToken) continue
+            if (foundCalcToken) continue*/
 
             val binary = regexCollection.bin.find(remaining)
             if (binary != null) {
@@ -504,6 +511,8 @@ class Compiler(
             break
         }
 
+        pseudoTokens.resolveExpressions()
+
         return pseudoTokens
     }
 
@@ -519,8 +528,40 @@ class Compiler(
      */
     fun getGrammarTree(): Syntax.SyntaxTree? = syntaxTree
 
-    sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
+    private fun MutableList<Token>.resolveExpressions() {
+        while (true) {
+            var foundExpression = false
+            Token.Constant.Expression.ExpressionType.entries.forEach { type ->
+                val result = type.tokenSeq.matches(*this.toTypedArray())
+                if (result.matches) {
+                    foundExpression = true
+                    val matchedTokens = result.sequenceMap.map { it.token }
+                    if (matchedTokens.isNotEmpty()) {
+                        val first = matchedTokens.first()
+                        val last = matchedTokens.last()
+                        val lineLoc = if (first == last) {
+                            first.lineLoc
+                        } else {
+                            LineLoc(first.lineLoc.file, first.lineLoc.lineID, first.lineLoc.startIndex, last.lineLoc.endIndex)
+                        }
 
+                        val expression = Token.Constant.Expression(type, lineLoc, first.id, matchedTokens)
+                        val index = this.indexOf(first)
+                        matchedTokens.forEach {
+                            this.remove(it)
+                        }
+                        this.add(index, expression)
+                    } else {
+                        nativeError("Found Empty Expression!")
+                        return
+                    }
+                }
+            }
+            if (!foundExpression) break
+        }
+    }
+
+    sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
         var hlContent = content
         private var severity: Severity? = null
         private var codeStyle: CodeStyle? = CodeStyle.BASE0
@@ -533,8 +574,8 @@ class Compiler(
             this.severity = severity
         }
 
-        fun hl(codeStyle: CodeStyle) {
-            this.codeStyle = codeStyle
+        open fun hl(vararg codeStyle: CodeStyle) {
+            this.codeStyle = codeStyle.firstOrNull()
         }
 
         fun getCodeStyle() = codeStyle
@@ -585,117 +626,79 @@ class Compiler(
                 }
             }
 
-            class Calculated(lineLoc: LineLoc, val mode: MODE, val prefixes: ConstantPrefixes, val groupValues: MatchGroupCollection, val regexCollection: RegexCollection, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
-                    val value1content = groupValues["val1"]?.value
-                    val value2content = groupValues["val2"]?.value
+            class Expression(val type: ExpressionType, lineLoc: LineLoc, id: Int, val tokens: List<Token>) : Constant(lineLoc, tokens.joinToString("") { it.content }, id) {
 
-                    if (value1content == null || value2content == null) throw Error("Missing number for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
+                val constants: List<Constant> = tokens.filterIsInstance<Constant>()
 
-                    val value1 = getNumber(value1content, size, regexCollection, onlyUnsigned) ?: throw Error("Missing number (value1 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
-                    val value2 = getNumber(value2content, size, regexCollection, onlyUnsigned) ?: throw Error("Missing number (value2 == null) for calculation extract calculated number!\n$lineLoc\n$mode\n$groupValues$prefixes")
-
-
-
-                    return when (mode) {
-                        MODE.SHIFTLEFT -> {
-                            val int = value2.toUDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
-                            value1.toBin() shl int
+                override fun hl(vararg codeStyle: CodeStyle) {
+                    when(codeStyle.size){
+                        1 -> {
+                            tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
                         }
-
-                        MODE.SHIFTRIGHT -> {
-                            val int = value2.toUDec().toIntOrNull() ?: throw Error("Dec (${value2.toDec()}) couldn't be transformed to Int!\n$lineLoc\n$mode\n$groupValues$prefixes")
-                            value1.toBin() shr int
-                        }
-
-                        MODE.ADD -> value1 + value2
-
-                        MODE.SUB -> value1 - value2
-
-                        MODE.MUL -> value1 * value2
-                        MODE.DIV -> value1 / value2
-                    }
-                }
-
-                private fun getNumber(content: kotlin.String, size: Variable.Size?, regexCollection: RegexCollection, onlyUnsigned: Boolean): Variable.Value? {
-                    var result = regexCollection.bin.matchEntire(content)
-                    if (result != null) {
-                        return if (size != null) {
-                            if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefixes.bin), size) else Variable.Value.Bin(content.removePrefix(prefixes.bin), size)
-                        } else {
-                            if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefixes.bin)) else Variable.Value.Bin(content.removePrefix(prefixes.bin))
-                        }
-                    }
-                    result = regexCollection.hex.matchEntire(content)
-                    if (result != null) {
-                        return if (size != null) {
-                            if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefixes.hex), size) else Variable.Value.Hex(content.removePrefix(prefixes.hex), size)
-                        } else {
-                            if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefixes.hex)) else Variable.Value.Hex(content.removePrefix(prefixes.hex))
-                        }
-                    }
-                    result = regexCollection.udec.matchEntire(content)
-                    if (result != null) {
-                        return if (size != null) {
-                            Variable.Value.UDec(content.removePrefix(prefixes.udec), size)
-                        } else {
-                            Variable.Value.UDec(content.removePrefix(prefixes.udec))
-                        }
-                    }
-                    result = regexCollection.dec.matchEntire(content)
-                    if (result != null) {
-                        return if (size != null) {
-                            if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefixes.dec), size) else Variable.Value.Dec(content.removePrefix(prefixes.dec), size)
-                        } else {
-                            if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefixes.dec)) else Variable.Value.Dec(content.removePrefix(prefixes.dec))
-                        }
-                    }
-                    return null
-                }
-
-                enum class MODE(val regex: Regex) {
-                    SHIFTLEFT(Regex("""^\(\s*(?<val1>\S+)\s*<<\s*(?<val2>\S+)\s*\)""")),
-                    SHIFTRIGHT(Regex("""^\(\s*(?<val1>\S+)\s*>>\s*(?<val2>\S+)\s*\)""")),
-                    ADD(Regex("""^\(\s*(?<val1>\S+)\s*\+\s*(?<val2>\S+)\s*\)""")),
-                    SUB(Regex("""^\(\s*(?<val1>\S+)\s*-\s*(?<val2>\S+)\s*\)""")),
-                    MUL(Regex("""^\(\s*(?<val1>\S+)\s*\*\s*(?<val2>\S+)\s*\)""")),
-                    DIV(Regex("""^\(\s*(?<val1>\S+)\s*/\s*(?<val2>\S+)\s*\)"""));
-
-                    fun getCalcToken(lineLoc: LineLoc, prefixes: ConstantPrefixes, groupValues: MatchGroupCollection, content: kotlin.String, id: Int, regexCollection: RegexCollection): Calculated? {
-                        when (this) {
-                            SHIFTLEFT, SHIFTRIGHT, ADD, SUB, MUL, DIV -> {
-                                val value1 = groupValues.get("val1")?.value
-                                val value2 = groupValues.get("val2")?.value
-
-                                if (value1 == null || value2 == null) return null
-
-                                if (checkIfNumber(value1, regexCollection) == null) return null
-                                if (checkIfNumber(value2, regexCollection) == null) return null
-
-                                return Calculated(lineLoc, this, prefixes, groupValues, regexCollection, content, id)
+                        2 -> {
+                            tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
+                            tokens.filterIsInstance<Symbol>().forEach {
+                                when(it.content){
+                                    "(" -> {
+                                        nativeLog("Found Bracket!")
+                                        it.hl()
+                                    }
+                                    ")" -> {
+                                        it.hl()
+                                    }
+                                    else -> {
+                                        it.hl(codeStyle.get(1))
+                                    }
+                                }
                             }
                         }
+                        3 -> {
+                            tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
+                            tokens.filterIsInstance<Symbol>().forEach {
+                                when(it.content){
+                                    "(" -> {
+                                        it.hl(codeStyle.get(2))
+                                    }
+                                    ")" -> {
+                                        it.hl(codeStyle.get(2))
+                                    }
+                                    else -> {
+                                        it.hl(codeStyle.get(1))
+                                    }
+                                }
+                            }
+                        }
+                        else -> {}
                     }
+                }
 
-                    private fun checkIfNumber(content: kotlin.String, regexCollection: RegexCollection): Variable.Value.Types? {
-                        var result = regexCollection.bin.matchEntire(content)
-                        if (result != null) {
-                            return Variable.Value.Types.Bin
+                override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
+                    return when (type) {
+                        ExpressionType.BRACKETS -> constants[0].getValue(size, onlyUnsigned)
+                        ExpressionType.ADD -> (constants[0].getValue(size, onlyUnsigned) + constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.SUB -> (constants[0].getValue(size, onlyUnsigned) - constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.MUL -> (constants[0].getValue(size, onlyUnsigned) * constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.DIV -> (constants[0].getValue(size, onlyUnsigned) / constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.SHL -> {
+                            val shiftAmount = constants[1].getValue(Bit16(), true).toUDec().toIntOrNull() ?: 0
+                            constants[0].getValue(size, onlyUnsigned).toBin().shl(shiftAmount)
                         }
-                        result = regexCollection.hex.matchEntire(content)
-                        if (result != null) {
-                            return Variable.Value.Types.Hex
+
+                        ExpressionType.SHR -> {
+                            val shiftAmount = constants[1].getValue(Bit16(), true).toUDec().toIntOrNull() ?: 0
+                            constants[0].getValue(size, onlyUnsigned).toBin().shl(shiftAmount)
                         }
-                        result = regexCollection.udec.matchEntire(content)
-                        if (result != null) {
-                            return Variable.Value.Types.UDec
-                        }
-                        result = regexCollection.dec.matchEntire(content)
-                        if (result != null) {
-                            return Variable.Value.Types.Dec
-                        }
-                        return null
                     }
+                }
+
+                enum class ExpressionType(val tokenSeq: TokenSeq) {
+                    BRACKETS(TokenSeq(Specific("("), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    ADD(TokenSeq(Specific("("), Constant, Specific("+"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    SUB(TokenSeq(Specific("("), Constant, Specific("-"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    MUL(TokenSeq(Specific("("), Constant, Specific("*"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    DIV(TokenSeq(Specific("("), Constant, Specific("/"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    SHL(TokenSeq(Specific("("), Constant, Specific("<"), Specific("<"), SpecConst(Bit16(), onlyUnsigned = true), Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    SHR(TokenSeq(Specific("("), Constant, Specific(">"), Specific(">"), SpecConst(Bit16(), onlyUnsigned = true), Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true))
                 }
             }
 
@@ -752,7 +755,7 @@ class Compiler(
 
     }
 
-    enum class CodeStyle(val lightHexColor: Int,val darkHexColor: Int? = null) {
+    enum class CodeStyle(val lightHexColor: Int, val darkHexColor: Int? = null) {
         RED(0xc94922),
         ORANGE(0xc76b29),
         YELLOW(0xc08b30),
@@ -762,14 +765,14 @@ class Compiler(
         BLUE(0x3d8fd1),
         VIOLET(0x6679cc),
         MAGENTA(0x9c637a),
-        BASE0(0x202746,0xf5f7ff),
-        BASE1(0x293256,0xdfe2f1),
-        BASE2(0x5e6687,0x979db4),
-        BASE3(0x6b7394,0x898ea4),
-        BASE4(0x898ea4,0x6b7394),
-        BASE5(0x979db4,0x5e6687),
-        BASE6(0xdfe2f1,0x293256),
-        BASE7(0xf5f7ff,0x202746),
+        BASE0(0x202746, 0xf5f7ff),
+        BASE1(0x293256, 0xdfe2f1),
+        BASE2(0x5e6687, 0x979db4),
+        BASE3(0x6b7394, 0x898ea4),
+        BASE4(0x898ea4, 0x6b7394),
+        BASE5(0x979db4, 0x5e6687),
+        BASE6(0xdfe2f1, 0x293256),
+        BASE7(0xf5f7ff, 0x202746),
     }
 
     data class Severity(val type: SeverityType, val message: String)

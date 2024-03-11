@@ -4,7 +4,6 @@ import Constants
 import StyleAttr
 import emotion.react.css
 import emulator.Link
-import emulator.kit.Architecture
 import emulator.kit.common.FileBuilder
 import emulator.kit.common.FileHandler
 import js.core.asList

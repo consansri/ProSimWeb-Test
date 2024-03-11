@@ -3,6 +3,7 @@ package emulator.kit.assembly
 import emulator.kit.common.FileHandler
 import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 
@@ -158,14 +159,14 @@ abstract class Syntax {
     }
 
     class Error(val message: String, val linkedTreeNode: TreeNode) {
-        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode( "unidentified", *tokens))
+        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode("unidentified", *tokens))
         constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
         constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
         constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
     }
 
     class Warning(val message: String, val linkedTreeNode: TreeNode) {
-        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode( "unidentified", *tokens))
+        constructor(message: String, vararg tokens: Compiler.Token) : this(message, TreeNode.ElementNode("unidentified", *tokens))
         constructor(message: String, vararg elementNodes: TreeNode.ElementNode) : this(message, TreeNode.RowNode("unidentified", *elementNodes))
         constructor(message: String, vararg rowNodes: TreeNode.RowNode) : this(message, TreeNode.SectionNode("unidentified", *rowNodes))
         constructor(message: String, vararg nodes: TreeNode) : this(message, TreeNode.ContainerNode("unidentified", *nodes))
@@ -277,7 +278,7 @@ abstract class Syntax {
         data class RowSeqResult(val matches: Boolean, val matchingTreeNodes: List<TreeNode.ElementNode>, val error: Error? = null, val remainingTreeNodes: List<TreeNode.ElementNode>? = null)
     }
 
-    class TokenSeq(private vararg val components: Component, val ignoreSpaces: Boolean = false) {
+    class TokenSeq(private vararg val components: Component, val ignoreSpaces: Boolean = false, val addIgnoredSpacesToMap: Boolean = false) {
 
         init {
             if (components.isEmpty()) {
@@ -304,7 +305,10 @@ abstract class Syntax {
                 } else {
                     if (ignoreSpaces) {
                         while (trimmedTokens.isNotEmpty() && trimmedTokens.first() is Compiler.Token.Space) {
-                            trimmedTokens.removeFirst()
+                            val space = trimmedTokens.removeFirst()
+                            if (addIgnoredSpacesToMap) {
+                                sequenceMap.add(SeqMap(Component.InSpecific.Space, space))
+                            }
                         }
                     }
 
@@ -326,41 +330,22 @@ abstract class Syntax {
         fun matches(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
 
-            while (!components.first().matches(trimmedTokens.first())) {
-                trimmedTokens.removeFirst()
-                if (trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
-            }
-
-            val sequenceMap = mutableListOf<SeqMap>()
-            for (component in components) {
-                if (component is Component.InSpecific.Space && ignoreSpaces) {
-                    if (component.matches(trimmedTokens.first())) {
-                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
-                        trimmedTokens.removeFirst()
-                    } else {
-                        return SeqMatchResult(false, emptyList())
-                    }
-                } else {
-                    if (ignoreSpaces) {
-                        while (trimmedTokens.isNotEmpty() && trimmedTokens.first() is Compiler.Token.Space) {
-                            trimmedTokens.removeFirst()
-                        }
-                    }
-
-                    if (trimmedTokens.isNotEmpty() && component.matches(trimmedTokens.first())) {
-                        sequenceMap.add(SeqMap(component, trimmedTokens.first()))
-                        trimmedTokens.removeFirst()
-                    } else {
-                        if (component == components.last() && component is Component.InSpecific.NewLine) {
-                            break
-                        } else {
-                            return SeqMatchResult(false, emptyList())
-                        }
+            while (true) {
+                if (components.first().matches(trimmedTokens.first())) {
+                    val result = matchStart(*trimmedTokens.toTypedArray())
+                    if (result.matches) {
+                        return result
                     }
                 }
+
+                trimmedTokens.removeFirst()
+
+                if (trimmedTokens.isEmpty()) break
             }
-            return SeqMatchResult(true, sequenceMap)
+
+            return SeqMatchResult(false, emptyList())
         }
+
 
         fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
@@ -378,7 +363,10 @@ abstract class Syntax {
                 } else {
                     if (ignoreSpaces) {
                         while (trimmedTokens.isNotEmpty() && trimmedTokens.first() is Compiler.Token.Space) {
-                            trimmedTokens.removeFirst()
+                            val space = trimmedTokens.removeFirst()
+                            if (addIgnoredSpacesToMap) {
+                                sequenceMap.add(SeqMap(Component.InSpecific.Space, space))
+                            }
                         }
                     }
 
@@ -415,7 +403,7 @@ abstract class Syntax {
                 }
             }
 
-            class SpecConst(val mustMatchSize: Variable.Size, val signed: Boolean? = null, val onlyUnsigned: Boolean = false) : Component() {
+            class SpecConst(val mustMatchSize: Variable.Size? = null, val signed: Boolean? = null, val onlyUnsigned: Boolean = false) : Component() {
                 override fun matches(token: Compiler.Token): Boolean {
                     return if (signed == null) {
                         token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid
@@ -473,6 +461,16 @@ abstract class Syntax {
 
                 data object Constant : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant
+                }
+
+                data class Expression(val type: Compiler.Token.Constant.Expression.ExpressionType? = null) : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean {
+                        return if (type == null) {
+                            token is Compiler.Token.Constant.Expression
+                        } else {
+                            token is Compiler.Token.Constant.Expression && token.type == type
+                        }
+                    }
                 }
 
                 data object StringConst : InSpecific() {

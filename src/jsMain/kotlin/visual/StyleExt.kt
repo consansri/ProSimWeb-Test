@@ -38,7 +38,15 @@ object StyleExt {
             if (severity != null) {
                 if (codeStyle == null) highlight(it.content, it.id, severity.name) else highlight(it.content, it.id, severity.name, codeStyle.name)
             } else {
-                if (codeStyle == null) it.content else highlight(it.content, it.id, codeStyle.name)
+                when (it) {
+                    is Compiler.Token.Constant.Expression -> {
+                        it.tokens.getVCRows().joinToString("") { it }
+                    }
+
+                    else -> {
+                        if (codeStyle == null) it.content else highlight(it.content, it.id, codeStyle.name)
+                    }
+                }
             }
         }.split("\n")
     }
@@ -54,14 +62,14 @@ object StyleExt {
 
     fun Docs.DocComponent.render(arch: Architecture, fileChangeEvent: StateInstance<Boolean>): FC<Props> {
         val component = this
-        return  FC {
+        return FC {
             when (component) {
                 is Docs.DocComponent.Code -> {
                     ReactHTML.pre {
                         ReactHTML.code {
                             +component.content
 
-                            onClick = {event ->
+                            onClick = { event ->
                                 if (arch.getFileHandler().getAllFiles().none { it.getName() == "example" }) {
                                     arch.getFileHandler().import(FileHandler.File("example", component.content))
                                     window.scrollTo(0, 0)
@@ -112,7 +120,7 @@ object StyleExt {
                                                 textAlign = TextAlign.left
                                             }
                                             val fc = rowEntry.render(arch, fileChangeEvent)
-                                            fc{
+                                            fc {
 
                                             }
                                         }
@@ -134,7 +142,7 @@ object StyleExt {
                         component.entrys.forEach { entry ->
                             ReactHTML.li {
                                 val fc = entry.render(arch, fileChangeEvent)
-                                fc{
+                                fc {
 
                                 }
                             }

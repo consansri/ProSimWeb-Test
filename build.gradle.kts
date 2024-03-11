@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "me.c3"
-version = "0.1.9"
+version = "0.1.10"
 
 val doodleVersion: String by project
 

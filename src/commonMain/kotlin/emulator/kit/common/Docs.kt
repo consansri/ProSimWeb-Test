@@ -17,6 +17,27 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
         HtmlFile.DefinedFile(
             "Version - ${Constants.VERSION}",
             Chapter(
+                "Version - 0.1.10",
+                Section(
+                    "New",
+                    UnlinkedList(
+                        Code(
+                            """
+                                # now supporting nested expression of literals!    
+                                .data
+	                                .word (((4 / 2) + 33) << (1 * 2))
+                            """.trimIndent()
+                        )
+                    )
+                ),
+                Section(
+                    "Changed",
+                    UnlinkedList(
+                        Text("KIT moved from javascript target to common target which allows a parallel development of the wasm target, with a new ui."),
+                    )
+                ),
+            ),
+            Chapter(
                 "Version - 0.1.9",
                 Section(
                     "New",
@@ -282,7 +303,7 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                     *=0xA000
                     label_on_0xA000:
                     .data
-                    			.byte 	(1 << 1)
+                    			.byte 	(((4 / 2) + 33) << 1)
                     			.half 	(0xA000 >> 12)
                     			.word 	(-10 * 0xFFFFFFFF)
                     			.dword	0x0123456789ABCDEF

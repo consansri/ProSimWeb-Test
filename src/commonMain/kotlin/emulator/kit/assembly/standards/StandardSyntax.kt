@@ -691,7 +691,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         init {
             directive.forEach { it.hl(StandardCodeStyle.directive) }
             equname.hl(StandardCodeStyle.pre_equ)
-            constant.hl(StandardCodeStyle.constant)
+            constant.hlStdConstant()
         }
     }
 
@@ -715,7 +715,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             attributes.forEach { it.hl(StandardCodeStyle.pre_macro) }
             macroContent.forEach {
                 when (it) {
-                    is Compiler.Token.Constant -> it.hl(StandardCodeStyle.constant)
+                    is Compiler.Token.Constant -> it.hlStdConstant()
                     is Compiler.Token.Register -> it.hl(StandardCodeStyle.register)
                     is Compiler.Token.Word -> it.hl(StandardCodeStyle.label)
                     else -> {}
@@ -760,7 +760,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             macroName.hl(StandardCodeStyle.pre_macro)
             attributes.forEach {
                 when (it) {
-                    is Compiler.Token.Constant -> it.hl(StandardCodeStyle.constant)
+                    is Compiler.Token.Constant -> it.hlStdConstant()
                     is Compiler.Token.Register -> it.hl(StandardCodeStyle.register)
                     is Compiler.Token.Word -> it.hl(StandardCodeStyle.label)
                     else -> {}
@@ -813,7 +813,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
             nameToken.hl(StandardCodeStyle.instruction)
             registers.forEach { it.hl(StandardCodeStyle.register) }
-            constants.forEach { it.hl(StandardCodeStyle.constant) }
+            constants.forEach { it.hlStdConstant() }
         }
 
         /**
@@ -857,7 +857,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             bytesNeeded = Variable.Value.Hex(result.toString(16), memAddressWidth)
 
             dirTokens.forEach { it.hl(StandardCodeStyle.directive) }
-            constants.forEach { it.hl(StandardCodeStyle.constant) }
+            constants.forEach { it.hlStdConstant() }
         }
 
         fun setAddress(address: Variable.Value) {
@@ -902,7 +902,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
     class ESetPC(symbols: List<Compiler.Token>, val constant: Compiler.Token.Constant) : TreeNode.ElementNode("set_pc", *symbols.toTypedArray(), constant) {
         init {
             symbols.forEach { it.hl(StandardCodeStyle.set_pc) }
-            constant.hl(StandardCodeStyle.constant)
+            constant.hlStdConstant()
         }
     }
 
