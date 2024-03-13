@@ -33,9 +33,9 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                 Section(
                     "Changed",
                     UnlinkedList(
-                        Text("KIT moved from javascript target to common target which allows a parallel development of the wasm target, with a new ui."),
+
                     )
-                ),
+                )
             ),
             Chapter(
                 "Version - 0.1.9",
