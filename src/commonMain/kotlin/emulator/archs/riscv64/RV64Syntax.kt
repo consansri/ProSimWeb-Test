@@ -7,7 +7,7 @@ import emulator.archs.riscv64.RV64BinMapper.MaskLabel
 import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 
-class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', false) {
+class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries.map { it.id }, instrParamsCanContainWordsBesideLabels = false) {
 
     override fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): Boolean {
         for (paramType in ParamType.entries) {

@@ -18,7 +18,7 @@ import emulator.kit.types.Variable.Size.*
  * T6502 Syntax
  *
  */
-class T6502Syntax : StandardSyntax(T6502.MEM_ADDR_SIZE, commentStartSymbol = ';', instrParamsCanContainWordsBesideLabels = true) {
+class T6502Syntax : StandardSyntax(T6502.MEM_ADDR_SIZE, ';', InstrType.entries.map { it.name }, instrParamsCanContainWordsBesideLabels = true) {
     override fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): Boolean {
         for (amode in AModes.entries) {
             val amodeResult = amode.tokenSequence.matchStart(*this.toTypedArray())

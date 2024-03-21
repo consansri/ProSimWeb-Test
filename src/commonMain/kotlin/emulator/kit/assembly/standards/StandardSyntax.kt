@@ -8,7 +8,9 @@ import emulator.kit.types.Variable
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 import io.nacular.doodle.controls.form.file
 
-abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentStartSymbol: Char, val instrParamsCanContainWordsBesideLabels: Boolean) : Syntax() {
+abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentStartSymbol: Char, possibleInstructionNames: List<String>, val instrParamsCanContainWordsBesideLabels: Boolean) : Syntax() {
+
+    private val possibleUpperCaseInstrNames = possibleInstructionNames.map { it.uppercase() }
 
     override val applyStandardHLForRest: Boolean = false
     override fun clear() {}
@@ -240,7 +242,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 break
             }
 
-            val macroDef = PreMacroDef((macroStartDir + macroEndDir), macroName, attributes, commas, macroContent)
+            val macroDef = PreMacroDef((macroStartDir + macroEndDir), macroName, attributes, commas, macroContent, possibleUpperCaseInstrNames)
             defs.add(macroDef)
             this.removeAll(macroDef.tokens.toSet())
         }
@@ -670,7 +672,6 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         GLOBL("globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl"), InSpecific.Space, InSpecific.WordNoDots))
     }
 
-
     /**
      * Nodes
      */
@@ -701,7 +702,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         }
     }
 
-    class PreMacroDef(directives: List<Compiler.Token>, val macroname: Compiler.Token.Word, val attributes: List<Compiler.Token.Word>, commas: List<Compiler.Token>, val macroContent: List<Compiler.Token>) : TreeNode.ElementNode(
+    class PreMacroDef(directives: List<Compiler.Token>, val macroname: Compiler.Token.Word, val attributes: List<Compiler.Token.Word>, commas: List<Compiler.Token>, val macroContent: List<Compiler.Token>, val possibleUpperCaseInstrNames: List<String>) : TreeNode.ElementNode(
         "macro_def",
         *directives.toTypedArray(),
         macroname,
@@ -717,7 +718,14 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 when (it) {
                     is Compiler.Token.Constant -> it.hlStdConstant()
                     is Compiler.Token.Register -> it.hl(StandardCodeStyle.register)
-                    is Compiler.Token.Word -> it.hl(StandardCodeStyle.label)
+                    is Compiler.Token.Word -> {
+                        if (possibleUpperCaseInstrNames.contains(it.content.uppercase())) {
+                            it.hl(StandardCodeStyle.instruction)
+                        } else {
+                            //it.hl(StandardCodeStyle.label)
+                        }
+                    }
+
                     else -> {}
                 }
             }

@@ -11,8 +11,7 @@ import emulator.kit.common.Memory
 import emulator.kit.common.RegContainer
 import emulator.kit.types.Variable
 
-class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, commentStartSymbol = ';', instrParamsCanContainWordsBesideLabels = false) {
-
+class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, ';', InstrType.entries.map { it.name }, instrParamsCanContainWordsBesideLabels = false) {
 
     /**
      * Checks beginning for a Instruction

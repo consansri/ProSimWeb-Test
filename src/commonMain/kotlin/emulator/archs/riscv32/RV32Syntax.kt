@@ -10,7 +10,7 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.SpecConst
 import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
 
-class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanContainWordsBesideLabels = false) {
+class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', InstrType.entries.map { it.id }, instrParamsCanContainWordsBesideLabels = false) {
     override fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): Boolean {
         for (paramType in ParamType.entries) {
             val result = paramType.tokenSeq.matchStart(*this.toTypedArray())
@@ -18,7 +18,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
             val allTokens = result.sequenceMap.map { it.token }
             val nameToken = allTokens.firstOrNull() ?: continue
             val params = allTokens.drop(1)
-            
+
             val instrType = InstrType.entries.firstOrNull { it.paramType == paramType && it.id.uppercase() == nameToken.content.uppercase() } ?: continue
             val eInstr = RV32Instr(instrType, nameToken, params, currentLabel)
 
@@ -50,7 +50,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 val rd = paramMap[RD]
                 return if (rd != null) {
                     paramMap.remove(RD)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -76,7 +76,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 return if (rd != null && rs1 != null) {
                     paramMap.remove(RD)
                     paramMap.remove(RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
                 } else {
                     "param missing"
@@ -90,7 +90,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 return if (rs2 != null && rs1 != null) {
                     paramMap.remove(RS2)
                     paramMap.remove(RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
                 } else {
                     "param missing"
@@ -132,7 +132,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 return if (rd != null && rs1 != null) {
                     paramMap.remove(RD)
                     paramMap.remove(RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -157,7 +157,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 return if (rd != null && rs1 != null) {
                     paramMap.remove(RD)
                     paramMap.remove(RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -182,7 +182,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 return if (rs2 != null && rs1 != null) {
                     paramMap.remove(RS2)
                     paramMap.remove(RS1)
-                    val immString =  "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
+                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
                     "${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"
@@ -233,7 +233,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', instrParamsCanCon
                 return if (rd != null && csr != null) {
                     paramMap.remove(RD)
                     paramMap.remove(CSR)
-                    val immString =  paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toBin().toString() }
+                    val immString = paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toBin().toString() }
                     "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV32.CSR_REGFILE_NAME)?.aliases?.first()},\t$immString"
                 } else {
                     "param missing"

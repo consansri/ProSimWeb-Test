@@ -33,7 +33,7 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                 Section(
                     "Changed",
                     UnlinkedList(
-
+                        Text("GLOBAL Upgraded to Kotlin 1.9.23"),
                     )
                 )
             ),
