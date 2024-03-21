@@ -1,11 +1,11 @@
 package ui.editor.utils
 
+import emulator.kit.nativeLog
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Vector2D
 
 data class CursorLocation(val pos: Int, val lineID: Int, val columnID: Int, val coords: Pair<Point, Point>) {
     companion object {
-
         fun CursorLocation.moveUp(amount: Int, text: String, charWidth: Double, lineHeight: Double): CursorLocation {
             val lines = text.split("\n")
             var newLineID = this.lineID - amount
@@ -23,9 +23,10 @@ data class CursorLocation(val pos: Int, val lineID: Int, val columnID: Int, val 
 
         fun getCursorLocation(position: Int, text: String, charWidth: Double, lineHeight: Double): CursorLocation {
             val textUntilChar = text.take(position)
-            val lines = textUntilChar.split("\n")
+            val indicatesLineBreak = textUntilChar.lastOrNull() == '\n'
+            val lines = if(indicatesLineBreak) textUntilChar.dropLast(1).split("\n") else textUntilChar.split("\n")
             val lineID = lines.size - 1
-            val columnID = lines.last().length - 1
+            val columnID = lines.last().length + (if(indicatesLineBreak) 1 else 0)
             val coords = Vector2D(charWidth * columnID.toDouble(), lineHeight * lineID.toDouble()) to Vector2D(charWidth * columnID.toDouble(), lineHeight * (lineID + 1).toDouble())
             return CursorLocation(position, lineID, columnID, coords)
         }
@@ -47,6 +48,7 @@ data class CursorLocation(val pos: Int, val lineID: Int, val columnID: Int, val 
             }.joinToString("\n") { it }.length - 1
 
             val coords = Vector2D(charWidth * columnID.toDouble(), lineHeight * lineID.toDouble()) to Vector2D(charWidth * columnID.toDouble(), lineHeight * (lineID + 1).toDouble())
+            nativeLog("Coords: $coords")
             return CursorLocation(position, lineID, columnID, coords)
         }
     }

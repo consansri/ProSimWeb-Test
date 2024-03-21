@@ -9,6 +9,7 @@ import io.nacular.doodle.drawing.*
 import io.nacular.doodle.event.*
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.text.*
@@ -39,14 +40,14 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
             field = value
             foregroundColor?.invoke { field }
             font?.invoke { field }
-            measureText()
+            //measureText()
         }
 
     private var actualStyledText = styledText
         set(value) {
             field = value
             visibleStyledText = value
-            measureText()
+            //measureText()
             rerender()
         }
 
@@ -107,8 +108,6 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
         }
 
         keyChanged += KeyListener.pressed {
-
-
             when (it.type) {
                 KeyState.Type.Up -> {
 
@@ -124,6 +123,7 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
                             KeyCode.ArrowDown -> moveCursorDown(1)
                             KeyCode.ArrowLeft -> moveCursorLeft(1)
                             KeyCode.ArrowRight -> moveCursorRight(1)
+                            KeyCode.Delete -> removeText()
                             else -> {
                                 insertText(it.key.text)
                             }
@@ -173,10 +173,11 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
         if (cursorLoc.pos > 0) {
             text = text.substring(0, cursorLoc.pos) + text.substring(cursorLoc.pos + 1)
         }
+        setCursorPosition(cursorLoc.pos - 1)
     }
 
     override fun addedToDisplay() {
-        measureText()
+        //measureText()
 
         // force update
         actualStyledText = actualStyledText
@@ -186,20 +187,32 @@ class EditorTextField(text: StyledText = StyledText(""), focusManager: FocusMana
         super.render(canvas)
 
         canvas.rect(bounds.atOrigin, fill = editorTheme.bg.paint)
-        canvas.text(visibleStyledText, at = Point.Origin, textSpacing = TextSpacing(0.0, 0.0))
+        //canvas.text(visibleStyledText, at = Point.Origin, textSpacing = TextSpacing(0.0, 0.0))
+
+        var currline = 0
+        for (line in visibleStyledText.text.split("\n")) {
+            canvas.text(StyledText(line,font = font, foreground = Color.Black.paint), at = Point(bounds.atOrigin.x, bounds.atOrigin.y + lineHeight * currline))
+            currline++
+        }
+
+        for (x in 0 until 10) {
+            for (y in 0 until 10) {
+                canvas.rect(Rectangle(Point(x = x * charWidth, y = y * lineHeight), Size(0.2, 0.2)), Color.Black)
+            }
+        }
 
         // Render Cursor
         if (hasFocus && cursorVisible && cursorAnimState) {
             canvas.line(cursorLoc.coords.first, cursorLoc.coords.second, Stroke(editorTheme.fg.paint, thickness = 1.0))
+            nativeLog("Cursor Coords: ${cursorLoc.coords}")
         }
     }
 
-    private fun measureText(): Size {
+    /*private fun measureText(): Size {
         val size = textMetrics.size(visibleStyledText)
-        lineHeight = size.height / (text.split("\n").size - 1)
+        lineHeight = size.height / (text.split("\n").size)
         this.size = size
-        nativeLog("$size")
         return size
-    }
+    }*/
 }
 
