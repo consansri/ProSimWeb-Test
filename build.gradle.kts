@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.findMainClass
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-    kotlin("multiplatform") version "1.9.22"
+    kotlin("multiplatform") version "1.9.23"
     id("org.jetbrains.dokka") version "1.9.0"
     application
 }
@@ -67,6 +67,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
+                // Doodle
                 implementation("io.nacular.doodle:core:$doodleVersion")
                 implementation("io.nacular.doodle:browser:$doodleVersion")
 
@@ -76,11 +77,13 @@ kotlin {
                 implementation("io.nacular.doodle:themes:$doodleVersion")
             }
         }
+
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
+
         val jsMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react:18.2.0-pre.607")
@@ -94,5 +97,6 @@ kotlin {
 
             }
         }
+
     }
 }
