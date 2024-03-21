@@ -630,8 +630,30 @@ class Compiler(
 
                 val constants: List<Constant> = tokens.filterIsInstance<Constant>()
 
+                /**
+                 * Function for Highlighting Expressions
+                 *
+                 * [codeStyle.size] sets highlighting to one of the following modes
+                 *
+                 * 0 Codestyles (no highlighting will be applied)
+                 *
+                 * 1 CodeStyle (leaving brackets and operators blank)
+                 *  1. for [Token.Constant]
+                 *
+                 * 2 CodeStyles (leaving brackets blank)
+                 *  1. for [Token.Constant]
+                 *  2. for Operators
+                 *
+                 * 3 or more CodeStyles
+                 *  1. for [Token.Constant]
+                 *  2. for Operators
+                 *  3. for Brackets
+                 *
+                 */
                 override fun hl(vararg codeStyle: CodeStyle) {
+
                     when(codeStyle.size){
+                        0 -> {}
                         1 -> {
                             tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
                         }
@@ -652,7 +674,7 @@ class Compiler(
                                 }
                             }
                         }
-                        3 -> {
+                        else -> {
                             tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
                             tokens.filterIsInstance<Symbol>().forEach {
                                 when(it.content){
@@ -668,7 +690,6 @@ class Compiler(
                                 }
                             }
                         }
-                        else -> {}
                     }
                 }
 
