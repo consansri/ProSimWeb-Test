@@ -1,11 +1,13 @@
+import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
 import org.jetbrains.kotlin.builtins.StandardNames.FqNames.target
 import org.jetbrains.kotlin.cli.jvm.compiler.findMainClass
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform") version "1.9.23"
     id("org.jetbrains.dokka") version "1.9.0"
-    application
 }
 
 group = "me.c3"
@@ -22,7 +24,6 @@ repositories {
 }
 
 kotlin {
-
     js(IR) {
         binaries.executable()
         browser {
@@ -59,6 +60,10 @@ kotlin {
                 )
             }
         }
+    }
+
+    jvm{
+        jvmToolchain(11)
     }
 
     sourceSets {
@@ -98,5 +103,12 @@ kotlin {
             }
         }
 
+        val jvmMain by getting{
+            dependencies {
+
+            }
+        }
     }
 }
+
+
