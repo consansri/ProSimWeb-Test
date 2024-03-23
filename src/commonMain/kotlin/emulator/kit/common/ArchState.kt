@@ -5,19 +5,15 @@ package emulator.kit.common
  */
 class ArchState {
 
-    var state = State.UNCHECKED
-
-    fun getState(): State {
-        return state
-    }
+    var currentState = State.UNCHECKED
 
     fun edit() {
-        state = State.UNCHECKED
+        currentState = State.UNCHECKED
     }
 
     fun check(success: Boolean) {
-        if (state == State.UNCHECKED) {
-            state = if (success) {
+        if (currentState == State.UNCHECKED) {
+            currentState = if (success) {
                 State.EXECUTABLE
             } else {
                 State.HASERRORS

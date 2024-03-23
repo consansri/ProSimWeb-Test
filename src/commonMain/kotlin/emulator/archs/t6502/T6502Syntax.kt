@@ -1,6 +1,5 @@
 package emulator.archs.t6502
 
-import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.T6502Syntax.AModes.*
@@ -11,7 +10,6 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.Specific
 import emulator.kit.assembly.Syntax.TokenSeq.Component.SpecConst
 import emulator.kit.assembly.Syntax.TokenSeq.Component.WordOrSpecConst
 import emulator.kit.assembly.standards.StandardSyntax
-import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 
 /**
@@ -887,8 +885,8 @@ class T6502Syntax : StandardSyntax(T6502.MEM_ADDR_SIZE, ';', InstrType.entries.m
     ) {
         fun getOpBin(arch: emulator.kit.Architecture): Array<Hex> {
             val opCode = type.opCode[addressingMode]
-            val addr = address
-            val lblAddr = linkedLabels.firstOrNull()?.address
+            val addr = addr
+            val lblAddr = linkedLabels.firstOrNull()?.addr
             if (opCode == null) {
                 arch.getConsole().error("Couldn't resolve opcode for the following combination: ${type.name} and ${addressingMode.name}")
                 return emptyArray()

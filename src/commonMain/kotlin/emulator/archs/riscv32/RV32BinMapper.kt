@@ -10,9 +10,9 @@ import emulator.kit.nativeWarn
 class RV32BinMapper {
     fun getBinaryFromInstrDef(instr: RV32Syntax.RV32Instr, architecture: emulator.kit.Architecture): Array<Variable.Value.Bin> {
         val binArray = mutableListOf<Variable.Value.Bin>()
-        val instrAddr = instr.address ?: return emptyArray()
+        val instrAddr = instr.addr ?: return emptyArray()
         val regs = instr.registers.map { it.reg.address.toBin() }
-        val labels = instr.linkedLabels.mapNotNull { it.address?.toBin() }
+        val labels = instr.linkedLabels.mapNotNull { it.addr?.toBin() }
 
         if (DebugTools.RV32_showBinMapperInfo) {
             println("BinMapper.getBinaryFromInstrDef(): \t${instr.type.id} -> values: ${instr.params.joinToString { it.content }}")

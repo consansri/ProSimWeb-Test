@@ -6,7 +6,6 @@ import emulator.kit.common.FileHandler
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
-import io.nacular.doodle.controls.form.file
 
 abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentStartSymbol: Char, possibleInstructionNames: List<String>, val instrParamsCanContainWordsBesideLabels: Boolean) : Syntax() {
 
@@ -794,15 +793,11 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             null
         }
         val nameString = nameToken.content
-        var address: Variable.Value? = null
+        var addr: Variable.Value? = null
 
         init {
             nameToken.hl(StandardCodeStyle.label)
             endSymbol.hl(StandardCodeStyle.label)
-        }
-
-        fun setAddress(address: Variable.Value) {
-            this.address = address
         }
     }
 
@@ -812,7 +807,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         val unlinkedlabels: Collection<Compiler.Token.Word>
         val linkedLabels: MutableCollection<ELabel> = mutableListOf()
 
-        var address: Variable.Value? = null
+        var addr: Variable.Value? = null
 
         init {
             registers = params.filterIsInstance<Compiler.Token.Register>()
@@ -847,17 +842,13 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             }
             return !linkingErrors
         }
-
-        fun setAddress(address: Variable.Value) {
-            this.address = address
-        }
     }
 
     class EInitData(val dirType: StandardSyntax.DirType, val dirTokens: List<Compiler.Token>, val constants: List<Compiler.Token.Constant>, commas: List<Compiler.Token>, memAddressWidth: Variable.Size) :
         TreeNode.ElementNode("init_data", *dirTokens.toTypedArray(), *constants.toTypedArray(), *commas.toTypedArray()) {
         val values = constants.map { it.getValue(dirType.deSize) }
         val bytesNeeded: Variable.Value
-        var address: Variable.Value? = null
+        var addr: Variable.Value? = null
 
         init {
             var result = 0
@@ -867,21 +858,13 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             dirTokens.forEach { it.hl(StandardCodeStyle.directive) }
             constants.forEach { it.hlStdConstant() }
         }
-
-        fun setAddress(address: Variable.Value) {
-            this.address = address
-        }
     }
 
     class EUnInitData(val dirType: StandardSyntax.DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode("uninit_data", *dirTokens.toTypedArray()) {
-        var address: Variable.Value? = null
+        var addr: Variable.Value? = null
 
         init {
             dirTokens.forEach { it.hl(StandardCodeStyle.directive) }
-        }
-
-        fun setAddress(address: Variable.Value) {
-            this.address = address
         }
     }
 

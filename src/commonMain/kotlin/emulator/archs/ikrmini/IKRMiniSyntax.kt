@@ -8,7 +8,6 @@ import emulator.kit.types.Variable.Value.*
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
 import emulator.kit.assembly.standards.StandardSyntax
 import emulator.kit.common.Memory
-import emulator.kit.common.RegContainer
 import emulator.kit.types.Variable
 
 class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, ';', InstrType.entries.map { it.name }, instrParamsCanContainWordsBesideLabels = false) {
@@ -507,10 +506,10 @@ class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, ';', InstrType.e
      * TREE NODES
      */
     class IKRMiniInstr(val type: InstrType, val paramType: ParamType, val imm: Compiler.Token.Constant?, parentLabel: ELabel?, vararg tokens: Compiler.Token) : EInstr(tokens.first(), tokens.drop(1), parentLabel) {
-        fun getOpBin(arch: emulator.kit.Architecture): Array<Bin> {
+        fun getOpBin(arch: Architecture): Array<Bin> {
             val opCode = type.paramMap[paramType]
-            val addr = address
-            val lblAddr = linkedLabels.firstOrNull()?.address
+            val addr = addr
+            val lblAddr = linkedLabels.firstOrNull()?.addr
             if (opCode == null) {
                 arch.getConsole().error("Couldn't resolve opcode for the following combination: ${type.name} and ${paramType.name}")
                 return emptyArray()

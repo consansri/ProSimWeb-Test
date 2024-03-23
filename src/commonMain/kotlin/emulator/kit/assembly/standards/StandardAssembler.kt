@@ -6,7 +6,6 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Memory
 import emulator.kit.common.Transcript
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
@@ -43,7 +42,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                         when (element) {
                             is StandardSyntax.EInstr -> {
                                 lineAddressMap[currentAddress.toHex().getRawHexStr()] = element.tokens.first().lineLoc
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 val row = CompiledRow(currentAddress.toHex())
                                 row.addInstr(element)
                                 tsCompiledRows.add(row)
@@ -69,7 +68,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                             }
 
                             is StandardSyntax.ELabel -> {
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 labels.add(element)
                             }
 
@@ -95,12 +94,12 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                                     StandardSyntax.DirMajType.DE_UNALIGNED -> {}
                                     else -> {}
                                 }
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 currentAddress += element.bytesNeeded
                             }
 
                             is StandardSyntax.ELabel -> {
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 if (currentAddress == tsCompiledRows.lastOrNull()?.addr) {
                                     tsCompiledRows.last().addLabel(element)
                                 }
@@ -129,12 +128,12 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                                     StandardSyntax.DirMajType.DE_UNALIGNED -> {}
                                     else -> {}
                                 }
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 currentAddress += element.bytesNeeded
                             }
 
                             is StandardSyntax.ELabel -> {
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 if (currentAddress == tsCompiledRows.lastOrNull()?.addr) {
                                     tsCompiledRows.last().addLabel(element)
                                 }
@@ -163,7 +162,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                                     StandardSyntax.DirMajType.DE_UNALIGNED -> {}
                                     else -> {}
                                 }
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 val size = element.dirType.deSize
                                 if (size != null) {
                                     currentAddress += Hex(size.getByteCount().toString(16), memAddressWidth)
@@ -174,7 +173,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                             }
 
                             is StandardSyntax.ELabel -> {
-                                element.setAddress(currentAddress)
+                                element.addr = currentAddress
                                 if (currentAddress == tsCompiledRows.lastOrNull()?.addr) {
                                     tsCompiledRows.last().addLabel(element)
                                 }
@@ -192,7 +191,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
 
         // Add Labels to TS
         for (label in labels) {
-            val labelAddr = label.address
+            val labelAddr = label.addr
             tsCompiledRows.firstOrNull { it.addr.getRawHexStr() == labelAddr?.toHex()?.getRawHexStr() }?.addLabel(label)
         }
 
@@ -203,14 +202,14 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                     is StandardSyntax.SText -> {
                         when (element) {
                             is StandardSyntax.EGlobal -> {
-                                val address = element.linkedlabel?.address
+                                val address = element.linkedlabel?.addr
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
                             is StandardSyntax.EInstr -> {
-                                val address = element.address ?: continue
+                                val address = element.addr ?: continue
                                 val binary = getOpBinFromInstr(architecture, element)
                                 architecture.getMemory().storeArray(address, *binary, mark = Memory.InstanceType.PROGRAM)
                             }
@@ -220,14 +219,14 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                     is StandardSyntax.SData -> {
                         when (element) {
                             is StandardSyntax.EGlobal -> {
-                                val address = element.linkedlabel?.address
+                                val address = element.linkedlabel?.addr
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
                             is StandardSyntax.EInitData -> {
-                                val address = element.address ?: continue
+                                val address = element.addr ?: continue
                                 val values = element.constants.map { it.getValue(element.dirType.deSize) }
                                 architecture.getMemory().storeArray(address, *values.toTypedArray(), mark = Memory.InstanceType.DATA)
                             }
@@ -237,14 +236,14 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                     is StandardSyntax.SRoData -> {
                         when (element) {
                             is StandardSyntax.EGlobal -> {
-                                val address = element.linkedlabel?.address
+                                val address = element.linkedlabel?.addr
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
                             is StandardSyntax.EInitData -> {
-                                val address = element.address ?: continue
+                                val address = element.addr ?: continue
                                 val values = element.constants.map { it.getValue(element.dirType.deSize) }
                                 architecture.getMemory().storeArray(address, *values.toTypedArray(), mark = Memory.InstanceType.DATA, readonly = true)
                             }
@@ -254,14 +253,14 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                     is StandardSyntax.SBss -> {
                         when (element) {
                             is StandardSyntax.EGlobal -> {
-                                val address = element.linkedlabel?.address
+                                val address = element.linkedlabel?.addr
                                 if (address != null) {
                                     architecture.getRegContainer().pc.set(address)
                                 } else architecture.getConsole().error("Label not linked correctly!")
                             }
 
                             is StandardSyntax.EUnInitData -> {
-                                val address = element.address ?: continue
+                                val address = element.addr ?: continue
                                 architecture.getMemory().store(address, Bin("0", element.dirType.deSize ?: Variable.Size.Bit8()), mark = Memory.InstanceType.DATA)
                             }
                         }
@@ -285,7 +284,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
             if (instrResult != null) {
                 val row = DisassembledRow(currentAddr.toHex())
                 row.addInstr(instrResult)
-                val label = labels.filter { it.address?.toHex()?.getRawHexStr() == currentAddr.toHex().getRawHexStr() }
+                val label = labels.filter { it.addr?.toHex()?.getRawHexStr() == currentAddr.toHex().getRawHexStr() }
                 label.forEach { row.addLabel(it) }
                 tsDisassembledRows.add(row)
                 if (instrsAreWordAligned) {

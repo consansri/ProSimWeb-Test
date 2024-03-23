@@ -197,10 +197,6 @@ class Memory(
         resetEditSection()
     }
 
-    fun getMemList(): List<MemInstance> {
-        return memList
-    }
-
     fun getAddressMax(): Variable.Value {
         return Variable.Value.Hex("0", addressSize).getBiggest()
     }

@@ -2,8 +2,6 @@ package emulator.archs.riscv64
 
 import debug.DebugTools
 import Settings
-import emulator.archs.riscv32.RV32BinMapper
-import emulator.archs.riscv32.RV32Syntax
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64Syntax.InstrType
 import emulator.kit.common.Memory
@@ -13,9 +11,9 @@ class RV64BinMapper {
 
     fun getBinaryFromInstrDef(instr: RV64Syntax.RV64Instr, architecture: emulator.kit.Architecture): Array<Variable.Value.Bin> {
         val binArray = mutableListOf<Variable.Value.Bin>()
-        val instrAddr = instr.address ?: return emptyArray()
+        val instrAddr = instr.addr ?: return emptyArray()
         val regs = instr.registers.map { it.reg.address.toBin() }
-        val labels = instr.linkedLabels.mapNotNull { it.address?.toBin() }
+        val labels = instr.linkedLabels.mapNotNull { it.addr?.toBin() }
         try {
             when (instr.instrType) {
                 InstrType.LUI, InstrType.AUIPC -> {

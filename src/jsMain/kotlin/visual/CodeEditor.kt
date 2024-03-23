@@ -19,7 +19,6 @@ import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import debug.DebugTools
-import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.ArchState
 import visual.StyleExt.get
@@ -59,7 +58,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- REACT STATES ----------------- */
 
-    val (state, setState) = useState(props.archState.component1().getState().state)
+    val (state, setState) = useState(props.archState.component1().getState().currentState)
 
     val (currExeLine, setCurrExeLine) = useState(-1)
     val (exeFile, setExeFile) = useState<FileHandler.File>()
@@ -116,7 +115,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun updateTsButton() {
-        if (props.archState.component1().getState().state == ArchState.State.EXECUTABLE || props.archState.component1().getState().state == ArchState.State.EXECUTION) {
+        if (props.archState.component1().getState().currentState == ArchState.State.EXECUTABLE || props.archState.component1().getState().currentState == ArchState.State.EXECUTION) {
             btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             setTSActive(true)
         } else {
@@ -166,7 +165,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 props.archState.component1().getState().edit()
                 setvcRows(props.archState.component1().compile(valueToCheck, build = true).getVCRows())
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
-                setState(props.archState.component1().getState().state)
+                setState(props.archState.component1().getState().currentState)
             }
             if (analysisTime.inWholeMilliseconds <= Constants.EDITOR_MAX_ANALYSIS_MILLIS) {
                 setLowPerformanceMode(false)
@@ -189,7 +188,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     val hlTaList = props.archState.component1().compile(value, build = false).getVCRows()
                     setvcRows(hlTaList)
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
-                    setState(props.archState.component1().getState().state)
+                    setState(props.archState.component1().getState().currentState)
                 }
                 if (analysisTime.inWholeMilliseconds > Constants.EDITOR_MAX_ANALYSIS_MILLIS) {
                     setLowPerformanceMode(true)

@@ -1,11 +1,9 @@
 package visual
 
-import Constants
 import Constants.WebStorageKey
 import StyleAttr
 import debug.DebugTools
 import emotion.react.css
-import emulator.kit.Architecture
 import Settings
 import emulator.kit.common.Memory
 import emulator.kit.types.Variable.Value.Hex
@@ -49,7 +47,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
     val (memEndianess, setEndianess) = useState<Memory.Endianess>()
     val (lowFirst, setLowFirst) = useState(true)
-    val (memList, setMemList) = useState(props.archState.component1().getMemory().getMemList())
+    val (memList, setMemList) = useState(props.archState.component1().getMemory().memList)
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
 
@@ -213,7 +211,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 onInput = {
                     props.archState.component1().getMemory().setEntrysInRow(it.currentTarget.valueAsNumber.toInt())
                     localStorage.setItem(WebStorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
-                    setMemList(props.archState.component1().getMemory().getMemList())
+                    setMemList(props.archState.component1().getMemory().memList)
                 }
             }
 
@@ -535,10 +533,10 @@ val MemoryView = FC<MemViewProps> { props ->
             console.log("REACT: Exe Event!")
         }
         setCurrExeAddr(props.archState.component1().getRegContainer().pc.variable.get().toHex().getRawHexStr())
-        setMemList(props.archState.component1().getMemory().getMemList())
+        setMemList(props.archState.component1().getMemory().memList)
     }
 
-    useEffect(props.archState.component1().getMemory().memList, props.archState.component1().getState().state) {
+    useEffect(props.archState.component1().getMemory().memList, props.archState.component1().getState().currentState) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Memory Map or Code State Changed!")
         }
