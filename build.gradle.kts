@@ -1,8 +1,3 @@
-import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
-import org.jetbrains.kotlin.builtins.StandardNames.FqNames.target
-import org.jetbrains.kotlin.cli.jvm.compiler.findMainClass
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
@@ -63,6 +58,7 @@ kotlin {
     }
 
     jvm{
+        withJava()
         jvmToolchain(11)
     }
 
@@ -105,7 +101,11 @@ kotlin {
 
         val jvmMain by getting{
             dependencies {
+                implementation("com.formdev:flatlaf:3.4")
+                implementation("com.formdev:flatlaf-extras:3.4")
 
+                // https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-swing
+                implementation("org.apache.xmlgraphics:batik-swing:1.7")
             }
         }
     }
