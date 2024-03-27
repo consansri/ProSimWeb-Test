@@ -38,13 +38,7 @@ class ProSimLookAndFeel(private val theme: Theme) : LookAndFeel() {
     }
 
     private fun applyThemeToUIDefaults(defaults: UIDefaults, theme: Theme) {
-        defaults["Button.font"] = theme.textStyle.font
-        defaults["Button.foreground"] = theme.textStyle.base
 
-        defaults["Label.font"] = theme.textStyle.font
-        defaults["Label.foreground"] = theme.textStyle.base
-
-        defaults["TextPane.font"] = theme.codeStyle.font
     }
 
 }

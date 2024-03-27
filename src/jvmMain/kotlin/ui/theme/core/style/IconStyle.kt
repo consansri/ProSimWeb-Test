@@ -5,6 +5,8 @@ import java.awt.Color
 data class IconStyle(
     val iconFgPrimary: Color,
     val iconFgSecondary: Color,
-    val iconBgPrimary: Color? = null,
-    val iconBgSecondary: Color? = null
+    val iconBg: Color = Color(0,0,0,0),
+    val iconBgHover: Color = Color(0,0,0,0),
+    val iconBgActive: Color = Color(0,0,0,0),
+    val iconDeactivatedAlpha: Int = 125
 )

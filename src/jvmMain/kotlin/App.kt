@@ -6,6 +6,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.util.SystemInfo
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.frame.BaseFrame
+import me.c3.ui.resources.UIManager
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.*
@@ -14,7 +15,7 @@ import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
 
 fun main() {
-    println("Hello from jvm!")
+    println("#######################################\nWhaaaat ProSimWeb has a jvm ui?\nCrazy! :D\n#######################################")
 
     if (SystemInfo.isLinux) {
         JFrame.setDefaultLookAndFeelDecorated(true)
@@ -33,7 +34,7 @@ fun testBaseApp() {
 
 fun exampleTheme() {
     val frame1 = JFrame("ProSimDesktop")
-    frame1.contentPane.add(CodeEditor(), BorderLayout.CENTER)
+    frame1.contentPane.add(CodeEditor(UIManager()), BorderLayout.CENTER)
     frame1.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     frame1.size = Dimension(600, 400)
     frame1.setLocationRelativeTo(null)

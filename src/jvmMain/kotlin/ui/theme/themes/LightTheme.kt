@@ -7,16 +7,18 @@ import me.c3.ui.theme.core.style.GlobalStyle
 import me.c3.ui.theme.core.style.IconStyle
 import me.c3.ui.theme.core.style.TextStyle
 import me.c3.ui.theme.icons.ProSimIcons
-import me.c3.ui.spacing.IconSpacing
+import me.c3.ui.theme.core.spacing.ControlSpacing
 import java.awt.Color
 
 class LightTheme(icons: ProSimIcons) : Theme {
     override val name: String = "light"
     override val icon: FlatSVGIcon = icons.lightmode
 
-    override val codeStyle: CodeStyle = CodeStyle(loadFont("fonts/ttf/JetBrainsMono-Regular.ttf").deriveFont(12f))
+    override val codeStyle: CodeStyle = CodeStyle(loadFont("fonts/ttf/JetBrainsMono-Regular.ttf"))
     override val globalStyle: GlobalStyle = GlobalStyle(Color(0xEEEEEE), Color(0xAAAAAA), Color(0x777777))
-    override val iconStyle: IconStyle = IconStyle(Color(0x222222), Color(0x313131))
-    override val textStyle: TextStyle = TextStyle(Color(0x222222), loadFont("fonts/ttf/JetBrainsMono-Light.ttf").deriveFont(12f))
+    override val iconStyle: IconStyle = IconStyle(Color(0x222222), Color(0x313131), iconBgHover = Color(0x33777777, true), iconBgActive = Color(0x77777777, true))
+    override val textStyle: TextStyle = TextStyle(Color(0x222222), loadFont("fonts/ttf/JetBrainsMono-Light.ttf"))
+
+    override val controlSpacing = ControlSpacing(28)
 
 }

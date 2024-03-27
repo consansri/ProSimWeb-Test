@@ -18,6 +18,7 @@ class AppControls(uiManager: UIManager, mainFrame: JFrame): JPanel() {
     init {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
 
+        buttons.first().isDeactivated = true
         buttons.forEach {
             it.alignmentX = Component.CENTER_ALIGNMENT
             add(it)

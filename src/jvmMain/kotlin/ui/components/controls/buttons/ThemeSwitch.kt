@@ -5,7 +5,7 @@ import me.c3.ui.resources.UIManager
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 
-class ThemeSwitch(uiManager: UIManager, mainFrame: JFrame) : IconButton(uiManager) {
+class ThemeSwitch(uiManager: UIManager, mainFrame: JFrame) : IconButton(uiManager, mode = Mode.PRIMARY) {
 
     private var currentIndex = 0
 
@@ -13,21 +13,23 @@ class ThemeSwitch(uiManager: UIManager, mainFrame: JFrame) : IconButton(uiManage
         setTheme(uiManager, mainFrame)
 
         addActionListener {
-            if (currentIndex < uiManager.themes.size - 1) {
-                currentIndex++
-            } else {
-                currentIndex = 0
-            }
+            if (!isDeactivated) {
+                if (currentIndex < uiManager.themeManager.themes.size - 1) {
+                    currentIndex++
+                } else {
+                    currentIndex = 0
+                }
 
-            setTheme(uiManager, mainFrame)
+                setTheme(uiManager, mainFrame)
+            }
         }
     }
 
     private fun setTheme(UIManager: UIManager, mainFrame: JFrame) {
         SwingUtilities.invokeLater {
-            UIManager.themes.getOrNull(currentIndex)?.let {
-                UIManager.currentTheme = it
-                    it.install(mainFrame)
+            UIManager.themeManager.themes.getOrNull(currentIndex)?.let {
+                UIManager.themeManager.currentTheme = it
+                it.install(mainFrame)
                 svgIcon = it.icon.derive(28, 28)
             }
         }

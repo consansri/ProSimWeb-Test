@@ -1,6 +1,8 @@
 package me.c3.ui.components.frame
 
 import me.c3.ui.components.controls.AppControls
+import me.c3.ui.components.editor.CodeEditor
+import me.c3.ui.components.editor.EditPanel
 import me.c3.ui.resources.UIManager
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -11,7 +13,7 @@ import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
 
 class BaseFrame(title: String) : JFrame(title) {
-    val UIManager = UIManager()
+    val uiManager = UIManager()
 
     init {
         SwingUtilities.invokeLater {
@@ -20,9 +22,9 @@ class BaseFrame(title: String) : JFrame(title) {
             // Create components
             val topBar = JPanel()
             val leftBar = JPanel()
-            val editor = JPanel()
+            val editor = EditPanel(uiManager)
             val processor = JPanel()
-            val rightBar = AppControls(UIManager, this)
+            val rightBar = AppControls(uiManager, this)
             val consoleAndInfo = JPanel()
             val bottomBar = JPanel()
 
