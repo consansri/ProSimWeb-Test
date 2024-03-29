@@ -652,38 +652,44 @@ class Compiler(
                  */
                 override fun hl(vararg codeStyle: CodeStyle) {
 
-                    when(codeStyle.size){
+                    when (codeStyle.size) {
                         0 -> {}
                         1 -> {
                             tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
                         }
+
                         2 -> {
                             tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
                             tokens.filterIsInstance<Symbol>().forEach {
-                                when(it.content){
+                                when (it.content) {
                                     "(" -> {
                                         nativeLog("Found Bracket!")
                                         it.hl()
                                     }
+
                                     ")" -> {
                                         it.hl()
                                     }
+
                                     else -> {
                                         it.hl(codeStyle.get(1))
                                     }
                                 }
                             }
                         }
+
                         else -> {
                             tokens.filterIsInstance<Constant>().forEach { it.hl(*codeStyle) }
                             tokens.filterIsInstance<Symbol>().forEach {
-                                when(it.content){
+                                when (it.content) {
                                     "(" -> {
                                         it.hl(codeStyle.get(2))
                                     }
+
                                     ")" -> {
                                         it.hl(codeStyle.get(2))
                                     }
+
                                     else -> {
                                         it.hl(codeStyle.get(1))
                                     }
@@ -793,7 +799,9 @@ class Compiler(
         BASE4(0x898ea4, 0x6b7394),
         BASE5(0x979db4, 0x5e6687),
         BASE6(0xdfe2f1, 0x293256),
-        BASE7(0xf5f7ff, 0x202746),
+        BASE7(0xf5f7ff, 0x202746);
+
+        fun getDarkElseLight(): Int = if (darkHexColor != null) darkHexColor else lightHexColor
     }
 
     data class Severity(val type: SeverityType, val message: String)

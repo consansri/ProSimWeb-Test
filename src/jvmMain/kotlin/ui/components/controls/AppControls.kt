@@ -1,7 +1,7 @@
 package me.c3.ui.components.controls
 
 import me.c3.ui.components.controls.buttons.ThemeSwitch
-import me.c3.ui.resources.UIManager
+import me.c3.ui.UIManager
 import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JFrame

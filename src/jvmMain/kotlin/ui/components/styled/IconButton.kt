@@ -2,7 +2,7 @@ package me.c3.ui.components.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
-import me.c3.ui.resources.UIManager
+import me.c3.ui.UIManager
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.MouseAdapter
@@ -40,10 +40,10 @@ open class IconButton(uiManager: UIManager, icon: FlatSVGIcon? = null, mode: Mod
         isBorderPainted = false
 
         // Add Scale Change Listener
-        val iconScale = uiManager.scaleManager.currentScaling.controlSpacing.iconSize
+        val iconScale = uiManager.scaleManager.currentScaling.controlScale.size
         size = Dimension(iconScale, iconScale)
         uiManager.scaleManager.addScaleChangeEvent {
-            size = Dimension(it.controlSpacing.iconSize, it.controlSpacing.iconSize)
+            size = Dimension(it.controlScale.size, it.controlScale.size)
         }
 
         // Add Theme Change Listener

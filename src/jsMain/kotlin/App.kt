@@ -30,7 +30,7 @@ val App = FC<Props> {
     val (lPercentage, setLPct) = useState(40)
     val (showMenu, setShowMenu) = useState(true)
 
-    val archState = useState(Link.entries.getOrNull(localStorage.getItem(WebStorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0)?.architecture ?: Link.entries.first().architecture)
+    val archState = useState(Link.entries.getOrNull(localStorage.getItem(WebStorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0)?.arch ?: Link.entries.first().arch)
     val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().getAllFeatures().filter { !it.invisible })
     val (showSettings, setShowSettings) = useState(false)
 

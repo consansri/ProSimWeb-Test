@@ -36,8 +36,6 @@ external interface CodeEditorProps : Props {
 }
 
 val CodeEditor = FC<CodeEditorProps> { props ->
-
-
     /* ----------------- REACT REFERENCES ----------------- */
 
     val textareaRef = useRef<HTMLTextAreaElement>(null)

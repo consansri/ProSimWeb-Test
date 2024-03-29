@@ -65,6 +65,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
@@ -106,6 +107,7 @@ kotlin {
 
                 // https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-swing
                 implementation("org.apache.xmlgraphics:batik-swing:1.7")
+
             }
         }
     }

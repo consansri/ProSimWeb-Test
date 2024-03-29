@@ -1,9 +1,8 @@
 package me.c3.ui.components.frame
 
 import me.c3.ui.components.controls.AppControls
-import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.editor.EditPanel
-import me.c3.ui.resources.UIManager
+import me.c3.ui.UIManager
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JFrame
@@ -13,7 +12,7 @@ import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
 
 class BaseFrame(title: String) : JFrame(title) {
-    val uiManager = UIManager()
+    private val uiManager = UIManager(this)
 
     init {
         SwingUtilities.invokeLater {
@@ -35,7 +34,6 @@ class BaseFrame(title: String) : JFrame(title) {
             // Create labels for each region
             val topBarLabel = JLabel("TopBar")
             val lControlLabel = JLabel("LControls")
-            val editorLabel = JLabel("Editor")
             val processorLabel = JLabel("Processor")
             val consoleAndInfoLabel = JLabel("Console and Info")
             val bottomBarLabel = JLabel("Bottom Bar")
@@ -43,7 +41,6 @@ class BaseFrame(title: String) : JFrame(title) {
             // Add labels to panels
             topBar.add(topBarLabel)
             leftBar.add(lControlLabel)
-            editor.add(editorLabel)
             processor.add(processorLabel)
             consoleAndInfo.add(consoleAndInfoLabel)
             bottomBar.add(bottomBarLabel)
@@ -67,6 +64,15 @@ class BaseFrame(title: String) : JFrame(title) {
             setLocationRelativeTo(null)
             defaultCloseOperation = EXIT_ON_CLOSE
             isVisible = true
+
+
+            // Listeners
+            uiManager.themeManager.addThemeChangeListener {
+                background = it.globalStyle.bgSecondary
+            }
+
+            // Apply defaults
+            background = uiManager.currTheme().globalStyle.bgSecondary
         }
 
     }

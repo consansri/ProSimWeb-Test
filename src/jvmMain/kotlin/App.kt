@@ -1,12 +1,11 @@
 package me.c3
 
-import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.FlatIntelliJLaf
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.util.SystemInfo
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.frame.BaseFrame
-import me.c3.ui.resources.UIManager
+import me.c3.ui.UIManager
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.*
@@ -34,7 +33,7 @@ fun testBaseApp() {
 
 fun exampleTheme() {
     val frame1 = JFrame("ProSimDesktop")
-    frame1.contentPane.add(CodeEditor(UIManager()), BorderLayout.CENTER)
+    frame1.contentPane.add(CodeEditor(UIManager(frame1)), BorderLayout.CENTER)
     frame1.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     frame1.size = Dimension(600, 400)
     frame1.setLocationRelativeTo(null)

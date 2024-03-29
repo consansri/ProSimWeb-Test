@@ -1,7 +1,6 @@
 package me.c3.ui.theme.core
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.theme.core.spacing.ControlSpacing
 import me.c3.ui.theme.core.style.CodeStyle
 import me.c3.ui.theme.core.style.GlobalStyle
 import me.c3.ui.theme.core.style.IconStyle
@@ -23,8 +22,6 @@ interface Theme {
     val globalStyle: GlobalStyle
     val iconStyle: IconStyle
     val textStyle: TextStyle
-
-    val controlSpacing: ControlSpacing
 
     fun loadFont(url: String): Font {
         val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream(url)

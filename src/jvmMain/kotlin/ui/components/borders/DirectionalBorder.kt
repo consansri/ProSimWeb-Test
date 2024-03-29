@@ -1,6 +1,6 @@
 package me.c3.ui.components.borders
 
-import me.c3.ui.resources.UIManager
+import me.c3.ui.UIManager
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Insets

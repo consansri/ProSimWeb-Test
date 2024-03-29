@@ -1,6 +1,7 @@
 package me.c3.ui.components.editor
 
-import me.c3.ui.resources.UIManager
+import kotlinx.coroutines.Job
+import me.c3.ui.UIManager
 import me.c3.ui.spacing.core.Scaling
 import me.c3.ui.theme.core.Theme
 import java.awt.Color
@@ -9,13 +10,11 @@ import java.awt.Graphics
 import java.awt.Point
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.util.*
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
-import javax.swing.text.DefaultStyledDocument
 
 class CodeEditor(uiManager: UIManager) : JScrollPane() {
 

@@ -292,6 +292,7 @@ abstract class Syntax {
 
         fun exactlyMatches(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
+            if(trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
 
             val sequenceMap = mutableListOf<SeqMap>()
             for (component in components) {
@@ -329,6 +330,7 @@ abstract class Syntax {
 
         fun matches(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
+            if(trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
 
             while (true) {
                 if (components.first().matches(trimmedTokens.first())) {
@@ -349,6 +351,7 @@ abstract class Syntax {
 
         fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
             val trimmedTokens = tokens.toMutableList()
+            if(trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
 
             val sequenceMap = mutableListOf<SeqMap>()
 

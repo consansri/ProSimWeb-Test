@@ -1,7 +1,7 @@
 package me.c3.ui.components.controls.buttons
 
 import me.c3.ui.components.styled.IconButton
-import me.c3.ui.resources.UIManager
+import me.c3.ui.UIManager
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 
@@ -29,7 +29,6 @@ class ThemeSwitch(uiManager: UIManager, mainFrame: JFrame) : IconButton(uiManage
         SwingUtilities.invokeLater {
             UIManager.themeManager.themes.getOrNull(currentIndex)?.let {
                 UIManager.themeManager.currentTheme = it
-                it.install(mainFrame)
                 svgIcon = it.icon.derive(28, 28)
             }
         }

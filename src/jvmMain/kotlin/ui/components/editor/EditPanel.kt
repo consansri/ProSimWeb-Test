@@ -1,40 +1,150 @@
 package me.c3.ui.components.editor
 
+import emulator.kit.assembly.Compiler
+import emulator.kit.nativeLog
+import kotlinx.coroutines.*
 import me.c3.ui.components.borders.DirectionalBorder
-import me.c3.ui.resources.UIManager
+import me.c3.ui.UIManager
+import me.c3.ui.theme.core.style.CodeStyle
+import java.awt.Color
+import java.awt.Component
 import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.GridLayout
-import javax.swing.BorderFactory
-import javax.swing.JPanel
-import javax.swing.JTextPane
+import javax.swing.*
 
-class EditPanel(uiManager: UIManager): JPanel() {
+class EditPanel(uiManager: UIManager) : JPanel() {
+    private var compileJob: Job? = null
 
-    val lineNumbers = JTextPane()
-    val textPane = JTextPane()
+    // Content
+    private val document = EditorDocument(uiManager)
+
+    // Elements
+    private val textPane = JTextPane(document)
+    private val lineNumbers = LineNumbers(uiManager, textPane)
+    private val viewport = JViewport()
+    private val scrollPane = JScrollPane(textPane)
+
+    // Layout
+    private val constraints = GridBagConstraints()
 
     init {
-        layout = GridBagLayout()
-        val constraints = GridBagConstraints()
-
-        lineNumbers.text = "1\n2\n3\n4\n5\n..."
-        lineNumbers.border = DirectionalBorder(uiManager, east = true)
-
-        textPane.text = "Code ..."
-
-        constraints.gridx = 0
-        constraints.gridy = 0
-        constraints.weightx = 0.0
+        // Setup Layout
+        layout = BoxLayout(this, BoxLayout.X_AXIS)
+        constraints.weightx = 1.0
         constraints.weighty = 1.0
         constraints.fill = GridBagConstraints.BOTH
-        constraints.anchor = GridBagConstraints.NORTHWEST
 
-        add(lineNumbers, constraints)
+        // Add Listeners
+        uiManager.themeManager.addThemeChangeListener {
+            viewport.background = it.globalStyle.bgPrimary
+            textPane.background = it.globalStyle.bgPrimary
+            textPane.font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+            viewport.font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+        }
 
-        constraints.gridx = 1
-        constraints.weightx = 1.0
-        add(textPane, constraints)
+        uiManager.scaleManager.addScaleChangeEvent {
+            textPane.font = uiManager.themeManager.currentTheme.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+            viewport.font = uiManager.themeManager.currentTheme.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+            textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
+        }
+
+        uiManager.eventManager.addEditEvent {
+            triggerCompile(uiManager, build = false)
+        }
+
+        // Apply Defaults
+        border = BorderFactory.createEmptyBorder()
+
+        // for lineNumbers
+        lineNumbers.border = DirectionalBorder(uiManager, east = true)
+
+        // for textPane
+        textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
+        textPane.font = uiManager.themeManager.currentTheme.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+        textPane.isEditable = true
+        textPane.document = EditorDocument(uiManager) // Use PlainDocument for better performance
+
+        // Link ViewPort with LineNumbers to ScrollPane
+        viewport.view = lineNumbers
+        viewport.extentSize = lineNumbers.preferredScrollableViewportSize
+        scrollPane.rowHeader = viewport
+
+        // Add Components
+        add(scrollPane)
+    }
+
+    fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {
+        compileJob?.cancel()
+
+        compileJob = CoroutineScope(Dispatchers.Default).launch {
+            if (!immediate) {
+                delay(3000)
+            }
+            val content = textPane.document.getText(0, textPane.document.length)
+
+            val tokens = uiManager.currArch().compile(content, build)
+            val codeStyle = uiManager.currTheme().codeStyle
+            hlContent(codeStyle, tokens)
+        }
+    }
+
+    private fun hlContent(codeStyle: CodeStyle, tokens: List<Compiler.Token>) {
+        val pos = textPane.caretPosition
+        textPane.isEditable = false
+        (textPane.document as EditorDocument).hlDocument(codeStyle, tokens)
+        textPane.isEditable = true
+        textPane.caretPosition = pos
+        nativeLog("Highlighting!")
+    }
+
+    class LineNumbers(uiManager: UIManager, textPane: JTextPane) : JList<String>(LineNumberListModel(textPane)) {
+
+        init {
+            // UI Listeners
+            uiManager.themeManager.addThemeChangeListener {
+                cellRenderer = LineNumberListRenderer(it.textStyle.baseSecondary)
+                font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+                fixedCellWidth = getFontMetrics(font).charWidth('0') * 5
+                fixedCellHeight = textPane.getFontMetrics(textPane.font).height
+            }
+
+            uiManager.eventManager.addEditEvent {
+                this.updateUI()
+                (this.model as LineNumberListModel).update()
+            }
+
+            // Apply Defaults
+            cellRenderer = LineNumberListRenderer(uiManager.themeManager.currentTheme.textStyle.baseSecondary)
+            fixedCellWidth = getFontMetrics(font).charWidth('0') * 5
+            fixedCellHeight = textPane.getFontMetrics(textPane.font).height
+        }
+
+        class LineNumberListModel(private val textPane: JTextPane) : AbstractListModel<String>() {
+
+            override fun getSize(): Int {
+                return textPane.text.split("\n").size
+            }
+
+            override fun getElementAt(index: Int): String {
+                return (index + 1).toString()
+            }
+
+            fun update() {
+                fireContentsChanged(this, 0, size)
+            }
+        }
+
+        class LineNumberListRenderer(private val lineNumberColor: Color) : DefaultListCellRenderer() {
+            init {
+                horizontalAlignment = RIGHT
+            }
+
+            override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
+                val label = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JLabel
+                label.foreground = lineNumberColor
+                return label
+            }
+        }
     }
 
 }
+

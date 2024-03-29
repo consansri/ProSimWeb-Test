@@ -1,5 +1,6 @@
 package me.c3.ui.spacing
 
+import emulator.kit.nativeLog
 import me.c3.ui.scale.scalings.StandardScaling
 import me.c3.ui.spacing.core.Scaling
 
@@ -13,6 +14,7 @@ class ScaleManager {
             scaleChangeEvents.forEach {
                 it(currentScaling)
             }
+            nativeLog("ScaleManager: Switched Scaling to ${value.name}!")
         }
 
     init {
