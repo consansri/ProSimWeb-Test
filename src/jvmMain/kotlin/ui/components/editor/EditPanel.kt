@@ -1,7 +1,9 @@
 package me.c3.ui.components.editor
 
 import emulator.kit.assembly.Compiler
+import emulator.kit.common.FileHandler
 import emulator.kit.nativeLog
+import io.nacular.doodle.core.view
 import kotlinx.coroutines.*
 import me.c3.ui.components.borders.DirectionalBorder
 import me.c3.ui.UIManager
@@ -10,8 +12,9 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
 import javax.swing.*
+import javax.swing.text.SimpleAttributeSet
 
-class EditPanel(uiManager: UIManager) : JPanel() {
+class EditPanel(uiManager: UIManager, private val file: FileHandler.File) : JPanel() {
     private var compileJob: Job? = null
 
     // Content
@@ -47,7 +50,8 @@ class EditPanel(uiManager: UIManager) : JPanel() {
             textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
         }
 
-        uiManager.eventManager.addEditEvent {
+        uiManager.eventManager.addEditListener {
+            uiManager.currArch().getFileHandler().editCurr(document.getText(0, document.length))
             triggerCompile(uiManager, build = false)
         }
 
@@ -70,6 +74,14 @@ class EditPanel(uiManager: UIManager) : JPanel() {
 
         // Add Components
         add(scrollPane)
+
+        initContent(uiManager, file)
+    }
+
+    fun initContent(uiManager: UIManager, file: FileHandler.File) {
+        val attrs = SimpleAttributeSet()
+        document.insertString(0, file.getContent(), attrs)
+        triggerCompile(uiManager, build = false, immediate = true)
     }
 
     fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {
@@ -77,22 +89,25 @@ class EditPanel(uiManager: UIManager) : JPanel() {
 
         compileJob = CoroutineScope(Dispatchers.Default).launch {
             if (!immediate) {
-                delay(3000)
+                delay(1500)
             }
             val content = textPane.document.getText(0, textPane.document.length)
 
             val tokens = uiManager.currArch().compile(content, build)
+            uiManager.eventManager.compileFinished()
             val codeStyle = uiManager.currTheme().codeStyle
             hlContent(codeStyle, tokens)
         }
     }
 
     private fun hlContent(codeStyle: CodeStyle, tokens: List<Compiler.Token>) {
-        val pos = textPane.caretPosition
+        val selStart = textPane.selectionStart
+        val selEnd = textPane.selectionEnd
         textPane.isEditable = false
         (textPane.document as EditorDocument).hlDocument(codeStyle, tokens)
         textPane.isEditable = true
-        textPane.caretPosition = pos
+        textPane.selectionStart = selStart
+        textPane.selectionEnd = selEnd
         nativeLog("Highlighting!")
     }
 
@@ -107,7 +122,7 @@ class EditPanel(uiManager: UIManager) : JPanel() {
                 fixedCellHeight = textPane.getFontMetrics(textPane.font).height
             }
 
-            uiManager.eventManager.addEditEvent {
+            uiManager.eventManager.addEditListener {
                 this.updateUI()
                 (this.model as LineNumberListModel).update()
             }

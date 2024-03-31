@@ -3,7 +3,10 @@ package emulator.kit
 import emulator.kit.common.FileHandler
 
 
-var localFiles = listOf(FileHandler.File("testfile.s","new file"))
+var localFiles = listOf(
+    FileHandler.File("testfile.s","new file"),
+    FileHandler.File("second.s", "anotherone")
+)
 /**
  * Load Files from Storage.
  * Modifies [FileHandler.files]

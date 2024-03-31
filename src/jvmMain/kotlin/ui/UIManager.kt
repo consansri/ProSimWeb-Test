@@ -12,12 +12,13 @@ import kotlin.reflect.cast
 
 class UIManager(mainFrame: JFrame) {
 
-    private val icons = BenIcons()
+    val archManager = ArchManager(Link.RV32I.arch)
+
+    val icons = BenIcons()
 
     val themeManager = ThemeManager(mainFrame, icons)
     val scaleManager = ScaleManager()
-    val eventManager = EventManager()
-    val archManager = ArchManager(Link.RV32I.arch)
+    val eventManager = EventManager(archManager)
 
     fun currTheme() = themeManager.currentTheme
     fun currScale() = scaleManager.currentScaling

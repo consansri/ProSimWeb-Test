@@ -1,12 +1,11 @@
 package me.c3.ui
 
-import emulator.Link
-import emulator.archs.ArchRV32
 import emulator.kit.Architecture
 import emulator.kit.nativeLog
 
 class ArchManager(initialArch: Architecture) {
     private val archChangeListeners = mutableListOf<(Architecture) -> Unit>()
+
     var curr = initialArch
         set(value) {
             field = value
@@ -23,6 +22,7 @@ class ArchManager(initialArch: Architecture) {
     fun removeArchChangeListener(event: (Architecture) -> Unit) {
         archChangeListeners.remove(event)
     }
+
 
 
 }

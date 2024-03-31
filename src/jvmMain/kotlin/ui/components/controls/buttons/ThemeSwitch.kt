@@ -29,7 +29,7 @@ class ThemeSwitch(uiManager: UIManager, mainFrame: JFrame) : IconButton(uiManage
         SwingUtilities.invokeLater {
             UIManager.themeManager.themes.getOrNull(currentIndex)?.let {
                 UIManager.themeManager.currentTheme = it
-                svgIcon = it.icon.derive(28, 28)
+                svgIcon = it.icon
             }
         }
     }

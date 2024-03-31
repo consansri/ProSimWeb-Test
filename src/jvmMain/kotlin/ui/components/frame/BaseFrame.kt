@@ -1,8 +1,11 @@
 package me.c3.ui.components.frame
 
 import me.c3.ui.components.controls.AppControls
-import me.c3.ui.components.editor.EditPanel
 import me.c3.ui.UIManager
+import me.c3.ui.components.controls.ExecutionControls
+import me.c3.ui.components.editor.CodeEditor
+import me.c3.ui.components.editor.EditorControls
+import me.c3.ui.components.layout.ColouredPanel
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JFrame
@@ -14,33 +17,29 @@ import javax.swing.SwingUtilities
 class BaseFrame(title: String) : JFrame(title) {
     private val uiManager = UIManager(this)
 
+    private val topBar = ExecutionControls(uiManager)
+    private val editor = CodeEditor(uiManager)
+    private val leftBar = EditorControls(uiManager, editor)
+    private val processor = JPanel()
+    private val rightBar = AppControls(uiManager, this)
+    private val consoleAndInfo = JPanel()
+    private val bottomBar = ColouredPanel(uiManager)
+
     init {
         SwingUtilities.invokeLater {
             layout = BorderLayout()
 
-            // Create components
-            val topBar = JPanel()
-            val leftBar = JPanel()
-            val editor = EditPanel(uiManager)
-            val processor = JPanel()
-            val rightBar = AppControls(uiManager, this)
-            val consoleAndInfo = JPanel()
-            val bottomBar = JPanel()
-
+            // Set Sizes
             editor.minimumSize = Dimension(0, 0)
             processor.minimumSize = Dimension(0, 0)
             consoleAndInfo.minimumSize = Dimension(0, 0)
 
             // Create labels for each region
-            val topBarLabel = JLabel("TopBar")
-            val lControlLabel = JLabel("LControls")
             val processorLabel = JLabel("Processor")
             val consoleAndInfoLabel = JLabel("Console and Info")
             val bottomBarLabel = JLabel("Bottom Bar")
 
             // Add labels to panels
-            topBar.add(topBarLabel)
-            leftBar.add(lControlLabel)
             processor.add(processorLabel)
             consoleAndInfo.add(consoleAndInfoLabel)
             bottomBar.add(bottomBarLabel)
