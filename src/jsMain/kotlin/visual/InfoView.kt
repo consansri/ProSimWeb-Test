@@ -8,7 +8,7 @@ import react.dom.html.ReactHTML.div
 import web.cssom.*
 import StyleAttr.Main.InfoView
 import emulator.kit.common.Docs
-import emulator.kit.common.FileHandler
+import emulator.kit.optional.FileHandler
 import js.core.asList
 import js.promise.await
 import kotlinx.coroutines.*

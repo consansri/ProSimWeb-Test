@@ -25,13 +25,14 @@ class CodeEditor(uiManager: UIManager) : JTabbedPane() {
 
     fun initFiles(uiManager: UIManager) {
         removeAll()
-        uiManager.currArch().getFileHandler().getAllFiles().forEach {
-            val editPanel = EditPanel(uiManager, it)
-            val label = JLabel(it.getName())
-            panels.add(FileMap(editPanel, label))
-            val icon = uiManager.icons.fileNotCompiled.derive(uiManager.currScale().controlScale.size, uiManager.currScale().controlScale.size)
-            addTab(it.getName(), icon, editPanel)
-        }
+
+
+        val fileName = "main.s"
+        val editPanel = EditPanel(uiManager, fileName)
+        val label = JLabel(fileName)
+        panels.add(FileMap(editPanel, label))
+        val icon = uiManager.icons.fileNotCompiled.derive(uiManager.currScale().controlScale.size, uiManager.currScale().controlScale.size)
+        addTab(fileName, icon, editPanel)
 
     }
 

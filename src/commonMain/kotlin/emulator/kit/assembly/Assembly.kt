@@ -1,7 +1,7 @@
 package emulator.kit.assembly
 
 import emulator.kit.Architecture
-import emulator.kit.common.FileHandler
+import emulator.kit.optional.FileHandler
 import debug.DebugTools
 
 /**

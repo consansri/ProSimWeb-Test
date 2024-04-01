@@ -5,7 +5,6 @@ import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatIntelliJLaf
 import com.formdev.flatlaf.FlatLaf
 import com.formdev.flatlaf.FlatLightLaf
-import me.c3.exampleTheme
 import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.themes.DarkTheme
 import me.c3.ui.theme.themes.LightTheme

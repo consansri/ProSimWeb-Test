@@ -3,7 +3,7 @@ package visual
 import Constants
 import StyleAttr
 import emotion.react.css
-import emulator.kit.common.FileHandler
+import emulator.kit.optional.FileHandler
 import kotlinx.browser.window
 import web.html.*
 import react.*

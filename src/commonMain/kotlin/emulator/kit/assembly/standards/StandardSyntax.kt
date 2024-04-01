@@ -2,7 +2,6 @@ package emulator.kit.assembly.standards
 
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
-import emulator.kit.common.FileHandler
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*

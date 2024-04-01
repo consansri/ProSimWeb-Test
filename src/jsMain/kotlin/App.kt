@@ -13,7 +13,7 @@ import react.dom.html.ReactHTML.input
 import debug.DebugTools
 import emulator.Link
 import emulator.archs.riscv64.RV64
-import emulator.kit.common.FileHandler
+import emulator.kit.optional.FileHandler
 import emulator.kit.optional.ArchSetting
 import emulator.kit.types.Variable
 import visual.*

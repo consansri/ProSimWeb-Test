@@ -1,9 +1,7 @@
 package emulator.kit.assembly
 
-import emulator.kit.common.FileHandler
 import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 

@@ -2,7 +2,6 @@ package emulator.archs.ikrmini
 
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
-import emulator.kit.common.FileHandler
 import emulator.kit.common.Memory
 import emulator.kit.common.RegContainer
 import emulator.kit.configs.AsmConfig

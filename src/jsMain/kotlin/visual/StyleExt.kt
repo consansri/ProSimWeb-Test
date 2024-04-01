@@ -5,9 +5,8 @@ import emotion.react.css
 import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
-import emulator.kit.common.FileHandler
+import emulator.kit.optional.FileHandler
 import emulator.kit.common.Memory
-import io.nacular.doodle.controls.form.file
 import react.FC
 import react.Props
 import react.StateInstance
@@ -61,7 +60,7 @@ object StyleExt {
         return "<$tag class='${classes.joinToString(" ") { it }}' ${id?.let { "id='$id'" }}>$input</$tag>"
     }
 
-    fun Docs.DocComponent.render(arch: Architecture,fileHandler: FileHandler, fileChangeEvent: StateInstance<Boolean>): FC<Props> {
+    fun Docs.DocComponent.render(arch: Architecture, fileHandler: FileHandler, fileChangeEvent: StateInstance<Boolean>): FC<Props> {
         val component = this
         return FC {
             when (component) {

@@ -5,7 +5,7 @@ import StyleAttr
 import emotion.react.css
 import emulator.Link
 import emulator.kit.common.FileBuilder
-import emulator.kit.common.FileHandler
+import emulator.kit.optional.FileHandler
 import js.core.asList
 import react.*
 import react.dom.html.ReactHTML.a

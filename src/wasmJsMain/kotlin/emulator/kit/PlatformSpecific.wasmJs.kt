@@ -3,7 +3,7 @@ package emulator.kit
 import debug.DebugTools
 import kotlinx.browser.localStorage
 import Constants.WebStorageKey
-import emulator.kit.common.FileHandler
+import emulator.kit.optional.FileHandler
 
 
 /**
@@ -37,7 +37,7 @@ actual fun FileHandler.loadFiles(files: MutableList<FileHandler.File>) {
             }
         }
     } else {
-        files.add(FileHandler.File("main.$fileEnding", "", undoStates = mutableListOf(), redoStates = mutableListOf()))
+        files.add(FileHandler.File("main.s", "", undoStates = mutableListOf(), redoStates = mutableListOf()))
     }
     setCurrent(localStorage.getItem(WebStorageKey.FILE_CURR)?.toIntOrNull() ?: 0)
     if (DebugTools.KIT_showFileHandlerInfo) {
