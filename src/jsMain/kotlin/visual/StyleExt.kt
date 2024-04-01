@@ -7,6 +7,7 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
 import emulator.kit.common.FileHandler
 import emulator.kit.common.Memory
+import io.nacular.doodle.controls.form.file
 import react.FC
 import react.Props
 import react.StateInstance
@@ -60,7 +61,7 @@ object StyleExt {
         return "<$tag class='${classes.joinToString(" ") { it }}' ${id?.let { "id='$id'" }}>$input</$tag>"
     }
 
-    fun Docs.DocComponent.render(arch: Architecture, fileChangeEvent: StateInstance<Boolean>): FC<Props> {
+    fun Docs.DocComponent.render(arch: Architecture,fileHandler: FileHandler, fileChangeEvent: StateInstance<Boolean>): FC<Props> {
         val component = this
         return FC {
             when (component) {
@@ -70,8 +71,8 @@ object StyleExt {
                             +component.content
 
                             onClick = { event ->
-                                if (arch.getFileHandler().getAllFiles().none { it.getName() == "example" }) {
-                                    arch.getFileHandler().import(FileHandler.File("example", component.content))
+                                if (fileHandler.getAllFiles().none { it.getName() == "example" }) {
+                                    fileHandler.import(FileHandler.File("example", component.content))
                                     window.scrollTo(0, 0)
                                     arch.getConsole().info("Successfully imported 'example'!")
                                     fileChangeEvent.component2().invoke(!fileChangeEvent.component1())
@@ -93,7 +94,7 @@ object StyleExt {
                         +component.chapterTitle
                     }
                     component.chapterContent.forEach {
-                        val fc = it.render(arch, fileChangeEvent)
+                        val fc = it.render(arch, fileHandler,fileChangeEvent)
                         fc {
 
                         }
@@ -119,7 +120,7 @@ object StyleExt {
                                             css {
                                                 textAlign = TextAlign.left
                                             }
-                                            val fc = rowEntry.render(arch, fileChangeEvent)
+                                            val fc = rowEntry.render(arch,fileHandler, fileChangeEvent)
                                             fc {
 
                                             }
@@ -141,7 +142,7 @@ object StyleExt {
                     ReactHTML.ul {
                         component.entrys.forEach { entry ->
                             ReactHTML.li {
-                                val fc = entry.render(arch, fileChangeEvent)
+                                val fc = entry.render(arch, fileHandler,fileChangeEvent)
                                 fc {
 
                                 }
@@ -155,7 +156,7 @@ object StyleExt {
                         +component.sectionTitle
                     }
                     component.sectionContent.forEach {
-                        val fc = it.render(arch, fileChangeEvent)
+                        val fc = it.render(arch, fileHandler,fileChangeEvent)
                         fc {
 
                         }

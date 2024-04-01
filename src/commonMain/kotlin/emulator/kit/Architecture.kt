@@ -9,6 +9,7 @@ import emulator.kit.optional.Cache
 import emulator.kit.types.Variable
 
 import debug.DebugTools
+import emulator.kit.assembly.Syntax
 import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 
@@ -43,7 +44,7 @@ import emulator.kit.optional.Feature
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     private val description: Config.Description
-    private val fileHandler: FileHandler
+    val fileEnding: String
     private val regContainer: RegContainer
     private val memory: Memory
     private val iConsole: IConsole
@@ -56,7 +57,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     init {
         this.description = config.description
-        this.fileHandler = config.fileHandler
+        this.fileEnding = config.fileEnding
         this.regContainer = config.regContainer
         this.memory = config.memory
         this.transcript = config.transcript
@@ -75,14 +76,13 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
     // Getter for Architecture Components
     fun getDescription(): Config.Description = description
-    fun getFileHandler(): FileHandler = fileHandler
     fun getRegContainer(): RegContainer = regContainer
     fun getTranscript(): Transcript = transcript
     fun getMemory(): Memory = memory
     fun getConsole(): IConsole = iConsole
     fun getState(): ArchState = archState
     fun getCompiler(): Compiler = compiler
-    fun getFormattedFile(type: FileBuilder.ExportFormat, vararg settings: FileBuilder.Setting): List<String> = FileBuilder().buildFileContentLines(this, type, *settings)
+    fun getFormattedFile(type: FileBuilder.ExportFormat, fileContent: String, fileTree: Syntax.LinkedTree, vararg settings: FileBuilder.Setting): List<String> = FileBuilder().buildFileContentLines(this, type, fileContent, fileTree, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
@@ -134,7 +134,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Execution Event: until line
      * should be implemented by specific archs
      */
-    open fun exeUntilLine(lineID: Int) {
+    open fun exeUntilLine(lineID: Int, fileName: String) {
         getConsole().clear()
     }
 
@@ -161,7 +161,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Compilation Event
      * already implemented
      */
-    fun compile(input: String, build: Boolean = true): List<Compiler.Token> {
+    fun compile(input: String, fileName: String, others: List<Syntax.LinkedTree>, build: Boolean = true): Compiler.CompileResult {
         if (build) {
             regContainer.clear()
         }
@@ -169,11 +169,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         if (DebugTools.KIT_showCheckCodeEvents) {
             println("Architecture.check(): input \n $input \n")
         }
-        archState.check(compiler.compile(input, build = build))
+        val compilationResult = compiler.compile(input, fileName, others, build = build)
+        archState.check(compilationResult.success)
 
-        return compiler.getHLContent()
+        return compilationResult
     }
-
-
 
 }

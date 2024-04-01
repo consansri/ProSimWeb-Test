@@ -57,7 +57,7 @@ object IKRRisc2 {
 
     val config = Config(
         Config.Description("IKR RISC-II", "IKR RISC-II", Docs(usingStandard = true)),
-        FileHandler(".s"),
+        fileEnding = "s",
         RegContainer(
             listOf(standardRegFile),
             pcSize = WORD_WIDTH,

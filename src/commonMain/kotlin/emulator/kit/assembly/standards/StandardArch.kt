@@ -1,6 +1,5 @@
 package emulator.kit.assembly.standards
 
-import emulator.kit.Architecture
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
@@ -112,13 +111,13 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
         getConsole().exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
-    override fun exeUntilLine(lineID: Int) {
+    override fun exeUntilLine(lineID: Int, fileName: String) {
         if (!this.getCompiler().isBuildable()) return
         var instrCount = 0
         val measuredTime = measureTime {
-            super.exeUntilLine(lineID)
+            super.exeUntilLine(lineID, fileName)
 
-            val lineAddressMap = getCompiler().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.file == getFileHandler().getCurrent() }
+            val lineAddressMap = getCompiler().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.fileName == fileName }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
                 if (entry.first.lineID >= lineID && entry.first.lineID != closestID) {

@@ -8,7 +8,7 @@ import emulator.kit.optional.Cache
  */
 data class Config(
     val description: Description,
-    val fileHandler: FileHandler,
+    val fileEnding: String,
     val regContainer: RegContainer,
     val memory: Memory,
     val transcript: Transcript,
@@ -17,18 +17,18 @@ data class Config(
 
     constructor(
         description: Description,
-        fileHandler: FileHandler,
+        fileEnding: String,
         regContainer: RegContainer,
         memory: Memory
-    ) : this(description, fileHandler, regContainer, memory, Transcript(), null)
+    ) : this(description, fileEnding, regContainer, memory, Transcript(), null)
 
     constructor(
         description: Description,
-        fileHandler: FileHandler,
+        fileEnding: String,
         regContainer: RegContainer,
         memory: Memory,
         transcript: Transcript
-    ) : this(description, fileHandler, regContainer, memory, transcript, null)
+    ) : this(description, fileEnding, regContainer, memory, transcript, null)
 
     data class Description(val name: String, val fullName: String, val docs: Docs)
 }

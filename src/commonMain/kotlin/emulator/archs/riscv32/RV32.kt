@@ -425,7 +425,7 @@ object RV32 {
 
     val config = Config(
         Description("RV32I", "RISC-V 32Bit", riscVDocs),
-        FileHandler("s"),
+        fileEnding = "s",
         RegContainer(
             listOf(standardRegFile, csrRegFile),
             pcSize = Variable.Size.Bit32(),

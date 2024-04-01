@@ -54,7 +54,7 @@ data object IKRMini {
     )
 
     val config = Config(
-        descr, FileHandler(".s"), RegContainer(
+        descr, fileEnding = "s", RegContainer(
             listOf(
                 RegContainer.RegisterFile(
                     "common", arrayOf(

@@ -13,6 +13,7 @@ import react.dom.html.ReactHTML.input
 import debug.DebugTools
 import emulator.Link
 import emulator.archs.riscv64.RV64
+import emulator.kit.common.FileHandler
 import emulator.kit.optional.ArchSetting
 import emulator.kit.types.Variable
 import visual.*
@@ -30,9 +31,11 @@ val App = FC<Props> {
     val (lPercentage, setLPct) = useState(40)
     val (showMenu, setShowMenu) = useState(true)
 
+
     val archState = useState(Link.entries.getOrNull(localStorage.getItem(WebStorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0)?.arch ?: Link.entries.first().arch)
     val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().getAllFeatures().filter { !it.invisible })
     val (showSettings, setShowSettings) = useState(false)
+    val fileState = useState(FileHandler())
 
     val compileEventState = useState(false)
     val exeEventState = useState(false)
@@ -47,6 +50,7 @@ val App = FC<Props> {
     if (showMenu) {
         Menu {
             this.archState = archState
+            this.fileState = fileState
             this.fileChangeEvent = fileChangeEvent
         }
     }
@@ -95,6 +99,7 @@ val App = FC<Props> {
                 if (lPercentage != 0) {
                     CodeEditor {
                         this.archState = archState
+                        this.fileState = fileState
                         this.compileEventState = compileEventState
                         this.exeEventState = exeEventState
                         this.fileChangeEvent = fileChangeEvent
@@ -305,6 +310,7 @@ val App = FC<Props> {
 
             InfoView {
                 this.archState = archState
+                this.fileState = fileState
                 this.footerRef = footerRef
                 this.compileEventState = compileEventState
                 this.exeEventState = exeEventState

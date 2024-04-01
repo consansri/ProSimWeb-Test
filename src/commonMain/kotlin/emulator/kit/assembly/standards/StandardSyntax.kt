@@ -13,7 +13,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
     override val applyStandardHLForRest: Boolean = false
     override fun clear() {}
-    override fun check(arch: emulator.kit.Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<FileHandler.File>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: emulator.kit.Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<LinkedTree>, transcript: Transcript): SyntaxTree {
         val remainingTokens = tokens.toMutableList()
 
         val errors = mutableListOf<Error>()
@@ -311,7 +311,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
     /**
      * Resolves other file imports
      */
-    private fun MutableList<Compiler.Token>.resolveImports(preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<FileHandler.File>): MutableList<Compiler.Token> {
+    private fun MutableList<Compiler.Token>.resolveImports(preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<LinkedTree>): MutableList<Compiler.Token> {
         val tokenBuffer = this.toMutableList()
         while (tokenBuffer.isNotEmpty()) {
             val result = Seqs.SeqImport.matchStart(*tokenBuffer.toTypedArray())
@@ -328,7 +328,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             val space = tokens[2]
             val string = tokens[3] as Compiler.Token.Constant.String
 
-            val file = others.firstOrNull { it.getName() == string.rawString }
+            val file = others.firstOrNull { it.name == string.rawString }
 
             if (file == null) {
                 errors.add(Error("File (${string.rawString}) not found!", *tokens.toTypedArray()))
@@ -337,7 +337,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 continue
             }
 
-            val fileTree = file.getLinkedTree()
+            val fileTree = file.tree
             if (fileTree?.rootNode == null) {
                 errors.add(Error("File (${string.rawString}) not build!", *tokens.toTypedArray()))
                 tokenBuffer.removeAll(tokens)

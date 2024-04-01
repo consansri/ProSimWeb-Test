@@ -421,7 +421,7 @@ object RV64 {
 
     val config = Config(
         Config.Description("RV64I", "RISC-V 64Bit", riscVDocs),
-        FileHandler("s"),
+        fileEnding = "s",
         RegContainer(
             mutableListOf(standardRegFile, csrRegFile),
             pcSize = REG_VALUE_SIZE,

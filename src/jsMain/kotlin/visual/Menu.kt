@@ -33,6 +33,7 @@ import web.url.URL
 
 external interface MenuProps : Props {
     var archState: StateInstance<emulator.kit.Architecture>
+    var fileState: StateInstance<FileHandler>
     var fileChangeEvent: StateInstance<Boolean>
 }
 
@@ -84,7 +85,7 @@ val Menu = FC<MenuProps> { props ->
 
         reader.onloadend = {
             console.log("read ${reader.result}")
-            arch.getFileHandler().import(FileHandler.File(file.name as String, reader.result as String))
+            props.fileState.component1().import(FileHandler.File(file.name as String, reader.result as String))
             props.fileChangeEvent.component2().invoke(!props.fileChangeEvent.component1())
         }
     }
@@ -329,15 +330,15 @@ val Menu = FC<MenuProps> { props ->
                         }
 
                         downloadAsyncRef.current = setTimeout({
-                            val blob = Blob(arch.getFormattedFile(selFormat, FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW)).toTypedArray())
+                            val blob = Blob(arch.getFormattedFile(selFormat, props.fileState.component1().getCurrContent(), props.fileState.component1().getCurrent().getLinkedTree(), FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW)).toTypedArray())
                             val anchor = document.createElement("a") as HTMLAnchorElement
                             anchor.href = URL.createObjectURL(blob)
                             anchor.style.display = "none"
                             document.body.appendChild(anchor)
                             if (selFormat.ending.isNotEmpty()) {
-                                anchor.download = arch.getFileHandler().getCurrNameWithoutType() + selFormat.ending
+                                anchor.download = props.fileState.component1().getCurrNameWithoutType() + selFormat.ending
                             } else {
-                                anchor.download = arch.getFileHandler().getCurrent().getName()
+                                anchor.download = props.fileState.component1().getCurrent().getName()
                             }
                             anchor.click()
                         }, 10)

@@ -8,7 +8,7 @@ import emulator.kit.nativeWarn
 import emulator.kit.updateFiles
 import kotlinx.coroutines.*
 
-class FileHandler(val fileEnding: String) {
+class FileHandler() {
 
     private val files = mutableListOf<File>()
     private var currentID: Int = 0
@@ -39,7 +39,7 @@ class FileHandler(val fileEnding: String) {
     fun remove(file: File) {
         this.files.remove(file)
         if (files.isEmpty()) {
-            files.add(File("main.$fileEnding", ""))
+            files.add(File("main.s", ""))
         }
         setCurrent(0)
         refreshLocalStorage(true)
@@ -88,6 +88,15 @@ class FileHandler(val fileEnding: String) {
         }
     }
 
+    fun getOrNull(fileName: String): File?{
+        return files.firstOrNull { it.getName() == fileName }
+    }
+    fun getOthers(): List<Syntax.LinkedTree>{
+        return files.filter { it != files.getOrNull(currentID) }.map {
+            it.getLinkedTree()
+        }
+    }
+
     fun getCurrID(): Int = currentID
     fun getCurrUndoLength(): Int = files[currentID].getUndoStates().size
 
@@ -117,6 +126,10 @@ class FileHandler(val fileEnding: String) {
         private var job: Job? = null
         private var syntaxTree: Syntax.SyntaxTree? = null
 
+
+        fun getLinkedTree(): Syntax.LinkedTree{
+            return Syntax.LinkedTree(name, syntaxTree)
+        }
         fun rename(newName: String) {
             name = newName
         }
@@ -153,12 +166,8 @@ class FileHandler(val fileEnding: String) {
             }
         }
 
-        fun linkGrammarTree(syntaxTree: Syntax.SyntaxTree) {
+        fun linkGrammarTree(syntaxTree: Syntax.SyntaxTree?) {
             this.syntaxTree = syntaxTree
-        }
-
-        fun getLinkedTree(): Syntax.SyntaxTree? {
-            return syntaxTree
         }
 
         fun getContent(): String {

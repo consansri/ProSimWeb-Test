@@ -22,6 +22,7 @@ import web.window.window
 
 external interface InfoViewProps : Props {
     var archState: StateInstance<emulator.kit.Architecture>
+    var fileState: StateInstance<FileHandler>
     var footerRef: MutableRefObject<HTMLElement>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
@@ -199,7 +200,7 @@ val InfoView = FC<InfoViewProps> { props ->
                     arch.getDescription().docs.files.getOrNull(id)?.let { file ->
                         if (file is Docs.HtmlFile.DefinedFile) {
                             file.chapters.forEach {
-                                val fc = it.render(props.archState.component1(), props.fileChangeEvent)
+                                val fc = it.render(props.archState.component1(), props.fileState.component1(), props.fileChangeEvent)
                                 fc {
 
                                 }
@@ -223,8 +224,8 @@ val InfoView = FC<InfoViewProps> { props ->
                         for (child in codeChilds) {
                             child.addEventListener(EventType("click"), { event ->
                                 child.textContent?.let { text ->
-                                    if (arch.getFileHandler().getAllFiles().none { it.getName() == "example" }) {
-                                        arch.getFileHandler().import(FileHandler.File("example", text))
+                                    if (props.fileState.component1().getAllFiles().none { it.getName() == "example" }) {
+                                        props.fileState.component1().import(FileHandler.File("example", text))
                                         window.scrollTo(0, 0)
                                         arch.getConsole().info("Successfully imported 'example'!")
                                         props.fileChangeEvent.component2().invoke(!props.fileChangeEvent.component1())

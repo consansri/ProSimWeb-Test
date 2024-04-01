@@ -91,7 +91,7 @@ object T6502 {
 
     val config = Config(
         description,
-        FileHandler("s"),
+        fileEnding = "s",
         RegContainer(listOf(commonRegFile), WORD_SIZE, "common"),
         Memory(MEM_ADDR_SIZE, initBin = "0".repeat(BYTE_SIZE.bitWidth), BYTE_SIZE, Memory.Endianess.LittleEndian),
         Transcript(TSCompiledRow.entries.map { it.name }, TSDisassembledRow.entries.map { it.name })
