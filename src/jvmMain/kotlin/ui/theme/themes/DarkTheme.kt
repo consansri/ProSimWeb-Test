@@ -17,7 +17,11 @@ class DarkTheme(icons: ProSimIcons) : Theme {
     override val globalStyle: GlobalStyle = GlobalStyle(Color(0x222222), Color(0x313131), Color(0x363636))
 
     override val iconStyle: IconStyle = IconStyle(Color(0xEEEEEE), Color(0xAAAAAA), iconBgHover = Color(0x33777777, true), iconBgActive = Color(0x77777777, true))
-    override val textStyle: TextStyle = TextStyle(Color(0xEEEEEE), Color(0x777777), loadFont("fonts/ttf/JetBrainsMono-Light.ttf"))
+    override val textStyle: TextStyle = TextStyle(
+        Color(0xEEEEEE),
+        Color(0x777777),
+        loadFont("fonts/ttf/JetBrainsMono-Light.ttf"),
+        loadFont("fonts/ttf/JetBrainsMono-Bold.ttf"))
 
     override val exeStyle: ExecutionStyle = ExecutionStyle(
         continuous = Color(0x58CC79),

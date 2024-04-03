@@ -109,7 +109,7 @@ open class IconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nul
 
             background = iconBg
             val iconScale = uiManager.scaleManager.currentScaling.controlScale.size
-            icon = svgIcon?.derive(iconScale, iconScale)
+            icon = this.svgIcon?.derive(iconScale, iconScale)
         }
     }
 

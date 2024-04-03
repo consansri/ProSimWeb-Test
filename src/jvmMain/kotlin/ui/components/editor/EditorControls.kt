@@ -3,11 +3,13 @@ package me.c3.ui.components.editor
 import emulator.kit.common.ArchState
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.IconButton
+import me.c3.ui.components.styled.Panel
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
+import kotlin.math.truncate
 
-class EditorControls(uiManager: UIManager, editor: CodeEditor) : JPanel() {
+class EditorControls(uiManager: UIManager, editor: CodeEditor) : Panel(uiManager, false) {
 
     val transcriptButton: IconButton
     val statusIcon: IconButton

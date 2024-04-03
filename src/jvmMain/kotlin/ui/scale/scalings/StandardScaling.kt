@@ -9,6 +9,6 @@ class StandardScaling : Scaling {
 
     override val name: String = "standard"
     override val controlScale: ControlScale = ControlScale(28)
-    override val fontScale: FontScale = FontScale(12f, 14f)
+    override val fontScale: FontScale = FontScale(14f, 14f, 15f)
     override val borderScale: BorderScale = BorderScale(1, 2)
 }

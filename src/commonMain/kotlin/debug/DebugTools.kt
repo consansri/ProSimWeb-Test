@@ -29,7 +29,7 @@ object DebugTools {
 
     const val KIT_showSyntaxInfo = false
     const val KIT_showCompilerInfo = false
-    const val KIT_showAsmInfo = true
+    const val KIT_showAsmInfo = false
 
 
     val KIT_ValBinaryToolsDivisionLoopLimit: Long? = null

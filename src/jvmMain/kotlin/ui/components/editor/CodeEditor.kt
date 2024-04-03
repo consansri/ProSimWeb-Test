@@ -26,7 +26,6 @@ class CodeEditor(uiManager: UIManager) : JTabbedPane() {
     fun initFiles(uiManager: UIManager) {
         removeAll()
 
-
         val fileName = "main.s"
         val editPanel = EditPanel(uiManager, fileName)
         val label = JLabel(fileName)

@@ -5,13 +5,16 @@ import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import me.c3.ui.components.borders.DirectionalBorder
 import me.c3.ui.UIManager
+import me.c3.ui.components.styled.Panel
+import me.c3.ui.components.styled.ScrollPane
 import me.c3.ui.theme.core.style.CodeStyle
 import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
 import javax.swing.*
+import kotlin.math.truncate
 
-class EditPanel(uiManager: UIManager, val fileName: String) : JPanel() {
+class EditPanel(uiManager: UIManager, val fileName: String) : Panel(uiManager, true) {
     private var compileJob: Job? = null
 
     // Content
@@ -21,7 +24,7 @@ class EditPanel(uiManager: UIManager, val fileName: String) : JPanel() {
     private val textPane = JTextPane(document)
     private val lineNumbers = LineNumbers(uiManager, textPane)
     private val viewport = JViewport()
-    private val scrollPane = JScrollPane(textPane)
+    private val scrollPane = ScrollPane(uiManager, textPane, true)
 
     // Layout
     private val constraints = GridBagConstraints()
@@ -63,10 +66,12 @@ class EditPanel(uiManager: UIManager, val fileName: String) : JPanel() {
         textPane.isEditable = true
         textPane.document = EditorDocument(uiManager) // Use PlainDocument for better performance
 
+
         // Link ViewPort with LineNumbers to ScrollPane
         viewport.view = lineNumbers
         viewport.extentSize = lineNumbers.preferredScrollableViewportSize
         scrollPane.rowHeader = viewport
+        scrollPane.setFocusPainted(false)
 
         // Add Components
         add(scrollPane)
@@ -117,7 +122,7 @@ class EditPanel(uiManager: UIManager, val fileName: String) : JPanel() {
 
             // Apply Defaults
             cellRenderer = LineNumberListRenderer(uiManager.themeManager.currentTheme.textStyle.baseSecondary)
-            fixedCellWidth = getFontMetrics(font).charWidth('0') * 5
+            fixedCellWidth = this.getFontMetrics(this.font).charWidth('0') * 5
             fixedCellHeight = textPane.getFontMetrics(textPane.font).height
         }
 

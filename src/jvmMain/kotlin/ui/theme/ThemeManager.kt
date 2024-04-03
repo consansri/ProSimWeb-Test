@@ -22,7 +22,7 @@ class ThemeManager(private val mainFrame: JFrame, icons: ProSimIcons) {
             themeChangeEvents.forEach {
                 it(value)
             }
-            nativeLog("ScaleManager: Switched Scaling to ${value.name}!")
+            nativeLog("ThemeManager: Switched Theme to ${value.name}!")
         }
 
     private val themeChangeEvents = mutableListOf<(theme: Theme) -> Unit>()

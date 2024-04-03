@@ -6,5 +6,6 @@ import java.awt.Font
 data class TextStyle(
     val base: Color,
     val baseSecondary: Color,
-    val font: Font
+    val font: Font,
+    val titleFont: Font
 )

@@ -1,11 +1,16 @@
 package me.c3.ui.components.frame
 
+import com.formdev.flatlaf.FlatLaf
+import com.formdev.flatlaf.FlatLightLaf
 import me.c3.ui.components.controls.AppControls
 import me.c3.ui.UIManager
 import me.c3.ui.components.controls.ExecutionControls
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.editor.EditorControls
 import me.c3.ui.components.layout.ColouredPanel
+import me.c3.ui.components.tree.FileTree
+import me.c3.ui.theme.icons.BenIcons
+import me.c3.ui.theme.themes.DarkTheme
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JFrame
@@ -19,6 +24,7 @@ class BaseFrame(title: String) : JFrame(title) {
 
     private val topBar = ExecutionControls(uiManager)
     private val editor = CodeEditor(uiManager)
+    private val fileTree = FileTree(uiManager)
     private val leftBar = EditorControls(uiManager, editor)
     private val processor = JPanel()
     private val rightBar = AppControls(uiManager, this)
@@ -27,10 +33,13 @@ class BaseFrame(title: String) : JFrame(title) {
 
     init {
         SwingUtilities.invokeLater {
+            uiManager.currTheme().install(this)
+
             layout = BorderLayout()
 
             // Set Sizes
             editor.minimumSize = Dimension(0, 0)
+            fileTree.minimumSize = Dimension(0,0)
             processor.minimumSize = Dimension(0, 0)
             consoleAndInfo.minimumSize = Dimension(0, 0)
 
@@ -44,7 +53,10 @@ class BaseFrame(title: String) : JFrame(title) {
             consoleAndInfo.add(consoleAndInfoLabel)
             bottomBar.add(bottomBarLabel)
 
-            val mainContainer = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, editor, processor)
+            val editorContainer = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
+            editorContainer.resizeWeight = 0.25
+
+            val mainContainer = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processor)
             mainContainer.resizeWeight = 0.5
 
             val verticalMainSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, true, mainContainer, consoleAndInfo)
@@ -73,6 +85,5 @@ class BaseFrame(title: String) : JFrame(title) {
             // Apply defaults
             background = uiManager.currTheme().globalStyle.bgSecondary
         }
-
     }
 }
