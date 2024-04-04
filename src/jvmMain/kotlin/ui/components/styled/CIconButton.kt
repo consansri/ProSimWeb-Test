@@ -3,21 +3,18 @@ package me.c3.ui.components.styled
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import me.c3.ui.UIManager
+import me.c3.ui.theme.core.components.CButtonUI
+import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.Image
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.awt.image.BufferedImage
-import javax.swing.Icon
-import javax.swing.ImageIcon
+import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 
-open class IconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY) : JButton(icon) {
+open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY) : JButton(icon), UIAdapter {
 
     private var timer: Timer? = null
     private var rotationAngle: Double = 0.0
@@ -59,35 +56,7 @@ open class IconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nul
         }
 
     init {
-        // Set Standard Appearance
-        isFocusable = false
-        isBorderPainted = false
-
-        // Add Scale Change Listener
-        val iconScale = uiManager.scaleManager.currentScaling.controlScale.size
-        size = Dimension(iconScale, iconScale)
-        uiManager.scaleManager.addScaleChangeEvent {
-            size = Dimension(it.controlScale.size, it.controlScale.size)
-            updateIcon(uiManager)
-        }
-
-        // Add Theme Change Listener
-        uiManager.themeManager.addThemeChangeListener {
-            updateIcon(uiManager)
-        }
-
-        // Add Hover Effect
-        this.addMouseListener(object : MouseAdapter() {
-            override fun mouseEntered(e: MouseEvent?) {
-                val iconStyle = uiManager.currTheme().iconStyle
-                if (!isDeactivated) background = iconStyle.iconBgHover
-            }
-
-            override fun mouseExited(e: MouseEvent?) {
-                background = iconBg
-            }
-        })
-
+        setupUI(uiManager)
         updateIcon(uiManager)
     }
 
@@ -95,7 +64,7 @@ open class IconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nul
         val iconStyle = uiManager.currTheme().iconStyle
         SwingUtilities.invokeLater {
             svgIcon?.colorFilter = ColorFilter {
-                val color =  customColor ?: when (mode) {
+                val color = customColor ?: when (mode) {
                     Mode.PRIMARY -> iconStyle.iconFgPrimary
                     Mode.SECONDARY -> iconStyle.iconFgSecondary
                 }
@@ -142,6 +111,31 @@ open class IconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nul
     enum class Mode {
         PRIMARY,
         SECONDARY
+    }
+
+    final override fun setupUI(uiManager: UIManager) {
+        SwingUtilities.invokeLater {
+            this.setUI(CButtonUI())
+
+            // Set Standard Appearance
+            isFocusable = false
+            isBorderPainted = false
+
+            // Add Scale Change Listener
+            val iconScale = uiManager.scaleManager.currentScaling.controlScale.size
+            size = Dimension(iconScale, iconScale)
+            uiManager.scaleManager.addScaleChangeEvent {
+                size = Dimension(it.controlScale.size, it.controlScale.size)
+                val insets = it.borderScale.insets
+                border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
+                updateIcon(uiManager)
+            }
+
+            // Add Theme Change Listener
+            uiManager.themeManager.addThemeChangeListener {
+                updateIcon(uiManager)
+            }
+        }
     }
 
 }

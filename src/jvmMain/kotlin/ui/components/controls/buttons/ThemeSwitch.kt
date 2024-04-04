@@ -1,11 +1,11 @@
 package me.c3.ui.components.controls.buttons
 
-import me.c3.ui.components.styled.IconButton
+import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.UIManager
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 
-class ThemeSwitch(uiManager: UIManager, mainFrame: JFrame) : IconButton(uiManager, mode = Mode.PRIMARY) {
+class ThemeSwitch(uiManager: UIManager, mainFrame: JFrame) : CIconButton(uiManager, mode = Mode.PRIMARY) {
 
     private var currentIndex = 0
 

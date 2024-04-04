@@ -1,15 +1,13 @@
 package me.c3.ui.components.styled
 
-import java.awt.Insets
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.BorderFactory
 import javax.swing.JTree
 import javax.swing.UIManager
-import javax.swing.border.Border
 import javax.swing.tree.TreeModel
 
-class Tree(treeModel: TreeModel) : JTree(treeModel), FocusListener {
+class CTree(treeModel: TreeModel) : JTree(treeModel), FocusListener {
 
     init {
         this.addFocusListener(this)

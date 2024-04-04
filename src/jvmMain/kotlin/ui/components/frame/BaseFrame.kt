@@ -1,16 +1,13 @@
 package me.c3.ui.components.frame
 
-import com.formdev.flatlaf.FlatLaf
-import com.formdev.flatlaf.FlatLightLaf
 import me.c3.ui.components.controls.AppControls
 import me.c3.ui.UIManager
-import me.c3.ui.components.controls.ExecutionControls
+import me.c3.ui.components.processor.ExecutionControls
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.editor.EditorControls
 import me.c3.ui.components.layout.ColouredPanel
+import me.c3.ui.components.styled.CSplitPane
 import me.c3.ui.components.tree.FileTree
-import me.c3.ui.theme.icons.BenIcons
-import me.c3.ui.theme.themes.DarkTheme
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JFrame
@@ -29,17 +26,15 @@ class BaseFrame(title: String) : JFrame(title) {
     private val processor = JPanel()
     private val rightBar = AppControls(uiManager, this)
     private val consoleAndInfo = JPanel()
-    private val bottomBar = ColouredPanel(uiManager)
+    private val bottomBar = ColouredPanel(uiManager, false)
 
     init {
         SwingUtilities.invokeLater {
-            uiManager.currTheme().install(this)
-
             layout = BorderLayout()
 
             // Set Sizes
             editor.minimumSize = Dimension(0, 0)
-            fileTree.minimumSize = Dimension(0,0)
+            fileTree.minimumSize = Dimension(0, 0)
             processor.minimumSize = Dimension(0, 0)
             consoleAndInfo.minimumSize = Dimension(0, 0)
 
@@ -53,20 +48,20 @@ class BaseFrame(title: String) : JFrame(title) {
             consoleAndInfo.add(consoleAndInfoLabel)
             bottomBar.add(bottomBarLabel)
 
-            val editorContainer = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
+            val editorContainer = CSplitPane(uiManager, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
             editorContainer.resizeWeight = 0.25
 
-            val mainContainer = JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processor)
+            val mainContainer = CSplitPane(uiManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processor)
             mainContainer.resizeWeight = 0.5
 
-            val verticalMainSplitPane = JSplitPane(JSplitPane.VERTICAL_SPLIT, true, mainContainer, consoleAndInfo)
-            verticalMainSplitPane.resizeWeight = 0.8
+            val verticalMainCSplitPane = CSplitPane(uiManager, JSplitPane.VERTICAL_SPLIT, true, mainContainer, consoleAndInfo)
+            verticalMainCSplitPane.resizeWeight = 0.8
 
             //verticalMainSplitPane.setDividerLocation(0.8)
 
             // Add split panes to the frame with BorderLayout constraints
             add(topBar, BorderLayout.NORTH)
-            add(verticalMainSplitPane, BorderLayout.CENTER)
+            add(verticalMainCSplitPane, BorderLayout.CENTER)
             add(leftBar, BorderLayout.WEST)
             add(rightBar, BorderLayout.EAST)
             add(bottomBar, BorderLayout.SOUTH)

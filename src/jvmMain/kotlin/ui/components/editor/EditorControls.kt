@@ -2,32 +2,30 @@ package me.c3.ui.components.editor
 
 import emulator.kit.common.ArchState
 import me.c3.ui.UIManager
-import me.c3.ui.components.styled.IconButton
-import me.c3.ui.components.styled.Panel
+import me.c3.ui.components.styled.CIconButton
+import me.c3.ui.components.styled.CPanel
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
-import javax.swing.JPanel
-import kotlin.math.truncate
 
-class EditorControls(uiManager: UIManager, editor: CodeEditor) : Panel(uiManager, false) {
+class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManager, false) {
 
-    val transcriptButton: IconButton
-    val statusIcon: IconButton
-    val undoButton: IconButton
-    val redoButton: IconButton
-    val buildButton: IconButton
-    val infoButton: IconButton
-    val deleteButton: IconButton
+    private val transcriptButton: CIconButton
+    private val statusIcon: CIconButton
+    private val undoButton: CIconButton
+    private val redoButton: CIconButton
+    private val buildButton: CIconButton
+    private val infoButton: CIconButton
+    private val deleteButton: CIconButton
 
     init {
         // Instantiate
-        transcriptButton = IconButton(uiManager, uiManager.icons.disassembler)
-        statusIcon = IconButton(uiManager, uiManager.icons.statusLoading)
-        undoButton = IconButton(uiManager, uiManager.icons.backwards)
-        redoButton = IconButton(uiManager, uiManager.icons.forwards)
-        buildButton = IconButton(uiManager, uiManager.icons.build)
-        infoButton = IconButton(uiManager, uiManager.icons.info)
-        deleteButton = IconButton(uiManager, uiManager.icons.deleteBlack)
+        transcriptButton = CIconButton(uiManager, uiManager.icons.disassembler)
+        statusIcon = CIconButton(uiManager, uiManager.icons.statusLoading)
+        undoButton = CIconButton(uiManager, uiManager.icons.backwards)
+        redoButton = CIconButton(uiManager, uiManager.icons.forwards)
+        buildButton = CIconButton(uiManager, uiManager.icons.build)
+        infoButton = CIconButton(uiManager, uiManager.icons.info)
+        deleteButton = CIconButton(uiManager, uiManager.icons.deleteBlack)
 
         // Apply layout
         layout = BoxLayout(this, BoxLayout.Y_AXIS)

@@ -5,26 +5,27 @@ import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import me.c3.ui.components.borders.DirectionalBorder
 import me.c3.ui.UIManager
-import me.c3.ui.components.styled.Panel
-import me.c3.ui.components.styled.ScrollPane
+import me.c3.ui.components.styled.CPanel
+import me.c3.ui.components.styled.CScrollPane
+import me.c3.ui.components.styled.CTextPane
 import me.c3.ui.theme.core.style.CodeStyle
+import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
 import javax.swing.*
-import kotlin.math.truncate
 
-class EditPanel(uiManager: UIManager, val fileName: String) : Panel(uiManager, true) {
+class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, true) {
     private var compileJob: Job? = null
 
     // Content
     private val document = EditorDocument(uiManager)
 
     // Elements
-    private val textPane = JTextPane(document)
+    private val textPane = CTextPane(uiManager, document)
     private val lineNumbers = LineNumbers(uiManager, textPane)
     private val viewport = JViewport()
-    private val scrollPane = ScrollPane(uiManager, textPane, true)
+    private val cScrollPane = textPane.createScrollPane(uiManager)
 
     // Layout
     private val constraints = GridBagConstraints()
@@ -40,6 +41,8 @@ class EditPanel(uiManager: UIManager, val fileName: String) : Panel(uiManager, t
         uiManager.themeManager.addThemeChangeListener {
             viewport.background = it.globalStyle.bgPrimary
             textPane.background = it.globalStyle.bgPrimary
+            textPane.caretColor = it.codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
+            textPane.foreground = it.codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
             textPane.font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
             viewport.font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
         }
@@ -62,19 +65,19 @@ class EditPanel(uiManager: UIManager, val fileName: String) : Panel(uiManager, t
 
         // for textPane
         textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
-        textPane.font = uiManager.themeManager.currentTheme.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+        textPane.font = uiManager.currTheme().codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
         textPane.isEditable = true
+        textPane.caretColor = uiManager.currTheme().codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
+        textPane.foreground = uiManager.currTheme().codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
         textPane.document = EditorDocument(uiManager) // Use PlainDocument for better performance
-
 
         // Link ViewPort with LineNumbers to ScrollPane
         viewport.view = lineNumbers
         viewport.extentSize = lineNumbers.preferredScrollableViewportSize
-        scrollPane.rowHeader = viewport
-        scrollPane.setFocusPainted(false)
+        cScrollPane.rowHeader = viewport
 
         // Add Components
-        add(scrollPane)
+        add(cScrollPane)
     }
 
     fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {

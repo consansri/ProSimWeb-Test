@@ -2,6 +2,7 @@ package me.c3.ui.components.layout
 
 import me.c3.ui.UIManager
 import me.c3.ui.components.editor.CodeEditor
+import me.c3.ui.components.styled.CPanel
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -10,7 +11,7 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-open class ColouredPanel(uiManager: UIManager) : JPanel() {
+open class ColouredPanel(uiManager: UIManager, primary: Boolean) : CPanel(uiManager, primary) {
     private var colors: List<ColorAnker> = listOf(ColorAnker(0.0f, Color(0xc76b29)), ColorAnker(1.0f, Color(0x3d8fd1)))
         set(value) {
             field = value

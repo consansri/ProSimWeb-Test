@@ -17,6 +17,7 @@ import com.formdev.flatlaf.ui.FlatTabbedPaneUI
 import com.formdev.flatlaf.ui.FlatTextPaneUI
 import com.formdev.flatlaf.ui.FlatTreeUI
 import me.c3.ui.theme.core.Theme
+import me.c3.ui.theme.core.components.CButtonUI
 import me.c3.ui.theme.themes.DarkTheme
 import me.c3.ui.theme.themes.LightTheme
 import java.awt.Color
@@ -46,16 +47,6 @@ class ProSimLookAndFeel(private val theme: Theme) : LookAndFeel() {
                 FlatLightLaf().defaults
             }
         }
-
-        defaults["RootPaneUI"] = FlatRootPaneUI::class.java.name
-        defaults["ButtonUI"] = FlatButtonUI::class.java.name
-        defaults["TextPaneUI"] = FlatTextPaneUI::class.java.name
-        defaults["TreeUI"] = FlatTreeUI::class.java.name
-        defaults["ScrollPaneUI"] = FlatScrollPaneUI::class.java.name
-        defaults["TabbedPaneUI"] = FlatTabbedPaneUI::class.java.name
-        defaults["PanelUI"] = FlatPanelUI::class.java.name
-        defaults["ListUI"] = FlatListUI::class.java.name
-        defaults["LabelUI"] = FlatLabelUI::class.java.name
 
         applyThemeToUIDefaults(defaults, theme)
 

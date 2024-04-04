@@ -1,26 +1,25 @@
 package me.c3.ui.components.tree
 
 import me.c3.ui.UIManager
-import me.c3.ui.components.styled.Panel
-import me.c3.ui.components.styled.ScrollPane
-import me.c3.ui.components.styled.TextButton
-import me.c3.ui.components.styled.Tree
+import me.c3.ui.components.styled.CPanel
+import me.c3.ui.components.styled.CScrollPane
+import me.c3.ui.components.styled.CTextButton
+import me.c3.ui.components.styled.CTree
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.FlowLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
-import javax.swing.BoxLayout
 import javax.swing.JFileChooser
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class FileTree(uiManager: UIManager) : Panel(uiManager, true) {
-    private val projectButton = TextButton(uiManager, "Project")
-    private val title = Panel(uiManager, false)
-    private val content = ScrollPane(uiManager, true)
-    private var currentTree: Tree? = null
+class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
+    private val projectButton = CTextButton(uiManager, "Project")
+    private val title = CPanel(uiManager, false)
+    private val content = CScrollPane(uiManager, true)
+    private var currentCTree: CTree? = null
 
     init {
         projectButton.foreground = uiManager.currTheme().textStyle.base
@@ -39,8 +38,6 @@ class FileTree(uiManager: UIManager) : Panel(uiManager, true) {
             }
         })
 
-        content.setFocusPainted(false)
-
         // Layout
         layout = BorderLayout()
         title.layout = FlowLayout(FlowLayout.LEFT)
@@ -57,19 +54,19 @@ class FileTree(uiManager: UIManager) : Panel(uiManager, true) {
 
         buildFileTree(rootDir, rootNode)
 
-        currentTree = Tree(treeModel)
+        currentCTree = CTree(treeModel)
 
         // Add Listeners
         uiManager.themeManager.addThemeChangeListener {
-            currentTree?.background = it.globalStyle.bgSecondary
+            currentCTree?.background = it.globalStyle.bgSecondary
         }
 
         // Apply Standards
-        currentTree?.background = uiManager.currTheme().globalStyle.bgSecondary
-        currentTree?.setFocusPainted(false)
+        currentCTree?.background = uiManager.currTheme().globalStyle.bgSecondary
+        currentCTree?.setFocusPainted(false)
 
-        currentTree?.isFocusable = false
-        content.setViewportView(currentTree)
+        currentCTree?.isFocusable = false
+        content.setViewportView(currentCTree)
         content.revalidate()
         content.repaint()
     }

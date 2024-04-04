@@ -18,7 +18,7 @@ class ThemeManager(private val mainFrame: JFrame, icons: ProSimIcons) {
     var currentTheme: Theme = themes.first()
         set(value) {
             field = value
-            value.install(mainFrame)
+            //value.install(mainFrame)
             themeChangeEvents.forEach {
                 it(value)
             }
