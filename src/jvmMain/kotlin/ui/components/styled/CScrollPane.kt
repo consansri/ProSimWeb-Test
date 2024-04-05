@@ -1,44 +1,57 @@
 package me.c3.ui.components.styled
 
+import me.c3.ui.UIManager
 import me.c3.ui.theme.core.components.CScrollPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
-import org.intellij.lang.annotations.JdkConstants.HorizontalScrollBarPolicy
-import org.intellij.lang.annotations.JdkConstants.VerticalScrollBarPolicy
 import java.awt.Component
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
-import javax.swing.BorderFactory
+import java.awt.Graphics
+import java.awt.Graphics2D
 import javax.swing.JScrollPane
 import javax.swing.SwingUtilities
-import javax.swing.UIManager
 
-class CScrollPane(uiManager: me.c3.ui.UIManager, private val primary: Boolean) : JScrollPane(), UIAdapter {
+class CScrollPane(uiManager: UIManager, private val primary: Boolean) : JScrollPane(), UIAdapter {
 
-    constructor(uiManager: me.c3.ui.UIManager, primary: Boolean, component: Component) : this(uiManager, primary) {
+    constructor(uiManager: UIManager, primary: Boolean, component: Component) : this(uiManager, primary) {
         this.setViewportView(component)
     }
 
-    constructor(uiManager: me.c3.ui.UIManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(uiManager, primary, component) {
+    constructor(uiManager: UIManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(uiManager, primary, component) {
         this.verticalScrollBarPolicy = vsb
         this.horizontalScrollBarPolicy = hsb
     }
 
     init {
-
         setupUI(uiManager)
     }
 
-    override fun setupUI(uiManager: me.c3.ui.UIManager) {
+    override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
             setUI(CScrollPaneUI())
 
             uiManager.themeManager.addThemeChangeListener {
-                background = if (primary) it.globalStyle.bgPrimary else it.globalStyle.bgSecondary
+                setDefaults(uiManager)
             }
 
-            val currTheme = uiManager.currTheme()
-            background = if (primary) currTheme.globalStyle.bgPrimary else currTheme.globalStyle.bgSecondary
+            setDefaults(uiManager)
         }
+    }
+
+    private fun setDefaults(uiManager: UIManager) {
+        background = if (primary) uiManager.currTheme().globalStyle.bgPrimary else uiManager.currTheme().globalStyle.bgSecondary
+        val paneUI = ui as? CScrollPaneUI ?: return
+        paneUI.scrollBarBgColor = if (primary) uiManager.currTheme().globalStyle.bgPrimary else uiManager.currTheme().globalStyle.bgSecondary
+        paneUI.scrollBarFgColor = uiManager.currTheme().globalStyle.borderColor
+        repaint()
+    }
+
+    override fun paint(g: Graphics?) {
+        val g2d = g?.create() as? Graphics2D ?: return
+        g2d.color = background
+        g2d.fillRect(0, 0, width, height)
+
+        super.paint(g2d)
+
+        g2d.dispose()
     }
 
 

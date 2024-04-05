@@ -14,7 +14,7 @@ import javax.swing.JButton
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 
-open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY) : JButton(icon), UIAdapter {
+open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL) : JButton(icon), UIAdapter {
 
     private var timer: Timer? = null
     private var rotationAngle: Double = 0.0
@@ -65,8 +65,8 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
         SwingUtilities.invokeLater {
             svgIcon?.colorFilter = ColorFilter {
                 val color = customColor ?: when (mode) {
-                    Mode.PRIMARY -> iconStyle.iconFgPrimary
-                    Mode.SECONDARY -> iconStyle.iconFgSecondary
+                    Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> iconStyle.iconFgPrimary
+                    Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> iconStyle.iconFgSecondary
                 }
 
                 if (isDeactivated) {
@@ -77,7 +77,10 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
             }
 
             background = iconBg
-            val iconScale = uiManager.scaleManager.currentScaling.controlScale.size
+            val iconScale = when (mode) {
+                Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL -> uiManager.scaleManager.currentScaling.controlScale.normalSize
+                Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL -> uiManager.scaleManager.currentScaling.controlScale.smallSize
+            }
             icon = this.svgIcon?.derive(iconScale, iconScale)
         }
     }
@@ -109,8 +112,10 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
     }
 
     enum class Mode {
-        PRIMARY,
-        SECONDARY
+        PRIMARY_NORMAL,
+        SECONDARY_NORMAL,
+        PRIMARY_SMALL,
+        SECONDARY_SMALL
     }
 
     final override fun setupUI(uiManager: UIManager) {
@@ -122,20 +127,28 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
             isBorderPainted = false
 
             // Add Scale Change Listener
-            val iconScale = uiManager.scaleManager.currentScaling.controlScale.size
-            size = Dimension(iconScale, iconScale)
             uiManager.scaleManager.addScaleChangeEvent {
-                size = Dimension(it.controlScale.size, it.controlScale.size)
-                val insets = it.borderScale.insets
-                border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-                updateIcon(uiManager)
+                setDefaults(uiManager)
             }
 
             // Add Theme Change Listener
             uiManager.themeManager.addThemeChangeListener {
-                updateIcon(uiManager)
+                setDefaults(uiManager)
             }
+
+            setDefaults(uiManager)
         }
+    }
+
+    private fun setDefaults(uiManager: UIManager) {
+        val iconScale = when (mode) {
+            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL -> uiManager.scaleManager.currentScaling.controlScale.normalSize
+            Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL -> uiManager.scaleManager.currentScaling.controlScale.smallSize
+        }
+        size = Dimension(iconScale, iconScale)
+        val insets = uiManager.currScale().borderScale.insets
+        border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
+        updateIcon(uiManager)
     }
 
 }

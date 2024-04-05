@@ -13,7 +13,7 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean) : JPanel()
         setupUI(uiManager)
     }
 
-    final override fun setupUI(uiManager: UIManager) {
+    override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
             setUI(CPanelUI())
 

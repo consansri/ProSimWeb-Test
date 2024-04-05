@@ -121,7 +121,7 @@ class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManage
 
     private fun installBuildButton(uiManager: UIManager, codeEditor: CodeEditor) {
         buildButton.addActionListener {
-            codeEditor.compileCurrent(uiManager, build = true)
+            //codeEditor.compileCurrent(uiManager, build = true)
         }
     }
 

@@ -18,30 +18,15 @@ class EditorDocument(private val uiManager: UIManager) : DefaultStyledDocument()
     init {
         addDocumentListener(object : DocumentListener {
             override fun insertUpdate(e: DocumentEvent?) {
-                val doc = e?.document
-                if (doc is EditorDocument) {
-                    if (!currentlyUpdating) {
-                        uiManager.eventManager.triggerEdit(doc)
-                    }
-                }
+                if (!currentlyUpdating) uiManager.eventManager.triggerEdit(this@EditorDocument)
             }
 
             override fun removeUpdate(e: DocumentEvent?) {
-                val doc = e?.document
-                if (doc is EditorDocument) {
-                    if (!currentlyUpdating) {
-                        uiManager.eventManager.triggerEdit(doc)
-                    }
-                }
+                if (!currentlyUpdating) uiManager.eventManager.triggerEdit(this@EditorDocument)
             }
 
             override fun changedUpdate(e: DocumentEvent?) {
-                val doc = e?.document
-                if (doc is EditorDocument) {
-                    if (!currentlyUpdating) {
-                        uiManager.eventManager.triggerEdit(doc)
-                    }
-                }
+                if (!currentlyUpdating) uiManager.eventManager.triggerEdit(this@EditorDocument)
             }
         })
     }

@@ -20,8 +20,22 @@ class CScrollPaneUI : BasicScrollPaneUI() {
     companion object {
         private const val THUMB_SIZE = 8
         private val THUMB_COLOR = Color(0x77777777, true)
-        private val TRACK_COLOR = Color(0x33777777, true)
+        private val TRACK_COLOR = Color.RED
     }
+
+    var scrollBarFgColor: Color = THUMB_COLOR
+        set(value) {
+            field = value
+            scrollpane.verticalScrollBar.repaint()
+            scrollpane.horizontalScrollBar.repaint()
+        }
+
+    var scrollBarBgColor: Color = TRACK_COLOR
+        set(value) {
+            field = value
+            scrollpane.verticalScrollBar.repaint()
+            scrollpane.horizontalScrollBar.repaint()
+        }
 
     override fun installUI(x: JComponent?) {
         super.installUI(x)
@@ -36,8 +50,6 @@ class CScrollPaneUI : BasicScrollPaneUI() {
 
     inner class CScrollBarUI() : BasicScrollBarUI() {
         override fun configureScrollBarColors() {
-            thumbColor = THUMB_COLOR
-            trackColor = TRACK_COLOR
             thumbDarkShadowColor = Color(0, 0, 0, 0)
             thumbLightShadowColor = Color(0, 0, 0, 0)
             thumbHighlightColor = Color(0, 0, 0, 0)
@@ -54,13 +66,13 @@ class CScrollPaneUI : BasicScrollPaneUI() {
 
         override fun paintThumb(g: Graphics?, c: JComponent?, thumbBounds: Rectangle?) {
             if (g == null || c == null || thumbBounds == null) return
-            g.color = thumbColor
+            g.color = scrollBarFgColor
             g.fillRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height)
         }
 
         override fun paintTrack(g: Graphics?, c: JComponent?, trackBounds: Rectangle?) {
             if (g == null || c == null || trackBounds == null) return
-            g.color = trackColor
+            g.color = scrollBarBgColor
             g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height)
         }
 

@@ -1,6 +1,8 @@
 package me.c3.ui.components.tree
 
+import emulator.kit.nativeLog
 import me.c3.ui.UIManager
+import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.components.styled.CTextButton
@@ -15,7 +17,7 @@ import javax.swing.JFileChooser
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
+class FileTree(uiManager: UIManager, private val codeEditor: CodeEditor) : CPanel(uiManager, true) {
     private val projectButton = CTextButton(uiManager, "Project")
     private val title = CPanel(uiManager, false)
     private val content = CScrollPane(uiManager, true)
@@ -60,6 +62,24 @@ class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
         uiManager.themeManager.addThemeChangeListener {
             currentCTree?.background = it.globalStyle.bgSecondary
         }
+
+        currentCTree?.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                if (e.clickCount == 2) {
+                    nativeLog("Click received!")
+                    currentCTree?.let { currTree ->
+                        val selectedNode = currTree.lastSelectedPathComponent as? DefaultMutableTreeNode
+                        nativeLog("Found Node $selectedNode!")
+                        if (selectedNode != null) {
+                            nativeLog("is File!")
+                            val file = File(selectedNode.userObjectPath.toString())
+                            codeEditor.openFile(file)
+                        }
+                    }
+
+                }
+            }
+        })
 
         // Apply Standards
         currentCTree?.background = uiManager.currTheme().globalStyle.bgSecondary

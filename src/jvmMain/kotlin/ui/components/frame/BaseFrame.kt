@@ -21,7 +21,7 @@ class BaseFrame(title: String) : JFrame(title) {
 
     private val topBar = ExecutionControls(uiManager)
     private val editor = CodeEditor(uiManager)
-    private val fileTree = FileTree(uiManager)
+    private val fileTree = FileTree(uiManager, editor)
     private val leftBar = EditorControls(uiManager, editor)
     private val processor = JPanel()
     private val rightBar = AppControls(uiManager, this)

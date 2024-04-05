@@ -27,22 +27,24 @@ class CTextButton(uiManager: UIManager, text: String) : JButton(text), UIAdapter
 
             // apply listeners
             uiManager.themeManager.addThemeChangeListener {
-                val currScale = uiManager.currScale()
-                font = it.textStyle.titleFont.deriveFont(currScale.fontScale.titleSize)
-                foreground = it.textStyle.base
+                setDefaults(uiManager)
             }
             uiManager.scaleManager.addScaleChangeEvent {
-                val currTheme = uiManager.currTheme()
-                font = currTheme.textStyle.titleFont.deriveFont(it.fontScale.titleSize)
-                foreground = currTheme.textStyle.base
+                setDefaults(uiManager)
             }
 
             // set defaults
-            val currTheme = uiManager.currTheme()
-            val currScale = uiManager.currScale()
-            font = currTheme.textStyle.titleFont.deriveFont(currScale.fontScale.titleSize)
-            foreground = currTheme.textStyle.base
+            setDefaults(uiManager)
         }
+    }
+
+    private fun setDefaults(uiManager: UIManager){
+        val currTheme = uiManager.currTheme()
+        val currScale = uiManager.currScale()
+        font = currTheme.textStyle.titleFont.deriveFont(currScale.fontScale.titleSize)
+        foreground = currTheme.textStyle.base
+        background = Color(0,0,0,0)
+        repaint()
     }
 
 

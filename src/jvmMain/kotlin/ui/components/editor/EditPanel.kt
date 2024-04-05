@@ -6,10 +6,8 @@ import kotlinx.coroutines.*
 import me.c3.ui.components.borders.DirectionalBorder
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CPanel
-import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.components.styled.CTextPane
 import me.c3.ui.theme.core.style.CodeStyle
-import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
@@ -40,15 +38,10 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
         // Add Listeners
         uiManager.themeManager.addThemeChangeListener {
             viewport.background = it.globalStyle.bgPrimary
-            textPane.background = it.globalStyle.bgPrimary
-            textPane.caretColor = it.codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
-            textPane.foreground = it.codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
-            textPane.font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
             viewport.font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
         }
 
         uiManager.scaleManager.addScaleChangeEvent {
-            textPane.font = uiManager.themeManager.currentTheme.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
             viewport.font = uiManager.themeManager.currentTheme.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
             textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
         }
@@ -64,11 +57,6 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
         lineNumbers.border = DirectionalBorder(uiManager, east = true)
 
         // for textPane
-        textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
-        textPane.font = uiManager.currTheme().codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
-        textPane.isEditable = true
-        textPane.caretColor = uiManager.currTheme().codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
-        textPane.foreground = uiManager.currTheme().codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
         textPane.document = EditorDocument(uiManager) // Use PlainDocument for better performance
 
         // Link ViewPort with LineNumbers to ScrollPane
@@ -99,23 +87,22 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
     private fun hlContent(codeStyle: CodeStyle, tokens: List<Compiler.Token>) {
         val selStart = textPane.selectionStart
         val selEnd = textPane.selectionEnd
+        val bufferedSize = textPane.size
         textPane.isEditable = false
         (textPane.document as EditorDocument).hlDocument(codeStyle, tokens)
         textPane.isEditable = true
+        //textPane.size = bufferedSize
         textPane.selectionStart = selStart
         textPane.selectionEnd = selEnd
         nativeLog("Highlighting!")
     }
 
-    class LineNumbers(uiManager: UIManager, textPane: JTextPane) : JList<String>(LineNumberListModel(textPane)) {
+    class LineNumbers(uiManager: UIManager, textPane: CTextPane) : JList<String>(LineNumberListModel(textPane)) {
 
         init {
             // UI Listeners
             uiManager.themeManager.addThemeChangeListener {
-                cellRenderer = LineNumberListRenderer(it.textStyle.baseSecondary)
-                font = it.codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
-                fixedCellWidth = getFontMetrics(font).charWidth('0') * 5
-                fixedCellHeight = textPane.getFontMetrics(textPane.font).height
+                setDefaults(uiManager, textPane)
             }
 
             uiManager.eventManager.addEditListener {
@@ -124,9 +111,16 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
             }
 
             // Apply Defaults
-            cellRenderer = LineNumberListRenderer(uiManager.themeManager.currentTheme.textStyle.baseSecondary)
-            fixedCellWidth = this.getFontMetrics(this.font).charWidth('0') * 5
+            setDefaults(uiManager, textPane)
+        }
+
+        private fun setDefaults(uiManager: UIManager, textPane: JTextPane) {
+            cellRenderer = LineNumberListRenderer(uiManager.currTheme().textStyle.baseSecondary)
+            font = uiManager.currTheme().codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+            fixedCellWidth = getFontMetrics(font).charWidth('0') * 5
             fixedCellHeight = textPane.getFontMetrics(textPane.font).height
+            this.updateUI()
+            (this.model as LineNumberListModel).update()
         }
 
         class LineNumberListModel(private val textPane: JTextPane) : AbstractListModel<String>() {
