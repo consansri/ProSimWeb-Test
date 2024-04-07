@@ -388,7 +388,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 }
                 if (constants.size == commas.size) {
                     // Expect constant
-                    if (this.first() !is Compiler.Token.Constant) break
+                    if(!dirType.deType.matches(this.first())) break
                     val constant = this.first() as Compiler.Token.Constant
                     if (!constant.getValue(dirType.deSize).checkResult.valid) break
                     constants.add(constant)
@@ -628,7 +628,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         val SeqAfterEquDir = TokenSeq(InSpecific.WordNoDots, Specific(","), InSpecific.Constant, ignoreSpaces = true)
         val SeqMacroAttrInsert = TokenSeq(Specific("""\"""), InSpecific.WordNoDots)
         val SeqLabel = TokenSeq(InSpecific.Word, Specific(":"))
-        val SeqImport = TokenSeq(Specific("#"), Specific("import"), InSpecific.Space, InSpecific.StringConst)
+        val SeqImport = TokenSeq(Specific("#"), Specific("import"), InSpecific.Space, InSpecific.StringConst(false))
         fun getSetPC(memAddressWidth: Variable.Size): TokenSeq = TokenSeq(Specific("*"), Specific("="), SpecConst(memAddressWidth))
     }
 
@@ -645,7 +645,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         ASSEMLYINFO("Optional assembly information")
     }
 
-    enum class DirType(val dirname: String, val dirMajType: DirMajType, val tokenSeq: TokenSeq, val deSize: Variable.Size? = null) {
+    enum class DirType(val dirname: String, val dirMajType: DirMajType, val tokenSeq: TokenSeq, val deSize: Variable.Size? = null, val deType: TokenSeq.Component = InSpecific.Constant) {
         EQU("equ", DirMajType.PRE, TokenSeq(Specific(".equ", ignoreCase = true))),
         MACRO("macro", DirMajType.PRE, TokenSeq(Specific(".macro", ignoreCase = true))),
         ENDM("endm", DirMajType.PRE, TokenSeq(Specific(".endm", ignoreCase = true))),
@@ -655,19 +655,21 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         RODATA("rodata", DirMajType.SECTIONSTART, TokenSeq(Specific(".rodata", ignoreCase = true))),
         BSS("bss", DirMajType.SECTIONSTART, TokenSeq(Specific(".bss", ignoreCase = true))),
 
-        BYTE("byte", DirMajType.DE_ALIGNED, TokenSeq(Specific(".byte", ignoreCase = true)), Variable.Size.Bit8()),
-        HALF("half", DirMajType.DE_ALIGNED, TokenSeq(Specific(".half", ignoreCase = true)), Variable.Size.Bit16()),
-        WORD("word", DirMajType.DE_ALIGNED, TokenSeq(Specific(".word", ignoreCase = true)), Variable.Size.Bit32()),
-        DWORD("dword", DirMajType.DE_ALIGNED, TokenSeq(Specific(".dword", ignoreCase = true)), Variable.Size.Bit64()),
+        BYTE("byte", DirMajType.DE_ALIGNED, TokenSeq(Specific(".byte", ignoreCase = true)), Variable.Size.Bit8(), SpecConst(Variable.Size.Bit8())),
+        HALF("half", DirMajType.DE_ALIGNED, TokenSeq(Specific(".half", ignoreCase = true)), Variable.Size.Bit16(), SpecConst(Variable.Size.Bit16())),
+        WORD("word", DirMajType.DE_ALIGNED, TokenSeq(Specific(".word", ignoreCase = true)), Variable.Size.Bit32(), SpecConst(Variable.Size.Bit32())),
+        DWORD("dword", DirMajType.DE_ALIGNED, TokenSeq(Specific(".dword", ignoreCase = true)), Variable.Size.Bit64(), SpecConst(Variable.Size.Bit64())),
+        ASCII("ascii", DirMajType.DE_ALIGNED, TokenSeq(Specific(".ascii", ignoreCase = true))),
         ASCIZ("asciz", DirMajType.DE_ALIGNED, TokenSeq(Specific(".asciz", ignoreCase = true))),
         STRING("string", DirMajType.DE_ALIGNED, TokenSeq(Specific(".string", ignoreCase = true))),
 
-        BYTE_2("2byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".2byte", ignoreCase = true)), Variable.Size.Bit16()),
-        BYTE_4("4byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".4byte", ignoreCase = true)), Variable.Size.Bit32()),
-        BYTE_8("8byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".8byte", ignoreCase = true)), Variable.Size.Bit64()),
+        BYTE_2("2byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".2byte", ignoreCase = true)), Variable.Size.Bit16(), SpecConst(Variable.Size.Bit16())),
+        BYTE_4("4byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".4byte", ignoreCase = true)), Variable.Size.Bit32(), SpecConst(Variable.Size.Bit32())),
+        BYTE_8("8byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".8byte", ignoreCase = true)), Variable.Size.Bit64(), SpecConst(Variable.Size.Bit64())),
+        HEXSTRING("hexstring", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".hexstring", ignoreCase = true)), deType = InSpecific.StringConst(allowMultiLine = true)),
 
         GLOBAL("global", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".global"), InSpecific.Space, InSpecific.WordNoDots)),
-        GLOBL("globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl"), InSpecific.Space, InSpecific.WordNoDots))
+        GLOBL("globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl"), InSpecific.Space, InSpecific.WordNoDots)),
     }
 
     /**
@@ -740,7 +742,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
             while (content.isNotEmpty()) {
                 // Check for Attribute Insert
-                val result = StandardSyntax.Seqs.SeqMacroAttrInsert.matchStart(*content.toTypedArray())
+                val result = Seqs.SeqMacroAttrInsert.matchStart(*content.toTypedArray())
                 if (result.matches) {
                     val tokensToReplace = result.sequenceMap.map { it.token }
                     val attribute = attributes.firstOrNull { it.content == tokensToReplace[1].content }
@@ -843,9 +845,29 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         }
     }
 
-    class EInitData(val dirType: StandardSyntax.DirType, val dirTokens: List<Compiler.Token>, val constants: List<Compiler.Token.Constant>, commas: List<Compiler.Token>, memAddressWidth: Variable.Size) :
+    class EInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>, val constants: List<Compiler.Token.Constant>, commas: List<Compiler.Token>, memAddressWidth: Variable.Size) :
         TreeNode.ElementNode("init_data", *dirTokens.toTypedArray(), *constants.toTypedArray(), *commas.toTypedArray()) {
-        val values = constants.map { it.getValue(dirType.deSize) }
+        val values: List<Variable.Value> = when (dirType) {
+            DirType.ASCIZ -> {
+                constants.flatMap { it.getValue(dirType.deSize).toBin().splitToByteArray().toList() } + Variable.Value.Bin("0", DirType.ASCIZ.deSize ?: Variable.Size.Bit8())
+            }
+
+            DirType.STRING -> {
+                constants.flatMap { it.getValue(dirType.deSize).toBin().splitToByteArray().toList() } + Variable.Value.Bin("0", DirType.STRING.deSize ?: Variable.Size.Bit8())
+            }
+
+            DirType.ASCII -> {
+                constants.flatMap { it.getValue(dirType.deSize).toBin().splitToByteArray().toList() }
+            }
+
+            DirType.HEXSTRING -> {
+                constants.filterIsInstance<Compiler.Token.Constant.String>().flatMap { it.filterHex().toList() }
+            }
+
+            else -> {
+                constants.map { it.getValue(dirType.deSize) }
+            }
+        }
         val bytesNeeded: Variable.Value
         var addr: Variable.Value? = null
 
@@ -859,7 +881,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         }
     }
 
-    class EUnInitData(val dirType: StandardSyntax.DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode("uninit_data", *dirTokens.toTypedArray()) {
+    class EUnInitData(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode("uninit_data", *dirTokens.toTypedArray()) {
         var addr: Variable.Value? = null
 
         init {
@@ -867,7 +889,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         }
     }
 
-    class ESecStart(val dirType: StandardSyntax.DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode("sec_start", *dirTokens.toTypedArray()) {
+    class ESecStart(val dirType: DirType, val dirTokens: List<Compiler.Token>) : TreeNode.ElementNode("sec_start", *dirTokens.toTypedArray()) {
         init {
             dirTokens.forEach {
                 it.hl(StandardCodeStyle.directive)

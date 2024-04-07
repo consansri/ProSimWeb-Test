@@ -11,6 +11,7 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import io.nacular.doodle.controls.form.file
+import io.nacular.doodle.geometry.star
 
 /**
  * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. The [Compiler] fires the compilation events in the following order.
@@ -45,6 +46,7 @@ class Compiler(
         Regex("^${Regex.escape(prefixes.udec)}[0-9]+"),
         Regex("""^'.'"""),
         Regex("""^".+""""),
+        Regex("""^"{3}(.|\n)*?"{3}"""),
         Regex("""^[a-z]+""", RegexOption.IGNORE_CASE),
         Regex("""^[a-z][a-z0-9]+""", RegexOption.IGNORE_CASE),
         Regex("""^[a-z_][a-z0-9_]+""", RegexOption.IGNORE_CASE),
@@ -184,9 +186,18 @@ class Compiler(
                 continue
             }
 
+            val multiLineString = regexCollection.multiLineString.find(remaining)
+            if (multiLineString != null) {
+                val token = Token.Constant.String(LineLoc(fileName, lineID, startIndex, startIndex + multiLineString.value.length), multiLineString.value, tokenList.size, true)
+                tokenList += token
+                startIndex += multiLineString.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
             val string = regexCollection.string.find(remaining)
             if (string != null) {
-                val token = Token.Constant.String(LineLoc(fileName, lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size)
+                val token = Token.Constant.String(LineLoc(fileName, lineID, startIndex, startIndex + string.value.length), string.value, tokenList.size, false)
                 tokenList += token
                 startIndex += string.value.length
                 remaining = dryContent.substring(startIndex)
@@ -410,9 +421,18 @@ class Compiler(
                 continue
             }
 
+            val multiLineString = regexCollection.multiLineString.find(remaining)
+            if (multiLineString != null) {
+                val token = Token.Constant.String(lineLoc, multiLineString.value, pseudoID, true)
+                tokenList += token
+                startIndex += multiLineString.value.length
+                remaining = dryContent.substring(startIndex)
+                continue
+            }
+
             val string = regexCollection.string.find(remaining)
             if (string != null) {
-                pseudoTokens += Token.Constant.String(lineLoc, string.value, pseudoID)
+                pseudoTokens += Token.Constant.String(lineLoc, string.value, pseudoID, false)
                 startIndex += string.value.length
                 remaining = content.substring(startIndex)
                 continue
@@ -588,8 +608,12 @@ class Compiler(
                 }
             }
 
-            class String(lineLoc: LineLoc, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
-                val rawString = content.substring(1, content.length - 1)
+            class String(lineLoc: LineLoc, content: kotlin.String, id: Int, val multiline: Boolean) : Constant(lineLoc, content, id) {
+                val rawString = if (multiline) content.substring(3, content.length - 3) else content.substring(1, content.length - 1)
+
+                companion object{
+                    val ONLY_HEX_REGEX = Regex("[0-9A-Fa-f]+")
+                }
 
                 override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     var hexStr = ""
@@ -604,6 +628,11 @@ class Compiler(
                         Variable.Value.Hex(hexStr)
                     }
                 }
+
+                fun filterHex(): Array<Variable.Value.Bin>{
+                    return Variable.Value.Hex(ONLY_HEX_REGEX.findAll(rawString).joinToString("") { it.value }).toBin().splitToByteArray()
+                }
+
             }
 
             class Expression(val type: ExpressionType, lineLoc: LineLoc, id: Int, val tokens: List<Token>) : Constant(lineLoc, tokens.joinToString("") { it.content }, id) {
@@ -682,16 +711,16 @@ class Compiler(
                 override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return when (type) {
                         ExpressionType.BRACKETS -> constants[0].getValue(size, onlyUnsigned)
-                        ExpressionType.ADD -> (constants[0].getValue(size, onlyUnsigned) + constants[1].getValue(size, onlyUnsigned))
-                        ExpressionType.SUB -> (constants[0].getValue(size, onlyUnsigned) - constants[1].getValue(size, onlyUnsigned))
-                        ExpressionType.MUL -> (constants[0].getValue(size, onlyUnsigned) * constants[1].getValue(size, onlyUnsigned))
-                        ExpressionType.DIV -> (constants[0].getValue(size, onlyUnsigned) / constants[1].getValue(size, onlyUnsigned))
-                        ExpressionType.SHL -> {
+                        ExpressionType.ADD /*ExpressionType.ADDNB*/ -> (constants[0].getValue(size, onlyUnsigned) + constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.SUB /*ExpressionType.SUBNB*/ -> (constants[0].getValue(size, onlyUnsigned) - constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.MUL /*ExpressionType.MULNB*/ -> (constants[0].getValue(size, onlyUnsigned) * constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.DIV /*ExpressionType.DIVNB*/ -> (constants[0].getValue(size, onlyUnsigned) / constants[1].getValue(size, onlyUnsigned))
+                        ExpressionType.SHL /*ExpressionType.SHLNB*/ -> {
                             val shiftAmount = constants[1].getValue(Bit16(), true).toUDec().toIntOrNull() ?: 0
                             constants[0].getValue(size, onlyUnsigned).toBin().shl(shiftAmount)
                         }
 
-                        ExpressionType.SHR -> {
+                        ExpressionType.SHR /*ExpressionType.SHRNB*/ -> {
                             val shiftAmount = constants[1].getValue(Bit16(), true).toUDec().toIntOrNull() ?: 0
                             constants[0].getValue(size, onlyUnsigned).toBin().shl(shiftAmount)
                         }
@@ -701,11 +730,22 @@ class Compiler(
                 enum class ExpressionType(val tokenSeq: TokenSeq) {
                     BRACKETS(TokenSeq(Specific("("), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
                     ADD(TokenSeq(Specific("("), Constant, Specific("+"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+
+                    //ADDNB(TokenSeq(Constant, Specific("+"), Constant, ignoreSpaces = true, addIgnoredSpacesToMap = true)),
                     SUB(TokenSeq(Specific("("), Constant, Specific("-"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+
+                    //SUBNB(TokenSeq( Constant, Specific("-"), Constant,  ignoreSpaces = true, addIgnoredSpacesToMap = true)),
                     MUL(TokenSeq(Specific("("), Constant, Specific("*"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+
+                    //MULNB(TokenSeq(Constant, Specific("*"), Constant, ignoreSpaces = true, addIgnoredSpacesToMap = true)),
                     DIV(TokenSeq(Specific("("), Constant, Specific("/"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+
+                    //DIVNB(TokenSeq(Constant, Specific("/"), Constant, ignoreSpaces = true, addIgnoredSpacesToMap = true)),
                     SHL(TokenSeq(Specific("("), Constant, Specific("<"), Specific("<"), SpecConst(Bit16(), onlyUnsigned = true), Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
-                    SHR(TokenSeq(Specific("("), Constant, Specific(">"), Specific(">"), SpecConst(Bit16(), onlyUnsigned = true), Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true))
+
+                    //SHLNB(TokenSeq(Constant, Specific("<"), Specific("<"), SpecConst(Bit16(), onlyUnsigned = true),ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    SHR(TokenSeq(Specific("("), Constant, Specific(">"), Specific(">"), SpecConst(Bit16(), onlyUnsigned = true), Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    //SHRNB(TokenSeq(Constant, Specific(">"), Specific(">"), SpecConst(Bit16(), onlyUnsigned = true), ignoreSpaces = true, addIgnoredSpacesToMap = true))
                 }
             }
 
@@ -802,6 +842,7 @@ class Compiler(
         val udec: Regex,
         val ascii: Regex,
         val string: Regex,
+        val multiLineString: Regex,
         val word: Regex,
         val wordNum: Regex,
         val wordNumUs: Regex,

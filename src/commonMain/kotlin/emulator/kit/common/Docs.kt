@@ -23,6 +23,19 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                     UnlinkedList(
                         Code(
                             """
+                                # if you want to add raw data as a hex dump you could just use the following data directive
+                                # this will extract all hex chars [a-fA-F0-9] and will just store them into the memory
+                                .data
+                                    .hexstring \"\"\"
+                                        CAFEAFFE
+                                        DEADBEEF
+                                        01234567
+                                        89ABCDEF                                        
+                                    \"\"\"
+                            """.trimIndent()
+                        ),
+                        Code(
+                            """
                                 # now supporting nested expression of literals!    
                                 .data
 	                                .word (((4 / 2) + 33) << (1 * 2))
@@ -34,6 +47,18 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
                     "Changed",
                     UnlinkedList(
                         Text("GLOBAL Upgraded to Kotlin 1.9.23"),
+                    )
+                ),
+                Section(
+                    "Fixed",
+                    UnlinkedList(
+                        Text("KIT .asciz and .string now store in the right direction and append a zero at the end."),
+                    )
+                ),
+                Section(
+                    "Issues",
+                    UnlinkedList(
+                        Text("KIT Expression dot before line rule is missing on expressions without brackets!")
                     )
                 )
             ),

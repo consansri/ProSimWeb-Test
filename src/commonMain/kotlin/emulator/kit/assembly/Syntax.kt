@@ -474,8 +474,8 @@ abstract class Syntax {
                     }
                 }
 
-                data object StringConst : InSpecific() {
-                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant.String
+                data class StringConst(val allowMultiLine: Boolean) : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant.String && (token.multiline == allowMultiLine || allowMultiLine)
                 }
 
                 data class Register(val regFile: RegContainer.RegisterFile? = null) : InSpecific() {

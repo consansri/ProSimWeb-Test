@@ -6,6 +6,7 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Memory
 import emulator.kit.common.Transcript
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
@@ -227,7 +228,7 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
 
                             is StandardSyntax.EInitData -> {
                                 val address = element.addr ?: continue
-                                val values = element.constants.map { it.getValue(element.dirType.deSize) }
+                                val values = element.values
                                 architecture.getMemory().storeArray(address, *values.toTypedArray(), mark = Memory.InstanceType.DATA)
                             }
                         }
