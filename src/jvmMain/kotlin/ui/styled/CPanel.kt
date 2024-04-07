@@ -1,7 +1,7 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
-import me.c3.ui.theme.core.components.CPanelUI
+import me.c3.ui.styled.CPanelUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import javax.swing.BorderFactory
 import javax.swing.JPanel
@@ -18,11 +18,11 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean) : JPanel()
             setUI(CPanelUI())
 
             uiManager.themeManager.addThemeChangeListener {
-                background = if (primary) it.globalStyle.bgPrimary else it.globalStyle.bgSecondary
+                background = if (primary) it.globalLaF.bgPrimary else it.globalLaF.bgSecondary
             }
 
             val currTheme = uiManager.currTheme()
-            background = if (primary) currTheme.globalStyle.bgPrimary else currTheme.globalStyle.bgSecondary
+            background = if (primary) currTheme.globalLaF.bgPrimary else currTheme.globalLaF.bgSecondary
             border = BorderFactory.createEmptyBorder()
         }
     }

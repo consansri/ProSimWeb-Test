@@ -1,4 +1,4 @@
-package me.c3.ui.theme.core.components
+package me.c3.ui.styled
 
 import me.c3.ui.components.styled.CTabbedPane
 import java.awt.Graphics

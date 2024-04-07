@@ -1,6 +1,5 @@
-package me.c3.ui.theme.core.components
+package me.c3.ui.styled
 
-import emulator.kit.nativeLog
 import me.c3.ui.components.styled.CSplitPane
 import java.awt.Color
 import java.awt.Dimension

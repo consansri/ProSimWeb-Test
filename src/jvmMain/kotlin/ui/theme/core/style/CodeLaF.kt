@@ -4,7 +4,7 @@ import emulator.kit.assembly.Compiler
 import java.awt.Color
 import java.awt.Font
 
-data class CodeStyle(
+data class CodeLaF(
     val font: Font,
-    val codeStyle: (Compiler.CodeStyle?) -> Color
+    val getColor: (Compiler.CodeStyle?) -> Color
 )

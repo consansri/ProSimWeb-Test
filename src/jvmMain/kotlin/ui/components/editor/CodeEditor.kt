@@ -1,10 +1,7 @@
 package me.c3.ui.components.editor
 
-import emulator.kit.nativeLog
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTabbedPane
-import java.io.File
-import javax.swing.JLabel
 
 class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true) {
 
@@ -12,16 +9,18 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
 
     init {
         uiManager.themeManager.addThemeChangeListener {
-            background = it.globalStyle.bgPrimary
+            background = it.globalLaF.bgPrimary
+        }
+
+        uiManager.fileManager.addOpenFileChangeListener { fm ->
+            this.removeAll()
+            fm.getCurrentFile()?.let {
+                this.addTextFileTab(uiManager, it)
+            }
         }
 
         // Defaults
-        background = uiManager.currTheme().globalStyle.bgPrimary
-    }
-
-    fun openFile(file: File) {
-        this.addTextFileTab(uiManager, file)
-        nativeLog("Try to open ${file.name}")
+        background = uiManager.currTheme().globalLaF.bgPrimary
     }
 
     /*fun compileCurrent(uiManager: UIManager, build: Boolean) {

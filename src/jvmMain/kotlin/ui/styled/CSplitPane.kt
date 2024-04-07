@@ -1,9 +1,8 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
-import me.c3.ui.theme.core.components.CSplitPaneUI
+import me.c3.ui.styled.CSplitPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
-import java.awt.Color
 import java.awt.Component
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
@@ -22,7 +21,7 @@ class CSplitPane(uiManager: UIManager, newOrientation: Int, newContinuousLayout:
 
             uiManager.themeManager.addThemeChangeListener {
                 val cSplitPaneUI = ui as? CSplitPaneUI
-                cSplitPaneUI?.dividerColor = it.globalStyle.borderColor
+                cSplitPaneUI?.dividerColor = it.globalLaF.borderColor
             }
 
             uiManager.scaleManager.addScaleChangeEvent {
@@ -30,7 +29,7 @@ class CSplitPane(uiManager: UIManager, newOrientation: Int, newContinuousLayout:
             }
 
             val cSplitPaneUI = ui as? CSplitPaneUI
-            cSplitPaneUI?.dividerColor = uiManager.currTheme().globalStyle.borderColor
+            cSplitPaneUI?.dividerColor = uiManager.currTheme().globalLaF.borderColor
 
             setDividerSize(uiManager.currScale().dividerScale.thickness)
         }

@@ -2,7 +2,7 @@ package me.c3.ui.theme.core.style
 
 import java.awt.Color
 
-data class IconStyle(
+data class IconLaF(
     val iconFgPrimary: Color,
     val iconFgSecondary: Color,
     val iconBg: Color = Color(0,0,0,0),

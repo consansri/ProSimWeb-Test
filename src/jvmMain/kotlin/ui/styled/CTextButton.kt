@@ -1,12 +1,9 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
-import me.c3.ui.theme.core.components.CButtonUI
-import me.c3.ui.theme.core.components.CTextButtonUI
+import me.c3.ui.styled.CTextButtonUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
-import java.awt.Cursor
-import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.SwingUtilities
 
@@ -41,8 +38,8 @@ class CTextButton(uiManager: UIManager, text: String) : JButton(text), UIAdapter
     private fun setDefaults(uiManager: UIManager){
         val currTheme = uiManager.currTheme()
         val currScale = uiManager.currScale()
-        font = currTheme.textStyle.titleFont.deriveFont(currScale.fontScale.titleSize)
-        foreground = currTheme.textStyle.base
+        font = currTheme.textLaF.titleFont.deriveFont(currScale.fontScale.titleSize)
+        foreground = currTheme.textLaF.base
         background = Color(0,0,0,0)
         repaint()
     }

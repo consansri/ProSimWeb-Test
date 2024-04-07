@@ -15,11 +15,11 @@ interface Theme {
     val name: String
     val icon: FlatSVGIcon
 
-    val codeStyle: CodeStyle
-    val globalStyle: GlobalStyle
-    val iconStyle: IconStyle
-    val textStyle: TextStyle
-    val exeStyle: ExecutionStyle
+    val codeLaF: CodeLaF
+    val globalLaF: GlobalLaF
+    val iconLaF: IconLaF
+    val textLaF: TextLaF
+    val exeStyle: ExeLaF
 
     fun loadFont(url: String): Font {
         val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream(url)

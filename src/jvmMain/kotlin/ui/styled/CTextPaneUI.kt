@@ -1,4 +1,4 @@
-package me.c3.ui.theme.core.components
+package me.c3.ui.styled
 
 import emulator.kit.assembly.Compiler
 import me.c3.ui.components.styled.CTextPane

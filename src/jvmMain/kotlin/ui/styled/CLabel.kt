@@ -25,8 +25,8 @@ class CLabel(uiManager: UIManager, content: String): JLabel(content), UIAdapter 
     }
 
     private fun setDefaults(uiManager: UIManager){
-        font = uiManager.currTheme().textStyle.font.deriveFont(uiManager.currScale().fontScale.textSize)
-        foreground = uiManager.currTheme().textStyle.base
+        font = uiManager.currTheme().textLaF.font.deriveFont(uiManager.currScale().fontScale.textSize)
+        foreground = uiManager.currTheme().textLaF.base
         repaint()
     }
 

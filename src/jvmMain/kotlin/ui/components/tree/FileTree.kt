@@ -1,6 +1,8 @@
 package me.c3.ui.components.tree
 
+import emulator.kit.nativeError
 import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 import me.c3.ui.UIManager
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.styled.CPanel
@@ -14,17 +16,19 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JFileChooser
+import javax.swing.event.TreeSelectionEvent
+import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class FileTree(uiManager: UIManager, private val codeEditor: CodeEditor) : CPanel(uiManager, true) {
+class FileTree(uiManager: UIManager, defaultWorkspace: String) : CPanel(uiManager, true) {
     private val projectButton = CTextButton(uiManager, "Project")
     private val title = CPanel(uiManager, false)
     private val content = CScrollPane(uiManager, true)
     private var currentCTree: CTree? = null
 
     init {
-        projectButton.foreground = uiManager.currTheme().textStyle.base
+        projectButton.foreground = uiManager.currTheme().textLaF.base
         projectButton.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         projectButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
@@ -47,6 +51,8 @@ class FileTree(uiManager: UIManager, private val codeEditor: CodeEditor) : CPane
 
         this.add(title, BorderLayout.NORTH)
         this.add(content, BorderLayout.CENTER)
+
+        setWorkspace(uiManager, defaultWorkspace)
     }
 
     fun setWorkspace(uiManager: UIManager, workspace: String) {
@@ -56,33 +62,32 @@ class FileTree(uiManager: UIManager, private val codeEditor: CodeEditor) : CPane
 
         buildFileTree(rootDir, rootNode)
 
-        currentCTree = CTree(treeModel)
+        currentCTree = CTree(uiManager, treeModel)
 
         // Add Listeners
         uiManager.themeManager.addThemeChangeListener {
-            currentCTree?.background = it.globalStyle.bgSecondary
+            currentCTree?.background = it.globalLaF.bgSecondary
         }
 
         currentCTree?.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 if (e.clickCount == 2) {
-                    nativeLog("Click received!")
                     currentCTree?.let { currTree ->
-                        val selectedNode = currTree.lastSelectedPathComponent as? DefaultMutableTreeNode
-                        nativeLog("Found Node $selectedNode!")
-                        if (selectedNode != null) {
-                            nativeLog("is File!")
-                            val file = File(selectedNode.userObjectPath.toString())
-                            codeEditor.openFile(file)
+                        val selectedNode = currTree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@let
+                        val uobj = selectedNode.userObject
+
+                        if (uobj is CTree.TreeFile) {
+                            uiManager.fileManager.openFile(uobj.file)
+                        } else {
+                            nativeError("Couldn't open File! ($uobj)")
                         }
                     }
-
                 }
             }
         })
 
         // Apply Standards
-        currentCTree?.background = uiManager.currTheme().globalStyle.bgSecondary
+        currentCTree?.background = uiManager.currTheme().globalLaF.bgSecondary
         currentCTree?.setFocusPainted(false)
 
         currentCTree?.isFocusable = false
@@ -97,7 +102,7 @@ class FileTree(uiManager: UIManager, private val codeEditor: CodeEditor) : CPane
         println("Found files: ${files.joinToString { it.name }}")
 
         for (childFile in files) {
-            val childNode = DefaultMutableTreeNode(childFile.name)
+            val childNode = DefaultMutableTreeNode(CTree.TreeFile(childFile))
             parentNode.add(childNode)
 
             if (childFile.isDirectory) {
@@ -105,4 +110,5 @@ class FileTree(uiManager: UIManager, private val codeEditor: CodeEditor) : CPane
             }
         }
     }
+
 }

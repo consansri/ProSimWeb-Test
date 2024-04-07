@@ -3,13 +3,11 @@ package me.c3.ui.components.styled
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import me.c3.ui.UIManager
-import me.c3.ui.theme.core.components.CButtonUI
+import me.c3.ui.styled.CIconButtonUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
-import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.SwingUtilities
 import javax.swing.Timer
@@ -22,7 +20,7 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
     var customColor: Color? = null
         set(value) {
             field = value
-            updateIcon(uiManager)
+            setupUI(uiManager)
         }
 
     var rotating = false
@@ -31,37 +29,36 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
             updateAnim()
         }
 
-    var iconBg = uiManager.currTheme().iconStyle.iconBg
+    var iconBg = uiManager.currTheme().iconLaF.iconBg
         set(value) {
             field = value
-            updateIcon(uiManager)
+            setupUI(uiManager)
         }
 
     var mode: Mode = mode
         set(value) {
             field = value
-            updateIcon(uiManager)
+            setupUI(uiManager)
         }
 
     var isDeactivated = false
         set(value) {
             field = value
-            updateIcon(uiManager)
+            setupUI(uiManager)
         }
 
     var svgIcon = icon
         set(value) {
             field = value
-            updateIcon(uiManager)
+            setupUI(uiManager)
         }
 
     init {
         setupUI(uiManager)
-        updateIcon(uiManager)
     }
 
     private fun updateIcon(uiManager: UIManager) {
-        val iconStyle = uiManager.currTheme().iconStyle
+        val iconStyle = uiManager.currTheme().iconLaF
         SwingUtilities.invokeLater {
             svgIcon?.colorFilter = ColorFilter {
                 val color = customColor ?: when (mode) {
@@ -120,7 +117,7 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
 
     final override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
-            this.setUI(CButtonUI())
+            this.setUI(CIconButtonUI())
 
             // Set Standard Appearance
             isFocusable = false
@@ -141,13 +138,6 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
     }
 
     private fun setDefaults(uiManager: UIManager) {
-        val iconScale = when (mode) {
-            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL -> uiManager.scaleManager.currentScaling.controlScale.normalSize
-            Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL -> uiManager.scaleManager.currentScaling.controlScale.smallSize
-        }
-        size = Dimension(iconScale, iconScale)
-        val insets = uiManager.currScale().borderScale.insets
-        border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         updateIcon(uiManager)
     }
 

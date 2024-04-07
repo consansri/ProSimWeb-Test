@@ -2,7 +2,7 @@ package me.c3.ui.theme.core.style
 
 import java.awt.Color
 
-data class ExecutionStyle(
+data class ExeLaF(
     val continuous: Color,
     val single: Color,
     val multi: Color,

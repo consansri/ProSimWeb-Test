@@ -1,4 +1,4 @@
-package me.c3.ui.components.borders
+package me.c3.ui.styled.borders
 
 import me.c3.ui.UIManager
 import java.awt.Component
@@ -15,7 +15,7 @@ class DirectionalBorder(
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    var lineBorder = LineBorder(uiManager.themeManager.currentTheme.globalStyle.borderColor, uiManager.scaleManager.currentScaling.borderScale.thickness)
+    var lineBorder = LineBorder(uiManager.themeManager.currentTheme.globalLaF.borderColor, uiManager.scaleManager.currentScaling.borderScale.thickness)
         set(value) {
             field = value
         }
@@ -27,14 +27,14 @@ class DirectionalBorder(
 
     init {
         uiManager.scaleManager.addScaleChangeEvent {
-            val color = uiManager.themeManager.currentTheme.globalStyle.borderColor
+            val color = uiManager.themeManager.currentTheme.globalLaF.borderColor
             this.lineBorder = LineBorder(color, it.borderScale.thickness)
             this.thickness = it.borderScale.thickness
         }
 
         uiManager.themeManager.addThemeChangeListener {
             val thickness = uiManager.scaleManager.currentScaling.borderScale.thickness
-            this.lineBorder = LineBorder(it.globalStyle.borderColor, thickness)
+            this.lineBorder = LineBorder(it.globalLaF.borderColor, thickness)
             this.thickness = thickness
         }
     }

@@ -1,4 +1,4 @@
-package me.c3.ui.theme.core.components
+package me.c3.ui.styled
 
 import me.c3.ui.components.styled.CIconButton
 import java.awt.*
@@ -9,11 +9,11 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
 
-class CButtonUI : BasicButtonUI() {
+class CIconButtonUI : BasicButtonUI() {
 
     companion object {
-        const val INSET = 3
-        const val CORNER_RADIUS = 5
+        const val INSET = 2
+        const val CORNER_RADIUS = 10
         val HOVER_COLOR = Color(0x55777777, true)
     }
 
@@ -55,6 +55,7 @@ class CButtonUI : BasicButtonUI() {
 
         // Paint button
         super.paint(g, c)
+        g2.dispose()
     }
 
     override fun getPreferredSize(c: JComponent?): Dimension {

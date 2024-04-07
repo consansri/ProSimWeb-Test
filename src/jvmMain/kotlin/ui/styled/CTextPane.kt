@@ -2,7 +2,7 @@ package me.c3.ui.components.styled
 
 import emulator.kit.assembly.Compiler
 import me.c3.ui.UIManager
-import me.c3.ui.theme.core.components.CTextPaneUI
+import me.c3.ui.styled.CTextPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import javax.swing.BorderFactory
 import javax.swing.JScrollPane
@@ -44,11 +44,10 @@ class CTextPane(uiManager: UIManager, doc: StyledDocument) : JTextPane(doc), UIA
 
     private fun setDefaults(uiManager: UIManager){
         border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
-        font = uiManager.currTheme().codeStyle.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
-        background = uiManager.currTheme().globalStyle.bgPrimary
-        isEditable = true
-        caretColor = uiManager.currTheme().codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
-        foreground = uiManager.currTheme().codeStyle.codeStyle(Compiler.CodeStyle.BASE0)
+        font = uiManager.currTheme().codeLaF.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+        background = uiManager.currTheme().globalLaF.bgPrimary
+        caretColor = uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.BASE0)
+        foreground = uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.BASE0)
         repaint()
     }
 

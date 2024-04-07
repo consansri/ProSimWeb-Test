@@ -1,7 +1,7 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
-import me.c3.ui.theme.core.components.CScrollPaneUI
+import me.c3.ui.styled.CScrollPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Component
 import java.awt.Graphics
@@ -37,10 +37,10 @@ class CScrollPane(uiManager: UIManager, private val primary: Boolean) : JScrollP
     }
 
     private fun setDefaults(uiManager: UIManager) {
-        background = if (primary) uiManager.currTheme().globalStyle.bgPrimary else uiManager.currTheme().globalStyle.bgSecondary
+        background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
         val paneUI = ui as? CScrollPaneUI ?: return
-        paneUI.scrollBarBgColor = if (primary) uiManager.currTheme().globalStyle.bgPrimary else uiManager.currTheme().globalStyle.bgSecondary
-        paneUI.scrollBarFgColor = uiManager.currTheme().globalStyle.borderColor
+        paneUI.scrollBarBgColor = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
+        paneUI.scrollBarFgColor = uiManager.currTheme().globalLaF.borderColor
         repaint()
     }
 

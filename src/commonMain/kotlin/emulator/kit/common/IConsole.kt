@@ -1,5 +1,7 @@
 package emulator.kit.common
 
+import emulator.kit.assembly.Compiler
+
 
 /**
  * The usage of [IConsole] is mainly to hold messages from architecture components on runtime. It's used to resolve assembler errors and warnings.
@@ -46,11 +48,11 @@ class IConsole(val name: String) {
 
     data class Message(val type: MSGType, val message: String)
 
-    enum class MSGType {
-        LOG,
-        INFO,
-        WARNING,
-        ERROR
+    enum class MSGType(val style: Compiler.CodeStyle) {
+        LOG(Compiler.CodeStyle.BASE3),
+        INFO(Compiler.CodeStyle.BASE1),
+        WARNING(Compiler.CodeStyle.YELLOW),
+        ERROR(Compiler.CodeStyle.RED)
     }
 
 }

@@ -52,7 +52,7 @@ class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManage
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
         uiManager.themeManager.addThemeChangeListener {
-            background = it.globalStyle.bgSecondary
+            background = it.globalLaF.bgSecondary
         }
 
         // Functions
@@ -63,14 +63,14 @@ class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManage
         // Set Defaults
         val insets = uiManager.currScale().borderScale.insets
         border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-        background = uiManager.currTheme().globalStyle.bgSecondary
+        background = uiManager.currTheme().globalLaF.bgSecondary
 
         statusIcon.isDeactivated = true
         statusIcon.rotating = true
     }
 
     private fun installStatusButton(uiManager: UIManager) {
-        uiManager.eventManager.addEditListener {
+        /*uiManager.eventManager.addEditListener {
             when (uiManager.archManager.curr.getState().currentState) {
                 ArchState.State.UNCHECKED -> {
                     statusIcon.svgIcon = uiManager.icons.statusLoading
@@ -92,7 +92,7 @@ class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManage
                     statusIcon.rotating = false
                 }
             }
-        }
+        }*/
 
         uiManager.eventManager.addCompileListener {
             when (it.getState().currentState) {
