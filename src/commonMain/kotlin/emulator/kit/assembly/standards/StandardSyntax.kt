@@ -1,5 +1,6 @@
 package emulator.kit.assembly.standards
 
+import emulator.kit.Architecture
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
@@ -12,7 +13,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
     override val applyStandardHLForRest: Boolean = false
     override fun clear() {}
-    override fun check(arch: emulator.kit.Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<LinkedTree>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: emulator.kit.Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<Compiler.CompilerFile>, transcript: Transcript): SyntaxTree {
         val remainingTokens = tokens.toMutableList()
 
         val errors = mutableListOf<Error>()
@@ -22,8 +23,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         val elements = mutableListOf<TreeNode.ElementNode>()
         val sections = mutableListOf<TreeNode.SectionNode>()
 
-        remainingTokens.resolveImports(preElements, sections, errors, warnings, others)
-
+        remainingTokens.resolveImports(arch, preElements, sections, errors, warnings, others)
         remainingTokens.removeComments(preElements)
         remainingTokens.resolveEqus(preElements, errors, warnings, arch)
         remainingTokens.resolveMacros(preElements, errors, warnings, arch)
@@ -310,7 +310,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
     /**
      * Resolves other file imports
      */
-    private fun MutableList<Compiler.Token>.resolveImports(preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<LinkedTree>): MutableList<Compiler.Token> {
+    private fun MutableList<Compiler.Token>.resolveImports(arch: Architecture, preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<Compiler.CompilerFile>): MutableList<Compiler.Token> {
         val tokenBuffer = this.toMutableList()
         while (tokenBuffer.isNotEmpty()) {
             val result = Seqs.SeqImport.matchStart(*tokenBuffer.toTypedArray())
@@ -319,7 +319,6 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 tokenBuffer.removeFirst()
                 continue
             }
-
 
             val tokens = result.sequenceMap.map { it.token }
             val symbol = tokens[0]
@@ -336,23 +335,40 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 continue
             }
 
-            val fileTree = file.tree
-            if (fileTree?.rootNode == null) {
-                errors.add(Error("File (${string.rawString}) not build!", *tokens.toTypedArray()))
+            val fileTree = treeCache[file]
+            val rootNode = if (fileTree == null) {
+                val recompileFile = arch.getCompiler().compile(file, others.filter { it != file }, build = false)
+                treeCache.remove(file)
+                recompileFile.tree?.let {
+                    treeCache[file] = recompileFile.tree
+                }
+
+                recompileFile.tree?.rootNode
+            } else {
+                fileTree.rootNode
+            }
+
+
+
+            if (rootNode == null) {
+                errors.add(Error("Couldn't compile file! (${file.name})!", *tokens.toTypedArray()))
                 tokenBuffer.removeAll(tokens)
                 this.removeAll(tokens)
                 continue
             }
-            val root = fileTree.rootNode
 
-            if (root.allErrors.isNotEmpty()) {
+            rootNode.containers.forEach {
+                it.nodes
+            }
+
+            if (rootNode.allErrors.isNotEmpty()) {
                 errors.add(Error("File (${string.rawString}) has errors which first need to be fixed!", *tokens.toTypedArray()))
                 tokenBuffer.removeAll(tokens)
                 this.removeAll(tokens)
                 continue
             }
 
-            root.containers.forEach {
+            rootNode.containers.forEach {
                 if (it is CSections) {
                     sections.addAll(it.sections)
                 }
@@ -388,7 +404,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 }
                 if (constants.size == commas.size) {
                     // Expect constant
-                    if(!dirType.deType.matches(this.first())) break
+                    if (!dirType.deType.matches(this.first())) break
                     val constant = this.first() as Compiler.Token.Constant
                     if (!constant.getValue(dirType.deSize).checkResult.valid) break
                     constants.add(constant)
@@ -628,7 +644,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         val SeqAfterEquDir = TokenSeq(InSpecific.WordNoDots, Specific(","), InSpecific.Constant, ignoreSpaces = true)
         val SeqMacroAttrInsert = TokenSeq(Specific("""\"""), InSpecific.WordNoDots)
         val SeqLabel = TokenSeq(InSpecific.Word, Specific(":"))
-        val SeqImport = TokenSeq(Specific("#"), Specific("import"), InSpecific.Space, InSpecific.StringConst(false))
+        val SeqImport = TokenSeq(Specific("#"), Specific("import"), InSpecific.Space, InSpecific.StringConst())
         fun getSetPC(memAddressWidth: Variable.Size): TokenSeq = TokenSeq(Specific("*"), Specific("="), SpecConst(memAddressWidth))
     }
 

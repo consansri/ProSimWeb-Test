@@ -153,7 +153,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- ASYNC Events ----------------- */
 
     fun build() {
-        val valueToCheck = props.fileState.component1().getCurrContent()
+        val file = props.fileState.component1().getCurrent().toCompilerFile()
 
         /* ----------------- COROUTINES ----------------- */
         checkTimeOutRef.current?.let {
@@ -162,8 +162,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         checkTimeOutRef.current = setTimeout({
             val analysisTime = measureTime {
                 props.archState.component1().getState().edit()
-                val compilationResult = props.archState.component1().compile(valueToCheck, props.fileState.component1().getCurrent().getName(), props.fileState.component1().getOthers(), build = true)
-                props.fileState.component1().getCurrent().linkGrammarTree(compilationResult.tree)
+                val compilationResult = props.archState.component1().compile(file, props.fileState.component1().getOthers(), build = true)
                 val hlTaList = compilationResult.tokens.getVCRows()
                 setvcRows(hlTaList)
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
@@ -176,8 +175,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun preHighlight() {
-        val value = props.fileState.component1().getCurrContent()
-        val rows = value.split("\n")
+        val value = props.fileState.component1().getCurrent().toCompilerFile()
+        val rows = value.content.split("\n")
         setvcRows(rows)
         val delay = 1500
         preHLTimeoutRef.current?.let {
@@ -187,8 +186,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             preHLTimeoutRef.current = setTimeout({
                 val analysisTime = measureTime {
                     props.archState.component1().getState().edit()
-                    val compilationResult = props.archState.component1().compile(value, props.fileState.component1().getCurrent().getName(), props.fileState.component1().getOthers(), build = false)
-                    props.fileState.component1().getCurrent().linkGrammarTree(compilationResult.tree)
+                    val compilationResult = props.archState.component1().compile(value, props.fileState.component1().getOthers(), build = false)
                     val hlTaList = compilationResult.tokens.getVCRows()
                     setvcRows(hlTaList)
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
@@ -519,7 +517,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB + if (file == props.fileState.component1().getCurrent()) " ${StyleAttr.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
 
                             img {
-                                src = if (file.getLinkedTree() != null) {
+                                src = if (props.archState.component1().getCompiler().isInTreeCacheAndHasNoErrors(file.toCompilerFile())) {
                                     StyleAttr.Icons.file_compiled
                                 } else {
                                     StyleAttr.Icons.file_not_compiled
@@ -539,7 +537,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                         onClick = {
                                             setShowRenameTab(true)
                                         }
-
                                     }
                                 } else {
                                     input {
@@ -573,9 +570,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                                     }, 500)
                                                 }
                                             }
-
                                         }
-
                                     }
                                 }
 
@@ -752,7 +747,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     val lineID = lines.size - 1
                                     val startIndex = lines[lineID].length
 
-                                    val grammarTree = props.archState.component1().getCompiler().getGrammarTree()
+                                    val grammarTree = props.archState.component1().getCompiler().getGrammarTree(props.fileState.component1().getCurrent().toCompilerFile())
                                     grammarTree?.rootNode?.let { rootNode ->
                                         var path = ""
                                         rootNode.containers.forEach {

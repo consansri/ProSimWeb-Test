@@ -12,9 +12,11 @@ import emulator.kit.types.Variable
  * In addition to that basic functionality [RowSeq] and [TokenSeq] are tools to recognize certain common token patterns. [ConnectedHL] delivers a tool which can be used to apply different highlighting to each token in a specific TreeNode.
  */
 abstract class Syntax {
+    val treeCache: MutableMap<Compiler.CompilerFile, SyntaxTree> = mutableMapOf()
+
     abstract val applyStandardHLForRest: Boolean
     abstract fun clear()
-    abstract fun check(arch: emulator.kit.Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<LinkedTree>, transcript: Transcript): SyntaxTree
+    abstract fun check(arch: emulator.kit.Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<Compiler.CompilerFile>, transcript: Transcript): SyntaxTree
     class SyntaxTree(val rootNode: TreeNode.RootNode? = null) {
         fun contains(token: Compiler.Token): SearchResult? {
             rootNode?.let {
@@ -474,7 +476,7 @@ abstract class Syntax {
                     }
                 }
 
-                data class StringConst(val allowMultiLine: Boolean) : InSpecific() {
+                data class StringConst(val allowMultiLine: Boolean = true) : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant.String && (token.multiline == allowMultiLine || allowMultiLine)
                 }
 

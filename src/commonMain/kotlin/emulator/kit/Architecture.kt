@@ -54,6 +54,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val cache: Cache?
     private val features: List<Feature>
     private val settings: List<ArchSetting>
+    private var lastFile: Compiler.CompilerFile? = null
 
     init {
         this.description = config.description
@@ -82,7 +83,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getConsole(): IConsole = iConsole
     fun getState(): ArchState = archState
     fun getCompiler(): Compiler = compiler
-    fun getFormattedFile(type: FileBuilder.ExportFormat, fileContent: String, fileTree: Syntax.LinkedTree, vararg settings: FileBuilder.Setting): List<String> = FileBuilder().buildFileContentLines(this, type, fileContent, fileTree, *settings)
+    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: Compiler.CompilerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder().buildFileContentLines(this, type, currentFile, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
@@ -153,7 +154,9 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     open fun exeReset() {
         regContainer.clear()
         memory.clear()
-        compiler.reassemble()
+        lastFile?.let {
+            compiler.reassemble(it)
+        }
         getConsole().exeInfo("resetting")
     }
 
@@ -161,17 +164,19 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Compilation Event
      * already implemented
      */
-    fun compile(input: String, fileName: String, others: List<Syntax.LinkedTree>, build: Boolean = true): Compiler.CompileResult {
+    fun compile(mainFile: Compiler.CompilerFile, others: List<Compiler.CompilerFile>, build: Boolean = true): Compiler.CompileResult {
         if (build) {
             regContainer.clear()
         }
 
         if (DebugTools.KIT_showCheckCodeEvents) {
-            println("Architecture.check(): input \n $input \n")
+            println("Architecture.check(): input \n $mainFile \n")
         }
-        val compilationResult = compiler.compile(input, fileName, others, build = build)
+        nativeLog("Architecture.check() orig: ${mainFile.content}")
+        val compilationResult = compiler.compile(mainFile, others, build = build)
+        nativeLog("Architecture.check() hl: ${compilationResult.tokens.joinToString("") { it.content }}")
         archState.check(compilationResult.success)
-
+        lastFile = mainFile
         return compilationResult
     }
 

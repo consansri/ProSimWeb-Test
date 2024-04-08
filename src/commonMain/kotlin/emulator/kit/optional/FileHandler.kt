@@ -2,6 +2,7 @@ package emulator.kit.optional
 
 import Coroutines
 import debug.DebugTools
+import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.loadFiles
 import emulator.kit.nativeWarn
@@ -91,10 +92,8 @@ class FileHandler() {
     fun getOrNull(fileName: String): File?{
         return files.firstOrNull { it.getName() == fileName }
     }
-    fun getOthers(): List<Syntax.LinkedTree>{
-        return files.filter { it != files.getOrNull(currentID) }.map {
-            it.getLinkedTree()
-        }
+    fun getOthers(): List<Compiler.CompilerFile>{
+        return files.map { it.toCompilerFile() }
     }
 
     fun getCurrID(): Int = currentID
@@ -124,12 +123,7 @@ class FileHandler() {
     class File(private var name: String, private var content: String, private val undoStates: MutableList<String> = mutableListOf(), private val redoStates: MutableList<String> = mutableListOf()) {
 
         private var job: Job? = null
-        private var syntaxTree: Syntax.SyntaxTree? = null
 
-
-        fun getLinkedTree(): Syntax.LinkedTree{
-            return Syntax.LinkedTree(name, syntaxTree)
-        }
         fun rename(newName: String) {
             name = newName
         }
@@ -166,10 +160,6 @@ class FileHandler() {
             }
         }
 
-        fun linkGrammarTree(syntaxTree: Syntax.SyntaxTree?) {
-            this.syntaxTree = syntaxTree
-        }
-
         fun getContent(): String {
             return this.content
         }
@@ -181,6 +171,8 @@ class FileHandler() {
         fun getRedoStates(): List<String> {
             return redoStates
         }
+
+        fun toCompilerFile(): Compiler.CompilerFile = Compiler.CompilerFile(name, content)
 
         private fun addUndoState(fileHandler: FileHandler, content: String) {
             job?.cancel()
