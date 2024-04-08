@@ -8,14 +8,14 @@ import me.c3.ui.theme.icons.BenIcons
 import javax.swing.JFrame
 
 
-class UIManager(mainFrame: JFrame) {
+class UIManager() {
 
     val archManager = ArchManager(Link.RV32I.arch)
     val fileManager = FileManager()
 
     val icons = BenIcons()
 
-    val themeManager = ThemeManager(mainFrame, icons)
+    val themeManager = ThemeManager(icons)
     val scaleManager = ScaleManager()
     val eventManager = EventManager(archManager)
 

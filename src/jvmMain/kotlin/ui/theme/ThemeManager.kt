@@ -8,11 +8,11 @@ import me.c3.ui.theme.themes.LightTheme
 import javax.swing.JFrame
 import javax.swing.UIManager
 
-class ThemeManager(private val mainFrame: JFrame, icons: ProSimIcons) {
+class ThemeManager(icons: ProSimIcons) {
 
     val themes: List<Theme> = listOf(
-        LightTheme(icons),
-        DarkTheme(icons)
+        DarkTheme(icons),
+        LightTheme(icons)
     )
 
     var currentTheme: Theme = themes.first()

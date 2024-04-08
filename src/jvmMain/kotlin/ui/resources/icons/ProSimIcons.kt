@@ -4,6 +4,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon
 
 interface ProSimIcons {
 
+    val appLogo: FlatSVGIcon
     val add: FlatSVGIcon
     val autoscroll: FlatSVGIcon
     val backwards: FlatSVGIcon
@@ -48,4 +49,7 @@ interface ProSimIcons {
     val stepOver: FlatSVGIcon
     val tag: FlatSVGIcon
 
+    val minimize: FlatSVGIcon
+    val maximize: FlatSVGIcon
+    val close: FlatSVGIcon
 }

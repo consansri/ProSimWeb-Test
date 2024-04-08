@@ -11,9 +11,11 @@ import javax.swing.plaf.basic.BasicButtonUI
 
 class CIconButtonUI : BasicButtonUI() {
 
+
+    var inset = 2
+    var cornerRadius = 10
+
     companion object {
-        const val INSET = 2
-        const val CORNER_RADIUS = 10
         val HOVER_COLOR = Color(0x55777777, true)
     }
 
@@ -25,7 +27,7 @@ class CIconButtonUI : BasicButtonUI() {
         button.isContentAreaFilled = false
         button.isFocusPainted = false
         button.isFocusable = false
-        button.border = BorderFactory.createEmptyBorder(INSET, INSET, INSET, INSET)
+        button.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
 
         // Apply hover effect
         button.addMouseListener(object : MouseAdapter() {
@@ -45,13 +47,14 @@ class CIconButtonUI : BasicButtonUI() {
     override fun paint(g: Graphics?, c: JComponent?) {
         val button = c as? AbstractButton ?: return
         val g2 = g as? Graphics2D ?: return
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
         val width = button.width
         val height = button.height
 
         // Paint button background
         g2.color = button.background
-        g2.fillRoundRect(INSET, INSET, width - INSET * 2, height - INSET * 2, CORNER_RADIUS, CORNER_RADIUS)
+        g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, cornerRadius, cornerRadius)
 
         // Paint button
         super.paint(g, c)
@@ -61,7 +64,7 @@ class CIconButtonUI : BasicButtonUI() {
     override fun getPreferredSize(c: JComponent?): Dimension {
         val button = c as? AbstractButton ?: return super.getPreferredSize(c)
         val preferredSize = super.getPreferredSize(button)
-        return Dimension(preferredSize.width + INSET * 2, preferredSize.height + INSET * 2)
+        return Dimension(preferredSize.width + inset * 2, preferredSize.height + inset * 2)
     }
 
     override fun getMinimumSize(c: JComponent?): Dimension {

@@ -7,24 +7,27 @@ import javax.swing.BorderFactory
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
-open class CPanel(uiManager: UIManager, private val primary: Boolean) : JPanel(), UIAdapter {
+open class CPanel(uiManager: UIManager, private val primary: Boolean = false, private val topRoot: Boolean = false, private val bottomRoot: Boolean = false) : JPanel(), UIAdapter {
 
     init {
-        setupUI(uiManager)
+        this.setupUI(uiManager)
     }
 
     override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
-            setUI(CPanelUI())
 
             uiManager.themeManager.addThemeChangeListener {
-                background = if (primary) it.globalLaF.bgPrimary else it.globalLaF.bgSecondary
+                setDefaults(uiManager)
             }
 
-            val currTheme = uiManager.currTheme()
-            background = if (primary) currTheme.globalLaF.bgPrimary else currTheme.globalLaF.bgSecondary
-            border = BorderFactory.createEmptyBorder()
+            setDefaults(uiManager)
         }
+    }
+
+    private fun setDefaults(uiManager: UIManager) {
+        setUI(CPanelUI())
+        background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
+        repaint()
     }
 
 }

@@ -1,8 +1,11 @@
 package me.c3.ui.theme.icons
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import java.awt.Image
 
 class BenIcons : ProSimIcons {
+
+    override val appLogo: FlatSVGIcon = FlatSVGIcon("benicons/processor_bold.svg")
     override val add: FlatSVGIcon = FlatSVGIcon("benicons/add.svg")
     override val autoscroll: FlatSVGIcon = FlatSVGIcon("benicons/autoscroll.svg")
     override val backwards: FlatSVGIcon = FlatSVGIcon("benicons/backwards.svg")
@@ -46,4 +49,8 @@ class BenIcons : ProSimIcons {
     override val stepOut: FlatSVGIcon = FlatSVGIcon("benicons/step_out.svg")
     override val stepOver: FlatSVGIcon = FlatSVGIcon("benicons/step_over.svg")
     override val tag: FlatSVGIcon = FlatSVGIcon("benicons/tag.svg")
+
+    override val minimize: FlatSVGIcon = FlatSVGIcon("benicons/tag.svg")
+    override val maximize: FlatSVGIcon = FlatSVGIcon("benicons/tag.svg")
+    override val close: FlatSVGIcon = FlatSVGIcon("benicons/cancel.svg")
 }

@@ -8,8 +8,8 @@ import me.c3.ui.spacing.core.Scaling
 
 class StandardScaling : Scaling {
     override val name: String = "standard"
-    override val controlScale: ControlScale = ControlScale(28, 18)
+    override val controlScale: ControlScale = ControlScale(28, 18, 2, 10)
     override val fontScale: FontScale = FontScale(14f, 14f, 15f)
-    override val borderScale: BorderScale = BorderScale(1, 4)
+    override val borderScale: BorderScale = BorderScale(1, 4, 10)
     override val dividerScale: DividerScale = DividerScale(2)
 }

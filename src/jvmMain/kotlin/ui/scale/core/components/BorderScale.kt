@@ -1,6 +1,12 @@
 package me.c3.ui.scale.core.components
 
+import javax.swing.BorderFactory
+import javax.swing.border.Border
+
 data class BorderScale (
     val thickness: Int,
-    val insets: Int
-)
+    val insets: Int,
+    val cornerRadius: Int
+){
+    fun getInsetBorder(): Border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
+}
