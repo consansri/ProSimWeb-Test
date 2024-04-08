@@ -330,7 +330,7 @@ val Menu = FC<MenuProps> { props ->
                         }
 
                         downloadAsyncRef.current = setTimeout({
-                            val blob = Blob(arch.getFormattedFile(selFormat, props.fileState.component1().getCurrContent(), props.fileState.component1().getCurrent().getLinkedTree(), FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW)).toTypedArray())
+                            val blob = Blob(arch.getFormattedFile(selFormat, props.fileState.component1().getCurrent().toCompilerFile(), FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW)).toTypedArray())
                             val anchor = document.createElement("a") as HTMLAnchorElement
                             anchor.href = URL.createObjectURL(blob)
                             anchor.style.display = "none"

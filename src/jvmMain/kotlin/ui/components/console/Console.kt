@@ -9,10 +9,12 @@ import java.awt.BorderLayout
 class Console(uiManager: UIManager) : CPanel(uiManager, primary = false) {
 
     val topBar = CPanel(uiManager, primary = false)
-    val textPane: CTextPane = CTextPane(uiManager, ConsoleDocument(uiManager))
+    val textPane: CTextPane = CTextPane(uiManager)
     val contentPane = textPane.createScrollPane(uiManager)
 
     init {
+        textPane.document = ConsoleDocument(uiManager)
+
         connectChildren(uiManager)
         attachListeners(uiManager)
         setDefaults()

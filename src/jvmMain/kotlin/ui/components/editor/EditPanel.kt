@@ -11,19 +11,19 @@ import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
+import java.io.File
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
-class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, true) {
+class EditPanel(val file: FileManager.CodeFile, val codeEditor: CodeEditor, uiManager: UIManager) : CPanel(uiManager, true) {
     private var compileJob: Job? = null
 
     // Content
-    private val document = EditorDocument(uiManager)
     private var currentlyUpdating = false
 
     // Elements
-    private val textPane = CTextPane(uiManager, document)
+    private val textPane = CTextPane(uiManager)
     private val lineNumbers = LineNumbers(uiManager, textPane)
     private val viewport = JViewport()
     private val cScrollPane = textPane.createScrollPane(uiManager)
@@ -38,6 +38,24 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
         constraints.weighty = 1.0
         constraints.fill = GridBagConstraints.BOTH
 
+        textPane.document = file.getRawDocument(uiManager)
+        textPane.document.addDocumentListener(object : DocumentListener {
+            override fun insertUpdate(e: DocumentEvent?) {
+                lineNumbers.update()
+                if (!currentlyUpdating) triggerCompile(uiManager)
+            }
+
+            override fun removeUpdate(e: DocumentEvent?) {
+                lineNumbers.update()
+                if (!currentlyUpdating) triggerCompile(uiManager)
+            }
+
+            override fun changedUpdate(e: DocumentEvent?) {
+                lineNumbers.update()
+                if (!currentlyUpdating) triggerCompile(uiManager)
+            }
+        })
+
         // Add Listeners
         uiManager.themeManager.addThemeChangeListener {
             setDefaults(uiManager)
@@ -47,32 +65,11 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
             setDefaults(uiManager)
         }
 
-        textPane.document.addDocumentListener(object : DocumentListener {
-            override fun insertUpdate(e: DocumentEvent?) {
-                triggerCompile(uiManager)
-            }
-
-            override fun removeUpdate(e: DocumentEvent?) {
-                triggerCompile(uiManager)
-            }
-
-            override fun changedUpdate(e: DocumentEvent?) {
-                triggerCompile(uiManager)
-            }
-        })
-
-        /*uiManager.eventManager.addEditListener {
-            triggerCompile(uiManager, build = false)
-        }*/
-
         // Apply Defaults
         border = BorderFactory.createEmptyBorder()
 
         // for lineNumbers
         lineNumbers.border = DirectionalBorder(uiManager, east = true)
-
-        // for textPane
-        textPane.document = EditorDocument(uiManager) // Use PlainDocument for better performance
 
         // Link ViewPort with LineNumbers to ScrollPane
         viewport.view = lineNumbers
@@ -87,25 +84,24 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
     fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {
         compileJob?.cancel()
 
-        compileJob = CoroutineScope(Dispatchers.Default).launch {
+        compileJob = CoroutineScope(Dispatchers.IO).launch {
             if (!immediate) {
                 delay(1500)
             }
-            val content = textPane.document.getText(0, textPane.document.length)
-
-            val compResult = uiManager.currArch().compile(content, fileName, emptyList(), build)
+            saveFile()
+            val compResult = uiManager.currArch().compile(file.toCompilerFile(), uiManager.currWS().getCompilerFiles(file.file), build)
             uiManager.eventManager.triggerCompileFinished()
             val codeStyle = uiManager.currTheme().codeLaF
             hlContent(codeStyle, compResult.tokens)
         }
     }
 
-    private fun setDefaults(uiManager: UIManager){
+    private fun setDefaults(uiManager: UIManager) {
         viewport.font = uiManager.themeManager.currentTheme.codeLaF.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
-        textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
+        //textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
         textPane.isEditable = true
         viewport.background = uiManager.currTheme().globalLaF.bgPrimary
-        textPane.font = uiManager.themeManager.currentTheme.codeLaF.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+        //textPane.font = uiManager.themeManager.currentTheme.codeLaF.font.deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
     }
 
     private fun hlContent(codeStyle: CodeLaF, tokens: List<Compiler.Token>) {
@@ -123,6 +119,10 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
         nativeLog("Highlighting!")
     }
 
+    private fun saveFile() {
+        file.file.writeText(this.textPane.document.getText(0, textPane.document.length))
+    }
+
     class LineNumbers(uiManager: UIManager, textPane: CTextPane) : JList<String>(LineNumberListModel(textPane)) {
 
         init {
@@ -131,13 +131,13 @@ class EditPanel(uiManager: UIManager, val fileName: String) : CPanel(uiManager, 
                 setDefaults(uiManager, textPane)
             }
 
-            /*uiManager.eventManager.addEditListener {
-                this.updateUI()
-                (this.model as LineNumberListModel).update()
-            }*/
-
             // Apply Defaults
             setDefaults(uiManager, textPane)
+        }
+
+        fun update() {
+            this.updateUI()
+            (this.model as LineNumberListModel).update()
         }
 
         private fun setDefaults(uiManager: UIManager, textPane: JTextPane) {

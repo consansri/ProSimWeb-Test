@@ -40,13 +40,6 @@ class CTree(uiManager: me.c3.ui.UIManager, treeModel: TreeModel) : JTree(treeMod
         // Customize appearance when JTextPane loses focus
         border = BorderFactory.createEmptyBorder(0, 0, 0, 0) // Set empty border when not focused
     }
-
-    data class TreeFile(val file: File) {
-        override fun toString(): String {
-            return file.name
-        }
-    }
-
     override fun setupUI(uiManager: me.c3.ui.UIManager) {
         setUI(CTreeUI(uiManager))
 

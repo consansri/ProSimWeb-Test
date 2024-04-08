@@ -1,13 +1,14 @@
 package me.c3.ui.components.editor
 
 import emulator.kit.common.ArchState
+import io.nacular.doodle.controls.list.listEditor
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CPanel
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 
-class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManager, false) {
+class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager, false) {
 
     private val transcriptButton: CIconButton
     private val statusIcon: CIconButton
@@ -70,7 +71,7 @@ class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManage
     }
 
     private fun installStatusButton(uiManager: UIManager) {
-        /*uiManager.eventManager.addEditListener {
+        editor.fileManager.addCurrFileEditEventListener {
             when (uiManager.archManager.curr.getState().currentState) {
                 ArchState.State.UNCHECKED -> {
                     statusIcon.svgIcon = uiManager.icons.statusLoading
@@ -92,7 +93,7 @@ class EditorControls(uiManager: UIManager, editor: CodeEditor) : CPanel(uiManage
                     statusIcon.rotating = false
                 }
             }
-        }*/
+        }
 
         uiManager.eventManager.addCompileListener {
             when (it.getState().currentState) {

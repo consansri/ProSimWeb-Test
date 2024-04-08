@@ -1,17 +1,19 @@
 package me.c3.ui
 
 import emulator.Link
+import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.events.EventManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
+import java.io.File
+import java.nio.file.Paths
 import javax.swing.JFrame
 
 
 class UIManager() {
 
     val archManager = ArchManager(Link.RV32I.arch)
-    val fileManager = FileManager()
 
     val icons = BenIcons()
 
@@ -19,7 +21,12 @@ class UIManager() {
     val scaleManager = ScaleManager()
     val eventManager = EventManager(archManager)
 
-    val anyEventListeners = mutableListOf<() -> Unit>()
+    private val anyEventListeners = mutableListOf<() -> Unit>()
+
+    val editor = CodeEditor(this)
+
+    private var ws = Workspace(Paths.get("").toAbsolutePath().toString(), editor, this)
+    private val wsChangedListeners = mutableListOf<(Workspace) -> Unit>()
 
     init {
         themeManager.addThemeChangeListener {
@@ -31,10 +38,10 @@ class UIManager() {
         eventManager.addExeEventListener {
             triggerAnyEvent()
         }
-        fileManager.addOpenFileChangeListener {
+        eventManager.addCompileListener {
             triggerAnyEvent()
         }
-        eventManager.addCompileListener {
+        addWSChangedListener {
             triggerAnyEvent()
         }
     }
@@ -42,16 +49,29 @@ class UIManager() {
     fun currTheme() = themeManager.currentTheme
     fun currScale() = scaleManager.currentScaling
     fun currArch() = archManager.curr
+    fun currWS() = ws
+    fun setCurrWS(path: String) {
+        ws = Workspace(path, editor, this)
+        triggerWSChanged()
+    }
 
-    fun addAnyEventListener(event: () -> Unit){
+    fun addAnyEventListener(event: () -> Unit) {
         anyEventListeners.add(event)
     }
-    fun removeAnyEventListener(event: () -> Unit){
-        anyEventListeners.remove(event)
+
+    fun addWSChangedListener(event: (Workspace) -> Unit) {
+        wsChangedListeners.add(event)
     }
-    private fun triggerAnyEvent(){
+
+    private fun triggerAnyEvent() {
         anyEventListeners.forEach {
             it()
+        }
+    }
+
+    private fun triggerWSChanged() {
+        wsChangedListeners.forEach {
+            it(currWS())
         }
     }
 

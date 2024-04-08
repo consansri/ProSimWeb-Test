@@ -74,7 +74,7 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
     private fun setDefaults() {
         inset = 20
         rootPane.border = uiManager.currScale().borderScale.getInsetBorder()
-        content.border = uiManager.currScale().borderScale.getInsetBorder()
+        content.border = BorderFactory.createEmptyBorder()
         cornerRadius = uiManager.currScale().borderScale.cornerRadius
         background = uiManager.currTheme().globalLaF.bgSecondary
 

@@ -1,7 +1,9 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
+import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.editor.EditPanel
+import me.c3.ui.components.editor.FileManager
 import me.c3.ui.styled.CTabbedPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Graphics
@@ -10,22 +12,12 @@ import java.io.File
 import javax.swing.JTabbedPane
 import javax.swing.SwingUtilities
 
-open class CTabbedPane(uiManager: UIManager, private val primary: Boolean) : JTabbedPane(), UIAdapter {
+open class CTabbedPane(private val uiManager: UIManager, private val primary: Boolean) : JTabbedPane(), UIAdapter {
 
     var selectedColor = uiManager.currTheme().globalLaF.borderColor
 
     init {
         setupUI(uiManager)
-    }
-
-    fun addTextFileTab(uiManager: UIManager, file: File) {
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-
-        addTab(null, EditPanel(uiManager, file.name))
-        val lastIndex = tabCount - 1
-        setTabComponentAt(lastIndex, CTextFileTab(uiManager, this, file.name))
     }
 
     final override fun setupUI(uiManager: UIManager) {

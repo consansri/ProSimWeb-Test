@@ -6,6 +6,7 @@ import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTextPane
 import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Font
+import java.io.File
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.*

@@ -15,6 +15,7 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean = false, pr
 
     override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
+            this.setUI(CPanelUI())
 
             uiManager.themeManager.addThemeChangeListener {
                 setDefaults(uiManager)
@@ -25,8 +26,8 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean = false, pr
     }
 
     private fun setDefaults(uiManager: UIManager) {
-        setUI(CPanelUI())
         background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
+        border = uiManager.currScale().borderScale.getInsetBorder()
         repaint()
     }
 

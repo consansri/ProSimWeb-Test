@@ -1,12 +1,15 @@
 package emulator.kit
 
+import emulator.kit.assembly.Compiler
 import emulator.kit.optional.FileHandler
+import java.io.File
 
 
 var localFiles = listOf(
-    FileHandler.File("testfile.s","new file"),
+    FileHandler.File("testfile.s", "new file"),
     FileHandler.File("second.s", "anotherone")
 )
+
 /**
  * Load Files from Storage.
  * Modifies [FileHandler.files]
@@ -39,4 +42,5 @@ actual fun nativeInfo(message: String) {
     println("Info: $message")
 }
 
+fun File.toCompilerFile(): Compiler.CompilerFile = Compiler.CompilerFile(this.name, this.readText())
 

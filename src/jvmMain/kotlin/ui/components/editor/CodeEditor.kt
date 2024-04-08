@@ -2,26 +2,48 @@ package me.c3.ui.components.editor
 
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTabbedPane
+import me.c3.ui.components.styled.CClosableTab
 
 class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true) {
 
-    var workspace: String = "/"
+    val fileManager = FileManager()
 
     init {
-        uiManager.themeManager.addThemeChangeListener {
-            background = it.globalLaF.bgPrimary
-        }
+        filesChangedReaction()
+        currFileEditReaction()
+    }
 
-        uiManager.fileManager.addOpenFileChangeListener { fm ->
+    private fun filesChangedReaction() {
+        fileManager.addOpenFileChangeListener { fm ->
             this.removeAll()
-            fm.getCurrentFile()?.let {
-                this.addTextFileTab(uiManager, it)
+            fm.openFiles.forEach {
+                this.addTextFileTab(it, this)
             }
         }
-
-        // Defaults
-        background = uiManager.currTheme().globalLaF.bgPrimary
     }
+
+    private fun addTextFileTab(file: FileManager.CodeFile, codeEditor: CodeEditor) {
+        if (!file.file.exists()) {
+            file.file.createNewFile()
+        }
+
+        addTab(null, EditPanel(file, codeEditor, uiManager))
+        val lastIndex = tabCount - 1
+        setTabComponentAt(lastIndex, CClosableTab(uiManager, file.getName()){
+            fileManager.closeFile(file)
+            this.removeTabAt(lastIndex)
+        })
+    }
+
+    private fun currFileEditReaction() {
+        fileManager.addCurrFileEditEventListener { fm ->
+
+        }
+    }
+
+
+    fun getControls(): EditorControls = EditorControls(uiManager, this)
+
 
     /*fun compileCurrent(uiManager: UIManager, build: Boolean) {
         panels.getOrNull(selectedIndex)?.editPanel?.triggerCompile(uiManager, build, true)

@@ -2,6 +2,7 @@ package me.c3.emulator.kit
 
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.IConsole
+import me.c3.ui.components.editor.EditorDocument
 import me.c3.ui.theme.core.style.CodeLaF
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
