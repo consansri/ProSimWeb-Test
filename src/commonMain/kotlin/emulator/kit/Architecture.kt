@@ -172,9 +172,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         if (DebugTools.KIT_showCheckCodeEvents) {
             println("Architecture.check(): input \n $mainFile \n")
         }
-        nativeLog("Architecture.check() orig: ${mainFile.content}")
         val compilationResult = compiler.compile(mainFile, others, build = build)
-        nativeLog("Architecture.check() hl: ${compilationResult.tokens.joinToString("") { it.content }}")
         archState.check(compilationResult.success)
         lastFile = mainFile
         return compilationResult
