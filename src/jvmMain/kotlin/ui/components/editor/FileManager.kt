@@ -1,13 +1,12 @@
 package me.c3.ui.components.editor
 
-import emulator.kit.Architecture
+import emulator.kit.*
 import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
-import emulator.kit.nativeLog
-import emulator.kit.toCompilerFile
 import me.c3.ui.UIManager
 import me.c3.ui.Workspace
 import java.io.File
+import java.io.FileNotFoundException
 import javax.swing.text.SimpleAttributeSet
 
 class FileManager {
@@ -24,7 +23,7 @@ class FileManager {
         triggerFileEvent()
     }
 
-    fun closeFile(file: CodeFile){
+    fun closeFile(file: CodeFile) {
         val codeFileToClose = openFiles.firstOrNull { it == file }
         codeFileToClose?.store()
         openFiles.remove(codeFileToClose)
@@ -75,20 +74,26 @@ class FileManager {
     }
 
     class CodeFile(val file: File, var hlState: List<Compiler.Token>? = null) {
-
         private var bufferedContent = file.readText()
         fun contentAsString(): String = bufferedContent
         fun getName(): String = file.name
         fun toCompilerFile(): Compiler.CompilerFile = file.toCompilerFile()
-        fun reload(){
+        fun reload() {
             bufferedContent = file.readText()
         }
+
         fun edit(content: String) {
             bufferedContent = content
         }
-        fun store(){
-            file.writeText(bufferedContent)
+
+        fun store() {
+            try {
+                file.writeText(bufferedContent)
+            } catch (e: FileNotFoundException) {
+                nativeWarn("File ${getName()} isn't writeable!")
+            }
         }
+
         fun getRawDocument(uiManager: UIManager): EditorDocument {
             val document = EditorDocument(uiManager)
             val attrs = SimpleAttributeSet()

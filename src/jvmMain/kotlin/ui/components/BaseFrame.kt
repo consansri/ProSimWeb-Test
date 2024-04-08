@@ -10,6 +10,7 @@ import me.c3.ui.components.processor.Processor
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CSplitPane
 import me.c3.ui.components.tree.FileTree
+import me.c3.ui.styled.CFrame
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -23,7 +24,7 @@ import javax.swing.JLabel
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
 
-class BaseFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
+class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter {
 
 
 
@@ -45,7 +46,7 @@ class BaseFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
     }
 
     private fun attachComponents() {
-        layout = BorderLayout()
+        content.layout = BorderLayout()
 
         // Set Sizes
         editor.minimumSize = Dimension(0, 0)
@@ -69,15 +70,15 @@ class BaseFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         //verticalMainSplitPane.setDividerLocation(0.8)
 
         // Add split panes to the frame with BorderLayout constraints
-        add(topBar, BorderLayout.NORTH)
-        add(verticalMainCSplitPane, BorderLayout.CENTER)
-        add(leftBar, BorderLayout.WEST)
-        add(rightBar, BorderLayout.EAST)
-        add(bottomBar, BorderLayout.SOUTH)
+        addContent(topBar, BorderLayout.NORTH)
+        addContent(verticalMainCSplitPane, BorderLayout.CENTER)
+        addContent(leftBar, BorderLayout.WEST)
+        addContent(rightBar, BorderLayout.EAST)
+        addContent(bottomBar, BorderLayout.SOUTH)
     }
 
     override fun setupUI(uiManager: UIManager) {
-        title = ("ProSim")
+        setFrameTitle("ProSim")
 
         uiManager.themeManager.addThemeChangeListener {
             setDefaults(uiManager)

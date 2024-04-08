@@ -17,17 +17,17 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         fileManager.addOpenFileChangeListener { fm ->
             this.removeAll()
             fm.openFiles.forEach {
-                this.addTextFileTab(it, this)
+                this.addTextFileTab(it)
             }
         }
     }
 
-    private fun addTextFileTab(file: FileManager.CodeFile, codeEditor: CodeEditor) {
+    private fun addTextFileTab(file: FileManager.CodeFile) {
         if (!file.file.exists()) {
             file.file.createNewFile()
         }
 
-        addTab(null, EditPanel(file, codeEditor, uiManager))
+        addTab(null, EditPanel(file, uiManager))
         val lastIndex = tabCount - 1
         setTabComponentAt(lastIndex, CClosableTab(uiManager, file.getName()){
             fileManager.closeFile(file)
@@ -44,9 +44,5 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
 
     fun getControls(): EditorControls = EditorControls(uiManager, this)
 
-
-    /*fun compileCurrent(uiManager: UIManager, build: Boolean) {
-        panels.getOrNull(selectedIndex)?.editPanel?.triggerCompile(uiManager, build, true)
-    }*/
 
 }

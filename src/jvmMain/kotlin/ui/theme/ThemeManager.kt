@@ -11,8 +11,8 @@ import javax.swing.UIManager
 class ThemeManager(icons: ProSimIcons) {
 
     val themes: List<Theme> = listOf(
-        DarkTheme(icons),
-        LightTheme(icons)
+        LightTheme(icons),
+        DarkTheme(icons)
     )
 
     var currentTheme: Theme = themes.first()

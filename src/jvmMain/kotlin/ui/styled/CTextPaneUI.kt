@@ -8,12 +8,12 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTextPaneUI
 
-class CTextPaneUI : BasicTextPaneUI() {
+class CTextPaneUI(private val uiManager: UIManager) : BasicTextPaneUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
         val pane = c as? CTextPane ?: return
-
+        pane.font = uiManager.currTheme().codeLaF.font.deriveFont(uiManager.currScale().fontScale.codeSize)
     }
 
 }
