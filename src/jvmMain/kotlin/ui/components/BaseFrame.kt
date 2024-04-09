@@ -63,10 +63,10 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter
         editorContainer.resizeWeight = 0.1
 
         val mainContainer = CSplitPane(uiManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processor)
-        mainContainer.resizeWeight = 0.8
+        mainContainer.resizeWeight = 0.6
 
         val verticalMainCSplitPane = CSplitPane(uiManager, JSplitPane.VERTICAL_SPLIT, true, mainContainer, consoleAndInfo)
-        verticalMainCSplitPane.resizeWeight = 0.75
+        verticalMainCSplitPane.resizeWeight = 1.0
 
         //verticalMainSplitPane.setDividerLocation(0.8)
 
