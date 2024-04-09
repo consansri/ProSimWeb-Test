@@ -7,6 +7,7 @@ import me.c3.ui.styled.borders.DirectionalBorder
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTextPane
+import me.c3.ui.styled.CTextPaneUI
 import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Color
 import java.awt.Component

@@ -27,7 +27,8 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
             file.file.createNewFile()
         }
 
-        addTab(null, EditPanel(file, uiManager))
+        val editPanel = EditPanel(file, uiManager)
+        addTab(null, editPanel)
         val lastIndex = tabCount - 1
         setTabComponentAt(lastIndex, CClosableTab(uiManager, file.getName()){
             fileManager.closeFile(file)
@@ -41,8 +42,5 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         }
     }
 
-
     fun getControls(): EditorControls = EditorControls(uiManager, this)
-
-
 }

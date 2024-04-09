@@ -12,34 +12,13 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreeNode
 
-class CTree(uiManager: me.c3.ui.UIManager, treeModel: TreeModel) : JTree(treeModel), FocusListener, UIAdapter {
+class CTree(uiManager: me.c3.ui.UIManager, treeModel: TreeModel) : JTree(treeModel), UIAdapter {
 
     init {
-        this.addFocusListener(this)
-
-
         setupUI(uiManager)
     }
 
-    // Custom method to set whether the JTextPane should paint its focus state
-    fun setFocusPainted(painted: Boolean) {
-        border = if (painted) {
-            UIManager.getBorder("Tree.border")
-        } else {
-            BorderFactory.createEmptyBorder(0, 0, 0, 0) // Set empty border when not focused
-        }
-    }
 
-    // FocusListener implementation
-    override fun focusGained(e: FocusEvent?) {
-        // Customize appearance when JTextPane gains focus
-        border = UIManager.getBorder("Tree.border")
-    }
-
-    override fun focusLost(e: FocusEvent?) {
-        // Customize appearance when JTextPane loses focus
-        border = BorderFactory.createEmptyBorder(0, 0, 0, 0) // Set empty border when not focused
-    }
     override fun setupUI(uiManager: me.c3.ui.UIManager) {
         setUI(CTreeUI(uiManager))
 
@@ -60,7 +39,6 @@ class CTree(uiManager: me.c3.ui.UIManager, treeModel: TreeModel) : JTree(treeMod
         background = uiManager.currTheme().globalLaF.bgSecondary
         foreground = uiManager.currTheme().textLaF.base
         font = uiManager.currTheme().textLaF.font.deriveFont(uiManager.currScale().fontScale.textSize)
-
     }
 
 }

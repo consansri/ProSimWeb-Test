@@ -2,37 +2,20 @@ package me.c3.ui.styled
 
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTree
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.Insets
-import java.awt.Rectangle
+import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JTree
 import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeCellRenderer
+import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
+import kotlin.math.exp
 
-class CTreeUI(uiManager: UIManager) : BasicTreeUI() {
-
-    var iconSize: Int = 16
-        set(value) {
-            field = value
-            tree.repaint()
-        }
+class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
     var selectedColor: Color = Color(214, 217, 223)
-        set(value) {
-            field = value
-            tree.repaint()
-        }
-    var expandIcon = uiManager.icons.export.derive(iconSize, iconSize)
-        set(value) {
-            field = value
-            tree.repaint()
-        }
-
-    var closeIcon = uiManager.icons.import.derive(iconSize, iconSize)
         set(value) {
             field = value
             tree.repaint()
@@ -42,7 +25,8 @@ class CTreeUI(uiManager: UIManager) : BasicTreeUI() {
         super.installUI(c)
 
         val cTree = c as? CTree ?: return
-        cTree.border = BorderFactory.createEmptyBorder(0, 0, 0, 0) // Set empty border when not focused
+        cTree.border = BorderFactory.createEmptyBorder(uiManager.currScale().borderScale.insets, uiManager.currScale().borderScale.insets, uiManager.currScale().borderScale.insets, uiManager.currScale().borderScale.insets) // Set empty border when not focused
+        cTree.cellRenderer = CTreeCellRenderer(uiManager)
     }
 
     override fun paint(g: Graphics, c: JComponent?) {
@@ -54,54 +38,58 @@ class CTreeUI(uiManager: UIManager) : BasicTreeUI() {
 
     }
 
-    override fun paintRow(g: Graphics, clipBounds: Rectangle, insets: Insets, bounds: Rectangle, path: TreePath, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
-        val background = if (tree.isRowSelected(row)) selectedColor else tree.background
-        g.color = background
-        g.fillRect(0, bounds.y, tree.width, bounds.height)
-        super.paintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf)
-    }
-
     override fun paintVerticalPartOfLeg(g: Graphics?, clipBounds: Rectangle?, insets: Insets?, path: TreePath?) {
         // Do not paint horizontal line
     }
 
     override fun paintHorizontalPartOfLeg(g: Graphics, clipBounds: Rectangle, insets: Insets, bounds: Rectangle, path: TreePath, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
         // Do not paint horizontal line
+
     }
 
-    override fun paintExpandControl(g: Graphics, clipBounds: Rectangle, insets: Insets, bounds: Rectangle, path: TreePath, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
-        // Do not paint expand/collapse control
+    override fun paintExpandControl(g: Graphics, clipBounds: Rectangle?, insets: Insets, bounds: Rectangle, path: TreePath?, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
+
+        val g2d = g.create() as? Graphics2D ?: return
         if (!isLeaf) {
-            g.color = tree.foreground
-
-            val iconX = bounds.x - iconSize - getRightChildIndent() / 2
-            val iconY = bounds.y + (bounds.height - iconSize) / 2
-            expandIcon.paintIcon(tree, g, iconX, iconY)
+            val loadedIcon = (if (isExpanded) uiManager.icons.folderOpen else uiManager.icons.folderClosed).derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+            loadedIcon.colorFilter = uiManager.currTheme().icon.colorFilter
+            val iconX = bounds.x + insets.left - loadedIcon.iconWidth - getRightChildIndent() / 2
+            val iconY = bounds.y + (bounds.height - loadedIcon.iconHeight) / 2
+            loadedIcon.paintIcon(tree, g2d, iconX, iconY)
         }
+        g2d.dispose()
     }
 
-    private fun paintCustomIcons(g: Graphics) {
-        val tree = tree
-        val pathBounds = getPathBounds(tree, tree.selectionPath)
-        if (pathBounds != null) {
-            val model = tree.model
-            val root = model.root as? DefaultMutableTreeNode
-            if (root != null) {
-                val children = root.children()
-                while (children.hasMoreElements()) {
-                    val childNode = children.nextElement() as? DefaultMutableTreeNode
-                    if (childNode != null && childNode.userObject is String && childNode.userObject == "MyCustomType") {
-                        val row = getRowForPath(tree, TreePath(childNode.path))
-                        if (row >= 0) {
-                            val iconX = getRowX(row, 0)
-                            val iconY = pathBounds.y + (pathBounds.height - expandIcon.iconHeight) / 2
-                            expandIcon.paintIcon(tree, g, iconX, iconY)
-                        }
-                    }
+    inner class CTreeCellRenderer(private val uiManager: UIManager) : DefaultTreeCellRenderer() {
+
+        init {
+            this.isOpaque = true
+            this.font = uiManager.currTheme().textLaF.font.deriveFont(uiManager.currScale().fontScale.textSize)
+            this.textNonSelectionColor = uiManager.currTheme().textLaF.base
+            this.textSelectionColor = uiManager.currTheme().textLaF.base
+        }
+
+        override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus)
+
+            val loadedIcon = if (leaf) {
+                if (selected) {
+                    uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                } else {
+                    uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                }
+            } else {
+                if (expanded) {
+                    uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                } else {
+                    uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                 }
             }
+            loadedIcon.colorFilter = uiManager.currTheme().icon.colorFilter
+            this.foreground = uiManager.currTheme().textLaF.base
+            this.icon = loadedIcon
+            //this.isOpaque = true
+            return this
         }
     }
-
-
 }

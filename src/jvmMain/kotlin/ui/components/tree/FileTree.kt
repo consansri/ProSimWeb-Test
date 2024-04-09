@@ -7,6 +7,7 @@ import me.c3.ui.components.styled.CTextButton
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.FlowLayout
+import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -15,7 +16,7 @@ import javax.swing.JFileChooser
 class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
     private val projectButton = CTextButton(uiManager, "Project")
     private val title = CPanel(uiManager, false)
-    private val content = CScrollPane(uiManager, true)
+    private val content = CScrollPane(uiManager, false)
 
     init {
         attachMouseListener(uiManager)
@@ -24,8 +25,8 @@ class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
             refreshWSTree(uiManager)
         }
 
-        setDefaults(uiManager)
         refreshWSTree(uiManager)
+        setDefaults(uiManager)
     }
 
     private fun attachMouseListener(uiManager: UIManager){
@@ -60,7 +61,7 @@ class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
         this.add(title, BorderLayout.NORTH)
         this.add(content, BorderLayout.CENTER)
 
-        border = BorderFactory.createEmptyBorder()
+        this.border = BorderFactory.createEmptyBorder()
     }
 
 }

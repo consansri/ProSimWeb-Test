@@ -49,7 +49,15 @@ interface ProSimIcons {
     val stepOver: FlatSVGIcon
     val tag: FlatSVGIcon
 
+    // Window Decorations
     val minimize: FlatSVGIcon
     val maximize: FlatSVGIcon
     val close: FlatSVGIcon
+
+    // File Tree Icons
+    val folder: FlatSVGIcon
+    val file: FlatSVGIcon
+    val folderClosed: FlatSVGIcon
+    val folderOpen: FlatSVGIcon
+
 }

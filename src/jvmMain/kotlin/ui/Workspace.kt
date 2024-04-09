@@ -70,7 +70,6 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
             tree.background = it.globalLaF.bgSecondary
         }
         tree.background = uiManager.currTheme().globalLaF.bgSecondary
-        tree.setFocusPainted(false)
         tree.isFocusable = false
     }
 
