@@ -1,9 +1,7 @@
 package me.c3.ui.events
 
 import emulator.kit.Architecture
-import emulator.kit.nativeLog
 import me.c3.ui.ArchManager
-import me.c3.ui.components.editor.EditorDocument
 
 class EventManager(private val archManager: ArchManager) {
 

@@ -65,7 +65,7 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
 
         init {
             this.isOpaque = true
-            this.font = uiManager.currTheme().textLaF.font.deriveFont(uiManager.currScale().fontScale.textSize)
+            this.font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
             this.textNonSelectionColor = uiManager.currTheme().textLaF.base
             this.textSelectionColor = uiManager.currTheme().textLaF.base
         }

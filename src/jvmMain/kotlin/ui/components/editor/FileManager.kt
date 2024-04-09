@@ -2,8 +2,6 @@ package me.c3.ui.components.editor
 
 import emulator.kit.*
 import emulator.kit.assembly.Compiler
-import emulator.kit.assembly.Syntax
-import me.c3.ui.UIManager
 import me.c3.ui.Workspace
 import java.io.File
 import java.io.FileNotFoundException
@@ -94,8 +92,8 @@ class FileManager {
             }
         }
 
-        fun getRawDocument(uiManager: UIManager): EditorDocument {
-            val document = EditorDocument(uiManager)
+        fun getRawDocument(): CDocument {
+            val document = CDocument()
             val attrs = SimpleAttributeSet()
             document.insertString(0, bufferedContent, attrs)
             return document

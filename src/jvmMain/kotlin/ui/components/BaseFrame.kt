@@ -88,6 +88,7 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter
         defaultCloseOperation = EXIT_ON_CLOSE
         size = Dimension(1920, 1080)
         isVisible = true
+        setLocationRelativeTo(null)
     }
 
     private fun setDefaults(uiManager: UIManager) {

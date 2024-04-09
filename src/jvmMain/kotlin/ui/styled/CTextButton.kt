@@ -38,7 +38,7 @@ class CTextButton(uiManager: UIManager, text: String) : JButton(text), UIAdapter
     private fun setDefaults(uiManager: UIManager){
         val currTheme = uiManager.currTheme()
         val currScale = uiManager.currScale()
-        font = currTheme.textLaF.titleFont.deriveFont(currScale.fontScale.titleSize)
+        font = currTheme.textLaF.getTitleFont().deriveFont(currScale.fontScale.titleSize)
         foreground = currTheme.textLaF.base
         background = Color(0,0,0,0)
         repaint()

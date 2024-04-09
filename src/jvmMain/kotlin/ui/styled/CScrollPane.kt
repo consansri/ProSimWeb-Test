@@ -9,10 +9,10 @@ import java.awt.Graphics2D
 import javax.swing.JScrollPane
 import javax.swing.SwingUtilities
 
-class CScrollPane(uiManager: UIManager, private val primary: Boolean) : JScrollPane(), UIAdapter {
+class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Component?) : JScrollPane(c), UIAdapter {
 
-    constructor(uiManager: UIManager, primary: Boolean, component: Component) : this(uiManager, primary) {
-        this.setViewportView(component)
+    constructor(uiManager: UIManager, primary: Boolean) : this(uiManager, primary, null) {
+
     }
 
     constructor(uiManager: UIManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(uiManager, primary, component) {

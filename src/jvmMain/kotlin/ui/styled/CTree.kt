@@ -38,7 +38,7 @@ class CTree(uiManager: me.c3.ui.UIManager, treeModel: TreeModel) : JTree(treeMod
         treeUI.selectedColor = uiManager.currTheme().globalLaF.borderColor
         background = uiManager.currTheme().globalLaF.bgSecondary
         foreground = uiManager.currTheme().textLaF.base
-        font = uiManager.currTheme().textLaF.font.deriveFont(uiManager.currScale().fontScale.textSize)
+        font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
     }
 
 }

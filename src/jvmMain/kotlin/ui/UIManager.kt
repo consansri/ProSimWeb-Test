@@ -5,10 +5,15 @@ import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.events.EventManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
+import me.c3.ui.theme.core.style.CodeLaF
 import me.c3.ui.theme.icons.BenIcons
+import java.awt.Font
+import java.awt.GraphicsEnvironment
 import java.io.File
 import java.nio.file.Paths
 import javax.swing.JFrame
+import javax.swing.JTextPane
+import javax.swing.text.StyleConstants
 
 
 class UIManager() {
@@ -74,5 +79,8 @@ class UIManager() {
             it(currWS())
         }
     }
+
+
+
 
 }

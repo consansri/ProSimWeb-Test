@@ -1,9 +1,6 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
-import me.c3.ui.components.editor.CodeEditor
-import me.c3.ui.components.editor.EditPanel
-import me.c3.ui.components.editor.FileManager
 import me.c3.ui.styled.CTabbedPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Graphics
@@ -40,7 +37,7 @@ open class CTabbedPane(private val uiManager: UIManager, private val primary: Bo
         background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
         foreground = uiManager.currTheme().textLaF.base
         selectedColor = uiManager.currTheme().globalLaF.borderColor
-        font = uiManager.currTheme().textLaF.font.deriveFont(uiManager.currScale().fontScale.textSize)
+        font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
         repaint()
     }
 
