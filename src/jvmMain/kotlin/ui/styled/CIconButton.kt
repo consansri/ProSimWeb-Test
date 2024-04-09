@@ -4,10 +4,12 @@ import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import me.c3.ui.UIManager
 import me.c3.ui.styled.CIconButtonUI
+import me.c3.ui.styled.ColouredPanel
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.LinearGradientPaint
 import javax.swing.JButton
 import javax.swing.SwingUtilities
 import javax.swing.Timer
@@ -16,7 +18,6 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
 
     private var timer: Timer? = null
     private var rotationAngle: Double = 0.0
-
 
     var customColor: Color? = null
         set(value) {
@@ -61,24 +62,26 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
     private fun updateIcon(uiManager: UIManager) {
         val iconStyle = uiManager.currTheme().iconLaF
         SwingUtilities.invokeLater {
-            svgIcon?.colorFilter = ColorFilter {
-                val color = customColor ?: when (mode) {
-                    Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> iconStyle.iconFgPrimary
-                    Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> iconStyle.iconFgSecondary
-                }
-
-                if (isDeactivated) {
-                    Color(color.red, color.green, color.blue, iconStyle.iconDeactivatedAlpha)
-                } else {
-                    color
+            svgIcon?.let {
+                when (mode) {
+                    Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> it.colorFilter = ColorFilter { iconStyle.iconFgPrimary }
+                    Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> it.colorFilter = ColorFilter { iconStyle.iconFgSecondary }
+                    Mode.GRADIENT_NORMAL, Mode.GRADIENT_SMALL -> {}
                 }
             }
 
             background = iconBg
             val iconScale = when (mode) {
-                Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL -> uiManager.scaleManager.currentScaling.controlScale.normalSize
-                Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL -> uiManager.scaleManager.currentScaling.controlScale.smallSize
+                Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> uiManager.scaleManager.currentScaling.controlScale.normalSize
+                Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL, Mode.GRADIENT_SMALL -> uiManager.scaleManager.currentScaling.controlScale.smallSize
             }
+
+            customColor?.let { col ->
+                svgIcon?.colorFilter = ColorFilter {
+                    col
+                }
+            }
+
             icon = this.svgIcon?.derive(iconScale, iconScale)
         }
     }
@@ -113,7 +116,9 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
         PRIMARY_NORMAL,
         SECONDARY_NORMAL,
         PRIMARY_SMALL,
-        SECONDARY_SMALL
+        SECONDARY_SMALL,
+        GRADIENT_NORMAL,
+        GRADIENT_SMALL
     }
 
     final override fun setupUI(uiManager: UIManager) {

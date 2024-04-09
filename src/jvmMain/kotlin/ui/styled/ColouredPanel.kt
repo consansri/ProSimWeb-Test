@@ -38,6 +38,6 @@ open class ColouredPanel(uiManager: UIManager, primary: Boolean) : CPanel(uiMana
         }
     }
 
-    inner class ColorAnker(val pos: Float, val color: Color)
+    class ColorAnker(val pos: Float, val color: Color)
 
 }

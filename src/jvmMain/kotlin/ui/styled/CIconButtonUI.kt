@@ -10,14 +10,17 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
 
-class CIconButtonUI(private val uiManager: UIManager, private val mode: CIconButton.Mode) : BasicButtonUI() {
+open class CIconButtonUI(private val uiManager: UIManager, private val mode: CIconButton.Mode) : BasicButtonUI() {
+
+
 
     var inset = when (mode) {
-        CIconButton.Mode.PRIMARY_NORMAL -> uiManager.currScale().controlScale.normalInset
+        CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> uiManager.currScale().controlScale.normalInset
         CIconButton.Mode.SECONDARY_NORMAL -> uiManager.currScale().controlScale.normalInset
-        CIconButton.Mode.PRIMARY_SMALL -> uiManager.currScale().controlScale.smallInset
+        CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> uiManager.currScale().controlScale.smallInset
         CIconButton.Mode.SECONDARY_SMALL -> uiManager.currScale().controlScale.smallInset
     }
+
     var cornerRadius = uiManager.currScale().controlScale.cornerRadius
 
     companion object {
@@ -37,9 +40,9 @@ class CIconButtonUI(private val uiManager: UIManager, private val mode: CIconBut
 
         uiManager.scaleManager.addScaleChangeEvent {
             this.inset = when (mode) {
-                CIconButton.Mode.PRIMARY_NORMAL -> uiManager.currScale().controlScale.normalInset
+                CIconButton.Mode.PRIMARY_NORMAL ,CIconButton.Mode.GRADIENT_NORMAL-> uiManager.currScale().controlScale.normalInset
                 CIconButton.Mode.SECONDARY_NORMAL -> uiManager.currScale().controlScale.normalInset
-                CIconButton.Mode.PRIMARY_SMALL -> uiManager.currScale().controlScale.smallInset
+                CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> uiManager.currScale().controlScale.smallInset
                 CIconButton.Mode.SECONDARY_SMALL -> uiManager.currScale().controlScale.smallInset
             }
             this.cornerRadius = it.controlScale.cornerRadius

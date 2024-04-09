@@ -10,24 +10,15 @@ import javax.swing.BoxLayout
 
 class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager, false, borderMode = BorderMode.EAST) {
 
-    private val transcriptButton: CIconButton
-    private val statusIcon: CIconButton
-    private val undoButton: CIconButton
-    private val redoButton: CIconButton
-    private val buildButton: CIconButton
-    private val infoButton: CIconButton
-    private val deleteButton: CIconButton
+    private val transcriptButton: CIconButton = CIconButton(uiManager, uiManager.icons.disassembler)
+    private val statusIcon: CIconButton= CIconButton(uiManager, uiManager.icons.statusLoading)
+    private val undoButton: CIconButton= CIconButton(uiManager, uiManager.icons.backwards)
+    private val redoButton: CIconButton= CIconButton(uiManager, uiManager.icons.forwards)
+    private val buildButton: CIconButton= CIconButton(uiManager, uiManager.icons.build)
+    private val infoButton: CIconButton= CIconButton(uiManager, uiManager.icons.info)
+    private val deleteButton: CIconButton= CIconButton(uiManager, uiManager.icons.deleteBlack)
 
     init {
-        // Instantiate
-        transcriptButton = CIconButton(uiManager, uiManager.icons.disassembler)
-        statusIcon = CIconButton(uiManager, uiManager.icons.statusLoading)
-        undoButton = CIconButton(uiManager, uiManager.icons.backwards)
-        redoButton = CIconButton(uiManager, uiManager.icons.forwards)
-        buildButton = CIconButton(uiManager, uiManager.icons.build)
-        infoButton = CIconButton(uiManager, uiManager.icons.info)
-        deleteButton = CIconButton(uiManager, uiManager.icons.deleteBlack)
-
         // Apply layout
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         transcriptButton.alignmentX = CENTER_ALIGNMENT
@@ -59,7 +50,6 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
         // Functions
         installStatusButton(uiManager)
         installBuildButton(uiManager, editor)
-
 
         // Set Defaults
         val insets = uiManager.currScale().borderScale.insets
@@ -122,7 +112,7 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
 
     private fun installBuildButton(uiManager: UIManager, codeEditor: CodeEditor) {
         buildButton.addActionListener {
-            //codeEditor.compileCurrent(uiManager, build = true)
+            codeEditor.fileManager.compileCurrent(uiManager.currArch(), uiManager.currWS(), build = true)
         }
     }
 

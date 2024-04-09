@@ -103,7 +103,7 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
 
     inner class TitleBar : CPanel(uiManager, primary = false, BorderMode.SOUTH) {
 
-        val logoButton = CIconButton(uiManager, uiManager.icons.appLogo, CIconButton.Mode.SECONDARY_SMALL)
+        val logoButton = CIconButton(uiManager, uiManager.icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
         val titleLabel = CLabel(uiManager, title)
         val minimizeButton = CIconButton(uiManager, uiManager.icons.minimize, CIconButton.Mode.SECONDARY_SMALL)
         val maximizeButton = CIconButton(uiManager, uiManager.icons.maximize, CIconButton.Mode.SECONDARY_SMALL)

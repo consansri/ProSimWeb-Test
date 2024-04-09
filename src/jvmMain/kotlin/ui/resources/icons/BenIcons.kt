@@ -5,7 +5,7 @@ import java.awt.Image
 
 class BenIcons : ProSimIcons {
 
-    override val appLogo: FlatSVGIcon = FlatSVGIcon("benicons/processor_bold.svg")
+    override val appLogo: FlatSVGIcon = FlatSVGIcon("benicons/app_logo.svg")
     override val add: FlatSVGIcon = FlatSVGIcon("benicons/add.svg")
     override val autoscroll: FlatSVGIcon = FlatSVGIcon("benicons/autoscroll.svg")
     override val backwards: FlatSVGIcon = FlatSVGIcon("benicons/backwards.svg")

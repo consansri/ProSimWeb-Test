@@ -83,11 +83,16 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
             val uobj = ((value as? DefaultMutableTreeNode)?.userObject as? Workspace.TreeFile)
 
             val loadedIcon = if (leaf) {
-                if (uobj != null && uobj.file.isFile && uobj.file.extension == "s") {
-                    uiManager.icons.asmFile.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
-                } else {
-                    uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                if(uobj != null && uobj.file.isFile){
+                    if (uobj.file.extension == "s") {
+                        uiManager.icons.asmFile.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                    } else {
+                        uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                    }
+                }else{
+                    uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                 }
+
             } else {
                 if (expanded) {
                     uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
