@@ -7,10 +7,10 @@ import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JFrame
 
-class AppControls(uiManager: UIManager, mainFrame: JFrame): CPanel(uiManager, primary = false) {
+class AppControls(uiManager: UIManager): CPanel(uiManager, primary = false) {
 
     val buttons = listOf(
-        ThemeSwitch(uiManager, mainFrame)
+        ThemeSwitch(uiManager)
     )
 
     init {

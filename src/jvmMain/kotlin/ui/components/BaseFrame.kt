@@ -33,15 +33,15 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter
     private val fileTree = FileTree(uiManager)
     private val leftBar = uiManager.editor.getControls()
     private val processor = Processor(uiManager)
-    private val rightBar = AppControls(uiManager, this)
+    private val rightBar = AppControls(uiManager)
     private val consoleAndInfo = Console(uiManager)
     private val bottomBar = ColouredPanel(uiManager, false)
 
     init {
         SwingUtilities.invokeLater {
-            attachComponents()
-
             setupUI(uiManager)
+
+            attachComponents()
         }
     }
 

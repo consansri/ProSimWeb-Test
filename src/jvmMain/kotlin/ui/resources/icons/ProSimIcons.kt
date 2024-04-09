@@ -57,6 +57,7 @@ interface ProSimIcons {
     // File Tree Icons
     val folder: FlatSVGIcon
     val file: FlatSVGIcon
+    val asmFile: FlatSVGIcon
     val folderClosed: FlatSVGIcon
     val folderOpen: FlatSVGIcon
 

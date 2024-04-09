@@ -1,6 +1,7 @@
 package me.c3.ui.components.console
 
 import me.c3.ui.UIManager
+import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTextPane

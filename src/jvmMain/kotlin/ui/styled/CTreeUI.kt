@@ -1,6 +1,7 @@
 package me.c3.ui.styled
 
 import me.c3.ui.UIManager
+import me.c3.ui.Workspace
 import me.c3.ui.components.styled.CTree
 import java.awt.*
 import javax.swing.BorderFactory
@@ -72,9 +73,11 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
         override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus)
 
+            val uobj = ((value as? DefaultMutableTreeNode)?.userObject as? Workspace.TreeFile)
+
             val loadedIcon = if (leaf) {
-                if (selected) {
-                    uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                if (uobj != null && uobj.file.isFile && uobj.file.extension == "s") {
+                    uiManager.icons.asmFile.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                 } else {
                     uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                 }
@@ -88,7 +91,6 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
             loadedIcon.colorFilter = uiManager.currTheme().icon.colorFilter
             this.foreground = uiManager.currTheme().textLaF.base
             this.icon = loadedIcon
-            //this.isOpaque = true
             return this
         }
     }
