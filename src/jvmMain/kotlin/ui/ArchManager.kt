@@ -25,6 +25,6 @@ class ArchManager(initialArch: Architecture) {
         listenersCopy.forEach{
             it(curr)
         }
-        nativeLog("ArchManager: Trigger Arch Change!")
+        nativeLog("ArchManager: Trigger Arch Change! (${curr.getDescription().name})")
     }
 }

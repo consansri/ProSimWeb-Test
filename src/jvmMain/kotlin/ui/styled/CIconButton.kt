@@ -118,7 +118,7 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
 
     final override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
-            this.setUI(CIconButtonUI())
+            this.setUI(CIconButtonUI(uiManager, mode))
 
             // Set Standard Appearance
             isFocusable = false
@@ -142,7 +142,7 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
         updateIcon(uiManager)
 
         val buttonUI = this.ui as? CIconButtonUI ?: return
-        buttonUI.inset = uiManager.currScale().controlScale.inset
+        buttonUI.inset = uiManager.currScale().controlScale.normalInset
         buttonUI.cornerRadius = uiManager.currScale().controlScale.cornerRadius
         repaint()
     }

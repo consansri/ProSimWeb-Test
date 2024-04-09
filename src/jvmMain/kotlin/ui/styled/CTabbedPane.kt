@@ -19,7 +19,7 @@ open class CTabbedPane(private val uiManager: UIManager, private val primary: Bo
 
     final override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
-            setUI(CTabbedPaneUI())
+            setUI(CTabbedPaneUI(uiManager))
 
             uiManager.scaleManager.addScaleChangeEvent {
                 setDefaults(uiManager)

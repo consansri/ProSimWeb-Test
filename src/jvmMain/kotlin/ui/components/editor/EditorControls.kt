@@ -8,7 +8,7 @@ import me.c3.ui.components.styled.CPanel
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 
-class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager, false) {
+class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager, false, borderMode = BorderMode.EAST) {
 
     private val transcriptButton: CIconButton
     private val statusIcon: CIconButton

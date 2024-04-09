@@ -16,14 +16,7 @@ class DirectionalBorder(
 ) : AbstractBorder() {
 
     var lineBorder = LineBorder(uiManager.themeManager.currentTheme.globalLaF.borderColor, uiManager.scaleManager.currentScaling.borderScale.thickness)
-        set(value) {
-            field = value
-        }
-
     var thickness = uiManager.scaleManager.currentScaling.borderScale.thickness
-        set(value) {
-            field = value
-        }
 
     init {
         uiManager.scaleManager.addScaleChangeEvent {

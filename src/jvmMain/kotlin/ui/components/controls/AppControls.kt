@@ -7,7 +7,7 @@ import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JFrame
 
-class AppControls(uiManager: UIManager): CPanel(uiManager, primary = false) {
+class AppControls(uiManager: UIManager): CPanel(uiManager, primary = false, BorderMode.WEST) {
 
     val buttons = listOf(
         ThemeSwitch(uiManager)

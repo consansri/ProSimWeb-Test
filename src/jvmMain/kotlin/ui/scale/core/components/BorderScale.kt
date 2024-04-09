@@ -5,6 +5,7 @@ import javax.swing.border.Border
 
 data class BorderScale (
     val thickness: Int,
+    val markedThickness: Int,
     val insets: Int,
     val cornerRadius: Int
 ){

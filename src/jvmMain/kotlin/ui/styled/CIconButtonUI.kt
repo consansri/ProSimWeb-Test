@@ -1,5 +1,6 @@
 package me.c3.ui.styled
 
+import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import java.awt.*
 import java.awt.event.MouseAdapter
@@ -9,11 +10,15 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
 
-class CIconButtonUI : BasicButtonUI() {
+class CIconButtonUI(private val uiManager: UIManager, private val mode: CIconButton.Mode) : BasicButtonUI() {
 
-
-    var inset = 2
-    var cornerRadius = 10
+    var inset = when (mode) {
+        CIconButton.Mode.PRIMARY_NORMAL -> uiManager.currScale().controlScale.normalInset
+        CIconButton.Mode.SECONDARY_NORMAL -> uiManager.currScale().controlScale.normalInset
+        CIconButton.Mode.PRIMARY_SMALL -> uiManager.currScale().controlScale.smallInset
+        CIconButton.Mode.SECONDARY_SMALL -> uiManager.currScale().controlScale.smallInset
+    }
+    var cornerRadius = uiManager.currScale().controlScale.cornerRadius
 
     companion object {
         val HOVER_COLOR = Color(0x55777777, true)
@@ -28,18 +33,29 @@ class CIconButtonUI : BasicButtonUI() {
         button.isFocusPainted = false
         button.isFocusable = false
         button.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
+        button.isOpaque = false
+
+        uiManager.scaleManager.addScaleChangeEvent {
+            this.inset = when (mode) {
+                CIconButton.Mode.PRIMARY_NORMAL -> uiManager.currScale().controlScale.normalInset
+                CIconButton.Mode.SECONDARY_NORMAL -> uiManager.currScale().controlScale.normalInset
+                CIconButton.Mode.PRIMARY_SMALL -> uiManager.currScale().controlScale.smallInset
+                CIconButton.Mode.SECONDARY_SMALL -> uiManager.currScale().controlScale.smallInset
+            }
+            this.cornerRadius = it.controlScale.cornerRadius
+        }
 
         // Apply hover effect
         button.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
                 if (!button.isDeactivated) {
                     button.background = HOVER_COLOR
-                    button.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                    //button.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
                 }
             }
 
             override fun mouseExited(e: MouseEvent?) {
-                button.background = null // Reset background to default
+                button.background = Color(0, 0, 0, 0) // Reset background to default
             }
         })
     }
@@ -54,6 +70,7 @@ class CIconButtonUI : BasicButtonUI() {
 
         // Paint button background
         g2.color = button.background
+
         g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, cornerRadius, cornerRadius)
 
         // Paint button

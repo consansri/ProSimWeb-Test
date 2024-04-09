@@ -4,6 +4,7 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.Job
+import me.c3.emulator.kit.install
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.*
 import me.c3.ui.styled.borders.DirectionalBorder
@@ -11,6 +12,7 @@ import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Font
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -136,10 +138,6 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
             add(cScrollPane)
         }
 
-        private fun setFileContent(file: FileManager.CodeFile){
-            textPane.styledDocument
-        }
-
         fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {
             compileJob?.cancel()
 
@@ -170,6 +168,7 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
                 textPane.isEditable = true
                 viewport.background = uiManager.currTheme().globalLaF.bgPrimary
                 font = uiManager.themeManager.currentTheme.codeLaF.getFont().deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
+                font.install(textPane, uiManager.currScale().fontScale.codeSize)
             }
         }
 
@@ -197,6 +196,10 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
                     setDefaults(uiManager, textPane)
                 }
 
+                uiManager.scaleManager.addScaleChangeEvent {
+                    setDefaults(uiManager, textPane)
+                }
+
                 // Apply Defaults
                 setDefaults(uiManager, textPane)
             }
@@ -207,10 +210,12 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
             }
 
             private fun setDefaults(uiManager: UIManager, textPane: JTextPane) {
-                cellRenderer = LineNumberListRenderer(uiManager.currTheme().textLaF.baseSecondary)
-                font = uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
-                fixedCellWidth = getFontMetrics(font).charWidth('0') * 5
-                fixedCellHeight = textPane.getFontMetrics(textPane.font).height
+                val loadedFont = uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.codeSize)
+                this.font = loadedFont
+                this.background = uiManager.currTheme().globalLaF.bgPrimary
+                cellRenderer = LineNumberListRenderer(uiManager.currTheme().textLaF.baseSecondary, loadedFont, uiManager.currTheme().globalLaF.bgPrimary)
+                fixedCellWidth = getFontMetrics(loadedFont).charWidth('0') * 5
+                fixedCellHeight = textPane.getFontMetrics(loadedFont).height
                 this.updateUI()
                 (this.model as LineNumberListModel).update()
             }
@@ -230,14 +235,16 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
                 }
             }
 
-            class LineNumberListRenderer(private val lineNumberColor: Color) : DefaultListCellRenderer() {
+            class LineNumberListRenderer(private val lineNumberColor: Color, private val font: Font, private val bg: Color) : DefaultListCellRenderer() {
                 init {
                     horizontalAlignment = RIGHT
                 }
 
                 override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
                     val label = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JLabel
+                    label.font = font
                     label.foreground = lineNumberColor
+                    label.background = bg
                     return label
                 }
             }

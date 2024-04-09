@@ -1,5 +1,7 @@
 package me.c3.ui.styled
 
+import com.formdev.flatlaf.extras.FlatSVGIcon
+import emulator.kit.nativeLog
 import me.c3.ui.UIManager
 import me.c3.ui.Workspace
 import me.c3.ui.components.styled.CTree
@@ -16,11 +18,17 @@ import javax.swing.tree.TreePath
 import kotlin.math.exp
 
 class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
-    var selectedColor: Color = Color(214, 217, 223)
+    var selectedColor: Color = uiManager.currTheme().globalLaF.bgPrimary
         set(value) {
             field = value
             tree.repaint()
         }
+
+    init {
+        uiManager.themeManager.addThemeChangeListener {
+            selectedColor = uiManager.currTheme().globalLaF.bgPrimary
+        }
+    }
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -49,7 +57,6 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
     }
 
     override fun paintExpandControl(g: Graphics, clipBounds: Rectangle?, insets: Insets, bounds: Rectangle, path: TreePath?, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
-
         val g2d = g.create() as? Graphics2D ?: return
         if (!isLeaf) {
             val loadedIcon = (if (isExpanded) uiManager.icons.folderOpen else uiManager.icons.folderClosed).derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)

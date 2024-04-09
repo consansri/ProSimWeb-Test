@@ -1,20 +1,17 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import emulator.kit.nativeLog
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.*
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
+import javax.swing.BoxLayout
 import javax.swing.JFrame
-import javax.swing.JRootPane
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
@@ -23,7 +20,6 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
     val titleBar = TitleBar()
     val content = CPanel(uiManager, primary = false)
 
-    private var inset: Int = uiManager.currScale().borderScale.insets
     private var cornerRadius: Int = uiManager.currScale().borderScale.cornerRadius
 
     private var posX = 0
@@ -75,8 +71,7 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
     }
 
     override fun setDefaults(uiManager: UIManager) {
-        inset = 20
-        rootPane.border = uiManager.currScale().borderScale.getInsetBorder()
+        rootPane.border = BorderFactory.createEmptyBorder()
         content.border = BorderFactory.createEmptyBorder()
         cornerRadius = uiManager.currScale().borderScale.cornerRadius
         background = uiManager.currTheme().globalLaF.bgSecondary
@@ -84,6 +79,10 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         val icon = uiManager.icons.appLogo.derive(64, 64)
         icon.colorFilter = uiManager.currTheme().icon.colorFilter
         iconImage = icon.image
+    }
+
+    fun addTitleBar(comp: Component) {
+        titleBar.titleContent.add(comp)
     }
 
     fun addContent(comp: Component?): Component {
@@ -102,13 +101,14 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         content.add(comp, constraints, index)
     }
 
-    inner class TitleBar : CPanel(uiManager, primary = false) {
+    inner class TitleBar : CPanel(uiManager, primary = false, BorderMode.SOUTH) {
 
-        val logoButton = CIconButton(uiManager, uiManager.icons.appLogo)
+        val logoButton = CIconButton(uiManager, uiManager.icons.appLogo, CIconButton.Mode.SECONDARY_SMALL)
         val titleLabel = CLabel(uiManager, title)
-        val minimizeButton = CIconButton(uiManager, uiManager.icons.minimize)
-        val maximizeButton = CIconButton(uiManager, uiManager.icons.maximize)
-        val closeButton = CIconButton(uiManager, uiManager.icons.cancel, mode = CIconButton.Mode.PRIMARY_NORMAL)
+        val minimizeButton = CIconButton(uiManager, uiManager.icons.minimize, CIconButton.Mode.SECONDARY_SMALL)
+        val maximizeButton = CIconButton(uiManager, uiManager.icons.maximize, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton(uiManager, uiManager.icons.cancel, CIconButton.Mode.SECONDARY_SMALL)
+        val titleContent = CPanel(uiManager, primary = false)
 
         init {
             attachContent()
@@ -134,27 +134,35 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
 
             gbc.gridx = 1
             gbc.gridy = 0
-            gbc.weightx = 1.0
-            gbc.fill = GridBagConstraints.HORIZONTAL
+            gbc.weightx = 0.0
+            gbc.fill = GridBagConstraints.NONE
             add(titleLabel, gbc)
 
             gbc.gridx = 2
             gbc.gridy = 0
-            gbc.weightx = 0.0
-            gbc.fill = GridBagConstraints.NONE
-            add(minimizeButton, gbc)
+            gbc.weightx = 1.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            add(titleContent, gbc)
 
             gbc.gridx = 3
             gbc.gridy = 0
             gbc.weightx = 0.0
             gbc.fill = GridBagConstraints.NONE
-            add(maximizeButton, gbc)
+            add(minimizeButton, gbc)
 
             gbc.gridx = 4
             gbc.gridy = 0
             gbc.weightx = 0.0
             gbc.fill = GridBagConstraints.NONE
+            add(maximizeButton, gbc)
+
+            gbc.gridx = 5
+            gbc.gridy = 0
+            gbc.weightx = 0.0
+            gbc.fill = GridBagConstraints.NONE
             add(closeButton, gbc)
+
+            titleContent.layout = BoxLayout(titleContent, BoxLayout.X_AXIS)
         }
 
         private fun addButtonListeners() {
@@ -198,8 +206,6 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         }
 
         private fun applyThemeDefaults(uiManager: UIManager) {
-            border = uiManager.currScale().borderScale.getInsetBorder()
-
             uiManager.icons.appLogo.colorFilter = FlatSVGIcon.ColorFilter {
                 uiManager.currTheme().textLaF.base
             }
