@@ -26,7 +26,7 @@ class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
         }
 
         refreshWSTree(uiManager)
-        setDefaults(uiManager)
+        setTreeDefaults(uiManager)
     }
 
     private fun attachMouseListener(uiManager: UIManager){
@@ -50,7 +50,7 @@ class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
         content.repaint()
     }
 
-    private fun setDefaults(uiManager: UIManager){
+    private fun setTreeDefaults(uiManager: UIManager){
         projectButton.foreground = uiManager.currTheme().textLaF.base
         projectButton.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 

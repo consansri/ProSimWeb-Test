@@ -91,7 +91,7 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
 
             attachComponents()
             attachDocument(uiManager)
-            setDefaults(uiManager)
+            setEditorDefaults(uiManager)
             textPane.setInitialText(file.contentAsString())
         }
 
@@ -160,7 +160,7 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
             }
         }
 
-        fun setDefaults(uiManager: UIManager) {
+        private fun setEditorDefaults(uiManager: UIManager) {
             SwingUtilities.invokeLater {
                 layout = BoxLayout(this, BoxLayout.X_AXIS)
                 border = BorderFactory.createEmptyBorder()
