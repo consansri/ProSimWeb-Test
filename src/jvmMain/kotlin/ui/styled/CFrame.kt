@@ -16,6 +16,7 @@ import javax.swing.BorderFactory
 import javax.swing.JFrame
 import javax.swing.JRootPane
 import javax.swing.SwingConstants
+import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
 open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
@@ -60,18 +61,20 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
     }
 
     override fun setupUI(uiManager: UIManager) {
-        uiManager.scaleManager.addScaleChangeEvent {
-            setDefaults()
-        }
+        SwingUtilities.invokeLater {
+            uiManager.scaleManager.addScaleChangeEvent {
+                setDefaults(uiManager)
+            }
 
-        uiManager.themeManager.addThemeChangeListener {
-            setDefaults()
-        }
+            uiManager.themeManager.addThemeChangeListener {
+                setDefaults(uiManager)
+            }
 
-        setDefaults()
+            setDefaults(uiManager)
+        }
     }
 
-    private fun setDefaults() {
+    override fun setDefaults(uiManager: UIManager) {
         inset = 20
         rootPane.border = uiManager.currScale().borderScale.getInsetBorder()
         content.border = BorderFactory.createEmptyBorder()
@@ -81,7 +84,6 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         val icon = uiManager.icons.appLogo.derive(64, 64)
         icon.colorFilter = uiManager.currTheme().icon.colorFilter
         iconImage = icon.image
-        repaint()
     }
 
     fun addContent(comp: Component?): Component {

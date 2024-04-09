@@ -20,20 +20,22 @@ class CTree(uiManager: me.c3.ui.UIManager, treeModel: TreeModel) : JTree(treeMod
 
 
     override fun setupUI(uiManager: me.c3.ui.UIManager) {
-        setUI(CTreeUI(uiManager))
+        SwingUtilities.invokeLater {
+            setUI(CTreeUI(uiManager))
 
-        uiManager.themeManager.addThemeChangeListener {
+            uiManager.themeManager.addThemeChangeListener {
+                setDefaults(uiManager)
+            }
+
+            uiManager.scaleManager.addScaleChangeEvent {
+                setDefaults(uiManager)
+            }
+
             setDefaults(uiManager)
         }
-
-        uiManager.scaleManager.addScaleChangeEvent {
-            setDefaults(uiManager)
-        }
-
-        setDefaults(uiManager)
     }
 
-    fun setDefaults(uiManager: me.c3.ui.UIManager){
+    override fun setDefaults(uiManager: me.c3.ui.UIManager){
         val treeUI = ui as? CTreeUI ?: return
         treeUI.selectedColor = uiManager.currTheme().globalLaF.borderColor
         background = uiManager.currTheme().globalLaF.bgSecondary

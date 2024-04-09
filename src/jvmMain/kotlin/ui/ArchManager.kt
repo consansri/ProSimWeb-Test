@@ -22,7 +22,4 @@ class ArchManager(initialArch: Architecture) {
     fun removeArchChangeListener(event: (Architecture) -> Unit) {
         archChangeListeners.remove(event)
     }
-
-
-
 }

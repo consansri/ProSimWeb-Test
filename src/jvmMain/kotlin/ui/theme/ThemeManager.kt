@@ -19,10 +19,7 @@ class ThemeManager(icons: ProSimIcons) {
         set(value) {
             field = value
             //value.install(mainFrame)
-            themeChangeEvents.forEach {
-                it(value)
-            }
-            nativeLog("ThemeManager: Switched Theme to ${value.name}!")
+            triggerThemeChangeEvents()
         }
 
     private val themeChangeEvents = mutableListOf<(theme: Theme) -> Unit>()
@@ -32,6 +29,12 @@ class ThemeManager(icons: ProSimIcons) {
             throw Exception("No Theme supplied!")
         }
         currentTheme = themes.first()
+    }
+
+    private fun triggerThemeChangeEvents(){
+        themeChangeEvents.forEach {
+            it(currentTheme)
+        }
     }
 
     fun addThemeChangeListener(event: (theme: Theme) -> Unit) {

@@ -26,11 +26,9 @@ class ThemeSwitch(uiManager: UIManager) : CIconButton(uiManager, mode = Mode.PRI
     }
 
     private fun setTheme(uiManager: UIManager) {
-        SwingUtilities.invokeLater {
-            uiManager.themeManager.themes.getOrNull(currentIndex)?.let {
-                uiManager.themeManager.currentTheme = it
-                svgIcon = it.icon
-            }
+        uiManager.themeManager.themes.getOrNull(currentIndex)?.let {
+            uiManager.themeManager.currentTheme = it
+            svgIcon = it.icon
         }
     }
 

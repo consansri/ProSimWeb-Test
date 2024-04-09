@@ -20,19 +20,22 @@ class CSplitPane(uiManager: UIManager, newOrientation: Int, newContinuousLayout:
             this.setUI(CSplitPaneUI())
 
             uiManager.themeManager.addThemeChangeListener {
-                val cSplitPaneUI = ui as? CSplitPaneUI
-                cSplitPaneUI?.dividerColor = it.globalLaF.borderColor
+                setDefaults(uiManager)
             }
 
             uiManager.scaleManager.addScaleChangeEvent {
-                setDividerSize(it.dividerScale.thickness)
+                setDefaults(uiManager)
             }
 
-            val cSplitPaneUI = ui as? CSplitPaneUI
-            cSplitPaneUI?.dividerColor = uiManager.currTheme().globalLaF.borderColor
-
-            setDividerSize(uiManager.currScale().dividerScale.thickness)
+            setDefaults(uiManager)
         }
+    }
+
+    override fun setDefaults(uiManager: UIManager) {
+        val cSplitPaneUI = ui as? CSplitPaneUI
+        cSplitPaneUI?.dividerColor = uiManager.currTheme().globalLaF.borderColor
+
+        setDividerSize(uiManager.currScale().dividerScale.thickness)
     }
 
 }

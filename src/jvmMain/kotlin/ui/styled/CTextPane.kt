@@ -10,6 +10,7 @@ import java.awt.Font
 import javax.swing.BorderFactory
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
+import javax.swing.SwingUtilities
 import javax.swing.text.SimpleAttributeSet
 
 class CTextPane(uiManager: UIManager) : JTextPane(), UIAdapter {
@@ -35,21 +36,23 @@ class CTextPane(uiManager: UIManager) : JTextPane(), UIAdapter {
     }
 
     override fun setupUI(uiManager: UIManager) {
-        setUI(CTextPaneUI(uiManager))
+        SwingUtilities.invokeLater {
+            setUI(CTextPaneUI(uiManager))
 
-        uiManager.themeManager.addThemeChangeListener {
+            uiManager.themeManager.addThemeChangeListener {
+                setDefaults(uiManager)
+            }
+
+            uiManager.scaleManager.addScaleChangeEvent {
+                setDefaults(uiManager)
+            }
+
+            // Apply Defaults
             setDefaults(uiManager)
         }
-
-        uiManager.scaleManager.addScaleChangeEvent {
-            setDefaults(uiManager)
-        }
-
-        // Apply Defaults
-        setDefaults(uiManager)
     }
 
-    private fun setDefaults(uiManager: UIManager) {
+    override fun setDefaults(uiManager: UIManager) {
         border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
         background = uiManager.currTheme().globalLaF.bgPrimary
         caretColor = uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.BASE0)

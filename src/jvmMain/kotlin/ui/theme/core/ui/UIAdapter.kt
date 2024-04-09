@@ -5,4 +5,5 @@ import me.c3.ui.UIManager
 interface UIAdapter {
     fun setupUI(uiManager: UIManager)
 
+    fun setDefaults(uiManager: UIManager)
 }

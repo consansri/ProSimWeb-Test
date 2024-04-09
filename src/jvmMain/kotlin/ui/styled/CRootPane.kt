@@ -3,6 +3,7 @@ package me.c3.ui.styled
 import me.c3.ui.UIManager
 import me.c3.ui.theme.core.ui.UIAdapter
 import javax.swing.JRootPane
+import javax.swing.SwingUtilities
 
 class CRootPane(uiManager: UIManager) : JRootPane(), UIAdapter {
 
@@ -11,18 +12,20 @@ class CRootPane(uiManager: UIManager) : JRootPane(), UIAdapter {
     }
 
     override fun setupUI(uiManager: UIManager) {
-        uiManager.themeManager.addThemeChangeListener {
+        SwingUtilities.invokeLater {
+            uiManager.themeManager.addThemeChangeListener {
+                setDefaults(uiManager)
+            }
+
+            uiManager.scaleManager.addScaleChangeEvent {
+                setDefaults(uiManager)
+            }
+
             setDefaults(uiManager)
         }
-
-        uiManager.scaleManager.addScaleChangeEvent {
-            setDefaults(uiManager)
-        }
-
-        setDefaults(uiManager)
     }
 
-    private fun setDefaults(uiManager: UIManager){
+    override fun setDefaults(uiManager: UIManager){
         background = uiManager.currTheme().globalLaF.bgSecondary
 
         repaint()

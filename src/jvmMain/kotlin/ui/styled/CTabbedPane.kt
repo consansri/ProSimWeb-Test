@@ -33,7 +33,7 @@ open class CTabbedPane(private val uiManager: UIManager, private val primary: Bo
         }
     }
 
-    private fun setDefaults(uiManager: UIManager) {
+    override fun setDefaults(uiManager: UIManager) {
         background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
         foreground = uiManager.currTheme().textLaF.base
         selectedColor = uiManager.currTheme().globalLaF.borderColor

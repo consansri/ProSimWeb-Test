@@ -25,7 +25,7 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean = false, pr
         }
     }
 
-    private fun setDefaults(uiManager: UIManager) {
+    override fun setDefaults(uiManager: UIManager) {
         background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
         border = uiManager.currScale().borderScale.getInsetBorder()
         repaint()

@@ -3,6 +3,7 @@ package me.c3.ui.components
 import me.c3.ui.components.controls.AppControls
 import me.c3.ui.UIManager
 import me.c3.ui.components.console.Console
+import me.c3.ui.components.controls.TopControls
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.editor.EditorControls
 import me.c3.ui.styled.ColouredPanel
@@ -26,9 +27,7 @@ import javax.swing.SwingUtilities
 
 class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter {
 
-
-
-    private val topBar = CPanel(uiManager, primary = false)
+    private val topBar = TopControls(uiManager)
     private val editor = uiManager.editor
     private val fileTree = FileTree(uiManager)
     private val leftBar = uiManager.editor.getControls()
@@ -78,23 +77,23 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter
     }
 
     override fun setupUI(uiManager: UIManager) {
-        setFrameTitle("ProSim")
+        SwingUtilities.invokeLater {
+            setFrameTitle("ProSim")
 
-        uiManager.themeManager.addThemeChangeListener {
+            uiManager.themeManager.addThemeChangeListener {
+                setDefaults(uiManager)
+            }
+
             setDefaults(uiManager)
+            defaultCloseOperation = EXIT_ON_CLOSE
+            size = Dimension(1920, 1080)
+            isVisible = true
+            setLocationRelativeTo(null)
         }
-
-        setDefaults(uiManager)
-        defaultCloseOperation = EXIT_ON_CLOSE
-        size = Dimension(1920, 1080)
-        isVisible = true
-        setLocationRelativeTo(null)
     }
 
-    private fun setDefaults(uiManager: UIManager) {
-        SwingUtilities.invokeLater {
-            repaint()
-        }
+    override fun setDefaults(uiManager: UIManager) {
+        repaint()
     }
 
     private fun loadImage(path: String): ImageIcon? {

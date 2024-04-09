@@ -36,7 +36,7 @@ class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Compone
         }
     }
 
-    private fun setDefaults(uiManager: UIManager) {
+    override fun setDefaults(uiManager: UIManager) {
         background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
         val paneUI = ui as? CScrollPaneUI ?: return
         paneUI.scrollBarBgColor = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary

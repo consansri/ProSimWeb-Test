@@ -138,7 +138,7 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
         }
     }
 
-    private fun setDefaults(uiManager: UIManager) {
+    override fun setDefaults(uiManager: UIManager) {
         updateIcon(uiManager)
 
         val buttonUI = this.ui as? CIconButtonUI ?: return

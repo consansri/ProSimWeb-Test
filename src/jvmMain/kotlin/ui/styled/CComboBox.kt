@@ -1,19 +1,21 @@
-package me.c3.ui.components.styled
+package me.c3.ui.styled
 
 import me.c3.ui.UIManager
 import me.c3.ui.theme.core.ui.UIAdapter
-import javax.swing.JLabel
+import java.awt.Color
+import javax.swing.JComboBox
 import javax.swing.SwingUtilities
 
-class CLabel(uiManager: UIManager, content: String): JLabel(content), UIAdapter {
+open class CComboBox<T>(uiManager: UIManager, array: Array<T>) : JComboBox<T>(array), UIAdapter {
 
     init {
         this.setupUI(uiManager)
     }
 
-
     override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
+            this.setUI(CComboBoxUI(uiManager))
+
             uiManager.themeManager.addThemeChangeListener {
                 setDefaults(uiManager)
             }
@@ -26,10 +28,10 @@ class CLabel(uiManager: UIManager, content: String): JLabel(content), UIAdapter 
         }
     }
 
-    override fun setDefaults(uiManager: UIManager){
-        font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
-        foreground = uiManager.currTheme().textLaF.base
-        repaint()
+    override fun setDefaults(uiManager: UIManager) {
+        this.font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
+        this.foreground = uiManager.currTheme().textLaF.base
+        this.background = uiManager.currTheme().globalLaF.bgPrimary
     }
 
 }
