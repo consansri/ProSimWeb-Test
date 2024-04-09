@@ -31,11 +31,7 @@ class ThemeManager(icons: ProSimIcons) {
         currentTheme = themes.first()
     }
 
-    private fun triggerThemeChangeEvents(){
-        themeChangeEvents.forEach {
-            it(currentTheme)
-        }
-    }
+
 
     fun addThemeChangeListener(event: (theme: Theme) -> Unit) {
         themeChangeEvents.add(event)
@@ -44,5 +40,11 @@ class ThemeManager(icons: ProSimIcons) {
     fun removeThemeChangeEvent(event: (theme: Theme) -> Unit) {
         themeChangeEvents.remove(event)
     }
-
+    private fun triggerThemeChangeEvents(){
+        val listenersCopy = ArrayList(themeChangeEvents)
+        listenersCopy.forEach {
+            it(currentTheme)
+        }
+        nativeLog("ThemeManager: Switched Theme to ${currentTheme.name}!")
+    }
 }

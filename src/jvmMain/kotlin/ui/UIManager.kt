@@ -69,13 +69,15 @@ class UIManager() {
     }
 
     private fun triggerAnyEvent() {
-        anyEventListeners.forEach {
+        val listenersCopy = ArrayList(anyEventListeners)
+        listenersCopy.forEach {
             it()
         }
     }
 
     private fun triggerWSChanged() {
-        wsChangedListeners.forEach {
+        val listenersCopy = ArrayList(wsChangedListeners)
+        listenersCopy.forEach {
             it(currWS())
         }
     }

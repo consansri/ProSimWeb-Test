@@ -9,10 +9,7 @@ class ArchManager(initialArch: Architecture) {
     var curr = initialArch
         set(value) {
             field = value
-            archChangeListeners.forEach {
-                it(value)
-            }
-            nativeLog("ArchManager: Trigger Arch Change!")
+            triggerArchChange()
         }
 
     fun addArchChangeListener(event: (Architecture) -> Unit) {
@@ -21,5 +18,13 @@ class ArchManager(initialArch: Architecture) {
 
     fun removeArchChangeListener(event: (Architecture) -> Unit) {
         archChangeListeners.remove(event)
+    }
+
+    private fun triggerArchChange(){
+        val listenersCopy = ArrayList(archChangeListeners)
+        listenersCopy.forEach{
+            it(curr)
+        }
+        nativeLog("ArchManager: Trigger Arch Change!")
     }
 }

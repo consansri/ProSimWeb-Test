@@ -11,10 +11,7 @@ class ScaleManager {
     var currentScaling: Scaling = scalings.first()
         set(value) {
             field = value
-            scaleChangeEvents.forEach {
-                it(currentScaling)
-            }
-            nativeLog("ScaleManager: Switched Scaling to ${value.name}!")
+            triggerScaleChange()
         }
 
     init {
@@ -31,6 +28,14 @@ class ScaleManager {
 
     fun removeScaleChangeEvent(event: (scaling: Scaling) -> Unit) {
         scaleChangeEvents.remove(event)
+    }
+
+    private fun triggerScaleChange(){
+        val listenersCopy = ArrayList(scaleChangeEvents)
+        listenersCopy.forEach{
+            it(currentScaling)
+        }
+        nativeLog("ScaleManager: Switched Scaling to ${currentScaling.name}!")
     }
 
 }
