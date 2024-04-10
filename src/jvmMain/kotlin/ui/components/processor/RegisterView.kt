@@ -60,9 +60,6 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
 
         inner class RegTable(val registerFile: RegContainer.RegisterFile) : CTable(uiManager, DefaultTableModel()) {
             init {
-                val observable by Delegates.observable(registerFile){property, oldValue, newValue ->
-
-                }
 
             }
 

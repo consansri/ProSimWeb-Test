@@ -5,10 +5,9 @@ import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CSplitPane
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import javax.swing.BoxLayout
 import javax.swing.JSplitPane
 
-class Processor(uiManager: UIManager) : CPanel(uiManager, primary = false) {
+class ProcessorView(uiManager: UIManager) : CPanel(uiManager, primary = false) {
 
     private val exeControl = ExecutionControls(uiManager)
     private val regView = RegisterView(uiManager)
@@ -39,7 +38,6 @@ class Processor(uiManager: UIManager) : CPanel(uiManager, primary = false) {
         gbc.weighty = 1.0
         gbc.fill = GridBagConstraints.BOTH
         add(splitPane, gbc)
-
     }
 
 }

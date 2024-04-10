@@ -16,9 +16,7 @@ class LightTheme(icons: ProSimIcons) : Theme {
         return@CodeLaF Color(it.lightHexColor)
     }
     override val dataLaF: DataLaF = DataLaF {
-        val col = Color(it.light)
-        nativeLog("Returning Color: $col")
-        col
+        Color(it.light)
     }
 
     override val globalLaF: GlobalLaF = GlobalLaF(Color(0xFFFFFF), Color(0xEEEEEF), Color(0xBBBBBB))

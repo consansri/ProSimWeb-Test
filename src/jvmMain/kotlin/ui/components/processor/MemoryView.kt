@@ -1,12 +1,14 @@
 package me.c3.ui.components.processor
 
+import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
+import emulator.kit.types.Variable
 import me.c3.ui.UIManager
-import me.c3.ui.components.processor.models.MemTableModel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
-import javax.swing.JTable
+import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableModel
 
 class MemoryView(private val uiManager: UIManager) : CPanel(uiManager, primary = false) {
@@ -14,8 +16,9 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager, primary =
     val tableModel = DefaultTableModel()
     val table = CTable(uiManager, tableModel)
     val scrollPane = CScrollPane(uiManager, primary = false, table)
-    val addrTitle = "ADDRESS"
+    val addrTitle = "ADDR"
     val asciiTitle = "ASCII"
+    var currentlyUpdating = false
 
     init {
         layout = BorderLayout()
@@ -23,6 +26,35 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager, primary =
         this.maximumSize = table.maximumSize
         updateContent()
         addContentChangeListener()
+        attachTableModelListener()
+    }
+
+    private fun attachTableModelListener() {
+        tableModel.addTableModelListener { e ->
+            if (e.type == TableModelEvent.UPDATE && !currentlyUpdating) {
+                val row = e.firstRow
+                val col = e.column
+                try {
+                    val rowAddr = tableModel.getValueAt(row, 0)
+                    val newValue = tableModel.getValueAt(row, col)
+                    val offset = col - 1
+                    val memInstance = uiManager.currArch().getMemory().memList.firstOrNull {
+                        it.row.getRawHexStr() == rowAddr.toString() && it.offset == offset
+                    }
+                    memInstance?.let { memInst ->
+                        val hex = Variable.Value.Hex(newValue.toString(), uiManager.currArch().getMemory().getWordSize())
+                        if (hex.checkResult.valid) {
+                            memInst.variable.set(hex)
+                        }
+                        currentlyUpdating = true
+                        tableModel.setValueAt(memInstance, row, col)
+                        currentlyUpdating = false
+                    } ?: nativeWarn("Couldn't find MemInstance for rowAddr: $rowAddr and offset: $offset")
+                } catch (e: IndexOutOfBoundsException) {
+                    nativeWarn("Received Index Out Of Bounds Exception: $e")
+                }
+            }
+        }
     }
 
     private fun addContentChangeListener() {
@@ -40,6 +72,7 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager, primary =
     }
 
     private fun updateContent() {
+        currentlyUpdating = true
         tableModel.rowCount = 0
         val rowAddresses = mutableListOf<String>()
         val entrysInRow = uiManager.currArch().getMemory().getEntrysInRow()
@@ -64,24 +97,31 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager, primary =
         }
 
         updateColumnWidths(entrysInRow)
+        currentlyUpdating = false
     }
 
     private fun updateColumnWidths(entrysInRow: Int) {
+        val charWidth = getFontMetrics(uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.dataSize)).charWidth('0')
         val wordSize = uiManager.currArch().getMemory().getWordSize()
         val addrScale = uiManager.currArch().getMemory().getAddressSize()
         val asciiScale = entrysInRow * wordSize.getByteCount()
         val divider = entrysInRow * wordSize.hexChars + asciiScale + addrScale.hexChars
 
-        val oneCharSpace = table.width/divider
+        val oneCharSpace = table.width / divider
         val firstColumnWidth = addrScale.hexChars * oneCharSpace
         val inBetweenWidth = wordSize.hexChars * oneCharSpace
         val lastColumnWidth = asciiScale * oneCharSpace
 
-        for(colIndex in 0 until table.columnCount) {
-            table.columnModel.getColumn(colIndex).preferredWidth = when(colIndex){
+        for (colIndex in 0 until table.columnCount) {
+            table.columnModel.getColumn(colIndex).preferredWidth = when (colIndex) {
                 0 -> firstColumnWidth
                 table.columnCount - 1 -> lastColumnWidth
                 else -> inBetweenWidth
+            }
+            table.columnModel.getColumn(colIndex).minWidth = when (colIndex) {
+                0 -> charWidth * addrScale.hexChars
+                table.columnCount - 1 -> asciiScale * charWidth
+                else -> wordSize.hexChars * charWidth
             }
         }
     }

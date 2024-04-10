@@ -28,6 +28,14 @@ class FileManager {
         triggerFileEvent()
     }
 
+    fun closeAllFiles() {
+        openFiles.forEach {
+            it.store()
+        }
+        openFiles.clear()
+        triggerFileEvent()
+    }
+
     fun getCurrentFile(): CodeFile? {
         return openFiles.getOrNull(currentIndex)
     }
@@ -58,7 +66,6 @@ class FileManager {
     }
 
     private fun triggerFileEvent() {
-        nativeLog("File Event: ${openFiles.joinToString() { it.file.name }}")
         openFilesChangeListeners.forEach {
             it(this)
         }

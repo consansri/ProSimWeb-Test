@@ -3,6 +3,7 @@ package me.c3.ui.components.editor
 import emulator.kit.assembly.Compiler
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
+import io.nacular.doodle.controls.form.file
 import kotlinx.coroutines.*
 import me.c3.emulator.kit.install
 import me.c3.ui.UIManager
@@ -28,6 +29,11 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
 
     init {
         filesChangedReaction()
+        uiManager.addWSChangedListener {
+            fileManager.closeAllFiles()
+            panels.clear()
+            removeAll()
+        }
     }
 
     private fun filesChangedReaction() {
@@ -164,7 +170,7 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         }
 
         private suspend fun hlContent(codeStyle: CodeLaF, tokens: List<Compiler.Token>) {
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 val selStart = textPane.selectionStart
                 val selEnd = textPane.selectionEnd
                 val bufferedSize = textPane.size
