@@ -13,11 +13,11 @@ import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.text.SimpleAttributeSet
 
-class CTextPane(uiManager: UIManager) : JTextPane(), UIAdapter {
+class CTextPane(uiManager: UIManager) : JTextPane() {
 
     init {
         this.styledDocument = CDocument()
-        this.setupUI(uiManager)
+        setUI(CTextPaneUI(uiManager))
     }
 
     override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
@@ -34,30 +34,4 @@ class CTextPane(uiManager: UIManager) : JTextPane(), UIAdapter {
     fun createScrollPane(uiManager: UIManager): CScrollPane {
         return CScrollPane(uiManager, true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
     }
-
-    override fun setupUI(uiManager: UIManager) {
-        SwingUtilities.invokeLater {
-            setUI(CTextPaneUI(uiManager))
-
-            uiManager.themeManager.addThemeChangeListener {
-                setDefaults(uiManager)
-            }
-
-            uiManager.scaleManager.addScaleChangeEvent {
-                setDefaults(uiManager)
-            }
-
-            // Apply Defaults
-            setDefaults(uiManager)
-        }
-    }
-
-    override fun setDefaults(uiManager: UIManager) {
-        border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
-        background = uiManager.currTheme().globalLaF.bgPrimary
-        caretColor = uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.BASE0)
-        foreground = uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.BASE0)
-        uiManager.currTheme().codeLaF.getFont().install(this, uiManager.scaleManager.currentScaling.fontScale.codeSize)
-    }
-
 }

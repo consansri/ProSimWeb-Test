@@ -1,5 +1,6 @@
 package me.c3.ui.components.styled
 
+import io.nacular.doodle.core.view
 import me.c3.ui.UIManager
 import me.c3.ui.styled.CScrollPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
@@ -9,7 +10,7 @@ import java.awt.Graphics2D
 import javax.swing.JScrollPane
 import javax.swing.SwingUtilities
 
-class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Component?) : JScrollPane(c), UIAdapter {
+open class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Component?) : JScrollPane(c), UIAdapter {
 
     constructor(uiManager: UIManager, primary: Boolean) : this(uiManager, primary, null) {
 
@@ -21,10 +22,11 @@ class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Compone
     }
 
     init {
-        setupUI(uiManager)
+        this.setupUI(uiManager)
     }
 
     override fun setupUI(uiManager: UIManager) {
+        viewport.preferredSize = preferredSize
         SwingUtilities.invokeLater {
             setUI(CScrollPaneUI())
 
@@ -37,6 +39,7 @@ class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Compone
     }
 
     override fun setDefaults(uiManager: UIManager) {
+        viewport.isOpaque = false
         background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
         val paneUI = ui as? CScrollPaneUI ?: return
         paneUI.scrollBarBgColor = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary

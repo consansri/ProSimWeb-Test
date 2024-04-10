@@ -242,6 +242,11 @@ class Memory(
         }
 
         class EditableValue(address: Variable.Value.Hex, value: Variable.Value.Hex, entrysInRow: Int) : MemInstance(address, Variable(value), InstanceType.EDITABLE, entrysInRow = entrysInRow)
+
+        override fun toString(): String {
+            return variable.get().toHex().getRawHexStr()
+        }
+
     }
 
     enum class Endianess(val uiName: String) {

@@ -113,6 +113,7 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
     private fun installBuildButton(uiManager: UIManager, codeEditor: CodeEditor) {
         buildButton.addActionListener {
             codeEditor.fileManager.compileCurrent(uiManager.currArch(), uiManager.currWS(), build = true)
+            uiManager.eventManager.triggerCompileFinished()
         }
     }
 

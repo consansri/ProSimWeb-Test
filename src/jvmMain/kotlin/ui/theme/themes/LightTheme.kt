@@ -1,6 +1,7 @@
 package me.c3.ui.theme.themes
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import emulator.kit.nativeLog
 import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.core.style.*
 import me.c3.ui.theme.icons.ProSimIcons
@@ -14,6 +15,12 @@ class LightTheme(icons: ProSimIcons) : Theme {
         if (it == null) return@CodeLaF Color(0x222222)
         return@CodeLaF Color(it.lightHexColor)
     }
+    override val dataLaF: DataLaF = DataLaF {
+        val col = Color(it.light)
+        nativeLog("Returning Color: $col")
+        col
+    }
+
     override val globalLaF: GlobalLaF = GlobalLaF(Color(0xFFFFFF), Color(0xEEEEEF), Color(0xBBBBBB))
     override val iconLaF: IconLaF = IconLaF(Color(0x222222), Color(0x313131), iconBgHover = Color(0x33777777, true), iconBgActive = Color(0x77777777, true))
     override val textLaF: TextLaF = TextLaF(

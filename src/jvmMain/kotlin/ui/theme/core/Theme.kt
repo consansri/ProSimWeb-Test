@@ -16,6 +16,7 @@ interface Theme {
     val icon: FlatSVGIcon
 
     val codeLaF: CodeLaF
+    val dataLaF: DataLaF
     val globalLaF: GlobalLaF
     val iconLaF: IconLaF
     val textLaF: TextLaF

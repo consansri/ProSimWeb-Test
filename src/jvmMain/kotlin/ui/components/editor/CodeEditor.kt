@@ -3,7 +3,7 @@ package me.c3.ui.components.editor
 import emulator.kit.assembly.Compiler
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import me.c3.emulator.kit.install
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.*
@@ -28,7 +28,6 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
 
     init {
         filesChangedReaction()
-        currFileEditReaction()
     }
 
     private fun filesChangedReaction() {
@@ -49,22 +48,13 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         addTab(null, editPanel)
         val lastIndex = tabCount - 1
         panels.add(editPanel)
-        setTabComponentAt(lastIndex, CClosableTab(uiManager, file.getName()) {
+        setTabComponentAt(lastIndex, CClosableTab(lastIndex, uiManager, file.getName()) {
             fileManager.closeFile(file)
-            try {
-                this.removeTabAt(lastIndex)
-            }catch (e: IndexOutOfBoundsException){
-                nativeWarn("CodeEditor: Throws Input out of Bounds Exception!")
-            }
-
+            val index = indexOfComponent(editPanel)
+            if (index != -1) this.removeTabAt(index)
             this.panels.remove(editPanel)
         })
-    }
-
-    private fun currFileEditReaction() {
-        fileManager.addCurrFileEditEventListener { fm ->
-
-        }
+        selectedComponent = editPanel
     }
 
     fun getControls(): EditorControls = EditorControls(uiManager, this)
@@ -83,18 +73,19 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         private val cScrollPane = textPane.createScrollPane(uiManager)
 
         init {
+            textPane.setInitialText(file.contentAsString())
+
             uiManager.themeManager.addThemeChangeListener {
-                setDefaults(uiManager)
+                setEditorDefaults(uiManager)
             }
 
             uiManager.scaleManager.addScaleChangeEvent {
-                setDefaults(uiManager)
+                setEditorDefaults(uiManager)
             }
 
             attachComponents()
             attachDocument(uiManager)
             setEditorDefaults(uiManager)
-            textPane.setInitialText(file.contentAsString())
         }
 
         private fun attachDocument(uiManager: UIManager) {
@@ -141,16 +132,19 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {
             compileJob?.cancel()
 
-            val delay = if (immediate) 0L else 2500L
+            val delay = if (immediate) 0L else 1000L
 
             compileJob = Coroutines.setTimeout(delay) {
-                SwingUtilities.invokeLater {
+                CoroutineScope(Dispatchers.Default).launch {
                     val measuredTime = measureTime {
                         file.store()
                         val compResult = uiManager.currArch().compile(file.toCompilerFile(), uiManager.currWS().getCompilerFiles(file.file), build)
                         nativeLog("EditPanel: triggerCompile() start")
                         val codeStyle = uiManager.currTheme().codeLaF
-                        hlContent(codeStyle, compResult.tokens)
+                        if (compResult.tokens.joinToString("") { it.content } == textPane.styledDocument.getText(0, textPane.styledDocument.length)) {
+                            hlContent(codeStyle, compResult.tokens)
+                            nativeLog("Content is the same!")
+                        }
                     }
                     nativeLog("EditPanel: triggerCompile() took ${measuredTime.inWholeNanoseconds} ns")
                     uiManager.eventManager.triggerCompileFinished()
@@ -159,21 +153,18 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         }
 
         private fun setEditorDefaults(uiManager: UIManager) {
-            SwingUtilities.invokeLater {
-                layout = BoxLayout(this, BoxLayout.X_AXIS)
-                border = BorderFactory.createEmptyBorder()
-                lineNumbers.border = DirectionalBorder(uiManager, east = true)
-                viewport.font = uiManager.themeManager.currentTheme.codeLaF.getFont().deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
-                textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
-                textPane.isEditable = true
-                viewport.background = uiManager.currTheme().globalLaF.bgPrimary
-                font = uiManager.themeManager.currentTheme.codeLaF.getFont().deriveFont(uiManager.scaleManager.currentScaling.fontScale.codeSize)
-                font.install(textPane, uiManager.currScale().fontScale.codeSize)
-            }
+            setDefaults(uiManager)
+            layout = BoxLayout(this, BoxLayout.X_AXIS)
+            border = BorderFactory.createEmptyBorder()
+            lineNumbers.border = DirectionalBorder(uiManager, east = true)
+            textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
+            textPane.isEditable = true
+            viewport.background = uiManager.currTheme().globalLaF.bgPrimary
+            lineNumbers.update()
         }
 
-        private fun hlContent(codeStyle: CodeLaF, tokens: List<Compiler.Token>) {
-            SwingUtilities.invokeLater {
+        private suspend fun hlContent(codeStyle: CodeLaF, tokens: List<Compiler.Token>) {
+            withContext(Dispatchers.Main){
                 val selStart = textPane.selectionStart
                 val selEnd = textPane.selectionEnd
                 val bufferedSize = textPane.size
@@ -188,40 +179,37 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
             }
         }
 
-        class LineNumbers(uiManager: UIManager, textPane: CTextPane) : JList<String>(LineNumberListModel(textPane)) {
+        class LineNumbers(private val uiManager: UIManager, private val textPane: CTextPane) : JList<String>(LineNumberListModel(textPane)) {
 
             init {
                 // UI Listeners
                 uiManager.themeManager.addThemeChangeListener {
-                    setDefaults(uiManager, textPane)
+                    setDefaults()
                 }
 
                 uiManager.scaleManager.addScaleChangeEvent {
-                    setDefaults(uiManager, textPane)
+                    setDefaults()
                 }
 
                 // Apply Defaults
-                setDefaults(uiManager, textPane)
+                setDefaults()
             }
 
             fun update() {
-                this.updateUI()
+                setDefaults()
                 (this.model as LineNumberListModel).update()
+                this.updateUI()
             }
 
-            private fun setDefaults(uiManager: UIManager, textPane: JTextPane) {
-                val loadedFont = uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.codeSize)
-                this.font = loadedFont
+            private fun setDefaults() {
+                this.font = textPane.font
                 this.background = uiManager.currTheme().globalLaF.bgPrimary
-                cellRenderer = LineNumberListRenderer(uiManager.currTheme().textLaF.baseSecondary, loadedFont, uiManager.currTheme().globalLaF.bgPrimary)
-                fixedCellWidth = getFontMetrics(loadedFont).charWidth('0') * 5
-                fixedCellHeight = textPane.getFontMetrics(loadedFont).height
-                this.updateUI()
-                (this.model as LineNumberListModel).update()
+                this.cellRenderer = LineNumberListRenderer(uiManager.currTheme().textLaF.baseSecondary, textPane.font, uiManager.currTheme().globalLaF.bgPrimary)
+                this.fixedCellWidth = getFontMetrics(textPane.font).charWidth('0') * 5
+                this.fixedCellHeight = getFontMetrics(textPane.font).height
             }
 
             class LineNumberListModel(private val textPane: JTextPane) : AbstractListModel<String>() {
-
                 override fun getSize(): Int {
                     return textPane.text.split("\n").size
                 }
@@ -251,6 +239,4 @@ class CodeEditor(private val uiManager: UIManager) : CTabbedPane(uiManager, true
         }
 
     }
-
-
 }

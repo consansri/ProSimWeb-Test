@@ -2,12 +2,14 @@ package me.c3.ui.components.processor
 
 import emulator.kit.common.RegContainer
 import me.c3.ui.UIManager
+import me.c3.ui.components.processor.models.RegTableModel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTabbedPane
 import me.c3.ui.styled.CTable
 import java.util.Observable
 import javax.swing.Box
 import javax.swing.JTable
+import javax.swing.table.DefaultTableModel
 import javax.swing.table.JTableHeader
 import kotlin.properties.Delegates
 
@@ -56,7 +58,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
             }
         }
 
-        inner class RegTable(val registerFile: RegContainer.RegisterFile) : CTable(uiManager) {
+        inner class RegTable(val registerFile: RegContainer.RegisterFile) : CTable(uiManager, DefaultTableModel()) {
             init {
                 val observable by Delegates.observable(registerFile){property, oldValue, newValue ->
 

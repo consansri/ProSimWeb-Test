@@ -2,6 +2,9 @@ package me.c3.emulator.kit
 
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.IConsole
+import emulator.kit.common.Memory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.c3.ui.components.editor.CDocument
 import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Font
@@ -43,9 +46,9 @@ fun Compiler.Token.hlAndAppendToDoc(codeStyle: CodeLaF, document: StyledDocument
         }
 
         else -> {
-            StyleConstants.setForeground(textAttrs, codeStyle.getColor(this.getCodeStyle()))
-            document.insertString(document.length, this.content, textAttrs)
-            if (severity != null) document.setCharacterAttributes(document.length - this.content.length, this.content.length, sevAttrs, false)
+            StyleConstants.setForeground(textAttrs, codeStyle.getColor(this@hlAndAppendToDoc.getCodeStyle()))
+            document.insertString(document.length, this@hlAndAppendToDoc.content, textAttrs)
+            if (severity != null) document.setCharacterAttributes(document.length - this@hlAndAppendToDoc.content.length, this@hlAndAppendToDoc.content.length, sevAttrs, false)
         }
     }
 }
