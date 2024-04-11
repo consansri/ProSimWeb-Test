@@ -91,7 +91,6 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
     class RegFileTable(private val uiManager: UIManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel()) : CTable(uiManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
 
         private var currentlyUpdating = false
-
         private val identifierLabel = "Identifiers"
         private val ccLabel = "CC"
         private val description = "Description"
@@ -123,8 +122,27 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
             }
 
         init {
+            uiManager.eventManager.addExeEventListener {
+                updateRegValues()
+            }
+
+            uiManager.eventManager.addCompileListener {
+                updateRegValues()
+            }
+
             attachNumericSwitcher()
             attachValueChangeListener()
+        }
+
+        fun updateRegValues() {
+            currentlyUpdating = true
+
+            for (regIndex in regs.indices) {
+                val reg = regs[regIndex]
+                tableModel.setValueAt(reg.variable.get(numericType).toRawString(), regIndex, 1)
+            }
+
+            currentlyUpdating = false
         }
 
         fun updateContent() {
@@ -146,6 +164,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
             }
 
             this.fitColumnWidths(0)
+            updateRegValues()
             currentlyUpdating = false
         }
 
