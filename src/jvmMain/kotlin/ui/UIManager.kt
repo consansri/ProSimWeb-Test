@@ -22,16 +22,17 @@ class UIManager() {
 
     val icons = BenIcons()
 
+    private val anyEventListeners = mutableListOf<() -> Unit>()
+    private val wsChangedListeners = mutableListOf<(Workspace) -> Unit>()
+
     val themeManager = ThemeManager(icons)
     val scaleManager = ScaleManager()
     val eventManager = EventManager(archManager)
 
-    private val anyEventListeners = mutableListOf<() -> Unit>()
-
     val editor = CodeEditor(this)
 
     private var ws = Workspace(Paths.get("").toAbsolutePath().toString(), editor, this)
-    private val wsChangedListeners = mutableListOf<(Workspace) -> Unit>()
+
 
     init {
         themeManager.addThemeChangeListener {
