@@ -27,8 +27,8 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter
     private val editor = uiManager.editor
     private val fileTree = FileTree(uiManager)
     private val leftBar = uiManager.editor.getControls()
-    private val processorView = ProcessorView(uiManager)
-    private val rightBar = AppControls(uiManager)
+    val processorView = ProcessorView(uiManager)
+    private val rightBar = AppControls(this, uiManager)
     private val consoleAndInfo = Console(uiManager)
     private val bottomBar = ColouredPanel(uiManager, false)
 

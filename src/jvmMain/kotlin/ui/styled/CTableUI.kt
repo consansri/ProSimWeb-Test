@@ -2,6 +2,9 @@ package me.c3.ui.styled
 
 import emulator.kit.common.Memory
 import me.c3.ui.UIManager
+import me.c3.ui.components.styled.CIconButton
+import me.c3.ui.components.styled.CLabel
+import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.styled.borders.DirectionalBorder
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
@@ -17,8 +20,9 @@ import javax.swing.SwingUtilities
 import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 
-class CTableUI(private val uiManager: UIManager) : BasicTableUI() {
+class CTableUI(private val uiManager: UIManager, private val primary: Boolean) : BasicTableUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -37,26 +41,30 @@ class CTableUI(private val uiManager: UIManager) : BasicTableUI() {
     }
 
     inner class CCellRenderer(val primary: Boolean) : DefaultTableCellRenderer() {
-
-        init {
-            horizontalAlignment = SwingConstants.CENTER
-        }
-
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
             val fg = if (primary) uiManager.currTheme().textLaF.base else uiManager.currTheme().textLaF.baseSecondary
             val bg = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
 
+            val cTable = table as? CTable
+            cTable?.let { tab ->
+                horizontalAlignment = when (tab.columnAlignments.getOrNull(column)) {
+                    SwingConstants.CENTER -> SwingConstants.CENTER
+                    SwingConstants.LEFT -> SwingConstants.LEFT
+                    SwingConstants.RIGHT -> SwingConstants.RIGHT
+                    else -> SwingConstants.CENTER
+                }
+            }
+
             border = BorderFactory.createEmptyBorder()
             foreground = if (value is Memory.MemInstance) uiManager.currTheme().dataLaF.getMemInstanceColor(value.mark) else fg
             background = bg
             font = uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.dataSize)
             border = DirectionalBorder(uiManager)
-
             border = uiManager.currScale().borderScale.getInsetBorder()
 
-            return this
+            return value as? Component ?: this
         }
     }
 
@@ -74,7 +82,7 @@ class CTableUI(private val uiManager: UIManager) : BasicTableUI() {
     private fun setDefaults(uiManager: UIManager, table: CTable) {
         table.background = uiManager.currTheme().globalLaF.bgSecondary
         table.autoResizeMode = JTable.AUTO_RESIZE_OFF
-        table.setDefaultRenderer(Any::class.java, CCellRenderer(false))
+        table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
         table.setDefaultEditor(Any::class.java, CCellEditor())
         table.tableHeader.border = DirectionalBorder(uiManager, south = true)
         table.isOpaque = true
@@ -87,9 +95,10 @@ class CTableUI(private val uiManager: UIManager) : BasicTableUI() {
         header.background = uiManager.currTheme().globalLaF.bgPrimary
         header.foreground = uiManager.currTheme().textLaF.baseSecondary
         header.font = uiManager.currTheme().textLaF.getTitleFont().deriveFont(uiManager.currScale().fontScale.dataSize)
-        header.defaultRenderer = CCellRenderer(true)
+        header.defaultRenderer = CCellRenderer(primary)
         header.resizingAllowed = false
         header.reorderingAllowed = false
         header.updateTableInRealTime = true
     }
+
 }

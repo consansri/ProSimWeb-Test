@@ -5,10 +5,10 @@ import me.c3.ui.ArchManager
 
 class EventManager(private val archManager: ArchManager) {
 
-    private val compileEventListeners = mutableListOf<(Architecture) -> Unit>()
+    private val compileEventListeners = mutableListOf<(Boolean) -> Unit>()
     private val exeEventListeners = mutableListOf<(Architecture) -> Unit>()
 
-    fun addCompileListener(event: (Architecture) -> Unit) {
+    fun addCompileListener(event: (Boolean) -> Unit) {
         compileEventListeners.add(event)
     }
 
@@ -16,7 +16,7 @@ class EventManager(private val archManager: ArchManager) {
         exeEventListeners.add(event)
     }
 
-    fun removeCompileListener(event: (Architecture) -> Unit) {
+    fun removeCompileListener(event: (Boolean) -> Unit) {
         compileEventListeners.remove(event)
     }
 
@@ -24,9 +24,9 @@ class EventManager(private val archManager: ArchManager) {
         exeEventListeners.remove(event)
     }
 
-    fun triggerCompileFinished() {
+    fun triggerCompileFinished(success: Boolean) {
         compileEventListeners.forEach {
-            it(archManager.curr)
+            it(success)
         }
     }
 

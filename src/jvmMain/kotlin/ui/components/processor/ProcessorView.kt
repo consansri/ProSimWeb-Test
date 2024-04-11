@@ -9,10 +9,10 @@ import javax.swing.JSplitPane
 
 class ProcessorView(uiManager: UIManager) : CPanel(uiManager, primary = false) {
 
-    private val exeControl = ExecutionControls(uiManager)
-    private val regView = RegisterView(uiManager)
-    private val memoryView = MemoryView(uiManager)
-    private val splitPane = CSplitPane(uiManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView)
+    val exeControl = ExecutionControls(uiManager)
+    val regView = RegisterView(uiManager)
+    val memoryView = MemoryView(uiManager)
+    val splitPane = CSplitPane(uiManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView)
 
     init {
         attachContent()

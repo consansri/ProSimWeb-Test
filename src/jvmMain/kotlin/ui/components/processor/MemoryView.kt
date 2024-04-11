@@ -4,6 +4,7 @@ import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import me.c3.ui.UIManager
+import me.c3.ui.components.processor.models.MemTableModel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.styled.CTable
@@ -13,8 +14,8 @@ import javax.swing.table.DefaultTableModel
 
 class MemoryView(private val uiManager: UIManager) : CPanel(uiManager, primary = false) {
 
-    val tableModel = DefaultTableModel()
-    val table = CTable(uiManager, tableModel)
+    val tableModel = MemTableModel()
+    val table = CTable(uiManager, tableModel, false)
     val scrollPane = CScrollPane(uiManager, primary = false, table)
     val addrTitle = "ADDR"
     val asciiTitle = "ASCII"

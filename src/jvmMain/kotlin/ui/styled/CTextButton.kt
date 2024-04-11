@@ -4,6 +4,7 @@ import me.c3.ui.UIManager
 import me.c3.ui.styled.CTextButtonUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
+import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.SwingUtilities
 
@@ -38,6 +39,7 @@ class CTextButton(uiManager: UIManager, text: String) : JButton(text), UIAdapter
     override fun setDefaults(uiManager: UIManager){
         val currTheme = uiManager.currTheme()
         val currScale = uiManager.currScale()
+        border = uiManager.currScale().borderScale.getInsetBorder()
         font = currTheme.textLaF.getTitleFont().deriveFont(currScale.fontScale.titleSize)
         foreground = currTheme.textLaF.base
         background = Color(0,0,0,0)

@@ -3,7 +3,6 @@ package me.c3.ui
 import emulator.kit.assembly.Compiler
 import emulator.kit.nativeError
 import emulator.kit.toCompilerFile
-import io.nacular.doodle.controls.form.files
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.styled.CTree
 import java.awt.event.MouseAdapter
@@ -33,7 +32,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
                         val uobj = selectedNode.userObject
 
                         if (uobj is TreeFile && uobj.file.isFile) {
-                            codeEditor.fileManager.openFile(uobj.file)
+                            codeEditor.openFile(uobj.file)
                         } else {
                             nativeError("Couldn't open File! ($uobj)")
                         }

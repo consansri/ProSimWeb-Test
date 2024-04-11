@@ -7,8 +7,26 @@ import me.c3.ui.theme.core.ui.UIAdapter
 import javax.swing.BorderFactory
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
+import kotlin.math.round
 
-open class CPanel(uiManager: UIManager, private val primary: Boolean = false, private val borderMode: BorderMode = BorderMode.NONE) : JPanel(), UIAdapter {
+open class CPanel(private val uiManager: UIManager, primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false) : JPanel(), UIAdapter {
+
+    var roundedCorners: Boolean = roundCorners
+        set(value) {
+            field = value
+            setDefaults(uiManager)
+        }
+    var primary: Boolean = primary
+        set(value) {
+            field = value
+            setDefaults(uiManager)
+        }
+
+    var borderMode: BorderMode = borderMode
+        set(value) {
+            field = value
+            setDefaults(uiManager)
+        }
 
     init {
         this.setupUI(uiManager)
@@ -16,7 +34,7 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean = false, pr
 
     override fun setupUI(uiManager: UIManager) {
         SwingUtilities.invokeLater {
-            this.setUI(CPanelUI())
+
 
             uiManager.themeManager.addThemeChangeListener {
                 setDefaults(uiManager)
@@ -27,6 +45,8 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean = false, pr
     }
 
     override fun setDefaults(uiManager: UIManager) {
+        this.setUI(CPanelUI(roundedCorners))
+
         background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
         border = when (borderMode) {
             BorderMode.INSET -> uiManager.currScale().borderScale.getInsetBorder()
@@ -48,5 +68,4 @@ open class CPanel(uiManager: UIManager, private val primary: Boolean = false, pr
         EAST,
         NONE
     }
-
 }

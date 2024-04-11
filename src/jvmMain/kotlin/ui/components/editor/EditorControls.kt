@@ -11,12 +11,12 @@ import javax.swing.BoxLayout
 class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager, false, borderMode = BorderMode.EAST) {
 
     private val transcriptButton: CIconButton = CIconButton(uiManager, uiManager.icons.disassembler)
-    private val statusIcon: CIconButton= CIconButton(uiManager, uiManager.icons.statusLoading)
-    private val undoButton: CIconButton= CIconButton(uiManager, uiManager.icons.backwards)
-    private val redoButton: CIconButton= CIconButton(uiManager, uiManager.icons.forwards)
-    private val buildButton: CIconButton= CIconButton(uiManager, uiManager.icons.build)
-    private val infoButton: CIconButton= CIconButton(uiManager, uiManager.icons.info)
-    private val deleteButton: CIconButton= CIconButton(uiManager, uiManager.icons.deleteBlack)
+    private val statusIcon: CIconButton = CIconButton(uiManager, uiManager.icons.statusLoading)
+    private val undoButton: CIconButton = CIconButton(uiManager, uiManager.icons.backwards)
+    private val redoButton: CIconButton = CIconButton(uiManager, uiManager.icons.forwards)
+    private val buildButton: CIconButton = CIconButton(uiManager, uiManager.icons.build)
+    private val infoButton: CIconButton = CIconButton(uiManager, uiManager.icons.info)
+    private val deleteButton: CIconButton = CIconButton(uiManager, uiManager.icons.deleteBlack)
 
     init {
         // Apply layout
@@ -49,7 +49,7 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
 
         // Functions
         installStatusButton(uiManager)
-        installBuildButton(uiManager, editor)
+        installBuildButton(editor)
 
         // Set Defaults
         val insets = uiManager.currScale().borderScale.insets
@@ -61,59 +61,25 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
     }
 
     private fun installStatusButton(uiManager: UIManager) {
-        editor.fileManager.addCurrFileEditEventListener {
-            when (uiManager.archManager.curr.getState().currentState) {
-                ArchState.State.UNCHECKED -> {
-                    statusIcon.svgIcon = uiManager.icons.statusLoading
-                    statusIcon.rotating = true
-                }
-
-                ArchState.State.HASERRORS -> {
-                    statusIcon.svgIcon = uiManager.icons.statusError
-                    statusIcon.rotating = false
-                }
-
-                ArchState.State.EXECUTABLE -> {
-                    statusIcon.svgIcon = uiManager.icons.statusFine
-                    statusIcon.rotating = false
-                }
-
-                ArchState.State.EXECUTION -> {
-                    statusIcon.svgIcon = uiManager.icons.statusFine
-                    statusIcon.rotating = false
-                }
-            }
+        uiManager.editor.addFileEditEvent {
+            statusIcon.svgIcon = uiManager.icons.statusLoading
+            statusIcon.rotating = true
         }
 
-        uiManager.eventManager.addCompileListener {
-            when (it.getState().currentState) {
-                ArchState.State.UNCHECKED -> {
-                    statusIcon.svgIcon = uiManager.icons.statusLoading
-                    statusIcon.rotating = true
-                }
-
-                ArchState.State.HASERRORS -> {
-                    statusIcon.svgIcon = uiManager.icons.statusError
-                    statusIcon.rotating = false
-                }
-
-                ArchState.State.EXECUTABLE -> {
-                    statusIcon.svgIcon = uiManager.icons.statusFine
-                    statusIcon.rotating = false
-                }
-
-                ArchState.State.EXECUTION -> {
-                    statusIcon.svgIcon = uiManager.icons.statusFine
-                    statusIcon.rotating = false
-                }
+        uiManager.eventManager.addCompileListener { success ->
+            if (success) {
+                statusIcon.svgIcon = uiManager.icons.statusFine
+                statusIcon.rotating = false
+            } else {
+                statusIcon.svgIcon = uiManager.icons.statusError
+                statusIcon.rotating = false
             }
         }
     }
 
-    private fun installBuildButton(uiManager: UIManager, codeEditor: CodeEditor) {
+    private fun installBuildButton(codeEditor: CodeEditor) {
         buildButton.addActionListener {
-            codeEditor.fileManager.compileCurrent(uiManager.currArch(), uiManager.currWS(), build = true)
-            uiManager.eventManager.triggerCompileFinished()
+            codeEditor.compileCurrent(build = true)
         }
     }
 
