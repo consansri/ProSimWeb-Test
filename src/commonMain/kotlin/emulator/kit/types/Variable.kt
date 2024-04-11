@@ -14,7 +14,6 @@ import kotlin.math.roundToInt
  * Operator Functions such as comparing functions are overwritten.
  */
 class Variable {
-
     private val initialBinary: String
     val size: Size
     var value: Value
@@ -39,6 +38,14 @@ class Variable {
 
     /* GETTER SETTER */
     fun get(): Value = value
+
+    fun get(type: Value.Types): Value = when (type) {
+        Value.Types.Bin -> value.toBin()
+        Value.Types.Hex -> value.toHex()
+        Value.Types.Dec -> value.toDec()
+        Value.Types.UDec -> value.toUDec()
+    }
+
 
     fun getBounds(): Bounds = Bounds(size)
 
@@ -161,6 +168,7 @@ class Variable {
             return super.equals(other)
         }
 
+        abstract fun toRawString(): String
         abstract override fun toString(): String
         fun isSigned(): Boolean {
             return when (this) {
@@ -213,17 +221,9 @@ class Variable {
                 }
             }
 
-            override fun check(size: Size): CheckResult {
-                return check(getRawBinStr(), size)
-            }
-
-            fun getRawBinStr(): String {
-                return binString.removePrefix(Settings.PRESTRING_BINARY)
-            }
-
-            fun getBinaryStr(): String {
-                return binString
-            }
+            override fun check(size: Size): CheckResult = check(getRawBinStr(), size)
+            fun getRawBinStr(): String = binString.removePrefix(Settings.PRESTRING_BINARY)
+            fun getBinaryStr(): String = binString
 
             fun getUResized(size: Size): Bin {
                 val paddedBinString = if (size.bitWidth < this.size.bitWidth) {
@@ -303,29 +303,12 @@ class Variable {
                 }
             }
 
-            override fun toHex(): Hex {
-                return Conversion.getHex(this)
-            }
-
-            override fun toBin(): Bin {
-                return this
-            }
-
-            override fun toDec(): Dec {
-                return Conversion.getDec(this)
-            }
-
-            override fun toUDec(): UDec {
-                return Conversion.getUDec(this)
-            }
-
-            override fun toASCII(): String {
-                return Conversion.getASCII(this)
-            }
-
-            override fun getBiggest(): Value {
-                return Bin("1".repeat(size.bitWidth), size)
-            }
+            override fun toHex(): Hex = Conversion.getHex(this)
+            override fun toBin(): Bin = this
+            override fun toDec(): Dec = Conversion.getDec(this)
+            override fun toUDec(): UDec = Conversion.getUDec(this)
+            override fun toASCII(): String = Conversion.getASCII(this)
+            override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
             override fun plus(operand: Value): Value {
                 val result = BinaryTools.add(this.getRawBinStr(), operand.toBin().getRawBinStr())
@@ -336,7 +319,7 @@ class Variable {
             fun detailedPlus(operand: Value): AddResult {
                 val result = BinaryTools.addWithCarry(this.getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return AddResult(Bin(result.result, biggerSize),result.carry == '1')
+                return AddResult(Bin(result.result, biggerSize), result.carry == '1')
             }
 
             override fun minus(operand: Value): Value {
@@ -391,17 +374,11 @@ class Variable {
                 return if (resizeToLargestParamSize) Bin(BinaryTools.checkEmpty(divResult.remainder)).getResized(biggerSize) else Bin(divResult.remainder)
             }
 
-            override fun unaryMinus(): Value {
-                return Bin(BinaryTools.negotiate(this.getRawBinStr()), size)
-            }
+            override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.getRawBinStr()), size)
 
-            override fun inc(): Value {
-                return Bin(BinaryTools.add(this.getRawBinStr(), "1"), size)
-            }
+            override fun inc(): Value = Bin(BinaryTools.add(this.getRawBinStr(), "1"), size)
 
-            override fun dec(): Value {
-                return Bin(BinaryTools.sub(this.getRawBinStr(), "1"), size)
-            }
+            override fun dec(): Value = Bin(BinaryTools.sub(this.getRawBinStr(), "1"), size)
 
             override fun compareTo(other: Value): Int {
                 return if (BinaryTools.isEqual(getRawBinStr(), other.toBin().getRawBinStr())) {
@@ -413,9 +390,8 @@ class Variable {
                 }
             }
 
-            override fun toString(): String {
-                return this.binString
-            }
+            override fun toRawString(): String = getRawBinStr()
+            override fun toString(): String = binString
 
             infix fun shl(bitCount: Int): Bin {
                 val shiftedBinary = getRawBinStr().substring(bitCount).padEnd(size.bitWidth, '0')
@@ -493,17 +469,9 @@ class Variable {
 
             constructor(hexString: String) : this(hexString, Size.Original(hexString.trim().removePrefix(Settings.PRESTRING_HEX).length * 4))
 
-            fun getRawHexStr(): String {
-                return hexString.removePrefix(Settings.PRESTRING_HEX)
-            }
-
-            fun getHexStr(): String {
-                return hexString
-            }
-
-            fun getUResized(size: Size): Hex {
-                return Hex(getRawHexStr(), size)
-            }
+            fun getRawHexStr(): String = hexString.removePrefix(Settings.PRESTRING_HEX)
+            fun getHexStr(): String = hexString
+            fun getUResized(size: Size): Hex = Hex(getRawHexStr(), size)
 
             fun splitToByteArray(): Array<Hex> {
                 val paddedString = if (this.getRawHexStr().length % 2 == 0) this.getRawHexStr() else this.getRawHexStr().padStart(this.getRawHexStr().length + 1, '0')
@@ -530,29 +498,12 @@ class Variable {
                 }
             }
 
-            override fun check(size: Size): CheckResult {
-                return check(getRawHexStr(), size)
-            }
-
-            override fun toBin(): Bin {
-                return Conversion.getBinary(this)
-            }
-
-            override fun toDec(): Dec {
-                return Conversion.getDec(this.toBin())
-            }
-
-            override fun toUDec(): UDec {
-                return Conversion.getUDec(this.toBin())
-            }
-
-            override fun toASCII(): String {
-                return Conversion.getASCII(this)
-            }
-
-            override fun getBiggest(): Value {
-                return Hex("F".repeat(size.hexChars), size)
-            }
+            override fun check(size: Size): CheckResult = check(getRawHexStr(), size)
+            override fun toBin(): Bin = Conversion.getBinary(this)
+            override fun toDec(): Dec = Conversion.getDec(this.toBin())
+            override fun toUDec(): UDec = Conversion.getUDec(this.toBin())
+            override fun toASCII(): String = Conversion.getASCII(this)
+            override fun getBiggest(): Value = Hex("F".repeat(size.hexChars), size)
 
             override fun plus(operand: Value): Value {
                 val result = BinaryTools.add(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
@@ -584,35 +535,21 @@ class Variable {
                 return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize).toHex()
             }
 
-            override fun unaryMinus(): Value {
-                return Bin(BinaryTools.negotiate(this.toBin().getRawBinStr()), size).toHex()
+            override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.toBin().getRawBinStr()), size).toHex()
+            override fun inc(): Value = Bin(BinaryTools.add(this.toBin().getRawBinStr(), "1"), size).toHex()
+            override fun dec(): Value = Bin(BinaryTools.sub(this.toBin().getRawBinStr(), "1"), size).toHex()
+            override fun compareTo(other: Value): Int = if (BinaryTools.isEqual(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
+                0
+            } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
+                1
+            } else {
+                -1
             }
 
-            override fun inc(): Value {
-                return Bin(BinaryTools.add(this.toBin().getRawBinStr(), "1"), size).toHex()
-            }
+            override fun toRawString(): String = this.getRawHexStr()
+            override fun toString(): String = this.hexString
+            override fun toHex(): Hex = this
 
-            override fun dec(): Value {
-                return Bin(BinaryTools.sub(this.toBin().getRawBinStr(), "1"), size).toHex()
-            }
-
-            override fun compareTo(other: Value): Int {
-                return if (BinaryTools.isEqual(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
-                    0
-                } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
-                    1
-                } else {
-                    -1
-                }
-            }
-
-            override fun toString(): String {
-                return this.hexString
-            }
-
-            override fun toHex(): Hex {
-                return this
-            }
         }
 
         /**
@@ -631,21 +568,10 @@ class Variable {
 
             constructor(decString: String) : this(decString, Tools.getNearestDecSize(decString.trim().removePrefix(Settings.PRESTRING_DECIMAL)))
 
-            fun isNegative(): Boolean {
-                return negative
-            }
-
-            fun getRawDecStr(): String {
-                return decString.removePrefix(Settings.PRESTRING_DECIMAL)
-            }
-
-            fun getDecStr(): String {
-                return decString
-            }
-
-            fun getResized(size: Size): Dec {
-                return Dec(getRawDecStr(), size)
-            }
+            fun isNegative(): Boolean = negative
+            fun getRawDecStr(): String = decString.removePrefix(Settings.PRESTRING_DECIMAL)
+            fun getDecStr(): String = decString
+            fun getResized(size: Size): Dec = Dec(getRawDecStr(), size)
 
             override fun check(string: String, size: Size): CheckResult {
                 val formatted = string.trim().removePrefix(Settings.PRESTRING_DECIMAL)
@@ -669,42 +595,15 @@ class Variable {
                 }
             }
 
-            override fun check(size: Size): CheckResult {
-                return check(getRawDecStr(), size)
-            }
-
-            override fun toBin(): Bin {
-                return Conversion.getBinary(this)
-            }
-
-            override fun toHex(): Hex {
-                return Conversion.getBinary(this).toHex()
-            }
-
-            override fun toDec(): Dec {
-                return this
-            }
-
-            override fun toUDec(): UDec {
-                return Conversion.getUDec(this.toBin())
-            }
-
-            override fun toASCII(): String {
-                return Conversion.getBinary(this).toASCII()
-            }
-
-            fun toIntOrNull(): Int? {
-                return getRawDecStr().toIntOrNull()
-            }
-
-            fun toDoubleOrNull(): Double? {
-                return getRawDecStr().toDoubleOrNull()
-            }
-
-            override fun getBiggest(): Value {
-                return Dec(Bounds(size).max, size)
-            }
-
+            override fun check(size: Size): CheckResult = check(getRawDecStr(), size)
+            override fun toBin(): Bin = Conversion.getBinary(this)
+            override fun toHex(): Hex = Conversion.getBinary(this).toHex()
+            override fun toDec(): Dec = this
+            override fun toUDec(): UDec = Conversion.getUDec(this.toBin())
+            override fun toASCII(): String = Conversion.getBinary(this).toASCII()
+            fun toIntOrNull(): Int? = getRawDecStr().toIntOrNull()
+            fun toDoubleOrNull(): Double? = getRawDecStr().toDoubleOrNull()
+            override fun getBiggest(): Value = Dec(Bounds(size).max, size)
             override fun plus(operand: Value): Value {
                 val result = DecTools.add(this.getRawDecStr(), operand.toDec().getRawDecStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
@@ -735,32 +634,19 @@ class Variable {
                 return Dec(DecTools.checkEmpty(divResult.rest), biggerSize)
             }
 
-            override fun unaryMinus(): Value {
-                return Dec(DecTools.negotiate(this.getRawDecStr()), size)
+            override fun unaryMinus(): Value = Dec(DecTools.negotiate(this.getRawDecStr()), size)
+            override fun inc(): Value = Dec(DecTools.add(this.getRawDecStr(), "1"), size)
+            override fun dec(): Value = Dec(DecTools.sub(this.getRawDecStr(), "1"), size)
+            override fun compareTo(other: Value): Int = if (DecTools.isEqual(this.getRawDecStr(), other.toDec().getRawDecStr())) {
+                0
+            } else if (DecTools.isGreaterThan(this.getRawDecStr(), other.toDec().getRawDecStr())) {
+                1
+            } else {
+                -1
             }
 
-            override fun inc(): Value {
-                return Dec(DecTools.add(this.getRawDecStr(), "1"), size)
-            }
-
-            override fun dec(): Value {
-                return Dec(DecTools.sub(this.getRawDecStr(), "1"), size)
-            }
-
-            override fun compareTo(other: Value): Int {
-                return if (DecTools.isEqual(this.getRawDecStr(), other.toDec().getRawDecStr())) {
-                    0
-                } else if (DecTools.isGreaterThan(this.getRawDecStr(), other.toDec().getRawDecStr())) {
-                    1
-                } else {
-                    -1
-                }
-            }
-
-            override fun toString(): String {
-                return this.decString
-            }
-
+            override fun toRawString(): String = this.getRawDecStr()
+            override fun toString(): String = this.decString
         }
 
         /**
@@ -781,17 +667,9 @@ class Variable {
                 }
             }
 
-            fun getUDecStr(): String {
-                return udecString
-            }
-
-            fun getRawUDecStr(): String {
-                return udecString.removePrefix(Settings.PRESTRING_UDECIMAL)
-            }
-
-            fun getUResized(size: Size): UDec {
-                return UDec(getRawUDecStr(), size)
-            }
+            fun getUDecStr(): String = udecString
+            fun getRawUDecStr(): String = udecString.removePrefix(Settings.PRESTRING_UDECIMAL)
+            fun getUResized(size: Size): UDec = UDec(getRawUDecStr(), size)
 
             override fun check(string: String, size: Size): CheckResult {
                 val formatted = string.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
@@ -814,41 +692,15 @@ class Variable {
                 }
             }
 
-            override fun check(size: Size): CheckResult {
-                return check(getRawUDecStr(), size)
-            }
-
-            override fun toBin(): Bin {
-                return Conversion.getBinary(this)
-            }
-
-            override fun toHex(): Hex {
-                return Conversion.getBinary(this).toHex()
-            }
-
-            override fun toDec(): Dec {
-                return Conversion.getBinary(this).toDec()
-            }
-
-            override fun toUDec(): UDec {
-                return this
-            }
-
-            override fun toASCII(): String {
-                return Conversion.getASCII(this)
-            }
-
-            fun toIntOrNull(): Int? {
-                return getRawUDecStr().toIntOrNull()
-            }
-
-            fun toDoubleOrNull(): Double? {
-                return getRawUDecStr().toDoubleOrNull()
-            }
-
-            override fun getBiggest(): Value {
-                return UDec(Bounds(size).umax, size)
-            }
+            override fun check(size: Size): CheckResult = check(getRawUDecStr(), size)
+            override fun toBin(): Bin = Conversion.getBinary(this)
+            override fun toHex(): Hex = Conversion.getBinary(this).toHex()
+            override fun toDec(): Dec = Conversion.getBinary(this).toDec()
+            override fun toUDec(): UDec = this
+            override fun toASCII(): String = Conversion.getASCII(this)
+            fun toIntOrNull(): Int? = getRawUDecStr().toIntOrNull()
+            fun toDoubleOrNull(): Double? = getRawUDecStr().toDoubleOrNull()
+            override fun getBiggest(): Value = UDec(Bounds(size).umax, size)
 
             override fun plus(operand: Value): Value {
                 val result = DecTools.add(this.getRawUDecStr(), operand.toUDec().getRawUDecStr())
@@ -885,27 +737,20 @@ class Variable {
                 return UDec(this.getRawUDecStr(), size)
             }
 
-            override fun inc(): Value {
-                return Dec(DecTools.add(this.getRawUDecStr(), "1"), size)
+            override fun inc(): Value = Dec(DecTools.add(this.getRawUDecStr(), "1"), size)
+            override fun dec(): Value = Dec(DecTools.sub(this.getRawUDecStr(), "1"), size)
+
+            override fun compareTo(other: Value): Int = if (DecTools.isEqual(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
+                0
+            } else if (DecTools.isGreaterThan(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
+                1
+            } else {
+                -1
             }
 
-            override fun dec(): Value {
-                return Dec(DecTools.sub(this.getRawUDecStr(), "1"), size)
-            }
+            override fun toRawString(): String = this.getRawUDecStr()
+            override fun toString(): String = this.udecString
 
-            override fun compareTo(other: Value): Int {
-                return if (DecTools.isEqual(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
-                    0
-                } else if (DecTools.isGreaterThan(this.getRawUDecStr(), other.toUDec().getRawUDecStr())) {
-                    1
-                } else {
-                    -1
-                }
-            }
-
-            override fun toString(): String {
-                return this.udecString
-            }
         }
 
         /**
@@ -1136,7 +981,7 @@ class Variable {
      */
     sealed class Size(val name: String, val bitWidth: Int) {
 
-        val hexChars = bitWidth / 4 + if(bitWidth % 4 == 0) 0 else 1
+        val hexChars = bitWidth / 4 + if (bitWidth % 4 == 0) 0 else 1
 
         override fun equals(other: Any?): Boolean {
             when (other) {
