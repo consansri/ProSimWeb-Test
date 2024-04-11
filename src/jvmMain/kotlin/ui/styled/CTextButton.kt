@@ -8,15 +8,21 @@ import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.SwingUtilities
 
-class CTextButton(uiManager: UIManager, text: String) : JButton(text), UIAdapter {
+open class CTextButton(private val uiManager: UIManager, text: String) : JButton(text), UIAdapter {
     var isDeactivated = false
         set(value) {
             field = value
             repaint()
         }
 
+    var primary = true
+        set(value) {
+            field = value
+            setDefaults(uiManager)
+        }
+
     init {
-        setupUI(uiManager)
+        this.setupUI(uiManager)
     }
 
     override fun setupUI(uiManager: UIManager) {
@@ -36,13 +42,13 @@ class CTextButton(uiManager: UIManager, text: String) : JButton(text), UIAdapter
         }
     }
 
-    override fun setDefaults(uiManager: UIManager){
+    override fun setDefaults(uiManager: UIManager) {
         val currTheme = uiManager.currTheme()
         val currScale = uiManager.currScale()
         border = uiManager.currScale().borderScale.getInsetBorder()
         font = currTheme.textLaF.getTitleFont().deriveFont(currScale.fontScale.titleSize)
-        foreground = currTheme.textLaF.base
-        background = Color(0,0,0,0)
+        foreground = if (primary) currTheme.textLaF.base else currTheme.textLaF.baseSecondary
+        background = Color(0, 0, 0, 0)
         repaint()
     }
 

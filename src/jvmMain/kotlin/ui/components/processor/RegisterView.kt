@@ -1,27 +1,21 @@
 package me.c3.ui.components.processor
 
 import emulator.kit.common.RegContainer
-import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import me.c3.ui.UIManager
 import me.c3.ui.components.processor.models.RegTableModel
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
-import me.c3.ui.components.styled.CTabbedPane
-import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.styled.CAdvancedTabPane
-import me.c3.ui.styled.CComboBox
 import me.c3.ui.styled.CTable
-import java.awt.Component
-import javax.swing.Box
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.BoxLayout
-import javax.swing.JTable
 import javax.swing.SwingConstants
-import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
-import javax.swing.table.DefaultTableModel
-import javax.swing.table.TableModel
+import javax.swing.event.TableModelEvent
 import kotlin.math.abs
+import kotlin.math.max
 
 class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary = true, BorderMode.SOUTH) {
 
@@ -36,11 +30,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
                 else -> {}
             }
             field = value
-            regViews.forEach { tabbedPane ->
-                tabbedPane.tabs.forEach { tab ->
-                    (tab.content as? RegFileTable)?.showDetails = value == 1
-                }
-            }
+            updateDetails()
             revalidate()
             repaint()
         }
@@ -60,6 +50,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
         repeat(registerPaneCount) {
             addBox()
         }
+        updateDetails()
     }
 
     private fun addBox() {
@@ -74,13 +65,21 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
         }
     }
 
+    private fun updateDetails() {
+        regViews.forEach { tabbedPane ->
+            tabbedPane.tabs.forEach { tab ->
+                (tab.content as? RegFileTable)?.showDetails = registerPaneCount == 1
+            }
+        }
+    }
+
     private fun initializeRegView(): CAdvancedTabPane {
         val cTabbedPane = CAdvancedTabPane(uiManager, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
         uiManager.currArch().getAllRegFiles().forEach {
             val tabLabel = CLabel(uiManager, it.name)
             if (it.getRegisters(uiManager.currArch().getAllFeatures()).isNotEmpty()) {
-                val regFileTable = RegFileTable(uiManager, it.name)
+                val regFileTable = RegFileTable(uiManager, it)
                 regFileTable.updateContent()
                 cTabbedPane.addTab(tabLabel, regFileTable)
             }
@@ -89,24 +88,44 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
         return cTabbedPane
     }
 
-    class RegFileTable(private val uiManager: UIManager, val regFileName: String, val tableModel: RegTableModel = RegTableModel()) : CTable(uiManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
+    class RegFileTable(private val uiManager: UIManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel()) : CTable(uiManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
 
         private var currentlyUpdating = false
-        private val numericTypeSwitch = CComboBox(uiManager, Variable.Value.Types.entries.toTypedArray())
-        private val identifierLabel = CLabel(uiManager, "Identifiers")
-        private val ccLabel = CLabel(uiManager, "CC")
-        private val description = CLabel(uiManager, "Description")
+
+        private val identifierLabel = "Identifiers"
+        private val ccLabel = "CC"
+        private val description = "Description"
+
+        private var sortOrder: SortOrder = SortOrder.ALIASES
+            set(value) {
+                field = value
+                regs = when (value) {
+                    SortOrder.ALIASES -> regFile.getRegisters(uiManager.currArch().getAllFeatures()).sortedBy { it.aliases.firstOrNull() }
+                    SortOrder.ADDRESS -> regFile.getRegisters(uiManager.currArch().getAllFeatures()).sortedBy { it.address.toRawString() }
+                }
+            }
+
+        var regs = regFile.getRegisters(uiManager.currArch().getAllFeatures())
+            set(value) {
+                field = value
+                updateContent()
+            }
+
         var showDetails = true
             set(value) {
                 field = value
                 updateContent()
             }
-
         private var numericType: Variable.Value.Types = Variable.Value.Types.Hex
             set(value) {
                 field = value
                 updateContent()
             }
+
+        init {
+            attachNumericSwitcher()
+            attachValueChangeListener()
+        }
 
         fun updateContent() {
             currentlyUpdating = true
@@ -114,45 +133,93 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
 
             createHeaders()
 
-            val currRegFile = uiManager.currArch().getAllRegFiles().firstOrNull { it.name == regFileName } ?: return
+            val maxNameLength = regs.maxOf { reg -> max(reg.names.maxOf { it.length }, reg.aliases.maxOf { it.length }) }
+            for (reg in regs) {
+                val names = (reg.names + reg.aliases).joinToString(" ") { it.padEnd(maxNameLength, ' ') }
+                val currentValue = reg.variable.get(numericType).toRawString()
 
-            for (reg in currRegFile.getRegisters(uiManager.currArch().getAllFeatures())) {
-                val names = (reg.names + reg.aliases).joinToString(",") { it }
-
-
-                tableModel.addRow(arrayOf(names, ))
+                if (showDetails) {
+                    tableModel.addRow(arrayOf(names, currentValue, reg.callingConvention.displayName, reg.description))
+                } else {
+                    tableModel.addRow(arrayOf(names, currentValue))
+                }
             }
 
-            updateColumnWidths()
+            this.fitColumnWidths(0)
             currentlyUpdating = false
+        }
+
+        private fun attachValueChangeListener() {
+            tableModel.addTableModelListener { e ->
+                if (e.type == TableModelEvent.UPDATE && !currentlyUpdating) {
+                    val row = e.firstRow
+                    val col = e.column
+                    try {
+                        val newStringValue = tableModel.getValueAt(row, col)
+                        val reg = regs.getOrNull(row)
+                        if (reg == null) {
+                            nativeWarn("RegisterView: Couldn't find register on Value edit!")
+                            return@addTableModelListener
+                        }
+                        val newValue = when (numericType) {
+                            Variable.Value.Types.Bin -> Variable.Value.Bin(newStringValue.toString(), reg.get().size)
+                            Variable.Value.Types.Hex -> Variable.Value.Hex(newStringValue.toString(), reg.get().size)
+                            Variable.Value.Types.Dec -> Variable.Value.Dec(newStringValue.toString(), reg.get().size)
+                            Variable.Value.Types.UDec -> Variable.Value.UDec(newStringValue.toString(), reg.get().size)
+                        }
+                        if (newValue.checkResult.valid) {
+                            reg.set(newValue)
+                        }
+                        currentlyUpdating = true
+                        tableModel.setValueAt(newValue.toRawString(), row, col)
+                        currentlyUpdating = false
+                    } catch (e: IndexOutOfBoundsException) {
+                        nativeWarn("Received Index Out Of Bounds Exception: $e")
+                    }
+                }
+            }
+        }
+
+        private fun attachNumericSwitcher() {
+            tableHeader.addMouseListener(object : MouseAdapter() {
+                override fun mouseClicked(e: MouseEvent?) {
+                    e?.let { _ ->
+                        val colum = columnAtPoint(e.point)
+                        when (colum) {
+                            0 -> {
+                                sortOrder = when (sortOrder) {
+                                    SortOrder.ALIASES -> SortOrder.ADDRESS
+                                    SortOrder.ADDRESS -> SortOrder.ALIASES
+                                }
+                            }
+
+                            1 -> {
+                                numericType = when (numericType) {
+                                    Variable.Value.Types.Bin -> Variable.Value.Types.Hex
+                                    Variable.Value.Types.Hex -> Variable.Value.Types.Dec
+                                    Variable.Value.Types.Dec -> Variable.Value.Types.UDec
+                                    Variable.Value.Types.UDec -> Variable.Value.Types.Bin
+                                }
+                            }
+                        }
+                    }
+                }
+            })
         }
 
         private fun createHeaders() {
             if (!showDetails) {
-                val identifiers = arrayOf(identifierLabel, numericTypeSwitch)
+                val identifiers = arrayOf(identifierLabel, numericType.visibleName)
                 tableModel.setColumnIdentifiers(identifiers)
             } else {
-                val identifiers = arrayOf(identifierLabel, numericTypeSwitch, ccLabel, description)
+                val identifiers = arrayOf(identifierLabel, numericType.visibleName, ccLabel, description)
                 tableModel.setColumnIdentifiers(identifiers)
             }
         }
 
-        private fun updateColumnWidths() {
-
+        private enum class SortOrder {
+            ALIASES,
+            ADDRESS
         }
-
-        class RegHeaderCellRenderer(private val headerComponents: Array<Component>) : DefaultTableCellRenderer() {
-            override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
-                //super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
-                val headerComponent = headerComponents.getOrNull(column)
-                headerComponent?.let {
-                    nativeLog("Found header: ${headerComponent::class.simpleName}")
-                }
-                return headerComponent ?: this
-            }
-        }
-
     }
-
-
 }

@@ -3,6 +3,7 @@ package me.c3.ui.components.processor
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CSplitPane
+import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JSplitPane

@@ -134,7 +134,6 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
             val codeStyle = uiManager.currTheme().codeLaF
             if (compResult.tokens.joinToString("") { it.content } == textPane.styledDocument.getText(0, textPane.styledDocument.length)) {
                 hlContent(uiManager, codeStyle, compResult)
-                nativeLog("Content is the same!")
             }
             return compResult
         }

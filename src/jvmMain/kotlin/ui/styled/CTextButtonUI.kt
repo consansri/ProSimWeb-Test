@@ -10,7 +10,6 @@ import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
 
 class CTextButtonUI: BasicButtonUI() {
-
     companion object {
         const val INSET = 2
         const val CORNER_RADIUS = 10

@@ -5,6 +5,7 @@ import me.c3.ui.UIManager
 import me.c3.ui.styled.CScrollPaneUI
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JScrollPane

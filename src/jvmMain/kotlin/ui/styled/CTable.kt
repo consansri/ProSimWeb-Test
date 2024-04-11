@@ -10,6 +10,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.JTableHeader
 
 open class CTable(private val uiManager: UIManager, tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int) : JTable(tableModel), UIAdapter {
+
     init {
         this.setupUI(uiManager)
     }

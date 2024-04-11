@@ -44,7 +44,7 @@ class CTableUI(private val uiManager: UIManager, private val primary: Boolean) :
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
-            val fg = if (primary) uiManager.currTheme().textLaF.base else uiManager.currTheme().textLaF.baseSecondary
+            val fg = uiManager.currTheme().textLaF.base
             val bg = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
 
             val cTable = table as? CTable
@@ -66,6 +66,28 @@ class CTableUI(private val uiManager: UIManager, private val primary: Boolean) :
 
             return value as? Component ?: this
         }
+    }
+
+    inner class CHeaderRenderer(val primary: Boolean) : DefaultTableCellRenderer() {
+        override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+
+            val fg = uiManager.currTheme().textLaF.base
+            val bg = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
+
+            val cTable = table as? CTable
+
+            horizontalAlignment = SwingConstants.CENTER
+            border = BorderFactory.createEmptyBorder()
+            foreground = if (value is Memory.MemInstance) uiManager.currTheme().dataLaF.getMemInstanceColor(value.mark) else fg
+            background = bg
+            font = uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.dataSize)
+            border = DirectionalBorder(uiManager)
+            border = uiManager.currScale().borderScale.getInsetBorder()
+
+            return value as? Component ?: this
+        }
+
     }
 
     inner class CCellEditor : DefaultCellEditor(CTextField(uiManager, CTextFieldUI.Type.DATA)), TableCellEditor {
@@ -95,7 +117,7 @@ class CTableUI(private val uiManager: UIManager, private val primary: Boolean) :
         header.background = uiManager.currTheme().globalLaF.bgPrimary
         header.foreground = uiManager.currTheme().textLaF.baseSecondary
         header.font = uiManager.currTheme().textLaF.getTitleFont().deriveFont(uiManager.currScale().fontScale.dataSize)
-        header.defaultRenderer = CCellRenderer(primary)
+        header.defaultRenderer = CHeaderRenderer(!primary)
         header.resizingAllowed = false
         header.reorderingAllowed = false
         header.updateTableInRealTime = true

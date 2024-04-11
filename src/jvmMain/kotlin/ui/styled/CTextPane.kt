@@ -34,4 +34,9 @@ class CTextPane(uiManager: UIManager) : JTextPane() {
     fun createScrollPane(uiManager: UIManager): CScrollPane {
         return CScrollPane(uiManager, true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
     }
+
+    override fun getScrollableTracksViewportWidth(): Boolean {
+        return false
+    }
+
 }

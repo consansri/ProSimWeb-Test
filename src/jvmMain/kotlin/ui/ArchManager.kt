@@ -20,6 +20,10 @@ class ArchManager(initialArch: Architecture) {
         archChangeListeners.remove(event)
     }
 
+    fun triggerFeatureChanged(){
+        triggerArchChange()
+    }
+
     private fun triggerArchChange(){
         val listenersCopy = ArrayList(archChangeListeners)
         listenersCopy.forEach{
