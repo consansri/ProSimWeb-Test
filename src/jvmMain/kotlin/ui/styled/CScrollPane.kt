@@ -15,9 +15,7 @@ import javax.swing.SwingUtilities
 
 open class CScrollPane(themeManager: ThemeManager, scaleManager: ScaleManager, val primary: Boolean, c: Component?) : JScrollPane(c) {
 
-    constructor(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean) : this(themeManager, scaleManager, primary, null) {
-
-    }
+    constructor(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean) : this(themeManager, scaleManager, primary, null)
 
     constructor(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(themeManager, scaleManager, primary, component) {
         this.verticalScrollBarPolicy = vsb

@@ -51,7 +51,7 @@ class CPanelUI(private val themeManager: ThemeManager, private val scaleManager:
         val cPanel = c as? CPanel
 
         cPanel?.let {
-            g2d?.color = c.background
+            g2d?.color = if(cPanel.primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
             if (cPanel.roundedCorners) {
                 g2d?.fillRoundRect(0, 0, c.width, c.height, 10, 10)
             } else {

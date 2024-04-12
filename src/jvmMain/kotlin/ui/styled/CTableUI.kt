@@ -102,9 +102,8 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
     }
 
     fun setDefaults(table: CTable) {
-        table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
         table.background = themeManager.curr.globalLaF.bgSecondary
-        table.autoResizeMode = JTable.AUTO_RESIZE_OFF
+        table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
         table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
         table.setDefaultEditor(Any::class.java, CCellEditor())
         table.tableHeader.border = DirectionalBorder(themeManager, scaleManager, south = true)
@@ -113,13 +112,15 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
         table.showVerticalLines = false
         table.showHorizontalLines = false
         table.gridColor = table.background
+        table.rowHeight = table.getFontMetrics(themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)).height
 
         val header = table.tableHeader
+        header.resizingAllowed = false
         header.background = themeManager.curr.globalLaF.bgPrimary
         header.foreground = themeManager.curr.textLaF.baseSecondary
         header.font = themeManager.curr.textLaF.getTitleFont().deriveFont(scaleManager.curr.fontScale.dataSize)
         header.defaultRenderer = CHeaderRenderer(!primary)
-        header.resizingAllowed = false
+        //header.resizingAllowed = false
         header.reorderingAllowed = false
         header.updateTableInRealTime = true
     }

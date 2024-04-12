@@ -42,6 +42,10 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
             resetRegViews()
         }
 
+        uiManager.archManager.addFeatureChangeListener {
+            resetRegViews()
+        }
+
         resetRegViews()
     }
 
