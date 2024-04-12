@@ -1,22 +1,16 @@
 package me.c3.ui
 
 import emulator.Link
+import me.c3.ui.components.controls.BottomBar
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.events.EventManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.core.style.CodeLaF
 import me.c3.ui.theme.icons.BenIcons
-import java.awt.Font
-import java.awt.GraphicsEnvironment
-import java.io.File
 import java.nio.file.Paths
-import javax.swing.JFrame
-import javax.swing.JTextPane
-import javax.swing.text.StyleConstants
 
 
-class UIManager() {
+class UIManager {
 
     val archManager = ArchManager(Link.RV32I.arch)
 
@@ -29,6 +23,7 @@ class UIManager() {
     val scaleManager = ScaleManager()
     val eventManager = EventManager(archManager)
 
+    val bBar = BottomBar(this)
     val editor = CodeEditor(this)
 
     private var ws = Workspace(Paths.get("").toAbsolutePath().toString(), editor, this)

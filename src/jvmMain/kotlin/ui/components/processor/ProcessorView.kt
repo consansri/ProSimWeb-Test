@@ -15,6 +15,7 @@ class ProcessorView(uiManager: UIManager) : CPanel(uiManager, primary = false) {
     val memoryView = MemoryView(uiManager)
     val splitPane = CSplitPane(uiManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView)
 
+
     init {
         attachContent()
     }

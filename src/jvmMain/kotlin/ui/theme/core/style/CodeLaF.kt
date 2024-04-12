@@ -7,6 +7,7 @@ import java.awt.GraphicsEnvironment
 
 class CodeLaF(
     font: Font,
+    val pcIdenticator: String,
     val getColor: (Compiler.CodeStyle?) -> Color
 ) {
     private var font: Font = font

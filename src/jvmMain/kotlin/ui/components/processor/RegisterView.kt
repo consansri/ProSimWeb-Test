@@ -46,7 +46,11 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
     }
 
     private fun resetRegViews() {
-        removeAll()
+        val bufferedRegViews = ArrayList(regViews)
+        bufferedRegViews.forEach {
+            remove(it)
+        }
+        regViews.clear()
         repeat(registerPaneCount) {
             addBox()
         }
@@ -104,7 +108,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
                 }
             }
 
-        var regs = regFile.getRegisters(uiManager.currArch().getAllFeatures())
+        private var regs = regFile.getRegisters(uiManager.currArch().getAllFeatures())
             set(value) {
                 field = value
                 updateContent()
@@ -151,7 +155,12 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
 
             createHeaders()
 
-            val maxNameLength = regs.maxOf { reg -> max(reg.names.maxOf { it.length }, reg.aliases.maxOf { it.length }) }
+            val maxNameLength = regs.maxOf { reg ->
+                max(
+                    if (reg.names.isNotEmpty()) reg.names.maxOf { it.length } else 0,
+                    if (reg.aliases.isNotEmpty()) reg.aliases.maxOf { it.length } else 0
+                )
+            }
             for (reg in regs) {
                 val names = (reg.names + reg.aliases).joinToString(" ") { it.padEnd(maxNameLength, ' ') }
                 val currentValue = reg.variable.get(numericType).toRawString()

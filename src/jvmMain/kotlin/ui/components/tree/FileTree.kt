@@ -32,7 +32,6 @@ class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
     private fun attachMouseListener(uiManager: UIManager){
         projectButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
-                super.mouseClicked(e)
                 val fileChooser = JFileChooser()
                 fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
                 val result = fileChooser.showOpenDialog(this@FileTree)

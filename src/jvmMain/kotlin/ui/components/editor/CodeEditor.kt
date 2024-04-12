@@ -47,7 +47,6 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
         val editPanel = EditPanel(editorFile, uiManager)
         panels.add(editPanel)
         addTab(CLabel(uiManager, file.getName()), editPanel) { e, tab ->
-            (tab.content as? EditPanel)?.file?.store()
             when (e) {
                 ClosableTab.Event.LOSTFOCUS -> {}
                 ClosableTab.Event.CLOSE -> {
@@ -88,6 +87,35 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
 
         private var compileJob: Job? = null
 
+        val documentListener = object : DocumentListener {
+            override fun insertUpdate(e: DocumentEvent?) {
+                lineNumbers.update(uiManager)
+                val document = e?.document
+                document?.let {
+                    file.edit(e.document.getText(0, document.length))
+                }
+                if (!currentlyUpdating) triggerCompile(uiManager)
+            }
+
+            override fun removeUpdate(e: DocumentEvent?) {
+                lineNumbers.update(uiManager)
+                val document = e?.document
+                document?.let {
+                    file.edit(e.document.getText(0, document.length))
+                }
+                if (!currentlyUpdating) triggerCompile(uiManager)
+            }
+
+            override fun changedUpdate(e: DocumentEvent?) {
+                lineNumbers.update(uiManager)
+                val document = e?.document
+                document?.let {
+                    file.edit(e.document.getText(0, document.length))
+                }
+                if (!currentlyUpdating) triggerCompile(uiManager)
+            }
+        }
+
         // Content
         private var currentlyUpdating = false
 
@@ -109,14 +137,17 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
             }
 
             attachComponents()
-            attachDocument(uiManager)
+            attachDocument()
             setEditorDefaults(uiManager)
+            attachPCListener(uiManager)
+            attachSelectionListener(uiManager)
+            triggerCompile(uiManager, immediate = true)
         }
 
         fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {
             compileJob?.cancel()
 
-            val delay = if (immediate) 0L else 1000L
+            val delay = if (immediate) 0L else 3000L
 
             compileJob = Coroutines.setTimeout(delay) {
                 CoroutineScope(Dispatchers.Default).launch {
@@ -132,42 +163,69 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
             file.store()
             val compResult = uiManager.currArch().compile(file.toCompilerFile(), uiManager.currWS().getCompilerFiles(file.file), build)
             val codeStyle = uiManager.currTheme().codeLaF
-            if (compResult.tokens.joinToString("") { it.content } == textPane.styledDocument.getText(0, textPane.styledDocument.length)) {
+            if (compResult.tokens.joinToString("") { it.content } == textPane.document.getText(0, textPane.document.length)) {
                 hlContent(uiManager, codeStyle, compResult)
             }
+
+            withContext(Dispatchers.Default) {
+                uiManager.eventManager.triggerCompileFinished(compResult.success)
+            }
+
+            lineNumbers.update(uiManager)
             return compResult
         }
 
-        private fun attachDocument(uiManager: UIManager) {
+        private fun attachDocument() {
             textPane.document = file.getRawDocument()
-            textPane.document.addDocumentListener(object : DocumentListener {
-                override fun insertUpdate(e: DocumentEvent?) {
-                    lineNumbers.update(uiManager)
-                    val document = e?.document
-                    document?.let {
-                        file.edit(e.document.getText(0, document.length))
-                    }
-                    if (!currentlyUpdating) triggerCompile(uiManager)
-                }
+            textPane.document.addDocumentListener(documentListener)
+        }
 
-                override fun removeUpdate(e: DocumentEvent?) {
-                    lineNumbers.update(uiManager)
-                    val document = e?.document
-                    document?.let {
-                        file.edit(e.document.getText(0, document.length))
-                    }
-                    if (!currentlyUpdating) triggerCompile(uiManager)
-                }
+        private suspend fun hlContent(uiManager: UIManager, codeStyle: CodeLaF, result: Compiler.CompileResult) {
+            SwingUtilities.invokeLater {
+                val selStart = textPane.selectionStart
+                val selEnd = textPane.selectionEnd
+                currentlyUpdating = true
+                (textPane.document as? CDocument)?.hlDocument(codeStyle, result.tokens)
+                currentlyUpdating = false
+                textPane.selectionStart = selStart
+                textPane.selectionEnd = selEnd
+            }
+        }
 
-                override fun changedUpdate(e: DocumentEvent?) {
-                    lineNumbers.update(uiManager)
-                    val document = e?.document
-                    document?.let {
-                        file.edit(e.document.getText(0, document.length))
-                    }
-                    if (!currentlyUpdating) triggerCompile(uiManager)
-                }
-            })
+        private fun attachPCListener(uiManager: UIManager) {
+            uiManager.eventManager.addCompileListener {
+                updateLineNumber(uiManager)
+            }
+            uiManager.eventManager.addExeEventListener {
+                updateLineNumber(uiManager)
+            }
+        }
+
+        private fun attachSelectionListener(uiManager: UIManager) {
+            textPane.addCaretListener {
+                printSelectionInfoTobBar(uiManager)
+            }
+            printSelectionInfoTobBar(uiManager)
+        }
+
+        private fun printSelectionInfoTobBar(uiManager: UIManager) {
+            CoroutineScope(Dispatchers.Default).launch {
+                val selectionLength = textPane.selectionEnd - textPane.selectionStart
+                val textUntilStart = textPane.document.getText(0, textPane.selectionStart)
+                val lineList = textUntilStart.split("\n")
+                val lineOfStart = lineList.size
+                val charOfStart = lineList.lastOrNull()?.length
+                uiManager.bBar.editorInfo.text = "${lineOfStart}:${charOfStart}${if (selectionLength > 0) " ($selectionLength)" else ""}"
+            }
+        }
+
+        private fun updateLineNumber(uiManager: UIManager) {
+            val lineLoc = uiManager.currArch().getCompiler().getAssemblyMap().lineAddressMap.get(uiManager.currArch().getRegContainer().pc.get().toHex().toRawString())
+            lineNumbers.currentPCLineNumber = if (lineLoc?.fileName == file.getName()) {
+                lineLoc.lineID
+            } else {
+                -1
+            }
         }
 
         private fun attachComponents() {
@@ -190,24 +248,13 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
             lineNumbers.update(uiManager)
         }
 
-        private suspend fun hlContent(uiManager: UIManager, codeStyle: CodeLaF, result: Compiler.CompileResult) {
-            withContext(Dispatchers.Main) {
-                val selStart = textPane.selectionStart
-                val selEnd = textPane.selectionEnd
-                val bufferedSize = textPane.size
-                textPane.isEditable = false
-                currentlyUpdating = true
-                (textPane.document as? CDocument)?.hlDocument(codeStyle, result.tokens)
-                currentlyUpdating = false
-                textPane.isEditable = true
-                //textPane.size = bufferedSize
-                textPane.selectionStart = selStart
-                textPane.selectionEnd = selEnd
-                uiManager.eventManager.triggerCompileFinished(result.success)
-            }
-        }
-
         class LineNumbers(uiManager: UIManager, private val textPane: CTextPane) : JList<String>(LineNumberListModel(textPane)) {
+            var currentPCLineNumber = -1
+                set(value) {
+                    field = value
+                    (this.model as? LineNumberListModel)?.currentPCLineNumber = value
+                    repaint()
+                }
 
             init {
                 // UI Listeners
@@ -224,26 +271,38 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
             }
 
             fun update(uiManager: UIManager) {
-                setDefaults(uiManager)
-                (this.model as LineNumberListModel).update()
-                this.updateUI()
+                SwingUtilities.invokeLater {
+                    setDefaults(uiManager)
+                    (this.model as LineNumberListModel).update()
+                    this.updateUI()
+                }
             }
 
             private fun setDefaults(uiManager: UIManager) {
+                val currTheme = uiManager.currTheme()
+                (this.model as? LineNumberListModel)?.pcIdenticator = currTheme.codeLaF.pcIdenticator
                 this.font = textPane.font
-                this.background = uiManager.currTheme().globalLaF.bgPrimary
-                this.cellRenderer = LineNumberListRenderer(uiManager.currTheme().textLaF.baseSecondary, textPane.font, uiManager.currTheme().globalLaF.bgPrimary)
+                this.background = currTheme.globalLaF.bgPrimary
+                this.cellRenderer = LineNumberListRenderer(currTheme.textLaF.baseSecondary, currTheme.codeLaF.getColor(Compiler.CodeStyle.GREENPC), textPane.font, currTheme.globalLaF.bgPrimary, currTheme.codeLaF.pcIdenticator)
                 this.fixedCellWidth = getFontMetrics(textPane.font).charWidth('0') * 5
                 this.fixedCellHeight = getFontMetrics(textPane.font).height
             }
 
             class LineNumberListModel(private val textPane: JTextPane) : AbstractListModel<String>() {
+
+                var pcIdenticator: String = ""
+                var currentPCLineNumber = -1
+
                 override fun getSize(): Int {
                     return textPane.text.split("\n").size
                 }
 
                 override fun getElementAt(index: Int): String {
-                    return (index + 1).toString()
+                    return if (currentPCLineNumber == index) {
+                        "$pcIdenticator ${index + 1}"
+                    } else {
+                        "${index + 1}"
+                    }
                 }
 
                 fun update() {
@@ -251,15 +310,17 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
                 }
             }
 
-            class LineNumberListRenderer(private val lineNumberColor: Color, private val font: Font, private val bg: Color) : DefaultListCellRenderer() {
+            class LineNumberListRenderer(private val lineNumberColor: Color, private val pcLineColor: Color, private val font: Font, private val bg: Color, private val pcIdenticator: String) : DefaultListCellRenderer() {
                 init {
                     horizontalAlignment = RIGHT
                 }
 
                 override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
                     val label = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JLabel
+                    val isCurrPCLine = value.toString().contains(pcIdenticator)
                     label.font = font
-                    label.foreground = lineNumberColor
+                    label.border = BorderFactory.createEmptyBorder()
+                    label.foreground = if (isCurrPCLine) pcLineColor else lineNumberColor
                     label.background = bg
                     return label
                 }

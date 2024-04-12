@@ -12,6 +12,7 @@ import me.c3.ui.styled.CToggleButtonUI
 import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JFrame
+import javax.swing.SwingUtilities
 
 class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager, primary = false, BorderMode.WEST) {
 
@@ -27,6 +28,10 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
         buttons.forEach {
             it.alignmentX = Component.CENTER_ALIGNMENT
             add(it)
+        }
+
+        uiManager.archManager.addFeatureChangeListener {
+            updateFeatureButtons()
         }
 
         uiManager.archManager.addArchChangeListener {
@@ -48,6 +53,12 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
         }
     }
 
+    private fun updateFeatureButtons() {
+        featureButtons.forEach {
+            it.updateFeatureState()
+        }
+    }
+
     class FeatureSwitch(private val feature: Feature, uiManager: UIManager) : CToggleButton(uiManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL) {
 
         private var switchingFeatures = false
@@ -61,15 +72,35 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
 
             this.addActionListener {
                 if (!feature.static) {
-                    switchingFeatures = true
-                    feature.switch()
-                    isActive = feature.isActive()
-                    uiManager.archManager.triggerFeatureChanged()
-                    switchingFeatures = false
+                    SwingUtilities.invokeLater {
+                        switchingFeatures = true
+                        if (feature.isActive()) {
+                            for (featToUpdate in uiManager.currArch().getAllFeatures()) {
+                                if (featToUpdate.enableIDs.contains(feature.id)) {
+                                    featToUpdate.deactivate()
+                                }
+                            }
+                        } else {
+                            for (id in feature.enableIDs) {
+                                uiManager.currArch().getAllFeatures().firstOrNull { it.id == id }?.activate()
+                            }
+                        }
+                        feature.switch()
+
+                        isActive = feature.isActive()
+                        uiManager.archManager.triggerFeatureChanged()
+                        switchingFeatures = false
+                    }
                 }
             }
 
             isActive = feature.isActive()
+        }
+
+        fun updateFeatureState() {
+            switchingFeatures = true
+            isActive = feature.isActive()
+            switchingFeatures = false
         }
     }
 }

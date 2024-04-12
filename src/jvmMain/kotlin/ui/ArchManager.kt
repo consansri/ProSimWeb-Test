@@ -5,6 +5,7 @@ import emulator.kit.nativeLog
 
 class ArchManager(initialArch: Architecture) {
     private val archChangeListeners = mutableListOf<(Architecture) -> Unit>()
+    private val featureChangeListeners = mutableListOf<(Architecture) -> Unit>()
 
     var curr = initialArch
         set(value) {
@@ -16,19 +17,32 @@ class ArchManager(initialArch: Architecture) {
         archChangeListeners.add(event)
     }
 
+    fun addFeatureChangeListener(event: (Architecture) -> Unit){
+        featureChangeListeners.add(event)
+    }
+
     fun removeArchChangeListener(event: (Architecture) -> Unit) {
         archChangeListeners.remove(event)
     }
 
-    fun triggerFeatureChanged(){
-        triggerArchChange()
+    fun removeFeatureChangeListener(event: (Architecture) -> Unit){
+        featureChangeListeners.remove(event)
     }
 
-    private fun triggerArchChange(){
-        val listenersCopy = ArrayList(archChangeListeners)
-        listenersCopy.forEach{
+    fun triggerFeatureChanged() {
+        val listenersCopy = ArrayList(featureChangeListeners)
+        listenersCopy.forEach {
             it(curr)
         }
+        nativeLog("ArchManager: Trigger Feature Change! (${curr.getDescription().name})")
+    }
+
+    private fun triggerArchChange() {
+        val listenersCopy = ArrayList(archChangeListeners)
+        listenersCopy.forEach {
+            it(curr)
+        }
+        triggerFeatureChanged()
         nativeLog("ArchManager: Trigger Arch Change! (${curr.getDescription().name})")
     }
 }

@@ -74,7 +74,7 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
             this.isOpaque = true
             this.font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
             this.textNonSelectionColor = uiManager.currTheme().textLaF.base
-            this.textSelectionColor = uiManager.currTheme().textLaF.base
+            this.textSelectionColor = uiManager.currTheme().textLaF.selelected
         }
 
         override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
@@ -83,13 +83,13 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
             val uobj = ((value as? DefaultMutableTreeNode)?.userObject as? Workspace.TreeFile)
 
             val loadedIcon = if (leaf) {
-                if(uobj != null && uobj.file.isFile){
+                if (uobj != null && uobj.file.isFile) {
                     if (uobj.file.extension == "s") {
                         uiManager.icons.asmFile.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                     } else {
                         uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                     }
-                }else{
+                } else {
                     uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                 }
 
@@ -100,6 +100,8 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
                     uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
                 }
             }
+
+            this.background = if(sel)  uiManager.currTheme().textLaF.selelected else uiManager.currTheme().globalLaF.bgSecondary
             loadedIcon.colorFilter = uiManager.currTheme().icon.colorFilter
             this.foreground = uiManager.currTheme().textLaF.base
             this.icon = loadedIcon

@@ -23,6 +23,7 @@ import javax.swing.SwingUtilities
 
 class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter {
 
+    private val bottomBar = uiManager.bBar
     private val topBar = TopControls(uiManager)
     private val editor = uiManager.editor
     private val fileTree = FileTree(uiManager)
@@ -30,7 +31,6 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager), UIAdapter
     val processorView = ProcessorView(uiManager)
     private val rightBar = AppControls(this, uiManager)
     private val consoleAndInfo = Console(uiManager)
-    private val bottomBar = ColouredPanel(uiManager, false)
 
     init {
         SwingUtilities.invokeLater {

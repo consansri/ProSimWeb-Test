@@ -28,6 +28,7 @@ class CToggleButtonUI(private val uiManager: UIManager, private val toggleSwitch
         button.isContentAreaFilled = false
         button.isFocusPainted = false
         button.isFocusable = false
+        button.font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
         button.border = when (toggleSwitchType) {
             ToggleSwitchType.SMALL -> uiManager.currScale().controlScale.getSmallInsetBorder()
             ToggleSwitchType.NORMAL -> uiManager.currScale().controlScale.getNormalInsetBorder()

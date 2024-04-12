@@ -16,7 +16,7 @@ import javax.swing.text.SimpleAttributeSet
 class CTextPane(uiManager: UIManager) : JTextPane() {
 
     init {
-        this.styledDocument = CDocument()
+        this.document = CDocument()
         setUI(CTextPaneUI(uiManager))
     }
 
@@ -26,9 +26,9 @@ class CTextPane(uiManager: UIManager) : JTextPane() {
     }
 
     fun setInitialText(text: String) {
-        this.styledDocument.remove(0, this.styledDocument.length)
+        this.document.remove(0, this.document.length)
         val attrs = SimpleAttributeSet()
-        this.styledDocument.insertString(0, text, attrs)
+        this.document.insertString(0, text, attrs)
     }
 
     fun createScrollPane(uiManager: UIManager): CScrollPane {
