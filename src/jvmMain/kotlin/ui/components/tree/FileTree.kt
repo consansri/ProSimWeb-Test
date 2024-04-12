@@ -13,10 +13,10 @@ import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JFileChooser
 
-class FileTree(uiManager: UIManager) : CPanel(uiManager, true) {
-    private val projectButton = CTextButton(uiManager, "Project")
-    private val title = CPanel(uiManager, false)
-    private val content = CScrollPane(uiManager, false)
+class FileTree(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, true) {
+    private val projectButton = CTextButton(uiManager.themeManager, uiManager.scaleManager, "Project")
+    private val title = CPanel(uiManager.themeManager, uiManager.scaleManager, false)
+    private val content = CScrollPane(uiManager.themeManager, uiManager.scaleManager, false)
 
     init {
         attachMouseListener(uiManager)

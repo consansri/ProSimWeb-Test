@@ -5,24 +5,24 @@ import emulator.kit.assembly.Compiler
 import me.c3.emulator.kit.install
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTextPane
-import java.awt.Font
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import javax.swing.BorderFactory
 import javax.swing.JComponent
-import javax.swing.plaf.basic.BasicTextPaneUI
 
-class CTextPaneUI(private val uiManager: UIManager) : FlatTextPaneUI() {
+class CTextPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : FlatTextPaneUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
         val pane = c as? CTextPane ?: return
 
-        pane.font = uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.codeSize)
+        pane.font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
 
-        uiManager.themeManager.addThemeChangeListener {
+        themeManager.addThemeChangeListener {
             setDefaults(pane)
         }
 
-        uiManager.scaleManager.addScaleChangeEvent {
+        scaleManager.addScaleChangeEvent {
             setDefaults(pane)
         }
 
@@ -31,11 +31,11 @@ class CTextPaneUI(private val uiManager: UIManager) : FlatTextPaneUI() {
     }
 
     private fun setDefaults(tp: CTextPane){
-        tp.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
-        tp.background = uiManager.currTheme().globalLaF.bgPrimary
-        tp.caretColor = uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.BASE0)
-        tp.foreground = uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.BASE0)
-        uiManager.currTheme().codeLaF.getFont().install(tp, uiManager.scaleManager.currentScaling.fontScale.codeSize)
+        tp.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
+        tp.background = themeManager.curr.globalLaF.bgPrimary
+        tp.caretColor = themeManager.curr.codeLaF.getColor(Compiler.CodeStyle.BASE0)
+        tp.foreground = themeManager.curr.codeLaF.getColor(Compiler.CodeStyle.BASE0)
+        themeManager.curr.codeLaF.getFont().install(tp, scaleManager.curr.fontScale.codeSize)
     }
 
 }

@@ -5,6 +5,9 @@ import emulator.kit.nativeLog
 import me.c3.ui.UIManager
 import me.c3.ui.Workspace
 import me.c3.ui.components.styled.CTree
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
+import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -17,25 +20,37 @@ import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
 import kotlin.math.exp
 
-class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
-    var selectedColor: Color = uiManager.currTheme().globalLaF.bgPrimary
+class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons) : BasicTreeUI() {
+    var selectedColor: Color = themeManager.curr.globalLaF.bgPrimary
         set(value) {
             field = value
             tree.repaint()
         }
 
-    init {
-        uiManager.themeManager.addThemeChangeListener {
-            selectedColor = uiManager.currTheme().globalLaF.bgPrimary
-        }
-    }
-
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val cTree = c as? CTree ?: return
-        cTree.border = BorderFactory.createEmptyBorder(uiManager.currScale().borderScale.insets, uiManager.currScale().borderScale.insets, uiManager.currScale().borderScale.insets, uiManager.currScale().borderScale.insets) // Set empty border when not focused
-        cTree.cellRenderer = CTreeCellRenderer(uiManager)
+        cTree.border = BorderFactory.createEmptyBorder(scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets) // Set empty border when not focused
+        cTree.cellRenderer = CTreeCellRenderer(icons)
+
+        themeManager.addThemeChangeListener {
+            setDefaults(cTree)
+        }
+        
+        scaleManager.addScaleChangeEvent {
+            setDefaults(cTree)
+        }
+        
+        setDefaults(cTree)        
+    }
+    
+    private fun setDefaults(tree: CTree){
+        selectedColor = themeManager.curr.globalLaF.borderColor
+        tree.background = themeManager.curr.globalLaF.bgSecondary
+        tree.foreground = themeManager.curr.textLaF.base
+        tree.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        tree.repaint()
     }
 
     override fun paint(g: Graphics, c: JComponent?) {
@@ -59,8 +74,8 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
     override fun paintExpandControl(g: Graphics, clipBounds: Rectangle?, insets: Insets, bounds: Rectangle, path: TreePath?, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
         val g2d = g.create() as? Graphics2D ?: return
         if (!isLeaf) {
-            val loadedIcon = (if (isExpanded) uiManager.icons.folderOpen else uiManager.icons.folderClosed).derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
-            loadedIcon.colorFilter = uiManager.currTheme().icon.colorFilter
+            val loadedIcon = (if (isExpanded) icons.folderOpen else icons.folderClosed).derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
+            loadedIcon.colorFilter = themeManager.curr.icon.colorFilter
             val iconX = bounds.x + insets.left - loadedIcon.iconWidth - getRightChildIndent() / 2
             val iconY = bounds.y + (bounds.height - loadedIcon.iconHeight) / 2
             loadedIcon.paintIcon(tree, g2d, iconX, iconY)
@@ -68,13 +83,13 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
         g2d.dispose()
     }
 
-    inner class CTreeCellRenderer(private val uiManager: UIManager) : DefaultTreeCellRenderer() {
+    inner class CTreeCellRenderer(icons: ProSimIcons) : DefaultTreeCellRenderer() {
 
         init {
             this.isOpaque = true
-            this.font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
-            this.textNonSelectionColor = uiManager.currTheme().textLaF.base
-            this.textSelectionColor = uiManager.currTheme().textLaF.selelected
+            this.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+            this.textNonSelectionColor = themeManager.curr.textLaF.base
+            this.textSelectionColor = themeManager.curr.textLaF.selelected
         }
 
         override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
@@ -85,25 +100,25 @@ class CTreeUI(private val uiManager: UIManager) : BasicTreeUI() {
             val loadedIcon = if (leaf) {
                 if (uobj != null && uobj.file.isFile) {
                     if (uobj.file.extension == "s") {
-                        uiManager.icons.asmFile.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                        icons.asmFile.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                     } else {
-                        uiManager.icons.file.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                        icons.file.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                     }
                 } else {
-                    uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                    icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                 }
 
             } else {
                 if (expanded) {
-                    uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                    icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                 } else {
-                    uiManager.icons.folder.derive(uiManager.currScale().controlScale.smallSize, uiManager.currScale().controlScale.smallSize)
+                    icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                 }
             }
 
-            this.background = if(sel)  uiManager.currTheme().textLaF.selelected else uiManager.currTheme().globalLaF.bgSecondary
-            loadedIcon.colorFilter = uiManager.currTheme().icon.colorFilter
-            this.foreground = uiManager.currTheme().textLaF.base
+            this.background = if(sel)  themeManager.curr.textLaF.selelected else themeManager.curr.globalLaF.bgSecondary
+            loadedIcon.colorFilter = themeManager.curr.icon.colorFilter
+            this.foreground = themeManager.curr.textLaF.base
             this.icon = loadedIcon
             return this
         }

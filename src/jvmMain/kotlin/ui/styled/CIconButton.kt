@@ -3,18 +3,18 @@ package me.c3.ui.components.styled
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CIconButtonUI
-import me.c3.ui.styled.ColouredPanel
+import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.LinearGradientPaint
 import javax.swing.JButton
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 
-open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL) : JButton(icon), UIAdapter {
+open class CIconButton(themeManager: ThemeManager, scaleManager: ScaleManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL) : JButton(icon) {
 
     private var timer: Timer? = null
     private var rotationAngle: Double = 0.0
@@ -22,7 +22,7 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
     var customColor: Color? = null
         set(value) {
             field = value
-            setupUI(uiManager)
+            (ui as? CIconButtonUI)?.setDefaults(this)
         }
 
     var rotating = false
@@ -31,59 +31,32 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
             updateAnim()
         }
 
-    var iconBg = uiManager.currTheme().iconLaF.iconBg
+    var iconBg = themeManager.curr.iconLaF.iconBg
         set(value) {
             field = value
-            setupUI(uiManager)
+            (ui as? CIconButtonUI)?.setDefaults(this)
         }
 
     var mode: Mode = mode
         set(value) {
             field = value
-            setupUI(uiManager)
+            (ui as? CIconButtonUI)?.setDefaults(this)
         }
 
     var isDeactivated = false
         set(value) {
             field = value
-            setupUI(uiManager)
+            (ui as? CIconButtonUI)?.setDefaults(this)
         }
 
     var svgIcon = icon
         set(value) {
             field = value
-            setupUI(uiManager)
+            (ui as? CIconButtonUI)?.setDefaults(this)
         }
 
     init {
-        setupUI(uiManager)
-    }
-
-    private fun updateIcon(uiManager: UIManager) {
-        val iconStyle = uiManager.currTheme().iconLaF
-        SwingUtilities.invokeLater {
-            svgIcon?.let {
-                when (mode) {
-                    Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> it.colorFilter = ColorFilter { iconStyle.iconFgPrimary }
-                    Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> it.colorFilter = ColorFilter { iconStyle.iconFgSecondary }
-                    Mode.GRADIENT_NORMAL, Mode.GRADIENT_SMALL -> {}
-                }
-            }
-
-            background = iconBg
-            val iconScale = when (mode) {
-                Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> uiManager.scaleManager.currentScaling.controlScale.normalSize
-                Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL, Mode.GRADIENT_SMALL -> uiManager.scaleManager.currentScaling.controlScale.smallSize
-            }
-
-            customColor?.let { col ->
-                svgIcon?.colorFilter = ColorFilter {
-                    col
-                }
-            }
-
-            icon = this.svgIcon?.derive(iconScale, iconScale)
-        }
+        this.setUI(CIconButtonUI(themeManager, scaleManager))
     }
 
     private fun updateAnim() {
@@ -119,37 +92,6 @@ open class CIconButton(private val uiManager: UIManager, icon: FlatSVGIcon? = nu
         SECONDARY_SMALL,
         GRADIENT_NORMAL,
         GRADIENT_SMALL
-    }
-
-    final override fun setupUI(uiManager: UIManager) {
-        SwingUtilities.invokeLater {
-            this.setUI(CIconButtonUI(uiManager, mode))
-
-            // Set Standard Appearance
-            isFocusable = false
-            isBorderPainted = false
-
-            // Add Scale Change Listener
-            uiManager.scaleManager.addScaleChangeEvent {
-                setDefaults(uiManager)
-            }
-
-            // Add Theme Change Listener
-            uiManager.themeManager.addThemeChangeListener {
-                setDefaults(uiManager)
-            }
-
-            setDefaults(uiManager)
-        }
-    }
-
-    override fun setDefaults(uiManager: UIManager) {
-        updateIcon(uiManager)
-
-        val buttonUI = this.ui as? CIconButtonUI ?: return
-        buttonUI.inset = uiManager.currScale().controlScale.normalInset
-        buttonUI.cornerRadius = uiManager.currScale().controlScale.cornerRadius
-        repaint()
     }
 
 }

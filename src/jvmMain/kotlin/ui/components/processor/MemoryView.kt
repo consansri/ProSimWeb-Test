@@ -12,11 +12,11 @@ import java.awt.BorderLayout
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableModel
 
-class MemoryView(private val uiManager: UIManager) : CPanel(uiManager, primary = false) {
+class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
 
     val tableModel = MemTableModel()
-    val table = CTable(uiManager, tableModel, false)
-    val scrollPane = CScrollPane(uiManager, primary = false, table)
+    val table = CTable(uiManager.themeManager, uiManager.scaleManager, tableModel, false)
+    val scrollPane = CScrollPane(uiManager.themeManager, uiManager.scaleManager, primary = false, table)
     val addrTitle = "ADDR"
     val asciiTitle = "ASCII"
     var currentlyUpdating = false

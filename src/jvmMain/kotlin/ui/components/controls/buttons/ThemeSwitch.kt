@@ -2,10 +2,8 @@ package me.c3.ui.components.controls.buttons
 
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.UIManager
-import javax.swing.JFrame
-import javax.swing.SwingUtilities
 
-class ThemeSwitch(uiManager: UIManager) : CIconButton(uiManager, mode = Mode.PRIMARY_NORMAL) {
+class ThemeSwitch(uiManager: UIManager) : CIconButton(uiManager.themeManager, uiManager.scaleManager, mode = Mode.PRIMARY_NORMAL) {
 
     private var currentIndex = 0
 
@@ -27,7 +25,7 @@ class ThemeSwitch(uiManager: UIManager) : CIconButton(uiManager, mode = Mode.PRI
 
     private fun setTheme(uiManager: UIManager) {
         uiManager.themeManager.themes.getOrNull(currentIndex)?.let {
-            uiManager.themeManager.currentTheme = it
+            uiManager.themeManager.curr = it
             svgIcon = it.icon
         }
     }

@@ -17,7 +17,7 @@ import javax.swing.event.TableModelEvent
 import kotlin.math.abs
 import kotlin.math.max
 
-class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary = true, BorderMode.SOUTH) {
+class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = true, BorderMode.SOUTH) {
 
     private val regViews = mutableListOf<CAdvancedTabPane>()
 
@@ -78,10 +78,10 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
     }
 
     private fun initializeRegView(): CAdvancedTabPane {
-        val cTabbedPane = CAdvancedTabPane(uiManager, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
+        val cTabbedPane = CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
         uiManager.currArch().getAllRegFiles().forEach {
-            val tabLabel = CLabel(uiManager, it.name)
+            val tabLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, it.name)
             if (it.getRegisters(uiManager.currArch().getAllFeatures()).isNotEmpty()) {
                 val regFileTable = RegFileTable(uiManager, it)
                 regFileTable.updateContent()
@@ -92,7 +92,8 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
         return cTabbedPane
     }
 
-    class RegFileTable(private val uiManager: UIManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel()) : CTable(uiManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
+    class RegFileTable(private val uiManager: UIManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel()) :
+        CTable(uiManager.themeManager, uiManager.scaleManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
 
         private var currentlyUpdating = false
         private val identifierLabel = "Identifiers"
@@ -172,7 +173,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager, primary
                 }
             }
 
-            this.fitColumnWidths(0)
+            fitColumnWidths(0)
             updateRegValues()
             currentlyUpdating = false
         }

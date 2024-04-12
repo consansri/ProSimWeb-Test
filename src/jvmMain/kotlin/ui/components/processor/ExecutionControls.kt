@@ -7,32 +7,32 @@ import java.awt.GridLayout
 import javax.swing.BorderFactory
 import javax.swing.JPanel
 
-class ExecutionControls(uiManager: UIManager) : CPanel(uiManager, primary = false, BorderMode.SOUTH) {
-    val continuous = CIconButton(uiManager, uiManager.icons.continuousExe).apply {
+class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, BorderMode.SOUTH) {
+    val continuous = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.continuousExe).apply {
         addActionListener{
             uiManager.currArch().exeContinuous()
             uiManager.eventManager.triggerExeEvent()
         }
     }
-    val singleStep = CIconButton(uiManager, uiManager.icons.singleExe).apply {
+    val singleStep = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.singleExe).apply {
         addActionListener{
             uiManager.currArch().exeSingleStep()
             uiManager.eventManager.triggerExeEvent()
         }
     }
-    val skipSubroutine = CIconButton(uiManager, uiManager.icons.stepOver).apply {
+    val skipSubroutine = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.stepOver).apply {
         addActionListener{
             uiManager.currArch().exeSkipSubroutine()
             uiManager.eventManager.triggerExeEvent()
         }
     }
-    val returnSubroutine = CIconButton(uiManager, uiManager.icons.returnSubroutine).apply {
+    val returnSubroutine = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.returnSubroutine).apply {
         addActionListener{
             uiManager.currArch().exeReturnFromSubroutine()
             uiManager.eventManager.triggerExeEvent()
         }
     }
-    val reset = CIconButton(uiManager, uiManager.icons.recompile).apply {
+    val reset = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.recompile).apply {
         addActionListener{
             uiManager.currArch().exeReset()
             uiManager.eventManager.triggerExeEvent()

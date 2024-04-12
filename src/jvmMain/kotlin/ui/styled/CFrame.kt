@@ -1,11 +1,15 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import com.formdev.flatlaf.ui.FlatTextPaneUI
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
+import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -16,11 +20,11 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
-open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
+open class CFrame(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons) : JFrame(), UIAdapter {
     val titleBar = TitleBar()
-    val content = CPanel(uiManager, primary = false)
+    val content = CPanel(themeManager, scaleManager, primary = false)
 
-    private var cornerRadius: Int = uiManager.currScale().borderScale.cornerRadius
+    private var cornerRadius: Int = scaleManager.curr.borderScale.cornerRadius
 
     private var posX = 0
     private var posY = 0
@@ -35,7 +39,7 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         layout = BorderLayout()
 
         addBaseComponents()
-        this.setupUI(uiManager)
+        this.setupUI(themeManager, scaleManager)
 
         isVisible = true
     }
@@ -56,28 +60,28 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         titleBar.titleLabel.text = newtitle
     }
 
-    override fun setupUI(uiManager: UIManager) {
+    override fun setupUI(themeManager: ThemeManager, scaleManager: ScaleManager) {
         SwingUtilities.invokeLater {
-            uiManager.scaleManager.addScaleChangeEvent {
-                setDefaults(uiManager)
+            scaleManager.addScaleChangeEvent {
+                setDefaults(themeManager, scaleManager)
             }
 
-            uiManager.themeManager.addThemeChangeListener {
-                setDefaults(uiManager)
+            themeManager.addThemeChangeListener {
+                setDefaults(themeManager, scaleManager)
             }
 
-            setDefaults(uiManager)
+            setDefaults(themeManager, scaleManager)
         }
     }
 
-    override fun setDefaults(uiManager: UIManager) {
+    override fun setDefaults(themeManager: ThemeManager, scaleManager: ScaleManager) {
         rootPane.border = BorderFactory.createEmptyBorder()
         content.border = BorderFactory.createEmptyBorder()
-        cornerRadius = uiManager.currScale().borderScale.cornerRadius
-        background = uiManager.currTheme().globalLaF.bgSecondary
+        cornerRadius = scaleManager.curr.borderScale.cornerRadius
+        background = themeManager.curr.globalLaF.bgSecondary
 
-        val icon = uiManager.icons.appLogo.derive(64, 64)
-        icon.colorFilter = uiManager.currTheme().icon.colorFilter
+        val icon = icons.appLogo.derive(64, 64)
+        icon.colorFilter = themeManager.curr.icon.colorFilter
         iconImage = icon.image
     }
 
@@ -101,14 +105,14 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
         content.add(comp, constraints, index)
     }
 
-    inner class TitleBar : CPanel(uiManager, primary = false, BorderMode.SOUTH) {
+    inner class TitleBar : CPanel(themeManager, scaleManager, primary = false, BorderMode.SOUTH) {
 
-        val logoButton = CIconButton(uiManager, uiManager.icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
-        val titleLabel = CLabel(uiManager, title)
-        val minimizeButton = CIconButton(uiManager, uiManager.icons.minimize, CIconButton.Mode.SECONDARY_SMALL)
-        val maximizeButton = CIconButton(uiManager, uiManager.icons.maximize, CIconButton.Mode.SECONDARY_SMALL)
-        val closeButton = CIconButton(uiManager, uiManager.icons.cancel, CIconButton.Mode.SECONDARY_SMALL)
-        val titleContent = CPanel(uiManager, primary = false)
+        val logoButton = CIconButton(themeManager, scaleManager, icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
+        val titleLabel = CLabel(themeManager, scaleManager, title)
+        val minimizeButton = CIconButton(themeManager, scaleManager, icons.minimize, CIconButton.Mode.SECONDARY_SMALL)
+        val maximizeButton = CIconButton(themeManager, scaleManager, icons.maximize, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton(themeManager, scaleManager, icons.close, CIconButton.Mode.SECONDARY_SMALL)
+        val titleContent = CPanel(themeManager, scaleManager, primary = false)
 
         init {
             attachContent()
@@ -119,7 +123,7 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
 
             addButtonListeners()
 
-            applyDefaultLook(uiManager)
+            applyDefaultLook(themeManager, scaleManager)
         }
 
         private fun attachContent() {
@@ -191,26 +195,26 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
             })
         }
 
-        private fun applyDefaultLook(uiManager: UIManager) {
+        private fun applyDefaultLook(themeManager: ThemeManager, scaleManager: ScaleManager) {
             titleLabel.horizontalAlignment = SwingConstants.LEFT
             logoButton.isDeactivated = true
 
-            uiManager.themeManager.addThemeChangeListener {
-                applyThemeDefaults(uiManager)
+            themeManager.addThemeChangeListener {
+                applyThemeDefaults(themeManager)
             }
-            uiManager.scaleManager.addScaleChangeEvent {
-                applyThemeDefaults(uiManager)
+            scaleManager.addScaleChangeEvent {
+                applyThemeDefaults(themeManager)
             }
 
-            applyThemeDefaults(uiManager)
+            applyThemeDefaults(themeManager)
         }
 
-        private fun applyThemeDefaults(uiManager: UIManager) {
-            uiManager.icons.appLogo.colorFilter = FlatSVGIcon.ColorFilter {
-                uiManager.currTheme().textLaF.base
+        private fun applyThemeDefaults(themeManager: ThemeManager) {
+            icons.appLogo.colorFilter = FlatSVGIcon.ColorFilter {
+               themeManager.curr.textLaF.base
             }
 
-            logoButton.svgIcon = uiManager.icons.appLogo
+            logoButton.svgIcon = icons.appLogo
         }
     }
 
@@ -279,9 +283,9 @@ open class CFrame(private val uiManager: UIManager) : JFrame(), UIAdapter {
     }
 
     private fun isEdge(point: Point): ResizeMode? {
-        val left = point.x <= uiManager.currScale().borderScale.insets
-        val right = point.x >= width - uiManager.currScale().borderScale.insets
-        val bottom = point.y >= height - uiManager.currScale().borderScale.insets
+        val left = point.x <= scaleManager.curr.borderScale.insets
+        val right = point.x >= width - scaleManager.curr.borderScale.insets
+        val bottom = point.y >= height - scaleManager.curr.borderScale.insets
 
         return when {
             left && bottom -> ResizeMode.LEFTANDBOTTOM

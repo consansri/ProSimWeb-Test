@@ -14,7 +14,7 @@ import javax.swing.BoxLayout
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 
-class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager, primary = false, BorderMode.WEST) {
+class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, BorderMode.WEST) {
 
     val buttons = listOf(
         ThemeSwitch(uiManager)
@@ -59,7 +59,7 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
         }
     }
 
-    class FeatureSwitch(private val feature: Feature, uiManager: UIManager) : CToggleButton(uiManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL) {
+    class FeatureSwitch(private val feature: Feature, uiManager: UIManager) : CToggleButton(uiManager.themeManager, uiManager.scaleManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL) {
 
         private var switchingFeatures = false
 

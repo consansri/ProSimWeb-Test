@@ -1,9 +1,11 @@
 package me.c3.ui.theme.core.ui
 
 import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 
 interface UIAdapter {
-    fun setupUI(uiManager: UIManager)
+    fun setupUI(themeManager: ThemeManager, scaleManager: ScaleManager)
 
-    fun setDefaults(uiManager: UIManager)
+    fun setDefaults(themeManager: ThemeManager, scaleManager: ScaleManager)
 }

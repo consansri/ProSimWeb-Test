@@ -1,6 +1,9 @@
 package me.c3.ui.styled
 
+import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTextButton
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -9,12 +12,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
 
-class CTextButtonUI: BasicButtonUI() {
-    companion object {
-        const val INSET = 2
-        const val CORNER_RADIUS = 10
-        val HOVER_COLOR = Color(0x55777777, true)
-    }
+class CTextButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager): BasicButtonUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -24,13 +22,13 @@ class CTextButtonUI: BasicButtonUI() {
         button.isContentAreaFilled = false
         button.isFocusPainted = false
         button.isFocusable = false
-        button.border = BorderFactory.createEmptyBorder(INSET, INSET, INSET, INSET)
+        button.border = scaleManager.curr.borderScale.getInsetBorder()
 
         // Apply hover effect
         button.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
                 if (!button.isDeactivated) {
-                    button.background = HOVER_COLOR
+                    button.background = themeManager.curr.iconLaF.iconBgHover
                     button.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
                 }
             }
@@ -39,6 +37,25 @@ class CTextButtonUI: BasicButtonUI() {
                 button.background = null // Reset background to default
             }
         })
+
+        themeManager.addThemeChangeListener {
+            setDefaults(button)
+        }
+
+        scaleManager.addScaleChangeEvent {
+            setDefaults(button)
+        }
+        setDefaults(button)
+    }
+
+    fun setDefaults(button: CTextButton) {
+        val currTheme = themeManager.curr
+        val currScale = scaleManager.curr
+        button.border = scaleManager.curr.borderScale.getInsetBorder()
+        button.font = currTheme.textLaF.getTitleFont().deriveFont(currScale.fontScale.titleSize)
+        button.foreground = if (button.primary) currTheme.textLaF.base else currTheme.textLaF.baseSecondary
+        button.background = Color(0, 0, 0, 0)
+        button.repaint()
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
@@ -50,7 +67,7 @@ class CTextButtonUI: BasicButtonUI() {
 
         // Paint button background
         g2.color = button.background
-        g2.fillRoundRect(INSET, INSET, width - INSET * 2, height - INSET * 2, CORNER_RADIUS, CORNER_RADIUS)
+        g2.fillRoundRect(getInset(), getInset(), width - getInset() * 2, height - getInset() * 2, getCornerRadius(), getCornerRadius())
 
         // Paint button
         super.paint(g, c)
@@ -59,7 +76,7 @@ class CTextButtonUI: BasicButtonUI() {
     override fun getPreferredSize(c: JComponent?): Dimension {
         val button = c as? AbstractButton ?: return super.getPreferredSize(c)
         val preferredSize = super.getPreferredSize(button)
-        return Dimension(preferredSize.width + INSET * 2, preferredSize.height + INSET * 2)
+        return Dimension(preferredSize.width + getInset() * 2, preferredSize.height + getInset() * 2)
     }
 
     override fun getMinimumSize(c: JComponent?): Dimension {
@@ -69,5 +86,7 @@ class CTextButtonUI: BasicButtonUI() {
     override fun getMaximumSize(c: JComponent?): Dimension {
         return getPreferredSize(c)
     }
+    private fun getCornerRadius(): Int = scaleManager.curr.controlScale.cornerRadius
+    private fun getInset(): Int = scaleManager.curr.borderScale.insets
 
 }

@@ -5,8 +5,6 @@ import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.icons.ProSimIcons
 import me.c3.ui.theme.themes.DarkTheme
 import me.c3.ui.theme.themes.LightTheme
-import javax.swing.JFrame
-import javax.swing.UIManager
 
 class ThemeManager(icons: ProSimIcons) {
 
@@ -15,7 +13,7 @@ class ThemeManager(icons: ProSimIcons) {
         DarkTheme(icons)
     )
 
-    var currentTheme: Theme = themes.first()
+    var curr: Theme = themes.first()
         set(value) {
             field = value
             //value.install(mainFrame)
@@ -28,7 +26,7 @@ class ThemeManager(icons: ProSimIcons) {
         assert(themes.isNotEmpty()) {
             throw Exception("No Theme supplied!")
         }
-        currentTheme = themes.first()
+        curr = themes.first()
     }
 
 
@@ -43,8 +41,8 @@ class ThemeManager(icons: ProSimIcons) {
     private fun triggerThemeChangeEvents(){
         val listenersCopy = ArrayList(themeChangeEvents)
         listenersCopy.forEach {
-            it(currentTheme)
+            it(curr)
         }
-        nativeLog("ThemeManager: Switched Theme to ${currentTheme.name}!")
+        nativeLog("ThemeManager: Switched Theme to ${curr.name}!")
     }
 }

@@ -2,6 +2,8 @@ package me.c3.ui.styled
 
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTabbedPane
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -9,25 +11,44 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTabbedPaneUI
 
-class CTabbedPaneUI(private val uiManager: UIManager) : BasicTabbedPaneUI() {
+class CTabbedPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean) : BasicTabbedPaneUI() {
+
+    private var selectedColor = themeManager.curr.globalLaF.borderColor
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val pane = c as? CTabbedPane ?: return
         pane.border = BorderFactory.createEmptyBorder()
+
+        themeManager.addThemeChangeListener {
+            setDefaults(pane)
+        }
+
+        scaleManager.addScaleChangeEvent {
+            setDefaults(pane)
+        }
+        setDefaults(pane)
+    }
+
+    private fun setDefaults(pane: CTabbedPane) {
+        pane.background = if (primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
+        pane.foreground = themeManager.curr.textLaF.base
+        selectedColor = themeManager.curr.globalLaF.borderColor
+        pane.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        pane.repaint()
     }
 
     override fun paintTabBorder(g: Graphics?, tabPlacement: Int, tabIndex: Int, x: Int, y: Int, w: Int, h: Int, isSelected: Boolean) {
         if (isSelected) {
             val g2d = g?.create() as? Graphics2D ?: return
-            g2d.color = (tabPane as? CTabbedPane)?.selectedColor
-            g2d.fillRect(x, y + h - uiManager.currScale().borderScale.markedThickness, w, uiManager.currScale().borderScale.markedThickness)
+            g2d.color = selectedColor
+            g2d.fillRect(x, y + h - scaleManager.curr.borderScale.markedThickness, w, scaleManager.curr.borderScale.markedThickness)
             g2d.dispose()
         } else {
             val g2d = g?.create() as? Graphics2D ?: return
-            g2d.color = (tabPane as? CTabbedPane)?.selectedColor
-            g2d.fillRect(x, y + h - uiManager.currScale().borderScale.thickness, w, uiManager.currScale().borderScale.thickness)
+            g2d.color = selectedColor
+            g2d.fillRect(x, y + h - scaleManager.curr.borderScale.thickness, w, scaleManager.curr.borderScale.thickness)
             g2d.dispose()
         }
     }

@@ -17,7 +17,7 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import kotlin.time.measureTime
 
-class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager, true, true) {
+class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, true, true) {
 
     private val panels = mutableListOf<EditPanel>()
     private val fileEditEvents = mutableListOf<(EditorFile) -> Unit>()
@@ -46,7 +46,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
 
         val editPanel = EditPanel(editorFile, uiManager)
         panels.add(editPanel)
-        addTab(CLabel(uiManager, file.getName()), editPanel) { e, tab ->
+        addTab(CLabel(uiManager.themeManager, uiManager.scaleManager, file.getName()), editPanel) { e, tab ->
             when (e) {
                 ClosableTab.Event.LOSTFOCUS -> {}
                 ClosableTab.Event.CLOSE -> {
@@ -83,7 +83,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
         }
     }
 
-    class EditPanel(val file: EditorFile, uiManager: UIManager) : CPanel(uiManager, primary = true) {
+    class EditPanel(val file: EditorFile, uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = true) {
 
         private var compileJob: Job? = null
 
@@ -120,10 +120,10 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
         private var currentlyUpdating = false
 
         // Elements
-        private val textPane = CTextPane(uiManager)
+        private val textPane = CTextPane(uiManager.themeManager, uiManager.scaleManager)
         private val lineNumbers = LineNumbers(uiManager, textPane)
         private val viewport = JViewport()
-        private val cScrollPane = textPane.createScrollPane(uiManager)
+        private val cScrollPane = textPane.createScrollPane(uiManager.themeManager, uiManager.scaleManager)
 
         init {
             textPane.setInitialText(file.contentAsString())
@@ -238,10 +238,9 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager,
         }
 
         private fun setEditorDefaults(uiManager: UIManager) {
-            setDefaults(uiManager)
             layout = BoxLayout(this, BoxLayout.X_AXIS)
             border = BorderFactory.createEmptyBorder()
-            lineNumbers.border = DirectionalBorder(uiManager, east = true)
+            lineNumbers.border = DirectionalBorder(uiManager.themeManager,uiManager.scaleManager, east = true)
             textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
             textPane.isEditable = true
             viewport.background = uiManager.currTheme().globalLaF.bgPrimary

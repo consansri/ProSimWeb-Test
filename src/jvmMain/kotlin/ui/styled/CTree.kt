@@ -1,8 +1,11 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CTreeUI
+import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
+import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
@@ -15,33 +18,9 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreeNode
 
-class CTree(uiManager: UIManager, treeModel: TreeModel) : JTree(treeModel), UIAdapter {
+class CTree(themeManager: ThemeManager, scaleManager: ScaleManager, icons: ProSimIcons, treeModel: TreeModel) : JTree(treeModel) {
 
     init {
-        setupUI(uiManager)
-    }
-
-    override fun setupUI(uiManager: me.c3.ui.UIManager) {
-        SwingUtilities.invokeLater {
-            setUI(CTreeUI(uiManager))
-
-            uiManager.themeManager.addThemeChangeListener {
-                setDefaults(uiManager)
-            }
-
-            uiManager.scaleManager.addScaleChangeEvent {
-                setDefaults(uiManager)
-            }
-
-            setDefaults(uiManager)
-        }
-    }
-
-    override fun setDefaults(uiManager: me.c3.ui.UIManager) {
-        val treeUI = ui as? CTreeUI ?: return
-        treeUI.selectedColor = uiManager.currTheme().globalLaF.borderColor
-        background = uiManager.currTheme().globalLaF.bgSecondary
-        foreground = uiManager.currTheme().textLaF.base
-        font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
+        setUI(CTreeUI(themeManager, scaleManager, icons))
     }
 }

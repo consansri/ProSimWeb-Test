@@ -9,11 +9,11 @@ import java.awt.GridBagLayout
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-class BottomBar(private val uiManager: UIManager) : CPanel(uiManager) {
+class BottomBar(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager) {
 
-    val tagInfo = CLabel(uiManager, "tags")
-    val editorInfo = CLabel(uiManager, "")
-    val generalPurpose = CLabel(uiManager, "")
+    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "tags")
+    val editorInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "")
+    val generalPurpose = CLabel(uiManager.themeManager,uiManager.scaleManager, "")
 
     init {
         layout = GridBagLayout()

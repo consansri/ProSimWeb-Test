@@ -1,6 +1,8 @@
 package me.c3.ui.styled.borders
 
 import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Insets
@@ -8,25 +10,26 @@ import javax.swing.border.AbstractBorder
 import javax.swing.border.LineBorder
 
 class DirectionalBorder(
-    uiManager: UIManager,
+    themeManager: ThemeManager,
+    scaleManager: ScaleManager,
     private val north: Boolean = false,
     private val west: Boolean = false,
     private val south: Boolean = false,
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    var lineBorder = LineBorder(uiManager.themeManager.currentTheme.globalLaF.borderColor, uiManager.scaleManager.currentScaling.borderScale.thickness)
-    var thickness = uiManager.scaleManager.currentScaling.borderScale.thickness
+    var lineBorder = LineBorder(themeManager.curr.globalLaF.borderColor, scaleManager.curr.borderScale.thickness)
+    var thickness = scaleManager.curr.borderScale.thickness
 
     init {
-        uiManager.scaleManager.addScaleChangeEvent {
-            val color = uiManager.themeManager.currentTheme.globalLaF.borderColor
+        scaleManager.addScaleChangeEvent {
+            val color = themeManager.curr.globalLaF.borderColor
             this.lineBorder = LineBorder(color, it.borderScale.thickness)
             this.thickness = it.borderScale.thickness
         }
 
-        uiManager.themeManager.addThemeChangeListener {
-            val thickness = uiManager.scaleManager.currentScaling.borderScale.thickness
+        themeManager.addThemeChangeListener {
+            val thickness = scaleManager.curr.borderScale.thickness
             this.lineBorder = LineBorder(it.globalLaF.borderColor, thickness)
             this.thickness = thickness
         }

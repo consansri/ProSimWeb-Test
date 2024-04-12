@@ -1,12 +1,14 @@
 package me.c3.ui.styled
 
 import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import java.awt.Color
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTextFieldUI
 
-class CTextFieldUI(private val uiManager: UIManager, val type: Type): BasicTextFieldUI() {
+class CTextFieldUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, val type: Type): BasicTextFieldUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -14,11 +16,11 @@ class CTextFieldUI(private val uiManager: UIManager, val type: Type): BasicTextF
         val tf = c as? CTextField ?: return
         tf.border = BorderFactory.createEmptyBorder()
 
-        uiManager.themeManager.addThemeChangeListener {
+        themeManager.addThemeChangeListener {
             setDefaults(tf)
         }
 
-        uiManager.scaleManager.addScaleChangeEvent {
+        scaleManager.addScaleChangeEvent {
             setDefaults(tf)
         }
 
@@ -27,13 +29,13 @@ class CTextFieldUI(private val uiManager: UIManager, val type: Type): BasicTextF
 
     private fun setDefaults(tf: CTextField){
         tf.font = when(type){
-            Type.DATA -> uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.dataSize)
-            Type.CODE -> uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.codeSize)
-            Type.TEXT -> uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
+            Type.DATA -> themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)
+            Type.CODE -> themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
+            Type.TEXT -> themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
         }
-        tf.background = uiManager.currTheme().globalLaF.bgPrimary
-        tf.foreground = uiManager.currTheme().textLaF.base
-        tf.caretColor = uiManager.currTheme().textLaF.base
+        tf.background = themeManager.curr.globalLaF.bgPrimary
+        tf.foreground = themeManager.curr.textLaF.base
+        tf.caretColor = themeManager.curr.textLaF.base
     }
 
     enum class Type{

@@ -1,23 +1,39 @@
 package me.c3.ui.styled
 
 import emulator.kit.nativeLog
+import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JRootPane
+import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicRootPaneUI
 
-class CRootPaneUI(private val inset: Int, private val cornerRadius: Int) : BasicRootPaneUI() {
+class CRootPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicRootPaneUI() {
+
+    private var inset: Int = scaleManager.curr.borderScale.insets
+    var cornerRadius: Int = scaleManager.curr.borderScale.cornerRadius
 
     override fun installDefaults(c: JRootPane?) {
         super.installDefaults(c)
-        c?.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
-        c?.repaint()
+
+        val cRootPane = c as? CRootPane ?: return
+
+        themeManager.addThemeChangeListener {
+            setDefaults(cRootPane)
+        }
+
+        scaleManager.addScaleChangeEvent {
+            setDefaults(cRootPane)
+        }
+
+        setDefaults(cRootPane)
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
-        nativeLog("Paint RootPane background!")
         val g2d = g?.create() as? Graphics2D ?: return
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         val bounds = c?.bounds ?: return
@@ -33,5 +49,11 @@ class CRootPaneUI(private val inset: Int, private val cornerRadius: Int) : Basic
         g2d.dispose()
     }
 
+    private fun setDefaults(cRootPane: CRootPane) {
+        inset = scaleManager.curr.borderScale.insets
+        cRootPane.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
+        cRootPane.background = themeManager.curr.globalLaF.bgSecondary
+        cRootPane.repaint()
+    }
 
 }

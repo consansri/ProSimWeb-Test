@@ -2,7 +2,9 @@ package me.c3.ui.components.styled
 
 import io.nacular.doodle.core.view
 import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CScrollPaneUI
+import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Component
 import java.awt.Dimension
@@ -11,41 +13,19 @@ import java.awt.Graphics2D
 import javax.swing.JScrollPane
 import javax.swing.SwingUtilities
 
-open class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Component?) : JScrollPane(c), UIAdapter {
+open class CScrollPane(themeManager: ThemeManager, scaleManager: ScaleManager, val primary: Boolean, c: Component?) : JScrollPane(c) {
 
-    constructor(uiManager: UIManager, primary: Boolean) : this(uiManager, primary, null) {
+    constructor(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean) : this(themeManager, scaleManager, primary, null) {
 
     }
 
-    constructor(uiManager: UIManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(uiManager, primary, component) {
+    constructor(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(themeManager, scaleManager, primary, component) {
         this.verticalScrollBarPolicy = vsb
         this.horizontalScrollBarPolicy = hsb
     }
 
     init {
-        this.setupUI(uiManager)
-    }
-
-    override fun setupUI(uiManager: UIManager) {
-        viewport.preferredSize = preferredSize
-        SwingUtilities.invokeLater {
-            setUI(CScrollPaneUI())
-
-            uiManager.themeManager.addThemeChangeListener {
-                setDefaults(uiManager)
-            }
-
-            setDefaults(uiManager)
-        }
-    }
-
-    override fun setDefaults(uiManager: UIManager) {
-        viewport.isOpaque = false
-        background = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
-        val paneUI = ui as? CScrollPaneUI ?: return
-        paneUI.scrollBarBgColor = if (primary) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
-        paneUI.scrollBarFgColor = uiManager.currTheme().globalLaF.borderColor
-        repaint()
+        this.setUI(CScrollPaneUI(themeManager, scaleManager))
     }
 
     override fun paint(g: Graphics?) {
@@ -57,6 +37,5 @@ open class CScrollPane(uiManager: UIManager, private val primary: Boolean, c: Co
 
         g2d.dispose()
     }
-
 
 }

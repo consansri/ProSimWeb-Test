@@ -2,6 +2,9 @@ package me.c3.ui.styled
 
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
+import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -10,7 +13,7 @@ import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxUI
 
-class CComboBoxUI(private val uiManager: UIManager) : BasicComboBoxUI() {
+class CComboBoxUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons) : BasicComboBoxUI() {
 
     var isHovered: Boolean = false
         set(value) {
@@ -34,10 +37,27 @@ class CComboBoxUI(private val uiManager: UIManager) : BasicComboBoxUI() {
                 isHovered = false
             }
         })
+
+        themeManager.addThemeChangeListener {
+            setDefaults(comboBox)
+        }
+
+        scaleManager.addScaleChangeEvent {
+            setDefaults(comboBox)
+        }
+
+        setDefaults(comboBox)
+    }
+
+    private fun setDefaults(pane: CComboBox<*>) {
+        pane.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        pane.foreground = themeManager.curr.textLaF.base
+        pane.renderer = CComboBoxRenderer(themeManager, scaleManager)
+        pane.repaint()
     }
 
     override fun createArrowButton(): JButton {
-        return CIconButton(uiManager, uiManager.icons.folderOpen, CIconButton.Mode.SECONDARY_SMALL).apply {
+        return CIconButton(themeManager, scaleManager, icons.folderOpen, CIconButton.Mode.SECONDARY_SMALL).apply {
             iconBg = Color(0, 0, 0, 0)
             addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
@@ -48,7 +68,7 @@ class CComboBoxUI(private val uiManager: UIManager) : BasicComboBoxUI() {
     }
 
     override fun getMaximumSize(c: JComponent?): Dimension {
-        return Dimension(uiManager.currScale().controlScale.comboBoxWidth, super.getPreferredSize(c).height)
+        return Dimension(scaleManager.curr.controlScale.comboBoxWidth, super.getPreferredSize(c).height)
     }
 
     override fun paintCurrentValueBackground(g: Graphics, bounds: Rectangle, hasFocus: Boolean) {
@@ -56,8 +76,8 @@ class CComboBoxUI(private val uiManager: UIManager) : BasicComboBoxUI() {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
         if (isHovered) {
-            val cornerRadius = uiManager.currScale().controlScale.cornerRadius
-            g2.color = uiManager.currTheme().globalLaF.bgPrimary
+            val cornerRadius = scaleManager.curr.controlScale.cornerRadius
+            g2.color = themeManager.curr.globalLaF.bgPrimary
             g2.fillRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, cornerRadius, cornerRadius)
         }
 
@@ -96,8 +116,8 @@ class CComboBoxUI(private val uiManager: UIManager) : BasicComboBoxUI() {
                 cellHasFocus: Boolean
             ): Component {
                 val c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-                c.background = if (isSelected) uiManager.currTheme().globalLaF.bgPrimary else uiManager.currTheme().globalLaF.bgSecondary
-                c.foreground = uiManager.currTheme().textLaF.base
+                c.background = if (isSelected) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
+                c.foreground = themeManager.curr.textLaF.base
                 (c as? JComponent)?.border = BorderFactory.createEmptyBorder()
                 return c
             }
@@ -117,6 +137,16 @@ class CComboBoxUI(private val uiManager: UIManager) : BasicComboBoxUI() {
                 }
             },
         )
+    }
+
+    class CComboBoxRenderer(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : DefaultListCellRenderer() {
+        override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+            background = themeManager.curr.globalLaF.bgSecondary
+            foreground = themeManager.curr.textLaF.base
+            this.border = BorderFactory.createEmptyBorder()
+            return this
+        }
     }
 
 }

@@ -8,7 +8,7 @@ class ScaleManager {
 
     val scalings: List<Scaling> = listOf(StandardScaling())
 
-    var currentScaling: Scaling = scalings.first()
+    var curr: Scaling = scalings.first()
         set(value) {
             field = value
             triggerScaleChange()
@@ -33,9 +33,9 @@ class ScaleManager {
     private fun triggerScaleChange(){
         val listenersCopy = ArrayList(scaleChangeEvents)
         listenersCopy.forEach{
-            it(currentScaling)
+            it(curr)
         }
-        nativeLog("ScaleManager: Switched Scaling to ${currentScaling.name}!")
+        nativeLog("ScaleManager: Switched Scaling to ${curr.name}!")
     }
 
 }

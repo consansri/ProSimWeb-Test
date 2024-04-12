@@ -8,12 +8,12 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JSplitPane
 
-class ProcessorView(uiManager: UIManager) : CPanel(uiManager, primary = false) {
+class ProcessorView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
 
     val exeControl = ExecutionControls(uiManager)
     val regView = RegisterView(uiManager)
     val memoryView = MemoryView(uiManager)
-    val splitPane = CSplitPane(uiManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView)
+    val splitPane = CSplitPane(uiManager.themeManager, uiManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView)
 
 
     init {

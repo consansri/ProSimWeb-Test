@@ -28,7 +28,6 @@ class UIManager {
 
     private var ws = Workspace(Paths.get("").toAbsolutePath().toString(), editor, this)
 
-
     init {
         themeManager.addThemeChangeListener {
             triggerAnyEvent()
@@ -47,8 +46,8 @@ class UIManager {
         }
     }
 
-    fun currTheme() = themeManager.currentTheme
-    fun currScale() = scaleManager.currentScaling
+    fun currTheme() = themeManager.curr
+    fun currScale() = scaleManager.curr
     fun currArch() = archManager.curr
     fun currWS() = ws
     fun setCurrWS(path: String) {
@@ -77,8 +76,4 @@ class UIManager {
             it(currWS())
         }
     }
-
-
-
-
 }

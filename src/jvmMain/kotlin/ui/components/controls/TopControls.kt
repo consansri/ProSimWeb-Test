@@ -9,7 +9,7 @@ import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 
-class TopControls(uiManager: UIManager) : CPanel(uiManager, primary = false, borderMode = BorderMode.SOUTH) {
+class TopControls(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, borderMode = BorderMode.SOUTH) {
 
     val buttons: List<JComponent> = listOf()
 

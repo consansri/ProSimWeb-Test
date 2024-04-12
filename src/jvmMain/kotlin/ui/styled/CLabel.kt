@@ -1,41 +1,22 @@
 package me.c3.ui.components.styled
 
 import me.c3.ui.UIManager
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.CLabelUI
+import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
-class CLabel(uiManager: UIManager, content: String) : JLabel(content), UIAdapter {
+class CLabel(themeManager: ThemeManager, scaleManager: ScaleManager, content: String) : JLabel(content) {
 
     init {
-        this.setupUI(uiManager)
+        setUI(CLabelUI(themeManager, scaleManager))
     }
 
     fun setColouredText(text: String, color: Color) {
         this.text = text
         foreground = color
     }
-
-    override fun setupUI(uiManager: UIManager) {
-        SwingUtilities.invokeLater {
-            uiManager.themeManager.addThemeChangeListener {
-                setDefaults(uiManager)
-            }
-
-            uiManager.scaleManager.addScaleChangeEvent {
-                setDefaults(uiManager)
-            }
-
-            setDefaults(uiManager)
-        }
-    }
-
-    override fun setDefaults(uiManager: UIManager) {
-        font = uiManager.currTheme().textLaF.getBaseFont().deriveFont(uiManager.currScale().fontScale.textSize)
-        border = uiManager.currScale().borderScale.getInsetBorder()
-        foreground = uiManager.currTheme().textLaF.base
-        repaint()
-    }
-
 }

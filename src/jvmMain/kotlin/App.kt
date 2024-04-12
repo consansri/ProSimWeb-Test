@@ -5,7 +5,10 @@ import me.c3.emulator.kit.install
 import me.c3.ui.UIManager
 import me.c3.ui.components.BaseFrame
 import me.c3.ui.components.editor.CDocument
+import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
+import me.c3.ui.theme.ThemeManager
+import me.c3.ui.theme.icons.BenIcons
 import java.awt.Dimension
 import javax.swing.*
 
@@ -26,7 +29,7 @@ fun testBaseApp() {
 }
 
 fun testCustomFrame() {
-    val frame = CFrame(UIManager())
+    val frame = CFrame(ThemeManager(BenIcons()), ScaleManager(),BenIcons())
     frame.setFrameTitle("ProSimWeb")
 }
 

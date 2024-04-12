@@ -1,32 +1,27 @@
 package me.c3.ui.styled
 
+import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CScrollPane
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Graphics
-import java.awt.Rectangle
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
+import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.SwingUtilities
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.plaf.basic.BasicScrollPaneUI
 
-class CScrollPaneUI : BasicScrollPaneUI() {
+class CScrollPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicScrollPaneUI() {
 
-    companion object {
-        private const val THUMB_SIZE = 8
-        private val THUMB_COLOR = Color(0x77777777, true)
-        private val TRACK_COLOR = Color.RED
-    }
-
-    var scrollBarFgColor: Color = THUMB_COLOR
+    var scrollBarFgColor: Color = themeManager.curr.globalLaF.borderColor
         set(value) {
             field = value
             scrollpane.verticalScrollBar.repaint()
             scrollpane.horizontalScrollBar.repaint()
         }
 
-    var scrollBarBgColor: Color = TRACK_COLOR
+    var scrollBarBgColor: Color = Color(0, 0, 0, 0)
         set(value) {
             field = value
             scrollpane.verticalScrollBar.repaint()
@@ -40,11 +35,38 @@ class CScrollPaneUI : BasicScrollPaneUI() {
         pane.border = BorderFactory.createEmptyBorder()
         pane.verticalScrollBar.setUI(CScrollBarUI())
         pane.horizontalScrollBar.setUI(CScrollBarUI())
-        pane.verticalScrollBar.preferredSize = Dimension(THUMB_SIZE, 0)
-        pane.horizontalScrollBar.preferredSize = Dimension(0, THUMB_SIZE)
+        pane.isOpaque = false
+
+        scaleManager.addScaleChangeEvent {
+            setDefaults(pane)
+        }
+
+        themeManager.addThemeChangeListener {
+            setDefaults(pane)
+        }
+
+        setDefaults(pane)
+    }
+
+    private fun setDefaults(cScrollPane: CScrollPane) {
+        cScrollPane.viewport.preferredSize = cScrollPane.preferredSize
+        cScrollPane.viewport.isOpaque = false
+        cScrollPane.background = if (cScrollPane.primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
+        scrollBarBgColor = if (cScrollPane.primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
+        scrollBarFgColor = themeManager.curr.globalLaF.borderColor
+        cScrollPane.verticalScrollBar.preferredSize = Dimension(scaleManager.curr.scrollScale.thumbSize, 0)
+        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, scaleManager.curr.scrollScale.thumbSize)
+        cScrollPane.repaint()
     }
 
     inner class CScrollBarUI() : BasicScrollBarUI() {
+
+        override fun installUI(c: JComponent?) {
+            super.installUI(c)
+
+            c?.isOpaque = false
+        }
+
         override fun configureScrollBarColors() {
             thumbDarkShadowColor = Color(0, 0, 0, 0)
             thumbLightShadowColor = Color(0, 0, 0, 0)

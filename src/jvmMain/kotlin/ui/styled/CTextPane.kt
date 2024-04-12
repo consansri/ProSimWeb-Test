@@ -4,7 +4,9 @@ import emulator.kit.assembly.Compiler
 import me.c3.emulator.kit.install
 import me.c3.ui.UIManager
 import me.c3.ui.components.editor.CDocument
+import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CTextPaneUI
+import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Font
 import javax.swing.BorderFactory
@@ -13,11 +15,11 @@ import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.text.SimpleAttributeSet
 
-class CTextPane(uiManager: UIManager) : JTextPane() {
+class CTextPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JTextPane() {
 
     init {
         this.document = CDocument()
-        setUI(CTextPaneUI(uiManager))
+        setUI(CTextPaneUI(themeManager, scaleManager))
     }
 
     override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
@@ -31,8 +33,8 @@ class CTextPane(uiManager: UIManager) : JTextPane() {
         this.document.insertString(0, text, attrs)
     }
 
-    fun createScrollPane(uiManager: UIManager): CScrollPane {
-        return CScrollPane(uiManager, true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
+    fun createScrollPane(themeManager: ThemeManager, scaleManager: ScaleManager): CScrollPane {
+        return CScrollPane(themeManager, scaleManager, true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
     }
 
     override fun getScrollableTracksViewportWidth(): Boolean {

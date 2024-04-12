@@ -7,11 +7,11 @@ import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTextPane
 import java.awt.BorderLayout
 
-class Console(uiManager: UIManager) : CPanel(uiManager, primary = false) {
+class Console(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
 
-    val topBar = CPanel(uiManager, primary = false)
-    val textPane: CTextPane = CTextPane(uiManager)
-    val contentPane = textPane.createScrollPane(uiManager)
+    val topBar = CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false)
+    val textPane: CTextPane = CTextPane(uiManager.themeManager, uiManager.scaleManager)
+    val contentPane = textPane.createScrollPane(uiManager.themeManager, uiManager.scaleManager)
 
     init {
         textPane.document = ConsoleDocument(uiManager)
@@ -24,7 +24,7 @@ class Console(uiManager: UIManager) : CPanel(uiManager, primary = false) {
     private fun connectChildren(uiManager: UIManager) {
         layout = BorderLayout()
 
-        topBar.add(CLabel(uiManager, "Console"))
+        topBar.add(CLabel(uiManager.themeManager,uiManager.scaleManager, "Console"))
 
         add(topBar, BorderLayout.NORTH)
         add(contentPane, BorderLayout.CENTER)

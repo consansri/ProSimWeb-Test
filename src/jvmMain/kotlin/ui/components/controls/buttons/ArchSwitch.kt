@@ -6,7 +6,7 @@ import me.c3.ui.styled.CComboBox
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 
-class ArchSwitch(uiManager: UIManager) : CComboBox<Link>(uiManager, Link.entries.toTypedArray()) {
+class ArchSwitch(uiManager: UIManager) : CComboBox<Link>(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, Link.entries.toTypedArray()) {
 
     init {
         this.addActionListener(ArchSelectorListener(uiManager))

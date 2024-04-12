@@ -8,15 +8,15 @@ import me.c3.ui.components.styled.CPanel
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 
-class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager, false, borderMode = BorderMode.EAST) {
+class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager.themeManager, uiManager.scaleManager, false, borderMode = BorderMode.EAST) {
 
-    private val transcriptButton: CIconButton = CIconButton(uiManager, uiManager.icons.disassembler)
-    private val statusIcon: CIconButton = CIconButton(uiManager, uiManager.icons.statusLoading)
-    private val undoButton: CIconButton = CIconButton(uiManager, uiManager.icons.backwards)
-    private val redoButton: CIconButton = CIconButton(uiManager, uiManager.icons.forwards)
-    private val buildButton: CIconButton = CIconButton(uiManager, uiManager.icons.build)
-    private val infoButton: CIconButton = CIconButton(uiManager, uiManager.icons.info)
-    private val deleteButton: CIconButton = CIconButton(uiManager, uiManager.icons.deleteBlack)
+    private val transcriptButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.disassembler)
+    private val statusIcon: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.statusLoading)
+    private val undoButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.backwards)
+    private val redoButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.forwards)
+    private val buildButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.build)
+    private val infoButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.info)
+    private val deleteButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.deleteBlack)
 
     init {
         // Apply layout

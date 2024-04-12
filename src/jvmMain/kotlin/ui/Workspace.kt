@@ -4,6 +4,7 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.toCompilerFile
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.styled.CTree
+import me.c3.ui.theme.ThemeManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
@@ -25,7 +26,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
 
         buildFileTree(rootDir, rootNode)
 
-        tree = CTree(uiManager, treeModel)
+        tree = CTree(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, treeModel)
 
         tree.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
@@ -50,7 +51,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
             }
         })
 
-        setTreeLook(uiManager)
+        setTreeLook(uiManager.themeManager)
     }
 
     fun getAllFiles(): List<File> {
@@ -137,11 +138,11 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
         return files
     }
 
-    private fun setTreeLook(uiManager: UIManager) {
-        uiManager.themeManager.addThemeChangeListener {
+    private fun setTreeLook(themeManager: ThemeManager) {
+        themeManager.addThemeChangeListener {
             tree.background = it.globalLaF.bgSecondary
         }
-        tree.background = uiManager.currTheme().globalLaF.bgSecondary
+        tree.background = themeManager.curr.globalLaF.bgSecondary
         tree.isFocusable = false
     }
 

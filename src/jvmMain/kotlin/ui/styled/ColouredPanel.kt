@@ -2,9 +2,11 @@ package me.c3.ui.styled
 
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CPanel
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
 import java.awt.*
 
-open class ColouredPanel(uiManager: UIManager, primary: Boolean) : CPanel(uiManager, primary) {
+open class ColouredPanel(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean) : CPanel(themeManager, scaleManager, primary) {
     private var colors: List<ColorAnker> = listOf(ColorAnker(0.0f, Color(0xc76b29)), ColorAnker(1.0f, Color(0x3d8fd1)))
         set(value) {
             field = value
@@ -12,7 +14,7 @@ open class ColouredPanel(uiManager: UIManager, primary: Boolean) : CPanel(uiMana
         }
 
     init {
-        background = Color(0,0,0,0)
+        background = Color(0, 0, 0, 0)
     }
 
     override fun paintComponent(g: Graphics?) {
