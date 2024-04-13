@@ -10,4 +10,5 @@ class StandardScaling : Scaling {
     override val borderScale: BorderScale = BorderScale(1, 3, 4, 10)
     override val dividerScale: DividerScale = DividerScale(2)
     override val scrollScale: ScrollScale = ScrollScale(8)
+    override val shadowScale: ShadowScale = ShadowScale(2)
 }

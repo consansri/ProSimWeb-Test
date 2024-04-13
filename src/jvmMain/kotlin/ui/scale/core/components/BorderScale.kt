@@ -10,4 +10,5 @@ data class BorderScale (
     val cornerRadius: Int
 ){
     fun getInsetBorder(): Border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
+    fun getThicknessBorder(): Border = BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness)
 }

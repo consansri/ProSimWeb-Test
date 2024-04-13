@@ -4,6 +4,8 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.toCompilerFile
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.styled.CTree
+import me.c3.ui.styled.CMenuItem
+import me.c3.ui.styled.CPopupMenu
 import me.c3.ui.theme.ThemeManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -61,12 +63,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
     fun getCompilerFiles(exclude: File): List<Compiler.CompilerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && it.name.endsWith(".s") }.map { it.toCompilerFile() }
 
     private fun showContextMenu(uiManager: UIManager, treeFile: TreeFile, x: Int, y: Int) {
-        val popupMenu = JPopupMenu()
+        val popupMenu = CPopupMenu(uiManager.themeManager, uiManager.scaleManager)
 
-        val createFileItem = if (treeFile.file.isDirectory) JMenuItem("New File") else null
-        val createDirItem = if (treeFile.file.isDirectory) JMenuItem("New Directory") else null
-        val deleteItem = JMenuItem("Delete")
-        val renameItem = JMenuItem("Rename")
+        val createFileItem = if (treeFile.file.isDirectory) CMenuItem(uiManager.themeManager, uiManager.scaleManager,"New File") else null
+        val createDirItem = if (treeFile.file.isDirectory) CMenuItem(uiManager.themeManager, uiManager.scaleManager,"New Directory") else null
+        val deleteItem = CMenuItem(uiManager.themeManager, uiManager.scaleManager, "Delete")
+        val renameItem = CMenuItem(uiManager.themeManager, uiManager.scaleManager,"Rename")
 
         createDirItem?.addActionListener {
             val newDirName = JOptionPane.showInputDialog("Enter directory name:", "")

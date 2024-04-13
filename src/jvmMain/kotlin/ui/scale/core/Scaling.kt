@@ -11,5 +11,6 @@ interface Scaling {
     val borderScale: BorderScale
     val dividerScale: DividerScale
     val scrollScale: ScrollScale
+    val shadowScale: ShadowScale
 
 }
