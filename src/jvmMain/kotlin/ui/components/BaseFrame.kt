@@ -70,8 +70,8 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager.themeManage
             //setFrameTitle("ProSim")
             defaultCloseOperation = EXIT_ON_CLOSE
             size = Dimension(1920, 1080)
-            isVisible = true
             setLocationRelativeTo(null)
+            isVisible = true
         }
     }
 

@@ -1,5 +1,7 @@
 package me.c3
 
+import com.formdev.flatlaf.FlatDarculaLaf
+import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
 import me.c3.emulator.kit.install
 import me.c3.ui.UIManager
@@ -21,7 +23,15 @@ fun main() {
     }
 
     testBaseApp()
+    //testFlatWindows()
+}
 
+fun testFlatWindows(){
+    val frame = JFrame()
+    frame.rootPane.setUI(FlatRootPaneUI())
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    frame.setLocationRelativeTo(null)
+    frame.isVisible = true
 }
 
 fun testBaseApp() {

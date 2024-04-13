@@ -23,7 +23,12 @@ class DarkTheme(icons: ProSimIcons) : Theme {
         }
     }
 
-    override val globalLaF: GlobalLaF = GlobalLaF(Color(0x222222), Color(0x313131), Color(0x777777))
+    override val globalLaF: GlobalLaF = GlobalLaF(
+        Color(0x222222),
+        Color(0x313131),
+        Color(0x222222),
+        Color(0x777777)
+    )
 
     override val iconLaF: IconLaF = IconLaF(
         Color(0xEEEEEE),

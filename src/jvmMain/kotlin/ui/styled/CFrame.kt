@@ -1,6 +1,8 @@
 package me.c3.ui.styled
 
+import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.ui.FlatTextPaneUI
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton

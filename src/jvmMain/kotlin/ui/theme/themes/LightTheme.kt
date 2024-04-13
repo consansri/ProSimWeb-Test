@@ -19,7 +19,12 @@ class LightTheme(icons: ProSimIcons) : Theme {
         Color(it.light)
     }
 
-    override val globalLaF: GlobalLaF = GlobalLaF(Color(0xFFFFFF), Color(0xEEEEEF), Color(0xBBBBBB))
+    override val globalLaF: GlobalLaF = GlobalLaF(
+        Color(0xFFFFFF),
+        Color(0xEEEEEF),
+        Color(0xFFFFFF),
+        Color(0xBBBBBB)
+    )
     override val iconLaF: IconLaF = IconLaF(Color(0x222222), Color(0x313131), iconBgHover = Color(0x33777777, true), iconBgActive = Color(0x77777777, true))
     override val textLaF: TextLaF = TextLaF(
         Color(0x222222),

@@ -11,7 +11,7 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import kotlin.math.round
 
-open class CPanel(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false) : JPanel() {
+open class CPanel(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JPanel() {
 
     var roundedCorners: Boolean = roundCorners
         set(value) {
@@ -36,6 +36,7 @@ open class CPanel(themeManager: ThemeManager, scaleManager: ScaleManager, primar
 
     enum class BorderMode {
         INSET,
+        BASIC,
         NORTH,
         SOUTH,
         WEST,
