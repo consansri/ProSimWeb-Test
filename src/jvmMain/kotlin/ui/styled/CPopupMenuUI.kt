@@ -12,8 +12,6 @@ class CPopupMenuUI(private val themeManager: ThemeManager, private val scaleMana
     private var cornerRadius = scaleManager.curr.controlScale.cornerRadius
     private var borderColor = themeManager.curr.globalLaF.borderColor
     private var background = themeManager.curr.globalLaF.bgSecondary
-    private var shadowColor = Color.BLACK
-    private var shadowSize = scaleManager.curr.shadowScale.shadowSize
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -36,7 +34,6 @@ class CPopupMenuUI(private val themeManager: ThemeManager, private val scaleMana
         cornerRadius = scaleManager.curr.controlScale.cornerRadius
         borderColor = themeManager.curr.globalLaF.borderColor
         background = themeManager.curr.globalLaF.bgPrimary
-        shadowSize = scaleManager.curr.shadowScale.shadowSize
         cPopupMenu.isOpaque = false
         cPopupMenu.background = Color(0, 0, 0, 0)
         cPopupMenu.foreground = themeManager.curr.textLaF.base
