@@ -1,5 +1,6 @@
 package me.c3.ui.components.processor
 
+import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
@@ -9,6 +10,7 @@ import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
+import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableModel
 
@@ -73,32 +75,40 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManag
     }
 
     private fun updateContent() {
-        currentlyUpdating = true
-        tableModel.rowCount = 0
-        val rowAddresses = mutableListOf<String>()
-        val entrysInRow = uiManager.currArch().getMemory().getEntrysInRow()
-        val copyOfMemList = ArrayList(uiManager.currArch().getMemory().memList)
-        copyOfMemList.forEach {
-            if (!rowAddresses.contains(it.row.getRawHexStr())) {
-                rowAddresses.add(it.row.getRawHexStr())
+        SwingUtilities.invokeLater {
+            currentlyUpdating = true
+            tableModel.rowCount = 0
+            val rowAddresses = mutableListOf<String>()
+            val entrysInRow = uiManager.currArch().getMemory().getEntrysInRow()
+            val copyOfMemList = ArrayList(uiManager.currArch().getMemory().memList)
+            copyOfMemList.forEach {
+                if (!rowAddresses.contains(it.row.getRawHexStr())) {
+                    rowAddresses.add(it.row.getRawHexStr())
+                }
             }
-        }
-        rowAddresses.sort()
+            rowAddresses.sort()
 
-        val columnIdentifiers: Array<String> = arrayOf(addrTitle, *Array(entrysInRow) { it.toString() }, asciiTitle)
-        tableModel.setColumnIdentifiers(columnIdentifiers)
+            val columnIdentifiers: Array<String> = arrayOf(addrTitle, *Array(entrysInRow) { it.toString() }, asciiTitle)
+            tableModel.setColumnIdentifiers(columnIdentifiers)
 
-        for (index in rowAddresses.indices) {
-            val ascii = copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.joinToString(" ") { it.variable.get().toASCII() }
-            val contentArray: Array<Any> = Array(entrysInRow) { uiManager.currArch().getMemory().getInitialBinary().get().toHex().getRawHexStr() }
-            copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
-                contentArray[it.offset] = it
+            for (index in rowAddresses.indices) {
+                val contentArray: Array<Any> = Array(entrysInRow) { uiManager.currArch().getMemory().getInitialBinary().get().toHex().toRawString() }
+                copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
+                    contentArray[it.offset] = it
+                }
+                val ascii = contentArray.joinToString("") {
+                    when(it){
+                        is Memory.MemInstance -> it.variable.get().toASCII()
+                        else -> "·"
+                    }
+                }
+
+                tableModel.addRow(arrayOf(rowAddresses[index], *contentArray.map { it }.toTypedArray(), ascii))
             }
-            tableModel.addRow(arrayOf(rowAddresses[index], *contentArray.map { it }.toTypedArray(), ascii))
-        }
 
-        updateColumnWidths(entrysInRow)
-        currentlyUpdating = false
+            updateColumnWidths(entrysInRow)
+            currentlyUpdating = false
+        }
     }
 
     private fun updateColumnWidths(entrysInRow: Int) {

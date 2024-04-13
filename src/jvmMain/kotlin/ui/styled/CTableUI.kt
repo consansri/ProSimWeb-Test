@@ -112,7 +112,7 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
         table.showVerticalLines = false
         table.showHorizontalLines = false
         table.gridColor = table.background
-        table.rowHeight = table.getFontMetrics(themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)).height
+        table.rowHeight = table.getFontMetrics(themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)).height + 2 * scaleManager.curr.borderScale.insets
 
         val header = table.tableHeader
         header.resizingAllowed = false
