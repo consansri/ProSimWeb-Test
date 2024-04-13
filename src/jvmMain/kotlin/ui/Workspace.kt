@@ -20,7 +20,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
 class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIManager) {
-    private val rootDir = File(path)
+    val rootDir = File(path)
     private val rootNode = DefaultMutableTreeNode(TreeFile(rootDir))
     private val treeModel = DefaultTreeModel(rootNode)
     val tree: CTree
@@ -33,29 +33,38 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
         tree = CTree(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, treeModel)
 
         tree.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) {
+            override fun mousePressed(e: MouseEvent) {
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
-                    val uobj = selectedNode.userObject
-
-                    if (uobj is TreeFile) {
-                        showContextMenu(uiManager, uobj, e.x, e.y)
+                    val selRow = tree.getRowForLocation(e.x, e.y)
+                    if (selRow != -1) {
+                        tree.selectionPath = tree.getPathForLocation(e.x, e.y)
                     }
                 }
-                if (SwingUtilities.isLeftMouseButton(e)) {
-                    if (e.clickCount == 2) {
-                        val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
-                        val uobj = selectedNode.userObject
+            }
 
-                        if (uobj is TreeFile && uobj.file.isFile) {
+            override fun mouseClicked(e: MouseEvent) {
+                val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
+                val uobj = selectedNode.userObject
+                if (uobj !is TreeFile) return
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    showContextMenu(uiManager, uobj, e.x, e.y)
+                }
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (uobj.file.isFile) {
+                        if (e.clickCount == 2) {
                             codeEditor.openFile(uobj.file)
                         }
                     }
+                    uiManager.bBar.tagInfo.text = getFileWithProjectPath(uobj.file)
                 }
             }
         })
 
         setTreeLook(uiManager.themeManager)
+    }
+
+    fun getFileWithProjectPath(file: File): String {
+        return rootDir.name + file.path.removePrefix(rootDir.path)
     }
 
     fun getAllFiles(): List<File> {
@@ -113,7 +122,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
 
         renameItem.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog(uiManager.themeManager, uiManager.scaleManager, tree,"Enter new file name:").await()
+                val newFileName = COptionPane.showInputDialog(uiManager.themeManager, uiManager.scaleManager, tree, "Enter new file name:").await()
                 if (newFileName.isNotBlank()) {
                     val newFile = File(treeFile.file.parentFile, newFileName)
                     if (treeFile.file.renameTo(newFile)) {

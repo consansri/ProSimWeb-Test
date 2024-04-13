@@ -6,12 +6,13 @@ import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.nio.file.Path
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
 class BottomBar(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager) {
 
-    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "tags")
+    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "|")
     val editorInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "")
     val generalPurpose = CLabel(uiManager.themeManager,uiManager.scaleManager, "")
 
@@ -31,11 +32,11 @@ class BottomBar(private val uiManager: UIManager) : CPanel(uiManager.themeManage
         gbc.weightx = 0.0
         gbc.fill = GridBagConstraints.NONE
 
-        add(editorInfo, gbc)
+        add(generalPurpose, gbc)
 
         gbc.gridx = 2
 
-        add(generalPurpose, gbc)
+        add(editorInfo, gbc)
     }
 
     fun setError(text: String){

@@ -4,6 +4,7 @@ import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.components.styled.CTextButton
+import me.c3.ui.styled.CFileChooser
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.FlowLayout
@@ -32,7 +33,7 @@ class FileTree(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.
     private fun attachMouseListener(uiManager: UIManager){
         projectButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
-                val fileChooser = JFileChooser()
+                val fileChooser = CFileChooser(uiManager.themeManager, uiManager.scaleManager)
                 fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
                 val result = fileChooser.showOpenDialog(this@FileTree)
                 if (result == JFileChooser.APPROVE_OPTION) {

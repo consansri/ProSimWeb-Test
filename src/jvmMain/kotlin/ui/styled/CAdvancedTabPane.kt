@@ -76,7 +76,7 @@ open class CAdvancedTabPane(private val themeManager: ThemeManager, private val 
 
     fun getCurrent() = currentTab
 
-    private fun removeTab(closeableTab: ClosableTab) {
+    fun removeTab(closeableTab: ClosableTab) {
         closeableTab.actionEvent?.let { it(ClosableTab.Event.CLOSE, closeableTab) }
         tabs.remove(closeableTab)
         if (currentTab == closeableTab) currentTab = null

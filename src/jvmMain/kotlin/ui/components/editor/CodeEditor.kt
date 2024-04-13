@@ -27,9 +27,23 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
     }
 
     private fun attachWorkspaceListener() {
-        uiManager.addWSChangedListener {
-            removeAllTabs()
-            panels.clear()
+        uiManager.addWSChangedListener { ws ->
+            SwingUtilities.invokeLater {
+                val bufferedTabs = ArrayList(tabs)
+                for (tab in bufferedTabs) {
+                    val content = tab.content
+                    if (content !is EditPanel) {
+                        removeTab(tab)
+                        continue
+                    }
+
+                    if(ws.getAllFiles().firstOrNull { it.path == content.editorFile.file.path && it.name == content.editorFile.file.name } == null){
+                        removeTab(tab)
+                        panels.remove(content)
+                        continue
+                    }
+                }
+            }
         }
     }
 
@@ -59,7 +73,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
     fun getControls(): EditorControls = EditorControls(uiManager, this)
 
     fun searchByName(fileName: String): EditPanel? {
-        return tabs.firstOrNull { fileName == (it.content as? EditPanel)?.file?.file?.name }?.content as? EditPanel?
+        return tabs.firstOrNull { fileName == (it.content as? EditPanel)?.editorFile?.file?.name }?.content as? EditPanel?
     }
 
     fun compileCurrent(build: Boolean) {
@@ -83,7 +97,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
         }
     }
 
-    class EditPanel(val file: EditorFile, uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = true) {
+    class EditPanel(val editorFile: EditorFile, uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = true) {
 
         private var compileJob: Job? = null
 
@@ -92,7 +106,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
                 lineNumbers.update(uiManager)
                 val document = e?.document
                 document?.let {
-                    file.edit(e.document.getText(0, document.length))
+                    editorFile.edit(e.document.getText(0, document.length))
                 }
                 if (!currentlyUpdating) triggerCompile(uiManager)
             }
@@ -101,7 +115,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
                 lineNumbers.update(uiManager)
                 val document = e?.document
                 document?.let {
-                    file.edit(e.document.getText(0, document.length))
+                    editorFile.edit(e.document.getText(0, document.length))
                 }
                 if (!currentlyUpdating) triggerCompile(uiManager)
             }
@@ -110,7 +124,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
                 lineNumbers.update(uiManager)
                 val document = e?.document
                 document?.let {
-                    file.edit(e.document.getText(0, document.length))
+                    editorFile.edit(e.document.getText(0, document.length))
                 }
                 if (!currentlyUpdating) triggerCompile(uiManager)
             }
@@ -126,7 +140,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
         private val cScrollPane = textPane.createScrollPane(uiManager.themeManager, uiManager.scaleManager)
 
         init {
-            textPane.setInitialText(file.contentAsString())
+            textPane.setInitialText(editorFile.contentAsString())
 
             uiManager.themeManager.addThemeChangeListener {
                 setEditorDefaults(uiManager)
@@ -160,8 +174,8 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
         }
 
         suspend fun compile(uiManager: UIManager, build: Boolean): Compiler.CompileResult {
-            file.store()
-            val compResult = uiManager.currArch().compile(file.toCompilerFile(), uiManager.currWS().getCompilerFiles(file.file), build)
+            editorFile.store()
+            val compResult = uiManager.currArch().compile(editorFile.toCompilerFile(), uiManager.currWS().getCompilerFiles(editorFile.file), build)
             val codeStyle = uiManager.currTheme().codeLaF
             if (compResult.tokens.joinToString("") { it.content } == textPane.document.getText(0, textPane.document.length)) {
                 hlContent(uiManager, codeStyle, compResult)
@@ -176,7 +190,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
         }
 
         private fun attachDocument() {
-            textPane.document = file.getRawDocument()
+            textPane.document = editorFile.getRawDocument()
             textPane.document.addDocumentListener(documentListener)
         }
 
@@ -221,7 +235,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
 
         private fun updateLineNumber(uiManager: UIManager) {
             val lineLoc = uiManager.currArch().getCompiler().getAssemblyMap().lineAddressMap.get(uiManager.currArch().getRegContainer().pc.get().toHex().toRawString())
-            lineNumbers.currentPCLineNumber = if (lineLoc?.fileName == file.getName()) {
+            lineNumbers.currentPCLineNumber = if (lineLoc?.fileName == editorFile.getName()) {
                 lineLoc.lineID
             } else {
                 -1
@@ -240,7 +254,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
         private fun setEditorDefaults(uiManager: UIManager) {
             layout = BoxLayout(this, BoxLayout.X_AXIS)
             border = BorderFactory.createEmptyBorder()
-            lineNumbers.border = DirectionalBorder(uiManager.themeManager,uiManager.scaleManager, east = true)
+            lineNumbers.border = DirectionalBorder(uiManager.themeManager, uiManager.scaleManager, east = true)
             textPane.border = BorderFactory.createEmptyBorder(0, uiManager.currScale().borderScale.insets, 0, uiManager.currScale().borderScale.insets)
             textPane.isEditable = true
             viewport.background = uiManager.currTheme().globalLaF.bgPrimary
