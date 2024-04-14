@@ -20,5 +20,4 @@ class ArchSwitch(uiManager: UIManager) : CComboBox<Link>(uiManager.themeManager,
         }
     }
 
-
 }

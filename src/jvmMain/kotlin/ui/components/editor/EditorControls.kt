@@ -81,6 +81,12 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
         buildButton.addActionListener {
             codeEditor.compileCurrent(build = true)
         }
+        undoButton.addActionListener {
+            codeEditor.getCurrentEditPanel()?.undo()
+        }
+        redoButton.addActionListener {
+            codeEditor.getCurrentEditPanel()?.redo()
+        }
     }
 
 }

@@ -15,6 +15,7 @@ import java.io.File
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
+import javax.swing.text.SimpleAttributeSet
 import kotlin.time.measureTime
 
 class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, true, true, emptyMessage = "Open File through the tree!") {
@@ -55,9 +56,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
             file.createNewFile()
         }
 
-        val editorFile = EditorFile(file) {
-            triggerFileEdit(it)
-        }
+        val editorFile = EditorFile(file)
 
         val editPanel = EditPanel(editorFile, uiManager)
         panels.add(editPanel)
@@ -91,48 +90,47 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
         fileEditEvents.add(event)
     }
 
-    private fun triggerFileEdit(editorFile: EditorFile) {
-        val eventBuffer = ArrayList(fileEditEvents)
-        eventBuffer.forEach {
-            it(editorFile)
-        }
-    }
-
     class EditPanel(val editorFile: EditorFile, uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = true) {
 
         private var compileJob: Job? = null
+        private var currentlyUpdating = false
 
         val documentListener = object : DocumentListener {
             override fun insertUpdate(e: DocumentEvent?) {
                 lineNumbers.update(uiManager)
-                val document = e?.document
-                document?.let {
-                    editorFile.edit(e.document.getText(0, document.length))
+                if (!currentlyUpdating) {
+                    val document = e?.document
+                    document?.let {
+                        editorFile.edit(e.document.getText(0, document.length))
+                    }
+                    triggerCompile(uiManager)
                 }
-                if (!currentlyUpdating) triggerCompile(uiManager)
+
             }
 
             override fun removeUpdate(e: DocumentEvent?) {
                 lineNumbers.update(uiManager)
-                val document = e?.document
-                document?.let {
-                    editorFile.edit(e.document.getText(0, document.length))
+                if (!currentlyUpdating) {
+                    val document = e?.document
+                    document?.let {
+                        editorFile.edit(e.document.getText(0, document.length))
+                    }
+                    triggerCompile(uiManager)
                 }
-                if (!currentlyUpdating) triggerCompile(uiManager)
             }
 
             override fun changedUpdate(e: DocumentEvent?) {
                 lineNumbers.update(uiManager)
-                val document = e?.document
-                document?.let {
-                    editorFile.edit(e.document.getText(0, document.length))
+                if (!currentlyUpdating) {
+                    val document = e?.document
+                    document?.let {
+                        editorFile.edit(e.document.getText(0, document.length))
+                    }
+                    triggerCompile(uiManager)
                 }
-                if (!currentlyUpdating) triggerCompile(uiManager)
             }
         }
 
-        // Content
-        private var currentlyUpdating = false
 
         // Elements
         private val textPane = CTextPane(uiManager.themeManager, uiManager.scaleManager)
@@ -157,6 +155,24 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
             attachPCListener(uiManager)
             attachSelectionListener(uiManager)
             triggerCompile(uiManager, immediate = true)
+        }
+
+        fun undo() {
+            editorFile.undo()
+            currentlyUpdating = true
+            textPane.document.remove(0, textPane.document.length)
+            val attrs = SimpleAttributeSet()
+            textPane.document.insertString(0, editorFile.contentAsString(), attrs)
+            currentlyUpdating = false
+        }
+
+        fun redo() {
+            editorFile.redo()
+            currentlyUpdating = true
+            textPane.document.remove(0, textPane.document.length)
+            val attrs = SimpleAttributeSet()
+            textPane.document.insertString(0, editorFile.contentAsString(), attrs)
+            currentlyUpdating = false
         }
 
         fun triggerCompile(uiManager: UIManager, build: Boolean = false, immediate: Boolean = false) {
