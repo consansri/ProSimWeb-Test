@@ -12,7 +12,7 @@ import javax.swing.SwingConstants
 
 class BottomBar(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager) {
 
-    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "|")
+    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "Back to work? :D")
     val editorInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "")
     val generalPurpose = CLabel(uiManager.themeManager,uiManager.scaleManager, "")
 

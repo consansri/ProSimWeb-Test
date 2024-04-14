@@ -20,14 +20,12 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
 class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIManager) {
-    val rootDir = File(path)
+    private val rootDir = File(path)
     private val rootNode = DefaultMutableTreeNode(TreeFile(rootDir))
     private val treeModel = DefaultTreeModel(rootNode)
     val tree: CTree
 
     init {
-        val treeModel = DefaultTreeModel(rootNode)
-
         buildFileTree(rootDir, rootNode)
 
         tree = CTree(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, treeModel)
@@ -178,9 +176,9 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
         }
     }
 
-    data class TreeFile(val file: File) {
+    data class TreeFile(val file: File, val displayPath: Boolean = false) {
         override fun toString(): String {
-            return file.name
+            return if(displayPath) file.path else file.name
         }
     }
 

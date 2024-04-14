@@ -35,16 +35,18 @@ class CTextFieldUI(private val themeManager: ThemeManager, private val scaleMana
             Type.DATA -> themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)
             Type.CODE -> themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
             Type.TEXT -> themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+            Type.NUMERIC -> themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
         }
         tf.background = Color(0,0,0,0)
         tf.foreground = themeManager.curr.textLaF.base
         tf.caretColor = themeManager.curr.textLaF.base
     }
 
-    enum class Type{
+    enum class Type(val inputRegex: Regex? = null){
         DATA,
         CODE,
-        TEXT
+        TEXT,
+        NUMERIC(Regex("\\d+"))
     }
 
 }

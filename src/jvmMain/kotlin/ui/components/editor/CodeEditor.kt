@@ -301,7 +301,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
                 this.fixedCellHeight = getFontMetrics(textPane.font).height
             }
 
-            class LineNumberListModel(private val textPane: JTextPane) : AbstractListModel<String>() {
+            class LineNumberListModel(private val textPane: CTextPane) : AbstractListModel<String>() {
 
                 var pcIdenticator: String = ""
                 var currentPCLineNumber = -1

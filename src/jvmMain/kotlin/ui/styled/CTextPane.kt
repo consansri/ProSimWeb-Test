@@ -11,6 +11,7 @@ import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Font
 import javax.swing.BorderFactory
 import javax.swing.JScrollPane
+import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.text.SimpleAttributeSet

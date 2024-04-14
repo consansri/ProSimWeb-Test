@@ -160,14 +160,10 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
 
             createHeaders()
 
-            val maxNameLength = regs.maxOf { reg ->
-                max(
-                    if (reg.names.isNotEmpty()) reg.names.maxOf { it.length } else 0,
-                    if (reg.aliases.isNotEmpty()) reg.aliases.maxOf { it.length } else 0
-                )
-            }
+            val maxNameLength = regs.maxOf { reg -> if (reg.names.isNotEmpty()) reg.names.maxOf { it.length } else 0 }
+            val maxAliasLength = regs.maxOf { reg -> if (reg.aliases.isNotEmpty()) reg.aliases.maxOf { it.length } else 0 }
             for (reg in regs) {
-                val names = (reg.names + reg.aliases).joinToString(" ") { it.padEnd(maxNameLength, ' ') }
+                val names = (reg.names.joinToString(" ") { it.padEnd(maxNameLength, ' ') } + " " + reg.aliases.joinToString(" ") { it.padEnd(maxAliasLength, ' ') })
                 val currentValue = reg.variable.get(numericType).toRawString()
 
                 if (showDetails) {

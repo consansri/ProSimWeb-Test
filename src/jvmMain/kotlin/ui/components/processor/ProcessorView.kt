@@ -14,7 +14,7 @@ class ProcessorView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiMan
     val regView = RegisterView(uiManager)
     val memoryView = MemoryView(uiManager)
     val splitPane = CSplitPane(uiManager.themeManager, uiManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView)
-
+    val processorSettings = ProcessorSettings(uiManager, this)
 
     init {
         attachContent()
@@ -40,6 +40,13 @@ class ProcessorView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiMan
         gbc.weighty = 1.0
         gbc.fill = GridBagConstraints.BOTH
         add(splitPane, gbc)
+
+        gbc.gridx = 0
+        gbc.gridy = 2
+        gbc.weighty = 0.0
+        gbc.weightx = 1.0
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        add(processorSettings, gbc)
     }
 
 }
