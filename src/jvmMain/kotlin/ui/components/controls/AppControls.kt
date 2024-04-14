@@ -45,7 +45,7 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
             this.remove(it)
         }
         featureButtons.clear()
-        uiManager.currArch().getAllFeatures().filter { !it.invisible }.forEach {
+        uiManager.currArch().getAllFeatures().filter { !it.invisible && !it.static }.forEach {
             val fswitch = FeatureSwitch(it, uiManager)
             fswitch.alignmentX = Component.CENTER_ALIGNMENT
             featureButtons.add(fswitch)

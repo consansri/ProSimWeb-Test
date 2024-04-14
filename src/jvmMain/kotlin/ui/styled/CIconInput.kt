@@ -7,17 +7,21 @@ import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 
 class CIconInput(themeManager: ThemeManager, scaleManager: ScaleManager, icon: FlatSVGIcon, fieldType: CTextFieldUI.Type, primary: Boolean = false) : CPanel(themeManager, scaleManager, primary, roundCorners = true, borderMode = BorderMode.BASIC) {
 
     val button = CIconButton(themeManager, scaleManager, icon)
-    val input = CTextField(themeManager, scaleManager, fieldType)
+    val input = CTextField(themeManager, scaleManager, fieldType).apply {
+    }
 
     init {
         attachComponents()
     }
 
-    private fun attachComponents(){
+    private fun attachComponents() {
         layout = GridBagLayout()
 
         val gbc = GridBagConstraints()
@@ -32,7 +36,6 @@ class CIconInput(themeManager: ThemeManager, scaleManager: ScaleManager, icon: F
         gbc.gridx = 1
         add(input, gbc)
     }
-
 
 
 }

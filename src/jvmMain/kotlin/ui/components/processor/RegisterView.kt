@@ -15,7 +15,6 @@ import javax.swing.BoxLayout
 import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
 import kotlin.math.abs
-import kotlin.math.max
 
 class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = true, BorderMode.SOUTH) {
 
@@ -81,13 +80,23 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
         }
     }
 
+    private fun updateAllValues() {
+        regViews.forEach { pane ->
+            pane.tabs.forEach { tab ->
+                (tab.content as? RegFileTable)?.updateRegValues()
+            }
+        }
+    }
+
     private fun initializeRegView(): CAdvancedTabPane {
         val cTabbedPane = CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
         uiManager.currArch().getAllRegFiles().forEach {
             val tabLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, it.name)
             if (it.getRegisters(uiManager.currArch().getAllFeatures()).isNotEmpty()) {
-                val regFileTable = RegFileTable(uiManager, it)
+                val regFileTable = RegFileTable(uiManager, it) {
+                    updateAllValues()
+                }
                 regFileTable.updateContent()
                 cTabbedPane.addTab(tabLabel, regFileTable)
             }
@@ -96,7 +105,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
         return cTabbedPane
     }
 
-    class RegFileTable(private val uiManager: UIManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel()) :
+    class RegFileTable(private val uiManager: UIManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel(), val onRegValueChange: (RegContainer.Register) -> Unit) :
         CTable(uiManager.themeManager, uiManager.scaleManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
 
         private var currentlyUpdating = false
@@ -199,9 +208,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
                         if (newValue.checkResult.valid) {
                             reg.set(newValue)
                         }
-                        currentlyUpdating = true
-                        tableModel.setValueAt(newValue.toRawString(), row, col)
-                        currentlyUpdating = false
+                        onRegValueChange(reg)
                     } catch (e: IndexOutOfBoundsException) {
                         nativeWarn("Received Index Out Of Bounds Exception: $e")
                     }

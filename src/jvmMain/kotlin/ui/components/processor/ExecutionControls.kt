@@ -12,6 +12,9 @@ import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.GridLayout
 import javax.swing.BorderFactory
 import javax.swing.JPanel
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 
 class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, BorderMode.SOUTH) {
     val continuous = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.continuousExe).apply {
@@ -26,13 +29,29 @@ class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, u
             uiManager.eventManager.triggerExeEvent()
         }
     }
-    val mStep = CIconInput(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.stepMultiple, CTextFieldUI.Type.NUMERIC).apply {
-        this.input.text = 10.toString()
-        this.button.addActionListener {
+    val mStep = CIconInput(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.stepMultiple, CTextFieldUI.Type.TEXT).apply {
+        val inputRegex = Regex("\\d+")
+        input.text = 10.toString()
+        button.addActionListener {
             val steps = this.input.text.toIntOrNull()
             steps?.let {
                 uiManager.currArch().exeMultiStep(steps)
                 uiManager.eventManager.triggerExeEvent()
+            }
+        }
+        input.apply {
+            (document as? AbstractDocument)?.documentFilter = object : DocumentFilter() {
+                override fun insertString(fb: FilterBypass?, offset: Int, string: String, attr: AttributeSet?) {
+                    if (string.matches(inputRegex)) {
+                        super.insertString(fb, offset, string, attr)
+                    }
+                }
+
+                override fun replace(fb: FilterBypass?, offset: Int, length: Int, text: String, attrs: AttributeSet?) {
+                    if (text.matches(inputRegex)) {
+                        super.insertString(fb, offset, text, attrs)
+                    }
+                }
             }
         }
     }

@@ -76,8 +76,16 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
 
         val createFileItem = if (treeFile.file.isDirectory) CMenuItem(uiManager.themeManager, uiManager.scaleManager, "New File") else null
         val createDirItem = if (treeFile.file.isDirectory) CMenuItem(uiManager.themeManager, uiManager.scaleManager, "New Directory") else null
+        val openItem = if (treeFile.file.isFile) CMenuItem(uiManager.themeManager, uiManager.scaleManager, "Open") else null
         val deleteItem = CMenuItem(uiManager.themeManager, uiManager.scaleManager, "Delete")
         val renameItem = CMenuItem(uiManager.themeManager, uiManager.scaleManager, "Rename")
+
+        openItem?.addActionListener {
+            val file = ((tree.lastSelectedPathComponent as? DefaultMutableTreeNode)?.userObject as? TreeFile)?.file ?: return@addActionListener
+            if (file.isFile) {
+                uiManager.editor.openFile(file)
+            }
+        }
 
         createDirItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
@@ -135,6 +143,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
 
         createFileItem?.let { popupMenu.add(it) }
         createDirItem?.let { popupMenu.add(it) }
+        openItem?.let { popupMenu.add(it) }
         popupMenu.add(deleteItem)
         popupMenu.add(renameItem)
 
@@ -178,7 +187,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
 
     data class TreeFile(val file: File, val displayPath: Boolean = false) {
         override fun toString(): String {
-            return if(displayPath) file.path else file.name
+            return if (displayPath) file.path else file.name
         }
     }
 

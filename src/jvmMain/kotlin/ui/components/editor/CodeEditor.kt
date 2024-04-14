@@ -17,13 +17,14 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import kotlin.time.measureTime
 
-class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, true, true) {
+class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, true, true, emptyMessage = "Open File through the tree!") {
 
     private val panels = mutableListOf<EditPanel>()
     private val fileEditEvents = mutableListOf<(EditorFile) -> Unit>()
 
     init {
         attachWorkspaceListener()
+        selectCurrentTab(null)
     }
 
     private fun attachWorkspaceListener() {
@@ -37,7 +38,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
                         continue
                     }
 
-                    if(ws.getAllFiles().firstOrNull { it.path == content.editorFile.file.path && it.name == content.editorFile.file.name } == null){
+                    if (ws.getAllFiles().firstOrNull { it.path == content.editorFile.file.path && it.name == content.editorFile.file.name } == null) {
                         removeTab(tab)
                         panels.remove(content)
                         continue
