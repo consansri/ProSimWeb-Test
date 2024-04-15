@@ -4,6 +4,7 @@ import me.c3.ui.UIManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
+import java.awt.Color
 import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -32,4 +33,20 @@ open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableM
             column.preferredWidth = maxWith + padding
         }
     }
+
+    /**
+     * set color to null to remove any cell highlighting
+     */
+    fun setCellHighlighting(row: Int?, column: Int?, color: Color?) {
+        val tableUI = (ui as? CTableUI) ?: return
+        tableUI.highlightColor = color
+        tableUI.highlightRow = row
+        tableUI.highlightColumn = column
+        repaint()
+    }
+
+    fun resetCellHighlighting() {
+        setCellHighlighting(null, null, null)
+    }
+
 }

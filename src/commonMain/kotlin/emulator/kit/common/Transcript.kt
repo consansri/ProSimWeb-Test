@@ -76,7 +76,11 @@ class Transcript(private val compiledHeaders: List<String> = listOf(), private v
         fun getHeight(): Int = height
 
         abstract fun getContent(): List<Entry>
-        data class Entry(val orientation: Orientation, val content: String)
+        data class Entry(val orientation: Orientation, val content: String){
+            override fun toString(): String {
+                return content
+            }
+        }
         enum class Orientation {
             LEFT,
             CENTER,

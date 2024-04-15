@@ -1,5 +1,6 @@
 package me.c3.ui.components.processor
 
+import emulator.kit.assembly.Compiler
 import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
@@ -91,13 +92,18 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManag
             val columnIdentifiers: Array<String> = arrayOf(addrTitle, *Array(entrysInRow) { it.toString() }, asciiTitle)
             tableModel.setColumnIdentifiers(columnIdentifiers)
 
+            table.resetCellHighlighting()
+
             for (index in rowAddresses.indices) {
                 val contentArray: Array<Any> = Array(entrysInRow) { uiManager.currArch().getMemory().getInitialBinary().get().toHex().toRawString() }
                 copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
+                    if (uiManager.currArch().getRegContainer().pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
+                        table.setCellHighlighting(index, it.offset + 1, uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
+                    }
                 }
                 val ascii = contentArray.joinToString("") {
-                    when(it){
+                    when (it) {
                         is Memory.MemInstance -> it.variable.get().toASCII()
                         else -> "·"
                     }

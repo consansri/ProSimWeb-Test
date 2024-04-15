@@ -9,10 +9,10 @@ import java.awt.Color
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
-class CLabel(themeManager: ThemeManager, scaleManager: ScaleManager, content: String) : JLabel(content) {
+open class CLabel(themeManager: ThemeManager, scaleManager: ScaleManager, content: String) : JLabel(content) {
 
     init {
-        setUI(CLabelUI(themeManager, scaleManager))
+        this.setUI(CLabelUI(themeManager, scaleManager))
     }
 
     fun setColouredText(text: String, color: Color) {

@@ -43,7 +43,7 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
 
             var result: ExecutionResult? = null
 
-            while (result?.valid != false && instrCount <= steps) {
+            while (result?.valid != false && instrCount < steps) {
                 instrCount++
                 result = executeNext()
             }

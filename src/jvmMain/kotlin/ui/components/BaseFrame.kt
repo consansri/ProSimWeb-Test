@@ -7,6 +7,7 @@ import me.c3.ui.components.controls.TopControls
 import me.c3.ui.components.controls.buttons.ArchSwitch
 import me.c3.ui.components.processor.ProcessorView
 import me.c3.ui.components.styled.CSplitPane
+import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
 import me.c3.ui.styled.CFrame
 import java.awt.BorderLayout
@@ -20,12 +21,13 @@ import javax.swing.SwingUtilities
 
 class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager.themeManager, uiManager.scaleManager, uiManager.icons) {
 
-    private val bottomBar = uiManager.bBar
-    private val topBar = TopControls(uiManager)
     private val editor = uiManager.editor
     private val fileTree = FileTree(uiManager)
-    private val leftBar = uiManager.editor.getControls()
     val processorView = ProcessorView(uiManager)
+    val transcriptView = TranscriptView(uiManager)
+    private val bottomBar = uiManager.bBar
+    private val topBar = TopControls(uiManager)
+    private val leftBar = uiManager.editor.getControls()
     private val rightBar = AppControls(this, uiManager)
     private val consoleAndInfo = Console(uiManager)
 
@@ -48,13 +50,14 @@ class BaseFrame(private val uiManager: UIManager) : CFrame(uiManager.themeManage
         val editorContainer = CSplitPane(uiManager.themeManager, uiManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
         editorContainer.resizeWeight = 0.1
 
-        val mainContainer = CSplitPane(uiManager.themeManager, uiManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorView)
+        val processorContainer = CSplitPane(uiManager.themeManager, uiManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
+        processorContainer.resizeWeight = 0.0
+
+        val mainContainer = CSplitPane(uiManager.themeManager, uiManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
         mainContainer.resizeWeight = 0.6
 
         val verticalMainCSplitPane = CSplitPane(uiManager.themeManager, uiManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, mainContainer, consoleAndInfo)
         verticalMainCSplitPane.resizeWeight = 1.0
-
-        //verticalMainSplitPane.setDividerLocation(0.8)
 
         // Add split panes to the frame with BorderLayout constraints
         addContent(topBar, BorderLayout.NORTH)

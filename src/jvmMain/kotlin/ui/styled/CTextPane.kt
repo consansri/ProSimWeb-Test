@@ -14,7 +14,7 @@ import javax.swing.JScrollPane
 import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
-import javax.swing.text.SimpleAttributeSet
+import javax.swing.text.*
 
 class CTextPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JTextPane() {
 
@@ -41,5 +41,4 @@ class CTextPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JTextP
     override fun getScrollableTracksViewportWidth(): Boolean {
         return false
     }
-
 }

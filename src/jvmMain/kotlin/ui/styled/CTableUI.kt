@@ -26,6 +26,10 @@ import javax.swing.table.TableCellRenderer
 
 class CTableUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean) : BasicTableUI() {
 
+    var highlightColor: Color? = null
+    var highlightRow: Int? = null
+    var highlightColumn: Int? = null
+
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
@@ -59,8 +63,17 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
                 }
             }
 
+            foreground = if (highlightColor != null && (highlightRow != null || highlightColumn != null)) {
+                if ((highlightRow == null || highlightRow == row) && (highlightColumn == null || highlightColumn == column)) {
+                    highlightColor
+                } else {
+                    if (value is Memory.MemInstance) themeManager.curr.dataLaF.getMemInstanceColor(value.mark) else fg
+                }
+            } else {
+                if (value is Memory.MemInstance) themeManager.curr.dataLaF.getMemInstanceColor(value.mark) else fg
+            }
+
             border = BorderFactory.createEmptyBorder()
-            foreground = if (value is Memory.MemInstance) themeManager.curr.dataLaF.getMemInstanceColor(value.mark) else fg
             background = bg
             font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)
             border = DirectionalBorder(themeManager, scaleManager)
