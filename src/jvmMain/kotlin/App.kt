@@ -9,6 +9,7 @@ import me.c3.ui.components.BaseFrame
 import me.c3.ui.components.editor.CDocument
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
+import me.c3.ui.styled.Editor
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
 import java.awt.Dimension
@@ -22,8 +23,24 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    testBaseApp()
-    //testFlatWindows()
+    //testBaseApp()
+    testAdvancedEditor()
+}
+
+fun testAdvancedEditor(){
+    val manager = UIManager()
+
+    val editor = Editor(manager.themeManager, manager.scaleManager)
+
+    val frame = JFrame()
+    frame.rootPane.setUI(FlatRootPaneUI())
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    frame.setLocationRelativeTo(null)
+    frame.size = Dimension(600, 300)
+
+    frame.add(editor.getScrollPane(manager))
+
+    frame.isVisible = true
 }
 
 fun testFlatWindows(){

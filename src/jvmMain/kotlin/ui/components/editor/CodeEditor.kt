@@ -11,6 +11,8 @@ import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Color
 import java.awt.Component
 import java.awt.Font
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.*
 import javax.swing.event.DocumentEvent
@@ -134,7 +136,20 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
 
         // Elements
         private val textPane = CTextPane(uiManager.themeManager, uiManager.scaleManager)
-        private val lineNumbers = LineNumbers(uiManager, textPane)
+        private val lineNumbers = LineNumbers(uiManager, textPane).apply {
+            addMouseListener(object : MouseAdapter() {
+                override fun mouseClicked(e: MouseEvent?) {
+                    e?.let {
+                        val index = locationToIndex(it.point)
+                        nativeLog("LineNumbers clicked on $index!")
+                        if (index != -1 && SwingUtilities.isLeftMouseButton(it)) {
+                            uiManager.currArch().exeUntilLine(index, editorFile.getName())
+                            uiManager.eventManager.triggerExeEvent()
+                        }
+                    }
+                }
+            })
+        }
         private val viewport = JViewport()
         private val cScrollPane = textPane.createScrollPane(uiManager.themeManager, uiManager.scaleManager)
 
@@ -298,6 +313,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
 
                 // Apply Defaults
                 setDefaults(uiManager)
+                attachClickListener(uiManager)
             }
 
             fun update(uiManager: UIManager) {
@@ -306,6 +322,10 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
                     (this.model as LineNumberListModel).update()
                     this.updateUI()
                 }
+            }
+
+            private fun attachClickListener(uiManager: UIManager) {
+
             }
 
             private fun setDefaults(uiManager: UIManager) {
