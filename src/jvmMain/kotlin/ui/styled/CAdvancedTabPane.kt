@@ -42,6 +42,7 @@ open class CAdvancedTabPane(
             field?.let { it.actionEvent?.let { it1 -> it1(ClosableTab.Event.LOSTFOCUS, it) } }
             field = value
             contentPane.setViewportView(value?.content)
+            value?.content?.requestFocus()
             field?.select()
             tabs.filter { it != value }.forEach {
                 it.deselect()

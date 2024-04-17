@@ -11,7 +11,7 @@ class LightTheme(icons: ProSimIcons) : Theme {
     override val name: String = "light"
     override val icon: FlatSVGIcon = icons.lightmode
 
-    override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/ttf/JetBrainsMono-Regular.ttf"), ">", Color(0x777777)) {
+    override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/ttf/JetBrainsMono-Regular.ttf"), ">", Color(0x3399FF)) {
         if (it == null) return@CodeLaF Color(0x222222)
         return@CodeLaF Color(it.lightHexColor)
     }

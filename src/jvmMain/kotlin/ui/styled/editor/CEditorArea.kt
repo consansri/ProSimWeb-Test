@@ -1,8 +1,7 @@
 package me.c3.ui.styled.editor
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import emulator.kit.nativeError
+import kotlinx.coroutines.*
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
@@ -20,56 +19,105 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import java.util.Stack
 import javax.swing.JComponent
-import javax.swing.SwingUtilities
-import javax.swing.Timer
 
 class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JComponent() {
 
-    private val selectionScope = CoroutineScope(Dispatchers.Default)
-    private val historyScope = CoroutineScope(Dispatchers.Default)
-
-    val lineBreakIDs: MutableList<Int> = mutableListOf()
+    // Current State
     private val styledText: MutableList<StyledChar> = mutableListOf()
+    private val lineBreakIDs: MutableList<Int> = mutableListOf()
 
-    var caretPos = 0
+    // Scopes
+    private val selScope = CoroutineScope(Dispatchers.Main)
+    private val historyScope = CoroutineScope(Dispatchers.Default)
+    private val lineNumberScope = CoroutineScope(Dispatchers.Default)
+    private val highlighterScope = CoroutineScope(Dispatchers.Default)
+
+    // Jobs
+    private var debounceJob: Job? = null
+    private val debounceJobInterval: Long = 1500
+
+    // Interactable Components
+    var fileInterface: FileInterface? = null
         set(value) {
             field = value
-            caretPosChanged()
-        }
-
-    var caretLine = 0
-    var caretColumn = 0
-
-    var selStart: Int = -1
-        set(value) {
-            field = value
-            selectionScope.launch {
-                selStartLine = if (selStart == -1) -1 else lineOf(selStart)
-                selStartColumn = if (selStart == -1) -1 else columnOf(selStart)
+            styledText.clear()
+            caretPos = 0
+            resetSelection()
+            value?.let {
+                insertText(0, value.getRawContent())
             }
+            revalidate()
+            repaint()
         }
-    var selEnd: Int = -1
-        set(value) {
-            field = value
-            CoroutineScope(Dispatchers.Default).launch {
-                selEndLine = if (selEnd == -1) -1 else lineOf(selEnd)
-                selEndColumn = if (selEnd == -1) -1 else columnOf(selEnd)
-            }
-        }
+    var infoLogger: InfoLogger? = null
+    var highlighter: Highlighter? = null
+    val scrollPane: CScrollPane = CScrollPane(themeManager, scaleManager, true, this)
+    val lineNumbers: CEditorLineNumbers = CEditorLineNumbers(themeManager, scaleManager, this)
 
-    var selStartLine = -1
-    var selStartColumn = -1
-    var selEndLine = -1
-    var selEndColumn = -1
-
-    var tabSize = scaleManager.curr.fontScale.tabSize
-    var scrollPane = CScrollPane(themeManager, scaleManager, true, this)
-
+    // State History
     private val textStateHistory = Stack<List<StyledChar>>()
     private val undoneTextStateHistory = Stack<List<StyledChar>>()
     private val maxStackSize = 30
     private val stackQueryInterval: Long = 500
     private var lastSave: Long = 0
+
+    // Caret
+    var caretPos = 0
+        set(value) {
+            field = value
+            selScope.launch { caretPosChanged() }
+        }
+
+    var caretLine = 0
+    var caretColumn = 0
+
+    // Selection
+    private var selStart: Int = -1
+        set(value) {
+            field = value
+            selScope.launch {
+                selStartLine = if (value == -1) -1 else try {
+                    lineOf(value)
+                } catch (e: IndexOutOfBoundsException) {
+                    -1
+                }
+                selStartColumn = if (value == -1) -1 else try {
+                    columnOf(value)
+                } catch (e: IndexOutOfBoundsException) {
+                    -1
+                }
+            }
+        }
+    private var selEnd: Int = -1
+        set(value) {
+            field = value
+            selScope.launch {
+                selEndLine = if (value == -1) -1 else try {
+                    lineOf(value)
+                } catch (e: IndexOutOfBoundsException) {
+                    -1
+                }
+                selEndColumn = if (value == -1) -1 else try {
+                    columnOf(value)
+                } catch (e: IndexOutOfBoundsException) {
+                    -1
+                }
+            }
+        }
+
+    private var selStartLine = -1
+    private var selStartColumn = -1
+    private var selEndLine = -1
+    private var selEndColumn = -1
+
+    // StyleSettings
+    var tabSize = scaleManager.curr.fontScale.tabSize
+    var scrollMarginLines = 4
+    var scrollMarginChars = 10
+
+    /**
+     * Initialization
+     */
 
     init {
         setUI(CEditorAreaUI(themeManager, scaleManager))
@@ -115,7 +163,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
         }
     }
 
-    private fun queryTextHistory() {
+    private fun queryStateChange() {
         historyScope.launch {
             if (textStateHistory.size > 1) {
                 // POP Last State if it is younger than stackQueryInterval
@@ -137,6 +185,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
                 }
             }
             undoneTextStateHistory.clear()
+
+            debounceHighlighting()
+
+            val currentStateAsString = currentState.joinToString("") { it.content.toString() }
+            fileInterface?.contentChanged(currentStateAsString)
         }
     }
 
@@ -146,10 +199,14 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
 
     // Insertion / Deletion
     private fun insertText(pos: Int, newText: String) {
-        styledText.addAll(pos, newText.map { StyledChar(it) })
+        if (pos > styledText.size) {
+            nativeError("Text Insertion invalid for position $pos and current size ${styledText.size}!")
+            return
+        }
+        styledText.addAll(pos, newText.map { StyledChar(if (it == '\t') ' ' else it) })
         //text = text.substring(0, pos) + newText + text.substring(pos)
         caretPos += newText.length
-        queryTextHistory()
+        queryStateChange()
         updateLineBreakIDs()
         resetSelection()
         revalidate()
@@ -162,7 +219,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
             if (caretPos > startIndex) {
                 caretPos -= endIndex - startIndex
             }
-            queryTextHistory()
+            queryStateChange()
             updateLineBreakIDs()
             resetSelection()
             revalidate()
@@ -177,7 +234,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
     private fun indent() {
         val absSelection = getAbsSelection()
         // Implement this Function
-        if (absSelection.lowLine == absSelection.highLine) {
+        if (absSelection.lowIndex == absSelection.highIndex) {
             val spacesToInsert = tabSize - (caretColumn % tabSize)
             insertText(caretPos, " ".repeat(spacesToInsert))
         } else {
@@ -205,7 +262,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
                 selEnd += before
                 caretPos += before
             }
-            queryTextHistory()
+            queryStateChange()
             revalidate()
             repaint()
         }
@@ -214,8 +271,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
     private fun removeIndent() {
         val absSelection = getAbsSelection()
         // Implement this Function
-        if (absSelection.lowLine == absSelection.highLine) {
-            removeLineIndent(caretLine - 1)
+        if (absSelection.lowIndex == absSelection.highIndex) {
+            caretPos -= removeLineIndent(caretLine - 1)
         } else {
             // Multi-line selection
             val startLine = absSelection.lowLine
@@ -240,7 +297,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
                 caretPos -= before
             }
         }
-        queryTextHistory()
+        queryStateChange()
         revalidate()
         repaint()
     }
@@ -339,31 +396,21 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
     }
 
     private fun moveCaretHome() {
-        if (selStart < selEnd) {
-            swapSelection()
+        val currColumn = columnOf(caretPos)
+        if (currColumn > 0) {
+            caretPos -= currColumn
             repaint()
-        } else {
-            val currColumn = columnOf(caretPos)
-            if (currColumn > 0) {
-                caretPos -= currColumn
-                repaint()
-            }
         }
     }
 
     private fun moveCaretEnd() {
-        if (selEnd < selStart) {
-            swapSelection()
+        val currColumn = caretColumn
+        val currLineID = caretLine - 1
+        val lines = splitAtLineBreak(styledText)
+        if (currLineID < lines.size) {
+            val after = lines[currLineID].size - currColumn
+            caretPos += after
             repaint()
-        } else {
-            val currColumn = caretColumn
-            val currLineID = caretLine - 1
-            val lines = splitAtLineBreak(styledText)
-            if (currLineID < lines.size) {
-                val after = lines[currLineID].size - currColumn
-                caretPos += after
-                repaint()
-            }
         }
     }
 
@@ -438,6 +485,13 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
         repaint()
     }
 
+    private fun selectAll() {
+        selStart = 0
+        selEnd = styledText.size
+        caretPos = styledText.size
+        repaint()
+    }
+
     private fun resetSelection() {
         selStart = -1
         selEnd = -1
@@ -448,6 +502,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
         selStart = selEnd
         selEnd = buffered
         caretPos = buffered
+        repaint()
     }
 
     private fun updateLineBreakIDs() {
@@ -457,60 +512,79 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
                 lineBreakIDs.add(id)
             }
         }
+        lineNumberScope.launch {
+            lineCountChanged()
+        }
     }
 
     /**
-     * ScrollPane Controls
+     * State Change Events
      */
 
-    private fun caretPosChanged() {
-        SwingUtilities.invokeLater {
-            caretLine = lineOf(caretPos)
-            caretColumn = columnOf(caretPos)
+    private suspend fun lineCountChanged() {
+        lineNumbers.lineCount = getLineCount()
+    }
 
-            val visibleRect = scrollPane.viewport.viewRect
-            val lineHeight = getFontMetrics(font).height
-            val charWidth = getFontMetrics(font).charWidth(' ')
-            val caretY = lineHeight * caretLine
-            val caretX = charWidth * caretColumn
+    private suspend fun caretPosChanged() {
+        caretLine = lineOf(caretPos)
+        caretColumn = columnOf(caretPos)
 
-            // Smooth Scrolling with Timer
-            val scrollSpeed = lineHeight * 6 // Adjust scroll speed as needed (pixels per timer tick)
-            val timer = Timer(0, null) // Timer interval in milliseconds
+        lineNumbers.repaint()
 
-            var targetScrollY = Math.max(0, Math.min(caretY - visibleRect.height / 2, scrollPane.verticalScrollBar.maximum - visibleRect.height))
-            if (caretY + lineHeight > visibleRect.y + visibleRect.height) {
-                targetScrollY = caretY - visibleRect.height + lineHeight
+        val visibleRect = scrollPane.viewport.viewRect
+        val lineHeight = getFontMetrics(font).height
+        val charWidth = getFontMetrics(font).charWidth(' ')
+        val caretY = lineHeight * caretLine
+        val caretX = charWidth * caretColumn
+
+        val scrollMarginY = scrollMarginLines * lineHeight
+        val scrollMarginX = scrollMarginChars * charWidth
+
+        // Implement Smooth Scrolling if caret would be out of visibleRect with scrollMargin
+        var diffY: Int? = null
+        var diffX: Int? = null
+        if (caretY < visibleRect.y + scrollMarginY) {
+            diffY = caretY - (visibleRect.y + scrollMarginY)
+        }
+        if (caretY > visibleRect.y + visibleRect.height - scrollMarginY) {
+            diffY = caretY - (visibleRect.y + visibleRect.height - scrollMarginY)
+        }
+
+        if (caretX < visibleRect.x + scrollMarginX) {
+            diffX = caretX - (visibleRect.x + scrollMarginX)
+        }
+        if (caretX > visibleRect.x + visibleRect.width - scrollMarginX) {
+            diffX = caretX - (visibleRect.x + visibleRect.width - scrollMarginX)
+        }
+
+        diffY?.let {
+            scrollPane.verticalScrollBar.value += diffY
+        }
+
+        diffX?.let {
+            scrollPane.horizontalScrollBar.value += diffX
+        }
+        val absSelection = getAbsSelection()
+        infoLogger?.printCaretInfo(getCaretPosition(), absSelection.getLowPosition(), absSelection.getHighPosition())
+    }
+
+    /**
+     * Highlighting
+     */
+
+    private fun debounceHighlighting() {
+        debounceJob?.cancel()
+
+        debounceJob = highlighterScope.launch {
+            delay(debounceJobInterval)
+
+            val newStyled = highlighter?.highlight(styledText.joinToString("") { it.content.toString() }) ?: return@launch
+            if (styledText.size == newStyled.size) {
+                styledText.clear()
+                styledText.addAll(newStyled)
+                revalidate()
+                repaint()
             }
-
-            var currentScrollY = scrollPane.verticalScrollBar.value
-
-            var targetScrollX = Math.max(0, Math.min(caretX - visibleRect.width / 2, scrollPane.horizontalScrollBar.maximum - visibleRect.width + insets.left + insets.right))
-            if (caretX + charWidth > visibleRect.x + visibleRect.width - insets.right) {
-                targetScrollX = caretX - visibleRect.width + charWidth + insets.left
-            }
-
-            var currentScrollX = scrollPane.horizontalScrollBar.value
-
-            timer.addActionListener {
-                val scrollDiffY = targetScrollY - currentScrollY
-                val scrollDiffX = targetScrollX - currentScrollX
-
-                val scrollAmountY = Math.min(Math.abs(scrollDiffY), scrollSpeed).toInt() * if (scrollDiffY > 0) 1 else -1
-                currentScrollY += scrollAmountY
-                scrollPane.verticalScrollBar.value = currentScrollY
-
-                val scrollAmountX = Math.min(Math.abs(scrollDiffX), scrollSpeed).toInt() * if (scrollDiffX > 0) 1 else -1
-                currentScrollX += scrollAmountX
-                scrollPane.horizontalScrollBar.value = currentScrollX
-
-                if (scrollDiffY == 0 && scrollDiffX == 0) {
-                    timer.stop()
-                    repaint()
-                }
-            }
-
-            timer.start()
         }
     }
 
@@ -551,7 +625,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
         val lineHeight = fontMetrics.ascent + fontMetrics.descent
         val preferredWidth = insets.left + getMaxLineLength() * charWidth + insets.right
         val preferredHeight = getLineCount() * lineHeight + insets.top + insets.bottom
-        return Dimension(preferredWidth + 3 * charWidth, preferredHeight + 3 * lineHeight)
+        return Dimension(preferredWidth + scrollMarginChars * charWidth, preferredHeight + scrollMarginLines * lineHeight)
     }
 
     /**
@@ -559,18 +633,23 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
      */
 
     fun getMaxLineLength(): Int = splitAtLineBreak(ArrayList(styledText)).ifEmpty { listOf(listOf()) }.maxOf { it.size }
-    fun getLineCount(): Int = splitAtLineBreak(ArrayList(styledText)).size
+    fun getLineCount(): Int = lineBreakIDs.size + 1
     private fun lineOf(pos: Int): Int = splitAtLineBreak(styledText.subList(0, pos)).size
-    private fun columnOf(pos: Int): Int = splitAtLineBreak(styledText.subList(0, caretPos)).lastOrNull()?.size ?: 0
+    private fun columnOf(pos: Int): Int = splitAtLineBreak(styledText.subList(0, pos)).lastOrNull()?.size ?: 0
     fun getAbsSelection(): AbsSelection = if (selStart < selEnd) AbsSelection(selStart, selEnd, selStartLine, selEndLine, selStartColumn, selEndColumn) else AbsSelection(selEnd, selStart, selEndLine, selStartLine, selEndColumn, selStartColumn)
     fun getStyledText(): List<StyledChar> = styledText
+    fun getCaretPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(caretPos, caretLine, caretColumn)
 
     /**
      * Data Classes
      */
 
     data class StyledChar(val content: Char, val style: Style? = null)
-    data class AbsSelection(val lowIndex: Int, val highIndex: Int, val lowLine: Int, val highLine: Int, val lowColumn: Int, val highColumn: Int)
+    data class AbsSelection(val lowIndex: Int, val highIndex: Int, val lowLine: Int, val highLine: Int, val lowColumn: Int, val highColumn: Int) {
+        fun getLowPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(lowIndex, lowLine, lowColumn)
+        fun getHighPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(highIndex, highLine, highColumn)
+    }
+
     data class Style(val fgColor: Color? = null, val bgColor: Color? = null)
 
     /**
@@ -615,6 +694,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
                         removeIndent()
                     } else {
                         indent()
+                    }
+                }
+
+                KeyEvent.VK_A -> {
+                    if (e.isControlDown) {
+                        selectAll()
                     }
                 }
 
@@ -684,13 +769,29 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
 
                 KeyEvent.VK_BACK_SPACE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caretPos > 0) deleteText(caretPos - 1, caretPos))
                 KeyEvent.VK_DELETE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caretPos <= styledText.size) deleteText(caretPos, caretPos + 1))
-                KeyEvent.VK_HOME -> if (e.isShiftDown) handleShiftSelection(e) else moveCaretHome()
-                KeyEvent.VK_END -> if (e.isShiftDown) handleShiftSelection(e) else moveCaretEnd()
+                KeyEvent.VK_HOME -> if (e.isShiftDown) handleShiftSelection(e) else {
+                    if (selStart < selEnd) {
+                        swapSelection()
+                    } else {
+                        resetSelection()
+                        moveCaretHome()
+                    }
+                }
+
+                KeyEvent.VK_END -> if (e.isShiftDown) handleShiftSelection(e) else {
+                    if (selStart > selEnd) {
+                        swapSelection()
+                    } else {
+                        resetSelection()
+                        moveCaretEnd()
+                    }
+                }
             }
         }
 
         override fun keyReleased(e: KeyEvent?) {}
     }
+
     inner class EditorMouseListener : MouseAdapter() {
 
         var shiftIsPressed = false
@@ -712,6 +813,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
         }
 
         override fun mouseEntered(e: MouseEvent?) {
+            this@CEditorArea.requestFocus()
             cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
         }
 

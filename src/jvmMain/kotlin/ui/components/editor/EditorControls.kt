@@ -1,7 +1,5 @@
 package me.c3.ui.components.editor
 
-import emulator.kit.common.ArchState
-import io.nacular.doodle.controls.list.listEditor
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CPanel
@@ -82,10 +80,10 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
             codeEditor.compileCurrent(build = true)
         }
         undoButton.addActionListener {
-            codeEditor.getCurrentEditPanel()?.undo()
+            codeEditor.getCurrentEditor()?.undo()
         }
         redoButton.addActionListener {
-            codeEditor.getCurrentEditPanel()?.redo()
+            codeEditor.getCurrentEditor()?.redo()
         }
     }
 

@@ -8,6 +8,7 @@ import me.c3.ui.components.BaseFrame
 import me.c3.ui.components.editor.CDocument
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
+import me.c3.ui.styled.editor.CEditor
 import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
@@ -23,15 +24,15 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    //testBaseApp()
-    testAdvancedEditor()
+    testBaseApp()
+    //testAdvancedEditor()
 }
 
 fun testAdvancedEditor() {
     val manager = UIManager()
     //    manager.themeManager.curr = DarkTheme(BenIcons())
 
-    val CEditorArea = CEditorArea(manager.themeManager, manager.scaleManager)
+    val editor = CEditor(manager.themeManager, manager.scaleManager)
 
     val frame = JFrame()
     frame.layout = BorderLayout()
@@ -40,7 +41,7 @@ fun testAdvancedEditor() {
     frame.setLocationRelativeTo(null)
     frame.size = Dimension(600, 300)
 
-    frame.add(CEditorArea.scrollPane, BorderLayout.CENTER)
+    frame.add(editor, BorderLayout.CENTER)
 
     frame.isVisible = true
 }

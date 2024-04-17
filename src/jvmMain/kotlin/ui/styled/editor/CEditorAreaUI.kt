@@ -1,7 +1,6 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.assembly.Compiler
-import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
@@ -14,13 +13,6 @@ class CEditorAreaUI(
     private val themeManager: ThemeManager,
     private val scaleManager: ScaleManager
 ) : ComponentUI() {
-    companion object {
-        fun installScrollPane(editor: CEditorArea, scrollPane: CScrollPane) {
-            scrollPane.verticalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).height
-            scrollPane.horizontalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).charWidth(' ')
-        }
-    }
-
     private var defaultSelectionColor = Color(0, 0, 0, 0)
     private var caretLineBG = Color(0, 0, 0, 0)
 
@@ -31,7 +23,7 @@ class CEditorAreaUI(
         set(value) {
             field = value
             defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 77)
-            caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 20)
+            caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
         }
 
     override fun installUI(c: JComponent?) {
@@ -50,17 +42,28 @@ class CEditorAreaUI(
     }
 
     private fun setDefaults(editor: CEditorArea) {
+        // Setup Base Editor Defaults
         editor.isOpaque = false
         editor.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
         editor.background = themeManager.curr.globalLaF.bgPrimary
         editor.foreground = themeManager.curr.codeLaF.getColor(Compiler.CodeStyle.BASE0)
         editor.font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
         selectionColor = themeManager.curr.codeLaF.selectionColor
-        editor.scrollPane.verticalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).height
-        editor.scrollPane.horizontalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).charWidth(' ')
         editor.tabSize = scaleManager.curr.fontScale.tabSize
         editor.focusTraversalKeysEnabled = false
 
+        // Setup Sub Components
+        editor.scrollPane.verticalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).height
+        editor.scrollPane.horizontalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).charWidth(' ')
+        editor.lineNumbers.fm = editor.getFontMetrics(editor.font)
+        editor.lineNumbers.background = editor.background
+        editor.lineNumbers.font = editor.font
+        editor.lineNumbers.foreground = themeManager.curr.textLaF.baseSecondary
+        editor.lineNumbers.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
+        editor.lineNumbers.isOpaque = false
+        editor.lineNumbers.selBg = caretLineBG
+
+        // Setup Caret Timer
         caretTimer?.stop()
         caretTimer = null
         caretTimer = Timer(500) {
@@ -72,6 +75,8 @@ class CEditorAreaUI(
             editor.repaint()
         }
         caretTimer?.start()
+
+        editor.repaint()
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
@@ -90,10 +95,11 @@ class CEditorAreaUI(
         val currLine = editor.caretLine
         var lineCounter = 0
 
+        val absSelection = editor.getAbsSelection()
 
-        if (editor.selEnd == -1 || editor.selStart == -1) {
+        if (absSelection.lowIndex == -1 || absSelection.highIndex == -1) {
             g2d.color = caretLineBG
-            g2d.fillRect(x, y + (currLine - 1) * fm.height - fm.ascent, editor.bounds.width - x - editor.insets.right, fm.height)
+            g2d.fillRect(0, y + (currLine - 1) * fm.height - fm.ascent, editor.width, fm.height)
         }
 
         // Render styled characters
@@ -102,7 +108,6 @@ class CEditorAreaUI(
             val charWidth = fm.charWidth(char.content)
 
             // Draw Selection
-            val absSelection = editor.getAbsSelection()
             if (i in absSelection.lowIndex until absSelection.highIndex) {
                 g2d.color = defaultSelectionColor
                 if (char.content == '\n') {
@@ -114,7 +119,9 @@ class CEditorAreaUI(
 
             // Draw the cursor
             if (i == editor.caretPos) {
-                drawCursor(g2d, x, y, fm)
+                if (editor.hasFocus()) {
+                    drawCaret(g2d, x, y, fm)
+                }
             }
 
             // Draw Characters
@@ -136,13 +143,15 @@ class CEditorAreaUI(
             }
         }
         if (editor.getStyledText().size == editor.caretPos) {
-            drawCursor(g2d, x, y, fm)
+            if (editor.hasFocus()) {
+                drawCaret(g2d, x, y, fm)
+            }
         }
 
         g2d.dispose()
     }
 
-    private fun drawCursor(g2d: Graphics2D, x: Int, y: Int, fm: FontMetrics) {
+    private fun drawCaret(g2d: Graphics2D, x: Int, y: Int, fm: FontMetrics) {
         caretColor?.let {
             g2d.color = it
             g2d.drawLine(x, y + fm.descent, x, y + fm.descent - fm.height)
