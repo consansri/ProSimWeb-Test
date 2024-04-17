@@ -1,6 +1,5 @@
 package me.c3
 
-import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
 import me.c3.emulator.kit.install
@@ -9,9 +8,10 @@ import me.c3.ui.components.BaseFrame
 import me.c3.ui.components.editor.CDocument
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
-import me.c3.ui.styled.Editor
+import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
+import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.*
 
@@ -27,23 +27,25 @@ fun main() {
     testAdvancedEditor()
 }
 
-fun testAdvancedEditor(){
+fun testAdvancedEditor() {
     val manager = UIManager()
+    //    manager.themeManager.curr = DarkTheme(BenIcons())
 
-    val editor = Editor(manager.themeManager, manager.scaleManager)
+    val CEditorArea = CEditorArea(manager.themeManager, manager.scaleManager)
 
     val frame = JFrame()
+    frame.layout = BorderLayout()
     frame.rootPane.setUI(FlatRootPaneUI())
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     frame.setLocationRelativeTo(null)
     frame.size = Dimension(600, 300)
 
-    frame.add(editor.getScrollPane(manager))
+    frame.add(CEditorArea.scrollPane, BorderLayout.CENTER)
 
     frame.isVisible = true
 }
 
-fun testFlatWindows(){
+fun testFlatWindows() {
     val frame = JFrame()
     frame.rootPane.setUI(FlatRootPaneUI())
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
@@ -56,7 +58,7 @@ fun testBaseApp() {
 }
 
 fun testCustomFrame() {
-    val frame = CFrame(ThemeManager(BenIcons()), ScaleManager(),BenIcons())
+    val frame = CFrame(ThemeManager(BenIcons()), ScaleManager(), BenIcons())
     frame.setFrameTitle("ProSimWeb")
 }
 
@@ -81,7 +83,6 @@ fun testTextPane() {
         textPane.styledDocument = CDocument()
 
         /*textPane.font = font*/
-
 
 
     }
