@@ -1,4 +1,4 @@
-package me.c3
+package ui
 
 import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
@@ -9,7 +9,6 @@ import me.c3.ui.components.editor.CDocument
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
 import me.c3.ui.styled.editor.CEditor
-import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
 import java.awt.BorderLayout

@@ -60,7 +60,4 @@ class BenIcons : ProSimIcons {
     override val folderOpen: FlatSVGIcon = FlatSVGIcon("icons/chevron-down.svg")
     override val folderClosed: FlatSVGIcon = FlatSVGIcon("icons/chevron-right.svg")
 
-
-
-
 }

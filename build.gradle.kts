@@ -1,8 +1,10 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform") version "1.9.23"
     id("org.jetbrains.dokka") version "1.9.0"
+    distribution
 }
 
 group = "me.c3"
@@ -57,9 +59,13 @@ kotlin {
         }
     }
 
-    jvm{
-        withJava()
+    jvm {
         jvmToolchain(11)
+
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        mainRun {
+            this.mainClass.set("ui.AppKt")
+        }
     }
 
     sourceSets {
@@ -100,7 +106,7 @@ kotlin {
             }
         }
 
-        val jvmMain by getting{
+        val jvmMain by getting {
             dependencies {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
@@ -113,4 +119,30 @@ kotlin {
     }
 }
 
+distributions {
+    main {
+        distributionBaseName.set("ProSimJVM")
+        contents {
+            into("") {
+                val jvmJar by tasks.getting
+                from(jvmJar)
+            }
+            into("lib/") {
+                val main by kotlin.jvm().compilations.getting
+                from(main.runtimeDependencyFiles)
+            }
+        }
+    }
+}
 
+tasks.withType<Jar>() {
+    doFirst {
+        manifest {
+            val main by kotlin.jvm().compilations.getting
+            attributes(
+                "Main-Class" to "ui.AppKt",
+                "Class-Path" to main.runtimeDependencyFiles.files.joinToString(" ") { "lib/" + it.name }
+            )
+        }
+    }
+}
