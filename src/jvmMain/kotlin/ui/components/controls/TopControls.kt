@@ -4,6 +4,7 @@ import me.c3.ui.MainManager
 import me.c3.ui.components.controls.buttons.ArchSwitch
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
+import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -13,12 +14,12 @@ class TopControls(mainManager: MainManager, showArchSwitch: Boolean) : CPanel(ma
     val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager)) else listOf()
 
     init {
-        layout = BoxLayout(this, BoxLayout.X_AXIS)
+        layout = BorderLayout()
 
         // Layout
         buttons.forEach {
             it.alignmentX = Component.CENTER_ALIGNMENT
-            add(it)
+            add(it, BorderLayout.CENTER)
         }
     }
 }

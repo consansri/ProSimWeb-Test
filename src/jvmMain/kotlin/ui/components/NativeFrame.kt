@@ -52,7 +52,7 @@ class NativeFrame(private val mainManager: MainManager) : JFrame() {
         editorContainer.resizeWeight = 0.1
 
         val processorContainer = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
-        processorContainer.resizeWeight = 0.0
+        processorContainer.resizeWeight = 0.3
 
         val mainContainer = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
         mainContainer.resizeWeight = 0.6

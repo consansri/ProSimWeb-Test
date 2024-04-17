@@ -12,7 +12,9 @@ class ProcessorView(mainManager: MainManager) : CPanel(mainManager.themeManager,
     val exeControl = ExecutionControls(mainManager)
     val regView = RegisterView(mainManager)
     val memoryView = MemoryView(mainManager)
-    val splitPane = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView)
+    val splitPane = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView).apply {
+        resizeWeight = 1.0
+    }
     val processorSettings = ProcessorSettings(mainManager, this)
 
     init {
@@ -21,8 +23,6 @@ class ProcessorView(mainManager: MainManager) : CPanel(mainManager.themeManager,
 
     private fun attachContent(){
         layout = GridBagLayout()
-
-        splitPane.resizeWeight = 0.5
 
         val gbc = GridBagConstraints()
 

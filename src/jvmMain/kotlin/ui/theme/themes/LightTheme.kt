@@ -11,28 +11,41 @@ class LightTheme(icons: ProSimIcons) : Theme {
     override val icon: FlatSVGIcon = icons.lightmode
     override val dark: Boolean = false
 
-    override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"), ">", Color(0x3399FF)) {
+    override val codeLaF: CodeLaF = CodeLaF(
+        font = loadFont("fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"),
+        pcIdenticator = ">",
+        selectionColor = Color(0x3399FF)
+    ) {
         if (it == null) return@CodeLaF Color(0x222222)
         return@CodeLaF Color(it.lightHexColor)
     }
+
     override val dataLaF: DataLaF = DataLaF {
         Color(it.light)
     }
 
     override val globalLaF: GlobalLaF = GlobalLaF(
-        Color(0xFFFFFF),
-        Color(0xEEEEEF),
-        Color(0xFFFFFF),
-        Color(0xBBBBBB)
+        bgPrimary = Color(0xFFFFFF),
+        bgSecondary = Color(0xE0E0FF),
+        bgOverlay = Color(0xFFFFFF),
+        borderColor = Color(0xBBBBBB)
     )
-    override val iconLaF: IconLaF = IconLaF(Color(0x222222), Color(0x313131), iconBgHover = Color(0x33777777, true), iconBgActive = Color(0x77777777, true))
+
+    override val iconLaF: IconLaF = IconLaF(
+        iconFgPrimary = Color(0x222222),
+        iconFgSecondary = Color(0x313131),
+        iconBg = Color(0x00777777, true),
+        iconBgHover = Color(0x77777777, true)
+    )
+
     override val textLaF: TextLaF = TextLaF(
-        Color(0x222222),
-        Color(0xAAAAAA),
-        Color(0xBBBBBB),
-        loadFont("fonts/Roboto/Roboto-Regular.ttf"),
-        loadFont("fonts/Roboto/Roboto-Light.ttf")
+        base = Color(0x222222),
+        baseSecondary = Color(0xAAAAAA),
+        selelected = Color(0xBBBBBB),
+        font = loadFont("fonts/Roboto/Roboto-Regular.ttf"),
+        titleFont = loadFont("fonts/Roboto/Roboto-Light.ttf")
     )
+
     override val exeStyle: ExeLaF = ExeLaF(
         continuous = Color(0x19A744),
         single = Color(0x41A05A),

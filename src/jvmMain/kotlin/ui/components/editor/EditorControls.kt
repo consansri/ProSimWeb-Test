@@ -9,33 +9,27 @@ import javax.swing.BoxLayout
 
 class EditorControls(mainManager: MainManager, private val editor: CodeEditor) : CPanel(mainManager.themeManager, mainManager.scaleManager, false, borderMode = BorderMode.EAST) {
 
-    private val transcriptButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.disassembler)
     private val statusIcon: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.statusLoading)
     private val undoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.backwards)
     private val redoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.forwards)
     private val buildButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.build)
     private val infoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.info)
-    private val deleteButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.deleteBlack)
 
     init {
         // Apply layout
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-        transcriptButton.alignmentX = CENTER_ALIGNMENT
         statusIcon.alignmentX = CENTER_ALIGNMENT
         undoButton.alignmentX = CENTER_ALIGNMENT
         redoButton.alignmentX = CENTER_ALIGNMENT
         buildButton.alignmentX = CENTER_ALIGNMENT
         infoButton.alignmentX = CENTER_ALIGNMENT
-        deleteButton.alignmentX = CENTER_ALIGNMENT
 
         // Add Components
-        add(transcriptButton)
         add(statusIcon)
         add(undoButton)
         add(redoButton)
         add(buildButton)
         add(infoButton)
-        add(deleteButton)
 
         // Listeners
         mainManager.scaleManager.addScaleChangeEvent {

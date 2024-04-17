@@ -38,7 +38,7 @@ class CMenuItemUI(private val themeManager: ThemeManager, private val scaleManag
         item.background = Color(0, 0, 0, 0)
         item.font = fontType.getFont(themeManager, scaleManager)
         item.foreground = themeManager.curr.textLaF.base
-        item.border = BorderFactory.createEmptyBorder()
+        item.border = scaleManager.curr.controlScale.getNormalInsetBorder()
         selectionBackground = Color(0,0,0,0)
         selectionForeground = item.foreground
     }

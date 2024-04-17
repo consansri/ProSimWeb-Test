@@ -1,6 +1,7 @@
 package me.c3.ui.styled
 
 import me.c3.ui.components.styled.CIconButton
+import me.c3.ui.components.styled.CPanel
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
@@ -141,9 +142,10 @@ class CComboBoxUI(private val themeManager: ThemeManager, private val scaleManag
     class CComboBoxRenderer(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : DefaultListCellRenderer() {
         override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            background = themeManager.curr.globalLaF.bgSecondary
+            background = if(isSelected) themeManager.curr.globalLaF.bgSecondary else themeManager.curr.globalLaF.bgPrimary
             foreground = themeManager.curr.textLaF.base
-            this.border = BorderFactory.createEmptyBorder()
+            this.border = scaleManager.curr.controlScale.getNormalInsetBorder()
+            horizontalAlignment = SwingConstants.CENTER
             return this
         }
     }
