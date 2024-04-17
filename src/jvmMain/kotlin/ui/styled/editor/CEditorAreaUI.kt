@@ -1,6 +1,7 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.assembly.Compiler
+import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
@@ -13,6 +14,12 @@ class CEditorAreaUI(
     private val themeManager: ThemeManager,
     private val scaleManager: ScaleManager
 ) : ComponentUI() {
+    companion object {
+        fun installScrollPane(editor: CEditorArea, scrollPane: CScrollPane) {
+            scrollPane.verticalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).height
+            scrollPane.horizontalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).charWidth(' ')
+        }
+    }
 
     private var defaultSelectionColor = Color(0, 0, 0, 0)
     private var caretLineBG = Color(0, 0, 0, 0)
@@ -69,55 +76,55 @@ class CEditorAreaUI(
 
     override fun paint(g: Graphics?, c: JComponent?) {
         val g2d = g?.create() as? Graphics2D ?: return
-        val CEditorArea = c as? CEditorArea ?: return
+        val editor = c as? CEditorArea ?: return
 
-        val fontMetrics = CEditorArea.getFontMetrics(CEditorArea.font)
+        val fm = editor.getFontMetrics(editor.font)
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
-        g2d.color = CEditorArea.background
+        g2d.color = editor.background
         //g2d.fillRect(editor.x, editor.y, editor.width, editor.height)
 
-        var x = CEditorArea.insets.left
+        var x = editor.insets.left
         var column = 0
-        var y = CEditorArea.insets.top + fontMetrics.ascent
-        val currLine = CEditorArea.caretLine
+        var y = editor.insets.top + fm.ascent
+        val currLine = editor.caretLine
         var lineCounter = 0
 
 
-        if (CEditorArea.selectionEnd == -1 || CEditorArea.selectionStart == -1) {
+        if (editor.selEnd == -1 || editor.selStart == -1) {
             g2d.color = caretLineBG
-            g2d.fillRect(x, y + (currLine - 1) * fontMetrics.height - fontMetrics.ascent, CEditorArea.bounds.width - x - CEditorArea.insets.right, fontMetrics.height)
+            g2d.fillRect(x, y + (currLine - 1) * fm.height - fm.ascent, editor.bounds.width - x - editor.insets.right, fm.height)
         }
 
         // Render styled characters
-        for ((i, char) in CEditorArea.getStyledText().withIndex()) {
+        for ((i, char) in editor.getStyledText().withIndex()) {
             val style = char.style
-            val charWidth = fontMetrics.charWidth(char.content)
+            val charWidth = fm.charWidth(char.content)
 
             // Draw Selection
-            val absSelection = CEditorArea.getAbsSelection()
+            val absSelection = editor.getAbsSelection()
             if (i in absSelection.lowIndex until absSelection.highIndex) {
                 g2d.color = defaultSelectionColor
                 if (char.content == '\n') {
-                    g2d.fillRect(x, y - fontMetrics.ascent, CEditorArea.bounds.width - x - CEditorArea.insets.right, fontMetrics.height)
+                    g2d.fillRect(x, y - fm.ascent, editor.bounds.width - x - editor.insets.right, fm.height)
                 } else {
-                    g2d.fillRect(x, y - fontMetrics.ascent, charWidth, fontMetrics.height)
+                    g2d.fillRect(x, y - fm.ascent, charWidth, fm.height)
                 }
             }
 
             // Draw the cursor
-            if (i == CEditorArea.caretPos) {
-                drawCursor(g2d, x, y, fontMetrics)
+            if (i == editor.caretPos) {
+                drawCursor(g2d, x, y, fm)
             }
 
             // Draw Characters
-            g2d.color = style?.fgColor ?: CEditorArea.foreground
+            g2d.color = style?.fgColor ?: editor.foreground
 
             when (char.content) {
                 '\n' -> {
-                    x = CEditorArea.insets.left
+                    x = editor.insets.left
                     column = 0
-                    y += fontMetrics.height
+                    y += fm.height
                     lineCounter += 1
                 }
 
@@ -128,8 +135,8 @@ class CEditorAreaUI(
                 }
             }
         }
-        if (CEditorArea.getStyledText().size == CEditorArea.caretPos) {
-            drawCursor(g2d, x, y, fontMetrics)
+        if (editor.getStyledText().size == editor.caretPos) {
+            drawCursor(g2d, x, y, fm)
         }
 
         g2d.dispose()
