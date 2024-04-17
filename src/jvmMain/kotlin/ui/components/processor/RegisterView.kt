@@ -11,8 +11,13 @@ import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CTable
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
+import java.awt.Dimension
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
@@ -21,6 +26,8 @@ import kotlin.math.abs
 class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = true, BorderMode.SOUTH) {
 
     private val regViews = mutableListOf<CAdvancedTabPane>()
+
+    val gbc = GridBagConstraints()
 
     var registerPaneCount = 1
         set(value) {
@@ -37,7 +44,11 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.th
         }
 
     init {
-        layout = BoxLayout(this, BoxLayout.X_AXIS)
+        layout = GridBagLayout()
+
+        gbc.weightx = 1.0
+        gbc.weighty = 1.0
+        gbc.fill = GridBagConstraints.BOTH
 
         mainManager.archManager.addArchChangeListener {
             resetRegViews()
@@ -56,6 +67,10 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.th
             remove(it)
         }
         regViews.clear()
+
+        gbc.gridx = 0
+        gbc.insets = Insets(0, 0, 0, 0)
+
         repeat(registerPaneCount) {
             addBox()
         }
@@ -65,12 +80,18 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.th
     private fun addBox() {
         val regView = initializeRegView()
         regViews.add(regView)
-        add(regView)
+        add(regView, gbc)
+        gbc.gridx++
+        gbc.insets = Insets(0, mainManager.currScale().borderScale.insets, 0, 0)
     }
 
     private fun removeBox() {
         if (regViews.isNotEmpty()) {
             remove(regViews.removeAt(regViews.size - 1))
+            gbc.gridx--
+            if (gbc.gridx <= 0) {
+                gbc.insets = Insets(0, 0, 0, 0)
+            }
         }
     }
 
