@@ -1,14 +1,14 @@
 package me.c3.ui.components.editor
 
 import kotlinx.coroutines.*
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.*
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.params.FontType
 import java.io.File
 import javax.swing.*
 
-class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, true, true, emptyMessage = "Open File through the tree!") {
+class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, true, true, emptyMessage = "Open File through the tree!") {
 
     private val panels = mutableListOf<ProSimEditor>()
     private val fileEditEvents = mutableListOf<(EditorFile) -> Unit>()
@@ -19,7 +19,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
     }
 
     private fun attachWorkspaceListener() {
-        uiManager.addWSChangedListener { ws ->
+        mainManager.addWSChangedListener { ws ->
             SwingUtilities.invokeLater {
                 val bufferedTabs = ArrayList(tabs)
                 for (tab in bufferedTabs) {
@@ -48,9 +48,9 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
 
         val editorFile = EditorFile(file)
 
-        val editPanel = ProSimEditor(uiManager, editorFile)
+        val editPanel = ProSimEditor(mainManager, editorFile)
         panels.add(editPanel)
-        addTab(CLabel(uiManager.themeManager, uiManager.scaleManager, file.getName(), FontType.BASIC), editPanel) { e, tab ->
+        addTab(CLabel(mainManager.themeManager, mainManager.scaleManager, file.getName(), FontType.BASIC), editPanel) { e, tab ->
             when (e) {
                 ClosableTab.Event.LOSTFOCUS -> {}
                 ClosableTab.Event.CLOSE -> {
@@ -60,7 +60,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
         }
     }
 
-    fun getControls(): EditorControls = EditorControls(uiManager, this)
+    fun getControls(): EditorControls = EditorControls(mainManager, this)
 
     fun searchByName(fileName: String): ProSimEditor? {
         return tabs.firstOrNull { fileName == (it.content as? ProSimEditor)?.editorFile?.file?.name }?.content as? ProSimEditor?

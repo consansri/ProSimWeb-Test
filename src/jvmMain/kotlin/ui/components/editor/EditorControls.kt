@@ -1,21 +1,21 @@
 package me.c3.ui.components.editor
 
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 
-class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPanel(uiManager.themeManager, uiManager.scaleManager, false, borderMode = BorderMode.EAST) {
+class EditorControls(mainManager: MainManager, private val editor: CodeEditor) : CPanel(mainManager.themeManager, mainManager.scaleManager, false, borderMode = BorderMode.EAST) {
 
-    private val transcriptButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.disassembler)
-    private val statusIcon: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.statusLoading)
-    private val undoButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.backwards)
-    private val redoButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.forwards)
-    private val buildButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.build)
-    private val infoButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.info)
-    private val deleteButton: CIconButton = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.deleteBlack)
+    private val transcriptButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.disassembler)
+    private val statusIcon: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.statusLoading)
+    private val undoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.backwards)
+    private val redoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.forwards)
+    private val buildButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.build)
+    private val infoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.info)
+    private val deleteButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.deleteBlack)
 
     init {
         // Apply layout
@@ -38,39 +38,39 @@ class EditorControls(uiManager: UIManager, private val editor: CodeEditor) : CPa
         add(deleteButton)
 
         // Listeners
-        uiManager.scaleManager.addScaleChangeEvent {
+        mainManager.scaleManager.addScaleChangeEvent {
             val insets = it.borderScale.insets
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
-        uiManager.themeManager.addThemeChangeListener {
+        mainManager.themeManager.addThemeChangeListener {
             background = it.globalLaF.bgSecondary
         }
 
         // Functions
-        installStatusButton(uiManager)
+        installStatusButton(mainManager)
         installBuildButton(editor)
 
         // Set Defaults
-        val insets = uiManager.currScale().borderScale.insets
+        val insets = mainManager.currScale().borderScale.insets
         border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-        background = uiManager.currTheme().globalLaF.bgSecondary
+        background = mainManager.currTheme().globalLaF.bgSecondary
 
         statusIcon.isDeactivated = true
         statusIcon.rotating = true
     }
 
-    private fun installStatusButton(uiManager: UIManager) {
-        uiManager.editor.addFileEditEvent {
-            statusIcon.svgIcon = uiManager.icons.statusLoading
+    private fun installStatusButton(mainManager: MainManager) {
+        mainManager.editor.addFileEditEvent {
+            statusIcon.svgIcon = mainManager.icons.statusLoading
             statusIcon.rotating = true
         }
 
-        uiManager.eventManager.addCompileListener { success ->
+        mainManager.eventManager.addCompileListener { success ->
             if (success) {
-                statusIcon.svgIcon = uiManager.icons.statusFine
+                statusIcon.svgIcon = mainManager.icons.statusFine
                 statusIcon.rotating = false
             } else {
-                statusIcon.svgIcon = uiManager.icons.statusError
+                statusIcon.svgIcon = mainManager.icons.statusError
                 statusIcon.rotating = false
             }
         }

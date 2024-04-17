@@ -1,18 +1,16 @@
 package me.c3.ui.components.controls
 
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.controls.buttons.ArchSwitch
-import me.c3.ui.components.controls.buttons.ThemeSwitch
 import me.c3.ui.components.styled.CPanel
-import me.c3.ui.styled.ColouredPanel
 import me.c3.ui.styled.params.BorderMode
 import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 
-class TopControls(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, borderMode = BorderMode.SOUTH) {
+class TopControls(mainManager: MainManager, showArchSwitch: Boolean) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.SOUTH) {
 
-    val buttons: List<JComponent> = listOf()
+    val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager)) else listOf()
 
     init {
         layout = BoxLayout(this, BoxLayout.X_AXIS)

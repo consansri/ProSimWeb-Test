@@ -1,5 +1,7 @@
 package me.c3.ui.styled
 
+import com.formdev.flatlaf.extras.FlatSVGIcon
+import emulator.kit.nativeLog
 import me.c3.ui.Workspace
 import me.c3.ui.components.styled.CTree
 import me.c3.ui.spacing.ScaleManager
@@ -22,12 +24,14 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
             tree.repaint()
         }
 
+    var colorFilter: FlatSVGIcon.ColorFilter? = null
+
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val cTree = c as? CTree ?: return
         cTree.border = BorderFactory.createEmptyBorder(scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets) // Set empty border when not focused
-        cTree.cellRenderer = CTreeCellRenderer(icons)
+        cTree.cellRenderer = CTreeCellRenderer()
 
         themeManager.addThemeChangeListener {
             setDefaults(cTree)
@@ -37,15 +41,19 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
             setDefaults(cTree)
         }
         
-        setDefaults(cTree)        
+        setDefaults(cTree)
     }
     
     private fun setDefaults(tree: CTree){
         selectedColor = themeManager.curr.globalLaF.borderColor
+        colorFilter = FlatSVGIcon.ColorFilter{
+            themeManager.curr.iconLaF.iconFgPrimary
+        }
         tree.background = themeManager.curr.globalLaF.bgSecondary
         tree.foreground = themeManager.curr.textLaF.base
         tree.font = fontType.getFont(themeManager, scaleManager)
         tree.border = scaleManager.curr.borderScale.getInsetBorder()
+        tree.revalidate()
         tree.repaint()
     }
 
@@ -55,7 +63,6 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
         g2d.fillRect(0, 0, tree.width, tree.height)
         super.paint(g2d, c)
         g2d.dispose()
-
     }
 
     override fun paintVerticalPartOfLeg(g: Graphics?, clipBounds: Rectangle?, insets: Insets?, path: TreePath?) {
@@ -71,7 +78,7 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
         val g2d = g.create() as? Graphics2D ?: return
         if (!isLeaf) {
             val loadedIcon = (if (isExpanded) icons.folderOpen else icons.folderClosed).derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
-            loadedIcon.colorFilter = themeManager.curr.icon.colorFilter
+            loadedIcon.colorFilter = colorFilter
             val iconX = bounds.x + insets.left - loadedIcon.iconWidth - getRightChildIndent() / 2
             val iconY = bounds.y + (bounds.height - loadedIcon.iconHeight) / 2
             loadedIcon.paintIcon(tree, g2d, iconX, iconY)
@@ -79,7 +86,7 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
         g2d.dispose()
     }
 
-    inner class CTreeCellRenderer(icons: ProSimIcons) : DefaultTreeCellRenderer() {
+    inner class CTreeCellRenderer : DefaultTreeCellRenderer() {
 
         init {
             this.isOpaque = true
@@ -112,9 +119,8 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
                     icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                 }
             }
-
             this.background = if(sel)  themeManager.curr.textLaF.selelected else themeManager.curr.globalLaF.bgSecondary
-            loadedIcon.colorFilter = themeManager.curr.icon.colorFilter
+            loadedIcon.colorFilter = colorFilter
             this.foreground = themeManager.curr.textLaF.base
             this.icon = loadedIcon
             return this

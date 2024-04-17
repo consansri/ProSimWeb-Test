@@ -1,15 +1,14 @@
 package me.c3.ui.components.console
 
 import me.c3.emulator.kit.hlAndAppendToDoc
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import javax.swing.text.DefaultStyledDocument
-import javax.swing.text.StyledDocument
 
-class ConsoleDocument(uiManager: UIManager) : DefaultStyledDocument() {
+class ConsoleDocument(mainManager: MainManager) : DefaultStyledDocument() {
 
     init {
-        uiManager.currArch().getConsole().getMessages().forEach {
-            it.hlAndAppendToDoc(uiManager.currTheme().codeLaF, this)
+        mainManager.currArch().getConsole().getMessages().forEach {
+            it.hlAndAppendToDoc(mainManager.currTheme().codeLaF, this)
         }
     }
 

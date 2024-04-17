@@ -14,7 +14,7 @@ import javax.swing.UIManager
 interface Theme {
     val name: String
     val icon: FlatSVGIcon
-
+    val dark: Boolean
     val codeLaF: CodeLaF
     val dataLaF: DataLaF
     val globalLaF: GlobalLaF

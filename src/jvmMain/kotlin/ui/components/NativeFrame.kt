@@ -1,45 +1,46 @@
-package me.c3.ui.components
+package ui.components
 
-import me.c3.ui.components.controls.AppControls
 import me.c3.ui.MainManager
 import me.c3.ui.components.console.Console
+import me.c3.ui.components.controls.AppControls
 import me.c3.ui.components.controls.TopControls
-import me.c3.ui.components.controls.buttons.ArchSwitch
 import me.c3.ui.components.processor.ProcessorView
 import me.c3.ui.components.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
-import me.c3.ui.styled.CFrame
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
+import javax.swing.JFrame
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
+import javax.swing.UIManager
 
-class BaseFrame(private val mainManager: MainManager) : CFrame(mainManager.themeManager, mainManager.scaleManager, mainManager.icons) {
+class NativeFrame(private val mainManager: MainManager) : JFrame() {
 
     private val editor = mainManager.editor
     private val fileTree = FileTree(mainManager)
     val processorView = ProcessorView(mainManager)
     val transcriptView = TranscriptView(mainManager)
     private val bottomBar = mainManager.bBar
-    private val topBar = TopControls(mainManager, showArchSwitch = false)
+    private val topBar = TopControls(mainManager, showArchSwitch = true)
     private val leftBar = mainManager.editor.getControls()
     private val rightBar = AppControls(mainManager)
     private val consoleAndInfo = Console(mainManager)
 
     init {
         SwingUtilities.invokeLater {
+            styleFrame()
             attachComponents()
             setup()
         }
     }
 
     private fun attachComponents() {
-        content.layout = BorderLayout()
+        layout = BorderLayout()
 
         // Set Sizes
         editor.minimumSize = Dimension(0, 0)
@@ -60,22 +61,23 @@ class BaseFrame(private val mainManager: MainManager) : CFrame(mainManager.theme
         verticalMainCSplitPane.resizeWeight = 1.0
 
         // Add split panes to the frame with BorderLayout constraints
-        addContent(topBar, BorderLayout.NORTH)
-        addContent(verticalMainCSplitPane, BorderLayout.CENTER)
-        addContent(leftBar, BorderLayout.WEST)
-        addContent(rightBar, BorderLayout.EAST)
-        addContent(bottomBar, BorderLayout.SOUTH)
-        addTitleBar(ArchSwitch(mainManager))
+        add(topBar, BorderLayout.NORTH)
+        add(verticalMainCSplitPane, BorderLayout.CENTER)
+        add(leftBar, BorderLayout.WEST)
+        add(rightBar, BorderLayout.EAST)
+        add(bottomBar, BorderLayout.SOUTH)
+    }
+
+    private fun styleFrame() {
+        iconImage = mainManager.icons.appLogo.derive(64,64).image
     }
 
     private fun setup() {
-        SwingUtilities.invokeLater {
-            //setFrameTitle("ProSim")
-            defaultCloseOperation = EXIT_ON_CLOSE
-            size = Dimension(1920, 1080)
-            setLocationRelativeTo(null)
-            isVisible = true
-        }
+        title = "ProSimJVM"
+        defaultCloseOperation = EXIT_ON_CLOSE
+        size = Dimension(1920, 1080)
+        setLocationRelativeTo(null)
+        isVisible = true
     }
 
     private fun loadImage(path: String): ImageIcon? {
@@ -87,4 +89,5 @@ class BaseFrame(private val mainManager: MainManager) : CFrame(mainManager.theme
             null
         }
     }
+
 }

@@ -9,6 +9,7 @@ import java.awt.Color
 class LightTheme(icons: ProSimIcons) : Theme {
     override val name: String = "light"
     override val icon: FlatSVGIcon = icons.lightmode
+    override val dark: Boolean = false
 
     override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"), ">", Color(0x3399FF)) {
         if (it == null) return@CodeLaF Color(0x222222)

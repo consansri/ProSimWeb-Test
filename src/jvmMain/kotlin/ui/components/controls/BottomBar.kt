@@ -1,21 +1,19 @@
 package me.c3.ui.components.controls
 
 import emulator.kit.assembly.Compiler
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
+import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.nio.file.Path
-import javax.swing.JLabel
-import javax.swing.SwingConstants
 
-class BottomBar(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager) {
+class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, borderMode = BorderMode.NORTH) {
 
-    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "Back to work? :D", FontType.BASIC)
-    val editorInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "", FontType.CODE)
-    val generalPurpose = CLabel(uiManager.themeManager,uiManager.scaleManager, "", FontType.CODE)
+    val tagInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "Back to work? :D", FontType.BASIC)
+    val editorInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.CODE)
+    val generalPurpose = CLabel(mainManager.themeManager,mainManager.scaleManager, "", FontType.CODE)
 
     init {
         layout = GridBagLayout()
@@ -41,16 +39,14 @@ class BottomBar(private val uiManager: UIManager) : CPanel(uiManager.themeManage
     }
 
     fun setError(text: String){
-        generalPurpose.setColouredText(text, uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.RED))
+        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.RED))
     }
 
     fun setWarning(text: String){
-        generalPurpose.setColouredText(text, uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.YELLOW))
+        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.YELLOW))
     }
 
     fun setInfo(text: String){
-        generalPurpose.setColouredText(text, uiManager.currTheme().textLaF.baseSecondary)
+        generalPurpose.setColouredText(text, mainManager.currTheme().textLaF.baseSecondary)
     }
-
-
 }

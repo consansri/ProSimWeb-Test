@@ -3,7 +3,7 @@ package me.c3.ui.components.processor
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.processor.models.RegTableModel
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
@@ -15,11 +15,10 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BoxLayout
 import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 import kotlin.math.abs
 
-class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = true, BorderMode.SOUTH) {
+class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = true, BorderMode.SOUTH) {
 
     private val regViews = mutableListOf<CAdvancedTabPane>()
 
@@ -40,11 +39,11 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
     init {
         layout = BoxLayout(this, BoxLayout.X_AXIS)
 
-        uiManager.archManager.addArchChangeListener {
+        mainManager.archManager.addArchChangeListener {
             resetRegViews()
         }
 
-        uiManager.archManager.addFeatureChangeListener {
+        mainManager.archManager.addFeatureChangeListener {
             resetRegViews()
         }
 
@@ -92,12 +91,12 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
     }
 
     private fun initializeRegView(): CAdvancedTabPane {
-        val cTabbedPane = CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
+        val cTabbedPane = CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
-        uiManager.currArch().getAllRegFiles().forEach {
-            val tabLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, it.name, FontType.BASIC)
-            if (it.getRegisters(uiManager.currArch().getAllFeatures()).isNotEmpty()) {
-                val regFileTable = RegFileTable(uiManager, it) {
+        mainManager.currArch().getAllRegFiles().forEach {
+            val tabLabel = CLabel(mainManager.themeManager, mainManager.scaleManager, it.name, FontType.BASIC)
+            if (it.getRegisters(mainManager.currArch().getAllFeatures()).isNotEmpty()) {
+                val regFileTable = RegFileTable(mainManager, it) {
                     updateAllValues()
                 }
                 regFileTable.updateContent()
@@ -108,8 +107,8 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
         return cTabbedPane
     }
 
-    class RegFileTable(private val uiManager: UIManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel(), val onRegValueChange: (RegContainer.Register) -> Unit) :
-        CTable(uiManager.themeManager, uiManager.scaleManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
+    class RegFileTable(private val mainManager: MainManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel(), val onRegValueChange: (RegContainer.Register) -> Unit) :
+        CTable(mainManager.themeManager, mainManager.scaleManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
 
         private var currentlyUpdating = false
         private val identifierLabel = "Identifiers"
@@ -120,12 +119,12 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
             set(value) {
                 field = value
                 regs = when (value) {
-                    SortOrder.ALIASES -> regFile.getRegisters(uiManager.currArch().getAllFeatures()).sortedBy { it.aliases.firstOrNull() }
-                    SortOrder.ADDRESS -> regFile.getRegisters(uiManager.currArch().getAllFeatures()).sortedBy { it.address.toRawString() }
+                    SortOrder.ALIASES -> regFile.getRegisters(mainManager.currArch().getAllFeatures()).sortedBy { it.aliases.firstOrNull() }
+                    SortOrder.ADDRESS -> regFile.getRegisters(mainManager.currArch().getAllFeatures()).sortedBy { it.address.toRawString() }
                 }
             }
 
-        private var regs = regFile.getRegisters(uiManager.currArch().getAllFeatures())
+        private var regs = regFile.getRegisters(mainManager.currArch().getAllFeatures())
             set(value) {
                 field = value
                 updateContent()
@@ -143,11 +142,11 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
             }
 
         init {
-            uiManager.eventManager.addExeEventListener {
+            mainManager.eventManager.addExeEventListener {
                 updateRegValues()
             }
 
-            uiManager.eventManager.addCompileListener {
+            mainManager.eventManager.addCompileListener {
                 updateRegValues()
             }
 

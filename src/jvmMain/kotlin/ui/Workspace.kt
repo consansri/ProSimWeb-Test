@@ -15,12 +15,11 @@ import me.c3.ui.theme.ThemeManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
-import javax.swing.JOptionPane
 import javax.swing.SwingUtilities
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIManager) {
+class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: MainManager) {
     private val rootDir = File(path)
     private val rootNode = DefaultMutableTreeNode(TreeFile(rootDir))
     private val treeModel = DefaultTreeModel(rootNode)
@@ -29,7 +28,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
     init {
         buildFileTree(rootDir, rootNode)
 
-        tree = CTree(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, treeModel, FontType.BASIC)
+        tree = CTree(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, treeModel, FontType.BASIC)
 
         tree.addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {
@@ -46,7 +45,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
                 val uobj = selectedNode.userObject
                 if (uobj !is TreeFile) return
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    showContextMenu(uiManager, uobj, e.x, e.y)
+                    showContextMenu(mainManager, uobj, e.x, e.y)
                 }
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (uobj.file.isFile) {
@@ -54,12 +53,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
                             codeEditor.openFile(uobj.file)
                         }
                     }
-                    uiManager.bBar.tagInfo.text = getFileWithProjectPath(uobj.file).formatPathForDrawing()
+                    mainManager.bBar.tagInfo.text = getFileWithProjectPath(uobj.file).formatPathForDrawing()
                 }
             }
         })
 
-        setTreeLook(uiManager.themeManager)
+        setTreeLook(mainManager.themeManager)
     }
 
     fun getFileWithProjectPath(file: File): String {
@@ -74,32 +73,32 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
 
     fun getCompilerFiles(exclude: File): List<Compiler.CompilerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && it.name.endsWith(".s") }.map { it.toCompilerFile() }
 
-    private fun showContextMenu(uiManager: UIManager, treeFile: TreeFile, x: Int, y: Int) {
-        val popupMenu = CPopupMenu(uiManager.themeManager, uiManager.scaleManager)
+    private fun showContextMenu(mainManager: MainManager, treeFile: TreeFile, x: Int, y: Int) {
+        val popupMenu = CPopupMenu(mainManager.themeManager, mainManager.scaleManager)
 
-        val createFileItem = if (treeFile.file.isDirectory) CMenuItem(uiManager.themeManager, uiManager.scaleManager, "New File") else null
-        val createDirItem = if (treeFile.file.isDirectory) CMenuItem(uiManager.themeManager, uiManager.scaleManager, "New Directory") else null
-        val openItem = if (treeFile.file.isFile) CMenuItem(uiManager.themeManager, uiManager.scaleManager, "Open") else null
-        val deleteItem = CMenuItem(uiManager.themeManager, uiManager.scaleManager, "Delete")
-        val renameItem = CMenuItem(uiManager.themeManager, uiManager.scaleManager, "Rename")
+        val createFileItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "New File") else null
+        val createDirItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "New Directory") else null
+        val openItem = if (treeFile.file.isFile) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Open") else null
+        val deleteItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Delete")
+        val renameItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Rename")
 
         openItem?.addActionListener {
             val file = ((tree.lastSelectedPathComponent as? DefaultMutableTreeNode)?.userObject as? TreeFile)?.file ?: return@addActionListener
             if (file.isFile) {
-                uiManager.editor.openFile(file)
+                mainManager.editor.openFile(file)
             }
         }
 
         createDirItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newDirName = COptionPane.showInputDialog(uiManager.themeManager, uiManager.scaleManager, tree, "Enter directory name:").await()
+                val newDirName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter directory name:").await()
                 if (newDirName.isNotBlank()) {
                     val newDir = File(treeFile.file, newDirName)
                     if (newDir.mkdir()) {
                         // File created successfully
-                        uiManager.setCurrWS(path)
+                        mainManager.setCurrWS(path)
                     } else {
-                        uiManager.bBar.setError("Failed to create directory $newDirName!")
+                        mainManager.bBar.setError("Failed to create directory $newDirName!")
                     }
                 }
             }
@@ -107,14 +106,14 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
 
         createFileItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog(uiManager.themeManager, uiManager.scaleManager, tree, "Enter file name:").await()
+                val newFileName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter file name:").await()
                 if (newFileName.isNotBlank()) {
                     val newFile = File(treeFile.file, newFileName)
                     if (newFile.createNewFile()) {
                         // File created successfully
-                        uiManager.setCurrWS(path)
+                        mainManager.setCurrWS(path)
                     } else {
-                        uiManager.bBar.setError("Failed to create file $newFileName!")
+                        mainManager.bBar.setError("Failed to create file $newFileName!")
                     }
                 }
             }
@@ -123,22 +122,22 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
         deleteItem.addActionListener {
             if (treeFile.file.delete()) {
                 // File deleted successfully
-                uiManager.setCurrWS(path)
+                mainManager.setCurrWS(path)
             } else {
-                uiManager.bBar.setError("Failed to delete file ${treeFile.file.name}!")
+                mainManager.bBar.setError("Failed to delete file ${treeFile.file.name}!")
             }
         }
 
         renameItem.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog(uiManager.themeManager, uiManager.scaleManager, tree, "Enter new file name:").await()
+                val newFileName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter new file name:").await()
                 if (newFileName.isNotBlank()) {
                     val newFile = File(treeFile.file.parentFile, newFileName)
                     if (treeFile.file.renameTo(newFile)) {
                         // File renamed successfully
-                        uiManager.setCurrWS(path)
+                        mainManager.setCurrWS(path)
                     } else {
-                        uiManager.bBar.setError("Failed to rename file $newFileName!")
+                        mainManager.bBar.setError("Failed to rename file $newFileName!")
                     }
                 }
             }

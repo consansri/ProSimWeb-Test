@@ -10,7 +10,7 @@ import me.c3.ui.theme.icons.BenIcons
 import java.nio.file.Paths
 
 
-class UIManager {
+class MainManager {
 
     val archManager = ArchManager(Link.RV32I.arch)
 

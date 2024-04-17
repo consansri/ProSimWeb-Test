@@ -1,6 +1,5 @@
 package me.c3.ui.styled.borders
 
-import me.c3.ui.UIManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.Component
@@ -10,8 +9,8 @@ import javax.swing.border.AbstractBorder
 import javax.swing.border.LineBorder
 
 class DirectionalBorder(
-    themeManager: ThemeManager,
-    scaleManager: ScaleManager,
+    private val themeManager: ThemeManager,
+    private val scaleManager: ScaleManager,
     private val north: Boolean = false,
     private val west: Boolean = false,
     private val south: Boolean = false,
@@ -36,35 +35,19 @@ class DirectionalBorder(
     }
 
     override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
-        if (north) {
-            lineBorder.paintBorder(c, g, x, y, width, thickness)
-        }
-        if (west) {
-            lineBorder.paintBorder(c, g, x, y, thickness, height)
-        }
-        if (south) {
-            lineBorder.paintBorder(c, g, x, y + height - thickness, width, thickness)
-        }
-        if (east) {
-            lineBorder.paintBorder(c, g, x + width - thickness, y, thickness, height)
-        }
+        if (north) lineBorder.paintBorder(c, g, x, y, width, thickness)
+        if (west) lineBorder.paintBorder(c, g, x, y, thickness, height)
+        if (south) lineBorder.paintBorder(c, g, x, y + height - thickness, width, thickness)
+        if (east) lineBorder.paintBorder(c, g, x + width - thickness, y, thickness, height)
     }
 
     override fun getBorderInsets(c: Component): Insets {
-        val insets = Insets(0, 0, 0, 0)
-        if (north) insets.top = thickness
-        if (west) insets.left = thickness
-        if (south) insets.bottom = thickness
-        if (east) insets.right = thickness
-        return insets
+        return scaleManager.curr.borderScale.getInsets()
     }
 
     override fun getBorderInsets(c: Component, insets: Insets): Insets {
-        insets.set(0, 0, 0, 0)
-        if (north) insets.top = thickness
-        if (west) insets.left = thickness
-        if (south) insets.bottom = thickness
-        if (east) insets.right = thickness
+        val themeInsets = scaleManager.curr.borderScale.getInsets()
+        insets.set(themeInsets.top, themeInsets.left, themeInsets.bottom, themeInsets.right)
         return insets
     }
 

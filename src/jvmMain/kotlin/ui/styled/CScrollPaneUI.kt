@@ -1,6 +1,5 @@
 package me.c3.ui.styled
 
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
@@ -8,7 +7,6 @@ import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.SwingUtilities
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.plaf.basic.BasicScrollPaneUI
 

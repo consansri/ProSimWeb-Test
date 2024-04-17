@@ -1,17 +1,12 @@
 package me.c3.ui.components.styled
 
-import io.nacular.doodle.core.view
-import me.c3.ui.UIManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CScrollPaneUI
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JScrollPane
-import javax.swing.SwingUtilities
 
 open class CScrollPane(themeManager: ThemeManager, scaleManager: ScaleManager, val primary: Boolean, c: Component?) : JScrollPane(c) {
 

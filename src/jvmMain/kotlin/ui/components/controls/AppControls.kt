@@ -2,24 +2,20 @@ package me.c3.ui.components.controls
 
 import emulator.kit.optional.Feature
 import me.c3.ui.components.controls.buttons.ThemeSwitch
-import me.c3.ui.UIManager
-import me.c3.ui.components.BaseFrame
-import me.c3.ui.components.styled.CIconButton
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
-import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.Component
 import javax.swing.BoxLayout
-import javax.swing.JFrame
 import javax.swing.SwingUtilities
 
-class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, BorderMode.WEST) {
+class AppControls(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.WEST) {
 
     val buttons = listOf(
-        ThemeSwitch(uiManager)
+        ThemeSwitch(mainManager)
     )
     val featureButtons = mutableListOf<FeatureSwitch>()
 
@@ -32,23 +28,23 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
             add(it)
         }
 
-        uiManager.archManager.addFeatureChangeListener {
+        mainManager.archManager.addFeatureChangeListener {
             updateFeatureButtons()
         }
 
-        uiManager.archManager.addArchChangeListener {
-            attachFeatureButtons(uiManager)
+        mainManager.archManager.addArchChangeListener {
+            attachFeatureButtons(mainManager)
         }
-        attachFeatureButtons(uiManager)
+        attachFeatureButtons(mainManager)
     }
 
-    private fun attachFeatureButtons(uiManager: UIManager) {
+    private fun attachFeatureButtons(mainManager: MainManager) {
         featureButtons.forEach {
             this.remove(it)
         }
         featureButtons.clear()
-        uiManager.currArch().getAllFeatures().filter { !it.invisible && !it.static }.forEach {
-            val fswitch = FeatureSwitch(it, uiManager)
+        mainManager.currArch().getAllFeatures().filter { !it.invisible && !it.static }.forEach {
+            val fswitch = FeatureSwitch(it, mainManager)
             fswitch.alignmentX = Component.CENTER_ALIGNMENT
             featureButtons.add(fswitch)
             add(fswitch)
@@ -61,12 +57,12 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
         }
     }
 
-    class FeatureSwitch(private val feature: Feature, uiManager: UIManager) : CToggleButton(uiManager.themeManager, uiManager.scaleManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC) {
+    class FeatureSwitch(private val feature: Feature, mainManager: MainManager) : CToggleButton(mainManager.themeManager, mainManager.scaleManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC) {
 
         private var switchingFeatures = false
 
         init {
-            uiManager.archManager.addArchChangeListener {
+            mainManager.archManager.addArchChangeListener {
                 if (!switchingFeatures) {
                     isActive = feature.isActive()
                 }
@@ -77,20 +73,20 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
                     SwingUtilities.invokeLater {
                         switchingFeatures = true
                         if (feature.isActive()) {
-                            for (featToUpdate in uiManager.currArch().getAllFeatures()) {
+                            for (featToUpdate in mainManager.currArch().getAllFeatures()) {
                                 if (featToUpdate.enableIDs.contains(feature.id)) {
                                     featToUpdate.deactivate()
                                 }
                             }
                         } else {
                             for (id in feature.enableIDs) {
-                                uiManager.currArch().getAllFeatures().firstOrNull { it.id == id }?.activate()
+                                mainManager.currArch().getAllFeatures().firstOrNull { it.id == id }?.activate()
                             }
                         }
                         feature.switch()
 
                         isActive = feature.isActive()
-                        uiManager.archManager.triggerFeatureChanged()
+                        mainManager.archManager.triggerFeatureChanged()
                         switchingFeatures = false
                     }
                 }

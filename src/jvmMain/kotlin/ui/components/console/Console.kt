@@ -1,31 +1,30 @@
 package me.c3.ui.components.console
 
-import me.c3.ui.UIManager
-import me.c3.ui.components.editor.CodeEditor
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTextPane
 import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 
-class Console(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
+class Console(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
-    val topBar = CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false)
-    val textPane: CTextPane = CTextPane(uiManager.themeManager, uiManager.scaleManager)
-    val contentPane = textPane.createScrollPane(uiManager.themeManager, uiManager.scaleManager)
+    val topBar = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false)
+    val textPane: CTextPane = CTextPane(mainManager.themeManager, mainManager.scaleManager)
+    val contentPane = textPane.createScrollPane(mainManager.themeManager, mainManager.scaleManager)
 
     init {
-        textPane.document = ConsoleDocument(uiManager)
+        textPane.document = ConsoleDocument(mainManager)
 
-        connectChildren(uiManager)
-        attachListeners(uiManager)
+        connectChildren(mainManager)
+        attachListeners(mainManager)
         setDefaults()
     }
 
-    private fun connectChildren(uiManager: UIManager) {
+    private fun connectChildren(mainManager: MainManager) {
         layout = BorderLayout()
 
-        topBar.add(CLabel(uiManager.themeManager,uiManager.scaleManager, "Console", FontType.TITLE))
+        topBar.add(CLabel(mainManager.themeManager,mainManager.scaleManager, "Console", FontType.TITLE))
 
         add(topBar, BorderLayout.NORTH)
         add(contentPane, BorderLayout.CENTER)
@@ -35,18 +34,18 @@ class Console(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.s
         textPane.isEditable = false
     }
 
-    private fun attachListeners(uiManager: UIManager) {
-        uiManager.archManager.addArchChangeListener {
-            update(uiManager)
+    private fun attachListeners(mainManager: MainManager) {
+        mainManager.archManager.addArchChangeListener {
+            update(mainManager)
         }
 
-        uiManager.addAnyEventListener {
-            update(uiManager)
+        mainManager.addAnyEventListener {
+            update(mainManager)
         }
     }
 
-    fun update(uiManager: UIManager) {
-        textPane.document = ConsoleDocument(uiManager)
+    fun update(mainManager: MainManager) {
+        textPane.document = ConsoleDocument(mainManager)
     }
 
 }

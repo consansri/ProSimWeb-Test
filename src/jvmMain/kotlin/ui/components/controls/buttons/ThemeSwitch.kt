@@ -1,31 +1,31 @@
 package me.c3.ui.components.controls.buttons
 
 import me.c3.ui.components.styled.CIconButton
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 
-class ThemeSwitch(uiManager: UIManager) : CIconButton(uiManager.themeManager, uiManager.scaleManager, mode = Mode.PRIMARY_NORMAL) {
+class ThemeSwitch(mainManager: MainManager) : CIconButton(mainManager.themeManager, mainManager.scaleManager, mode = Mode.PRIMARY_NORMAL) {
 
     private var currentIndex = 0
 
     init {
-        setTheme(uiManager)
+        setTheme(mainManager)
 
         addActionListener {
             if (!isDeactivated) {
-                if (currentIndex < uiManager.themeManager.themes.size - 1) {
+                if (currentIndex < mainManager.themeManager.themes.size - 1) {
                     currentIndex++
                 } else {
                     currentIndex = 0
                 }
 
-                setTheme(uiManager)
+                setTheme(mainManager)
             }
         }
     }
 
-    private fun setTheme(uiManager: UIManager) {
-        uiManager.themeManager.themes.getOrNull(currentIndex)?.let {
-            uiManager.themeManager.curr = it
+    private fun setTheme(mainManager: MainManager) {
+        mainManager.themeManager.themes.getOrNull(currentIndex)?.let {
+            mainManager.themeManager.curr = it
             svgIcon = it.icon
         }
     }

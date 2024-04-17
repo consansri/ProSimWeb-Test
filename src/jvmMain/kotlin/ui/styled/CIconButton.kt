@@ -1,12 +1,9 @@
 package me.c3.ui.components.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
-import me.c3.ui.UIManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CIconButtonUI
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D

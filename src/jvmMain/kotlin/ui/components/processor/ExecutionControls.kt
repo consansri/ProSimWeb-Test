@@ -1,44 +1,37 @@
 package me.c3.ui.components.processor
 
-import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CPanel
-import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CIconInput
-import me.c3.ui.styled.CTextFieldUI
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.GridLayout
-import javax.swing.BorderFactory
-import javax.swing.JPanel
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
-class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, BorderMode.SOUTH) {
-    val continuous = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.continuousExe).apply {
+class ExecutionControls(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.SOUTH) {
+    val continuous = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.continuousExe).apply {
         addActionListener {
-            uiManager.currArch().exeContinuous()
-            uiManager.eventManager.triggerExeEvent()
+            mainManager.currArch().exeContinuous()
+            mainManager.eventManager.triggerExeEvent()
         }
     }
-    val singleStep = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.singleExe).apply {
+    val singleStep = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.singleExe).apply {
         addActionListener {
-            uiManager.currArch().exeSingleStep()
-            uiManager.eventManager.triggerExeEvent()
+            mainManager.currArch().exeSingleStep()
+            mainManager.eventManager.triggerExeEvent()
         }
     }
-    val mStep = CIconInput(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.stepMultiple, FontType.BASIC).apply {
+    val mStep = CIconInput(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.stepMultiple, FontType.BASIC).apply {
         val inputRegex = Regex("\\d+")
         input.text = 10.toString()
         button.addActionListener {
             val steps = this.input.text.toIntOrNull()
             steps?.let {
-                uiManager.currArch().exeMultiStep(steps)
-                uiManager.eventManager.triggerExeEvent()
+                mainManager.currArch().exeMultiStep(steps)
+                mainManager.eventManager.triggerExeEvent()
             }
         }
         input.apply {
@@ -58,27 +51,27 @@ class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, u
         }
     }
 
-    val skipSubroutine = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.stepOver).apply {
+    val skipSubroutine = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.stepOver).apply {
         addActionListener {
-            uiManager.currArch().exeSkipSubroutine()
-            uiManager.eventManager.triggerExeEvent()
+            mainManager.currArch().exeSkipSubroutine()
+            mainManager.eventManager.triggerExeEvent()
         }
     }
-    val returnSubroutine = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.returnSubroutine).apply {
+    val returnSubroutine = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.returnSubroutine).apply {
         addActionListener {
-            uiManager.currArch().exeReturnFromSubroutine()
-            uiManager.eventManager.triggerExeEvent()
+            mainManager.currArch().exeReturnFromSubroutine()
+            mainManager.eventManager.triggerExeEvent()
         }
     }
-    val reset = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.recompile).apply {
+    val reset = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.recompile).apply {
         addActionListener {
-            uiManager.currArch().exeReset()
-            uiManager.eventManager.triggerExeEvent()
+            mainManager.currArch().exeReset()
+            mainManager.eventManager.triggerExeEvent()
         }
     }
 
     init {
-        layout = GridLayout(1, 0, uiManager.currScale().borderScale.insets, 0)
+        layout = GridLayout(1, 0, mainManager.currScale().borderScale.insets, 0)
 
         continuous.alignmentY = CENTER_ALIGNMENT
         singleStep.alignmentY = CENTER_ALIGNMENT
@@ -88,11 +81,11 @@ class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, u
         reset.alignmentY = CENTER_ALIGNMENT
 
         // Listeners
-        uiManager.scaleManager.addScaleChangeEvent {
+        mainManager.scaleManager.addScaleChangeEvent {
             layout = GridLayout(1, 0, it.borderScale.insets, 0)
         }
 
-        uiManager.themeManager.addThemeChangeListener {
+        mainManager.themeManager.addThemeChangeListener {
             val exeStyle = it.exeStyle
             continuous.customColor = exeStyle.continuous
             singleStep.customColor = exeStyle.single
@@ -109,7 +102,7 @@ class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, u
         add(returnSubroutine)
         add(reset)
 
-        val exeStyle = uiManager.currTheme().exeStyle
+        val exeStyle = mainManager.currTheme().exeStyle
         continuous.customColor = exeStyle.continuous
         singleStep.customColor = exeStyle.single
         mStep.button.customColor = exeStyle.multi

@@ -1,15 +1,12 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import io.nacular.doodle.geometry.circle
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.AbstractButton
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.SwingUtilities

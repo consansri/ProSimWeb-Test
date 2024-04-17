@@ -1,6 +1,5 @@
 package me.c3.ui.styled
 
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.params.FontType
@@ -8,7 +7,6 @@ import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.*

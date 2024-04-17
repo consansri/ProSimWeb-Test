@@ -1,7 +1,7 @@
 package me.c3.ui.components.processor
 
 import emulator.kit.Architecture
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
@@ -10,27 +10,27 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.SwingUtilities
 
-class ProcessorSettings(uiManager: UIManager, processorView: ProcessorView) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
+class ProcessorSettings(mainManager: MainManager, processorView: ProcessorView) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
-    val increaseRegViews = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.splitCells)
-    val decreaseRegViews = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.combineCells)
-    val filler = CLabel(uiManager.themeManager, uiManager.scaleManager, "", FontType.BASIC)
-    val pcLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, "", FontType.CODE)
+    val increaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.splitCells)
+    val decreaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.combineCells)
+    val filler = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
+    val pcLabel = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.CODE)
 
     init {
-        attachListeners(uiManager, processorView)
+        attachListeners(mainManager, processorView)
         attachComponents()
 
-        uiManager.archManager.addArchChangeListener {
-            updatePC(uiManager.currArch())
+        mainManager.archManager.addArchChangeListener {
+            updatePC(mainManager.currArch())
         }
-        uiManager.eventManager.addCompileListener {
-            updatePC(uiManager.currArch())
+        mainManager.eventManager.addCompileListener {
+            updatePC(mainManager.currArch())
         }
-        uiManager.eventManager.addExeEventListener {
-            updatePC(uiManager.currArch())
+        mainManager.eventManager.addExeEventListener {
+            updatePC(mainManager.currArch())
         }
-        updatePC(uiManager.currArch())
+        updatePC(mainManager.currArch())
     }
 
     private fun attachComponents() {
@@ -60,7 +60,7 @@ class ProcessorSettings(uiManager: UIManager, processorView: ProcessorView) : CP
         }
     }
 
-    private fun attachListeners(uiManager: UIManager, processorView: ProcessorView) {
+    private fun attachListeners(mainManager: MainManager, processorView: ProcessorView) {
         increaseRegViews.addActionListener {
             if (processorView.regView.registerPaneCount < 4) {
                 processorView.regView.registerPaneCount++

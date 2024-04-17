@@ -1,15 +1,11 @@
 package me.c3.ui.styled
 
-import emulator.kit.nativeLog
-import me.c3.ui.UIManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JRootPane
-import javax.swing.SwingUtilities
-import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicRootPaneUI
 
 class CRootPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicRootPaneUI() {

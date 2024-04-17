@@ -1,10 +1,8 @@
 package me.c3.ui.styled
 
-import com.formdev.flatlaf.ui.FlatTextFieldUI
 import com.formdev.flatlaf.ui.FlatTextPaneUI
 import emulator.kit.assembly.Compiler
 import me.c3.emulator.kit.install
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTextPane
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager

@@ -3,14 +3,14 @@ package ui
 import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
 import me.c3.emulator.kit.install
-import me.c3.ui.UIManager
-import me.c3.ui.components.BaseFrame
+import me.c3.ui.MainManager
 import me.c3.ui.components.editor.CDocument
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
 import me.c3.ui.styled.editor.CEditor
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
+import ui.components.NativeFrame
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.*
@@ -28,7 +28,7 @@ fun main() {
 }
 
 fun testAdvancedEditor() {
-    val manager = UIManager()
+    val manager = MainManager()
     //    manager.themeManager.curr = DarkTheme(BenIcons())
 
     val editor = CEditor(manager.themeManager, manager.scaleManager)
@@ -54,7 +54,8 @@ fun testFlatWindows() {
 }
 
 fun testBaseApp() {
-    BaseFrame(UIManager())
+    NativeFrame(MainManager())
+    //BaseFrame(UIManager())
 }
 
 fun testCustomFrame() {
@@ -64,7 +65,7 @@ fun testCustomFrame() {
 
 fun testTextPane() {
     SwingUtilities.invokeLater {
-        val uiManager = UIManager()
+        val mainManager = MainManager()
 
         val frame = JFrame()
         frame.size = Dimension(1280, 768)
@@ -76,7 +77,7 @@ fun testTextPane() {
         textPane.isEditable = true
         frame.add(textPane)
 
-        uiManager.currTheme().codeLaF.getFont().install(textPane, uiManager.currScale().fontScale.codeSize)
+        mainManager.currTheme().codeLaF.getFont().install(textPane, mainManager.currScale().fontScale.codeSize)
 
         textPane.text = "Hallo ich bin neuer Text!"
 

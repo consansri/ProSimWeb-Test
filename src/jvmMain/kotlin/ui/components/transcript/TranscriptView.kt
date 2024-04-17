@@ -3,81 +3,73 @@ package me.c3.ui.components.transcript
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.ArchState
 import emulator.kit.common.Transcript
-import me.c3.ui.UIManager
-import me.c3.ui.components.styled.CLabel
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.styled.CTable
-import me.c3.ui.styled.CToggleButton
-import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.CVerticalLabel
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.BoxLayout
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
-import javax.swing.table.DefaultTableModel
-import kotlin.math.truncate
 
-class TranscriptView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
+class TranscriptView(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
     // SubComponents
     val compiledModel = TSTableModel()
-    val compiledView = CTable(uiManager.themeManager, uiManager.scaleManager, compiledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
+    val compiledView = CTable(mainManager.themeManager, mainManager.scaleManager, compiledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
     val disassembledModel = TSTableModel()
-    val disasmView = CTable(uiManager.themeManager, uiManager.scaleManager, disassembledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
+    val disasmView = CTable(mainManager.themeManager, mainManager.scaleManager, disassembledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
 
-    val label = CVerticalLabel(uiManager.themeManager, uiManager.scaleManager, "compile transcript", FontType.CODE)
+    val label = CVerticalLabel(mainManager.themeManager, mainManager.scaleManager, "compile transcript", FontType.CODE)
 
     // MainComponents
-    val labelPane = CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, borderMode = BorderMode.EAST).apply {
+    val labelPane = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.EAST).apply {
         this.layout = GridBagLayout()
         val gbc = GridBagConstraints()
         gbc.weighty = 0.0
         gbc.fill = GridBagConstraints.CENTER
         this.add(label, gbc)
     }
-    val contentPane = CScrollPane(uiManager.themeManager, uiManager.scaleManager, primary = false).apply {
+    val contentPane = CScrollPane(mainManager.themeManager, mainManager.scaleManager, primary = false).apply {
         minimumSize = Dimension(0, 0)
     }
 
     private var showCompiled: Boolean = true
 
     init {
-        uiManager.eventManager.addCompileListener {
+        mainManager.eventManager.addCompileListener {
             SwingUtilities.invokeLater {
-                updateContent(uiManager)
+                updateContent(mainManager)
                 updateSizing()
             }
         }
 
-        uiManager.addWSChangedListener {
+        mainManager.addWSChangedListener {
             SwingUtilities.invokeLater {
-                updateContent(uiManager)
+                updateContent(mainManager)
                 updateSizing()
             }
         }
 
-        uiManager.eventManager.addExeEventListener {
-            highlightPCRow(uiManager)
+        mainManager.eventManager.addExeEventListener {
+            highlightPCRow(mainManager)
         }
 
         SwingUtilities.invokeLater {
             attachSettings()
             attachMainComponents()
             setSelectedView()
-            updateContent(uiManager)
+            updateContent(mainManager)
             updateSizing()
         }
     }
@@ -114,15 +106,15 @@ class TranscriptView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiMa
         contentPane.setViewportView(if (showCompiled) compiledView else disasmView)
     }
 
-    private fun updateContent(uiManager: UIManager) {
+    private fun updateContent(mainManager: MainManager) {
         disassembledModel.rowCount = 0
         compiledModel.rowCount = 0
-        val transcript = uiManager.currArch().getTranscript()
-        if (!transcript.deactivated() && (uiManager.currArch().getState().currentState == ArchState.State.EXECUTABLE || uiManager.currArch().getState().currentState == ArchState.State.EXECUTION)) {
-            val disasmIDs = uiManager.currArch().getTranscript().getHeaders(Transcript.Type.DISASSEMBLED)
-            val compIDs = uiManager.currArch().getTranscript().getHeaders(Transcript.Type.COMPILED)
-            val currDisasmTS = uiManager.currArch().getTranscript().getContent(Transcript.Type.DISASSEMBLED)
-            val currCompTS = uiManager.currArch().getTranscript().getContent(Transcript.Type.COMPILED)
+        val transcript = mainManager.currArch().getTranscript()
+        if (!transcript.deactivated() && (mainManager.currArch().getState().currentState == ArchState.State.EXECUTABLE || mainManager.currArch().getState().currentState == ArchState.State.EXECUTION)) {
+            val disasmIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.DISASSEMBLED)
+            val compIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.COMPILED)
+            val currDisasmTS = mainManager.currArch().getTranscript().getContent(Transcript.Type.DISASSEMBLED)
+            val currCompTS = mainManager.currArch().getTranscript().getContent(Transcript.Type.COMPILED)
 
             disassembledModel.setColumnIdentifiers(disasmIDs.toTypedArray())
             for (row in currDisasmTS) {
@@ -133,9 +125,9 @@ class TranscriptView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiMa
             for (row in currCompTS) {
                 compiledModel.addRow(row.getContent().toTypedArray())
             }
-            compiledView.fitColumnWidths(uiManager.currScale().borderScale.insets)
-            disasmView.fitColumnWidths(uiManager.currScale().borderScale.insets)
-            highlightPCRow(uiManager)
+            compiledView.fitColumnWidths(mainManager.currScale().borderScale.insets)
+            disasmView.fitColumnWidths(mainManager.currScale().borderScale.insets)
+            highlightPCRow(mainManager)
             contentPane.isVisible = true
         } else {
             contentPane.isVisible = true
@@ -150,13 +142,13 @@ class TranscriptView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiMa
         }
     }
 
-    private fun highlightPCRow(uiManager: UIManager) {
-        val currPC = uiManager.currArch().getRegContainer().pc
-        val currTS = uiManager.currArch().getTranscript()
+    private fun highlightPCRow(mainManager: MainManager) {
+        val currPC = mainManager.currArch().getRegContainer().pc
+        val currTS = mainManager.currArch().getTranscript()
         val pcIndexCompiledTS = currTS.compiled.indexOfFirst { it.getAddresses().map { it.toHex().getRawHexStr() }.contains(currPC.get().toHex().getRawHexStr()) }
         val pcIndexDisasmTS = currTS.disassembled.indexOfFirst { it.getAddresses().map { it.toHex().getRawHexStr() }.contains(currPC.get().toHex().getRawHexStr()) }
-        compiledView.setCellHighlighting(pcIndexCompiledTS, null, uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
-        disasmView.setCellHighlighting(pcIndexDisasmTS, null, uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
+        compiledView.setCellHighlighting(pcIndexCompiledTS, null, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
+        disasmView.setCellHighlighting(pcIndexDisasmTS, null, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
     }
 
 }

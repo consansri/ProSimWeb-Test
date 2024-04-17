@@ -1,23 +1,23 @@
 package me.c3.ui.components.controls.buttons
 
 import emulator.Link
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.styled.CComboBox
 import me.c3.ui.styled.params.FontType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 
-class ArchSwitch(uiManager: UIManager) : CComboBox<Link>(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, Link.entries.toTypedArray(), FontType.TITLE) {
+class ArchSwitch(mainManager: MainManager) : CComboBox<Link>(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, Link.entries.toTypedArray(), FontType.TITLE) {
 
     init {
-        this.addActionListener(ArchSelectorListener(uiManager))
+        this.addActionListener(ArchSelectorListener(mainManager))
     }
 
-    class ArchSelectorListener(private val uiManager: UIManager): ActionListener{
+    class ArchSelectorListener(private val mainManager: MainManager): ActionListener{
         override fun actionPerformed(e: ActionEvent?) {
             val comboBox = e?.source as? CComboBox<*>
             val selectedMode = comboBox?.selectedItem as? Link ?: return
-            uiManager.archManager.curr = selectedMode.arch
+            mainManager.archManager.curr = selectedMode.arch
         }
     }
 

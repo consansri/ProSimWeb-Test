@@ -2,10 +2,9 @@ package me.c3.ui.components.processor
 
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.Memory
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.processor.models.MemTableModel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
@@ -13,13 +12,12 @@ import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
-import javax.swing.table.DefaultTableModel
 
-class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
+class MemoryView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
     val tableModel = MemTableModel()
-    val table = CTable(uiManager.themeManager, uiManager.scaleManager, tableModel, false)
-    val scrollPane = CScrollPane(uiManager.themeManager, uiManager.scaleManager, primary = false, table)
+    val table = CTable(mainManager.themeManager, mainManager.scaleManager, tableModel, false)
+    val scrollPane = CScrollPane(mainManager.themeManager, mainManager.scaleManager, primary = false, table)
     val addrTitle = "ADDR"
     val asciiTitle = "ASCII"
     var currentlyUpdating = false
@@ -42,11 +40,11 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManag
                     val rowAddr = tableModel.getValueAt(row, 0)
                     val newValue = tableModel.getValueAt(row, col)
                     val offset = col - 1
-                    val memInstance = uiManager.currArch().getMemory().memList.firstOrNull {
+                    val memInstance = mainManager.currArch().getMemory().memList.firstOrNull {
                         it.row.getRawHexStr() == rowAddr.toString() && it.offset == offset
                     }
                     memInstance?.let { memInst ->
-                        val hex = Variable.Value.Hex(newValue.toString(), uiManager.currArch().getMemory().getWordSize())
+                        val hex = Variable.Value.Hex(newValue.toString(), mainManager.currArch().getMemory().getWordSize())
                         if (hex.checkResult.valid) {
                             memInst.variable.set(hex)
                         }
@@ -62,15 +60,15 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManag
     }
 
     private fun addContentChangeListener() {
-        uiManager.archManager.addArchChangeListener {
+        mainManager.archManager.addArchChangeListener {
             updateContent()
         }
 
-        uiManager.eventManager.addExeEventListener {
+        mainManager.eventManager.addExeEventListener {
             updateContent()
         }
 
-        uiManager.eventManager.addCompileListener {
+        mainManager.eventManager.addCompileListener {
             updateContent()
         }
     }
@@ -80,8 +78,8 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManag
             currentlyUpdating = true
             tableModel.rowCount = 0
             val rowAddresses = mutableListOf<String>()
-            val entrysInRow = uiManager.currArch().getMemory().getEntrysInRow()
-            val copyOfMemList = ArrayList(uiManager.currArch().getMemory().memList)
+            val entrysInRow = mainManager.currArch().getMemory().getEntrysInRow()
+            val copyOfMemList = ArrayList(mainManager.currArch().getMemory().memList)
             copyOfMemList.forEach {
                 if (!rowAddresses.contains(it.row.getRawHexStr())) {
                     rowAddresses.add(it.row.getRawHexStr())
@@ -95,11 +93,11 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManag
             table.resetCellHighlighting()
 
             for (index in rowAddresses.indices) {
-                val contentArray: Array<Any> = Array(entrysInRow) { uiManager.currArch().getMemory().getInitialBinary().get().toHex().toRawString() }
+                val contentArray: Array<Any> = Array(entrysInRow) { mainManager.currArch().getMemory().getInitialBinary().get().toHex().toRawString() }
                 copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
-                    if (uiManager.currArch().getRegContainer().pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
-                        table.setCellHighlighting(index, it.offset + 1, uiManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
+                    if (mainManager.currArch().getRegContainer().pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
+                        table.setCellHighlighting(index, it.offset + 1, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
                     }
                 }
                 val ascii = contentArray.joinToString("") {
@@ -118,9 +116,9 @@ class MemoryView(private val uiManager: UIManager) : CPanel(uiManager.themeManag
     }
 
     private fun updateColumnWidths(entrysInRow: Int) {
-        val charWidth = getFontMetrics(uiManager.currTheme().codeLaF.getFont().deriveFont(uiManager.currScale().fontScale.dataSize)).charWidth('0')
-        val wordSize = uiManager.currArch().getMemory().getWordSize()
-        val addrScale = uiManager.currArch().getMemory().getAddressSize()
+        val charWidth = getFontMetrics(mainManager.currTheme().codeLaF.getFont().deriveFont(mainManager.currScale().fontScale.dataSize)).charWidth('0')
+        val wordSize = mainManager.currArch().getMemory().getWordSize()
+        val addrScale = mainManager.currArch().getMemory().getAddressSize()
         val asciiScale = entrysInRow * wordSize.getByteCount()
         val divider = entrysInRow * wordSize.hexChars + asciiScale + addrScale.hexChars
 

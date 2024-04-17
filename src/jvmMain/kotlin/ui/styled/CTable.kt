@@ -1,16 +1,10 @@
 package me.c3.ui.styled
 
-import me.c3.ui.UIManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
 import javax.swing.JTable
-import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
-import javax.swing.table.JTableHeader
 
 open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int) : JTable(tableModel) {
 

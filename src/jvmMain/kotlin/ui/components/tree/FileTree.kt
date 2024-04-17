@@ -3,7 +3,7 @@ package me.c3.ui.components.tree
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.c3.ui.UIManager
+import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.components.styled.CTextButton
@@ -12,49 +12,47 @@ import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.FlowLayout
-import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
-import javax.swing.JFileChooser
 
-class FileTree(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, true) {
-    private val projectButton = CTextButton(uiManager.themeManager, uiManager.scaleManager, "Project", FontType.TITLE)
-    private val title = CPanel(uiManager.themeManager, uiManager.scaleManager, false)
-    private val content = CScrollPane(uiManager.themeManager, uiManager.scaleManager, false)
+class FileTree(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, true) {
+    private val projectButton = CTextButton(mainManager.themeManager, mainManager.scaleManager, "Project", FontType.TITLE)
+    private val title = CPanel(mainManager.themeManager, mainManager.scaleManager, false)
+    private val content = CScrollPane(mainManager.themeManager, mainManager.scaleManager, false)
 
     init {
-        attachMouseListener(uiManager)
+        attachMouseListener(mainManager)
 
-        uiManager.addWSChangedListener {
-            refreshWSTree(uiManager)
+        mainManager.addWSChangedListener {
+            refreshWSTree(mainManager)
         }
 
-        refreshWSTree(uiManager)
-        setTreeDefaults(uiManager)
+        refreshWSTree(mainManager)
+        setTreeDefaults(mainManager)
     }
 
-    private fun attachMouseListener(uiManager: UIManager) {
+    private fun attachMouseListener(mainManager: MainManager) {
         projectButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 CoroutineScope(Dispatchers.Main).launch {
-                    val file = COptionPane.showDirectoryChooser(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, this@FileTree, "Workspace").await()
+                    val file = COptionPane.showDirectoryChooser(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, this@FileTree, "Workspace").await()
                     file?.let {
-                        uiManager.setCurrWS(file.absolutePath)
+                        mainManager.setCurrWS(file.absolutePath)
                     }
                 }
             }
         })
     }
 
-    private fun refreshWSTree(uiManager: UIManager) {
-        content.setViewportView(uiManager.currWS().tree)
+    private fun refreshWSTree(mainManager: MainManager) {
+        content.setViewportView(mainManager.currWS().tree)
         content.revalidate()
         content.repaint()
     }
 
-    private fun setTreeDefaults(uiManager: UIManager) {
-        projectButton.foreground = uiManager.currTheme().textLaF.base
+    private fun setTreeDefaults(mainManager: MainManager) {
+        projectButton.foreground = mainManager.currTheme().textLaF.base
         projectButton.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
         layout = BorderLayout()
