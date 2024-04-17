@@ -1,14 +1,12 @@
 package me.c3.ui.styled
 
-import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import com.formdev.flatlaf.ui.FlatRootPaneUI
-import com.formdev.flatlaf.ui.FlatTextPaneUI
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
 import me.c3.ui.theme.icons.ProSimIcons
@@ -110,7 +108,7 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
     inner class TitleBar : CPanel(themeManager, scaleManager, primary = false, BorderMode.SOUTH) {
 
         val logoButton = CIconButton(themeManager, scaleManager, icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
-        val titleLabel = CLabel(themeManager, scaleManager, title)
+        val titleLabel = CLabel(themeManager, scaleManager, title, FontType.BASIC)
         val minimizeButton = CIconButton(themeManager, scaleManager, icons.minimize, CIconButton.Mode.SECONDARY_SMALL)
         val maximizeButton = CIconButton(themeManager, scaleManager, icons.maximize, CIconButton.Mode.SECONDARY_SMALL)
         val closeButton = CIconButton(themeManager, scaleManager, icons.close, CIconButton.Mode.SECONDARY_SMALL)

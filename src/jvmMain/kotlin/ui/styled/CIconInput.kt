@@ -4,17 +4,16 @@ import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import javax.swing.text.AbstractDocument
-import javax.swing.text.AttributeSet
-import javax.swing.text.DocumentFilter
 
-class CIconInput(themeManager: ThemeManager, scaleManager: ScaleManager, icon: FlatSVGIcon, fieldType: CTextFieldUI.Type, primary: Boolean = false) : CPanel(themeManager, scaleManager, primary, roundCorners = true, borderMode = BorderMode.BASIC) {
+class CIconInput(themeManager: ThemeManager, scaleManager: ScaleManager, icon: FlatSVGIcon, fontType: FontType, primary: Boolean = false) : CPanel(themeManager, scaleManager, primary, roundCorners = true, borderMode = BorderMode.BASIC) {
 
     val button = CIconButton(themeManager, scaleManager, icon)
-    val input = CTextField(themeManager, scaleManager, fieldType).apply {
+    val input = CTextField(themeManager, scaleManager, fontType).apply {
     }
 
     init {

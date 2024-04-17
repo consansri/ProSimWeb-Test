@@ -3,10 +3,11 @@ package me.c3.ui.components.controls.buttons
 import emulator.Link
 import me.c3.ui.UIManager
 import me.c3.ui.styled.CComboBox
+import me.c3.ui.styled.params.FontType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 
-class ArchSwitch(uiManager: UIManager) : CComboBox<Link>(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, Link.entries.toTypedArray()) {
+class ArchSwitch(uiManager: UIManager) : CComboBox<Link>(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, Link.entries.toTypedArray(), FontType.TITLE) {
 
     init {
         this.addActionListener(ArchSelectorListener(uiManager))

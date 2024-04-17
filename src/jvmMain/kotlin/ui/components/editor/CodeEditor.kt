@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.*
 import me.c3.ui.styled.CAdvancedTabPane
+import me.c3.ui.styled.params.FontType
 import java.io.File
 import javax.swing.*
 
@@ -49,7 +50,7 @@ class CodeEditor(private val uiManager: UIManager) : CAdvancedTabPane(uiManager.
 
         val editPanel = ProSimEditor(uiManager, editorFile)
         panels.add(editPanel)
-        addTab(CLabel(uiManager.themeManager, uiManager.scaleManager, file.getName()), editPanel) { e, tab ->
+        addTab(CLabel(uiManager.themeManager, uiManager.scaleManager, file.getName(), FontType.BASIC), editPanel) { e, tab ->
             when (e) {
                 ClosableTab.Event.LOSTFOCUS -> {}
                 ClosableTab.Event.CLOSE -> {

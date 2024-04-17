@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import me.c3.ui.Workspace
 import me.c3.ui.components.styled.*
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.*
@@ -28,8 +29,8 @@ class COptionPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JOpt
 
             val cDialog = CDialog(themeManager, scaleManager, parent)
             val cPanel = CPanel(themeManager, scaleManager, primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel(themeManager, scaleManager, message)
-            val cTextArea = CTextField(themeManager, scaleManager, mode = CTextFieldUI.Type.TEXT)
+            val cLabel = CLabel(themeManager, scaleManager, message, FontType.BASIC)
+            val cTextArea = CTextField(themeManager, scaleManager, FontType.BASIC)
 
             cTextArea.addKeyListener(object : KeyAdapter() {
                 override fun keyReleased(e: KeyEvent?) {
@@ -82,21 +83,21 @@ class COptionPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JOpt
                 // Scrollable Tree View
                 val root = DefaultMutableTreeNode("root")
                 val treeModel = DefaultTreeModel(root)
-                val tree = CTree(themeManager, scaleManager, icons, treeModel)
+                val tree = CTree(themeManager, scaleManager, icons, treeModel, FontType.BASIC)
                 val cScrollPane = CScrollPane(themeManager, scaleManager, false)
                 cScrollPane.setViewportView(tree)
                 cScrollPane.size = Dimension(300, 300)
 
                 // Title Label
-                val titleLabel = CLabel(themeManager, scaleManager, message)
+                val titleLabel = CLabel(themeManager, scaleManager, message, FontType.TITLE)
                 titleLabel.horizontalAlignment = SwingConstants.CENTER
 
                 // Current Path Identificator
-                val currPathTextField = CTextField(themeManager, scaleManager, CTextFieldUI.Type.TEXT)
+                val currPathTextField = CTextField(themeManager, scaleManager, FontType.BASIC)
                 currPathTextField.isEditable = false
 
                 // Select Button
-                val selectButton = CTextButton(themeManager, scaleManager, "select")
+                val selectButton = CTextButton(themeManager, scaleManager, "select", FontType.BASIC)
 
                 // Content Panel
                 val cPanel = CPanel(themeManager, scaleManager, primary = false, isOverlay = true, roundCorners = true)

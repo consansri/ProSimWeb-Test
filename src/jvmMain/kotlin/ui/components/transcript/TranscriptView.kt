@@ -11,6 +11,8 @@ import me.c3.ui.styled.CTable
 import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.CVerticalLabel
+import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -36,7 +38,7 @@ class TranscriptView(uiManager: UIManager) : CPanel(uiManager.themeManager, uiMa
         minimumSize = Dimension(0, 0)
     }
 
-    val label = CVerticalLabel(uiManager.themeManager, uiManager.scaleManager, "compile transcript")
+    val label = CVerticalLabel(uiManager.themeManager, uiManager.scaleManager, "compile transcript", FontType.CODE)
 
     // MainComponents
     val labelPane = CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false, borderMode = BorderMode.EAST).apply {

@@ -1,14 +1,13 @@
 package me.c3.ui.styled
 
-import me.c3.ui.components.styled.CLabel
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.plaf.basic.BasicLabelUI
 
-class CVerticalLabelUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean, private val clockwise: Boolean = true) : BasicLabelUI() {
+class CVerticalLabelUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean, private val fontType: FontType, private val clockwise: Boolean = true) : BasicLabelUI() {
 
     private var paintIconR = Rectangle()
     private var paintTextR = Rectangle()
@@ -32,7 +31,7 @@ class CVerticalLabelUI(private val themeManager: ThemeManager, private val scale
     }
 
     private fun setDefaults(cLabel: CVerticalLabel) {
-        cLabel.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        cLabel.font = fontType.getFont(themeManager, scaleManager)
         cLabel.border = scaleManager.curr.borderScale.getInsetBorder()
         cLabel.foreground = if(primary) themeManager.curr.textLaF.base else themeManager.curr.textLaF.baseSecondary
         cLabel.repaint()

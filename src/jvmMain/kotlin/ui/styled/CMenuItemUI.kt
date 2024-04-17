@@ -1,6 +1,7 @@
 package me.c3.ui.styled
 
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.Color
 import java.awt.Graphics
@@ -10,7 +11,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicMenuItemUI
 
-class CMenuItemUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicMenuItemUI() {
+class CMenuItemUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val fontType: FontType) : BasicMenuItemUI() {
 
     private var cornerRadius = scaleManager.curr.controlScale.cornerRadius
     private var hoverBackground = themeManager.curr.iconLaF.iconBgHover
@@ -35,7 +36,7 @@ class CMenuItemUI(private val themeManager: ThemeManager, private val scaleManag
         cornerRadius = scaleManager.curr.controlScale.cornerRadius
         item.isOpaque = false
         item.background = Color(0, 0, 0, 0)
-        item.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        item.font = fontType.getFont(themeManager, scaleManager)
         item.foreground = themeManager.curr.textLaF.base
         item.border = BorderFactory.createEmptyBorder()
         selectionBackground = Color(0,0,0,0)

@@ -1,18 +1,17 @@
 package me.c3.ui.styled
 
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.AbstractButton
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
 
-class CTextButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager): BasicButtonUI() {
+class CTextButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val fontType: FontType): BasicButtonUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -52,7 +51,7 @@ class CTextButtonUI(private val themeManager: ThemeManager, private val scaleMan
         val currTheme = themeManager.curr
         val currScale = scaleManager.curr
         button.border = scaleManager.curr.borderScale.getInsetBorder()
-        button.font = currTheme.textLaF.getTitleFont().deriveFont(currScale.fontScale.titleSize)
+        button.font = fontType.getFont(themeManager, scaleManager)
         button.foreground = if (button.primary) currTheme.textLaF.base else currTheme.textLaF.baseSecondary
         button.background = Color(0, 0, 0, 0)
         button.repaint()

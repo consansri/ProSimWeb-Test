@@ -8,6 +8,7 @@ import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.styled.COptionPane
+import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.FlowLayout
@@ -18,7 +19,7 @@ import javax.swing.BorderFactory
 import javax.swing.JFileChooser
 
 class FileTree(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, true) {
-    private val projectButton = CTextButton(uiManager.themeManager, uiManager.scaleManager, "Project")
+    private val projectButton = CTextButton(uiManager.themeManager, uiManager.scaleManager, "Project", FontType.TITLE)
     private val title = CPanel(uiManager.themeManager, uiManager.scaleManager, false)
     private val content = CScrollPane(uiManager.themeManager, uiManager.scaleManager, false)
 

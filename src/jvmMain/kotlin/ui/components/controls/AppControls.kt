@@ -9,6 +9,8 @@ import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
+import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.styled.params.FontType
 import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JFrame
@@ -59,7 +61,7 @@ class AppControls(baseFrame: BaseFrame, uiManager: UIManager) : CPanel(uiManager
         }
     }
 
-    class FeatureSwitch(private val feature: Feature, uiManager: UIManager) : CToggleButton(uiManager.themeManager, uiManager.scaleManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL) {
+    class FeatureSwitch(private val feature: Feature, uiManager: UIManager) : CToggleButton(uiManager.themeManager, uiManager.scaleManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC) {
 
         private var switchingFeatures = false
 

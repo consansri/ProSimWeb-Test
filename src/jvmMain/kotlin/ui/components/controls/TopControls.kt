@@ -5,6 +5,7 @@ import me.c3.ui.components.controls.buttons.ArchSwitch
 import me.c3.ui.components.controls.buttons.ThemeSwitch
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.styled.ColouredPanel
+import me.c3.ui.styled.params.BorderMode
 import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JComponent

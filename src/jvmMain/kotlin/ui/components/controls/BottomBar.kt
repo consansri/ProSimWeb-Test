@@ -4,6 +4,7 @@ import emulator.kit.assembly.Compiler
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
+import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.nio.file.Path
@@ -12,9 +13,9 @@ import javax.swing.SwingConstants
 
 class BottomBar(private val uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager) {
 
-    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "Back to work? :D")
-    val editorInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "")
-    val generalPurpose = CLabel(uiManager.themeManager,uiManager.scaleManager, "")
+    val tagInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "Back to work? :D", FontType.BASIC)
+    val editorInfo = CLabel(uiManager.themeManager, uiManager.scaleManager, "", FontType.CODE)
+    val generalPurpose = CLabel(uiManager.themeManager,uiManager.scaleManager, "", FontType.CODE)
 
     init {
         layout = GridBagLayout()

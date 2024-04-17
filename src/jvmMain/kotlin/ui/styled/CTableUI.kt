@@ -1,28 +1,21 @@
 package me.c3.ui.styled
 
 import emulator.kit.common.Memory
-import me.c3.ui.UIManager
-import me.c3.ui.components.styled.CIconButton
-import me.c3.ui.components.styled.CLabel
-import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.borders.DirectionalBorder
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.Color
 import java.awt.Component
-import java.awt.Dimension
 import javax.swing.BorderFactory
 import javax.swing.DefaultCellEditor
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.JTextField
 import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
 import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellEditor
-import javax.swing.table.TableCellRenderer
 
 class CTableUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean) : BasicTableUI() {
 
@@ -75,7 +68,7 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
 
             border = BorderFactory.createEmptyBorder()
             background = bg
-            font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)
+            font = FontType.DATA.getFont(themeManager, scaleManager)
             border = DirectionalBorder(themeManager, scaleManager)
             border = scaleManager.curr.borderScale.getInsetBorder()
 
@@ -94,7 +87,7 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
             border = BorderFactory.createEmptyBorder()
             foreground = if (value is Memory.MemInstance) themeManager.curr.dataLaF.getMemInstanceColor(value.mark) else fg
             background = bg
-            font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)
+            font = FontType.DATA.getFont(themeManager, scaleManager)
             border = DirectionalBorder(themeManager, scaleManager)
             border = scaleManager.curr.borderScale.getInsetBorder()
 
@@ -103,7 +96,7 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
 
     }
 
-    inner class CCellEditor : DefaultCellEditor(CTextField(themeManager, scaleManager, CTextFieldUI.Type.DATA)), TableCellEditor {
+    inner class CCellEditor : DefaultCellEditor(CTextField(themeManager, scaleManager, FontType.CODE)), TableCellEditor {
         init {
             (editorComponent as? CTextField)?.horizontalAlignment = JTextField.CENTER
         }
@@ -131,7 +124,7 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
         header.resizingAllowed = false
         header.background = themeManager.curr.globalLaF.bgPrimary
         header.foreground = themeManager.curr.textLaF.baseSecondary
-        header.font = themeManager.curr.textLaF.getTitleFont().deriveFont(scaleManager.curr.fontScale.dataSize)
+        header.font = FontType.DATA.getFont(themeManager, scaleManager)
         header.defaultRenderer = CHeaderRenderer(!primary)
         //header.resizingAllowed = false
         header.reorderingAllowed = false

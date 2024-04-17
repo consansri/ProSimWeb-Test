@@ -1,13 +1,14 @@
 package me.c3.ui.styled
 
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPopupMenuUI
 
-class CPopupMenuUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicPopupMenuUI() {
+class CPopupMenuUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val fontType: FontType) : BasicPopupMenuUI() {
 
     private var cornerRadius = scaleManager.curr.controlScale.cornerRadius
     private var borderColor = themeManager.curr.globalLaF.borderColor
@@ -37,7 +38,7 @@ class CPopupMenuUI(private val themeManager: ThemeManager, private val scaleMana
         cPopupMenu.isOpaque = false
         cPopupMenu.background = Color(0, 0, 0, 0)
         cPopupMenu.foreground = themeManager.curr.textLaF.base
-        cPopupMenu.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        cPopupMenu.font = fontType.getFont(themeManager, scaleManager)
         cPopupMenu.border = BorderFactory.createEmptyBorder()
     }
 

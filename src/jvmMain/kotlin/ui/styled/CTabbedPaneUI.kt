@@ -1,8 +1,8 @@
 package me.c3.ui.styled
 
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CTabbedPane
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -11,7 +11,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTabbedPaneUI
 
-class CTabbedPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean) : BasicTabbedPaneUI() {
+class CTabbedPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean, private val fontType: FontType) : BasicTabbedPaneUI() {
 
     private var selectedColor = themeManager.curr.globalLaF.borderColor
 
@@ -35,7 +35,7 @@ class CTabbedPaneUI(private val themeManager: ThemeManager, private val scaleMan
         pane.background = if (primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
         pane.foreground = themeManager.curr.textLaF.base
         selectedColor = themeManager.curr.globalLaF.borderColor
-        pane.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        pane.font = fontType.getFont(themeManager, scaleManager)
         pane.repaint()
     }
 

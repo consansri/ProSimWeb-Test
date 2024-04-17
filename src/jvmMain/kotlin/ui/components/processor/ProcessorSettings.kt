@@ -5,6 +5,7 @@ import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
+import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.SwingUtilities
@@ -13,8 +14,8 @@ class ProcessorSettings(uiManager: UIManager, processorView: ProcessorView) : CP
 
     val increaseRegViews = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.splitCells)
     val decreaseRegViews = CIconButton(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.combineCells)
-    val filler = CLabel(uiManager.themeManager, uiManager.scaleManager, "")
-    val pcLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, "")
+    val filler = CLabel(uiManager.themeManager, uiManager.scaleManager, "", FontType.BASIC)
+    val pcLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, "", FontType.CODE)
 
     init {
         attachListeners(uiManager, processorView)

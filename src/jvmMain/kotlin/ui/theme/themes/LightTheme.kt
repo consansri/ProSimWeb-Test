@@ -1,7 +1,6 @@
 package me.c3.ui.theme.themes
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import emulator.kit.nativeLog
 import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.core.style.*
 import me.c3.ui.theme.icons.ProSimIcons
@@ -11,7 +10,7 @@ class LightTheme(icons: ProSimIcons) : Theme {
     override val name: String = "light"
     override val icon: FlatSVGIcon = icons.lightmode
 
-    override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/ttf/JetBrainsMono-Regular.ttf"), ">", Color(0x3399FF)) {
+    override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"), ">", Color(0x3399FF)) {
         if (it == null) return@CodeLaF Color(0x222222)
         return@CodeLaF Color(it.lightHexColor)
     }
@@ -30,8 +29,8 @@ class LightTheme(icons: ProSimIcons) : Theme {
         Color(0x222222),
         Color(0xAAAAAA),
         Color(0xBBBBBB),
-        loadFont("fonts/ttf/JetBrainsMono-Light.ttf"),
-        loadFont("fonts/ttf/JetBrainsMono-Bold.ttf")
+        loadFont("fonts/Roboto/Roboto-Regular.ttf"),
+        loadFont("fonts/Roboto/Roboto-Light.ttf")
     )
     override val exeStyle: ExeLaF = ExeLaF(
         continuous = Color(0x19A744),

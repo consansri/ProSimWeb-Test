@@ -1,9 +1,10 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.UIManager
 import me.c3.ui.components.styled.*
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.BorderLayout
@@ -11,10 +12,7 @@ import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.BorderFactory
 import javax.swing.SwingConstants
-import javax.swing.text.SimpleAttributeSet
-import javax.swing.text.StyleConstants
 
 open class CAdvancedTabPane(
     private val themeManager: ThemeManager,
@@ -26,7 +24,7 @@ open class CAdvancedTabPane(
     emptyMessage: String = ""
 ) : CPanel(themeManager, scaleManager, primary, borderMode) {
 
-    private val emptyField = CLabel(themeManager, scaleManager, emptyMessage).apply {
+    private val emptyField = CLabel(themeManager, scaleManager, emptyMessage, FontType.CODE).apply {
         alignmentX = CENTER_ALIGNMENT
         alignmentY = CENTER_ALIGNMENT
         horizontalAlignment = SwingConstants.CENTER

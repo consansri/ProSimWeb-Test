@@ -10,6 +10,7 @@ import me.c3.ui.components.styled.CTree
 import me.c3.ui.styled.CMenuItem
 import me.c3.ui.styled.COptionPane
 import me.c3.ui.styled.CPopupMenu
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -28,7 +29,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
     init {
         buildFileTree(rootDir, rootNode)
 
-        tree = CTree(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, treeModel)
+        tree = CTree(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, treeModel, FontType.BASIC)
 
         tree.addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {
@@ -53,7 +54,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
                             codeEditor.openFile(uobj.file)
                         }
                     }
-                    uiManager.bBar.tagInfo.text = getFileWithProjectPath(uobj.file)
+                    uiManager.bBar.tagInfo.text = getFileWithProjectPath(uobj.file).formatPathForDrawing()
                 }
             }
         })
@@ -64,6 +65,8 @@ class Workspace(private val path: String, codeEditor: CodeEditor, uiManager: UIM
     fun getFileWithProjectPath(file: File): String {
         return rootDir.name + file.path.removePrefix(rootDir.path)
     }
+
+    fun String.formatPathForDrawing(): String = this.replace("/", " > ").replace("\\", " > ").replace(":", "")
 
     fun getAllFiles(): List<File> {
         return getAllFiles(rootDir)

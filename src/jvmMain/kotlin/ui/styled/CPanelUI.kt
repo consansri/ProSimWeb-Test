@@ -3,6 +3,7 @@ package me.c3.ui.styled
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.borders.DirectionalBorder
+import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.*
@@ -30,15 +31,7 @@ class CPanelUI(private val themeManager: ThemeManager, private val scaleManager:
 
     private fun setDefaults(cPanel: CPanel) {
         cPanel.background = Color(0, 0, 0, 0)
-        cPanel.border = when (cPanel.borderMode) {
-            CPanel.BorderMode.INSET -> scaleManager.curr.borderScale.getInsetBorder()
-            CPanel.BorderMode.BASIC -> scaleManager.curr.borderScale.getThicknessBorder()
-            CPanel.BorderMode.NORTH -> DirectionalBorder(themeManager, scaleManager, north = true)
-            CPanel.BorderMode.SOUTH -> DirectionalBorder(themeManager, scaleManager, south = true)
-            CPanel.BorderMode.WEST -> DirectionalBorder(themeManager, scaleManager, west = true)
-            CPanel.BorderMode.EAST -> DirectionalBorder(themeManager, scaleManager, east = true)
-            CPanel.BorderMode.NONE -> BorderFactory.createEmptyBorder()
-        }
+        cPanel.border = cPanel.borderMode.getBorder(themeManager, scaleManager)
 
         if (cPanel.isOverlay) {
             cPanel.border = scaleManager.curr.borderScale.getInsetBorder()

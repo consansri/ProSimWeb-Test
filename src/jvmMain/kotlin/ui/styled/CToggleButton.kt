@@ -1,12 +1,11 @@
 package me.c3.ui.styled
 
-import me.c3.ui.UIManager
-import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JButton
 
-open class CToggleButton(themeManager: ThemeManager, scaleManager: ScaleManager, initialText: String, toggleSwitchType: CToggleButtonUI.ToggleSwitchType) : JButton() {
+open class CToggleButton(themeManager: ThemeManager, scaleManager: ScaleManager, initialText: String, toggleSwitchType: CToggleButtonUI.ToggleSwitchType, fontType: FontType) : JButton() {
 
     var isDeactivated = false
         set(value) {
@@ -23,7 +22,7 @@ open class CToggleButton(themeManager: ThemeManager, scaleManager: ScaleManager,
         }
 
     init {
-        setUI(CToggleButtonUI(themeManager, scaleManager, toggleSwitchType))
+        setUI(CToggleButtonUI(themeManager, scaleManager, toggleSwitchType, fontType))
         text = initialText
     }
 

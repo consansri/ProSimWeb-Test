@@ -1,13 +1,13 @@
 package me.c3.ui.styled
 
-import me.c3.ui.UIManager
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
 
-class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val toggleSwitchType: ToggleSwitchType) : BasicButtonUI() {
+class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val toggleSwitchType: ToggleSwitchType, private val fontType: FontType) : BasicButtonUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -30,7 +30,7 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
         button.isContentAreaFilled = false
         button.isFocusPainted = false
         button.isFocusable = false
-        button.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        button.font = fontType.getFont(themeManager, scaleManager)
         button.border = when (toggleSwitchType) {
             ToggleSwitchType.SMALL -> scaleManager.curr.controlScale.getSmallInsetBorder()
             ToggleSwitchType.NORMAL -> scaleManager.curr.controlScale.getNormalInsetBorder()

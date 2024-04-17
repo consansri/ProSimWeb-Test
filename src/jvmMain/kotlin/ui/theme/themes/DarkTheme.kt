@@ -10,7 +10,7 @@ class DarkTheme(icons: ProSimIcons) : Theme {
     override val name: String = "dark"
     override val icon: FlatSVGIcon = icons.darkmode
 
-    override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/ttf/JetBrainsMono-Regular.ttf"), ">", Color(0x777777)) {
+    override val codeLaF: CodeLaF = CodeLaF(loadFont("fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"), ">", Color(0x777777)) {
         if (it == null) return@CodeLaF Color(0xEEEEEE)
         return@CodeLaF Color(it.getDarkElseLight())
     }
@@ -40,9 +40,8 @@ class DarkTheme(icons: ProSimIcons) : Theme {
         Color(0xEEEEEE),
         Color(0x777777),
         Color(0x777777),
-
-        loadFont("fonts/ttf/JetBrainsMono-Light.ttf"),
-        loadFont("fonts/ttf/JetBrainsMono-Bold.ttf")
+        loadFont("fonts/Roboto/Roboto-Regular.ttf"),
+        loadFont("fonts/Roboto/Roboto-Light.ttf")
     )
 
     override val exeStyle: ExeLaF = ExeLaF(

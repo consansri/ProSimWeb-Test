@@ -9,6 +9,8 @@ import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CTable
+import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.styled.params.FontType
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BoxLayout
@@ -93,7 +95,7 @@ class RegisterView(private val uiManager: UIManager) : CPanel(uiManager.themeMan
         val cTabbedPane = CAdvancedTabPane(uiManager.themeManager, uiManager.scaleManager, uiManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
         uiManager.currArch().getAllRegFiles().forEach {
-            val tabLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, it.name)
+            val tabLabel = CLabel(uiManager.themeManager, uiManager.scaleManager, it.name, FontType.BASIC)
             if (it.getRegisters(uiManager.currArch().getAllFeatures()).isNotEmpty()) {
                 val regFileTable = RegFileTable(uiManager, it) {
                     updateAllValues()

@@ -1,26 +1,21 @@
 package me.c3.ui.styled
 
-import com.formdev.flatlaf.extras.FlatSVGIcon
-import emulator.kit.nativeLog
-import me.c3.ui.UIManager
 import me.c3.ui.Workspace
 import me.c3.ui.components.styled.CTree
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JTree
-import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
-import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
-import kotlin.math.exp
 
-class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons) : BasicTreeUI() {
+class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons, private val fontType: FontType) : BasicTreeUI() {
     var selectedColor: Color = themeManager.curr.globalLaF.bgPrimary
         set(value) {
             field = value
@@ -49,7 +44,8 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
         selectedColor = themeManager.curr.globalLaF.borderColor
         tree.background = themeManager.curr.globalLaF.bgSecondary
         tree.foreground = themeManager.curr.textLaF.base
-        tree.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        tree.font = fontType.getFont(themeManager, scaleManager)
+        tree.border = scaleManager.curr.borderScale.getInsetBorder()
         tree.repaint()
     }
 
@@ -90,6 +86,7 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
             this.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
             this.textNonSelectionColor = themeManager.curr.textLaF.base
             this.textSelectionColor = themeManager.curr.textLaF.selelected
+            this.border = scaleManager.curr.controlScale.getNormalInsetBorder()
         }
 
         override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {

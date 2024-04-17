@@ -5,6 +5,7 @@ import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTextPane
+import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 
 class Console(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.scaleManager, primary = false) {
@@ -24,7 +25,7 @@ class Console(uiManager: UIManager) : CPanel(uiManager.themeManager, uiManager.s
     private fun connectChildren(uiManager: UIManager) {
         layout = BorderLayout()
 
-        topBar.add(CLabel(uiManager.themeManager,uiManager.scaleManager, "Console"))
+        topBar.add(CLabel(uiManager.themeManager,uiManager.scaleManager, "Console", FontType.TITLE))
 
         add(topBar, BorderLayout.NORTH)
         add(contentPane, BorderLayout.CENTER)

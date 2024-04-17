@@ -3,6 +3,7 @@ package me.c3.ui.styled
 import me.c3.ui.UIManager
 import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.*
@@ -13,7 +14,7 @@ import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxUI
 
-class CComboBoxUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons) : BasicComboBoxUI() {
+class CComboBoxUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons, private val fontType: FontType) : BasicComboBoxUI() {
 
     var isHovered: Boolean = false
         set(value) {
@@ -50,7 +51,7 @@ class CComboBoxUI(private val themeManager: ThemeManager, private val scaleManag
     }
 
     private fun setDefaults(pane: CComboBox<*>) {
-        pane.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+        pane.font = fontType.getFont(themeManager, scaleManager)
         pane.foreground = themeManager.curr.textLaF.base
         pane.renderer = CComboBoxRenderer(themeManager, scaleManager)
         pane.repaint()

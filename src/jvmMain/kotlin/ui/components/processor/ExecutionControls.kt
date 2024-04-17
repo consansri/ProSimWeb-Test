@@ -7,6 +7,8 @@ import me.c3.ui.components.styled.CPanel
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CIconInput
 import me.c3.ui.styled.CTextFieldUI
+import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
 import java.awt.GridLayout
@@ -29,7 +31,7 @@ class ExecutionControls(uiManager: UIManager) : CPanel(uiManager.themeManager, u
             uiManager.eventManager.triggerExeEvent()
         }
     }
-    val mStep = CIconInput(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.stepMultiple, CTextFieldUI.Type.TEXT).apply {
+    val mStep = CIconInput(uiManager.themeManager, uiManager.scaleManager, uiManager.icons.stepMultiple, FontType.BASIC).apply {
         val inputRegex = Regex("\\d+")
         input.text = 10.toString()
         button.addActionListener {
