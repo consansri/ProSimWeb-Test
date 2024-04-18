@@ -15,10 +15,7 @@ import javax.swing.plaf.basic.BasicButtonUI
 open class CIconButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicButtonUI() {
 
     var cornerRadius = scaleManager.curr.controlScale.cornerRadius
-
-    companion object {
-        val HOVER_COLOR = Color(0x55777777, true)
-    }
+    var hoverColor = themeManager.curr.iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -45,7 +42,7 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
         button.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
                 if (!button.isDeactivated) {
-                    button.background = HOVER_COLOR
+                    button.background = hoverColor
                 }
             }
 
@@ -57,6 +54,7 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
 
     fun setDefaults(cIconButton: CIconButton) {
         cornerRadius = scaleManager.curr.controlScale.cornerRadius
+        hoverColor = themeManager.curr.iconLaF.iconBgHover
         val inset = getInset(cIconButton)
         cIconButton.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
         updateIcon(cIconButton)

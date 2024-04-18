@@ -512,7 +512,8 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
         // Check duplicates
         val seenNames = mutableSetOf<String>()
-        for (label in labels) {
+        val bufferedLabels = ArrayList(labels)
+        for (label in bufferedLabels) {
             if (!seenNames.add(label.nameString)) {
                 errors.add(Error("Label (${label.nameString}) already in use!", label))
                 this.remove(label)
@@ -533,7 +534,8 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         }
 
         val instrs = this.filterIsInstance<EInstr>()
-        for (instr in instrs) {
+        val bufferedInstrs = ArrayList(instrs)
+        for (instr in bufferedInstrs) {
             val valid = instr.link(labels, errors, instrParamsCanContainWordsBesideLabels)
             if (!valid) {
                 this.remove(instr)

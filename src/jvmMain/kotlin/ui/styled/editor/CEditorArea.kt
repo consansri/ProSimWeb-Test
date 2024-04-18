@@ -578,7 +578,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
         debounceJob = highlighterScope.launch {
             delay(debounceJobInterval)
 
-            val newStyled = highlighter?.highlight(styledText.joinToString("") { it.content.toString() }) ?: return@launch
+            val contentToHighlight = ArrayList(styledText)
+            val newStyled = highlighter?.highlight(contentToHighlight.joinToString("") { it.content.toString() }) ?: return@launch
             if (styledText.size == newStyled.size) {
                 styledText.clear()
                 styledText.addAll(newStyled)

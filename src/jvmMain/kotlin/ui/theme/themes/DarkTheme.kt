@@ -26,19 +26,19 @@ class DarkTheme(icons: ProSimIcons) : Theme {
 
     override val globalLaF: GlobalLaF = GlobalLaF(
         bgPrimary = Color(0x222222),
-        bgSecondary = Color(0x313131),
+        bgSecondary = Color(0x373737),
         bgOverlay = Color(0x222222),
         borderColor = Color(0x777777)
     )
 
     override val iconLaF: IconLaF = IconLaF(
-        iconFgPrimary = Color(0xEEEEEE),
+        iconFgPrimary = Color(0xD5D5D5),
         iconFgSecondary = Color(0xAAAAAA),
-        iconBgHover = Color(0x33777777, true),
-        iconBgActive = Color(0x77777777, true)
+        iconBgHover = Color(0x30777777, true),
+        iconBgActive = Color(0x50777777, true)
     )
     override val textLaF: TextLaF = TextLaF(
-        base = Color(0xEEEEEE),
+        base = Color(0xD5D5D5),
         baseSecondary = Color(0x777777),
         selected = Color(0x777777),
         font = loadFont("fonts/Roboto/Roboto-Regular.ttf"),

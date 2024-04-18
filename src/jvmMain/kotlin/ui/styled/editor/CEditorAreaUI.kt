@@ -103,7 +103,7 @@ class CEditorAreaUI(
         }
 
         // Render styled characters
-        for ((i, char) in editor.getStyledText().withIndex()) {
+        for ((i, char) in  ArrayList(editor.getStyledText()).withIndex()) {
             val style = char.style
             val charWidth = fm.charWidth(char.content)
 
