@@ -168,7 +168,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
                 setState(props.archState.component1().getState().currentState)
             }
-            if (analysisTime.inWholeMilliseconds <= Constants.EDITOR_MAX_ANALYSIS_MILLIS) {
+            if (analysisTime.inWholeMilliseconds <= Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
                 setLowPerformanceMode(false)
             }
         }, 0)
@@ -192,10 +192,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
                     setState(props.archState.component1().getState().currentState)
                 }
-                if (analysisTime.inWholeMilliseconds > Constants.EDITOR_MAX_ANALYSIS_MILLIS) {
+                if (analysisTime.inWholeMilliseconds > Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
                     setLowPerformanceMode(true)
                     props.archState.component1().getConsole()
-                        .compilerInfo("Automatic syntax analysis disabled cause last analysis took more than ${Constants.EDITOR_MAX_ANALYSIS_MILLIS}ms!\nBuild the project to recheck performance. If analysis time improved automatic syntax analysis will be reactivated.")
+                        .compilerInfo("Automatic syntax analysis disabled cause last analysis took more than ${Settings.EDITOR_MAX_ANALYSIS_MILLIS}ms!\nBuild the project to recheck performance. If analysis time improved automatic syntax analysis will be reactivated.")
                 }
             }, delay)
         }

@@ -2,9 +2,7 @@ import react.create
 import react.dom.client.createRoot
 import web.dom.*
 import debug.DebugTools
-import io.nacular.doodle.core.Internal
 
-@OptIn(Internal::class)
 fun main() {
     if (DebugTools.REACT_showUpdateInfo) {
         console.log("Init Client")

@@ -22,7 +22,7 @@ import java.util.Stack
 import javax.swing.JComponent
 import kotlin.time.measureTime
 
-class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val location: Location) : JComponent() {
+class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
 
     // Current State
     private val styledText: MutableList<StyledChar> = mutableListOf()
@@ -60,8 +60,6 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     // State History
     private val textStateHistory = Stack<List<StyledChar>>()
     private val undoneTextStateHistory = Stack<List<StyledChar>>()
-    private val maxStackSize = 30
-    private val stackQueryInterval: Long = 500
     private var lastSave: Long = 0
 
     // Caret
@@ -168,7 +166,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 // POP Last State if it is younger than stackQueryInterval
                 val currStateTime = System.currentTimeMillis()
                 val timeDiff = currStateTime - lastSave
-                if (timeDiff <= stackQueryInterval) {
+                if (timeDiff <= stackQueryMillis) {
                     textStateHistory.pop()
                 }
             }

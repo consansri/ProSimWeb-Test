@@ -1,12 +1,13 @@
 package me.c3.ui.components.editor
 
+import Settings
 import emulator.kit.assembly.Compiler
 import me.c3.emulator.kit.toStyledText
 import me.c3.ui.MainManager
 import me.c3.ui.styled.editor.*
 import javax.swing.SwingUtilities
 
-class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager), Highlighter, InfoLogger {
+class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger {
     init {
         fileInterface = editorFile
         highlighter = this

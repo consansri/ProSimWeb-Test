@@ -71,18 +71,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(kotlin("reflect"))
+                //implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-
-                // Doodle
-                implementation("io.nacular.doodle:core:$doodleVersion")
-                implementation("io.nacular.doodle:browser:$doodleVersion")
-
-                // Optional
-                implementation("io.nacular.doodle:controls:$doodleVersion")
-                implementation("io.nacular.doodle:animation:$doodleVersion")
-                implementation("io.nacular.doodle:themes:$doodleVersion")
             }
         }
 

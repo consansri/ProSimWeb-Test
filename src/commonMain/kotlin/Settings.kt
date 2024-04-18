@@ -13,19 +13,24 @@ object Settings {
 
     // FILEHANDLER
     /**
-     * [UNDO_STATE_COUNT] defines the amount of undo states which can be held until the first state will be removed.
+     * [UNDO_STATE_MAX] defines the amount of undo states which can be held until the first state will be removed.
      */
-    const val UNDO_STATE_COUNT = 32
+    const val UNDO_STATE_MAX = 32
 
     /**
-     * [REDO_STATE_COUNT] defines the amount of redo states which can be held until the first state will be removed.
+     * [REDO_STATE_MAX] defines the amount of redo states which can be held until the first state will be removed.
      */
-    const val REDO_STATE_COUNT = 32
+    const val REDO_STATE_MAX = 32
 
     /**
      * [UNDO_DELAY_MILLIS] define the time of no edit which is needed to define a new undo state.
      */
     const val UNDO_DELAY_MILLIS = 1000L
+
+    /**
+     * [EDITOR_MAX_ANALYSIS_MILLIS] defines the time which will be waited after the last edit before the syntax will be checked.
+     */
+    const val EDITOR_MAX_ANALYSIS_MILLIS = 2000
 
     // COMPILER
     /**

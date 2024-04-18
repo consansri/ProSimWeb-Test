@@ -3,7 +3,6 @@ package emulator.kit.optional
 import Coroutines
 import debug.DebugTools
 import emulator.kit.assembly.Compiler
-import emulator.kit.assembly.Syntax
 import emulator.kit.loadFiles
 import emulator.kit.nativeWarn
 import emulator.kit.updateFiles
@@ -141,7 +140,7 @@ class FileHandler() {
         fun undo() {
             if (undoStates.isNotEmpty()) {
                 this.redoStates.add(0, this.content)
-                if (this.redoStates.size > Settings.REDO_STATE_COUNT) {
+                if (this.redoStates.size > Settings.REDO_STATE_MAX) {
                     this.redoStates.removeLast()
                 }
                 undoStates.removeFirst()
@@ -152,7 +151,7 @@ class FileHandler() {
         fun redo() {
             if (redoStates.isNotEmpty()) {
                 this.undoStates.add(0, this.content)
-                if (this.undoStates.size > Settings.UNDO_STATE_COUNT) {
+                if (this.undoStates.size > Settings.UNDO_STATE_MAX) {
                     this.undoStates.removeLast()
                 }
                 this.content = redoStates.first()
@@ -180,7 +179,7 @@ class FileHandler() {
             job = Coroutines.setTimeout(Settings.UNDO_DELAY_MILLIS) {
                 try {
                     undoStates.add(0, content)
-                    if (undoStates.size > Settings.UNDO_STATE_COUNT) {
+                    if (undoStates.size > Settings.UNDO_STATE_MAX) {
                         undoStates.removeLast()
                     }
                     fileHandler.refreshLocalStorage(true)
