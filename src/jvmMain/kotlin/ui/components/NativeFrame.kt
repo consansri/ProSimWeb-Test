@@ -1,5 +1,6 @@
 package ui.components
 
+import me.c3.ui.ArchManager
 import me.c3.ui.MainManager
 import me.c3.ui.components.console.Console
 import me.c3.ui.components.controls.AppControls
@@ -8,6 +9,10 @@ import me.c3.ui.components.processor.ProcessorView
 import me.c3.ui.components.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
+import me.c3.ui.theme.icons.ProSimIcons
+import ui.main
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
@@ -17,26 +22,59 @@ import javax.swing.ImageIcon
 import javax.swing.JFrame
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
-import javax.swing.UIManager
 
-class NativeFrame(private val mainManager: MainManager) : JFrame() {
+class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
 
-    private val editor = mainManager.editor
-    private val fileTree = FileTree(mainManager)
-    val processorView = ProcessorView(mainManager)
-    val transcriptView = TranscriptView(mainManager)
-    private val bottomBar = mainManager.bBar
-    private val topBar = TopControls(mainManager, showArchSwitch = true)
-    private val leftBar = mainManager.editor.getControls()
-    private val rightBar = AppControls(mainManager)
-    private val consoleAndInfo = Console(mainManager)
+    override val editor = mManager.editor
+    override val fileTree = FileTree(mManager)
+    override val processorView = ProcessorView(mManager)
+    override val transcriptView = TranscriptView(mManager)
+    override val bottomBar = mManager.bBar
+    override val topBar = TopControls(mManager, showArchSwitch = true)
+    override val leftBar = mManager.editor.getControls()
+    override val consoleAndInfo = Console(mManager)
+    override val rightBar = AppControls(this)
+
+    override val editorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
+    override val processorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
+    override val mainContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
+    override val verticalMainCSplitPane = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, mainContainer, consoleAndInfo)
+    override fun getThemeM(): ThemeManager = mManager.themeManager
+    override fun getScaleM(): ScaleManager = mManager.scaleManager
+    override fun getArchM(): ArchManager = mManager.archManager
+    override fun getIcons(): ProSimIcons = mManager.icons
+
+    private val mainDivider = 0.5
+    private val verticalDivider = 0.8
 
     init {
         SwingUtilities.invokeLater {
             styleFrame()
             attachComponents()
             setup()
+            toggleComponents(false, false)
         }
+    }
+
+    override fun toggleComponents(processorViewVisible: Boolean, consoleAndInfoVisible: Boolean) {
+        if (consoleAndInfoVisible) {
+            verticalMainCSplitPane.setDividerLocation(verticalDivider)
+            verticalMainCSplitPane.isOneTouchExpandable = true
+        } else {
+            verticalMainCSplitPane.setDividerLocation(1.0)
+            verticalMainCSplitPane.isOneTouchExpandable = false
+        }
+
+        if (!processorViewVisible) {
+            mainContainer.setDividerLocation(1.0)
+            mainContainer.isOneTouchExpandable = false
+        } else {
+            mainContainer.setDividerLocation(mainDivider)
+            mainContainer.isOneTouchExpandable = true
+        }
+
+        revalidate()
+        repaint()
     }
 
     private fun attachComponents() {
@@ -48,17 +86,8 @@ class NativeFrame(private val mainManager: MainManager) : JFrame() {
         processorView.minimumSize = Dimension(0, 0)
         consoleAndInfo.minimumSize = Dimension(0, 0)
 
-        val editorContainer = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
-        editorContainer.resizeWeight = 0.1
-
-        val processorContainer = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
-        processorContainer.resizeWeight = 0.3
-
-        val mainContainer = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
-        mainContainer.resizeWeight = 0.6
-
-        val verticalMainCSplitPane = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, mainContainer, consoleAndInfo)
-        verticalMainCSplitPane.resizeWeight = 1.0
+        editorContainer.resizeWeight = 0.2
+        processorContainer.resizeWeight = 0.0
 
         // Add split panes to the frame with BorderLayout constraints
         add(topBar, BorderLayout.NORTH)
@@ -69,7 +98,7 @@ class NativeFrame(private val mainManager: MainManager) : JFrame() {
     }
 
     private fun styleFrame() {
-        iconImage = mainManager.icons.appLogo.derive(64,64).image
+        iconImage = mManager.icons.appLogo.derive(64, 64).image
     }
 
     private fun setup() {
@@ -89,5 +118,4 @@ class NativeFrame(private val mainManager: MainManager) : JFrame() {
             null
         }
     }
-
 }

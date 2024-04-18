@@ -40,7 +40,6 @@ class CSplitPaneUI(private val themeManager: ThemeManager, private val scaleMana
 
     private fun setDefaults(cPane: CSplitPane) {
         dividerColor = themeManager.curr.globalLaF.borderColor
-
         cPane.setDividerSize(scaleManager.curr.dividerScale.thickness)
     }
 

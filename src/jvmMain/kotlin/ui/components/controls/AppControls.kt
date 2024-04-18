@@ -3,30 +3,56 @@ package me.c3.ui.components.controls
 import emulator.kit.optional.Feature
 import me.c3.ui.components.controls.buttons.ThemeSwitch
 import me.c3.ui.MainManager
+import me.c3.ui.components.styled.CIconButton
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
+import ui.components.ProSimFrame
 import java.awt.Component
-import java.awt.ComponentOrientation
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Insets
 import javax.swing.SwingUtilities
 
-class AppControls(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.WEST) {
+class AppControls(private val psFrame: ProSimFrame) : CPanel(psFrame.getThemeM(), psFrame.getScaleM(), primary = false, BorderMode.WEST) {
+
+    private var processorShown = false
+        set(value) {
+            field = value
+            psFrame.toggleComponents(processorShown,  consoleAndInfoShown)
+        }
+
+    private var consoleAndInfoShown = false
+        set(value) {
+            field = value
+            psFrame.toggleComponents(processorShown,  consoleAndInfoShown)
+        }
 
     val buttons = listOf(
-        ThemeSwitch(mainManager)
+        ThemeSwitch(psFrame.getThemeM(), psFrame.getScaleM()),
+        CIconButton(psFrame.getThemeM(), psFrame.getScaleM(), psFrame.getIcons().processor).apply {
+            addActionListener {
+                processorShown = !processorShown
+                iconBg = if (processorShown) psFrame.getThemeM().curr.iconLaF.iconBgActive else psFrame.getThemeM().curr.iconLaF.iconBg
+            }
+        },
+        CIconButton(psFrame.getThemeM(), psFrame.getScaleM(), psFrame.getIcons().info).apply {
+            addActionListener {
+                consoleAndInfoShown = !consoleAndInfoShown
+                iconBg = if (consoleAndInfoShown) psFrame.getThemeM().curr.iconLaF.iconBgActive else psFrame.getThemeM().curr.iconLaF.iconBg
+            }
+        },
     )
-    val filler = CPanel(mainManager.themeManager, mainManager.scaleManager)
+
+    val filler = CPanel(psFrame.getThemeM(), psFrame.getScaleM())
     val featureButtons = mutableListOf<FeatureSwitch>()
 
     private val gbc = GridBagConstraints().apply {
         weighty = 0.0
         weightx = 1.0
-        insets = Insets(mainManager.scaleManager.curr.controlScale.normalInset, 0, mainManager.scaleManager.curr.controlScale.normalInset, 0)
+        insets = Insets(psFrame.getScaleM().curr.controlScale.normalInset, 0, psFrame.getScaleM().curr.controlScale.normalInset, 0)
         gridx = 0
         gridy = 0
         fill = GridBagConstraints.HORIZONTAL
@@ -49,14 +75,14 @@ class AppControls(mainManager: MainManager) : CPanel(mainManager.themeManager, m
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.weighty = 0.0
 
-        mainManager.archManager.addFeatureChangeListener {
+        psFrame.getArchM().addFeatureChangeListener {
             updateFeatureButtons()
         }
 
-        mainManager.archManager.addArchChangeListener {
-            attachFeatureButtons(mainManager)
+        psFrame.getArchM().addArchChangeListener {
+            attachFeatureButtons(psFrame.mManager)
         }
-        attachFeatureButtons(mainManager)
+        attachFeatureButtons(psFrame.mManager)
     }
 
     private fun attachFeatureButtons(mainManager: MainManager) {

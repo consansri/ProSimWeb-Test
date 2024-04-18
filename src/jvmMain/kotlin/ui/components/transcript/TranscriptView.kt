@@ -174,6 +174,10 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         }
     }
 
+    override fun getMinimumSize(): Dimension {
+        return Dimension(label.width, 0)
+    }
+
     private fun highlightPCRow(mainManager: MainManager) {
         val currPC = mainManager.currArch().getRegContainer().pc
         val currTS = mainManager.currArch().getTranscript()

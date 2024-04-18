@@ -1,0 +1,47 @@
+package ui.components
+
+import me.c3.ui.ArchManager
+import me.c3.ui.MainManager
+import me.c3.ui.components.console.Console
+import me.c3.ui.components.controls.AppControls
+import me.c3.ui.components.controls.BottomBar
+import me.c3.ui.components.controls.TopControls
+import me.c3.ui.components.editor.CodeEditor
+import me.c3.ui.components.editor.EditorControls
+import me.c3.ui.components.processor.ProcessorView
+import me.c3.ui.components.styled.CSplitPane
+import me.c3.ui.components.transcript.TranscriptView
+import me.c3.ui.components.tree.FileTree
+import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.theme.ThemeManager
+import me.c3.ui.theme.icons.ProSimIcons
+
+interface ProSimFrame {
+
+    val mManager: MainManager
+    val editor: CodeEditor
+    val fileTree: FileTree
+    val processorView: ProcessorView
+    val transcriptView: TranscriptView
+    val bottomBar: BottomBar
+    val topBar: TopControls
+    val leftBar: EditorControls
+    val rightBar: AppControls
+    val consoleAndInfo: Console
+
+    val editorContainer: CSplitPane
+    val processorContainer: CSplitPane
+    val mainContainer: CSplitPane
+    val verticalMainCSplitPane: CSplitPane
+
+    fun getThemeM(): ThemeManager
+
+    fun getScaleM(): ScaleManager
+
+    fun getArchM(): ArchManager
+
+    fun getIcons(): ProSimIcons
+
+    fun toggleComponents(processorViewVisible: Boolean, consoleAndInfoVisible: Boolean)
+
+}
