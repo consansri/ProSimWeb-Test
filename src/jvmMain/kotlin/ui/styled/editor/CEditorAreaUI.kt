@@ -1,6 +1,7 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.assembly.Compiler
+import emulator.kit.nativeLog
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
@@ -11,7 +12,8 @@ import javax.swing.plaf.ComponentUI
 
 class CEditorAreaUI(
     private val themeManager: ThemeManager,
-    private val scaleManager: ScaleManager
+    private val scaleManager: ScaleManager,
+    private val lineOverhead: Int = 3
 ) : ComponentUI() {
     private var defaultSelectionColor = Color(0, 0, 0, 0)
     private var caretLineBG = Color(0, 0, 0, 0)
@@ -82,38 +84,52 @@ class CEditorAreaUI(
     override fun paint(g: Graphics?, c: JComponent?) {
         val g2d = g?.create() as? Graphics2D ?: return
         val editor = c as? CEditorArea ?: return
+        when (editor.location) {
+            CEditorArea.Location.ANYWHERE -> paintAll(g2d, editor)
+            CEditorArea.Location.IN_SCROLLPANE -> paintEfficient(g2d, editor)
+        }
+        g2d.dispose()
+    }
 
+    /**
+     * Performance
+     * (painting all)
+     *
+     * 223 ms for 3000 lines of code!
+     */
+    private fun paintAll(g2d: Graphics2D, editor: CEditorArea) {
         val fm = editor.getFontMetrics(editor.font)
+        val styledText = editor.getStyledText()
+        val absSelection = editor.getAbsSelection()
+
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
-        g2d.color = editor.background
-        //g2d.fillRect(editor.x, editor.y, editor.width, editor.height)
+        val caretLine = editor.caretLine
+        val ascent = fm.ascent
+        val lineHeight = fm.height
 
         var x = editor.insets.left
-        var column = 0
-        var y = editor.insets.top + fm.ascent
-        val currLine = editor.caretLine
+        var y = editor.insets.top + ascent
         var lineCounter = 0
-
-        val absSelection = editor.getAbsSelection()
 
         if (absSelection.lowIndex == -1 || absSelection.highIndex == -1) {
             g2d.color = caretLineBG
-            g2d.fillRect(0, y + (currLine - 1) * fm.height - fm.ascent, editor.width, fm.height)
+            g2d.fillRect(0, y + (caretLine - 1) * lineHeight - ascent, editor.width, lineHeight)
         }
 
+        val charWidth = fm.charWidth(' ')
+
         // Render styled characters
-        for ((i, char) in  ArrayList(editor.getStyledText()).withIndex()) {
+        for ((i, char) in styledText.withIndex()) {
             val style = char.style
-            val charWidth = fm.charWidth(char.content)
 
             // Draw Selection
             if (i in absSelection.lowIndex until absSelection.highIndex) {
                 g2d.color = defaultSelectionColor
                 if (char.content == '\n') {
-                    g2d.fillRect(x, y - fm.ascent, editor.bounds.width - x - editor.insets.right, fm.height)
+                    g2d.fillRect(x, y - ascent, editor.bounds.width - x - editor.insets.right, lineHeight)
                 } else {
-                    g2d.fillRect(x, y - fm.ascent, charWidth, fm.height)
+                    g2d.fillRect(x, y - ascent, charWidth, lineHeight)
                 }
             }
 
@@ -130,25 +146,114 @@ class CEditorAreaUI(
             when (char.content) {
                 '\n' -> {
                     x = editor.insets.left
-                    column = 0
-                    y += fm.height
+                    y += lineHeight
                     lineCounter += 1
                 }
 
                 else -> {
                     g2d.drawString(char.content.toString(), x, y)
                     x += charWidth
-                    column += 1
                 }
             }
         }
+
         if (editor.getStyledText().size == editor.caretPos) {
             if (editor.hasFocus()) {
                 drawCaret(g2d, x, y, fm)
             }
         }
+    }
 
-        g2d.dispose()
+    /**
+     * Performance
+     * (only painting visible area)
+     *
+     * 1 ms for 3000 lines of code!
+     */
+    private fun paintEfficient(g2d: Graphics2D, editor: CEditorArea) {
+        val fm = editor.getFontMetrics(editor.font)
+        val styledText = editor.getStyledText()
+        val absSelection = editor.getAbsSelection()
+        val lineBreakIDs = editor.getLineBreakIDs()
+
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+
+        // Get the visible rectangle of the viewport
+        val visibleRect = editor.scrollPane.viewport.viewRect
+
+        val caretLine = editor.caretLine
+        val ascent = fm.ascent
+        val lineHeight = fm.height
+
+        var x = editor.insets.left
+        var y = editor.insets.top + ascent
+        var lineCounter = 0
+
+        // Calculate the first and last visible line indices
+        val firstVisibleLineID = visibleRect.y / lineHeight - 1
+        val lastVisibleLineID = (visibleRect.y + visibleRect.height) / lineHeight
+
+        val firstLineID = firstVisibleLineID - 1 - lineOverhead
+        val lastLineID = lastVisibleLineID + lineOverhead
+
+        val firstLineBreakPos = lineBreakIDs.getOrNull(firstLineID) ?: 0
+        val firstPos = if (firstLineBreakPos == 0) 0 else firstLineBreakPos
+        val lastPos = lineBreakIDs.getOrNull(lastLineID) ?: (styledText.size - 1)
+
+        // Draw CurrentLine BG
+        if (absSelection.lowIndex == -1 || absSelection.highIndex == -1) {
+            g2d.color = caretLineBG
+            g2d.fillRect(0, y + (caretLine - 1) * lineHeight - ascent, editor.width, lineHeight)
+        }
+
+        // Add y offset
+        if (firstLineID >= 0) {
+            y += firstLineID * lineHeight
+        }
+
+        // Iterate over only the visible lines
+        for (index in firstPos..lastPos) {
+            val char = styledText[index]
+            val style = char.style
+            val charWidth = fm.charWidth(char.content)
+
+            // Draw Selection
+            if (index in absSelection.lowIndex until absSelection.highIndex) {
+                g2d.color = defaultSelectionColor
+                if (char.content == '\n') {
+                    g2d.fillRect(x, y - ascent, editor.bounds.width - x - editor.insets.right, lineHeight)
+                } else {
+                    g2d.fillRect(x, y - ascent, charWidth, lineHeight)
+                }
+            }
+
+            // Draw the cursor
+            if (index == editor.caretPos) {
+                if (editor.hasFocus()) {
+                    drawCaret(g2d, x, y, fm)
+                }
+            }
+
+            // Draw Characters
+            g2d.color = style?.fgColor ?: editor.foreground
+
+            when (char.content) {
+                '\n' -> {
+                    x = editor.insets.left
+                    y += lineHeight
+                    lineCounter += 1
+                }
+
+                else -> {
+                    g2d.drawString(char.content.toString(), x, y)
+                    x += charWidth
+                }
+            }
+        }
+
+        if (styledText.size == editor.caretPos && editor.hasFocus()) {
+            drawCaret(g2d, x, y, fm)
+        }
     }
 
     private fun drawCaret(g2d: Graphics2D, x: Int, y: Int, fm: FontMetrics) {

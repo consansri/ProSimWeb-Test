@@ -7,7 +7,7 @@ import java.awt.BorderLayout
 
 open class CEditor(themeManager: ThemeManager, scaleManager: ScaleManager) : CPanel(themeManager, scaleManager, primary = true) {
 
-    val textArea = CEditorArea(themeManager, scaleManager)
+    val textArea = CEditorArea(themeManager, scaleManager, CEditorArea.Location.IN_SCROLLPANE)
 
     var fileInterface: FileInterface? = null
         set(value) {

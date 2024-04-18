@@ -1,6 +1,7 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.nativeError
+import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.spacing.ScaleManager
@@ -19,8 +20,9 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import java.util.Stack
 import javax.swing.JComponent
+import kotlin.time.measureTime
 
-class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JComponent() {
+class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val location: Location) : JComponent() {
 
     // Current State
     private val styledText: MutableList<StyledChar> = mutableListOf()
@@ -49,6 +51,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
             revalidate()
             repaint()
         }
+
     var infoLogger: InfoLogger? = null
     var highlighter: Highlighter? = null
     val scrollPane: CScrollPane = CScrollPane(themeManager, scaleManager, true, this)
@@ -199,18 +202,22 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
 
     // Insertion / Deletion
     private fun insertText(pos: Int, newText: String) {
-        if (pos > styledText.size) {
-            nativeError("Text Insertion invalid for position $pos and current size ${styledText.size}!")
-            return
+        val time = measureTime {
+            if (pos > styledText.size) {
+                nativeError("Text Insertion invalid for position $pos and current size ${styledText.size}!")
+                return
+            }
+            styledText.addAll(pos, newText.map { StyledChar(if (it == '\t') ' ' else it) })
+            //text = text.substring(0, pos) + newText + text.substring(pos)
+            caretPos += newText.length
+            queryStateChange()
+            updateLineBreakIDs()
+            resetSelection()
+            revalidate()
+            repaint()
         }
-        styledText.addAll(pos, newText.map { StyledChar(if (it == '\t') ' ' else it) })
-        //text = text.substring(0, pos) + newText + text.substring(pos)
-        caretPos += newText.length
-        queryStateChange()
-        updateLineBreakIDs()
-        resetSelection()
-        revalidate()
-        repaint()
+        nativeLog("Inserting Text took ${time.inWholeNanoseconds} ns ($newText)")
+
     }
 
     private fun deleteText(startIndex: Int, endIndex: Int) {
@@ -639,6 +646,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
     private fun columnOf(pos: Int): Int = splitAtLineBreak(styledText.subList(0, pos)).lastOrNull()?.size ?: 0
     fun getAbsSelection(): AbsSelection = if (selStart < selEnd) AbsSelection(selStart, selEnd, selStartLine, selEndLine, selStartColumn, selEndColumn) else AbsSelection(selEnd, selStart, selEndLine, selStartLine, selEndColumn, selStartColumn)
     fun getStyledText(): List<StyledChar> = styledText
+    fun getLineBreakIDs() = ArrayList(lineBreakIDs)
     fun getCaretPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(caretPos, caretLine, caretColumn)
 
     /**
@@ -670,6 +678,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager) : JCom
         } else {
             null
         }
+    }
+
+    enum class Location{
+        ANYWHERE,
+        IN_SCROLLPANE
     }
 
     inner class EditorKeyListener : KeyListener {
