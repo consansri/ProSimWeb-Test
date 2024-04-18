@@ -1,18 +1,17 @@
 package me.c3.ui.styled
 
 import emulator.kit.common.Memory
+import emulator.kit.nativeLog
+import me.c3.ui.components.styled.CLabel
+import me.c3.ui.components.styled.CTextButton
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.borders.DirectionalBorder
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
-import java.awt.Color
-import java.awt.Component
-import javax.swing.BorderFactory
-import javax.swing.DefaultCellEditor
-import javax.swing.JComponent
-import javax.swing.JTable
-import javax.swing.JTextField
-import javax.swing.SwingConstants
+import java.awt.*
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.*
 import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellEditor
@@ -78,22 +77,18 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
 
     inner class CHeaderRenderer(val primary: Boolean) : DefaultTableCellRenderer() {
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
-            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+            val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
-            val fg = themeManager.curr.textLaF.base
-            val bg = if (primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
+            val cTable = table as? CTable ?: return component
 
-            horizontalAlignment = SwingConstants.CENTER
-            border = BorderFactory.createEmptyBorder()
-            foreground = if (value is Memory.MemInstance) themeManager.curr.dataLaF.getMemInstanceColor(value.mark) else fg
-            background = bg
-            font = FontType.DATA.getFont(themeManager, scaleManager)
-            border = DirectionalBorder(themeManager, scaleManager)
-            border = scaleManager.curr.borderScale.getInsetBorder()
-
-            return value as? Component ?: this
+            return if (column in cTable.clickableHeaderIds) {
+                CTextButton(themeManager, scaleManager, "[$value]", FontType.CODE)
+            } else {
+                CLabel(themeManager, scaleManager, value.toString(), FontType.BASIC).apply {
+                    horizontalAlignment = SwingConstants.CENTER
+                }
+            }
         }
-
     }
 
     inner class CCellEditor : DefaultCellEditor(CTextField(themeManager, scaleManager, FontType.CODE)), TableCellEditor {
@@ -127,8 +122,21 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
         header.font = FontType.DATA.getFont(themeManager, scaleManager)
         header.defaultRenderer = CHeaderRenderer(!primary)
         //header.resizingAllowed = false
+        header.isOpaque = true
         header.reorderingAllowed = false
         header.updateTableInRealTime = true
+    }
+
+    private fun forwardMouseEvent(e: MouseEvent?) {
+        e?.let { event ->
+            val point = event.point
+            val column = table.tableHeader.columnAtPoint(point)
+            val headerRenderer = table.tableHeader.defaultRenderer
+            val component = headerRenderer.getTableCellRendererComponent(table, table.columnModel.getColumn(column).headerValue, false, false, -1, column)
+            val translatedEvent = SwingUtilities.convertMouseEvent(table.tableHeader, event, component)
+
+            component.dispatchEvent(translatedEvent)
+        }
     }
 
 }

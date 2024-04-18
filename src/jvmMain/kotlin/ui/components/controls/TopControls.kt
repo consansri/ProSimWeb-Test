@@ -9,7 +9,7 @@ import java.awt.Component
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 
-class TopControls(mainManager: MainManager, showArchSwitch: Boolean) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.SOUTH) {
+class TopControls(mainManager: MainManager, showArchSwitch: Boolean) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.HORIZONTAL) {
 
     val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager)) else listOf()
 

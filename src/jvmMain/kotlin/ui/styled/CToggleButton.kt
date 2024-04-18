@@ -22,7 +22,7 @@ open class CToggleButton(themeManager: ThemeManager, scaleManager: ScaleManager,
         }
 
     init {
-        setUI(CToggleButtonUI(themeManager, scaleManager, toggleSwitchType, fontType))
+        this.setUI(CToggleButtonUI(themeManager, scaleManager, toggleSwitchType, fontType))
         text = initialText
     }
 

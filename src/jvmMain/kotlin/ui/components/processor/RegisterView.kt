@@ -163,6 +163,7 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.th
             }
 
         init {
+            this.setClickableHeaders(0, 1)
             mainManager.eventManager.addExeEventListener {
                 updateRegValues()
             }

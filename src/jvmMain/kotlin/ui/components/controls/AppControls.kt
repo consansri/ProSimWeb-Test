@@ -9,7 +9,10 @@ import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.Component
-import javax.swing.BoxLayout
+import java.awt.ComponentOrientation
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import java.awt.Insets
 import javax.swing.SwingUtilities
 
 class AppControls(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.WEST) {
@@ -17,16 +20,34 @@ class AppControls(mainManager: MainManager) : CPanel(mainManager.themeManager, m
     val buttons = listOf(
         ThemeSwitch(mainManager)
     )
+    val filler = CPanel(mainManager.themeManager, mainManager.scaleManager)
     val featureButtons = mutableListOf<FeatureSwitch>()
 
+    private val gbc = GridBagConstraints().apply {
+        weighty = 0.0
+        weightx = 1.0
+        insets = Insets(mainManager.scaleManager.curr.controlScale.normalInset, 0, mainManager.scaleManager.curr.controlScale.normalInset, 0)
+        gridx = 0
+        gridy = 0
+        fill = GridBagConstraints.HORIZONTAL
+    }
+
     init {
-        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        layout = GridBagLayout()
 
         // Layout
         buttons.forEach {
             it.alignmentX = Component.CENTER_ALIGNMENT
-            add(it)
+            add(it, gbc)
+            gbc.gridy++
         }
+
+        gbc.fill = GridBagConstraints.BOTH
+        gbc.weighty = 1.0
+        add(filler, gbc)
+        gbc.gridy++
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.weighty = 0.0
 
         mainManager.archManager.addFeatureChangeListener {
             updateFeatureButtons()
@@ -41,13 +62,15 @@ class AppControls(mainManager: MainManager) : CPanel(mainManager.themeManager, m
     private fun attachFeatureButtons(mainManager: MainManager) {
         featureButtons.forEach {
             this.remove(it)
+            gbc.gridy--
         }
         featureButtons.clear()
         mainManager.currArch().getAllFeatures().filter { !it.invisible && !it.static }.forEach {
             val fswitch = FeatureSwitch(it, mainManager)
             fswitch.alignmentX = Component.CENTER_ALIGNMENT
             featureButtons.add(fswitch)
-            add(fswitch)
+            add(fswitch, gbc)
+            gbc.gridy++
         }
     }
 

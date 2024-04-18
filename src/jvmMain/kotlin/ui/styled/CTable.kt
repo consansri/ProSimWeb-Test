@@ -8,6 +8,8 @@ import javax.swing.table.AbstractTableModel
 
 open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int) : JTable(tableModel) {
 
+    val clickableHeaderIds = mutableListOf<Int>()
+
     init {
         this.setUI(CTableUI(themeManager, scaleManager, primary))
     }
@@ -26,6 +28,11 @@ open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableM
             val column = columnModel.getColumn(columnIndex)
             column.preferredWidth = maxWith + padding
         }
+    }
+
+    fun setClickableHeaders(vararg ids: Int){
+        clickableHeaderIds.clear()
+        clickableHeaderIds.addAll(ids.toList())
     }
 
     /**

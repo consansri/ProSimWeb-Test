@@ -7,7 +7,7 @@ import java.awt.GraphicsEnvironment
 class TextLaF(
     val base: Color,
     val baseSecondary: Color,
-    val selelected: Color,
+    val selected: Color,
     font: Font,
     titleFont: Font
 ){

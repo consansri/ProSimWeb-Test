@@ -5,6 +5,7 @@ import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import javax.swing.JComponent
+import javax.swing.SwingConstants
 import javax.swing.plaf.basic.BasicButtonUI
 
 class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val toggleSwitchType: ToggleSwitchType, private val fontType: FontType) : BasicButtonUI() {
@@ -13,6 +14,7 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
         super.installUI(c)
 
         val button = c as? CToggleButton ?: return
+        button.horizontalAlignment = SwingConstants.CENTER
 
         themeManager.addThemeChangeListener {
             setDefaults( button)
@@ -52,27 +54,32 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
 
         // Paint button background
         g2.color = button.background
-        g2.fillRoundRect(getInset(), getInset(), width - getInset() * 2, height - getInset() * 2, scaleManager.curr.controlScale.cornerRadius, scaleManager.curr.controlScale.cornerRadius)
+        g2.fillRoundRect(0, 0, width , height, scaleManager.curr.controlScale.cornerRadius, scaleManager.curr.controlScale.cornerRadius)
 
         // Paint button
-        super.paint(g, c)
+        super.paint(g2, c)
+        g2.dispose()
     }
 
     override fun getPreferredSize(c: JComponent?): Dimension {
+        val button = c as? CToggleButton ?: return super.getPreferredSize(c)
+        val fm = button.getFontMetrics(button.font)
+        val preferredSize = Dimension(fm.stringWidth(button.text) + c.insets.left + c.insets.right, fm.height + c.insets.top + c.insets.bottom)
+        val minimumSize = getMinimumSize(c)
+        return Dimension(maxOf(preferredSize.width, minimumSize.width), maxOf(preferredSize.height, minimumSize.height))
+    }
+
+    override fun getMinimumSize(c: JComponent?): Dimension {
         val button = c as? CToggleButton ?: return super.getPreferredSize(c)
         val preferredSize = when(toggleSwitchType){
             ToggleSwitchType.SMALL -> scaleManager.curr.controlScale.getSmallSize()
             ToggleSwitchType.NORMAL -> scaleManager.curr.controlScale.getNormalSize()
         }
-        return Dimension(preferredSize.width + getInset() * 2, preferredSize.height + getInset() * 2)
-    }
-
-    override fun getMinimumSize(c: JComponent?): Dimension {
-        return getPreferredSize(c)
+        return Dimension(preferredSize.width + c.insets.left + c.insets.right, preferredSize.height + c.insets.top + c.insets.bottom)
     }
 
     override fun getMaximumSize(c: JComponent?): Dimension {
-        return getPreferredSize(c)
+        return Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     }
 
     enum class ToggleSwitchType {

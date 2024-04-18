@@ -1,7 +1,6 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import emulator.kit.nativeLog
 import me.c3.ui.Workspace
 import me.c3.ui.components.styled.CTree
 import me.c3.ui.spacing.ScaleManager
@@ -92,7 +91,7 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
             this.isOpaque = true
             this.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
             this.textNonSelectionColor = themeManager.curr.textLaF.base
-            this.textSelectionColor = themeManager.curr.textLaF.selelected
+            this.textSelectionColor = themeManager.curr.textLaF.selected
             this.border = scaleManager.curr.controlScale.getNormalInsetBorder()
         }
 
@@ -119,7 +118,7 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
                     icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                 }
             }
-            this.background = if(sel)  themeManager.curr.textLaF.selelected else themeManager.curr.globalLaF.bgSecondary
+            this.background = if(sel)  themeManager.curr.textLaF.selected else themeManager.curr.globalLaF.bgSecondary
             loadedIcon.colorFilter = colorFilter
             this.foreground = themeManager.curr.textLaF.base
             this.icon = loadedIcon

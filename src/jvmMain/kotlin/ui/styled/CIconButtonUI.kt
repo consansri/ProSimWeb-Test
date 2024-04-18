@@ -72,6 +72,11 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
                     CIconButton.Mode.SECONDARY_NORMAL, CIconButton.Mode.SECONDARY_SMALL -> it.colorFilter = FlatSVGIcon.ColorFilter { iconStyle.iconFgSecondary }
                     CIconButton.Mode.GRADIENT_NORMAL, CIconButton.Mode.GRADIENT_SMALL -> {}
                 }
+                if (cIconButton.isDeactivated) {
+                    it.colorFilter = FlatSVGIcon.ColorFilter{
+                        iconStyle.iconFgSecondary
+                    }
+                }
             }
 
             cIconButton.background = cIconButton.iconBg

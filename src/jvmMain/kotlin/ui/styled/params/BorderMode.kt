@@ -13,6 +13,8 @@ enum class BorderMode {
     SOUTH,
     WEST,
     EAST,
+    HORIZONTAL,
+    VERTICAL,
     NONE;
     fun getBorder(themeManager: ThemeManager, scaleManager: ScaleManager): Border{
         return when (this) {
@@ -22,6 +24,8 @@ enum class BorderMode {
             SOUTH -> DirectionalBorder(themeManager, scaleManager, south = true)
             WEST -> DirectionalBorder(themeManager, scaleManager, west = true)
             EAST -> DirectionalBorder(themeManager, scaleManager, east = true)
+            HORIZONTAL -> DirectionalBorder(themeManager, scaleManager, north = true, south = true)
+            VERTICAL -> DirectionalBorder(themeManager, scaleManager, west = true, east = true)
             NONE -> BorderFactory.createEmptyBorder()
         }
     }
