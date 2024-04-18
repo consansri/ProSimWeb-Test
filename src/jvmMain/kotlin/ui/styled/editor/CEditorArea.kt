@@ -79,15 +79,13 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         set(value) {
             field = value
             selScope.launch {
-                selStartLine = if (value == -1) -1 else try {
-                    lineOf(value)
-                } catch (e: IndexOutOfBoundsException) {
-                    -1
-                }
-                selStartColumn = if (value == -1) -1 else try {
-                    columnOf(value)
-                } catch (e: IndexOutOfBoundsException) {
-                    -1
+                if (value >= 0) {
+                    val codePosition = getAdvancedPosition(value)
+                    selStartLine = codePosition.line
+                    selStartColumn = codePosition.column
+                } else {
+                    selStartLine = -1
+                    selStartColumn = -1
                 }
             }
         }
@@ -95,15 +93,13 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         set(value) {
             field = value
             selScope.launch {
-                selEndLine = if (value == -1) -1 else try {
-                    lineOf(value)
-                } catch (e: IndexOutOfBoundsException) {
-                    -1
-                }
-                selEndColumn = if (value == -1) -1 else try {
-                    columnOf(value)
-                } catch (e: IndexOutOfBoundsException) {
-                    -1
+                if (value >= 0) {
+                    val codePosition = getAdvancedPosition(value)
+                    selEndLine = codePosition.line
+                    selEndColumn = codePosition.column
+                } else {
+                    selEndLine = -1
+                    selEndColumn = -1
                 }
             }
         }
@@ -211,13 +207,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             //text = text.substring(0, pos) + newText + text.substring(pos)
             caretPos += newText.length
             queryStateChange()
-            updateLineBreakIDs()
+            contentChanged()
             resetSelection()
             revalidate()
             repaint()
         }
         nativeLog("Inserting Text took ${time.inWholeNanoseconds} ns ($newText)")
-
     }
 
     private fun deleteText(startIndex: Int, endIndex: Int) {
@@ -227,7 +222,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 caretPos -= endIndex - startIndex
             }
             queryStateChange()
-            updateLineBreakIDs()
+            contentChanged()
             resetSelection()
             revalidate()
             repaint()
@@ -314,12 +309,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         tabInsertPos?.let { insertNotNull ->
             if (tabInsertPos == 0) {
                 styledText.addAll(insertNotNull, " ".repeat(tabSize).map { StyledChar(it) })
-                updateLineBreakIDs()
+                contentChanged()
                 return tabSize
             } else {
                 if (insertNotNull < styledText.size - 1) {
                     styledText.addAll(insertNotNull + 1, " ".repeat(tabSize).map { StyledChar(it) })
-                    updateLineBreakIDs()
+                    contentChanged()
                     return tabSize
                 }
             }
@@ -337,7 +332,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                     subList.removeFirst()
                     removed++
                 }
-                updateLineBreakIDs()
+                contentChanged()
                 return removed
             } else {
                 if (insertNotNull < styledText.size - 1) {
@@ -347,7 +342,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                         subList.removeFirst()
                         removed++
                     }
-                    updateLineBreakIDs()
+                    contentChanged()
                     return removed
                 }
             }
@@ -373,7 +368,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
     private fun moveCaretUp() {
         if (caretPos > 0) {
-            val lines = splitAtLineBreak(styledText)
+            val lines = splitListAtIndices(styledText, lineBreakIDs)
             val currLine = lineOf(caretPos) - 1
 
             // Check if there's a line above
@@ -388,7 +383,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
     private fun moveCaretDown() {
         if (caretPos < styledText.size) {
-            val lines = splitAtLineBreak(styledText)
+            val lines = splitListAtIndices(styledText, lineBreakIDs)
             val currLine = caretLine - 1
 
             // Check if there's a line below
@@ -411,9 +406,9 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     }
 
     private fun moveCaretEnd() {
+        val lines = splitListAtIndices(styledText, lineBreakIDs)
         val currColumn = caretColumn
         val currLineID = caretLine - 1
-        val lines = splitAtLineBreak(styledText)
         if (currLineID < lines.size) {
             val after = lines[currLineID].size - currColumn
             caretPos += after
@@ -429,9 +424,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     }
 
     private fun moveCaretTo(lineIndex: Int, columnIndex: Int) {
-        val lines = splitAtLineBreak(styledText)
-
         // Check for valid line index
+        val lines = splitListAtIndices(styledText, lineBreakIDs)
         if (lineIndex < 0 || lineIndex >= lines.size) {
             return // Clamp to existing line count
         }
@@ -512,7 +506,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         repaint()
     }
 
-    private fun updateLineBreakIDs() {
+    /**
+     * State Change Events
+     */
+
+    private fun contentChanged() {
         lineBreakIDs.clear()
         for ((id, content) in styledText.withIndex()) {
             if (content.content == '\n') {
@@ -524,17 +522,14 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         }
     }
 
-    /**
-     * State Change Events
-     */
-
     private suspend fun lineCountChanged() {
         lineNumbers.lineCount = getLineCount()
     }
 
     private suspend fun caretPosChanged() {
-        caretLine = lineOf(caretPos)
-        caretColumn = columnOf(caretPos)
+        val caretCodePosition = getAdvancedPosition(caretPos)
+        caretLine = caretCodePosition.line
+        caretColumn = caretCodePosition.column
 
         lineNumbers.repaint()
 
@@ -600,25 +595,28 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
      * Sub Calculations
      */
 
-    private fun splitAtLineBreak(list: List<StyledChar>): List<List<StyledChar>> {
-        if (list.isEmpty()) return listOf(listOf())
-        val result = mutableListOf<List<StyledChar>>()
-        var sublist = mutableListOf<StyledChar>()
-        var lastWasLineBreak = false
-        for (char in list) {
-            if (char.content == '\n') {
-                result.add(sublist)
-                sublist = mutableListOf()
-                lastWasLineBreak = true
-            } else {
-                lastWasLineBreak = false
-                sublist.add(char)
+    private fun <T> splitListAtIndices(list: List<T>, indices: List<Int>): List<List<T>> {
+        val result = mutableListOf<List<T>>()
+
+        var startIndex = 0
+        for (index in indices) {
+            if (index < list.size) {
+                result.add(list.subList(startIndex, index))
+                startIndex = index + 1
             }
         }
-        if (sublist.isNotEmpty() || lastWasLineBreak) {
-            result.add(sublist)
+
+        when {
+            startIndex < list.size -> result.add(list.subList(startIndex, list.size))
+            startIndex == list.size -> result.add(listOf())
         }
+
         return result
+    }
+
+    private fun getAdvancedPosition(index: Int): InfoLogger.CodePosition {
+        val lines = splitListAtIndices(styledText.subList(0, index), lineBreakIDs)
+        return InfoLogger.CodePosition(index, lines.size, lines.lastOrNull()?.size ?: 0)
     }
 
     /**
@@ -639,11 +637,10 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     /**
      * Inline Functions
      */
-
-    fun getMaxLineLength(): Int = splitAtLineBreak(ArrayList(styledText)).ifEmpty { listOf(listOf()) }.maxOf { it.size }
+    fun getMaxLineLength(): Int = splitListAtIndices(styledText, lineBreakIDs).ifEmpty { listOf(listOf()) }.maxOf { it.size }
     fun getLineCount(): Int = lineBreakIDs.size + 1
-    private fun lineOf(pos: Int): Int = splitAtLineBreak(styledText.subList(0, pos)).size
-    private fun columnOf(pos: Int): Int = splitAtLineBreak(styledText.subList(0, pos)).lastOrNull()?.size ?: 0
+    private fun lineOf(pos: Int): Int = splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).size
+    private fun columnOf(pos: Int): Int = splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).lastOrNull()?.size ?: 0
     fun getAbsSelection(): AbsSelection = if (selStart < selEnd) AbsSelection(selStart, selEnd, selStartLine, selEndLine, selStartColumn, selEndColumn) else AbsSelection(selEnd, selStart, selEndLine, selStartLine, selEndColumn, selStartColumn)
     fun getStyledText(): List<StyledChar> = styledText
     fun getLineBreakIDs() = ArrayList(lineBreakIDs)
@@ -653,7 +650,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
      * Data Classes
      */
 
-    data class StyledChar(val content: Char, val style: Style? = null)
+    data class StyledChar(val content: Char, val style: Style? = null) {
+        override fun toString(): String {
+            return content.toString()
+        }
+    }
+
     data class AbsSelection(val lowIndex: Int, val highIndex: Int, val lowLine: Int, val highLine: Int, val lowColumn: Int, val highColumn: Int) {
         fun getLowPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(lowIndex, lowLine, lowColumn)
         fun getHighPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(highIndex, highLine, highColumn)
@@ -680,7 +682,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         }
     }
 
-    enum class Location{
+    enum class Location {
         ANYWHERE,
         IN_SCROLLPANE
     }
