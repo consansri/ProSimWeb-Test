@@ -35,17 +35,17 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
         themeManager.addThemeChangeListener {
             setDefaults(cTree)
         }
-        
+
         scaleManager.addScaleChangeEvent {
             setDefaults(cTree)
         }
-        
+
         setDefaults(cTree)
     }
-    
-    private fun setDefaults(tree: CTree){
+
+    private fun setDefaults(tree: CTree) {
         selectedColor = themeManager.curr.globalLaF.borderColor
-        colorFilter = FlatSVGIcon.ColorFilter{
+        colorFilter = FlatSVGIcon.ColorFilter {
             themeManager.curr.iconLaF.iconFgPrimary
         }
         tree.background = themeManager.curr.globalLaF.bgSecondary
@@ -118,7 +118,7 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
                     icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
                 }
             }
-            this.background = if(sel)  themeManager.curr.textLaF.selected else themeManager.curr.globalLaF.bgSecondary
+            this.background = if (sel) themeManager.curr.textLaF.selected else themeManager.curr.globalLaF.bgSecondary
             loadedIcon.colorFilter = colorFilter
             this.foreground = themeManager.curr.textLaF.base
             this.icon = loadedIcon

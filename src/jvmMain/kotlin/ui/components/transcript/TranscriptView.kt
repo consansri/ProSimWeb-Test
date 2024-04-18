@@ -3,6 +3,7 @@ package me.c3.ui.components.transcript
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.ArchState
 import emulator.kit.common.Transcript
+import emulator.kit.types.Variable
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CScrollPane
@@ -18,17 +19,20 @@ import java.awt.event.MouseEvent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
-class TranscriptView(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
+class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
     // SubComponents
     val compiledModel = TSTableModel()
     val compiledView = CTable(mainManager.themeManager, mainManager.scaleManager, compiledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
+    var currCompiledRows: List<Transcript.Row> = emptyList()
+
     val disassembledModel = TSTableModel()
     val disasmView = CTable(mainManager.themeManager, mainManager.scaleManager, disassembledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
+    var currDisasmRows: List<Transcript.Row> = emptyList()
 
     val label = CVerticalLabel(mainManager.themeManager, mainManager.scaleManager, "compile transcript", FontType.CODE)
 
@@ -40,6 +44,7 @@ class TranscriptView(mainManager: MainManager) : CPanel(mainManager.themeManager
         gbc.fill = GridBagConstraints.CENTER
         this.add(label, gbc)
     }
+
     val contentPane = CScrollPane(mainManager.themeManager, mainManager.scaleManager, primary = false).apply {
         minimumSize = Dimension(0, 0)
     }
@@ -71,7 +76,13 @@ class TranscriptView(mainManager: MainManager) : CPanel(mainManager.themeManager
             setSelectedView()
             updateContent(mainManager)
             updateSizing()
+            attachContentMouseListeners()
         }
+    }
+
+    private fun executeUntilAddress(address: Variable.Value.Hex) {
+        mainManager.currArch().exeUntilAddress(address)
+        mainManager.eventManager.triggerExeEvent()
     }
 
     private fun attachMainComponents() {
@@ -89,6 +100,27 @@ class TranscriptView(mainManager: MainManager) : CPanel(mainManager.themeManager
         gbc.weightx = 1.0
         gbc.fill = GridBagConstraints.BOTH
         add(contentPane, gbc)
+    }
+
+    private fun attachContentMouseListeners() {
+        compiledView.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent?) {
+                val row = compiledView.rowAtPoint(e?.point ?: return)
+                if (row >= 0) {
+                    val address = currCompiledRows.getOrNull(row)?.getAddresses()?.firstOrNull()?.toHex() ?: return
+                    executeUntilAddress(address)
+                }
+            }
+        })
+        disasmView.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent?) {
+                val row = disasmView.rowAtPoint(e?.point ?: return)
+                if (row >= 0) {
+                    val address = currDisasmRows.getOrNull(row)?.getAddresses()?.firstOrNull()?.toHex() ?: return
+                    executeUntilAddress(address)
+                }
+            }
+        })
     }
 
     private fun attachSettings() {
@@ -113,16 +145,16 @@ class TranscriptView(mainManager: MainManager) : CPanel(mainManager.themeManager
         if (!transcript.deactivated() && (mainManager.currArch().getState().currentState == ArchState.State.EXECUTABLE || mainManager.currArch().getState().currentState == ArchState.State.EXECUTION)) {
             val disasmIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.DISASSEMBLED)
             val compIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.COMPILED)
-            val currDisasmTS = mainManager.currArch().getTranscript().getContent(Transcript.Type.DISASSEMBLED)
-            val currCompTS = mainManager.currArch().getTranscript().getContent(Transcript.Type.COMPILED)
+            currDisasmRows = mainManager.currArch().getTranscript().getContent(Transcript.Type.DISASSEMBLED)
+            currCompiledRows = mainManager.currArch().getTranscript().getContent(Transcript.Type.COMPILED)
 
             disassembledModel.setColumnIdentifiers(disasmIDs.toTypedArray())
-            for (row in currDisasmTS) {
+            for (row in currDisasmRows) {
                 disassembledModel.addRow(row.getContent().toTypedArray())
             }
 
             compiledModel.setColumnIdentifiers(compIDs.toTypedArray())
-            for (row in currCompTS) {
+            for (row in currCompiledRows) {
                 compiledModel.addRow(row.getContent().toTypedArray())
             }
             compiledView.fitColumnWidths(mainManager.currScale().borderScale.insets)

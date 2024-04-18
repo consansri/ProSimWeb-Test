@@ -42,7 +42,7 @@ class LightTheme(icons: ProSimIcons) : Theme {
     override val textLaF: TextLaF = TextLaF(
         base = Color(0x454545),
         baseSecondary = Color(0x999999),
-        selected = Color(0xBBBBBB),
+        selected = Color(0xE0E2E5),
         font = loadFont("fonts/Roboto/Roboto-Regular.ttf"),
         titleFont = loadFont("fonts/Roboto/Roboto-Light.ttf")
     )
