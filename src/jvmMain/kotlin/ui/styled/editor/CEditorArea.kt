@@ -196,21 +196,18 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
     // Insertion / Deletion
     private fun insertText(pos: Int, newText: String) {
-        val time = measureTime {
-            if (pos > styledText.size) {
-                nativeError("Text Insertion invalid for position $pos and current size ${styledText.size}!")
-                return
-            }
-            styledText.addAll(pos, newText.map { StyledChar(if (it == '\t') ' ' else it) })
-            //text = text.substring(0, pos) + newText + text.substring(pos)
-            caretPos += newText.length
-            queryStateChange()
-            contentChanged()
-            resetSelection()
-            revalidate()
-            repaint()
+        if (pos > styledText.size) {
+            nativeError("Text Insertion invalid for position $pos and current size ${styledText.size}!")
+            return
         }
-        nativeLog("Inserting Text took ${time.inWholeNanoseconds} ns ($newText)")
+        styledText.addAll(pos, newText.map { StyledChar(if (it == '\t') ' ' else it) })
+        //text = text.substring(0, pos) + newText + text.substring(pos)
+        caretPos += newText.length
+        queryStateChange()
+        contentChanged()
+        resetSelection()
+        revalidate()
+        repaint()
     }
 
     private fun deleteText(startIndex: Int, endIndex: Int) {
@@ -613,8 +610,13 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     }
 
     private fun getAdvancedPosition(index: Int): InfoLogger.CodePosition {
-        val lines = splitListAtIndices(styledText.subList(0, index), lineBreakIDs)
-        return InfoLogger.CodePosition(index, lines.size, lines.lastOrNull()?.size ?: 0)
+        return if (index in styledText.indices) {
+            val lines = splitListAtIndices(styledText.subList(0, index), lineBreakIDs)
+            InfoLogger.CodePosition(index, lines.size, lines.lastOrNull()?.size ?: 0)
+        } else {
+            // TODO("Fix index out of bounds better than just returning invalid values!")
+            InfoLogger.CodePosition(index, -1, -1)
+        }
     }
 
     /**
