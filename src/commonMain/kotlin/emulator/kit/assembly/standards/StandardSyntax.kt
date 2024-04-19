@@ -6,6 +6,8 @@ import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
+import emulator.kit.nativeLog
+import kotlinx.datetime.Clock
 
 abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentStartSymbol: Char, possibleInstructionNames: List<String>, val instrParamsCanContainWordsBesideLabels: Boolean) : Syntax() {
 
@@ -13,7 +15,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
     override val applyStandardHLForRest: Boolean = false
     override fun clear() {}
-    override fun check(arch: emulator.kit.Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<Compiler.CompilerFile>, transcript: Transcript): SyntaxTree {
+    override fun check(arch: Architecture, compiler: Compiler, tokens: List<Compiler.Token>, others: List<Compiler.CompilerFile>, transcript: Transcript): SyntaxTree {
         val remainingTokens = tokens.toMutableList()
 
         val errors = mutableListOf<Error>()
@@ -60,6 +62,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 break
             }
         }
+
         remainingTokens.removeAll { it is Compiler.Token.Space || it is Compiler.Token.NewLine }
         if (remainingTokens.isNotEmpty()) {
             errors.add(Error("Faulty Syntax! Check Syntax Examples!", *remainingTokens.toTypedArray()))

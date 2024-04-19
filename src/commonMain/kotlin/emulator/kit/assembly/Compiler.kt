@@ -10,6 +10,7 @@ import emulator.kit.assembly.Syntax.TokenSeq.Component.*
 import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
+import kotlinx.datetime.*
 
 /**
  * The [Compiler] is the first instance which analyzes the text input. Common pre analyzed tokens will be delivered to each Syntax implementation. The [Compiler] fires the compilation events in the following order.
@@ -54,28 +55,36 @@ class Compiler(
     private var isBuildable = false
     private var pseudoID = -1
     private var assemblyMap: Assembly.AssemblyMap = Assembly.AssemblyMap()
+    val processes: MutableList<Process> = mutableListOf()
 
     /**
      * Executes and controls the compilation
      */
     fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Boolean = true): CompileResult {
         architecture.getConsole().clear()
+
+        val process = Process(mainFile)
+        processes.add(process)
+
         val tokens: List<Token>
         val tree: Syntax.SyntaxTree
         val parseTime = measureTime {
             tokens = tokenize(mainFile)
+            process.state = ProcessState.PARSE
             tree = parse(tokens, others)
         }
+
         architecture.getConsole().compilerInfo("build    \ttook ${parseTime.inWholeMicroseconds}µs\t(${if (isBuildable) "success" else "has errors"})")
 
         if (build) {
+            process.state = ProcessState.ASSEMBLE
             assemble(tree)
         }
 
-        tree.let {
-            syntax.treeCache[mainFile] = it
-        }
+        process.state = ProcessState.CACHE_RESULTS
+        syntax.treeCache[mainFile] = tree
 
+        processes.remove(process)
         return CompileResult(isBuildable, tokens, tree)
     }
 
@@ -551,6 +560,29 @@ class Compiler(
                 }
             }
             if (!foundExpression) break
+        }
+    }
+
+    enum class ProcessState(val displayName: String) {
+        TOKENIZE("tokenizing"),
+        PARSE("parsing"),
+        ASSEMBLE("assembling"),
+        CACHE_RESULTS("caching"),
+    }
+
+    data class Process(
+        val file: CompilerFile,
+        val processStart: Instant = Clock.System.now()
+    ) {
+        var state: ProcessState = ProcessState.TOKENIZE
+            set(value) {
+                field = value
+                currentStateStart = Clock.System.now()
+            }
+        var currentStateStart: Instant = Clock.System.now()
+
+        override fun toString(): String {
+            return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds} s) ${(Clock.System.now() - processStart).inWholeSeconds} s"
         }
     }
 
