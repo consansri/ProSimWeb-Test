@@ -1,7 +1,7 @@
 package emulator.kit.common
 
 import emulator.kit.assembly.Compiler
-
+import kotlinx.datetime.Clock
 
 /**
  * The usage of [IConsole] is mainly to hold messages from architecture components on runtime. It's used to resolve assembler errors and warnings.
@@ -30,11 +30,11 @@ class IConsole(val name: String) {
         messageArray.add(Message(MSGType.INFO, "o.O $message"))
     }
 
-    fun exeInfo(message: String){
+    fun exeInfo(message: String) {
         messageArray.add(Message(MSGType.INFO, "> $message"))
     }
 
-    fun missingFeature(message: String){
+    fun missingFeature(message: String) {
         messageArray.add(Message(MSGType.WARNING, "feature missing: $message"))
     }
 
@@ -46,7 +46,9 @@ class IConsole(val name: String) {
         return messageArray
     }
 
-    data class Message(val type: MSGType, val message: String)
+    data class Message(val type: MSGType, val message: String){
+        val time = Clock.System.now()
+    }
 
     enum class MSGType(val style: Compiler.CodeStyle) {
         LOG(Compiler.CodeStyle.BASE3),
