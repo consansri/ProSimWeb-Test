@@ -37,6 +37,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     // Jobs
     private var debounceJob: Job? = null
     private val debounceJobInterval: Long = 1500
+    private var caretMovesJob: Job? = null
 
     // Interactable Components
     var fileInterface: FileInterface? = null
@@ -101,10 +102,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     private var selEndLine = -1
     private var selEndColumn = -1
 
-    // StyleSettings
+    // Settings
     var tabSize = scaleManager.curr.fontScale.tabSize
     var scrollMarginLines = 2
     var scrollMarginChars = 10
+    var isEditable = true
 
     /**
      * Initialization
@@ -189,6 +191,17 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
      */
 
     // Insertion / Deletion
+    fun replaceStyledContent(styledContent: List<StyledChar>) {
+        styledText.clear()
+        styledText.addAll(styledContent)
+        caret.resetPos()
+        queryStateChange()
+        contentChanged()
+        resetSelection()
+        revalidate()
+        repaint()
+    }
+
     private fun insertText(pos: Int, newText: String) {
         if (pos > styledText.size) {
             nativeError("Text Insertion invalid for position $pos and current size ${styledText.size}!")
@@ -427,6 +440,9 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     }
 
     private suspend fun caretPosChanged() {
+        caretMovesJob?.cancel()
+        caret.isMoving = true
+
         lineNumbers.repaint()
 
         val caretLineInfo = caret.getLineInfo()
@@ -465,6 +481,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         }
         val absSelection = getAbsSelection()
         infoLogger?.printCaretInfo(InfoLogger.CodePosition(caret.getIndex(), caret.getLineInfo().lineNumber, caret.getLineInfo().columnID), absSelection.getLowPosition(), absSelection.getHighPosition())
+
+        caretMovesJob = CoroutineScope(Dispatchers.Default).launch {
+            delay(1000)
+            caret.isMoving = false
+        }
     }
 
     /**
@@ -738,8 +759,14 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
         fun moveCaretTo(e: MouseEvent) {
             val fm = getFontMetrics(font)
-            val lineID = e.y / fm.height
-            val columnID = e.x / fm.charWidth(' ')
+            var lineID = e.y / fm.height
+            if (lineID >= getLineCount()) {
+                lineID = getLineCount() - 1
+            }
+            var columnID = e.x / fm.charWidth(' ')
+            if (columnID >= getMaxLineLength()) {
+                columnID = getMaxLineLength()
+            }
             if (lineID >= 0 && columnID >= 0) moveCaretTo(lineID + 1, columnID)
         }
 
@@ -798,9 +825,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 }
 
                 e.keyChar.isDefined() -> {
-                    val newChar = e.keyChar.toString()
-                    deleteSelected()
-                    insertText(caret.getIndex(), newChar)
+                    if (isEditable) {
+                        val newChar = e.keyChar.toString()
+                        deleteSelected()
+                        insertText(caret.getIndex(), newChar)
+                    }
                 }
             }
         }
@@ -808,10 +837,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         override fun keyPressed(e: KeyEvent) {
             when (e.keyCode) {
                 KeyEvent.VK_TAB -> {
-                    if (e.isShiftDown) {
-                        removeIndent()
-                    } else {
-                        indent()
+                    if (isEditable) {
+                        if (e.isShiftDown) {
+                            removeIndent()
+                        } else {
+                            indent()
+                        }
                     }
                 }
 
@@ -831,7 +862,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 }
 
                 KeyEvent.VK_Z -> {
-                    if (e.isControlDown) {
+                    if (e.isControlDown && isEditable) {
                         if (e.isShiftDown) {
                             redo()
                         } else {
@@ -841,7 +872,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 }
 
                 KeyEvent.VK_V -> {
-                    if (e.isControlDown) {
+                    if (e.isControlDown && isEditable) {
                         val content = getClipboardContent()
                         deleteSelected()
                         content?.let { text ->
@@ -851,7 +882,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 }
 
                 KeyEvent.VK_X -> {
-                    if (e.isControlDown) {
+                    if (e.isControlDown && isEditable) {
                         if (selStart != selEnd) {
                             val absSelection = getAbsSelection()
                             copyToClipboard(styledText.subList(absSelection.lowIndex, absSelection.highIndex).joinToString("") { it.content.toString() })
@@ -861,47 +892,69 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 }
 
                 KeyEvent.VK_ENTER -> {
-                    deleteSelected()
-                    insertText(caret.getIndex(), "\n")
-                }
-
-                KeyEvent.VK_LEFT -> if (e.isShiftDown) handleShiftSelection(e) else {
-                    resetSelection()
-                    caret.moveCaretLeft()
-                }
-
-                KeyEvent.VK_RIGHT -> if (e.isShiftDown) handleShiftSelection(e) else {
-                    resetSelection()
-                    caret.moveCaretRight()
-                }
-
-                KeyEvent.VK_UP -> if (e.isShiftDown) handleShiftSelection(e) else {
-                    resetSelection()
-                    caret.moveCaretUp()
-                }
-
-                KeyEvent.VK_DOWN -> if (e.isShiftDown) handleShiftSelection(e) else {
-                    resetSelection()
-                    caret.moveCaretDown()
-                }
-
-                KeyEvent.VK_BACK_SPACE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex()))
-                KeyEvent.VK_DELETE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() <= styledText.size) deleteText(caret.getIndex(), caret.getIndex() + 1))
-                KeyEvent.VK_HOME -> if (e.isShiftDown) handleShiftSelection(e) else {
-                    if (selStart < selEnd) {
-                        swapSelection()
-                    } else {
-                        resetSelection()
-                        caret.moveCaretHome()
+                    if (isEditable) {
+                        deleteSelected()
+                        insertText(caret.getIndex(), "\n")
                     }
                 }
 
-                KeyEvent.VK_END -> if (e.isShiftDown) handleShiftSelection(e) else {
-                    if (selStart > selEnd) {
-                        swapSelection()
-                    } else {
+                KeyEvent.VK_LEFT -> {
+                    if (e.isShiftDown) handleShiftSelection(e) else {
                         resetSelection()
-                        caret.moveCaretEnd()
+                        caret.moveCaretLeft()
+                    }
+                }
+
+                KeyEvent.VK_RIGHT -> {
+                    if (e.isShiftDown) handleShiftSelection(e) else {
+                        resetSelection()
+                        caret.moveCaretRight()
+                    }
+                }
+
+                KeyEvent.VK_UP -> {
+                    if (e.isShiftDown) handleShiftSelection(e) else {
+                        resetSelection()
+                        caret.moveCaretUp()
+                    }
+                }
+
+                KeyEvent.VK_DOWN -> {
+                    if (e.isShiftDown) handleShiftSelection(e) else {
+                        resetSelection()
+                        caret.moveCaretDown()
+                    }
+                }
+
+                KeyEvent.VK_BACK_SPACE -> {
+                    if (isEditable) {
+                        if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex()))
+                    }
+                }
+
+                KeyEvent.VK_DELETE -> if (isEditable) {
+                    if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() <= styledText.size) deleteText(caret.getIndex(), caret.getIndex() + 1))
+                }
+
+                KeyEvent.VK_HOME -> {
+                    if (e.isShiftDown) handleShiftSelection(e) else {
+                        if (selStart < selEnd) {
+                            swapSelection()
+                        } else {
+                            resetSelection()
+                            caret.moveCaretHome()
+                        }
+                    }
+                }
+
+                KeyEvent.VK_END -> {
+                    if (e.isShiftDown) handleShiftSelection(e) else {
+                        if (selStart > selEnd) {
+                            swapSelection()
+                        } else {
+                            resetSelection()
+                            caret.moveCaretEnd()
+                        }
                     }
                 }
             }

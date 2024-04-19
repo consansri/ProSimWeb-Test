@@ -67,17 +67,17 @@ class CEditorAreaUI(
 
         caretColor = editor.foreground
         // Setup Caret Timer
-       /* caretTimer?.stop()
+        caretTimer?.stop()
         caretTimer = null
         caretTimer = Timer(500) {
-            caretColor = if (caretColor == null) {
+            caretColor = if (editor.caret.isMoving || caretColor == null) {
                 editor.foreground
             } else {
                 null
             }
             editor.repaint()
         }
-        caretTimer?.start()*/
+        caretTimer?.start()
 
         editor.repaint()
     }

@@ -2,10 +2,8 @@ package me.c3.emulator.kit
 
 import emulator.kit.assembly.Compiler
 import emulator.kit.common.IConsole
-import emulator.kit.common.Memory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import me.c3.ui.components.editor.CDocument
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Font
@@ -17,7 +15,7 @@ import javax.swing.text.StyleConstants
 import javax.swing.text.StyledDocument
 
 
-fun List<Compiler.Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar>{
+fun List<Compiler.Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
     return this.map { it.toStyledCharSequence(codeLaF) }.flatten()
 }
 
@@ -79,10 +77,20 @@ fun Compiler.Token.hlAndAppendToDoc(codeStyle: CodeLaF, document: StyledDocument
     }
 }
 
+fun List<IConsole.Message>.toStyledContent(codeLaF: CodeLaF): List<CEditorArea.StyledChar>{
+    return this.flatMap { it.toStyledContent(codeLaF) }
+}
+
+fun IConsole.Message.toStyledContent(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
+    val color = codeLaF.getColor(type.style)
+    val style = CEditorArea.Style(color)
+    return "${message}\n".map { CEditorArea.StyledChar(it, style) }
+}
+
 fun IConsole.Message.hlAndAppendToDoc(codeStyle: CodeLaF, document: StyledDocument) {
     val textAttrs = SimpleAttributeSet()
     StyleConstants.setForeground(textAttrs, codeStyle.getColor(this.type.style))
-    document.insertString(document.length, this.message + "\n", textAttrs)
+    document.insertString(document.length, "${this.time.toLocalDateTime(TimeZone.currentSystemDefault()).time}: " + this.message + "\n", textAttrs)
 }
 
 fun Font.install(textPane: JTextPane, scale: Float) {

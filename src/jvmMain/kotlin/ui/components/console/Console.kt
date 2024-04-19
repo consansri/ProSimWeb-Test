@@ -1,51 +1,24 @@
 package me.c3.ui.components.console
 
+import kotlinx.coroutines.*
+import me.c3.emulator.kit.toStyledContent
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CLabel
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.components.styled.CTextPane
 import me.c3.ui.styled.params.FontType
+import ui.main
+import ui.styled.editor.CConsole
 import java.awt.BorderLayout
 
-class Console(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
-
-    val topBar = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false)
-    val textPane: CTextPane = CTextPane(mainManager.themeManager, mainManager.scaleManager)
-    val contentPane = textPane.createScrollPane(mainManager.themeManager, mainManager.scaleManager)
-
+class Console(mainManager: MainManager) : CConsole(mainManager.themeManager, mainManager.scaleManager){
     init {
-        textPane.document = ConsoleDocument(mainManager)
-
-        connectChildren(mainManager)
-        attachListeners(mainManager)
-        setDefaults()
-    }
-
-    private fun connectChildren(mainManager: MainManager) {
-        layout = BorderLayout()
-
-        topBar.add(CLabel(mainManager.themeManager,mainManager.scaleManager, "Console", FontType.TITLE))
-
-        add(topBar, BorderLayout.NORTH)
-        add(contentPane, BorderLayout.CENTER)
-    }
-
-    private fun setDefaults() {
-        textPane.isEditable = false
-    }
-
-    private fun attachListeners(mainManager: MainManager) {
-        mainManager.archManager.addArchChangeListener {
-            update(mainManager)
+        mainManager.eventManager.addExeEventListener {
+            updateContent(mainManager.currArch().getConsole().getMessages().toStyledContent(mainManager.currTheme().codeLaF))
         }
-
-        mainManager.addAnyEventListener {
-            update(mainManager)
+        mainManager.eventManager.addCompileListener {
+            updateContent(mainManager.currArch().getConsole().getMessages().toStyledContent(mainManager.currTheme().codeLaF))
         }
+        isEditable = false
     }
-
-    fun update(mainManager: MainManager) {
-        textPane.document = ConsoleDocument(mainManager)
-    }
-
 }

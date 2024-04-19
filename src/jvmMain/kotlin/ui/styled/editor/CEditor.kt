@@ -37,7 +37,7 @@ open class CEditor(themeManager: ThemeManager, scaleManager: ScaleManager, maxSt
     }
 
     protected fun mark(vararg content: CEditorLineNumbers.LineContent) {
-        textArea.lineNumbers.mark(*content)
+        textArea.lineNumbers?.mark(*content)
     }
 
     fun undo(){
