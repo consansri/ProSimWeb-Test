@@ -4,7 +4,6 @@ import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
 import me.c3.emulator.kit.install
 import me.c3.ui.MainManager
-import me.c3.ui.components.editor.CDocument
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
 import me.c3.ui.styled.editor.CEditor
@@ -63,28 +62,4 @@ fun testCustomFrame() {
     frame.setFrameTitle("ProSimWeb")
 }
 
-fun testTextPane() {
-    SwingUtilities.invokeLater {
-        val mainManager = MainManager()
 
-        val frame = JFrame()
-        frame.size = Dimension(1280, 768)
-        frame.isVisible = true
-        frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        frame.setLocationRelativeTo(null)
-
-        val textPane = JTextPane()
-        textPane.isEditable = true
-        frame.add(textPane)
-
-        mainManager.currTheme().codeLaF.getFont().install(textPane, mainManager.currScale().fontScale.codeSize)
-
-        textPane.text = "Hallo ich bin neuer Text!"
-
-        textPane.styledDocument = CDocument()
-
-        /*textPane.font = font*/
-
-
-    }
-}

@@ -2,7 +2,6 @@ package me.c3.ui.theme.core
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.theme.core.style.*
-import me.c3.ui.theme.core.ui.ProSimLookAndFeel
 import java.awt.Font
 import java.awt.FontFormatException
 import java.io.IOException
@@ -37,14 +36,6 @@ interface Theme {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-        }
-    }
-
-    fun install(frame: JFrame) {
-        SwingUtilities.invokeLater {
-            val thisLookAndFeel = ProSimLookAndFeel(this)
-            UIManager.setLookAndFeel(thisLookAndFeel)
-            SwingUtilities.updateComponentTreeUI(frame)
         }
     }
 

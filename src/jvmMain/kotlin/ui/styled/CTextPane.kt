@@ -1,6 +1,5 @@
 package me.c3.ui.components.styled
 
-import me.c3.ui.components.editor.CDocument
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CTextPaneUI
 import me.c3.ui.theme.ThemeManager
@@ -11,7 +10,6 @@ import javax.swing.text.*
 class CTextPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JTextPane() {
 
     init {
-        this.document = CDocument()
         setUI(CTextPaneUI(themeManager, scaleManager))
     }
 

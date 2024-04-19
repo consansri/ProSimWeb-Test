@@ -38,7 +38,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(psFrame.getThemeM()
                 iconBg = if (processorShown) psFrame.getThemeM().curr.iconLaF.iconBgActive else psFrame.getThemeM().curr.iconLaF.iconBg
             }
         },
-        CIconButton(psFrame.getThemeM(), psFrame.getScaleM(), psFrame.getIcons().info).apply {
+        CIconButton(psFrame.getThemeM(), psFrame.getScaleM(), psFrame.getIcons().disassembler).apply {
             addActionListener {
                 consoleAndInfoShown = !consoleAndInfoShown
                 iconBg = if (consoleAndInfoShown) psFrame.getThemeM().curr.iconLaF.iconBgActive else psFrame.getThemeM().curr.iconLaF.iconBg

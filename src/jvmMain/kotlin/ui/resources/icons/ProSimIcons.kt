@@ -14,6 +14,7 @@ interface ProSimIcons {
     val clearStorage: FlatSVGIcon
     val combineCells: FlatSVGIcon
     val continuousExe: FlatSVGIcon
+    val console: FlatSVGIcon
     val darkmode: FlatSVGIcon
     val deleteBlack: FlatSVGIcon
     val deleteRed: FlatSVGIcon

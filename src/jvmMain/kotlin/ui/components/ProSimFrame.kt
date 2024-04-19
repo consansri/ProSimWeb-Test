@@ -2,7 +2,7 @@ package ui.components
 
 import me.c3.ui.ArchManager
 import me.c3.ui.MainManager
-import me.c3.ui.components.console.Console
+import me.c3.ui.components.console.ConsoleView
 import me.c3.ui.components.controls.AppControls
 import me.c3.ui.components.controls.BottomBar
 import me.c3.ui.components.controls.TopControls
@@ -13,8 +13,10 @@ import me.c3.ui.components.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
+import ui.components.docs.InfoView
 
 interface ProSimFrame {
 
@@ -27,8 +29,10 @@ interface ProSimFrame {
     val topBar: TopControls
     val leftBar: EditorControls
     val rightBar: AppControls
-    val consoleAndInfo: Console
+    val console: ConsoleView
+    val infoView: InfoView
 
+    val infoTabPane: CAdvancedTabPane
     val editorContainer: CSplitPane
     val processorContainer: CSplitPane
     val mainContainer: CSplitPane

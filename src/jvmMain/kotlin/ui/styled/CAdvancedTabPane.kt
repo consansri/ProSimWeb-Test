@@ -54,6 +54,15 @@ open class CAdvancedTabPane(
         attachContent()
     }
 
+    fun select(index: Int): Boolean {
+        return if (index in tabs.indices) {
+            currentTab = tabs[index]
+            true
+        } else {
+            false
+        }
+    }
+
     fun addTab(tab: Component, content: Component) {
         val closeableTab = ClosableTab(themeManager, scaleManager, closeIcon, !primary, tabsAreCloseable, tab, content)
         closeableTab.closeButton.addActionListener {
@@ -102,7 +111,7 @@ open class CAdvancedTabPane(
         tabsPane.repaint()
     }
 
-    fun selectCurrentTab(closeableTab: ClosableTab?){
+    fun selectCurrentTab(closeableTab: ClosableTab?) {
         currentTab = closeableTab
     }
 
