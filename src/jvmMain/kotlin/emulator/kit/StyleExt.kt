@@ -1,6 +1,7 @@
 package me.c3.emulator.kit
 
 import emulator.kit.assembly.Compiler
+import emulator.kit.common.Docs
 import emulator.kit.common.IConsole
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -8,6 +9,7 @@ import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Font
 import java.awt.GraphicsEnvironment
+import javax.swing.JComponent
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.text.SimpleAttributeSet
@@ -63,3 +65,5 @@ fun Font.install(textPane: JTextPane, scale: Float) {
         doc.setCharacterAttributes(0, doc.length, textPane.getStyle("JetBrainsMonoFont"), false)
     }
 }
+
+

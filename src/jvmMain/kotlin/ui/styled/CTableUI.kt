@@ -71,7 +71,7 @@ class CTableUI(private val themeManager: ThemeManager, private val scaleManager:
             border = DirectionalBorder(themeManager, scaleManager)
             border = scaleManager.curr.borderScale.getInsetBorder()
 
-            return value as? Component ?: this
+            return value as? JComponent ?: this
         }
     }
 

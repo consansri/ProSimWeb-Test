@@ -6,7 +6,7 @@ import java.awt.Color
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
 
-open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int) : JTable(tableModel) {
+open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean,  vararg val columnAlignments: Int, private val shouldDrawComponents: Boolean = false) : JTable(tableModel) {
 
     val clickableHeaderIds = mutableListOf<Int>()
 
@@ -30,7 +30,7 @@ open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableM
         }
     }
 
-    fun setClickableHeaders(vararg ids: Int){
+    fun setClickableHeaders(vararg ids: Int) {
         clickableHeaderIds.clear()
         clickableHeaderIds.addAll(ids.toList())
     }

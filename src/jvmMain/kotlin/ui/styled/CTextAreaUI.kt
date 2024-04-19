@@ -1,6 +1,7 @@
 package me.c3.ui.styled
 
 import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.Color
@@ -30,7 +31,8 @@ class CTextAreaUI(private val themeManager: ThemeManager, private val scaleManag
         c.isOpaque = false
         c.font = fontType.getFont(themeManager, scaleManager)
         c.background = Color(0,0,0,0)
-        c.foreground = themeManager.curr.textLaF.base
+        c.border = c.borderMode.getBorder(themeManager, scaleManager)
+        c.foreground = if(c.primary) themeManager.curr.textLaF.base else themeManager.curr.textLaF.baseSecondary
         c.caretColor = themeManager.curr.textLaF.base
     }
 
