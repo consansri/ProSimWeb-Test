@@ -34,6 +34,8 @@ open class CIconButton(themeManager: ThemeManager, scaleManager: ScaleManager, i
             (ui as? CIconButtonUI)?.setDefaults(this)
         }
 
+    var hasHoverEffect = true
+
     var mode: Mode = mode
         set(value) {
             field = value

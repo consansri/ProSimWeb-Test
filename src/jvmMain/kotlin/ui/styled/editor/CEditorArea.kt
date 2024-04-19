@@ -195,6 +195,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         styledText.clear()
         styledText.addAll(styledContent)
         caret.resetPos()
+        caret.moveCaretRight(styledContent.size)
         queryStateChange()
         contentChanged()
         resetSelection()

@@ -41,13 +41,17 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
 
         button.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
-                if (!button.isDeactivated) {
-                    button.background = hoverColor
+                if (button.hasHoverEffect) {
+                    if (!button.isDeactivated) {
+                        button.background = hoverColor
+                    }
                 }
             }
 
             override fun mouseExited(e: MouseEvent?) {
-                button.background = Color(0, 0, 0, 0) // Reset background to default
+                if (button.hasHoverEffect) {
+                    button.background = button.iconBg
+                }
             }
         })
     }
@@ -71,7 +75,7 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
                     CIconButton.Mode.GRADIENT_NORMAL, CIconButton.Mode.GRADIENT_SMALL -> {}
                 }
                 if (cIconButton.isDeactivated) {
-                    it.colorFilter = FlatSVGIcon.ColorFilter{
+                    it.colorFilter = FlatSVGIcon.ColorFilter {
                         iconStyle.iconFgSecondary
                     }
                 }
