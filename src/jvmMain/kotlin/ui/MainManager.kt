@@ -1,6 +1,9 @@
 package me.c3.ui
 
 import emulator.Link
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.c3.ui.components.controls.BottomBar
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.events.EventManager
@@ -8,6 +11,7 @@ import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
 import java.nio.file.Paths
+import javax.swing.SwingUtilities
 
 
 class MainManager {
@@ -51,8 +55,12 @@ class MainManager {
     fun currArch() = archManager.curr
     fun currWS() = ws
     fun setCurrWS(path: String) {
-        ws = Workspace(path, editor, this)
-        triggerWSChanged()
+        bBar.generalPurpose.text = "Switching Workspace ($path)"
+        CoroutineScope(Dispatchers.Default).launch {
+            ws = Workspace(path, editor, this@MainManager)
+            bBar.generalPurpose.text = ""
+            triggerWSChanged()
+        }
     }
 
     fun addAnyEventListener(event: () -> Unit) {

@@ -35,7 +35,7 @@ class FileTree(mainManager: MainManager) : CPanel(mainManager.themeManager, main
     private fun attachMouseListener(mainManager: MainManager) {
         projectButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
-                CoroutineScope(Dispatchers.Main).launch {
+                CoroutineScope(Dispatchers.Default).launch {
                     val file = COptionPane.showDirectoryChooser(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, this@FileTree, "Workspace").await()
                     file?.let {
                         mainManager.setCurrWS(file.absolutePath)
