@@ -51,7 +51,7 @@ class CEditorLineNumbers(themeManager: ThemeManager, scaleManager: ScaleManager,
         var y = insets.top + fm.ascent
 
         g2d.color = selBg
-        g2d.fillRect(0, y + (editor.caretLine - 1) * fm.height - fm.ascent, width, fm.height)
+        g2d.fillRect(0, y + (editor.caret.getLineInfo().lineNumber - 1) * fm.height - fm.ascent, width, fm.height)
 
         g2d.color = foreground
         for (i in 1..lineCount) {

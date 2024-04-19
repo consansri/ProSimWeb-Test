@@ -2,6 +2,7 @@ package me.c3.ui.styled.editor
 
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import me.c3.ui.components.styled.CScrollPane
 import me.c3.ui.spacing.ScaleManager
@@ -20,7 +21,6 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import java.util.Stack
 import javax.swing.JComponent
-import kotlin.time.measureTime
 
 class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
 
@@ -43,7 +43,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         set(value) {
             field = value
             styledText.clear()
-            caretPos = 0
+            caret.resetPos()
             resetSelection()
             value?.let {
                 insertText(0, value.getRawContent())
@@ -63,14 +63,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     private var lastSave: Long = 0
 
     // Caret
-    var caretPos = 0
-        set(value) {
-            field = value
-            selScope.launch { caretPosChanged() }
-        }
-
-    var caretLine = 0
-    var caretColumn = 0
+    val caret = Caret()
 
     // Selection
     private var selStart: Int = -1
@@ -87,6 +80,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 }
             }
         }
+
     private var selEnd: Int = -1
         set(value) {
             field = value
@@ -109,7 +103,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
     // StyleSettings
     var tabSize = scaleManager.curr.fontScale.tabSize
-    var scrollMarginLines = 4
+    var scrollMarginLines = 2
     var scrollMarginChars = 10
 
     /**
@@ -135,8 +129,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             val previousState = textStateHistory.pop()
             styledText.clear()
             styledText.addAll(previousState)
-            if (caretPos >= previousState.size) {
-                caretPos = previousState.size
+            if (caret.getIndex() > previousState.size) {
+                caret.moveCaretTo(previousState.size)
             }
             resetSelection()
             revalidate()
@@ -151,8 +145,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             val nextState = undoneTextStateHistory.pop()
             styledText.clear()
             styledText.addAll(nextState)
-            if (caretPos >= nextState.size) {
-                caretPos = nextState.size
+            if (caret.getIndex() > nextState.size) {
+                caret.moveCaretTo(nextState.size)
             }
             resetSelection()
             revalidate()
@@ -201,8 +195,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             return
         }
         styledText.addAll(pos, newText.map { StyledChar(if (it == '\t') ' ' else it) })
-        //text = text.substring(0, pos) + newText + text.substring(pos)
-        caretPos += newText.length
+        caret.moveCaretRight(newText.length)
         queryStateChange()
         contentChanged()
         resetSelection()
@@ -211,10 +204,10 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     }
 
     private fun deleteText(startIndex: Int, endIndex: Int) {
-        if (startIndex < endIndex && endIndex <= styledText.size) { //if (startIndex < endIndex && endIndex <= text.length) {
-            styledText.subList(startIndex, endIndex).clear() //text = text.substring(0, startIndex) + text.substring(endIndex)
-            if (caretPos > startIndex) {
-                caretPos -= endIndex - startIndex
+        if (startIndex < endIndex && endIndex <= styledText.size) {
+            styledText.subList(startIndex, endIndex).clear()
+            if (caret.getIndex() > startIndex) {
+                caret.moveCaretLeft(endIndex - startIndex)
             }
             queryStateChange()
             contentChanged()
@@ -228,12 +221,15 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         if (selStart != -1 && selEnd != -1) deleteText(getAbsSelection().lowIndex, getAbsSelection().highIndex)
     }
 
+    // Indentation
     private fun indent() {
         val absSelection = getAbsSelection()
         // Implement this Function
         if (absSelection.lowIndex == absSelection.highIndex) {
-            val spacesToInsert = tabSize - (caretColumn % tabSize)
-            insertText(caretPos, " ".repeat(spacesToInsert))
+            val caretLine = caret.getLineInfo()
+            val caretIndex = caret.getIndex()
+            val spacesToInsert = tabSize - (caretLine.columnID % tabSize)
+            insertText(caretIndex, " ".repeat(spacesToInsert))
         } else {
             // Multi-line selection
             val startLine = absSelection.lowLine
@@ -253,11 +249,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             if (selStart < selEnd) {
                 selStart += before
                 selEnd += (before + inSelection)
-                caretPos += (before + inSelection)
+                caret.moveCaretRight(before + inSelection)
             } else {
                 selStart += (before + inSelection)
                 selEnd += before
-                caretPos += before
+                caret.moveCaretRight(before)
             }
             queryStateChange()
             revalidate()
@@ -269,7 +265,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         val absSelection = getAbsSelection()
         // Implement this Function
         if (absSelection.lowIndex == absSelection.highIndex) {
-            caretPos -= removeLineIndent(caretLine - 1)
+            val caretLineInfo = caret.getLineInfo()
+            caret.moveCaretLeft(removeLineIndent(caretLineInfo.lineNumber - 1))
         } else {
             // Multi-line selection
             val startLine = absSelection.lowLine
@@ -287,11 +284,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             if (selStart < selEnd) {
                 selStart -= before
                 selEnd -= (before + inSelection)
-                caretPos -= (before + inSelection)
+                caret.moveCaretLeft(before + inSelection)
             } else {
                 selStart -= (before + inSelection)
                 selEnd -= before
-                caretPos -= before
+                caret.moveCaretLeft(before)
             }
         }
         queryStateChange()
@@ -346,117 +343,25 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         return 0
     }
 
-    // Caret
-    private fun moveCaretLeft() {
-        if (caretPos > 0) {
-            caretPos--
-            repaint()
-        }
-    }
+    /**
+     * Text Selection
+     */
 
-    private fun moveCaretRight() {
-        if (caretPos < styledText.size) { //if (caretPos < text.length) {
-            caretPos++
-            repaint()
-        }
-    }
-
-    private fun moveCaretUp() {
-        if (caretPos > 0) {
-            val lines = splitListAtIndices(styledText, lineBreakIDs)
-            val currLine = lineOf(caretPos) - 1
-
-            // Check if there's a line above
-            if (currLine > 0) {
-                val lineAbove = lines[currLine - 1]
-                val newAfter = caretColumn.coerceAtMost(lineAbove.size)
-                caretPos -= caretColumn + 1 + (lineAbove.size - newAfter)
-            }
-            repaint()
-        }
-    }
-
-    private fun moveCaretDown() {
-        if (caretPos < styledText.size) {
-            val lines = splitListAtIndices(styledText, lineBreakIDs)
-            val currLine = caretLine - 1
-
-            // Check if there's a line below
-            if (currLine < lines.size - 1) {
-                val after = lines[currLine].size - caretColumn
-                val lineBelow = lines[currLine + 1]
-                val newBefore = caretColumn.coerceAtMost(lineBelow.size) + 1
-                caretPos += after + newBefore
-            }
-            repaint()
-        }
-    }
-
-    private fun moveCaretHome() {
-        val currColumn = columnOf(caretPos)
-        if (currColumn > 0) {
-            caretPos -= currColumn
-            repaint()
-        }
-    }
-
-    private fun moveCaretEnd() {
-        val lines = splitListAtIndices(styledText, lineBreakIDs)
-        val currColumn = caretColumn
-        val currLineID = caretLine - 1
-        if (currLineID < lines.size) {
-            val after = lines[currLineID].size - currColumn
-            caretPos += after
-            repaint()
-        }
-    }
-
-    private fun moveCaretTo(e: MouseEvent) {
-        val fm = getFontMetrics(font)
-        val lineID = e.y / fm.height
-        val columnID = e.x / fm.charWidth(' ')
-        if (lineID >= 0 && columnID >= 0) moveCaretTo(lineID, columnID)
-    }
-
-    private fun moveCaretTo(lineIndex: Int, columnIndex: Int) {
-        // Check for valid line index
-        val lines = splitListAtIndices(styledText, lineBreakIDs)
-        if (lineIndex < 0 || lineIndex >= lines.size) {
-            return // Clamp to existing line count
-        }
-
-        // Check for valid column index within the target line
-        val targetLine = lines[lineIndex]
-        val validColumnIndex = columnIndex.coerceAtMost(targetLine.size)
-
-        // Calculate new caret position based on line breaks
-        var newCaretPos = 0
-        for (i in 0 until lineIndex) {
-            newCaretPos += lines[i].size + 1 // Add 1 for newline character
-        }
-        newCaretPos += validColumnIndex
-
-        // Update caret position and reset selection
-        caretPos = newCaretPos
-        repaint()
-    }
-
-    // Selection
     private fun handleShiftSelection(e: KeyEvent) {
         if (selStart == -1) {
-            selStart = caretPos
+            selStart = caret.getIndex()
         }
 
         when (e.keyCode) {
-            KeyEvent.VK_LEFT -> moveCaretLeft()
-            KeyEvent.VK_UP -> moveCaretUp()
-            KeyEvent.VK_RIGHT -> moveCaretRight()
-            KeyEvent.VK_DOWN -> moveCaretDown()
-            KeyEvent.VK_HOME -> moveCaretHome()
-            KeyEvent.VK_END -> moveCaretEnd()
+            KeyEvent.VK_LEFT -> caret.moveCaretLeft()
+            KeyEvent.VK_UP -> caret.moveCaretUp()
+            KeyEvent.VK_RIGHT -> caret.moveCaretRight()
+            KeyEvent.VK_DOWN -> caret.moveCaretDown()
+            KeyEvent.VK_HOME -> caret.moveCaretHome()
+            KeyEvent.VK_END -> caret.moveCaretEnd()
         }
 
-        selEnd = caretPos
+        selEnd = caret.getIndex()
 
         if (selStart == selEnd) {
             resetSelection()
@@ -467,12 +372,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
     private fun handleMouseSelection(e: MouseEvent) {
         if (selStart == -1) {
-            selStart = caretPos
+            selStart = caret.getIndex()
         }
 
-        moveCaretTo(e)
+        caret.moveCaretTo(e)
 
-        selEnd = caretPos
+        selEnd = caret.getIndex()
 
         if (selStart == selEnd) {
             resetSelection()
@@ -484,7 +389,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     private fun selectAll() {
         selStart = 0
         selEnd = styledText.size
-        caretPos = styledText.size
+        caret.moveCaretTo(styledText.size)
         repaint()
     }
 
@@ -497,7 +402,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         val buffered = selStart
         selStart = selEnd
         selEnd = buffered
-        caretPos = buffered
+        caret.moveCaretTo(buffered)
         repaint()
     }
 
@@ -522,17 +427,14 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     }
 
     private suspend fun caretPosChanged() {
-        val caretCodePosition = getAdvancedPosition(caretPos)
-        caretLine = caretCodePosition.line
-        caretColumn = caretCodePosition.column
-
         lineNumbers.repaint()
 
+        val caretLineInfo = caret.getLineInfo()
         val visibleRect = scrollPane.viewport.viewRect
         val lineHeight = getFontMetrics(font).height
         val charWidth = getFontMetrics(font).charWidth(' ')
-        val caretY = lineHeight * caretLine
-        val caretX = charWidth * caretColumn
+        val caretY = lineHeight * caretLineInfo.lineNumber
+        val caretX = charWidth * caretLineInfo.columnID
 
         val scrollMarginY = scrollMarginLines * lineHeight
         val scrollMarginX = scrollMarginChars * charWidth
@@ -562,7 +464,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             scrollPane.horizontalScrollBar.value += diffX
         }
         val absSelection = getAbsSelection()
-        infoLogger?.printCaretInfo(getCaretPosition(), absSelection.getLowPosition(), absSelection.getHighPosition())
+        infoLogger?.printCaretInfo(InfoLogger.CodePosition(caret.getIndex(), caret.getLineInfo().lineNumber, caret.getLineInfo().columnID), absSelection.getLowPosition(), absSelection.getHighPosition())
     }
 
     /**
@@ -590,31 +492,38 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
      * Sub Calculations
      */
 
+    /**
+     *
+     */
     private fun <T> splitListAtIndices(list: List<T>, indices: List<Int>): List<List<T>> {
         val result = mutableListOf<List<T>>()
 
         var startIndex = 0
         for (index in indices) {
-            if (index < list.size) {
-                result.add(list.subList(startIndex, index))
+            if (index >= startIndex && index < list.size) {
+                result.add(list.subList(startIndex, index + 1))
                 startIndex = index + 1
+            } else {
+                break
             }
         }
 
-        when {
-            startIndex < list.size -> result.add(list.subList(startIndex, list.size))
-            startIndex == list.size -> result.add(listOf())
+        if (startIndex <= list.size) {
+            result.add(list.subList(startIndex, list.size))
         }
 
         return result
     }
 
     private fun getAdvancedPosition(index: Int): InfoLogger.CodePosition {
-        return if (index in styledText.indices) {
+        return if (index in 0..styledText.size) {
+            // Split the content  and append a placeholder to be able to calculate line and column for a none existing element (last position at the end)
             val lines = splitListAtIndices(styledText.subList(0, index), lineBreakIDs)
-            InfoLogger.CodePosition(index, lines.size, lines.lastOrNull()?.size ?: 0)
+            val lineNumber = lines.size
+            val columnID = (lines.lastOrNull()?.size ?: 0)
+            InfoLogger.CodePosition(index, lineNumber, columnID)
         } else {
-            // TODO("Fix index out of bounds better than just returning invalid values!")
+            nativeWarn("CEditorArea.getAdvancedPosition(): Index out of Bounds exception!")
             InfoLogger.CodePosition(index, -1, -1)
         }
     }
@@ -640,11 +549,10 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     fun getMaxLineLength(): Int = splitListAtIndices(styledText, lineBreakIDs).ifEmpty { listOf(listOf()) }.maxOf { it.size }
     fun getLineCount(): Int = lineBreakIDs.size + 1
     private fun lineOf(pos: Int): Int = splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).size
-    private fun columnOf(pos: Int): Int = splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).lastOrNull()?.size ?: 0
+    private fun columnOf(pos: Int): Int = (splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).lastOrNull()?.size ?: 1) - 1
     fun getAbsSelection(): AbsSelection = if (selStart < selEnd) AbsSelection(selStart, selEnd, selStartLine, selEndLine, selStartColumn, selEndColumn) else AbsSelection(selEnd, selStart, selEndLine, selStartLine, selEndColumn, selStartColumn)
     fun getStyledText(): List<StyledChar> = styledText
     fun getLineBreakIDs() = ArrayList(lineBreakIDs)
-    fun getCaretPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(caretPos, caretLine, caretColumn)
 
     /**
      * Data Classes
@@ -687,6 +595,200 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         IN_SCROLLPANE
     }
 
+    inner class Caret {
+        var mode: CaretMoveMode = CaretMoveMode.BOTHVALID
+            set(value) {
+                if (field != value) {
+                    when (field) {
+                        CaretMoveMode.INDEXMODE -> {
+                            calcLine()
+                        }
+
+                        CaretMoveMode.LINEMODE -> {
+                            calcIndex()
+                        }
+
+                        CaretMoveMode.BOTHVALID -> {}
+                    }
+                }
+                field = value
+            }
+
+        // State for INDEXMODE
+        var caretPos: Int = 0
+
+        // State for LINEMODE
+        var caretLine: Int = 1
+        var caretColumn: Int = 0
+
+        var isMoving: Boolean = false
+
+        private var linesBuffer: List<List<StyledChar>> = emptyList()
+        private var index: Int = 0
+
+        /**
+         * Calculates the
+         */
+        private fun calcLine() {
+            val advPos = getAdvancedPosition(caretPos)
+            caretLine = advPos.line
+            caretColumn = advPos.column
+        }
+
+        private fun calcIndex() {
+            linesBuffer = splitListAtIndices(styledText, lineBreakIDs)
+
+            // sum up previous line lengths
+            index = 0
+            for (line in 1..<caretLine) {
+                index += linesBuffer[line - 1].size
+            }
+
+            // add maximum caretcolumn
+            index += when {
+                caretColumn < linesBuffer[caretLine - 1].size -> caretColumn
+                caretColumn >= linesBuffer[caretLine - 1].size -> linesBuffer[caretLine - 1].size - 1
+                else -> {
+                    0
+                }
+            }
+
+            // add 1 if it is the last element
+            if (caretLine == linesBuffer.size && caretColumn >= linesBuffer[caretLine - 1].size) {
+                index += 1
+            }
+
+            caretPos = index
+        }
+
+        fun moveCaretLeft() {
+            mode = CaretMoveMode.INDEXMODE
+            if (caretPos > 0) {
+                caretPos--
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretRight() {
+            mode = CaretMoveMode.INDEXMODE
+            if (caretPos < styledText.size) { //if (caretPos < text.length) {
+                caretPos++
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretLeft(steps: Int) {
+            mode = CaretMoveMode.INDEXMODE
+            if (caretPos - steps >= 0) {
+                caretPos -= steps
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretRight(steps: Int) {
+            mode = CaretMoveMode.INDEXMODE
+            if (caretPos < styledText.size) {
+                caretPos += steps
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretUp() {
+            mode = CaretMoveMode.LINEMODE
+            if (caretLine > 1) {
+                caretLine--
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretDown() {
+            mode = CaretMoveMode.LINEMODE
+            if (caretLine < getLineCount()) {
+                caretLine++
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretHome() {
+            mode = CaretMoveMode.LINEMODE
+            if (caretColumn > 0) {
+                caretColumn = 0
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretEnd() {
+            mode = CaretMoveMode.LINEMODE
+            val lines = splitListAtIndices(styledText, lineBreakIDs)
+            val isLastLine = caretLine == lines.size
+            val currLine = lines[caretLine - 1]
+            if (caretColumn < currLine.size - 1) {
+                caretColumn = currLine.size - if (!isLastLine) 1 else 0
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretTo(e: MouseEvent) {
+            val fm = getFontMetrics(font)
+            val lineID = e.y / fm.height
+            val columnID = e.x / fm.charWidth(' ')
+            if (lineID >= 0 && columnID >= 0) moveCaretTo(lineID + 1, columnID)
+        }
+
+
+        fun moveCaretTo(index: Int) {
+            mode = CaretMoveMode.INDEXMODE
+            if (index > 0 && index <= styledText.size) {
+                caretPos = index
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun moveCaretTo(lineNumber: Int, columnIndex: Int) {
+            mode = CaretMoveMode.LINEMODE
+            if (lineNumber > 0 && columnIndex >= 0) {
+                caretLine = lineNumber
+                caretColumn = columnIndex
+                repaint()
+                selScope.launch { caretPosChanged() }
+            }
+        }
+
+        fun resetPos() {
+            mode = CaretMoveMode.INDEXMODE
+            caretPos = 0
+            repaint()
+            selScope.launch { caretPosChanged() }
+        }
+
+        fun getLineInfo(): LineInfo {
+            mode = CaretMoveMode.BOTHVALID
+            return LineInfo(caretLine, caretColumn)
+        }
+
+        fun getIndex(): Int {
+            mode = CaretMoveMode.BOTHVALID
+            return caretPos
+        }
+    }
+
+    data class LineInfo(val lineNumber: Int, val columnID: Int)
+
+    enum class CaretMoveMode {
+        INDEXMODE,
+        LINEMODE,
+        BOTHVALID
+    }
+
     inner class EditorKeyListener : KeyListener {
         override fun keyTyped(e: KeyEvent) {
             // Character Insertion
@@ -698,7 +800,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                 e.keyChar.isDefined() -> {
                     val newChar = e.keyChar.toString()
                     deleteSelected()
-                    insertText(caretPos, newChar)
+                    insertText(caret.getIndex(), newChar)
                 }
             }
         }
@@ -743,7 +845,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                         val content = getClipboardContent()
                         deleteSelected()
                         content?.let { text ->
-                            insertText(caretPos, text)
+                            insertText(caret.getIndex(), text)
                         }
                     }
                 }
@@ -760,37 +862,37 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
                 KeyEvent.VK_ENTER -> {
                     deleteSelected()
-                    insertText(caretPos, "\n")
+                    insertText(caret.getIndex(), "\n")
                 }
 
                 KeyEvent.VK_LEFT -> if (e.isShiftDown) handleShiftSelection(e) else {
                     resetSelection()
-                    moveCaretLeft()
+                    caret.moveCaretLeft()
                 }
 
                 KeyEvent.VK_RIGHT -> if (e.isShiftDown) handleShiftSelection(e) else {
                     resetSelection()
-                    moveCaretRight()
+                    caret.moveCaretRight()
                 }
 
                 KeyEvent.VK_UP -> if (e.isShiftDown) handleShiftSelection(e) else {
                     resetSelection()
-                    moveCaretUp()
+                    caret.moveCaretUp()
                 }
 
                 KeyEvent.VK_DOWN -> if (e.isShiftDown) handleShiftSelection(e) else {
                     resetSelection()
-                    moveCaretDown()
+                    caret.moveCaretDown()
                 }
 
-                KeyEvent.VK_BACK_SPACE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caretPos > 0) deleteText(caretPos - 1, caretPos))
-                KeyEvent.VK_DELETE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caretPos <= styledText.size) deleteText(caretPos, caretPos + 1))
+                KeyEvent.VK_BACK_SPACE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex()))
+                KeyEvent.VK_DELETE -> if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() <= styledText.size) deleteText(caret.getIndex(), caret.getIndex() + 1))
                 KeyEvent.VK_HOME -> if (e.isShiftDown) handleShiftSelection(e) else {
                     if (selStart < selEnd) {
                         swapSelection()
                     } else {
                         resetSelection()
-                        moveCaretHome()
+                        caret.moveCaretHome()
                     }
                 }
 
@@ -799,7 +901,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                         swapSelection()
                     } else {
                         resetSelection()
-                        moveCaretEnd()
+                        caret.moveCaretEnd()
                     }
                 }
             }
@@ -839,7 +941,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             } else {
                 selStart = -1
                 selEnd = -1
-                moveCaretTo(e)
+                caret.moveCaretTo(e)
             }
         }
     }

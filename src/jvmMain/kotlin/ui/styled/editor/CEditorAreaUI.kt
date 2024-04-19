@@ -65,8 +65,9 @@ class CEditorAreaUI(
         editor.lineNumbers.isOpaque = false
         editor.lineNumbers.selBg = caretLineBG
 
+        caretColor = editor.foreground
         // Setup Caret Timer
-        caretTimer?.stop()
+       /* caretTimer?.stop()
         caretTimer = null
         caretTimer = Timer(500) {
             caretColor = if (caretColor == null) {
@@ -76,7 +77,7 @@ class CEditorAreaUI(
             }
             editor.repaint()
         }
-        caretTimer?.start()
+        caretTimer?.start()*/
 
         editor.repaint()
     }
@@ -104,7 +105,7 @@ class CEditorAreaUI(
 
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
-        val caretLine = editor.caretLine
+        val caretLine = editor.caret.getLineInfo().lineNumber
         val ascent = fm.ascent
         val lineHeight = fm.height
 
@@ -134,7 +135,7 @@ class CEditorAreaUI(
             }
 
             // Draw the cursor
-            if (i == editor.caretPos) {
+            if (i == editor.caret.getIndex()) {
                 if (editor.hasFocus()) {
                     drawCaret(g2d, x, y, fm)
                 }
@@ -157,7 +158,7 @@ class CEditorAreaUI(
             }
         }
 
-        if (editor.getStyledText().size == editor.caretPos) {
+        if (editor.getStyledText().size == editor.caret.getIndex()) {
             if (editor.hasFocus()) {
                 drawCaret(g2d, x, y, fm)
             }
@@ -181,7 +182,7 @@ class CEditorAreaUI(
         // Get the visible rectangle of the viewport
         val visibleRect = editor.scrollPane.viewport.viewRect
 
-        val caretLine = editor.caretLine
+        val caretLine = editor.caret.getLineInfo().lineNumber
         val ascent = fm.ascent
         val lineHeight = fm.height
 
@@ -228,7 +229,7 @@ class CEditorAreaUI(
             }
 
             // Draw the cursor
-            if (index == editor.caretPos) {
+            if (index == editor.caret.getIndex()) {
                 if (editor.hasFocus()) {
                     drawCaret(g2d, x, y, fm)
                 }
@@ -251,7 +252,7 @@ class CEditorAreaUI(
             }
         }
 
-        if (styledText.size == editor.caretPos && editor.hasFocus()) {
+        if (styledText.size == editor.caret.getIndex() && editor.hasFocus()) {
             drawCaret(g2d, x, y, fm)
         }
     }
