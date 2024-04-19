@@ -91,11 +91,11 @@ object RV32 {
 
     private val riscVDocs = Docs(
         usingStandard = true,
-        Docs.HtmlFile.SourceFile(
+        Docs.DocFile.SourceFile(
             "Syntax Examples",
             "/documents/rv32/syntaxexamples.html"
         ),
-        Docs.HtmlFile.DefinedFile(
+        Docs.DocFile.DefinedFile(
             "RV32 Implemented",
 
             Chapter(

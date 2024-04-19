@@ -24,7 +24,7 @@ data object IKRMini {
         "IKR Minimalprozessor",
         Docs(
             usingStandard = true,
-            Docs.HtmlFile.DefinedFile(
+            Docs.DocFile.DefinedFile(
                 "IKR Mini Implemented",
                 Chapter(
                     "Memory",
@@ -46,7 +46,7 @@ data object IKRMini {
                     )
                 )
             ),
-            Docs.HtmlFile.SourceFile(
+            Docs.DocFile.SourceFile(
                 "Syntax Examples", "/documents/ikrmini/syntaxexamples.html"
             )
         )

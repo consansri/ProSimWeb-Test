@@ -59,7 +59,7 @@ object T6502 {
         "MOS Technology 6502",
         Docs(
             usingStandard = true,
-            Docs.HtmlFile.DefinedFile(
+            Docs.DocFile.DefinedFile(
                 "6502 Implemented",
                 Chapter(
                     "Memory",
@@ -83,7 +83,7 @@ object T6502 {
                     )
                 )
             ),
-            Docs.HtmlFile.SourceFile(
+            Docs.DocFile.SourceFile(
                 "Syntax Examples", "/documents/t6502/syntaxexamples.html"
             )
         )

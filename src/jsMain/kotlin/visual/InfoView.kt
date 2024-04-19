@@ -198,7 +198,7 @@ val InfoView = FC<InfoViewProps> { props ->
 
                 currMDID?.let { id ->
                     arch.getDescription().docs.files.getOrNull(id)?.let { file ->
-                        if (file is Docs.HtmlFile.DefinedFile) {
+                        if (file is Docs.DocFile.DefinedFile) {
                             file.chapters.forEach {
                                 val fc = it.render(props.archState.component1(), props.fileState.component1(), props.fileChangeEvent)
                                 fc {
@@ -215,7 +215,7 @@ val InfoView = FC<InfoViewProps> { props ->
     useEffect(currMDID) {
         if (currMDID != null) {
             val file = arch.getDescription().docs.files[currMDID]
-            if (file is Docs.HtmlFile.SourceFile) {
+            if (file is Docs.DocFile.SourceFile) {
                 GlobalScope.launch {
                     val snippet = fetch(file.src).text()
                     docDiv.current?.let { input ->

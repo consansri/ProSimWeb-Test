@@ -8,13 +8,13 @@ import emulator.kit.common.Docs.DocComponent.*
  * This class contains all documents which are partly supplied by specific architectures. There are two options to define a documentation file.
  * The first is by linking a source path to a specific html source file and the second is by directly defining a file as a React component, inwhich information can be generated directly from the implemented architecture.
  */
-class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
-    var files: MutableList<HtmlFile> = (mutableListOf(
-        HtmlFile.SourceFile(
+class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
+    var files: MutableList<DocFile> = (mutableListOf(
+        DocFile.SourceFile(
             "User Manual",
             "/documents/user-manual.html"
         ),
-        HtmlFile.DefinedFile(
+        DocFile.DefinedFile(
             "Version - ${Constants.VERSION}",
             Chapter(
                 "Version - 0.1.10",
@@ -301,7 +301,7 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
             }
         }*/
         )
-    ) + if (usingStandard) HtmlFile.DefinedFile(
+    ) + if (usingStandard) DocFile.DefinedFile(
         "Standard Syntax",
         Chapter(
             "Directives",
@@ -359,12 +359,12 @@ class Docs(val usingStandard: Boolean, vararg htmlFiles: HtmlFile) {
     ) else null).filterNotNull().toMutableList()
 
     init {
-        files.addAll(htmlFiles.toList())
+        files.addAll(docFiles.toList())
     }
 
-    sealed class HtmlFile(val title: String) {
-        class SourceFile(title: String, val src: String) : HtmlFile(title)
-        class DefinedFile(title: String, vararg val chapters: Chapter) : HtmlFile(title)
+    sealed class DocFile(val title: String) {
+        class SourceFile(title: String, val src: String) : DocFile(title)
+        class DefinedFile(title: String, vararg val chapters: Chapter) : DocFile(title)
     }
 
     sealed class DocComponent {

@@ -43,6 +43,5 @@ class ThemeManager(icons: ProSimIcons) {
         listenersCopy.forEach {
             it(curr)
         }
-        nativeLog("ThemeManager: Switched Theme to ${curr.name}!")
     }
 }
