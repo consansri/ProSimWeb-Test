@@ -453,6 +453,18 @@ abstract class Syntax {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Symbol
                 }
 
+                data object SLCommentStart : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.SLCommentStart
+                }
+
+                data object MLCommentStart : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.MLCommentStart
+                }
+
+                data object MLCommentEnd : InSpecific() {
+                    override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.MLCommentEnd
+                }
+
                 data object Word : InSpecific() {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word
                 }

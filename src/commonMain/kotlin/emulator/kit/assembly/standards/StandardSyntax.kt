@@ -79,21 +79,48 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
     /**
      * Syntax Detection Functions
      */
+
     /**
      * Removes all comments from the compiler tokens and adds them to the preElements
      */
     private fun MutableList<Compiler.Token>.removeComments(preElements: MutableList<TreeNode.ElementNode>): MutableList<Compiler.Token> {
+
+        // Standard Multi Line
+        while (true) {
+            val commentStart = this.firstOrNull { it is Compiler.Token.MLCommentStart } ?: break
+            val startIndex = this.indexOf(commentStart)
+            val commentEnd = this.firstOrNull { it is Compiler.Token.MLCommentEnd && this.indexOf(commentStart) < this.indexOf(it) }
+            val endIndex = commentEnd?.let { this.indexOf(it) + 1 } ?: this.size
+
+            val commentTokens = this.subList(startIndex, endIndex).toList()
+            this.subList(startIndex, endIndex).clear()
+            preElements.add(PREComment(*commentTokens.toTypedArray()))
+        }
+
+        // Arch Based Single Line
         while (true) {
             val commentStart = this.firstOrNull { it.content == commentStartSymbol.toString() } ?: break
             val startIndex = this.indexOf(commentStart)
-            val commentEnd =
-                this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
+            val commentEnd = this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
             val endIndex = commentEnd?.let { this.indexOf(it) } ?: this.size
 
             val commentTokens = this.subList(startIndex, endIndex).toList()
             this.subList(startIndex, endIndex).clear()
             preElements.add(PREComment(*commentTokens.toTypedArray()))
         }
+
+        // Standard Single Line
+        while (true) {
+            val commentStart = this.firstOrNull { it is Compiler.Token.SLCommentStart } ?: break
+            val startIndex = this.indexOf(commentStart)
+            val commentEnd = this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(commentStart) < this.indexOf(it) }
+            val endIndex = commentEnd?.let { this.indexOf(it) } ?: this.size
+
+            val commentTokens = this.subList(startIndex, endIndex).toList()
+            this.subList(startIndex, endIndex).clear()
+            preElements.add(PREComment(*commentTokens.toTypedArray()))
+        }
+
         return this
     }
 

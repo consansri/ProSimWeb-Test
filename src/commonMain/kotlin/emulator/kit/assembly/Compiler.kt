@@ -49,7 +49,10 @@ class Compiler(
         Regex("""^[a-z]+""", RegexOption.IGNORE_CASE),
         Regex("""^[a-z][a-z0-9]+""", RegexOption.IGNORE_CASE),
         Regex("""^[a-z_][a-z0-9_]+""", RegexOption.IGNORE_CASE),
-        Regex("""^[.a-z_][.a-z0-9_]+""", RegexOption.IGNORE_CASE)
+        Regex("""^[.a-z_][.a-z0-9_]+""", RegexOption.IGNORE_CASE),
+        Regex("""^//"""),
+        Regex("""^/\*"""),
+        Regex("""^\*/""")
     )
 
     private var isBuildable = false
@@ -128,6 +131,8 @@ class Compiler(
         var startIndex = 0
 
         while (remaining.isNotEmpty()) {
+
+            // Whitespaces
             val newLine = regexCollection.newLine.find(remaining)
             if (newLine != null) {
                 val token = Token.NewLine(LineLoc(file.name, lineID, startIndex, startIndex + newLine.value.length), newLine.value, tokenList.size)
@@ -147,6 +152,35 @@ class Compiler(
                 continue
             }
 
+            // Basic Comment Identification
+            val slCommentStart = regexCollection.commentStartSingleLine.find(remaining)
+            if(slCommentStart != null){
+                val token = Token.SLCommentStart(LineLoc(file.name, lineID, startIndex, startIndex + slCommentStart.value.length), slCommentStart.value, tokenList.size)
+                tokenList += token
+                startIndex += slCommentStart.value.length
+                remaining = file.content.substring(startIndex)
+                continue
+            }
+
+            val mlCommentStart = regexCollection.commentStartMutliLine.find(remaining)
+            if(mlCommentStart != null){
+                val token = Token.MLCommentStart(LineLoc(file.name, lineID, startIndex, startIndex + mlCommentStart.value.length), mlCommentStart.value, tokenList.size)
+                tokenList += token
+                startIndex += mlCommentStart.value.length
+                remaining = file.content.substring(startIndex)
+                continue
+            }
+
+            val mlCommentEnd = regexCollection.commentEndMultiLine.find(remaining)
+            if(mlCommentEnd != null){
+                val token = Token.MLCommentEnd(LineLoc(file.name, lineID, startIndex, startIndex + mlCommentEnd.value.length), mlCommentEnd.value, tokenList.size)
+                tokenList += token
+                startIndex += mlCommentEnd.value.length
+                remaining = file.content.substring(startIndex)
+                continue
+            }
+
+            // Literals
             val binary = regexCollection.bin.find(remaining)
             if (binary != null) {
                 val token = Token.Constant.Binary(LineLoc(file.name, lineID, startIndex, startIndex + binary.value.length), prefixes.bin, binary.value, tokenList.size)
@@ -210,6 +244,7 @@ class Compiler(
                 continue
             }
 
+            // Registers
             if (detectRegisters) {
                 val regRes = regexCollection.wordNum.find(remaining)
                 if (regRes != null) {
@@ -224,6 +259,7 @@ class Compiler(
                 }
             }
 
+            // Words
             val word = regexCollection.word.find(remaining)
             val wordNum = regexCollection.wordNum.find(remaining)
             val wordNumUs = regexCollection.wordNumUs.find(remaining)
@@ -272,6 +308,7 @@ class Compiler(
                 continue
             }
 
+            // Symbols
             val symbol = regexCollection.symbol.find(remaining)
             if (symbol != null) {
                 val token = Token.Symbol(LineLoc(file.name, lineID, startIndex, startIndex + symbol.value.length), symbol.value, tokenList.size)
@@ -376,17 +413,30 @@ class Compiler(
                 continue
             }
 
-            /*var foundCalcToken = false
-            for (mode in Token.Constant.Calculated.MODE.entries) {
-                val result = mode.regex.find(remaining) ?: continue
-                val token = mode.getCalcToken(lineLoc, prefixes, result.groups, result.value, pseudoID, regexCollection) ?: continue
-                pseudoTokens += token
-                foundCalcToken = true
-                startIndex += result.value.length
+            // Basic Comment Identification
+            val slCommentStart = regexCollection.commentStartSingleLine.find(remaining)
+            if(slCommentStart != null){
+                pseudoTokens += Token.SLCommentStart(lineLoc, slCommentStart.value, pseudoID)
+                startIndex += slCommentStart.value.length
                 remaining = content.substring(startIndex)
-                break
+                continue
             }
-            if (foundCalcToken) continue*/
+
+            val mlCommentStart = regexCollection.commentStartMutliLine.find(remaining)
+            if(mlCommentStart != null){
+                pseudoTokens += Token.MLCommentStart(lineLoc, mlCommentStart.value, pseudoID)
+                startIndex += mlCommentStart.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
+
+            val mlCommentEnd = regexCollection.commentEndMultiLine.find(remaining)
+            if(mlCommentEnd != null){
+                pseudoTokens += Token.MLCommentEnd(lineLoc, mlCommentEnd.value, pseudoID)
+                startIndex += mlCommentEnd.value.length
+                remaining = content.substring(startIndex)
+                continue
+            }
 
             val binary = regexCollection.bin.find(remaining)
             if (binary != null) {
@@ -818,6 +868,10 @@ class Compiler(
 
         class Register(lineLoc: LineLoc, content: String, val reg: RegContainer.Register, id: Int) : Token(lineLoc, content, id)
 
+        class SLCommentStart(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
+        class MLCommentStart(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
+        class MLCommentEnd(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id)
+
         sealed class Word(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
             class NumDotsUs(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
             class NumUs(lineLoc: LineLoc, content: String, id: Int) : Word(lineLoc, content, id)
@@ -871,7 +925,10 @@ class Compiler(
         val word: Regex,
         val wordNum: Regex,
         val wordNumUs: Regex,
-        val wordNumUsDots: Regex
+        val wordNumUsDots: Regex,
+        val commentStartSingleLine: Regex,
+        val commentStartMutliLine: Regex,
+        val commentEndMultiLine: Regex
     )
 
     data class ConstantPrefixes(
