@@ -2,6 +2,7 @@ package emulator.kit.assembly
 
 import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 
@@ -350,13 +351,6 @@ abstract class Syntax {
 
 
         fun matchStart(vararg tokens: Compiler.Token): SeqMatchResult {
-            // Return early if first doesn't match for performance improvement!
-            if (components.isEmpty()) return SeqMatchResult(true, listOf())
-
-            tokens.firstOrNull()?.let { firstToken ->
-                if (!components.first().matches(firstToken)) return SeqMatchResult(false, listOf())
-            }
-
             val trimmedTokens = tokens.toMutableList()
             if (trimmedTokens.isEmpty()) return SeqMatchResult(false, emptyList())
 
@@ -400,10 +394,10 @@ abstract class Syntax {
 
         data class SeqMatchResult(val matches: Boolean, val sequenceMap: List<SeqMap>)
 
-        sealed class Component {
+        sealed class Component(val name: String) {
             abstract fun matches(token: Compiler.Token): Boolean
 
-            class Specific(val content: String, val ignoreCase: Boolean = false) : Component() {
+            class Specific(val content: String, val ignoreCase: Boolean = false) : Component("Specific") {
                 override fun matches(token: Compiler.Token): Boolean {
                     return if (ignoreCase) {
                         content.uppercase() == token.content.uppercase()
@@ -413,7 +407,7 @@ abstract class Syntax {
                 }
             }
 
-            class SpecConst(val mustMatchSize: Variable.Size? = null, val signed: Boolean? = null, val onlyUnsigned: Boolean = false) : Component() {
+            class SpecConst(val mustMatchSize: Variable.Size? = null, val signed: Boolean? = null, val onlyUnsigned: Boolean = false) : Component("SpecConst") {
                 override fun matches(token: Compiler.Token): Boolean {
                     return if (signed == null) {
                         token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid
@@ -423,7 +417,7 @@ abstract class Syntax {
                 }
             }
 
-            class RegOrSpecConst(val mustMatchSize: Variable.Size, val regFile: RegContainer.RegisterFile? = null, val notInRegFile: RegContainer.RegisterFile? = null, val onlyUnsigned: Boolean = false) : Component() {
+            class RegOrSpecConst(val mustMatchSize: Variable.Size, val regFile: RegContainer.RegisterFile? = null, val notInRegFile: RegContainer.RegisterFile? = null, val onlyUnsigned: Boolean = false) : Component("RegOrSpecConst") {
                 override fun matches(token: Compiler.Token): Boolean {
                     return if (regFile != null) {
                         if (notInRegFile != null) {
@@ -441,51 +435,51 @@ abstract class Syntax {
                 }
             }
 
-            class WordOrSpecConst(val mustMatchSize: Variable.Size, val onlyUnsigned: Boolean = false) : Component() {
+            class WordOrSpecConst(val mustMatchSize: Variable.Size, val onlyUnsigned: Boolean = false) : Component("WordOrSpecConst") {
                 override fun matches(token: Compiler.Token): Boolean {
                     return token is Compiler.Token.Word || (token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid)
                 }
             }
 
-            sealed class InSpecific : Component() {
+            sealed class InSpecific(name: String) : Component(name) {
 
-                data object Symbol : InSpecific() {
+                data object Symbol : InSpecific("Symbol") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Symbol
                 }
 
-                data object SLCommentStart : InSpecific() {
+                data object SLCommentStart : InSpecific("SLCommentStart") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.SLCommentStart
                 }
 
-                data object MLCommentStart : InSpecific() {
+                data object MLCommentStart : InSpecific("MLCommentStart") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.MLCommentStart
                 }
 
-                data object MLCommentEnd : InSpecific() {
+                data object MLCommentEnd : InSpecific("MLCommentEnd") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.MLCommentEnd
                 }
 
-                data object Word : InSpecific() {
+                data object Word : InSpecific("Word") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word
                 }
 
-                data object WordNoDots : InSpecific() {
+                data object WordNoDots : InSpecific("WordNoDots") {
                     override fun matches(token: Compiler.Token): Boolean = (token is Compiler.Token.Word.Clean || token is Compiler.Token.Word.Num || token is Compiler.Token.Word.NumUs)
                 }
 
-                data object WordNoDotsAndUS : InSpecific() {
+                data object WordNoDotsAndUS : InSpecific("WordNoDotsAndUS") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word.Clean || token is Compiler.Token.Word.Num
                 }
 
-                data object WordOnlyAlpha : InSpecific() {
+                data object WordOnlyAlpha : InSpecific("WordOnlyAlpha") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Word.Clean
                 }
 
-                data object Constant : InSpecific() {
+                data object Constant : InSpecific("Constant") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant
                 }
 
-                data class Expression(val type: Compiler.Token.Constant.Expression.ExpressionType? = null) : InSpecific() {
+                data class Expression(val type: Compiler.Token.Constant.Expression.ExpressionType? = null) : InSpecific("Expression") {
                     override fun matches(token: Compiler.Token): Boolean {
                         return if (type == null) {
                             token is Compiler.Token.Constant.Expression
@@ -495,11 +489,11 @@ abstract class Syntax {
                     }
                 }
 
-                data class StringConst(val allowMultiLine: Boolean = true) : InSpecific() {
+                data class StringConst(val allowMultiLine: Boolean = true) : InSpecific("StringConst") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Constant.String && (token.multiline == allowMultiLine || allowMultiLine)
                 }
 
-                data class Register(val regFile: RegContainer.RegisterFile? = null) : InSpecific() {
+                data class Register(val regFile: RegContainer.RegisterFile? = null) : InSpecific("Register") {
                     override fun matches(token: Compiler.Token): Boolean {
                         return if (regFile != null) {
                             token is Compiler.Token.Register && regFile.unsortedRegisters.contains(token.reg)
@@ -509,12 +503,12 @@ abstract class Syntax {
                     }
                 }
 
-                data object NewLine : InSpecific() {
+                data object NewLine : InSpecific("NewLine") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.NewLine
 
                 }
 
-                data object Space : InSpecific() {
+                data object Space : InSpecific("Space") {
                     override fun matches(token: Compiler.Token): Boolean = token is Compiler.Token.Space
                 }
 

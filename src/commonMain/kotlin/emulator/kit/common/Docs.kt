@@ -23,20 +23,34 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                     UnlinkedList(
                         Code(
                             """
-                                # if you want to add raw data as a hex dump you could just use the following data directive
-                                # this will extract all hex chars [a-fA-F0-9] and will just store them into the memory
-                                .data
-                                    .hexstring \"\"\"
-                                        CAFEAFFE
-                                        DEADBEEF
-                                        01234567
-                                        89ABCDEF                                        
-                                    \"\"\"
+                                // Added another popular commenting syntax!
+                                // Those are not replacing the arch specific Syntax!
+                                
+                                // Single Line Comment
+                                
+                                /*
+                                    Multi
+                                    Line
+                                    Comment                                    
+                                */
                             """.trimIndent()
                         ),
                         Code(
                             """
-                                # now supporting nested expression of literals!    
+                                // if you want to add raw data as a hex dump you now can just use the following data directive
+                                // this will extract all hex chars [a-fA-F0-9] and will just store them into the memory
+                                .data
+                                    .hexstring ${"\"\"\""}
+                                        CAFEAFFE
+                                        DEADBEEF
+                                        01234567
+                                        89ABCDEF                                        
+                                    ${"\"\"\""}
+                            """.trimIndent()
+                        ),
+                        Code(
+                            """
+                                // now supporting nested expression of literals!
                                 .data
 	                                .word (((4 / 2) + 33) << (1 * 2))
                             """.trimIndent()
@@ -173,13 +187,13 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                         code {
                             +"""
                     .data
-                    
+
                     # string arrays always where possible
                     myStringArray:	.string	"i always existed :|"
-                    
+
                     # all other arrays are now possibly too :)
                     myByteArray:	.byte 	0xC0, 0xFF, 0xEE, 0xBA, 0xBE
-                    
+
                     # and standalone data emitting directives are now usable
                     myTable:	.half	0x0001, 0x0002, 0x0003, 0x0004
                                     .half 	0x0005, 0x0006, 0x0007, 0x0008
@@ -247,22 +261,22 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                             +"""
                             # KIT RV64 unlike in version 0.1.3 flexible li and la pseudo instructions are now implemented.
                             # The result of using li will be shown in the following example.
-                            
+
                             # signed
                             li  t0, -3                  #  1 - 32 Bit -> lui, ori
-                            
+
                             # unsigned
                             li  t0, 0xCAFEAFF           #  1 - 28 Bit -> lui, ori
                             li  t0, 0xCAFEAFFEDE        # 29 - 40 Bit -> lui, ori, slli, ori
                             li  t0, 0xCAFEAFFEDEADB     # 41 - 52 Bit -> lui, ori, slli, ori, slli, ori
-                            
+
                             # signed & unsigned
                             li  t0, 0xCAFEAFFEDEADBEEF  # 53 - 64 Bit -> lui, ori, slli, ori, slli, ori, slli, ori
                             li  t0, 3432234234          # 33 - 64 Bit -> lui, ori, slli, ori, slli, ori, slli, ori
-                            
+
                             # address labels (possible improvement)
                             la  t0, [alabel]            # always 64 Bit addresses -> lui, ori, slli, ori, slli, ori, slli, ori
-                            
+
                         """.trimIndent()
                         }
                     }
@@ -291,7 +305,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                         |This change happened to implement a more efficient way to rerender the memory without always recalculating the indexes of each instance.""".trimMargin()
                 }
                 li {
-                    +"""KIT Caused by the new Memory and Update System, the assembly process is now a little slower. 
+                    +"""KIT Caused by the new Memory and Update System, the assembly process is now a little slower.
                         |This is not directly caused by inefficient code instead it is caused by JavaScript which slows down with each loop run.""".trimMargin()
                 }
             }
@@ -313,10 +327,12 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                 """
                     #import "anotherfile.s"
 
-                    # Important!
-                    # -> The symbol which indicates a comment is set by arch
-                    # -> The prefix of bin,hex,dec and udec is set by arch
-                    # -> Instruction Syntax is completely handled by arch
+                    /*
+                        Important!
+                         -> The symbol which indicates a comment is set by arch
+                         -> The prefix of bin,hex,dec and udec is set by arch
+                         -> Instruction Syntax is completely handled by arch
+                    */
 
                     .equ SOME_VALUE0, "This is a constant which will be written on address 0x0F04"
 
@@ -334,6 +350,13 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                     			.dword	0x0123456789ABCDEF
                     			.asciz	'#'
                     string: 	.string SOME_VALUE0
+                    
+                    rawdata:    .hexstring \"\"\"
+                                        CAFEAFFE
+                                        DEADBEEF
+                                        01234567
+                                        89ABCDEF                                        
+                                    \"\"\"
 
                     *=0xA100
                     byte_array:	.half 0, 1, 2, 3, (0b1 << 2), 5, (0xC / 2), 7,

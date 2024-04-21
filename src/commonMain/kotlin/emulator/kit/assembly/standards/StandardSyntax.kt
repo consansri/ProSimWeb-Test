@@ -139,10 +139,11 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             }
 
             tokensToCheckForDef.removeAll(equDirTokenResult.sequenceMap.map { it.token })
-
+            nativeLog("!!! -> Checking for Equ Section!\ntokens: ${tokensToCheckForDef.joinToString { it::class.simpleName.toString() }}")
             val equDefTokenResult = Seqs.SeqAfterEquDir.matchStart(*tokensToCheckForDef.toTypedArray())
+            nativeLog("!!! -> Result: $equDefTokenResult")
             if (!equDefTokenResult.matches || equDefTokenResult.sequenceMap.size != 3) {
-                errors.add(Error("Invalid equ syntax! (.equ [name], [constant])", *equDirTokenResult.sequenceMap.map { it.token }.toTypedArray(), *equDefTokenResult.sequenceMap.map { it.token }.toTypedArray()))
+                errors.add(Error("Invalid equ syntax! (.equ [name], [constant]) \nfor sequence ${equDefTokenResult.sequenceMap.joinToString { "${it.component::class.simpleName}:${it.token::class.simpleName}" }}", *equDirTokenResult.sequenceMap.map { it.token }.toTypedArray(), *equDefTokenResult.sequenceMap.map { it.token }.toTypedArray()))
                 tokensToCheckForDef.removeAll(equDefTokenResult.sequenceMap.map { it.token })
                 this.removeAll(equDirTokenResult.sequenceMap.map { it.token })
                 this.removeAll(equDefTokenResult.sequenceMap.map { it.token })
