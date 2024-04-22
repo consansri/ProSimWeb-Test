@@ -21,6 +21,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "New",
                     UnlinkedList(
+                        Text("KIT: File Imports import Macro and Equ definitions beside the sections."),
                         Code(
                             """
                                 // Added another popular commenting syntax!

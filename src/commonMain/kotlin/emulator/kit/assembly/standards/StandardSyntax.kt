@@ -25,10 +25,13 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         val elements = mutableListOf<TreeNode.ElementNode>()
         val sections = mutableListOf<TreeNode.SectionNode>()
 
-        remainingTokens.resolveImports(arch, preElements, sections, errors, warnings, others)
+        val preEquDefs = mutableSetOf<PreEquDef>()
+        val preMacroDefs = mutableSetOf<PreMacroDef>()
+
+        remainingTokens.resolveImports(arch, preElements, sections, preEquDefs, preMacroDefs, errors, warnings, others)
         remainingTokens.removeComments(preElements)
-        remainingTokens.resolveEqus(preElements, errors, warnings, arch)
-        remainingTokens.resolveMacros(preElements, errors, warnings, arch)
+        remainingTokens.resolveEqus(preElements, preEquDefs, errors, warnings, arch)
+        remainingTokens.resolveMacros(preElements, preMacroDefs, errors, warnings, arch)
 
         var currentLabel: ELabel? = null
 
@@ -127,8 +130,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
     /**
      * Resolve EQU definitions
      */
-    private fun MutableList<Compiler.Token>.resolveEqus(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warning: MutableList<Warning>, arch: emulator.kit.Architecture): MutableList<Compiler.Token> {
-        val defs = mutableSetOf<PreEquDef>()
+    private fun MutableList<Compiler.Token>.resolveEqus(preElements: MutableList<TreeNode.ElementNode>, defs: MutableSet<PreEquDef>, errors: MutableList<Error>, warning: MutableList<Warning>, arch: Architecture): MutableList<Compiler.Token> {
         // 1. Find definitions
         val tokensToCheckForDef = this.toMutableList()
         while (tokensToCheckForDef.isNotEmpty()) {
@@ -139,11 +141,15 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             }
 
             tokensToCheckForDef.removeAll(equDirTokenResult.sequenceMap.map { it.token })
-            nativeLog("!!! -> Checking for Equ Section!\ntokens: ${tokensToCheckForDef.joinToString { it::class.simpleName.toString() }}")
             val equDefTokenResult = Seqs.SeqAfterEquDir.matchStart(*tokensToCheckForDef.toTypedArray())
-            nativeLog("!!! -> Result: $equDefTokenResult")
             if (!equDefTokenResult.matches || equDefTokenResult.sequenceMap.size != 3) {
-                errors.add(Error("Invalid equ syntax! (.equ [name], [constant]) \nfor sequence ${equDefTokenResult.sequenceMap.joinToString { "${it.component::class.simpleName}:${it.token::class.simpleName}" }}", *equDirTokenResult.sequenceMap.map { it.token }.toTypedArray(), *equDefTokenResult.sequenceMap.map { it.token }.toTypedArray()))
+                errors.add(
+                    Error(
+                        "Invalid equ syntax! (.equ [name], [constant]) \nfor sequence ${equDefTokenResult.sequenceMap.joinToString { "${it.component::class.simpleName}:${it.token::class.simpleName}" }}",
+                        *equDirTokenResult.sequenceMap.map { it.token }.toTypedArray(),
+                        *equDefTokenResult.sequenceMap.map { it.token }.toTypedArray()
+                    )
+                )
                 tokensToCheckForDef.removeAll(equDefTokenResult.sequenceMap.map { it.token })
                 this.removeAll(equDirTokenResult.sequenceMap.map { it.token })
                 this.removeAll(equDefTokenResult.sequenceMap.map { it.token })
@@ -187,8 +193,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
     /**
      * Resolves all macro definitions (removes definition and replaces inserts)
      */
-    private fun MutableList<Compiler.Token>.resolveMacros(preElements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, arch: emulator.kit.Architecture): MutableList<Compiler.Token> {
-        val defs = mutableSetOf<PreMacroDef>()
+    private fun MutableList<Compiler.Token>.resolveMacros(preElements: MutableList<TreeNode.ElementNode>, defs: MutableSet<PreMacroDef>, errors: MutableList<Error>, warnings: MutableList<Warning>, arch: emulator.kit.Architecture): MutableList<Compiler.Token> {
         // 1. Find definitions
         val tokenBuffer = this.toMutableList()
         while (tokenBuffer.isNotEmpty()) {
@@ -204,6 +209,8 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
             // 1.2 Search macro name sequence (name)
             if (tokenBuffer.first() is Compiler.Token.Space) tokenBuffer.removeFirst() // Remove leading spaces
+            if (tokenBuffer.isEmpty()) break
+
             if (tokenBuffer.first() !is Compiler.Token.Word || tokenBuffer.first() is Compiler.Token.Word.NumDotsUs) {
                 errors.add(Error("Invalid macro syntax! Macro name expected!", *macroStartResult.sequenceMap.map { it.token }.toTypedArray()))
                 continue
@@ -215,8 +222,9 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             // 1.3 Search parameters
             val attributes = mutableListOf<Compiler.Token.Word>()
             val commas = mutableListOf<Compiler.Token>()
-            while (true) {
+            while (tokenBuffer.isNotEmpty()) {
                 if (tokenBuffer.first() is Compiler.Token.Space) tokenBuffer.removeFirst() // Remove leading spaces
+                if (tokenBuffer.isEmpty()) break
 
                 when (attributes.size) {
                     commas.size -> { // Expect Attribute
@@ -241,13 +249,14 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
             }
 
             // 1.4 NewLine (Random Sequence)
-            if (tokenBuffer.first() !is Compiler.Token.NewLine) {
+            if (tokenBuffer.isEmpty() || tokenBuffer.firstOrNull() !is Compiler.Token.NewLine) {
                 val errorMacroTokens = macroStartResult.sequenceMap.map { it.token }.toTypedArray() + macroName + attributes + commas
                 errors.add(Error("Invalid macro syntax! New Line expected!", *errorMacroTokens))
                 this.removeAll(errorMacroTokens.toSet())
                 continue
             }
             tokenBuffer.removeFirst()
+            if (tokenBuffer.isEmpty()) break
 
             // 1.5 Add All to Macro Content until a .endm token is found
             val macroContent = mutableListOf<Compiler.Token>()
@@ -279,7 +288,7 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
         // 2. Replace Macro Defs
         for (macro in defs) {
-            while (true) {
+            while (this.isNotEmpty()) {
                 val macroNameRef = this.firstOrNull { it is Compiler.Token.Word && it.content == macro.macroname.content } ?: break
                 val macroNewLine = this.firstOrNull { it is Compiler.Token.NewLine && this.indexOf(macroNameRef) < this.indexOf(it) } ?: this.last()
                 val macroRefTokens = this.subList(this.indexOf(macroNameRef), this.indexOf(macroNewLine))
@@ -341,7 +350,16 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
     /**
      * Resolves other file imports
      */
-    private fun MutableList<Compiler.Token>.resolveImports(arch: Architecture, preElements: MutableList<TreeNode.ElementNode>, sections: MutableList<TreeNode.SectionNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, others: List<Compiler.CompilerFile>): MutableList<Compiler.Token> {
+    private fun MutableList<Compiler.Token>.resolveImports(
+        arch: Architecture,
+        preElements: MutableList<TreeNode.ElementNode>,
+        sections: MutableList<TreeNode.SectionNode>,
+        preEquDefs: MutableSet<PreEquDef>,
+        preMacroDefs: MutableSet<PreMacroDef>,
+        errors: MutableList<Error>,
+        warnings: MutableList<Warning>,
+        others: List<Compiler.CompilerFile>
+    ): MutableList<Compiler.Token> {
         val tokenBuffer = this.toMutableList()
         while (tokenBuffer.isNotEmpty()) {
             val result = Seqs.SeqImport.matchStart(*tokenBuffer.toTypedArray())
@@ -379,8 +397,6 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 fileTree.rootNode
             }
 
-
-
             if (rootNode == null) {
                 errors.add(Error("Couldn't compile file! (${file.name})!", *tokens.toTypedArray()))
                 tokenBuffer.removeAll(tokens)
@@ -399,9 +415,18 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
                 continue
             }
 
-            rootNode.containers.forEach {
-                if (it is CSections) {
-                    sections.addAll(it.sections)
+            rootNode.containers.forEach { container ->
+                if (container is CSections) {
+                    sections.addAll(container.sections)
+                }
+                if (container.name == "pre") {
+                    container.nodes.forEach {
+                        when (it) {
+                            is PreMacroDef -> preMacroDefs.add(it)
+                            is PreEquDef -> preEquDefs.add(it)
+                            else -> {}
+                        }
+                    }
                 }
             }
 
