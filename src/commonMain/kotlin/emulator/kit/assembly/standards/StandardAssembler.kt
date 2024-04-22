@@ -160,7 +160,9 @@ abstract class StandardAssembler(private val memAddressWidth: Variable.Size, pri
                                         }
                                     }
 
-                                    StandardSyntax.DirMajType.DE_UNALIGNED -> {}
+                                    StandardSyntax.DirMajType.DE_UNALIGNED -> {
+
+                                    }
                                     else -> {}
                                 }
                                 element.addr = currentAddress

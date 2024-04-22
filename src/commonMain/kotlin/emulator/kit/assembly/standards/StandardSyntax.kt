@@ -742,8 +742,10 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
         BYTE_8("8byte", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".8byte", ignoreCase = true)), Variable.Size.Bit64(), SpecConst(Variable.Size.Bit64())),
         HEXSTRING("hexstring", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".hexstring", ignoreCase = true)), deType = InSpecific.StringConst(allowMultiLine = true)),
 
-        GLOBAL("global", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".global"), InSpecific.Space, InSpecific.WordNoDots)),
-        GLOBL("globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl"), InSpecific.Space, InSpecific.WordNoDots)),
+        ZERO("zero", DirMajType.DE_UNALIGNED, TokenSeq(Specific(".zero", ignoreCase = true)), null, SpecConst(onlyUnsigned = true)),
+
+        GLOBAL("global", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".global", ignoreCase = true), InSpecific.Space, InSpecific.WordNoDots)),
+        GLOBL("globl", DirMajType.ASSEMLYINFO, TokenSeq(Specific(".globl", ignoreCase = true), InSpecific.Space, InSpecific.WordNoDots)),
     }
 
     /**
@@ -936,6 +938,14 @@ abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentSta
 
             DirType.HEXSTRING -> {
                 constants.filterIsInstance<Compiler.Token.Constant.String>().flatMap { it.filterHex().toList() }
+            }
+
+            DirType.ZERO ->{
+                var size = 0
+                constants.forEach {
+                    size += it.getValue(null, onlyUnsigned = true).toUDec().getRawUDecStr().toIntOrNull() ?: 0
+                }
+                List(size) {Variable.Value.Bin("0", Variable.Size.Bit8())}
             }
 
             else -> {

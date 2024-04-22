@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.cli.js.internal.main
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
