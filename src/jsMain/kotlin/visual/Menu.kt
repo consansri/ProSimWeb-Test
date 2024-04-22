@@ -107,7 +107,7 @@ val Menu = FC<MenuProps> { props ->
         }
 
         h3 {
-            +Constants.NAME
+            +Constants.WEBNAME
         }
 
         nav {

@@ -6,11 +6,6 @@ import emulator.kit.assembly.Compiler
  */
 object Settings {
     // GLOBAL
-    /**
-     * [PROSIMNAME] defines the name of the app.
-     */
-    const val PROSIMNAME = Constants.NAME
-
     // FILEHANDLER
     /**
      * [UNDO_STATE_MAX] defines the amount of undo states which can be held until the first state will be removed.

@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.cli.js.internal.main
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
@@ -138,3 +137,12 @@ tasks.withType<Jar>() {
         }
     }
 }
+val copyDistZipToJsDistribution by tasks.registering(Copy::class){
+    group = "distribution"
+    description = "Copy distZip output to js distribution folder"
+    dependsOn("distZip")
+    from("build/distributions")
+    into("build/dist/js/productionExecutable")
+}
+
+tasks.getByName("jsBrowserDistribution").dependsOn(copyDistZipToJsDistribution)
