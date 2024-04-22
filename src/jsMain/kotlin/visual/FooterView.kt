@@ -68,7 +68,7 @@ val FooterView = FC<FooterViewProps> { props ->
             +"Download for JVM"
 
             onClick = {
-                JSTools.downloadFile("/", "${Constants.JVMNAME}-${Constants.VERSION}.zip")
+                JSTools.downloadFile("", "${Constants.JVMNAME}-${Constants.VERSION}.zip")
             }
         }
 
