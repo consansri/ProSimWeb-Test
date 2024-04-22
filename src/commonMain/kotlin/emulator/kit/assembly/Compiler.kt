@@ -1,5 +1,6 @@
 package emulator.kit.assembly
 
+import Settings
 import kotlin.time.measureTime
 import emulator.kit.Architecture
 import emulator.kit.common.RegContainer
@@ -36,23 +37,23 @@ class Compiler(
 ) {
 
     private val regexCollection: RegexCollection = RegexCollection(
-        Regex("""^[\t ]+"""),
-        Regex("^(\\r\\n|\\r|\\n)"),
-        Regex("""^[^0-9A-Za-z]"""),
-        Regex("^${Regex.escape(prefixes.bin)}[01]+"),
-        Regex("^${Regex.escape(prefixes.hex)}[0-9a-f]+", RegexOption.IGNORE_CASE),
-        Regex("^${Regex.escape(prefixes.dec)}[0-9]+"),
-        Regex("^${Regex.escape(prefixes.udec)}[0-9]+"),
-        Regex("""^'.'"""),
-        Regex("""^".+""""),
-        Regex("""^"{3}(.|\n)*?"{3}"""),
-        Regex("""^[a-z]+""", RegexOption.IGNORE_CASE),
-        Regex("""^[a-z][a-z0-9]+""", RegexOption.IGNORE_CASE),
-        Regex("""^[a-z_][a-z0-9_]+""", RegexOption.IGNORE_CASE),
-        Regex("""^[.a-z_][.a-z0-9_]+""", RegexOption.IGNORE_CASE),
-        Regex("""^//"""),
-        Regex("""^/\*"""),
-        Regex("""^\*/""")
+        space = Regex("""^[\t ]+"""),
+        newLine = Regex("^(\\r\\n|\\r|\\n)"),
+        symbol = Regex("""^[^0-9A-Za-z]"""),
+        bin = Regex("^${Regex.escape(prefixes.bin)}[01]+"),
+        hex = Regex("^${Regex.escape(prefixes.hex)}[0-9a-f]+", RegexOption.IGNORE_CASE),
+        dec = Regex("^${Regex.escape(prefixes.dec)}[0-9]+"),
+        udec = Regex("^${Regex.escape(prefixes.udec)}[0-9]+"),
+        ascii = Regex("""^'.'"""),
+        string = Regex("""^".+""""),
+        multiLineString = Regex("""^"{3}(.|\n)*?"{3}"""),
+        word = Regex("""^[a-z]+""", RegexOption.IGNORE_CASE),
+        wordNum = Regex("""^[a-z][a-z0-9]+""", RegexOption.IGNORE_CASE),
+        wordNumUs = Regex("""^[a-z_][a-z0-9_]+""", RegexOption.IGNORE_CASE),
+        wordNumUsDots = Regex("""^[.a-z_][.a-z0-9_]+""", RegexOption.IGNORE_CASE),
+        commentStartSingleLine = Regex("""^//"""),
+        commentStartMutliLine = Regex("""^/\*"""),
+        commentEndMultiLine = Regex("""^\*/""")
     )
 
     private var isBuildable = false
@@ -802,9 +803,9 @@ class Compiler(
 
                         ExpressionType.NEGATIVE -> {
                             if (size != null) {
-                                (-constants[0].getValue(size, onlyUnsigned)).toDec()
+                                -constants[0].getValue(size, onlyUnsigned)
                             } else {
-                                (-constants[0].getValue(size, onlyUnsigned)).toDec()
+                                -constants[0].getValue(size, onlyUnsigned)
                             }
                         }
                     }
@@ -856,9 +857,9 @@ class Compiler(
             class Dec(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return if (size != null) {
-                        if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefix), size) else Variable.Value.Dec(content.removePrefix(prefix), size)
+                        Variable.Value.Dec(content.removePrefix(prefix), size)
                     } else {
-                        if (onlyUnsigned) Variable.Value.UDec(content.removePrefix(prefix)) else Variable.Value.Dec(content.removePrefix(prefix))
+                        Variable.Value.Dec(content.removePrefix(prefix))
                     }
                 }
             }

@@ -733,8 +733,7 @@ class Variable {
             }
 
             override fun unaryMinus(): Value {
-                nativeWarn("Value.UDec: Executing unaryMinus on unsigned decimal! -> no affect!")
-                return UDec(this.getRawUDecStr(), size)
+                return -this.toDec()
             }
 
             override fun inc(): Value = Dec(DecTools.add(this.getRawUDecStr(), "1"), size)

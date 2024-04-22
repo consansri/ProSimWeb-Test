@@ -2,10 +2,8 @@ package emulator.kit.assembly
 
 import emulator.kit.common.RegContainer
 import emulator.kit.common.Transcript
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
-import kotlin.math.sign
 
 /**
  * This template solves as an interface for specific architecture syntax implementations. It has one main function [check] in which the whole syntax should be analyzed and a corresponding syntax tree should be build.

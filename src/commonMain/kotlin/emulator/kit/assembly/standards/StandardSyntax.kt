@@ -6,8 +6,6 @@ import emulator.kit.assembly.Syntax
 import emulator.kit.common.Transcript
 import emulator.kit.types.Variable
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
-import emulator.kit.nativeLog
-import kotlinx.datetime.Clock
 
 abstract class StandardSyntax(val memAddressWidth: Variable.Size, val commentStartSymbol: Char, possibleInstructionNames: List<String>, val instrParamsCanContainWordsBesideLabels: Boolean) : Syntax() {
 

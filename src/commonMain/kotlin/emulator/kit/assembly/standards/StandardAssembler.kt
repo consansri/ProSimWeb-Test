@@ -6,7 +6,6 @@ import emulator.kit.assembly.Compiler
 import emulator.kit.assembly.Syntax
 import emulator.kit.common.Memory
 import emulator.kit.common.Transcript
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
