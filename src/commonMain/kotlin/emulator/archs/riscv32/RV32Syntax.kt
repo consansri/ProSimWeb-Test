@@ -1342,7 +1342,7 @@ class RV32Syntax : StandardSyntax(RV32.MEM_ADDRESS_WIDTH, '#', InstrType.entries
                     if (rd != null && rs1 != null && rs2 != null) {
                         val factor1 = rs1.get().toBin()
                         val factor2 = rs2.get().toBin()
-                        val result = factor1.flexTimesSigned(factor2, false).ushr(RV32.XLEN.bitWidth).getResized(RV32.XLEN)
+                        val result = factor1.flexTimesSigned(factor2, false).shr(RV32.XLEN.bitWidth).getResized(RV32.XLEN)
                         rd.set(result)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }

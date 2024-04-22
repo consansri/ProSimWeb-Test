@@ -1643,7 +1643,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
                     if (rd != null && rs1 != null && rs2 != null) {
                         val factor1 = rs1.get().toBin()
                         val factor2 = rs2.get().toBin()
-                        val result = factor1.flexTimesSigned(factor2, false).ushr(RV64.XLEN.bitWidth).getResized(RV64.XLEN)
+                        val result = factor1.flexTimesSigned(factor2, false).shr(RV64.XLEN.bitWidth).getResized(RV64.XLEN)
                         rd.set(result)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -1841,7 +1841,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
                     if (rd != null && rs1 != null && rs2 != null) {
                         val factor1 = rs1.get().toBin()
                         val factor2 = rs2.get().toBin()
-                        val result = factor1.flexTimesSigned(factor2).getUResized(Variable.Size.Bit32()).getUResized(RV64.XLEN)
+                        val result = factor1.flexTimesSigned(factor2).getUResized(Variable.Size.Bit32()).getResized(RV64.XLEN)
                         rd.set(result)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }

@@ -404,13 +404,13 @@ class Variable {
             }
 
             infix fun shr(bitCount: Int): Bin {
-                val shiftedBinary = getRawBinStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, if (getRawBinStr().first() == '1') '1' else '0')
-                return Bin(shiftedBinary, size)
+                val shiftedBinary = getRawBinStr().padStart(size.bitWidth * 2, getRawBinStr().first()).substring(0, size.bitWidth * 2 - bitCount).padStart(size.bitWidth * 2, getRawBinStr().first())
+                return Bin(shiftedBinary.substring(shiftedBinary.length - size.bitWidth), size)
             }
 
             infix fun ushr(bitCount: Int): Bin {
-                val shiftedBinary = getRawBinStr().substring(0, size.bitWidth - bitCount).padStart(size.bitWidth, '0')
-                return Bin(shiftedBinary, size)
+                val shiftedBinary = getRawBinStr().padStart(size.bitWidth * 2, '0').substring(0, size.bitWidth * 2 - bitCount).padStart(size.bitWidth * 2, '0')
+                return Bin(shiftedBinary.substring(shiftedBinary.length - size.bitWidth), size)
             }
 
             fun rotateLeft(bitCount: Int): Bin {

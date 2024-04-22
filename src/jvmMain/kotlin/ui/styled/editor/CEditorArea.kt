@@ -1,7 +1,6 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.nativeError
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import me.c3.ui.components.styled.CScrollPane
@@ -400,10 +399,47 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         repaint()
     }
 
+    private fun handleMouseDoubleClick(e: MouseEvent){
+        caret.moveCaretTo(e)
+        selectSymbol()
+    }
+
     private fun selectAll() {
         selStart = 0
         selEnd = styledText.size
         caret.moveCaretTo(styledText.size)
+        repaint()
+    }
+
+    private fun getSymbolBounds(index: Int): Pair<Int, Int>? {
+        if (index < 0 || index >= styledText.size) return null
+
+        // Find the start index of the word
+        var startIndex = index
+        while (startIndex > 0 && styledText[startIndex - 1].isLetterOrDigit()) {
+            startIndex--
+        }
+
+        // Find the end index of the word
+        var endIndex = index
+        while (endIndex < styledText.size - 1 && styledText[endIndex + 1].isLetterOrDigit()) {
+            endIndex++
+        }
+
+        // Return the bounds of the word
+        return Pair(startIndex, endIndex - startIndex + 1)
+    }
+
+    private fun selectSymbol() {
+        val index = caret.getIndex()
+        val wordBounds = getSymbolBounds(index)
+        wordBounds?.let {
+            selStart = it.first
+            selEnd = it.second
+            caret.moveCaretTo(it.second)
+        } ?: {
+            resetSelection()
+        }
         repaint()
     }
 
@@ -583,6 +619,14 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     data class StyledChar(val content: Char, val style: Style? = null) {
         override fun toString(): String {
             return content.toString()
+        }
+
+        fun isLetterOrDigit(): Boolean {
+            return content.isLetterOrDigit()
+        }
+
+        fun isWhiteSpace(): Boolean {
+            return content.isWhitespace()
         }
     }
 
@@ -993,9 +1037,13 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             if (shiftIsPressed) {
                 handleMouseSelection(e)
             } else {
-                selStart = -1
-                selEnd = -1
-                caret.moveCaretTo(e)
+                if(e.clickCount == 2){
+                    handleMouseDoubleClick(e)
+                }else{
+                    selStart = -1
+                    selEnd = -1
+                    caret.moveCaretTo(e)
+                }
             }
         }
     }
