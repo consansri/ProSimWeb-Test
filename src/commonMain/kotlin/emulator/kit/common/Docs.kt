@@ -12,7 +12,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
     var files: MutableList<DocFile> = (mutableListOf(
         DocFile.SourceFile(
             "User Manual",
-            "/documents/user-manual.html"
+            "documents/user-manual.html"
         ),
         DocFile.DefinedFile(
             "Version - ${Constants.VERSION}",
@@ -76,7 +76,8 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "Issues",
                     UnlinkedList(
-                        Text("Missing GNU Compiler Directives!")
+                        Text("Missing GNU Compiler Directives!"),
+                        Text("Using of EQU Constants in expressions not possible!")
                     )
                 )
             ),

@@ -47,7 +47,7 @@ data object IKRMini {
                 )
             ),
             Docs.DocFile.SourceFile(
-                "Syntax Examples", "/documents/ikrmini/syntaxexamples.html"
+                "Syntax Examples", "documents/ikrmini/syntaxexamples.html"
             )
         )
     )

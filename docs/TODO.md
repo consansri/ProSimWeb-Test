@@ -3,7 +3,6 @@
 - Value add exponential Numbers
 - Value string escape sequence ("\"" => ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
-- Make Register Description collapse able instead show two rows of registers
 
 # SUGAR #
 
@@ -13,6 +12,11 @@
 - add code completion
 
 # DONE #
+
+## Version 0.2.0 ##
+- **(done)** Implemented JVM Target
+- **(done)** Nested Expressions
+- **(done)** multiline strings
 
 ## Version 0.1.9 ##
 - **(done)** fix html docs paths

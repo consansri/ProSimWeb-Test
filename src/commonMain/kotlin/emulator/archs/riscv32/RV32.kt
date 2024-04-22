@@ -93,7 +93,7 @@ object RV32 {
         usingStandard = true,
         Docs.DocFile.SourceFile(
             "Syntax Examples",
-            "/documents/rv32/syntaxexamples.html"
+            "documents/rv32/syntaxexamples.html"
         ),
         Docs.DocFile.DefinedFile(
             "RV32 Implemented",

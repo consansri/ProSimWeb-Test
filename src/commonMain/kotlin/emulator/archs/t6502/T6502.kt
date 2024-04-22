@@ -84,7 +84,7 @@ object T6502 {
                 )
             ),
             Docs.DocFile.SourceFile(
-                "Syntax Examples", "/documents/t6502/syntaxexamples.html"
+                "Syntax Examples", "documents/t6502/syntaxexamples.html"
             )
         )
     )

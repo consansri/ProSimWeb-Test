@@ -83,7 +83,7 @@ object RV64 {
         usingStandard = true,
         Docs.DocFile.SourceFile(
             "Syntax Examples",
-            "/documents/rv64/syntaxexamples.html"
+            "documents/rv64/syntaxexamples.html"
         ),
         Docs.DocFile.DefinedFile(
             "RV32 Implemented",
