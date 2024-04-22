@@ -16,7 +16,12 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.TreePath
 
-class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons, private val fontType: FontType) : BasicTreeUI() {
+class CTreeUI(
+    private val themeManager: ThemeManager,
+    private val scaleManager: ScaleManager,
+    private val icons: ProSimIcons,
+    private val fontType: FontType
+) : BasicTreeUI() {
     var selectedColor: Color = themeManager.curr.globalLaF.bgPrimary
         set(value) {
             field = value
@@ -29,7 +34,12 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
         super.installUI(c)
 
         val cTree = c as? CTree ?: return
-        cTree.border = BorderFactory.createEmptyBorder(scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets, scaleManager.curr.borderScale.insets) // Set empty border when not focused
+        cTree.border = BorderFactory.createEmptyBorder(
+            scaleManager.curr.borderScale.insets,
+            scaleManager.curr.borderScale.insets,
+            scaleManager.curr.borderScale.insets,
+            scaleManager.curr.borderScale.insets
+        ) // Set empty border when not focused
         cTree.cellRenderer = CTreeCellRenderer()
 
         themeManager.addThemeChangeListener {
@@ -68,15 +78,38 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
         // Do not paint horizontal line
     }
 
-    override fun paintHorizontalPartOfLeg(g: Graphics, clipBounds: Rectangle, insets: Insets, bounds: Rectangle, path: TreePath, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
+    override fun paintHorizontalPartOfLeg(
+        g: Graphics,
+        clipBounds: Rectangle,
+        insets: Insets,
+        bounds: Rectangle,
+        path: TreePath,
+        row: Int,
+        isExpanded: Boolean,
+        hasBeenExpanded: Boolean,
+        isLeaf: Boolean
+    ) {
         // Do not paint horizontal line
 
     }
 
-    override fun paintExpandControl(g: Graphics, clipBounds: Rectangle?, insets: Insets, bounds: Rectangle, path: TreePath?, row: Int, isExpanded: Boolean, hasBeenExpanded: Boolean, isLeaf: Boolean) {
+    override fun paintExpandControl(
+        g: Graphics,
+        clipBounds: Rectangle?,
+        insets: Insets,
+        bounds: Rectangle,
+        path: TreePath?,
+        row: Int,
+        isExpanded: Boolean,
+        hasBeenExpanded: Boolean,
+        isLeaf: Boolean
+    ) {
         val g2d = g.create() as? Graphics2D ?: return
         if (!isLeaf) {
-            val loadedIcon = (if (isExpanded) icons.folderOpen else icons.folderClosed).derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
+            val loadedIcon = (if (isExpanded) icons.folderOpen else icons.folderClosed).derive(
+                scaleManager.curr.controlScale.smallSize,
+                scaleManager.curr.controlScale.smallSize
+            )
             loadedIcon.colorFilter = colorFilter
             val iconX = bounds.x + insets.left - loadedIcon.iconWidth - getRightChildIndent() / 2
             val iconY = bounds.y + (bounds.height - loadedIcon.iconHeight) / 2
@@ -89,13 +122,21 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
 
         init {
             this.isOpaque = true
-            this.font = themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
+            this.font = tree.font
             this.textNonSelectionColor = themeManager.curr.textLaF.base
             this.textSelectionColor = themeManager.curr.textLaF.selected
             this.border = scaleManager.curr.controlScale.getNormalInsetBorder()
         }
 
-        override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, sel: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
+        override fun getTreeCellRendererComponent(
+            tree: JTree?,
+            value: Any?,
+            sel: Boolean,
+            expanded: Boolean,
+            leaf: Boolean,
+            row: Int,
+            hasFocus: Boolean
+        ): Component {
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus)
 
             val uobj = ((value as? DefaultMutableTreeNode)?.userObject as? Workspace.TreeFile)
@@ -103,19 +144,34 @@ class CTreeUI(private val themeManager: ThemeManager, private val scaleManager: 
             val loadedIcon = if (leaf) {
                 if (uobj != null && uobj.file.isFile) {
                     if (uobj.file.extension == "s") {
-                        icons.asmFile.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
+                        icons.asmFile.derive(
+                            scaleManager.curr.controlScale.smallSize,
+                            scaleManager.curr.controlScale.smallSize
+                        )
                     } else {
-                        icons.file.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
+                        icons.file.derive(
+                            scaleManager.curr.controlScale.smallSize,
+                            scaleManager.curr.controlScale.smallSize
+                        )
                     }
                 } else {
-                    icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
+                    icons.folder.derive(
+                        scaleManager.curr.controlScale.smallSize,
+                        scaleManager.curr.controlScale.smallSize
+                    )
                 }
 
             } else {
                 if (expanded) {
-                    icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
+                    icons.folder.derive(
+                        scaleManager.curr.controlScale.smallSize,
+                        scaleManager.curr.controlScale.smallSize
+                    )
                 } else {
-                    icons.folder.derive(scaleManager.curr.controlScale.smallSize, scaleManager.curr.controlScale.smallSize)
+                    icons.folder.derive(
+                        scaleManager.curr.controlScale.smallSize,
+                        scaleManager.curr.controlScale.smallSize
+                    )
                 }
             }
             this.background = if (sel) themeManager.curr.textLaF.selected else themeManager.curr.globalLaF.bgSecondary
