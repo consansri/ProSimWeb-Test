@@ -39,9 +39,9 @@ class Compiler(
         Regex("""^[\t ]+"""),
         Regex("^(\\r\\n|\\r|\\n)"),
         Regex("""^[^0-9A-Za-z]"""),
-        Regex("^(-)?${Regex.escape(prefixes.bin)}[01]+"),
-        Regex("^(-)?${Regex.escape(prefixes.hex)}[0-9a-f]+", RegexOption.IGNORE_CASE),
-        Regex("^(-)?${Regex.escape(prefixes.dec)}[0-9]+"),
+        Regex("^${Regex.escape(prefixes.bin)}[01]+"),
+        Regex("^${Regex.escape(prefixes.hex)}[0-9a-f]+", RegexOption.IGNORE_CASE),
+        Regex("^${Regex.escape(prefixes.dec)}[0-9]+"),
         Regex("^${Regex.escape(prefixes.udec)}[0-9]+"),
         Regex("""^'.'"""),
         Regex("""^".+""""),
@@ -154,7 +154,7 @@ class Compiler(
 
             // Basic Comment Identification
             val slCommentStart = regexCollection.commentStartSingleLine.find(remaining)
-            if(slCommentStart != null){
+            if (slCommentStart != null) {
                 val token = Token.SLCommentStart(LineLoc(file.name, lineID, startIndex, startIndex + slCommentStart.value.length), slCommentStart.value, tokenList.size)
                 tokenList += token
                 startIndex += slCommentStart.value.length
@@ -163,7 +163,7 @@ class Compiler(
             }
 
             val mlCommentStart = regexCollection.commentStartMutliLine.find(remaining)
-            if(mlCommentStart != null){
+            if (mlCommentStart != null) {
                 val token = Token.MLCommentStart(LineLoc(file.name, lineID, startIndex, startIndex + mlCommentStart.value.length), mlCommentStart.value, tokenList.size)
                 tokenList += token
                 startIndex += mlCommentStart.value.length
@@ -172,7 +172,7 @@ class Compiler(
             }
 
             val mlCommentEnd = regexCollection.commentEndMultiLine.find(remaining)
-            if(mlCommentEnd != null){
+            if (mlCommentEnd != null) {
                 val token = Token.MLCommentEnd(LineLoc(file.name, lineID, startIndex, startIndex + mlCommentEnd.value.length), mlCommentEnd.value, tokenList.size)
                 tokenList += token
                 startIndex += mlCommentEnd.value.length
@@ -415,7 +415,7 @@ class Compiler(
 
             // Basic Comment Identification
             val slCommentStart = regexCollection.commentStartSingleLine.find(remaining)
-            if(slCommentStart != null){
+            if (slCommentStart != null) {
                 pseudoTokens += Token.SLCommentStart(lineLoc, slCommentStart.value, pseudoID)
                 startIndex += slCommentStart.value.length
                 remaining = content.substring(startIndex)
@@ -423,7 +423,7 @@ class Compiler(
             }
 
             val mlCommentStart = regexCollection.commentStartMutliLine.find(remaining)
-            if(mlCommentStart != null){
+            if (mlCommentStart != null) {
                 pseudoTokens += Token.MLCommentStart(lineLoc, mlCommentStart.value, pseudoID)
                 startIndex += mlCommentStart.value.length
                 remaining = content.substring(startIndex)
@@ -431,7 +431,7 @@ class Compiler(
             }
 
             val mlCommentEnd = regexCollection.commentEndMultiLine.find(remaining)
-            if(mlCommentEnd != null){
+            if (mlCommentEnd != null) {
                 pseudoTokens += Token.MLCommentEnd(lineLoc, mlCommentEnd.value, pseudoID)
                 startIndex += mlCommentEnd.value.length
                 remaining = content.substring(startIndex)
@@ -799,11 +799,20 @@ class Compiler(
                             val shiftAmount = constants[1].getValue(Bit16(), true).toUDec().toIntOrNull() ?: 0
                             constants[0].getValue(size, onlyUnsigned).toBin().shl(shiftAmount)
                         }
+
+                        ExpressionType.NEGATIVE -> {
+                            if (size != null) {
+                                (-constants[0].getValue(size, onlyUnsigned)).toDec()
+                            } else {
+                                (-constants[0].getValue(size, onlyUnsigned)).toDec()
+                            }
+                        }
                     }
                 }
 
                 enum class ExpressionType(val tokenSeq: TokenSeq) {
                     BRACKETS(TokenSeq(Specific("("), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
+                    NEGATIVE(TokenSeq(Specific("-"), Constant, ignoreSpaces = true, addIgnoredSpacesToMap = true)),
                     ADD(TokenSeq(Specific("("), Constant, Specific("+"), Constant, Specific(")"), ignoreSpaces = true, addIgnoredSpacesToMap = true)),
 
                     //ADDNB(TokenSeq(Constant, Specific("+"), Constant, ignoreSpaces = true, addIgnoredSpacesToMap = true)),
@@ -827,9 +836,9 @@ class Compiler(
             class Binary(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return if (size != null) {
-                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Bin(content.removePrefix(prefix), size)
+                        Variable.Value.Bin(content.removePrefix(prefix), size)
                     } else {
-                        if (content.contains('-')) -Variable.Value.Bin(content.trimStart('-').removePrefix(prefix)) else Variable.Value.Bin(content.removePrefix(prefix))
+                        Variable.Value.Bin(content.removePrefix(prefix))
                     }
                 }
             }
@@ -837,9 +846,9 @@ class Compiler(
             class Hex(lineLoc: LineLoc, private val prefix: kotlin.String, content: kotlin.String, id: Int) : Constant(lineLoc, content, id) {
                 override fun getValue(size: Variable.Size?, onlyUnsigned: Boolean): Variable.Value {
                     return if (size != null) {
-                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix), size) else Variable.Value.Hex(content.removePrefix(prefix), size)
+                        Variable.Value.Hex(content.removePrefix(prefix), size)
                     } else {
-                        if (content.contains('-')) -Variable.Value.Hex(content.trimStart('-').removePrefix(prefix)) else Variable.Value.Hex(content.removePrefix(prefix))
+                        Variable.Value.Hex(content.removePrefix(prefix))
                     }
                 }
             }

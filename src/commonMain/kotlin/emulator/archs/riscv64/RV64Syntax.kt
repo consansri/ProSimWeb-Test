@@ -6,6 +6,7 @@ import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
 import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembly.Syntax.TokenSeq.Component.*
+import emulator.kit.nativeLog
 
 class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries.map { it.id }, instrParamsCanContainWordsBesideLabels = false) {
 
@@ -268,7 +269,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
                 Space,
                 Register(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit28(), signed = false),
+                SpecConst(Variable.Size.Bit28(), onlyUnsigned = true),
                 NewLine, ignoreSpaces = true
             )
         ), // rd, imm28 unsigned
@@ -288,7 +289,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
                 Space,
                 Register(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit40(), signed = false),
+                SpecConst(Variable.Size.Bit40(), onlyUnsigned = true),
                 NewLine, ignoreSpaces = true
             )
         ),
@@ -298,7 +299,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
                 Space,
                 Register(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit52(), signed = false),
+                SpecConst(Variable.Size.Bit52(), onlyUnsigned = true),
                 NewLine, ignoreSpaces = true
             )
         ),

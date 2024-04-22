@@ -5,6 +5,7 @@ import Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64Syntax.InstrType
 import emulator.kit.common.Memory
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 
 class RV64BinMapper {
@@ -209,7 +210,6 @@ class RV64BinMapper {
                      *
                      */
 
-
                     val imm28 = instr.constants.first().getValue(Variable.Size.Bit28()).toBin()
                     if (!imm28.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${imm28.checkResult.message}")
@@ -231,8 +231,8 @@ class RV64BinMapper {
                 }
 
                 InstrType.Li32Signed -> {
-                    val immediate = instr.constants.first().getValue(Variable.Size.Bit32()).toBin()
-                    val imm32 = immediate.getUResized(Variable.Size.Bit32())
+                    val imm32 = instr.constants.first().getValue(Variable.Size.Bit32()).toBin()
+
                     if (!imm32.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${imm32.checkResult.message}")
                     }

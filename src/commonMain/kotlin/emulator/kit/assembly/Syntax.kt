@@ -5,6 +5,7 @@ import emulator.kit.common.Transcript
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
+import kotlin.math.sign
 
 /**
  * This template solves as an interface for specific architecture syntax implementations. It has one main function [check] in which the whole syntax should be analyzed and a corresponding syntax tree should be build.
@@ -409,35 +410,45 @@ abstract class Syntax {
 
             class SpecConst(val mustMatchSize: Variable.Size? = null, val signed: Boolean? = null, val onlyUnsigned: Boolean = false) : Component("SpecConst") {
                 override fun matches(token: Compiler.Token): Boolean {
-                    return if (signed == null) {
-                        token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid
-                    } else {
-                        token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid && signed == token.getValue(mustMatchSize, onlyUnsigned).isSigned()
-                    }
+                    if (token !is Compiler.Token.Constant) return false
+                    val value = token.getValue(mustMatchSize, onlyUnsigned)
+                    if (!value.checkResult.valid) return false
+                    if (value.isSigned() && onlyUnsigned) return false
+                    if (signed != null && value.isSigned() != signed) return false
+                    return true
                 }
             }
 
             class RegOrSpecConst(val mustMatchSize: Variable.Size, val regFile: RegContainer.RegisterFile? = null, val notInRegFile: RegContainer.RegisterFile? = null, val onlyUnsigned: Boolean = false) : Component("RegOrSpecConst") {
                 override fun matches(token: Compiler.Token): Boolean {
-                    return if (regFile != null) {
-                        if (notInRegFile != null) {
-                            (token is Compiler.Token.Register && regFile.unsortedRegisters.contains(token.reg) && !notInRegFile.unsortedRegisters.contains(token.reg)) || (token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid)
-                        } else {
-                            (token is Compiler.Token.Register && regFile.unsortedRegisters.contains(token.reg)) || (token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid)
-                        }
-                    } else {
-                        if (notInRegFile != null) {
-                            (token is Compiler.Token.Register && !notInRegFile.unsortedRegisters.contains(token.reg)) || (token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid)
-                        } else {
-                            token is Compiler.Token.Register || (token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid)
-                        }
+                    if (token !is Compiler.Token.Register && token !is Compiler.Token.Constant) return false
+
+                    if (token is Compiler.Token.Constant) {
+                        val value = token.getValue(mustMatchSize, onlyUnsigned)
+                        if (!value.checkResult.valid) return false
+                        if (value.isSigned() && onlyUnsigned) return false
                     }
+
+                    if (token is Compiler.Token.Register) {
+                        if (notInRegFile != null && notInRegFile.unsortedRegisters.contains(token.reg)) return false
+                        if (regFile != null && !regFile.unsortedRegisters.contains(token.reg)) return false
+                    }
+
+                    return true
                 }
             }
 
             class WordOrSpecConst(val mustMatchSize: Variable.Size, val onlyUnsigned: Boolean = false) : Component("WordOrSpecConst") {
                 override fun matches(token: Compiler.Token): Boolean {
-                    return token is Compiler.Token.Word || (token is Compiler.Token.Constant && token.getValue(mustMatchSize, onlyUnsigned).checkResult.valid)
+                    if (token !is Compiler.Token.Word && token !is Compiler.Token.Constant) return false
+
+                    if (token is Compiler.Token.Constant) {
+                        val value = token.getValue(mustMatchSize, onlyUnsigned)
+                        if (!value.checkResult.valid) return false
+                        if (value.isSigned() && onlyUnsigned) return false
+                    }
+
+                    return true
                 }
             }
 

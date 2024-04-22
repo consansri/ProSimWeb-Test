@@ -21,6 +21,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "New",
                     UnlinkedList(
+                        Text("JVM Application for MacOs Linux and Windows."),
                         Text("KIT: File Imports import Macro and Equ definitions beside the sections."),
                         Code(
                             """
@@ -67,14 +68,15 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "Fixed",
                     UnlinkedList(
-                        Text("KIT .asciz and .string now store in the right direction and append a zero at the end."),
+                        Text("KIT Compiler now handles expressions properly."),
                         Text("KIT RV64 and RV32 MULH and RV64 MULW had a faulty sign extension."),
+                        Text("KIT .asciz and .string now store in the right direction and append a zero at the end."),
                     )
                 ),
                 Section(
                     "Issues",
                     UnlinkedList(
-                        Text("KIT Expression dot before line rule is missing on expressions without brackets!")
+                        Text("Missing GNU Compiler Directives!")
                     )
                 )
             ),
