@@ -17,7 +17,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
         DocFile.DefinedFile(
             "Version - ${Constants.VERSION}",
             Chapter(
-                "Version - 0.1.10",
+                "Version - 0.2.0",
                 Section(
                     "New",
                     UnlinkedList(
@@ -68,7 +68,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "Fixed",
                     UnlinkedList(
-                        Text("KIT Compiler now handles expressions properly."),
+                        Text("KIT Compiler now handles negative expressions properly like every other expression."),
                         Text("KIT RV64 and RV32 MULH and RV64 MULW had a faulty sign extension."),
                         Text("KIT .asciz and .string now store in the right direction and append a zero at the end."),
                     )

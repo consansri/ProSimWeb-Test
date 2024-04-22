@@ -1,6 +1,7 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.nativeError
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import me.c3.ui.components.styled.CScrollPane
@@ -399,7 +400,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         repaint()
     }
 
-    private fun handleMouseDoubleClick(e: MouseEvent){
+    private fun handleMouseDoubleClick(e: MouseEvent) {
         caret.moveCaretTo(e)
         selectSymbol()
     }
@@ -422,12 +423,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
         // Find the end index of the word
         var endIndex = index
-        while (endIndex < styledText.size - 1 && styledText[endIndex + 1].isLetterOrDigit()) {
+        while (endIndex < styledText.size - 1 && styledText[endIndex].isLetterOrDigit()) {
             endIndex++
         }
-
+        nativeLog("SymbolBounds: $startIndex, $endIndex")
         // Return the bounds of the word
-        return Pair(startIndex, endIndex - startIndex + 1)
+        return Pair(startIndex, endIndex)
     }
 
     private fun selectSymbol() {
@@ -804,11 +805,22 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
         fun moveCaretTo(e: MouseEvent) {
             val fm = getFontMetrics(font)
-            var lineID = e.y / fm.height
+            var lineID = if (e.y < 0) {
+                0
+            } else {
+                e.y / fm.height
+            }
+
             if (lineID >= getLineCount()) {
                 lineID = getLineCount() - 1
             }
-            var columnID = e.x / fm.charWidth(' ')
+
+            var columnID = if (e.x < 0) {
+                0
+            } else {
+                e.x / fm.charWidth(' ')
+            }
+
             if (columnID >= getMaxLineLength()) {
                 columnID = getMaxLineLength()
             }
@@ -1037,9 +1049,9 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
             if (shiftIsPressed) {
                 handleMouseSelection(e)
             } else {
-                if(e.clickCount == 2){
+                if (e.clickCount == 2) {
                     handleMouseDoubleClick(e)
-                }else{
+                } else {
                     selStart = -1
                     selEnd = -1
                     caret.moveCaretTo(e)
