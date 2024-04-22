@@ -68,6 +68,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                     "Fixed",
                     UnlinkedList(
                         Text("KIT .asciz and .string now store in the right direction and append a zero at the end."),
+                        Text("KIT RV64 and RV32 MULH and RV64 MULW had a faulty sign extension."),
                     )
                 ),
                 Section(

@@ -68,7 +68,7 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
 
     fun compileCurrent(build: Boolean) {
         CoroutineScope(Dispatchers.Default).launch {
-            getCurrentEditor()?.compile(build)
+            getCurrentEditor()?.fireCompilation(build)
         }
     }
 

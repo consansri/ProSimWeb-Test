@@ -36,8 +36,12 @@ open class CEditor(themeManager: ThemeManager, scaleManager: ScaleManager, maxSt
         this.add(textArea.scrollPane, BorderLayout.CENTER)
     }
 
+    protected fun setStyledContent(styledChars: List<CEditorArea.StyledChar>){
+        textArea.replaceStyledContent(styledChars)
+    }
+
     protected fun mark(vararg content: CEditorLineNumbers.LineContent) {
-        textArea.lineNumbers?.mark(*content)
+        textArea.lineNumbers.mark(*content)
     }
 
     fun undo(){

@@ -19,6 +19,12 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         mainManager.eventManager.addCompileListener {
             markPC()
         }
+        mainManager.archManager.addArchChangeListener {
+            fireCompilation(false)
+        }
+        mainManager.archManager.addFeatureChangeListener {
+            fireCompilation(false)
+        }
     }
 
     override fun onLineClicked(lineNumber: Int) {
@@ -31,11 +37,17 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         return result.tokens.toStyledText(mainManager.currTheme().codeLaF)
     }
 
-    fun compile(build: Boolean): Compiler.CompileResult {
+    private fun compile(build: Boolean): Compiler.CompileResult {
         val result = mainManager.currArch().compile(editorFile.toCompilerFile(), mainManager.currWS().getCompilerFiles(editorFile.file), build)
         SwingUtilities.invokeLater {
             mainManager.eventManager.triggerCompileFinished(result.success)
         }
+        return result
+    }
+
+    fun fireCompilation(build: Boolean): Compiler.CompileResult {
+        val result = compile(build)
+        this.setStyledContent(result.tokens.toStyledText(mainManager.currTheme().codeLaF))
         return result
     }
 
