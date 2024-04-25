@@ -3,6 +3,7 @@
 - Value add exponential Numbers
 - Value string escape sequence ("\"" => ")
 - Add standard calculator in editor (resolved by the global compiler at tokenization)
+- Add IKR Mini missing Instruction Format (not listed in documentation but used in lessons)
 
 # SUGAR #
 
