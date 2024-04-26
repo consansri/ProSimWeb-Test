@@ -19,8 +19,10 @@ import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import debug.DebugTools
-import emulator.kit.assembly.Compiler
 import emulator.kit.common.ArchState
+import emulator.kit.compiler.Assembly
+import emulator.kit.compiler.CodeStyle
+import emulator.kit.compiler.lexer.Severity
 import visual.StyleExt.get
 import visual.StyleExt.getVCRows
 import web.cssom.ClassName
@@ -57,7 +59,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- REACT STATES ----------------- */
 
-    val (state, setState) = useState(props.archState.component1().getState().currentState)
+    val state = ArchState()
+    var assemblyMap: Assembly.AssemblyMap? = null
 
     val (currExeLine, setCurrExeLine) = useState(-1)
     val (exeFile, setExeFile) = useState<FileHandler.File>()
@@ -114,7 +117,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun updateTsButton() {
-        if (props.archState.component1().getState().currentState == ArchState.State.EXECUTABLE || props.archState.component1().getState().currentState == ArchState.State.EXECUTION) {
+        if (state.currentState == ArchState.State.EXECUTABLE || state.currentState == ArchState.State.EXECUTION) {
             btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             setTSActive(true)
         } else {
@@ -161,12 +164,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         }
         checkTimeOutRef.current = setTimeout({
             val analysisTime = measureTime {
-                props.archState.component1().getState().edit()
+                state.edit()
                 val compilationResult = props.archState.component1().compile(file, props.fileState.component1().getOthers(), build = true)
                 val hlTaList = compilationResult.tokens.getVCRows()
                 setvcRows(hlTaList)
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
-                setState(props.archState.component1().getState().currentState)
+                assemblyMap = compilationResult.assemblyMap
+                state.check(compilationResult.success)
             }
             if (analysisTime.inWholeMilliseconds <= Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
                 setLowPerformanceMode(false)
@@ -185,12 +189,12 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         if (!lowPerformanceMode) {
             preHLTimeoutRef.current = setTimeout({
                 val analysisTime = measureTime {
-                    props.archState.component1().getState().edit()
+                    state.edit()
                     val compilationResult = props.archState.component1().compile(value, props.fileState.component1().getOthers(), build = false)
                     val hlTaList = compilationResult.tokens.getVCRows()
                     setvcRows(hlTaList)
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
-                    setState(props.archState.component1().getState().currentState)
+                    state.check(compilationResult.success)
                 }
                 if (analysisTime.inWholeMilliseconds > Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
                     setLowPerformanceMode(true)
@@ -203,7 +207,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- CHANGE EVENTS ----------------- */
     fun edit(content: String) {
-        props.archState.component1().getState().edit()
+        state.edit()
 
         props.fileState.component1().editCurr(content)
         textareaRef.current?.let {
@@ -215,7 +219,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun undo() {
-        props.archState.component1().getState().edit()
+        state.edit()
 
         props.fileState.component1().undoCurr()
         textareaRef.current?.let {
@@ -227,7 +231,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun redo() {
-        props.archState.component1().getState().edit()
+       state.edit()
 
         props.fileState.component1().redoCurr()
         textareaRef.current?.let {
@@ -297,7 +301,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     cursor = Cursor.pointer
                 }
 
-                when (state) {
+                when (state.currentState) {
                     ArchState.State.UNCHECKED -> {
                         title = "Status: loading..."
                         img {
@@ -747,21 +751,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     val lineID = lines.size - 1
                                     val startIndex = lines[lineID].length
 
-                                    val grammarTree = props.archState.component1().getCompiler().getGrammarTree(props.fileState.component1().getCurrent().toCompilerFile())
-                                    grammarTree?.rootNode?.let { rootNode ->
-                                        var path = ""
-                                        rootNode.containers.forEach {
-                                            it.getAllTokens().forEach { token ->
-                                                if (token.lineLoc.lineID == lineID && startIndex in token.lineLoc.startIndex..token.lineLoc.endIndex) {
-                                                    val result = grammarTree.contains(token)
-                                                    if (result != null) {
-                                                        path = result.path
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        setInfoPanelText(path)
-                                    }
+                                    // TODO("Calculate Info Panel Node Path")
                                 }
                             }
 
@@ -888,13 +878,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     background = StyleAttr.transparent
                                     resize = Resize.block
 
-                                    Compiler.CodeStyle.entries.forEach {
+                                    CodeStyle.entries.forEach {
                                         ".${it.name}" {
                                             color = important(it.get(StyleAttr.mode))
                                         }
                                     }
 
-                                    Compiler.SeverityType.entries.forEach {
+                                    Severity.Type.entries.forEach {
                                         ".${it.name}" {
                                             textDecoration = important(TextDecoration.underline)
                                             textDecorationColor = important(it.codeStyle.get(StyleAttr.mode))
@@ -961,8 +951,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         setFiles(props.fileState.component1().getAllFiles())
     }
 
-    useEffect(state) {
-        when (state) {
+    useEffect(state.currentState) {
+        when (state.currentState) {
             ArchState.State.EXECUTABLE -> {
                 if (!props.archState.component1().getTranscript().deactivated()) {
                     btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
@@ -980,9 +970,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             console.log("REACT: Exe Event Changed!")
         }
 
-        val lineAddressMap = props.archState.component1().getCompiler().getAssemblyMap().lineAddressMap
+        val lineAddressMap = assemblyMap?.lineAddressMap
         val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
-        val entry = lineAddressMap[pcValue.toHex().getRawHexStr()]
+        val entry = lineAddressMap?.get(pcValue.toHex().getRawHexStr())
 
         if (entry != null) {
             setExeFile(props.fileState.component1().getOrNull(entry.fileName))

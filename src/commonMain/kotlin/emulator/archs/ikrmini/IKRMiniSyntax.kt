@@ -1,49 +1,27 @@
 package emulator.archs.ikrmini
 
 import emulator.kit.Architecture
-import emulator.kit.assembly.Compiler
-import emulator.kit.assembly.Syntax.TokenSeq.Component.*
-import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
-import emulator.kit.assembly.standards.StandardSyntax
 import emulator.kit.common.Memory
+import emulator.kit.compiler.InstrTypeInterface
+import emulator.kit.compiler.lexer.TokenSeq
+import emulator.kit.compiler.lexer.TokenSeq.Component.SpecNode.*
+import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
+import emulator.kit.compiler.lexer.TokenSeq.Component.Specific
+import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 
-class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, ';', InstrType.entries.map { it.name }, instrParamsCanContainWordsBesideLabels = false) {
-
-    /**
-     * Checks beginning for a Instruction
-     */
-    override fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: StandardSyntax.ELabel?): Boolean {
-        for (amode in ParamType.entries) {
-            val amodeResult = amode.tokenSeq.matchStart(*this.toTypedArray())
-
-            if (amodeResult.matches) {
-                val type = InstrType.entries.firstOrNull { it.name.uppercase() == amodeResult.sequenceMap[0].token.content.uppercase() } ?: return false
-
-                if (!type.paramMap.entries.map { it.key }.contains(amode)) continue
-                val imm = amodeResult.sequenceMap.map { it.token }.firstOrNull { it is Compiler.Token.Constant } as Compiler.Token.Constant?
-
-                val eInstr = IKRMiniInstr(type, amode, imm, currentLabel, *amodeResult.sequenceMap.map { it.token }.toTypedArray())
-
-                this.removeAll(eInstr.tokens.toSet())
-                elements.add(eInstr)
-                return true
-            }
-        }
-        return false
+class IKRMiniSyntax {
+    enum class ParamType(val tokenSeq: TokenSeq?, val wordAmount: Int, val exampleString: String) {
+        INDIRECT(TokenSeq(Specific("("), Specific("("), EXPRESSION(), Specific(")"), Specific(")")), 2, "(([16 Bit]))"),
+        DIRECT(TokenSeq( Specific("("), EXPRESSION(), Specific(")")), 2, "([16 Bit])"),
+        IMMEDIATE(TokenSeq( Specific("#"), INTEGER(WORDSIZE)), 2, "#[16 Bit]"),
+        DESTINATION(TokenSeq( EXPRESSION()), 2, "[label]"),
+        IMPLIED(null, 1, ""),
     }
 
-    enum class ParamType(val tokenSeq: TokenSeq, val wordAmount: Int, val exampleString: String) {
-        INDIRECT(TokenSeq(Word, Space, Specific("("), Specific("("), WordOrSpecConst(WORDSIZE), Specific(")"), Specific(")"), NewLine, ignoreSpaces = true), 2, "(([16 Bit]))"),
-        DIRECT(TokenSeq(Word, Space, Specific("("), WordOrSpecConst(WORDSIZE), Specific(")"), NewLine, ignoreSpaces = true), 2, "([16 Bit])"),
-        IMMEDIATE(TokenSeq(Word, Space, Specific("#"), SpecConst(WORDSIZE), NewLine, ignoreSpaces = true), 2, "#[16 Bit]"),
-        DESTINATION(TokenSeq(Word, Space, WordOrSpecConst(WORDSIZE), NewLine, ignoreSpaces = true), 2, "[label]"),
-        IMPLIED(TokenSeq(Word, NewLine, ignoreSpaces = true), 1, ""),
-    }
-
-    enum class InstrType(val paramMap: Map<ParamType, Hex>, val descr: String) {
+    enum class InstrType(val paramMap: Map<ParamType, Hex>, val descr: String) : InstrTypeInterface {
         // Data Transport
         LOAD(mapOf(ParamType.IMMEDIATE to Hex("010C", WORDSIZE), ParamType.DIRECT to Hex("020C", WORDSIZE), ParamType.INDIRECT to Hex("030C", WORDSIZE)), "load AC"),
         LOADI(mapOf(ParamType.IMPLIED to Hex("200C", WORDSIZE)), "load indirect"),
@@ -97,7 +75,9 @@ class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, ';', InstrType.e
         BGT(mapOf(ParamType.DESTINATION to Hex("610E", WORDSIZE)), "branch if greater than"),
         BLE(mapOf(ParamType.DESTINATION to Hex("610F", WORDSIZE)), "branch if less or equal");
 
-        fun execute(arch: emulator.kit.Architecture, paramtype: ParamType, ext: Hex) {
+        override fun getDetectionName(): String = this.name
+
+        fun execute(arch: Architecture, paramtype: ParamType, ext: Hex) {
             val pc = arch.getRegContainer().pc
             val ac = arch.getRegByName("AC")
 
@@ -501,69 +481,6 @@ class IKRMiniSyntax : StandardSyntax(IKRMini.MEM_ADDRESS_WIDTH, ';', InstrType.e
         }
 
     }
-
-    /**
-     * TREE NODES
-     */
-    class IKRMiniInstr(val type: InstrType, val paramType: ParamType, val imm: Compiler.Token.Constant?, parentLabel: ELabel?, vararg tokens: Compiler.Token) : EInstr(tokens.first(), tokens.drop(1), parentLabel) {
-        fun getOpBin(arch: Architecture): Array<Bin> {
-            val opCode = type.paramMap[paramType]
-            val addr = addr
-            val lblAddr = linkedLabels.firstOrNull()?.addr
-            if (opCode == null) {
-                arch.getConsole().error("Couldn't resolve opcode for the following combination: ${type.name} and ${paramType.name}")
-                return emptyArray()
-            }
-            val opCodeArray = mutableListOf(*opCode.splitToByteArray().map { it.toBin() }.toTypedArray())
-
-            when (paramType) {
-                ParamType.IMMEDIATE, ParamType.DIRECT, ParamType.INDIRECT -> {
-                    if (linkedLabels.size == 1) {
-                        if (lblAddr == null) {
-                            arch.getConsole().error("Missing imm/address for the following combination: ${type.name} and ${paramType.name}")
-                            return emptyArray()
-                        }
-                        opCodeArray.addAll(lblAddr.toHex().splitToByteArray().map { it.toBin() })
-                    } else {
-                        if (imm == null) {
-                            arch.getConsole().error("Missing imm/address for the following combination: ${type.name} and ${paramType.name}")
-                            return emptyArray()
-                        }
-                        opCodeArray.addAll(imm.getValue(WORDSIZE).toHex().splitToByteArray().map { it.toBin() })
-                    }
-                }
-
-                ParamType.DESTINATION -> {
-                    if (linkedLabels.size == 1) {
-                        if (lblAddr == null) {
-                            arch.getConsole().error("Missing branch destination for the following combination: ${type.name} and ${paramType.name}")
-                            return emptyArray()
-                        }
-                        if (addr == null) {
-                            arch.getConsole().error("Missing instruction address for the following combination: ${type.name} and ${paramType.name}")
-                            return emptyArray()
-                        }
-                        val labelOffset = lblAddr.toHex() - addr.toHex()
-                        opCodeArray.addAll(labelOffset.toHex().splitToByteArray().map { it.toBin() })
-                    } else {
-                        if (imm == null) {
-                            arch.getConsole().error("Missing branch destination for the following combination: ${type.name} and ${paramType.name}")
-                            return emptyArray()
-                        }
-                        if (addr == null) {
-                            arch.getConsole().error("Missing instruction address for the following combination: ${type.name} and ${paramType.name}")
-                            return emptyArray()
-                        }
-                        opCodeArray.addAll(imm.getValue(WORDSIZE).toHex().splitToByteArray().map { it.toBin() })
-                    }
-                }
-
-                ParamType.IMPLIED -> {}
-            }
-            return opCodeArray.toTypedArray()
-        }
-    }
-
 
     data class Flags(val n: Boolean, val z: Boolean, val v: Boolean, val c: Boolean)
 

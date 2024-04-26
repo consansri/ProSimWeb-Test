@@ -1,7 +1,6 @@
 package me.c3.ui.styled.editor
 
-import emulator.kit.assembly.Compiler
-import emulator.kit.nativeLog
+import emulator.kit.compiler.CodeStyle
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
@@ -48,7 +47,7 @@ class CEditorAreaUI(
         editor.isOpaque = false
         editor.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
         editor.background = themeManager.curr.globalLaF.bgPrimary
-        editor.foreground = themeManager.curr.codeLaF.getColor(Compiler.CodeStyle.BASE0)
+        editor.foreground = themeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
         editor.font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
         selectionColor = themeManager.curr.codeLaF.selectionColor
         editor.tabSize = scaleManager.curr.fontScale.tabSize

@@ -1,6 +1,5 @@
 package emulator.archs.ikrmini
 
-import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
 import emulator.kit.common.Memory
 import emulator.kit.common.RegContainer
@@ -67,7 +66,7 @@ data object IKRMini {
         ), Memory(WORDSIZE, "0", BYTESIZE, Memory.Endianess.BigEndian)
     )
 
-    val asmConfig = AsmConfig(IKRMiniSyntax(), IKRMiniAssembly(), false, numberSystemPrefixes = Compiler.ConstantPrefixes("$", "%", "", "u"))
+    val asmConfig = AsmConfig(IKRMiniAssembler())
 
 
 }

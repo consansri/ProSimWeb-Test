@@ -1,6 +1,6 @@
 package emulator.kit.common
 
-import emulator.kit.assembly.Compiler
+import emulator.kit.compiler.CodeStyle
 import kotlinx.datetime.Clock
 
 /**
@@ -50,11 +50,11 @@ class IConsole(val name: String) {
         val time = Clock.System.now()
     }
 
-    enum class MSGType(val style: Compiler.CodeStyle) {
-        LOG(Compiler.CodeStyle.BASE3),
-        INFO(Compiler.CodeStyle.BASE1),
-        WARNING(Compiler.CodeStyle.YELLOW),
-        ERROR(Compiler.CodeStyle.RED)
+    enum class MSGType(val style: CodeStyle) {
+        LOG(CodeStyle.BASE3),
+        INFO(CodeStyle.BASE1),
+        WARNING(CodeStyle.YELLOW),
+        ERROR(CodeStyle.RED)
     }
 
 }

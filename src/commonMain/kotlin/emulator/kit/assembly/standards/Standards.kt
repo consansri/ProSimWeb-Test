@@ -1,7 +1,6 @@
 package emulator.kit.assembly.standards
 
 object Standards {
-
     enum class TsCompiledHeaders {
         Address,
         Label,

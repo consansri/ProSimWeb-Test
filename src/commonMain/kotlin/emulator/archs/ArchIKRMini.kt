@@ -2,9 +2,7 @@ package emulator.archs
 
 import emulator.archs.ikrmini.IKRMini
 import emulator.archs.ikrmini.IKRMiniSyntax
-import emulator.kit.Architecture
 import emulator.kit.assembly.standards.StandardArch
-import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
 class ArchIKRMini : StandardArch(IKRMini.config, IKRMini.asmConfig) {

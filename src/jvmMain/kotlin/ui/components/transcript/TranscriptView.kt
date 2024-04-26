@@ -1,8 +1,8 @@
 package me.c3.ui.components.transcript
 
-import emulator.kit.assembly.Compiler
 import emulator.kit.common.ArchState
 import emulator.kit.common.Transcript
+import emulator.kit.compiler.CodeStyle
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
@@ -142,7 +142,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         disassembledModel.rowCount = 0
         compiledModel.rowCount = 0
         val transcript = mainManager.currArch().getTranscript()
-        if (!transcript.deactivated() && (mainManager.currArch().getState().currentState == ArchState.State.EXECUTABLE || mainManager.currArch().getState().currentState == ArchState.State.EXECUTION)) {
+        if (!transcript.deactivated()) {
             val disasmIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.DISASSEMBLED)
             val compIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.COMPILED)
             currDisasmRows = mainManager.currArch().getTranscript().getContent(Transcript.Type.DISASSEMBLED)
@@ -183,8 +183,8 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         val currTS = mainManager.currArch().getTranscript()
         val pcIndexCompiledTS = currTS.compiled.indexOfFirst { it.getAddresses().map { it.toHex().getRawHexStr() }.contains(currPC.get().toHex().getRawHexStr()) }
         val pcIndexDisasmTS = currTS.disassembled.indexOfFirst { it.getAddresses().map { it.toHex().getRawHexStr() }.contains(currPC.get().toHex().getRawHexStr()) }
-        compiledView.setCellHighlighting(pcIndexCompiledTS, null, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
-        disasmView.setCellHighlighting(pcIndexDisasmTS, null, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
+        compiledView.setCellHighlighting(pcIndexCompiledTS, null, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
+        disasmView.setCellHighlighting(pcIndexDisasmTS, null, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
     }
 
 }

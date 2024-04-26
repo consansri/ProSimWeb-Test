@@ -1,7 +1,7 @@
 package me.c3.ui.components.editor
 
 import emulator.kit.*
-import emulator.kit.assembly.Compiler
+import emulator.kit.compiler.CompilerFile
 import kotlinx.coroutines.*
 import me.c3.ui.styled.editor.FileInterface
 import java.io.File
@@ -18,7 +18,7 @@ class EditorFile(val file: File) : FileInterface {
         }
 
     fun getName(): String = file.name
-    fun toCompilerFile(): Compiler.CompilerFile = file.toCompilerFile()
+    fun toCompilerFile(): CompilerFile = file.toCompilerFile()
     fun reload() {
         bufferedContent = file.readText()
     }

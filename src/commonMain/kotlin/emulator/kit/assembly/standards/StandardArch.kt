@@ -6,10 +6,7 @@ import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
 abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
-
-
     override fun exeContinuous() {
-        if (!this.getCompiler().isBuildable()) return
         var instrCount = 0
         val measuredTime = measureTime {
             super.exeContinuous()
@@ -25,7 +22,6 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
     }
 
     override fun exeSingleStep() {
-        if (!this.getCompiler().isBuildable()) return
 
         val measuredTime = measureTime {
             super.exeSingleStep() // clears console
@@ -36,7 +32,6 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
     }
 
     override fun exeMultiStep(steps: Int) {
-        if (!this.getCompiler().isBuildable()) return
         var instrCount = 0
         val measuredTime = measureTime {
             super.exeMultiStep(steps)
@@ -52,7 +47,6 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
     }
 
     override fun exeSkipSubroutine() {
-        if (!this.getCompiler().isBuildable()) return
         var instrCount = 0
         val measuredTime = measureTime {
             super.exeSkipSubroutine()
@@ -74,7 +68,6 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
     }
 
     override fun exeReturnFromSubroutine() {
-        if (!this.getCompiler().isBuildable()) return
         var instrCount = 0
         val measuredTime = measureTime {
             super.exeReturnFromSubroutine()
@@ -93,7 +86,6 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
     }
 
     override fun exeUntilAddress(address: Variable.Value.Hex) {
-        if (!this.getCompiler().isBuildable()) return
         var instrCount = 0
         val measuredTime = measureTime {
             super.exeUntilAddress(address)
@@ -112,12 +104,11 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
     }
 
     override fun exeUntilLine(lineID: Int, fileName: String) {
-        if (!this.getCompiler().isBuildable()) return
         var instrCount = 0
         val measuredTime = measureTime {
             super.exeUntilLine(lineID, fileName)
 
-            val lineAddressMap = getCompiler().getAssemblyMap().lineAddressMap.map { it.value to it.key }.filter { it.first.fileName == fileName }
+            val lineAddressMap = getCompiler().assembly.currentAssemblyMap.lineAddressMap.map { it.value to it.key }.filter { it.first.fileName == fileName }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
                 if (entry.first.lineID >= lineID && entry.first.lineID != closestID) {

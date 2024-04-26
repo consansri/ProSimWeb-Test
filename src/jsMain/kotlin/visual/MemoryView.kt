@@ -536,7 +536,7 @@ val MemoryView = FC<MemViewProps> { props ->
         setMemList(props.archState.component1().getMemory().memList)
     }
 
-    useEffect(props.archState.component1().getMemory().memList, props.archState.component1().getState().currentState) {
+    useEffect(props.archState.component1().getMemory().memList) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Memory Map or Code State Changed!")
         }

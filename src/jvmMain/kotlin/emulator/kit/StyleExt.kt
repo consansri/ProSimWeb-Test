@@ -1,8 +1,7 @@
 package me.c3.emulator.kit
 
-import emulator.kit.assembly.Compiler
-import emulator.kit.common.Docs
 import emulator.kit.common.IConsole
+import emulator.kit.compiler.lexer.Token
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import me.c3.ui.styled.editor.CEditorArea
@@ -17,31 +16,23 @@ import javax.swing.text.StyleConstants
 import javax.swing.text.StyledDocument
 
 
-fun List<Compiler.Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
+fun List<Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
     return this.map { it.toStyledCharSequence(codeLaF) }.flatten()
 }
 
-fun Compiler.Token.toStyledCharSequence(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
+fun Token.toStyledCharSequence(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
     val severity = getSeverity()
     val codeStyle = getCodeStyle()
 
     val color = codeLaF.getColor(severity?.type?.codeStyle ?: codeStyle)
     val style = CEditorArea.Style(color)
 
-    val styledChars: List<CEditorArea.StyledChar> = when (this) {
-        is Compiler.Token.Constant.Expression -> {
-            this.tokens.map { it.toStyledCharSequence(codeLaF) }.flatten()
-        }
-
-        else -> {
-            this.content.map { CEditorArea.StyledChar(it, style) }
-        }
-    }
+    val styledChars: List<CEditorArea.StyledChar> = this.content.map { CEditorArea.StyledChar(it, style) }
 
     return styledChars
 }
 
-fun List<IConsole.Message>.toStyledContent(codeLaF: CodeLaF): List<CEditorArea.StyledChar>{
+fun List<IConsole.Message>.toStyledContent(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
     return this.flatMap { it.toStyledContent(codeLaF) }
 }
 

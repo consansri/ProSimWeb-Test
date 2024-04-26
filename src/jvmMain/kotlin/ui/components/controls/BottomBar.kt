@@ -1,6 +1,6 @@
 package me.c3.ui.components.controls
 
-import emulator.kit.assembly.Compiler
+import emulator.kit.compiler.CodeStyle
 import kotlinx.coroutines.*
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CLabel
@@ -58,11 +58,11 @@ class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.theme
     }
 
     fun setError(text: String) {
-        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.RED))
+        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(CodeStyle.RED))
     }
 
     fun setWarning(text: String) {
-        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.YELLOW))
+        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(CodeStyle.YELLOW))
     }
 
     fun setInfo(text: String) {
@@ -74,7 +74,7 @@ class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.theme
 
         compilerObservingProcess = compilerObserverScope.launch {
             while (this.isActive) {
-                val processes = ArrayList(mainManager.currArch().getCompiler().processes)
+                val processes = ArrayList(mainManager.currArch().getCompiler().runningProcesses())
                 val stateString = processes.joinToString(" -> ") {
                     it.toString()
                 }

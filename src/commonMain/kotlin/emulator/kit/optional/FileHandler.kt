@@ -2,7 +2,7 @@ package emulator.kit.optional
 
 import Coroutines
 import debug.DebugTools
-import emulator.kit.assembly.Compiler
+import emulator.kit.compiler.CompilerFile
 import emulator.kit.loadFiles
 import emulator.kit.nativeWarn
 import emulator.kit.updateFiles
@@ -91,7 +91,7 @@ class FileHandler() {
     fun getOrNull(fileName: String): File?{
         return files.firstOrNull { it.getName() == fileName }
     }
-    fun getOthers(): List<Compiler.CompilerFile>{
+    fun getOthers(): List<CompilerFile>{
         return files.map { it.toCompilerFile() }
     }
 
@@ -171,7 +171,7 @@ class FileHandler() {
             return redoStates
         }
 
-        fun toCompilerFile(): Compiler.CompilerFile = Compiler.CompilerFile(name, content)
+        fun toCompilerFile(): CompilerFile = CompilerFile(name, content)
 
         private fun addUndoState(fileHandler: FileHandler, content: String) {
             job?.cancel()

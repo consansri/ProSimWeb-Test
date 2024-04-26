@@ -1,7 +1,6 @@
 package emulator.archs.t6502
 
 
-import emulator.kit.assembly.Compiler
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -9,6 +8,7 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.compiler.gas.GASAssembler
 
 
 /**
@@ -72,7 +72,7 @@ object T6502 {
                     "Instructions",
                     Table(
                         listOf("instruction", "params", "opcode", "description"),
-                        *T6502Syntax.InstrType.entries.map { instr ->
+                        *InstrType.entries.map { instr ->
                             listOf(
                                 Text(instr.name),
                                 Text(instr.opCode.entries.map { it.key }.joinToString("\n") { it.exampleString }),
@@ -98,10 +98,7 @@ object T6502 {
     )
 
     val asmConfig = AsmConfig(
-        syntax = T6502Syntax(),
-        assembly = T6502Assembly(),
-        compilerDetectRegistersByNames = false,
-        numberSystemPrefixes = Compiler.ConstantPrefixes("$", "%", "", "u")
+        T6502Assembly()
     )
 
 

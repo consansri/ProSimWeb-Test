@@ -1,7 +1,5 @@
 package emulator.kit
 
-import Settings
-import emulator.kit.assembly.Compiler
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -9,9 +7,11 @@ import emulator.kit.optional.Cache
 import emulator.kit.types.Variable
 
 import debug.DebugTools
-import emulator.kit.assembly.Syntax
+import emulator.kit.compiler.*
+import emulator.kit.compiler.gas.DefinedAssembly
 import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
+import kotlinx.coroutines.Deferred
 
 /**
  *  Architecture Blueprint
@@ -48,13 +48,13 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val regContainer: RegContainer
     private val memory: Memory
     private val iConsole: IConsole
-    private val archState = ArchState()
-    private val compiler: Compiler
+    private val compiler: CompilerInterface
     private val transcript: Transcript
     private val cache: Cache?
     private val features: List<Feature>
     private val settings: List<ArchSetting>
-    private var lastFile: Compiler.CompilerFile? = null
+    private var lastFile: CompilerFile? = null
+    private val definedAssembly: DefinedAssembly
 
     init {
         this.description = config.description
@@ -66,12 +66,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.iConsole = IConsole("${config.description.name} Console")
         this.features = asmConfig.features
         this.settings = asmConfig.settings
+        this.definedAssembly = asmConfig.definedAssembly
         this.compiler = Compiler(
             this,
-            asmConfig.syntax,
-            asmConfig.assembly,
-            asmConfig.numberSystemPrefixes,
-            asmConfig.compilerDetectRegistersByNames
+            asmConfig.definedAssembly
         )
     }
 
@@ -81,13 +79,14 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getTranscript(): Transcript = transcript
     fun getMemory(): Memory = memory
     fun getConsole(): IConsole = iConsole
-    fun getState(): ArchState = archState
-    fun getCompiler(): Compiler = compiler
-    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: Compiler.CompilerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder().buildFileContentLines(this, type, currentFile, *settings)
+    fun getCompiler(): CompilerInterface = compiler
+    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: CompilerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder().buildFileContentLines(this, type, currentFile, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
     fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
+    fun getAllInstrTypes(): List<InstrTypeInterface> = compiler.parser.getInstrs(features)
+    fun getAllDirTypes(): List<DirTypeInterface> = compiler.parser.getDirs(features)
     fun getRegByName(name: String, regFile: String? = null): RegContainer.Register? = regContainer.getReg(name, features, regFile)
     fun getRegByAddr(addr: Variable.Value, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
 
@@ -154,9 +153,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     open fun exeReset() {
         regContainer.clear()
         memory.clear()
-        lastFile?.let {
-            compiler.reassemble(it)
-        }
         getConsole().exeInfo("resetting")
     }
 
@@ -164,7 +160,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Compilation Event
      * already implemented
      */
-    fun compile(mainFile: Compiler.CompilerFile, others: List<Compiler.CompilerFile>, build: Boolean = true): Compiler.CompileResult {
+    fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Boolean = true): Process.Result {
         if (build) {
             regContainer.clear()
         }
@@ -173,8 +169,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             println("Architecture.check(): input \n $mainFile \n")
         }
         val compilationResult = compiler.compile(mainFile, others, build = build)
-        archState.check(compilationResult.success)
-        lastFile = mainFile
         return compilationResult
     }
 

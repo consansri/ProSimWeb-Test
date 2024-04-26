@@ -1,46 +1,24 @@
 package emulator.archs.riscv64
 
-import emulator.kit.assembly.Compiler
-import emulator.kit.assembly.standards.StandardSyntax
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
-import emulator.kit.assembly.Syntax.TokenSeq.Component.InSpecific.*
-import emulator.kit.assembly.Syntax.TokenSeq.Component.*
+import emulator.kit.compiler.InstrTypeInterface
+import emulator.kit.compiler.gas.nodes.GASNode
+import emulator.kit.compiler.lexer.Token
+import emulator.kit.compiler.lexer.TokenSeq
+import emulator.kit.compiler.lexer.TokenSeq.Component.Specific
+import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.nativeLog
+import emulator.kit.optional.Feature
 
-class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries.map { it.id }, instrParamsCanContainWordsBesideLabels = false) {
-
-    override fun MutableList<Compiler.Token>.checkInstr(elements: MutableList<TreeNode.ElementNode>, errors: MutableList<Error>, warnings: MutableList<Warning>, currentLabel: ELabel?): Boolean {
-        for (paramType in ParamType.entries) {
-            val result = paramType.tokenSeq.matchStart(*this.toTypedArray())
-            if (!result.matches) continue
-            val allTokens = result.sequenceMap.map { it.token }
-            val nameToken = allTokens.firstOrNull() ?: continue
-            val params = allTokens.drop(1)
-
-            val instrType = InstrType.entries.firstOrNull { it.paramType == paramType && it.id.uppercase() == nameToken.content.uppercase() } ?: continue
-            val eInstr = RV64Instr(instrType, paramType, nameToken, params, currentLabel)
-
-            elements.add(eInstr)
-            allTokens.forEach {
-                this.remove(it)
-            }
-            return true
-        }
-
-        return false
-    }
-
-    enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: TokenSeq) {
+class RV64Syntax {
+    enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: TokenSeq?) {
         // NORMAL INSTRUCTIONS
         RD_I20(
             false, "rd, imm20", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit20()),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit20())
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -56,15 +34,12 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         }, // rd, imm
         RD_Off12(
             false, "rd, imm12(rs)", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit12()),
+                INTEGER(Variable.Size.Bit12()),
                 Specific("("),
-                Register(RV64.standardRegFile),
-                Specific(")"),
-                NewLine, ignoreSpaces = true
+                REG(RV64.standardRegFile),
+                Specific(")")
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -82,15 +57,12 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         }, // rd, imm12(rs)
         RS2_Off12(
             false, "rs2, imm12(rs1)", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit12()),
+                INTEGER(Variable.Size.Bit12()),
                 Specific("("),
-                Register(RV64.standardRegFile),
-                Specific(")"),
-                NewLine, ignoreSpaces = true
+                REG(RV64.standardRegFile),
+                Specific(")")
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -108,14 +80,11 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         }, // rs2, imm5(rs1)
         RD_RS1_RS2(
             false, "rd, rs1, rs2", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
-                NewLine, ignoreSpaces = true
+                REG(RV64.standardRegFile)
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -134,14 +103,11 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         }, // rd, rs1, rs2
         RD_RS1_I12(
             false, "rd, rs1, imm12", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit12()),
-                NewLine, ignoreSpaces = true
+                TokenSeq.Component.SpecNode.EXPRESSION()
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -159,14 +125,11 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         }, // rd, rs, imm
         RD_RS1_SHAMT6(
             false, "rd, rs1, shamt6", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit6(), onlyUnsigned = true),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit6())
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -183,7 +146,7 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
             }
         }, // rd, rs, shamt
         RS1_RS2_I12(
-            false, "rs1, rs2, imm12", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), Specific(","), Register(RV64.standardRegFile), Specific(","), SpecConst(Variable.Size.Bit12()), NewLine, ignoreSpaces = true)
+            false, "rs1, rs2, imm12", TokenSeq(REG(RV64.standardRegFile), Specific(","), REG(RV64.standardRegFile), Specific(","), INTEGER(Variable.Size.Bit12()))
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
                 val rs2 = paramMap[MaskLabel.RS2]
@@ -200,14 +163,11 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         }, // rs1, rs2, imm
         CSR_RD_OFF12_RS1(
             false, "rd, csr12, rs1", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
+                REG(notInRegFile = RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
-                NewLine, ignoreSpaces = true
+                REG(RV64.standardRegFile)
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -226,14 +186,11 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         },
         CSR_RD_OFF12_UIMM5(
             false, "rd, offset, uimm5", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
+                REG(notInRegFile = RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit5()),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit5())
             )
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -253,129 +210,96 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         // PSEUDO INSTRUCTIONS
         PS_RS1_RS2_Jlbl(
             true, "rs1, rs2, jlabel", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Word,
-                NewLine, ignoreSpaces = true
+                SYMBOL()
             )
         ),
         PS_RD_LI_I28Unsigned(
             true, "rd, imm28u", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit28(), onlyUnsigned = true),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit28())
             )
         ), // rd, imm28 unsigned
         PS_RD_LI_I32Signed(
             true, "rd, imm32s", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit32(), signed = true),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit32()),
             )
         ), // rd, imm32
         PS_RD_LI_I40Unsigned(
             true, "rd, imm40u", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit40(), onlyUnsigned = true),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit40())
             )
         ),
         PS_RD_LI_I52Unsigned(
             true, "rd, imm52u", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit52(), onlyUnsigned = true),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit52())
             )
         ),
         PS_RD_LI_I64(
             true, "rd, imm64", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                SpecConst(Variable.Size.Bit64()),
-                NewLine, ignoreSpaces = true
+                INTEGER(Variable.Size.Bit64())
             )
         ), // rd, imm64
         PS_RS1_Jlbl(
             true, "rs, jlabel", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Word,
-                NewLine, ignoreSpaces = true
+                SYMBOL()
             )
         ), // rs, label
         PS_RD_Albl(
             true, "rd, alabel", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Word,
-                NewLine, ignoreSpaces = true
+                SYMBOL()
             )
         ), // rd, label
-        PS_lbl(true, "jlabel", TokenSeq(WordNoDotsAndUS, Space, Word, NewLine, ignoreSpaces = true)),  // label
+        PS_lbl(true, "jlabel", TokenSeq(SYMBOL())),  // label
         PS_RD_RS1(
             true, "rd, rs", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
-                NewLine, ignoreSpaces = true
+                REG(RV64.standardRegFile)
             )
         ), // rd, rs
-        PS_RS1(true, "rs1", TokenSeq(WordNoDotsAndUS, Space, Register(RV64.standardRegFile), NewLine, ignoreSpaces = true)),
+        PS_RS1(true, "rs1", TokenSeq(REG(RV64.standardRegFile))),
         PS_CSR_RS1(
             true, "csr, rs1", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
+                REG(notInRegFile = RV64.standardRegFile),
                 Specific(","),
-                Register(RV64.standardRegFile),
-                NewLine, ignoreSpaces = true
+                REG(RV64.standardRegFile)
             )
         ),
         PS_RD_CSR(
             true, "rd, csr", TokenSeq(
-                WordNoDotsAndUS,
-                Space,
-                Register(RV64.standardRegFile),
+                REG(RV64.standardRegFile),
                 Specific(","),
-                RegOrSpecConst(Variable.Size.Bit12(), notInRegFile = RV64.standardRegFile),
-                NewLine, ignoreSpaces = true
+                REG(notInRegFile = RV64.standardRegFile)
             )
         ),
 
         // NONE PARAM INSTR
-        NONE(false, "none", TokenSeq(WordNoDotsAndUS, NewLine)),
-        PS_NONE(true, "none", TokenSeq(WordNoDotsAndUS, NewLine));
+        NONE(false, "none", null),
+        PS_NONE(true, "none", null);
 
         open fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
             return "pseudo param type"
         }
     }
 
-    enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: RV64BinMapper.OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null, val needFeatures: List<Int> = emptyList()) {
+    enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: RV64BinMapper.OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null, val needFeatures: List<Int> = emptyList()) : InstrTypeInterface {
         LUI("LUI", false, ParamType.RD_I20, RV64BinMapper.OpCode("00000000000000000000 00000 0110111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap) // only for console information
@@ -1997,12 +1921,12 @@ class RV64Syntax : StandardSyntax(RV64.MEM_ADDRESS_WIDTH, '#', InstrType.entries
         Call("CALL", true, ParamType.PS_lbl, memWords = 2),
         Tail("TAIL", true, ParamType.PS_lbl, memWords = 2);
 
+        override fun getDetectionName(): String = this.id
+
         open fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
             arch.getConsole().log("> $id {...}")
         }
     }
-
-    class RV64Instr(val instrType: InstrType, val paramType: ParamType, nameToken: Compiler.Token, params: List<Compiler.Token>, parentLabel: ELabel?) : EInstr(nameToken, params, parentLabel)
 
 
 }

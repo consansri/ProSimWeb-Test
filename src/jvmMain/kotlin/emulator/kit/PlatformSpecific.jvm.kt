@@ -1,6 +1,6 @@
 package emulator.kit
 
-import emulator.kit.assembly.Compiler
+import emulator.kit.compiler.CompilerFile
 import emulator.kit.optional.FileHandler
 import kotlinx.coroutines.Delay
 import java.io.File
@@ -45,5 +45,5 @@ actual fun nativeInfo(message: String) {
     println("Info: $message")
 }
 
-fun File.toCompilerFile(): Compiler.CompilerFile = Compiler.CompilerFile(this.name, this.readText())
+fun File.toCompilerFile(): CompilerFile = CompilerFile(this.name, this.readText())
 

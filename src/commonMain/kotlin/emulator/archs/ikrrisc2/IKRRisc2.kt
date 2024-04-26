@@ -66,7 +66,7 @@ object IKRRisc2 {
         Memory(WORD_WIDTH,"0", BYTE_WIDTH, endianess = Memory.Endianess.BigEndian)
     )
 
-    val asmConfig = AsmConfig(IKRRisc2Syntax(), IKRRisc2Assembly(), compilerDetectRegistersByNames = true)
+    val asmConfig = AsmConfig(IKRRisc2Assembler())
 
 
 }

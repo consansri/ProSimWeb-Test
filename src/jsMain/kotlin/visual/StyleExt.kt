@@ -3,10 +3,11 @@ package visual
 import StyleAttr
 import emotion.react.css
 import emulator.kit.Architecture
-import emulator.kit.assembly.Compiler
 import emulator.kit.common.Docs
 import emulator.kit.optional.FileHandler
 import emulator.kit.common.Memory
+import emulator.kit.compiler.CodeStyle
+import emulator.kit.compiler.lexer.Token
 import react.FC
 import react.Props
 import react.StateInstance
@@ -24,29 +25,21 @@ object StyleExt {
         }
     }
 
-    fun Compiler.CodeStyle.get(mode: StyleAttr.Mode): Color {
+    fun CodeStyle.get(mode: StyleAttr.Mode): Color {
         return when (mode) {
             StyleAttr.Mode.LIGHT -> Color("#${this.lightHexColor.toString(16)}")
             StyleAttr.Mode.DARK -> Color("#${this.darkHexColor?.toString(16) ?: this.lightHexColor.toString(16)}")
         }
     }
 
-    fun List<Compiler.Token>.getVCRows(): List<String> {
+    fun List<Token>.getVCRows(): List<String> {
         return this.joinToString("") {
             val severity = it.getSeverity()?.type
             val codeStyle = it.getCodeStyle()
             if (severity != null) {
                 if (codeStyle == null) highlight(it.content, it.id, severity.name) else highlight(it.content, it.id, severity.name, codeStyle.name)
             } else {
-                when (it) {
-                    is Compiler.Token.Constant.Expression -> {
-                        it.tokens.getVCRows().joinToString("") { it }
-                    }
-
-                    else -> {
-                        if (codeStyle == null) it.content else highlight(it.content, it.id, codeStyle.name)
-                    }
-                }
+                if (codeStyle == null) it.content else highlight(it.content, it.id, codeStyle.name)
             }
         }.split("\n")
     }
@@ -93,7 +86,7 @@ object StyleExt {
                         +component.chapterTitle
                     }
                     component.chapterContent.forEach {
-                        val fc = it.render(arch, fileHandler,fileChangeEvent)
+                        val fc = it.render(arch, fileHandler, fileChangeEvent)
                         fc {
 
                         }
@@ -119,7 +112,7 @@ object StyleExt {
                                             css {
                                                 textAlign = TextAlign.left
                                             }
-                                            val fc = rowEntry.render(arch,fileHandler, fileChangeEvent)
+                                            val fc = rowEntry.render(arch, fileHandler, fileChangeEvent)
                                             fc {
 
                                             }
@@ -141,7 +134,7 @@ object StyleExt {
                     ReactHTML.ul {
                         component.entrys.forEach { entry ->
                             ReactHTML.li {
-                                val fc = entry.render(arch, fileHandler,fileChangeEvent)
+                                val fc = entry.render(arch, fileHandler, fileChangeEvent)
                                 fc {
 
                                 }
@@ -155,7 +148,7 @@ object StyleExt {
                         +component.sectionTitle
                     }
                     component.sectionContent.forEach {
-                        val fc = it.render(arch, fileHandler,fileChangeEvent)
+                        val fc = it.render(arch, fileHandler, fileChangeEvent)
                         fc {
 
                         }

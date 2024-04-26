@@ -1,4 +1,3 @@
-import emulator.kit.assembly.Compiler
 
 
 /**
@@ -41,6 +40,11 @@ object Settings {
     const val PRESTRING_HEX = "0x"
 
     /**
+     * [PRESTRING_OCT] defines the prefix of octal values.
+     */
+    const val PRESTRING_OCT = "0"
+
+    /**
      * [PRESTRING_BINARY] defines the prefix of binary values.
      */
     const val PRESTRING_BINARY = "0b"
@@ -60,5 +64,10 @@ object Settings {
      * [LINEBREAKS] provides all possible occuring linebreak characters.
      */
     val LINEBREAKS = listOf("\n", "\r", "\r\n")
+
+    /**
+     * [LOCAL_SYMBOL_PREFIX]
+     */
+    const val LOCAL_SYMBOL_PREFIX: String = "L"
 
 }

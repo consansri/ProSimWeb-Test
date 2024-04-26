@@ -1,7 +1,7 @@
 package emulator.kit.common
 
 import Constants
-import emulator.kit.assembly.standards.StandardSyntax
+
 import emulator.kit.common.Docs.DocComponent.*
 
 /**
@@ -324,7 +324,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
         "Standard Syntax",
         Chapter(
             "Directives",
-            *StandardSyntax.DirMajType.entries.map { maj -> Section(maj.docName, UnlinkedList(*StandardSyntax.DirType.entries.filter { it.dirMajType == maj }.map { Text(".${it.dirname}") }.toTypedArray())) }.toTypedArray()
+            //*StandardSyntax.DirMajType.entries.map { maj -> Section(maj.docName, UnlinkedList(*StandardSyntax.DirType.entries.filter { it.dirMajType == maj }.map { Text(".${it.dirname}") }.toTypedArray())) }.toTypedArray()
         ),
         Chapter(
             "Example",

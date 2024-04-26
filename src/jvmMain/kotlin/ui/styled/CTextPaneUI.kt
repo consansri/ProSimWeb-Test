@@ -1,7 +1,7 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.ui.FlatTextPaneUI
-import emulator.kit.assembly.Compiler
+import emulator.kit.compiler.CodeStyle
 import me.c3.emulator.kit.install
 import me.c3.ui.components.styled.CTextPane
 import me.c3.ui.spacing.ScaleManager
@@ -32,8 +32,8 @@ class CTextPaneUI(private val themeManager: ThemeManager, private val scaleManag
     private fun setDefaults(tp: CTextPane){
         tp.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
         tp.background = themeManager.curr.globalLaF.bgPrimary
-        tp.caretColor = themeManager.curr.codeLaF.getColor(Compiler.CodeStyle.BASE0)
-        tp.foreground = themeManager.curr.codeLaF.getColor(Compiler.CodeStyle.BASE0)
+        tp.caretColor = themeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
+        tp.foreground = themeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
         themeManager.curr.codeLaF.getFont().install(tp, scaleManager.curr.fontScale.codeSize)
     }
 

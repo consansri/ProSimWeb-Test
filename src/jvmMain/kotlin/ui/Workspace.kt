@@ -1,6 +1,6 @@
 package me.c3.ui
 
-import emulator.kit.assembly.Compiler
+import emulator.kit.compiler.CompilerFile
 import emulator.kit.toCompilerFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +71,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         return getAllFiles(rootDir)
     }
 
-    fun getCompilerFiles(exclude: File): List<Compiler.CompilerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && it.name.endsWith(".s") }.map { it.toCompilerFile() }
+    fun getCompilerFiles(exclude: File): List<CompilerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && it.name.endsWith(".s") }.map { it.toCompilerFile() }
 
     private fun showContextMenu(mainManager: MainManager, treeFile: TreeFile, x: Int, y: Int) {
         val popupMenu = CPopupMenu(mainManager.themeManager, mainManager.scaleManager)

@@ -1,7 +1,7 @@
 package me.c3.ui.components.processor
 
-import emulator.kit.assembly.Compiler
 import emulator.kit.common.Memory
+import emulator.kit.compiler.CodeStyle
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
@@ -97,7 +97,7 @@ class MemoryView(private val mainManager: MainManager) : CPanel(mainManager.them
                 copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
                     if (mainManager.currArch().getRegContainer().pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
-                        table.setCellHighlighting(index, it.offset + 1, mainManager.currTheme().codeLaF.getColor(Compiler.CodeStyle.GREENPC))
+                        table.setCellHighlighting(index, it.offset + 1, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
                     }
                 }
                 val ascii = contentArray.joinToString("") {
