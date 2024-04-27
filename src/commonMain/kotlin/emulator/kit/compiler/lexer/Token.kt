@@ -4,8 +4,7 @@ import emulator.kit.common.RegContainer
 import emulator.kit.compiler.CodeStyle
 import emulator.kit.compiler.DirTypeInterface
 import emulator.kit.compiler.InstrTypeInterface
-import emulator.kit.compiler.gas.nodes.GASNode
-import emulator.kit.compiler.parser.Node
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 
 sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
@@ -74,19 +73,19 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
         }
     }
 
-    sealed class LABEL(lineLoc: LineLoc, content: String, id: Int): Token(lineLoc, content, id){
+    sealed class LABEL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
         init {
             hl(CodeStyle.label)
         }
 
-        class Local(val identifier: Int,lineLoc: LineLoc, content: String, id: Int): LABEL(lineLoc, content, id){
-            companion object{
+        class Local(val identifier: Int, lineLoc: LineLoc, content: String, id: Int) : LABEL(lineLoc, content, id) {
+            companion object {
                 val REGEX = Regex("^[0-9]*:")
             }
         }
 
-        class Basic(lineLoc: LineLoc, content: String, id: Int): LABEL(lineLoc, content, id){
-            companion object{
+        class Basic(lineLoc: LineLoc, content: String, id: Int) : LABEL(lineLoc, content, id) {
+            companion object {
                 val REGEX = Regex("^[a-zA-Z\$._][a-zA-Z0-9\$._]*:")
             }
 
@@ -184,27 +183,55 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
     }
 
     class OPERATOR(val operatorType: OperatorType, lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
+
+        private var isPrefix = false
+
         init {
             hl(CodeStyle.operator)
+            isPrefix = operatorType == OperatorType.COMPLEMENT
         }
 
-        fun lowerOrEqualPrecedenceAs(other: OPERATOR): Boolean{
-            return this.operatorType.precedence.ordinal <= other.operatorType.precedence.ordinal
+        fun lowerOrEqualPrecedenceAs(other: OPERATOR): Boolean {
+            return getPrecedence().ordinal <= other.getPrecedence().ordinal
         }
 
-        enum class OperatorType(val regex: Regex, val precedence: Precedence) {
-            COMPLEMENT(Regex("^~"), Precedence.PREFIX),
-            MULT(Regex("^\\*"), Precedence.HIGH),
-            DIV(Regex("^/"), Precedence.HIGH),
-            REM(Regex("^%"), Precedence.HIGH),
-            SHL(Regex("^<<"), Precedence.HIGH),
-            SHR(Regex("^>>"), Precedence.HIGH),
-            BITWISE_OR(Regex("^\\|"), Precedence.INTERMEDIATE),
-            BITWISE_AND(Regex("^&"), Precedence.INTERMEDIATE),
-            BITWISE_XOR(Regex("^\\^"), Precedence.INTERMEDIATE),
-            BITWISE_ORNOT(Regex("^!"), Precedence.INTERMEDIATE),
-            ADD(Regex("^\\+"), Precedence.LOW),
-            SUB(Regex("^-"), Precedence.LOW)
+        fun isPrefix(): Boolean = isPrefix
+
+        fun markAsPrefix() {
+            nativeLog("Mark $content as negation prefix!")
+            isPrefix = true
+        }
+
+        fun getPrecedence(): Precedence {
+            return when (operatorType) {
+                OperatorType.COMPLEMENT -> Precedence.PREFIX
+                OperatorType.MULT -> Precedence.HIGH
+                OperatorType.DIV -> Precedence.HIGH
+                OperatorType.REM -> Precedence.HIGH
+                OperatorType.SHL -> Precedence.HIGH
+                OperatorType.SHR -> Precedence.HIGH
+                OperatorType.BITWISE_OR -> Precedence.INTERMEDIATE
+                OperatorType.BITWISE_AND -> Precedence.INTERMEDIATE
+                OperatorType.BITWISE_XOR -> Precedence.INTERMEDIATE
+                OperatorType.BITWISE_ORNOT -> Precedence.INTERMEDIATE
+                OperatorType.PLUS -> if(isPrefix) Precedence.PREFIX else Precedence.LOW
+                OperatorType.MINUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
+            }
+        }
+
+        enum class OperatorType(val regex: Regex, val couldBePrefix: Boolean = false) {
+            COMPLEMENT(Regex("^~")),
+            MULT(Regex("^\\*")),
+            DIV(Regex("^/")),
+            REM(Regex("^%")),
+            SHL(Regex("^<<")),
+            SHR(Regex("^>>")),
+            BITWISE_OR(Regex("^\\|")),
+            BITWISE_AND(Regex("^&")),
+            BITWISE_XOR(Regex("^\\^")),
+            BITWISE_ORNOT(Regex("^!")),
+            PLUS(Regex("^\\+"), true),
+            MINUS(Regex("^-"), true)
         }
 
         enum class Precedence {
@@ -240,16 +267,16 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
             return type == PunctuationType.BRACKET_OPENING || type == PunctuationType.BRACKET_CLOSING
         }
 
-        fun isOpening(): Boolean{
+        fun isOpening(): Boolean {
             BracketPairs.entries.forEach {
-                if(type == it.opening) return true
+                if (type == it.opening) return true
             }
             return false
         }
 
-        fun isClosing(): Boolean{
+        fun isClosing(): Boolean {
             BracketPairs.entries.forEach {
-                if(type == it.closing) return true
+                if (type == it.closing) return true
             }
             return false
         }

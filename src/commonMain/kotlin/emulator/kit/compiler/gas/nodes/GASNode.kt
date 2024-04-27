@@ -3,16 +3,12 @@ package emulator.kit.compiler.gas.nodes
 import emulator.kit.compiler.gas.GASDirType
 import emulator.kit.compiler.gas.DefinedAssembly
 import emulator.kit.compiler.lexer.Token
-import emulator.kit.compiler.lexer.TokenSeq
 import emulator.kit.compiler.parser.Node
 import emulator.kit.types.Variable
-import emulator.kit.compiler.lexer.TokenSeq.Component.Specific
 import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.compiler.parser.NodeSeq.Component.*
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
-import emulator.kit.nativeWarn
-import emulator.kit.types.Stack
 
 /**
  * --------------------
@@ -179,7 +175,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
     }
 
-    abstract class Instr(val instrName: Token.KEYWORD.InstrName,allTokens: List<Token>, allNodes: List<Node>) : GASNode() {
+    abstract class Instr(val instrName: Token.KEYWORD.InstrName, allTokens: List<Token>, allNodes: List<Node>) : GASNode() {
         abstract fun getWidth(): Variable.Size
         var addr: Variable.Value? = null
 
@@ -212,6 +208,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             fun parse(tokens: List<Token>): Expression? {
                 nativeLog("Expression: for ${tokens.joinToString { it.content }}")
                 val relevantTokens = takeRelevantTokens(tokens)
+                markPrefixes(relevantTokens)
                 nativeLog("Expression: Relevant Tokens: ${relevantTokens.joinToString { it.content }}")
                 if (relevantTokens.isEmpty()) return null
 
@@ -221,6 +218,31 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet())
                 nativeLog("Expression: ${expression?.print("")}")
                 return expression
+            }
+
+            private fun markPrefixes(tokens: List<Token>) {
+                var i = 0
+                while (i < tokens.size) {
+                    val currentToken = tokens[i]
+                    if (currentToken is Token.OPERATOR && currentToken.operatorType.couldBePrefix) {
+                        // Check if '-' is a negation prefix
+                        val previousToken = tokens.getOrNull(i - 1)
+                        val nextToken = tokens.getOrNull(i + 1)
+                        val previousMatchesPrefix = when (previousToken) {
+                            is Token.LITERAL -> false
+                            is Token.PUNCTUATION -> previousToken.isOpening()
+                            else -> true
+                        }
+                        val nextMatchesPrefix = when (nextToken) {
+                            is Token.LITERAL -> true
+                            is Token.PUNCTUATION -> nextToken.isOpening()
+                            else -> false
+                        }
+                        val isPrefix = previousMatchesPrefix && nextMatchesPrefix
+                        if (isPrefix) currentToken.markAsPrefix()
+                    }
+                    i++
+                }
             }
 
             private fun buildExpressionFromPostfixNotation(tokens: MutableList<Token>, brackets: List<Token>): Expression? {
@@ -252,7 +274,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     is Token.LITERAL.NUMBER -> Operand.Number(tokens.removeLast() as Token.LITERAL.NUMBER)
                     else -> return null
                 } ?: return null
-                val operandB = when (tokens.last()) {
+
+                if (operator.isPrefix()) {
+                    return Prefix(operator, operandA, brackets)
+                }
+
+                val operandB = when (tokens.lastOrNull()) {
                     is Token.OPERATOR -> {
                         buildExpressionFromPostfixNotation(tokens, brackets)
                     }
@@ -262,11 +289,9 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     else -> null
                 }
 
-                if (operandB == null) {
-                    return Prefix(operator, operandA, brackets)
-                }
-
-                return Classic(operandB, operator, operandA, brackets)
+                return if (operandB != null) {
+                    Classic(operandB, operator, operandA, brackets)
+                } else null
             }
 
             private fun takeRelevantTokens(tokens: List<Token>): List<Token> {
@@ -322,7 +347,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
                 }
 
-                while(operatorStack.isNotEmpty()){
+                while (operatorStack.isNotEmpty()) {
                     output.add(operatorStack.removeLast())
                 }
 
@@ -341,10 +366,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             init {
                 addChild(BaseNode(operator))
             }
+
             override fun getValue(size: Variable.Size?): Variable.Value {
                 return when (operator.operatorType) {
                     Token.OPERATOR.OperatorType.COMPLEMENT -> operand.getValue(size).toBin().inv()
-                    Token.OPERATOR.OperatorType.SUB -> -operand.getValue(size)
+                    Token.OPERATOR.OperatorType.MINUS -> -operand.getValue(size)
                     else -> {
                         nativeError("${operator} is not a Prefix operator!")
                         operand.getValue(size)
@@ -374,8 +400,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     Token.OPERATOR.OperatorType.BITWISE_AND -> operandA.getValue(size).toBin() and operandB.getValue(size).toBin()
                     Token.OPERATOR.OperatorType.BITWISE_XOR -> operandA.getValue(size).toBin() xor operandB.getValue(size).toBin()
                     Token.OPERATOR.OperatorType.BITWISE_ORNOT -> operandA.getValue(size).toBin() or operandB.getValue(size).toBin().inv()
-                    Token.OPERATOR.OperatorType.ADD -> operandA.getValue(size) + operandB.getValue(size)
-                    Token.OPERATOR.OperatorType.SUB -> operandA.getValue(size) - operandB.getValue(size)
+                    Token.OPERATOR.OperatorType.PLUS -> operandA.getValue(size) + operandB.getValue(size)
+                    Token.OPERATOR.OperatorType.MINUS -> operandA.getValue(size) - operandB.getValue(size)
                     else -> {
                         nativeError("$operator is not a Classic Expression operator!")
                         operandA.getValue(size)
@@ -398,6 +424,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             init {
                 addChild(BaseNode(token))
             }
+
             class Symbol(val symbol: Token.SYMBOL) : Operand(symbol) {
                 var linkedProvider: Provider? = null
                 override fun getValue(size: Variable.Size?): Variable.Value {
