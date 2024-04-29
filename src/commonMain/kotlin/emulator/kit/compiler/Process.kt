@@ -1,11 +1,13 @@
 package emulator.kit.compiler
 
+import emulator.kit.common.IConsole
 import emulator.kit.common.Transcript
 import emulator.kit.compiler.lexer.Lexer
 import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
 import emulator.kit.compiler.parser.Parser
 import emulator.kit.compiler.parser.ParserTree
+import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
@@ -33,7 +35,7 @@ data class Process(
 
         nativeLog("Process: Tree:\n${tree}")
 
-        val assemblyMap: Assembly.AssemblyMap? = if (build) {
+        val assemblyMap: Assembly.AssemblyMap? = if (build && !tree.hasErrors()) {
             state = State.ASSEMBLE
             nativeLog("Process: ${state.displayName}")
             assembly.assembleTree(tree)
@@ -45,21 +47,15 @@ data class Process(
         nativeLog("Process: ${state.displayName}")
         parser.treeCache[file] = tree
 
-        val success = !hasErrors(tokens)
-        return Result(success, tokens, tree, assemblyMap)
-    }
+        val success = !tree.hasErrors()
 
-    fun hasErrors(originalTokens: List<Token>): Boolean {
-        originalTokens.forEach {
-            if (it.getSeverity()?.type == Severity.Type.ERROR) {
-                return true
-            }
-        }
-        return false
+        val result = Result(success, tokens, tree, assemblyMap)
+
+        return result
     }
 
     override fun toString(): String {
-        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds} s) ${(Clock.System.now() - processStart).inWholeSeconds} s"
+        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) ${(Clock.System.now() - processStart).inWholeSeconds}s"
     }
 
     enum class State(val displayName: String) {
@@ -69,6 +65,10 @@ data class Process(
         CACHE_RESULTS("caching"),
     }
 
-    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Assembly.AssemblyMap?)
+    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Assembly.AssemblyMap?){
+        fun hasErrors(): Boolean{
+            return tree?.hasErrors() ?: false
+        }
+    }
 
 }

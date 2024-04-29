@@ -1,7 +1,10 @@
 package emulator.kit.compiler.gas.nodes
 
+import emulator.kit.compiler.DirTypeInterface
 import emulator.kit.compiler.gas.GASDirType
 import emulator.kit.compiler.gas.DefinedAssembly
+import emulator.kit.compiler.gas.SectionType
+import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
 import emulator.kit.compiler.parser.Node
 import emulator.kit.types.Variable
@@ -24,21 +27,21 @@ import emulator.kit.nativeLog
  */
 sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
     companion object {
-
         /**
          * Severities will be set by the Lowest Node which is actually checking the token.
          */
         fun buildNode(gasNodeType: GASNodeType, source: List<Token>, definedAssembly: DefinedAssembly): Node? {
             val remainingTokens = source.toMutableList()
-            return when (gasNodeType) {
+            val node = when (gasNodeType) {
                 GASNodeType.ROOT -> {
                     val statements = mutableListOf<Statement>()
                     while (remainingTokens.isNotEmpty()) {
                         val node = buildNode(GASNodeType.STATEMENT, remainingTokens, definedAssembly)
 
                         if (node == null) {
-                            remainingTokens.dropWhile { it !is Token.LINEBREAK }
-                            remainingTokens.removeFirst()
+                            val lineContent = remainingTokens.takeWhile { it !is Token.LINEBREAK }
+                            lineContent.forEach { it.addSeverity(Severity(Severity.Type.ERROR, Severity.MSG_NOT_A_STATEMENT)) }
+                            remainingTokens.removeAll(lineContent)
                             continue
                         }
 
@@ -50,7 +53,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                         statements.add(node)
                         remainingTokens.removeAll(node.getAllTokens().toSet())
-                        nativeLog("GASNode: Build Statement: ${node::class.simpleName}: ${node.getAllTokens().joinToString(" ") { it.content }}")
                     }
 
                     Root(*statements.toTypedArray())
@@ -60,13 +62,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     val first = remainingTokens.first()
                     val label = first as? Token.LABEL
                     label?.let {
-                        nativeLog("Label is ${label::class.simpleName} -> ${label.content}")
-                        remainingTokens.removeFirst()
+                        remainingTokens.remove(it)
                     }
 
                     val directive = buildNode(GASNodeType.DIRECTIVE, remainingTokens, definedAssembly)
                     if (directive != null && directive is Directive) {
-                        nativeLog("Found directive: $directive")
                         remainingTokens.removeAll(directive.getAllTokens().toSet())
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
                         return Statement.DirType(label, directive, lineBreak)
@@ -74,31 +74,33 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                     val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, definedAssembly)
                     if (instruction != null && instruction is Instr) {
-                        nativeLog("Found instruction: ${instruction.print("Instr: ")}\n\tTokens: ${instruction.getAllTokens().joinToString { it::class.simpleName.toString() }}")
                         remainingTokens.removeAll(instruction.getAllTokens().toSet())
-                        nativeLog("Remaining: ${remainingTokens.joinToString { it::class.simpleName.toString() }}")
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
                         return Statement.InstrType(label, instruction, lineBreak)
                     }
 
                     val lineBreak = remainingTokens.checkLineBreak() ?: return null
-                    return Statement.Empty(label, lineBreak)
+                    Statement.Empty(label, lineBreak)
                 }
 
                 GASNodeType.DIRECTIVE -> {
-                    if (remainingTokens.isEmpty()) return null
-                    val directiveToken = remainingTokens.first() as? Token.KEYWORD.Directive ?: return null
-                    val type = GASDirType.entries.firstOrNull { ".${it.name.uppercase()}" == directiveToken.content.uppercase() } ?: return null
-
-                    return null
+                    val first = remainingTokens.removeFirstOrNull() ?: return null
+                    val directiveToken = first as? Token.KEYWORD.Directive
+                    if (directiveToken == null) {
+                        return null
+                    }
+                    remainingTokens.remove(directiveToken)
+                    val node = directiveToken.dirType.buildDirectiveContent(directiveToken, remainingTokens)
+                    node
                 }
 
                 GASNodeType.INSTRUCTION -> {
-                    if (remainingTokens.isEmpty()) return null
-                    val first = remainingTokens.first()
-                    if (first !is Token.KEYWORD.InstrName) return null
+                    val first = remainingTokens.firstOrNull() ?: return null
+                    if (first !is Token.KEYWORD.InstrName) {
+                        return null
+                    }
                     remainingTokens.removeFirst()
-                    return definedAssembly.parseInstrParams(first, remainingTokens)
+                    definedAssembly.parseInstrParams(first, remainingTokens)
                 }
 
                 GASNodeType.EXPRESSION -> {
@@ -109,15 +111,16 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     expression
                 }
             }
+            return node
         }
 
-        private fun MutableList<Token>.checkLineBreak(): Token.LINEBREAK? {
-            val lineBreak = this.firstOrNull() as? Token.LINEBREAK
-            if (lineBreak == null) {
+        fun MutableList<Token>.checkLineBreak(): Token.LINEBREAK? {
+            val first = this.firstOrNull() ?: return null
+            if (first !is Token.LINEBREAK) {
+                first.addSeverity(Severity(Severity.Type.ERROR, Severity.MSG_MISSING_LINEBREAK))
                 return null
             }
-            this.removeFirst()
-            return lineBreak
+            return first
         }
     }
 
@@ -144,7 +147,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
     sealed class Statement(val label: Token.LABEL?, lineBreak: Token.LINEBREAK, vararg childs: Node) : GASNode(), Provider {
         init {
             label?.let {
-                nativeLog("Instantiating Statement with label: $label")
                 addChild(BaseNode(it))
             }
             addChilds(*childs)
@@ -156,23 +158,29 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
 
         class DirType(label: Token.LABEL?, val directive: Directive, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak, directive) {
-
+            override fun isAbsolute(): Boolean = false
         }
 
         class InstrType(label: Token.LABEL?, val instruction: Instr, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak, instruction) {
 
+            override fun isAbsolute(): Boolean = false
         }
 
         class Empty(label: Token.LABEL?, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak) {
-
+            override fun isAbsolute(): Boolean = false
         }
     }
 
     /**
      * Directive
      */
-    class Directive(val type: GASDirType) : GASNode() {
+    class Directive(val dirName: Token.KEYWORD.Directive, val allTokens: List<Token> = listOf(), val additionalNodes: List<Node> = listOf()) : GASNode(*additionalNodes.toTypedArray()) {
+        val type = dirName.dirType
 
+        init {
+            addChild(BaseNode(dirName))
+            addChilds(*allTokens.map { BaseNode(it) }.toTypedArray())
+        }
     }
 
     abstract class Instr(val instrName: Token.KEYWORD.InstrName, allTokens: List<Token>, allNodes: List<Node>) : GASNode() {
@@ -202,21 +210,19 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
         }
 
+        abstract fun isAbsolute(): Boolean
+
         abstract fun getValue(size: Variable.Size? = null): Variable.Value
 
         companion object {
             fun parse(tokens: List<Token>): Expression? {
-                nativeLog("Expression: for ${tokens.joinToString { it.content }}")
                 val relevantTokens = takeRelevantTokens(tokens)
                 markPrefixes(relevantTokens)
-                nativeLog("Expression: Relevant Tokens: ${relevantTokens.joinToString { it.content }}")
                 if (relevantTokens.isEmpty()) return null
 
                 // Convert tokens to postfix notation
                 val postFixTokens = convertToPostfix(relevantTokens)
-                nativeLog("Expression: PostFix Tokens: ${postFixTokens.joinToString { it.content }}")
                 val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet())
-                nativeLog("Expression: ${expression?.print("")}")
                 return expression
             }
 
@@ -263,16 +269,21 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         return Operand.Char(last)
                     }
 
-                    else -> return null
+                    else -> {
+                        last.addSeverity(Severity(Severity.Type.ERROR, Severity.MSG_EXPRESSION_TOKEN_IS_NOT_AN_OPERATOR))
+                        return null
+                    }
                 }
-                val operandA = when (tokens.last()) {
+                val operandA = when (tokens.lastOrNull()) {
                     is Token.OPERATOR -> {
                         buildExpressionFromPostfixNotation(tokens, brackets)
                     }
-
                     is Token.SYMBOL -> Operand.Symbol(tokens.removeLast() as Token.SYMBOL)
                     is Token.LITERAL.NUMBER -> Operand.Number(tokens.removeLast() as Token.LITERAL.NUMBER)
-                    else -> return null
+                    else -> {
+                        tokens.lastOrNull()?.addSeverity(Severity(Severity.Type.ERROR, Severity.MSG_EXPRESSION_TOKEN_IS_NOT_AN_OPERAND))
+                        return null
+                    }
                 } ?: return null
 
                 if (operator.isPrefix()) {
@@ -351,8 +362,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     output.add(operatorStack.removeLast())
                 }
 
-                nativeLog("Postfix Notation: ${output.joinToString(" ") { it.content }}")
-
                 return output
             }
         }
@@ -366,6 +375,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             init {
                 addChild(BaseNode(operator))
             }
+
+            override fun isAbsolute(): Boolean = operand.isAbsolute()
 
             override fun getValue(size: Variable.Size?): Variable.Value {
                 return when (operator.operatorType) {
@@ -388,6 +399,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             init {
                 addChild(BaseNode(operator))
             }
+
+            override fun isAbsolute(): Boolean = operandA.isAbsolute() && operandB.isAbsolute()
 
             override fun getValue(size: Variable.Size?): Variable.Value {
                 return when (operator.operatorType) {
@@ -415,6 +428,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          * - [lbracket] [operand] [rbracket]
          */
         class Empty(val lbracket: Token.PUNCTUATION, val operand: Expression, val rbracket: Token.PUNCTUATION) : Expression(listOf(lbracket, rbracket), operand) {
+            override fun isAbsolute(): Boolean = operand.isAbsolute()
+
             override fun getValue(size: Variable.Size?): Variable.Value {
                 return operand.getValue(size)
             }
@@ -427,18 +442,22 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
             class Symbol(val symbol: Token.SYMBOL) : Operand(symbol) {
                 var linkedProvider: Provider? = null
+                override fun isAbsolute(): Boolean = linkedProvider?.isAbsolute() ?: false
+
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return linkedProvider?.getValue(size) ?: throw ProviderNotLinkedYetException(this)
                 }
             }
 
             class Number(val number: Token.LITERAL.NUMBER) : Operand(number) {
+                override fun isAbsolute(): Boolean = true
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return number.getValue(size)
                 }
             }
 
             class Char(val char: Token.LITERAL.CHARACTER) : Operand(char) {
+                override fun isAbsolute(): Boolean = true
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return char.getValue(size)
                 }
@@ -448,6 +467,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
     interface Provider {
         fun getValue(size: Variable.Size? = null): Variable.Value
+        fun isAbsolute(): Boolean
+    }
+
+    interface Receiver{
+
     }
 
     class ValueNotLinkedYetException(provider: Provider) : Exception() {

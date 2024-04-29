@@ -10,34 +10,27 @@ import emulator.kit.compiler.gas.nodes.GASNodeType
 import emulator.kit.compiler.lexer.Token
 import emulator.kit.compiler.parser.Parser
 import emulator.kit.compiler.parser.ParserTree
-import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 
 class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembly) : Parser(compiler) {
     override fun getDirs(features: List<Feature>): List<DirTypeInterface> = definedAssembly.getAdditionalDirectives() + GASDirType.entries
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = definedAssembly.getInstrs(features)
-    override fun parse(tokens: List<Token>, others: List<CompilerFile>): ParserTree {
+    override fun parse(source: List<Token>, others: List<CompilerFile>): ParserTree {
         // Preprocess and Filter Tokens
-        nativeLog("GASParser: Build Parser Base from ${tokens.joinToString("") {"\n\t${it::class.simpleName.toString()}: ${it.content}"  }}")
-        val source = filter(tokens)
-        nativeLog("GASParser: Parser Base: ${source.joinToString("") { "\n\t${it::class.simpleName.toString()}: ${it.content}"  }}")
+        val filteredSource = filter(source)
 
-        val root = GASNode.buildNode(GASNodeType.ROOT, source, definedAssembly)
-
-
-        // PRE EQUS, MACROS
-
-
-        // EXPRESSIONS
+        // Build the tree
+        val root = GASNode.buildNode(GASNodeType.ROOT, filteredSource, definedAssembly)
 
         /**
          * SEMANTIC ANALYSIS
-         * - LINKING
+         * - LINK Providers with Receivers
          * - TYPE CHECKING
          */
 
 
-        return ParserTree(root, tokens)
+
+        return ParserTree(root, source, filteredSource)
     }
 
     /**

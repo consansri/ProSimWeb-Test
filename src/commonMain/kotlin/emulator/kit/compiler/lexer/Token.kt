@@ -9,15 +9,35 @@ import emulator.kit.types.Variable
 
 sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
     var hlContent = content
-    private var severity: Severity? = null
+    private var severities: MutableList<Severity> = mutableListOf()
     private var codeStyle: CodeStyle? = CodeStyle.BASE0
+
+    fun printError(): String? {
+        val errors = severities.filter { it.type == Severity.Type.ERROR }
+        if (errors.isEmpty()) return null
+        val errorString = errors.joinToString("\n\t") { it.message }
+        return "Error at $lineLoc {${this::class.simpleName}:${this.content}} $errorString"
+    }
+
+    fun printWarning(): String? {
+        val warnings = severities.filter { it.type == Severity.Type.WARNING }
+        if (warnings.isEmpty()) return null
+        val warningString = warnings.joinToString("\n\t") { it.message }
+        return "Warning at $lineLoc $warningString"
+    }
 
     fun isPseudo(): Boolean {
         return id < 0
     }
 
     fun addSeverity(severity: Severity) {
-        this.severity = severity
+        this.severities.add(severity)
+    }
+
+    fun removeSeverityIfError() {
+        val buffered = ArrayList(severities)
+        severities.clear()
+        severities.addAll(buffered.filter { it.type != Severity.Type.ERROR })
     }
 
     open fun hl(vararg codeStyle: CodeStyle) {
@@ -25,10 +45,15 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
     }
 
     fun getCodeStyle() = codeStyle
-    fun getSeverity() = severity
+    fun getMajorSeverity() = severities.firstOrNull { it.type == Severity.Type.ERROR } ?: severities.firstOrNull { it.type == Severity.Type.WARNING } ?: severities.firstOrNull { it.type == Severity.Type.INFO }
+    fun getSeverities(): List<Severity> = severities
 
     override fun toString(): String = content
-    data class LineLoc(val fileName: String, var lineID: Int, val startIndex: Int, val endIndex: Int)
+    data class LineLoc(val fileName: String, var lineID: Int, val startIndex: Int, val endIndex: Int) {
+        override fun toString(): String {
+            return "$fileName[line ${lineID + 1}]:"
+        }
+    }
 
     class LINEBREAK(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
         companion object {
@@ -75,7 +100,7 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
 
     sealed class LABEL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
         init {
-            hl(CodeStyle.label)
+            this.hl(CodeStyle.label)
         }
 
         class Local(val identifier: Int, lineLoc: LineLoc, content: String, id: Int) : LABEL(lineLoc, content, id) {
@@ -100,10 +125,6 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
         }
 
         var value: Variable.Value? = null
-
-        init {
-            hl(CodeStyle.identifier)
-        }
     }
 
     sealed class LITERAL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
@@ -198,7 +219,6 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
         fun isPrefix(): Boolean = isPrefix
 
         fun markAsPrefix() {
-            nativeLog("Mark $content as negation prefix!")
             isPrefix = true
         }
 
@@ -214,7 +234,7 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
                 OperatorType.BITWISE_AND -> Precedence.INTERMEDIATE
                 OperatorType.BITWISE_XOR -> Precedence.INTERMEDIATE
                 OperatorType.BITWISE_ORNOT -> Precedence.INTERMEDIATE
-                OperatorType.PLUS -> if(isPrefix) Precedence.PREFIX else Precedence.LOW
+                OperatorType.PLUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
                 OperatorType.MINUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
             }
         }

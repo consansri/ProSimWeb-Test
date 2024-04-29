@@ -7,8 +7,14 @@ sealed class Node {
     abstract fun getAllTokens(): Array<out Token>
     abstract fun searchTokenNode(token: Token, prevPath: List<Node>): Parser.SearchResult?
     abstract fun print(prefix: String): String
+    abstract fun getLineLoc(): Token.LineLoc?
 
     class BaseNode(val token: Token) : Node() {
+        init {
+            token.removeSeverityIfError()
+        }
+
+        override fun getLineLoc(): Token.LineLoc = token.lineLoc
         override fun getAllTokens(): Array<out Token> {
             return arrayOf(token)
         }
@@ -21,14 +27,18 @@ sealed class Node {
             }
         }
 
-        override fun print(prefix: String): String = prefix + if(token.content != "\n") token.content else ""
+        override fun print(prefix: String): String = prefix + if (token.content != "\n") token.content else ""
     }
 
     abstract class HNode(vararg childs: Node) : Node() {
         val children: MutableList<Node> = childs.toMutableList()
-        var severity: Severity? = null
+        private var severity: Severity? = null
 
         override fun print(prefix: String): String = "$prefix${this::class.simpleName}:${children.joinToString("") { "\n${it.print("$prefix\t")}" }}"
+
+        override fun getLineLoc(): Token.LineLoc? {
+            return getAllTokens().firstOrNull()?.lineLoc
+        }
 
         fun addChilds(vararg childs: Node) {
             this.children.addAll(childs)
@@ -44,10 +54,6 @@ sealed class Node {
 
         fun removeAllChildren() {
             children.clear()
-        }
-
-        fun addSeverity(severity: Severity) {
-            this.severity = severity
         }
 
         override fun getAllTokens(): Array<out Token> {

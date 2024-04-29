@@ -10,6 +10,7 @@ import emulator.kit.compiler.lexer.TokenSeq.Component.*
 import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.compiler.lexer.Lexer
 import emulator.kit.compiler.parser.Parser
+import emulator.kit.nativeError
 import kotlinx.coroutines.Deferred
 import kotlinx.datetime.*
 
@@ -44,13 +45,28 @@ class Compiler(
      * Executes and controls the compilation
      */
     override fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Boolean): Process.Result {
+        architecture.getConsole().clear()
         val process = Process(mainFile, others, build)
         processes.add(process)
-        return process.launch(architecture.getTranscript(), lexer, parser, assembly)
+        val result = process.launch(architecture.getTranscript(), lexer, parser, assembly)
+
+        result.tree?.printError()?.let {
+            architecture.getConsole().error(it)
+            nativeError(it)
+        }
+
+        if (result.hasErrors()) {
+            architecture.getConsole().error("Process failed with an exception!\n$process")
+        } else {
+            architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
+        }
+
+
+        return result
     }
 
     override fun runningProcesses(): List<Process> = processes
 
-     override fun isInTreeCacheAndHasNoErrors(file: CompilerFile): Boolean = parser.treeCache[file]?.hasNoErrors() ?: false
+    override fun isInTreeCacheAndHasNoErrors(file: CompilerFile): Boolean = !(parser.treeCache[file]?.hasErrors() ?: true)
 
 }

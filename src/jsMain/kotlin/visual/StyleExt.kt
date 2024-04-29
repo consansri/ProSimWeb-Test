@@ -34,7 +34,7 @@ object StyleExt {
 
     fun List<Token>.getVCRows(): List<String> {
         return this.joinToString("") {
-            val severity = it.getSeverity()?.type
+            val severity = it.getMajorSeverity()?.type
             val codeStyle = it.getCodeStyle()
             if (severity != null) {
                 if (codeStyle == null) highlight(it.content, it.id, severity.name) else highlight(it.content, it.id, severity.name, codeStyle.name)

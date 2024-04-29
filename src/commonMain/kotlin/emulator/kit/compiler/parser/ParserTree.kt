@@ -3,19 +3,22 @@ package emulator.kit.compiler.parser
 import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
 
-class ParserTree(val rootNode: Node?, val source: List<Token>) {
-
+class ParserTree(val rootNode: Node?, val source: List<Token>, val treeRelevantTokens: List<Token>) {
     fun contains(token: Token): Parser.SearchResult? = rootNode?.searchTokenNode(token, listOf())
 
-    fun hasNoErrors(): Boolean {
+    fun hasErrors(): Boolean {
+        if (rootNode == null) return false
         source.forEach {
-            if (it.getSeverity()?.type == Severity.Type.ERROR) return false
+            if (it.getMajorSeverity()?.type == Severity.Type.ERROR) return true
         }
-        return true
+        return false
+    }
+
+    fun printError(): String? {
+        return source.mapNotNull { it.printError() }.ifEmpty { return null }.joinToString("\n") { it }
     }
 
     override fun toString(): String {
         return rootNode?.print("") ?: "[null]"
     }
-
 }

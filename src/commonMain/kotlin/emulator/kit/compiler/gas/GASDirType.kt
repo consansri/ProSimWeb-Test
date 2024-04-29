@@ -1,23 +1,64 @@
 package emulator.kit.compiler.gas
 
 import emulator.kit.compiler.DirTypeInterface
+import emulator.kit.compiler.Rule
+import emulator.kit.compiler.Rule.Component.*
+import emulator.kit.compiler.gas.nodes.GASNode
+import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
-import emulator.kit.compiler.lexer.TokenSeq
 import emulator.kit.compiler.parser.Node
 
-enum class GASDirType(val disabled: Boolean = false) : DirTypeInterface {
+enum class GASDirType(val disabled: Boolean = false, override val isSection: Boolean = false, override val rule: Rule = GASDirType.EMPTY) : DirTypeInterface {
     ABORT(disabled = true),
-    ALIGN,
+    ALIGN(rule = Rule {
+        Optional {
+            Seq(Expression, Repeatable(maxLength = 2) {
+                Seq(Specific(","), Expression)
+            })
+        }
+    }),
     ALTMACRO,
     ASCII,
     ASCIZ,
     ATTACH_TO_GROUP_NAME,
-    BALIGN,
-    BSS,
-    BYTE,
-    COMM,
-    DATA,
-    DEF,
+    BALIGN(rule = Rule {
+        Optional {
+            Seq(Expression, Repeatable(maxLength = 2) {
+                Seq(Specific(","), Expression)
+            })
+        }
+    }),
+    BALIGN1(rule = Rule {
+        Optional {
+            Seq(Expression, Repeatable(maxLength = 2) {
+                Seq(Specific(","), Expression)
+            })
+        }
+    }),
+    BALIGNW(rule = Rule {
+        Optional {
+            Seq(Expression, Repeatable(maxLength = 2) {
+                Seq(Specific(","), Expression)
+            })
+        }
+    }),
+    BSS(isSection = true, rule = Rule {
+        Optional { InSpecific(Token.SYMBOL::class) }
+    }),
+    BYTE(rule = Rule {
+        Optional {
+            Seq(Expression, Repeatable {
+                Seq(Specific(","), Expression)
+            })
+        }
+    }),
+    COMM(rule = Rule{
+        Seq(InSpecific(Token.SYMBOL::class), Specific(","), Expression)
+    }),
+    DATA(isSection = true, rule = Rule{
+        Optional{InSpecific(Token.SYMBOL::class)}
+    }),
+    DEF(),
     DESC,
     DIM,
     DOUBLE,
@@ -84,7 +125,7 @@ enum class GASDirType(val disabled: Boolean = false) : DirTypeInterface {
     REPT,
     SBTTL,
     SCL,
-    SECTION,
+    SECTION(isSection = true),
     SET,
     SHORT,
     SINGLE,
@@ -122,123 +163,16 @@ enum class GASDirType(val disabled: Boolean = false) : DirTypeInterface {
 
     override fun getDetectionString(): String = this.name.removePrefix("_")
 
-    fun buildDirectiveContent(remainingTokens: MutableList<Token>): List<Node>?{
-        val remainingTokens = remainingTokens
-        when(this){
-            ABORT -> TODO()
-            ALIGN -> TODO()
-            ALTMACRO -> TODO()
-            ASCII -> TODO()
-            ASCIZ -> TODO()
-            ATTACH_TO_GROUP_NAME -> TODO()
-            BALIGN -> TODO()
-            BSS -> TODO()
-            BYTE -> TODO()
-            COMM -> TODO()
-            DATA -> TODO()
-            DEF -> TODO()
-            DESC -> TODO()
-            DIM -> TODO()
-            DOUBLE -> TODO()
-            EJECT -> TODO()
-            ELSE -> TODO()
-            ELSEIF -> TODO()
-            END -> TODO()
-            ENDEF -> TODO()
-            ENDFUNC -> TODO()
-            ENDIF -> TODO()
-            EQU -> TODO()
-            EQUIV -> TODO()
-            EQV -> TODO()
-            ERR -> TODO()
-            ERROR -> TODO()
-            EXITM -> TODO()
-            EXTERN -> TODO()
-            FAIL -> TODO()
-            FILE -> TODO()
-            FILL -> TODO()
-            FLOAT -> TODO()
-            FUNC -> TODO()
-            GLOBAL -> TODO()
-            GNU_ATTRIBUTE_TAG -> TODO()
-            HIDDEN -> TODO()
-            HWORD -> TODO()
-            IDENT -> TODO()
-            IF -> TODO()
-            INCBIN -> TODO()
-            INCLUDE -> TODO()
-            INT -> TODO()
-            INTERNAL -> TODO()
-            IRP -> TODO()
-            IRPC -> TODO()
-            LCOMM -> TODO()
-            LFLAGS -> TODO()
-            LINE -> TODO()
-            LINKONCE -> TODO()
-            LIST -> TODO()
-            LN -> TODO()
-            LOC -> TODO()
-            LOC_MARK_LABELS -> TODO()
-            LOCAL -> TODO()
-            LONG -> TODO()
-            MACRO -> TODO()
-            MRI -> TODO()
-            NOALTMACRO -> TODO()
-            NOLIST -> TODO()
-            NOP -> TODO()
-            NOPS -> TODO()
-            OCTA -> TODO()
-            OFFSET -> TODO()
-            ORG -> TODO()
-            P2ALIGN -> TODO()
-            POPSECTION -> TODO()
-            PREVIOUS -> TODO()
-            PRINT -> TODO()
-            PROTECTED -> TODO()
-            PSIZE -> TODO()
-            PURGEM -> TODO()
-            PUSHSECTION -> TODO()
-            QUAD -> TODO()
-            RELOC -> TODO()
-            REPT -> TODO()
-            SBTTL -> TODO()
-            SCL -> TODO()
-            SECTION -> TODO()
-            SET -> TODO()
-            SHORT -> TODO()
-            SINGLE -> TODO()
-            SIZE -> TODO()
-            SKIP -> TODO()
-            SLEB128 -> TODO()
-            SPACE -> TODO()
-            STABD -> TODO()
-            STABN -> TODO()
-            STABS -> TODO()
-            STRING -> TODO()
-            STRING8 -> TODO()
-            STRING16 -> TODO()
-            STRUCT -> TODO()
-            SUBSECTION -> TODO()
-            SYMVER -> TODO()
-            TAG -> TODO()
-            TEXT -> TODO()
-            TITLE -> TODO()
-            TLS_COMMON_SYMBOL -> TODO()
-            TYPE -> TODO()
-            ULEB128 -> TODO()
-            VAL -> TODO()
-            VERSION -> TODO()
-            VTABLE_ENTRY -> TODO()
-            VTABLE_INHERIT -> TODO()
-            WARNING -> TODO()
-            WEAK -> TODO()
-            WEAKREF -> TODO()
-            WORD -> TODO()
-            ZERO -> TODO()
-            _2BYTE -> TODO()
-            _4BYTE -> TODO()
-            _8BYTE -> TODO()
+    override fun buildDirectiveContent(dirName: Token.KEYWORD.Directive, tokens: List<Token>): Node? {
+        val result = this.rule.matchStart(tokens)
+        if (result.matches) {
+            return GASNode.Directive(dirName, result.matchingTokens, result.matchingNodes)
         }
+        return null
+    }
+
+    companion object {
+        val EMPTY = Rule()
     }
 
 }
