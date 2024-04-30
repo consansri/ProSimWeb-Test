@@ -3,6 +3,7 @@ package emulator.kit.compiler
 import emulator.kit.compiler.gas.nodes.GASNode
 import emulator.kit.compiler.lexer.Token
 import emulator.kit.compiler.parser.Node
+import emulator.kit.nativeLog
 import kotlin.reflect.KClass
 
 class Rule(comp: () -> Component = { Component.Nothing }) {
@@ -10,11 +11,14 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
     private val comp = comp()
 
     fun matchStart(source: List<Token>): MatchResult {
-        return comp.matchStart(source)
+        val result =comp.matchStart(source)
+        nativeLog("Rule: ${comp.print()}\nPerform on: ${source.joinToString(" ") { it::class.simpleName.toString() }}\nResult: $result")
+        return result
     }
 
     sealed class Component {
         abstract fun matchStart(source: List<Token>): MatchResult
+        abstract fun print(): String
 
         class Optional(comp: () -> Component) : Component() {
             private val comp = comp()
@@ -22,6 +26,8 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 val result = comp.matchStart(source)
                 return MatchResult(true, result.matchingTokens, result.matchingNodes, result.remainingTokens)
             }
+
+            override fun print(): String = "[opt:${comp.print()}]"
         }
 
         class XOR(vararg comps: () -> Component) : Component() {
@@ -36,6 +42,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 }
                 return result
             }
+            override fun print(): String = "[${comps.joinToString(" xor ") { it.print() }}]"
         }
 
         class Repeatable(private val maxLength: Int? = null, comp: () -> Component) : Component() {
@@ -53,6 +60,8 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     remainingTokens.clear()
                     remainingTokens.addAll(result.remainingTokens)
 
+                    nativeLog("Repetition Result $iteration: ${matchingTokens.joinToString { it.content }}, ${matchingNodes.joinToString { it.print("") }}")
+
                     iteration++
                     if (maxLength != null && iteration >= maxLength) {
                         break
@@ -63,6 +72,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
 
                 return MatchResult(true, matchingTokens, matchingNodes, remainingTokens)
             }
+            override fun print(): String = "[repeatable:${comp.print()}]"
         }
 
         class Seq(private vararg val comps: Component) : Component() {
@@ -82,6 +92,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
 
                 return MatchResult(true, matchingTokens, matchingNodes, remaining)
             }
+            override fun print(): String = "[${comps.joinToString(" , ") { it.print() }}]"
         }
 
         class Except(private val comp: Component) : Component() {
@@ -93,6 +104,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 }
                 return MatchResult(true, listOf(source.first()), listOf(), source - source.first())
             }
+            override fun print(): String = "[not:${comp.print()}]"
         }
 
         class Specific(private val content: String) : Component() {
@@ -101,14 +113,16 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 if (first.content != content) return MatchResult(false, listOf(), listOf(), source)
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
+            override fun print(): String = "[specific:${content}]"
         }
 
         class InSpecific<T : Token>(private val type: KClass<T>) : Component() {
             override fun matchStart(source: List<Token>): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
-                if (type.isInstance(first)) return MatchResult(false, listOf(), listOf(), source)
+                if (!type.isInstance(first)) return MatchResult(false, listOf(), listOf(), source)
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
+            override fun print(): String = "[specific:${type.simpleName}]"
         }
 
         data object Expression : Component() {
@@ -117,15 +131,21 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 if (node == null) return MatchResult(false, listOf(), listOf(), source)
                 return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
             }
+            override fun print(): String = "[expr]"
         }
 
         data object Nothing : Component() {
             override fun matchStart(source: List<Token>): MatchResult {
                 return MatchResult(true, listOf(), listOf(), source)
             }
+            override fun print(): String = "[]"
         }
     }
 
-    data class MatchResult(val matches: Boolean, val matchingTokens: List<Token>, val matchingNodes: List<Node>, val remainingTokens: List<Token>)
+    data class MatchResult(val matches: Boolean, val matchingTokens: List<Token>, val matchingNodes: List<Node>, val remainingTokens: List<Token>){
+        override fun toString(): String {
+            return "Matches: $matches,${matchingTokens.joinToString("") { "\n\t${it::class.simpleName}" }}${matchingNodes.joinToString("") { it.print("\n\t") }}"
+        }
+    }
 
 }

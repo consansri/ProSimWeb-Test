@@ -73,7 +73,7 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
         }
 
         enum class CommentType(val regex: Regex) {
-            SINGLELINE(Regex("^//.*\n")),
+            SINGLELINE(Regex("^//.*")),
             MULTILINE(Regex("""^/\*([^*]|\*+[^*/])*\*/"""))
         }
     }

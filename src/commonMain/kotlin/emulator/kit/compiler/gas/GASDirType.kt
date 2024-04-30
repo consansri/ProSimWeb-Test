@@ -18,8 +18,26 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }
     }),
     ALTMACRO,
-    ASCII,
-    ASCIZ,
+    ASCII(rule = Rule {
+        Optional {
+            Seq(
+                Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) },
+                Repeatable {
+                    Seq(Specific(","), Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) })
+                }
+            )
+        }
+    }),
+    ASCIZ(rule = Rule {
+        Optional {
+            Seq(
+                Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) },
+                Repeatable {
+                    Seq(Specific(","), Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) })
+                }
+            )
+        }
+    }),
     ATTACH_TO_GROUP_NAME,
     BALIGN(rule = Rule {
         Optional {
@@ -52,11 +70,11 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
             })
         }
     }),
-    COMM(rule = Rule{
+    COMM(rule = Rule {
         Seq(InSpecific(Token.SYMBOL::class), Specific(","), Expression)
     }),
-    DATA(isSection = true, rule = Rule{
-        Optional{InSpecific(Token.SYMBOL::class)}
+    DATA(isSection = true, rule = Rule {
+        Optional { InSpecific(Token.SYMBOL::class) }
     }),
     DEF(),
     DESC,
