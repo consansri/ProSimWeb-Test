@@ -70,8 +70,8 @@ class IKRMiniAssembler: DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instrType.name, extString, actualParamType.wordAmount)
     }
 
-    override fun parseInstrParams(instrToken: Token.KEYWORD.InstrName, remainingSource: List<Token>): GASNode.Instr? {
-        val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { instrToken.instrType.getDetectionName() == it.name } ?: return null
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+        val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { instrToken.content.uppercase() == it.getDetectionName().uppercase() } ?: return null
         val validParamModes = instrType.paramMap.map { it.key }
         for (amode in validParamModes) {
             val seq = amode.tokenSeq

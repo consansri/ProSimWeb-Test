@@ -65,17 +65,17 @@ class RV32Assembler: DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instr.type.id, instr.type.paramType.getTSParamString(arch, instr.binMap.toMutableMap()), instr.type.memWords)
     }
 
-    override fun parseInstrParams(instrToken: Token.KEYWORD.InstrName, remainingSource: List<Token>): GASNode.Instr? {
-        val types = RV32Syntax.InstrType.entries.filter { it.getDetectionName() == instrToken.instrType.getDetectionName() }
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+        val types = RV32Syntax.InstrType.entries.filter { it.getDetectionName().uppercase() == instrToken.content.uppercase() }
 
         for (type in types) {
             val paramType = type.paramType
             val result = paramType.tokenSeq?.matchStart(*remainingSource.toTypedArray()) ?: return RV32Instr(type, paramType, instrToken, listOf(), listOf())
             if (!result.matches) continue
 
-            val allTokens = result.sequenceMap.map { it.token }
-            val regs = allTokens.filterIsInstance<Token.KEYWORD.Register>()
-            val expressions = result.nodes.map { it as? GASNode.Expression }.filterNotNull()
+            val allTokens = result.sequenceMap.flatMap { it.token.toList() }
+            val regs = allTokens.filter { it.type == Token.Type.REGISTER }
+            val expressions = result.nodes.mapNotNull { it as? GASNode.Expression }
             return RV32Instr(type, paramType, instrToken, regs, expressions)
         }
 

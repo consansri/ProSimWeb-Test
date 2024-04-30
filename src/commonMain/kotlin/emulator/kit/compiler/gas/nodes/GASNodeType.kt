@@ -5,6 +5,7 @@ enum class GASNodeType {
     STATEMENT,
     DIRECTIVE,
     INSTRUCTION,
+    LABEL,
     IDENTIFIER,
     EXPRESSION_ABS,
     EXPRESSION_STRING,

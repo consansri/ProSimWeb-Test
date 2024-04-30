@@ -71,7 +71,7 @@ class TokenSeq(private vararg val components: Component, val ignoreSpaces: Boole
                 }
             } else {
                 if (ignoreSpaces) {
-                    while (trimmedTokens.isNotEmpty() && trimmedTokens.first() is Token.SPACE) {
+                    while (trimmedTokens.isNotEmpty() && trimmedTokens.first().type == Token.Type.WHITESPACE) {
                         val space = trimmedTokens.removeFirst()
                         if (addIgnoredSpacesToMap) {
                             sequenceMap.add(SeqMap(Component.InSpecific.SPACE, space))
@@ -141,16 +141,16 @@ class TokenSeq(private vararg val components: Component, val ignoreSpaces: Boole
             abstract fun matches(token: Token): Boolean
             data class REG(val regFile: RegContainer.RegisterFile? = null, val notInRegFile: RegContainer.RegisterFile? = null) : InSpecific() {
                 override fun matches(token: Token): Boolean {
-                    if (regFile == null && notInRegFile == null) return token is Token.KEYWORD.Register
+                    if (regFile == null && notInRegFile == null) return token.type == Token.Type.REGISTER
 
                     val regInMatches = if (regFile != null) {
-                        token is Token.KEYWORD.Register && regFile.unsortedRegisters.contains(token.register)
+                        token.type == Token.Type.REGISTER && regFile.unsortedRegisters.contains(token.reg)
                     } else {
                         true
                     }
 
                     val notInMatches = if (notInRegFile != null) {
-                        token is Token.KEYWORD.Register && !notInRegFile.unsortedRegisters.contains(token.register)
+                        token.type == Token.Type.REGISTER && !notInRegFile.unsortedRegisters.contains(token.reg)
                     } else {
                         true
                     }
@@ -160,36 +160,24 @@ class TokenSeq(private vararg val components: Component, val ignoreSpaces: Boole
             }
 
             data object NEWLINE : InSpecific() {
-                override fun matches(token: Token): Boolean = token is Token.LINEBREAK
+                override fun matches(token: Token): Boolean = token.type == Token.Type.LINEBREAK
             }
 
             data object SPACE : InSpecific() {
-                override fun matches(token: Token): Boolean = token is Token.SPACE
-            }
-
-            data object STRING : InSpecific() {
-                override fun matches(token: Token): Boolean = token is Token.LITERAL.CHARACTER.STRING
+                override fun matches(token: Token): Boolean = token.type == Token.Type.WHITESPACE
             }
 
             class INTEGER(val size: Variable.Size? = null) : InSpecific() {
                 override fun matches(token: Token): Boolean {
-                    if (token !is Token.LITERAL.NUMBER.INTEGER) return false
-                    if (!token.getValue(size).checkResult.valid) return false
+                    if (!token.type.isNumberLiteral) return false
                     return true
                 }
             }
 
-            class DEC : InSpecific() {
-                override fun matches(token: Token): Boolean {
-                    if (token !is Token.LITERAL.NUMBER.INTEGER) return false
-                    if (token.format != Token.LITERAL.NUMBER.INTEGER.IntegerFormat.DEC) return false
-                    return true
-                }
-            }
 
             class SYMBOL(val endsWidth: String? = null, val startsWith: String? = null, val ignoreCase: Boolean = false) : InSpecific() {
                 override fun matches(token: Token): Boolean {
-                    if (token !is Token.SYMBOL) return false
+                    if (token.type != Token.Type.SYMBOL) return false
 
                     if (endsWidth != null && !token.content.endsWith(token.content, ignoreCase)) return false
                     if (startsWith != null && !token.content.startsWith(token.content, ignoreCase)) return false

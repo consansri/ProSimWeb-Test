@@ -2,10 +2,13 @@ package emulator.kit.compiler.parser
 
 import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
 sealed class Node {
     abstract fun getAllTokens(): Array<out Token>
-    abstract fun searchTokenNode(token: Token, prevPath: List<Node>): Parser.SearchResult?
+    abstract fun searchBaseNode(token: Token, prevPath: List<Node>): Parser.SearchResult?
+    abstract fun <T : Node> filterNodes(nodeType: KClass<T>): List<T>
     abstract fun print(prefix: String): String
     abstract fun getLineLoc(): Token.LineLoc?
 
@@ -19,12 +22,17 @@ sealed class Node {
             return arrayOf(token)
         }
 
-        override fun searchTokenNode(token: Token, prevPath: List<Node>): Parser.SearchResult? {
+        override fun searchBaseNode(token: Token, prevPath: List<Node>): Parser.SearchResult? {
             return if (token == token) {
                 Parser.SearchResult(this, prevPath + this)
             } else {
                 null
             }
+        }
+
+        override fun <T : Node> filterNodes(nodeType: KClass<T>): List<T> {
+            if (nodeType.isInstance(this)) return listOf(nodeType.cast(this))
+            return emptyList()
         }
 
         override fun print(prefix: String): String = prefix + if (token.content != "\n") token.content else ""
@@ -64,9 +72,14 @@ sealed class Node {
             return tokens.toTypedArray()
         }
 
-        override fun searchTokenNode(token: Token, prevPath: List<Node>): Parser.SearchResult? {
+        override fun <T : Node> filterNodes(nodeType: KClass<T>): List<T> {
+            if (nodeType.isInstance(this)) return listOf(nodeType.cast(this)) + children.flatMap { it.filterNodes(nodeType) }
+            return children.flatMap { it.filterNodes(nodeType) }
+        }
+
+        override fun searchBaseNode(token: Token, prevPath: List<Node>): Parser.SearchResult? {
             children.forEach {
-                val subResult = searchTokenNode(token, prevPath + this)
+                val subResult = searchBaseNode(token, prevPath + this)
                 if (subResult != null) {
                     return subResult
                 }

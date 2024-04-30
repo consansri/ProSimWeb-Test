@@ -13,7 +13,7 @@ class RV64BinMapper {
     fun getBinaryFromInstrDef(instr: RV64Instr, architecture: emulator.kit.Architecture): Array<Variable.Value.Bin> {
         val binArray = mutableListOf<Variable.Value.Bin>()
         val instrAddr = instr.addr ?: return emptyArray()
-        val regs = instr.registers.map { it.register.address.toBin() }
+        val regs = instr.registers.map { it.address.toBin() }
         try {
             when (instr.instrType) {
                 InstrType.LUI, InstrType.AUIPC -> {

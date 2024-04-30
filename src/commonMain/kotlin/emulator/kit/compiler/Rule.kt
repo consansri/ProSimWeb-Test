@@ -25,7 +25,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         class Optional(comp: () -> Component) : Component() {
             private val comp = comp()
             override fun matchStart(source: List<Token>, definedAssembly: DefinedAssembly): MatchResult {
-                val result = comp.matchStart(source,definedAssembly)
+                val result = comp.matchStart(source, definedAssembly)
                 return MatchResult(true, result.matchingTokens, result.matchingNodes, result.remainingTokens)
             }
 
@@ -55,7 +55,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 val matchingNodes = mutableListOf<Node>()
 
                 var iteration = 0
-                var result = comp.matchStart(remainingTokens,definedAssembly)
+                var result = comp.matchStart(remainingTokens, definedAssembly)
                 while (result.matches) {
                     matchingNodes.addAll(result.matchingNodes)
                     matchingTokens.addAll(result.matchingTokens)
@@ -67,7 +67,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                         break
                     }
 
-                    result = comp.matchStart(remainingTokens,definedAssembly)
+                    result = comp.matchStart(remainingTokens, definedAssembly)
                 }
 
                 return MatchResult(true, matchingTokens, matchingNodes, remainingTokens)
@@ -83,7 +83,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 val matchingTokens = mutableListOf<Token>()
 
                 for (comp in comps) {
-                    val result = comp.matchStart(remaining,definedAssembly)
+                    val result = comp.matchStart(remaining, definedAssembly)
                     if (!result.matches) return MatchResult(false, listOf(), listOf(), source)
                     matchingNodes.addAll(result.matchingNodes)
                     matchingTokens.addAll(result.matchingTokens)
@@ -100,7 +100,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         class Except(private val comp: Component) : Component() {
             override fun matchStart(source: List<Token>, definedAssembly: DefinedAssembly): MatchResult {
                 if (source.isEmpty()) return MatchResult(false, listOf(), listOf(), source)
-                val result = comp.matchStart(source,definedAssembly)
+                val result = comp.matchStart(source, definedAssembly)
                 if (result.matches) {
                     return MatchResult(false, listOf(), listOf(), source)
                 }
@@ -127,8 +127,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         class Dir(private val dirName: String) : Component() {
             override fun matchStart(source: List<Token>, definedAssembly: DefinedAssembly): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
-                nativeLog("Dir check if (${dirName}) matches: ${first.content}")
-                if (first is Token.KEYWORD.Directive && first.content.uppercase() == dirName.uppercase()) {
+                if (first.type == Token.Type.DIRECTIVE && ".${dirName.uppercase()}" == first.content.uppercase()) {
                     return MatchResult(true, listOf(first), listOf(), source - first)
                 }
                 return MatchResult(false, listOf(), listOf(), source)
@@ -137,19 +136,19 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
             override fun print(): String = "[dir:${dirName}]"
         }
 
-        class InSpecific<T : Token>(private val type: KClass<T>) : Component() {
+        class InSpecific(private val type: Token.Type) : Component() {
             override fun matchStart(source: List<Token>, definedAssembly: DefinedAssembly): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
-                if (!type.isInstance(first)) return MatchResult(false, listOf(), listOf(), source)
+                if (first.type != type) return MatchResult(false, listOf(), listOf(), source)
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(): String = "[specific:${type.simpleName}]"
+            override fun print(): String = "[specific:${type}]"
         }
 
-        class SpecNode(private val type: GASNodeType) : Component(){
+        class SpecNode(private val type: GASNodeType) : Component() {
             override fun matchStart(source: List<Token>, definedAssembly: DefinedAssembly): MatchResult {
-                val node = GASNode.buildNode(type,source,definedAssembly)
+                val node = GASNode.buildNode(type, source, definedAssembly)
                 if (node == null) return MatchResult(false, listOf(), listOf(), source)
                 return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
             }

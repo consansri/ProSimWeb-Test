@@ -22,9 +22,9 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     ASCII(rule = Rule {
         Optional {
             Seq(
-                Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) },
+                Repeatable { SpecNode(GASNodeType.EXPRESSION_STRING) },
                 Repeatable {
-                    Seq(Specific(","), Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) })
+                    Seq(Specific(","), Repeatable { SpecNode(GASNodeType.EXPRESSION_STRING) })
                 }
             )
         }
@@ -32,9 +32,9 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     ASCIZ(rule = Rule {
         Optional {
             Seq(
-                Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) },
+                Repeatable { emulator.kit.compiler.Rule.Component.SpecNode(emulator.kit.compiler.gas.nodes.GASNodeType.EXPRESSION_STRING) },
                 Repeatable {
-                    Seq(Specific(","), Repeatable { InSpecific(Token.LITERAL.CHARACTER.STRING::class) })
+                    Seq(Specific(","), Repeatable { emulator.kit.compiler.Rule.Component.SpecNode(emulator.kit.compiler.gas.nodes.GASNodeType.EXPRESSION_STRING) })
                 }
             )
         }
@@ -62,7 +62,7 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }
     }),
     BSS(isSection = true, rule = Rule {
-        Optional { InSpecific(Token.SYMBOL::class) }
+        Optional { InSpecific(Token.Type.SYMBOL) }
     }),
     BYTE(rule = Rule {
         Optional {
@@ -72,10 +72,10 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }
     }),
     COMM(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+        Seq(InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
     }),
     DATA(isSection = true, rule = Rule {
-        Optional { InSpecific(Token.SYMBOL::class) }
+        Optional { InSpecific(Token.Type.SYMBOL) }
     }),
     DEF(rule = Rule {
         Seq(Repeatable {
@@ -83,7 +83,7 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }, Dir(".ENDEF"))
     }),
     DESC(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+        Seq(InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
     }),
     DIM,
     DOUBLE(disabled = true),
@@ -97,17 +97,17 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     ENDFUNC,
     ENDIF,
     EQU(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
+        Seq(InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
     }),
     EQUIV(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
+        Seq(InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
     }),
     EQV(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
+        Seq(InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
     }),
     ERR,
     ERROR(rule = Rule {
-        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+        SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
     EXITM,
     EXTERN,
@@ -115,27 +115,27 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         SpecNode(GASNodeType.EXPRESSION_ANY)
     }),
     FILE(rule = Rule {
-        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+        SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
     FILL(rule = Rule {
         Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
     }),
     FLOAT(disabled = true),
     FUNC(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Optional {
-            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        Seq(InSpecific(Token.Type.SYMBOL), Optional {
+            Seq(Specific(","), InSpecific(Token.Type.SYMBOL))
         })
     }),
     GLOBAL(rule = Rule {
-        InSpecific(Token.SYMBOL::class)
+        InSpecific(Token.Type.SYMBOL)
     }),
     GLOBL(rule = Rule {
-        InSpecific(Token.SYMBOL::class)
+        InSpecific(Token.Type.SYMBOL)
     }),
     GNU_ATTRIBUTE(disabled = true),
     HIDDEN(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
-            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        Seq(InSpecific(Token.Type.SYMBOL), Repeatable {
+            Seq(Specific(","), InSpecific(Token.Type.SYMBOL))
         })
     }),
     HWORD(rule = Rule {
@@ -156,10 +156,10 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }, Dir(".endif"))
     }),
     IFDEF(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+        Seq(InSpecific(Token.Type.SYMBOL), Repeatable {
             Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
         }, Repeatable {
-            Seq(Dir(".elseif"), InSpecific(Token.SYMBOL::class), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+            Seq(Dir(".elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
         }, Optional {
             Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
         }, Dir(".endif"))
@@ -259,19 +259,19 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }, Dir(".endif"))
     }),
     IFNDEF(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+        Seq(InSpecific(Token.Type.SYMBOL), Repeatable {
             Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
         }, Repeatable {
-            Seq(Dir(".elseif"), InSpecific(Token.SYMBOL::class), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+            Seq(Dir(".elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
         }, Optional {
             Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
         }, Dir(".endif"))
     }),
     IFNOTDEF(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+        Seq(InSpecific(Token.Type.SYMBOL), Repeatable {
             Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
         }, Repeatable {
-            Seq(Dir(".elseif"), InSpecific(Token.SYMBOL::class), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+            Seq(Dir(".elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
         }, Optional {
             Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
         }, Dir(".endif"))
@@ -295,14 +295,14 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }, Dir(".endif"))
     }),
     INCBIN(rule = Rule {
-        Seq(InSpecific(Token.LITERAL.CHARACTER.STRING::class), Optional {
+        Seq(SpecNode(GASNodeType.EXPRESSION_STRING), Optional {
             Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS), Optional {
                 Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
             })
         })
     }),
     INCLUDE(rule = Rule {
-        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+        SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
     INT(rule = Rule {
         Optional {
@@ -312,17 +312,17 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         }
     }),
     INTERNAL(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
-            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        Seq(InSpecific(Token.Type.SYMBOL), Repeatable {
+            Seq(Specific(","), InSpecific(Token.Type.SYMBOL))
         })
     }),
     IRP(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Repeatable {
                 Seq(
                     Specific(","),
-                    Except(XOR(Dir(".ENDR"), InSpecific(Token.LINEBREAK::class))),
+                    Except(XOR(Dir(".ENDR"), InSpecific(Token.Type.LINEBREAK))),
                 )
             },
             Repeatable {
@@ -332,23 +332,23 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     }),
     IRPC(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            Optional { Except(XOR(Dir(".ENDR"), InSpecific(Token.LINEBREAK::class))) },
+            Optional { Except(XOR(Dir(".ENDR"), InSpecific(emulator.kit.compiler.lexer.Token.Type.LINEBREAK))) },
             Repeatable {
                 Except(Dir(".ENDR"))
             }, Dir(".ENDR")
         )
     }),
     LCOMM(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+        Seq(InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
     }),
     LFLAGS,
     LINE(rule = Rule {
         SpecNode(GASNodeType.EXPRESSION_ABS)
     }),
     LINKONCE(rule = Rule {
-        InSpecific(Token.SYMBOL::class)
+        InSpecific(Token.Type.SYMBOL)
     }),
     LIST,
     LN(rule = Rule {
@@ -357,8 +357,8 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     LOC(disabled = true),
     LOC_MARK_LABELS(disabled = true),
     LOCAL(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
-            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        Seq(InSpecific(Token.Type.SYMBOL), Repeatable {
+            Seq(Specific(","), InSpecific(Token.Type.SYMBOL))
         })
     }),
     LONG(rule = Rule {
@@ -370,7 +370,7 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     }),
     MACRO(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Optional {
                 Seq(
                     SpecNode(GASNodeType.IDENTIFIER),
@@ -382,7 +382,7 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
                     }
                 )
             },
-            InSpecific(Token.LINEBREAK::class),
+            InSpecific(emulator.kit.compiler.lexer.Token.Type.LINEBREAK),
             Repeatable {
                 SpecNode(GASNodeType.STATEMENT)
             },
@@ -451,8 +451,8 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
     PROTECTED(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
-            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        Seq(InSpecific(Token.Type.SYMBOL), Repeatable {
+            Seq(Specific(","), InSpecific(Token.Type.SYMBOL))
         })
     }),
     PSIZE(rule = Rule {
@@ -463,13 +463,13 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         )
     }),
     PURGEM(rule = Rule {
-        InSpecific(Token.SYMBOL::class)
+        InSpecific(Token.Type.SYMBOL)
     }),
     PUSHSECTION(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Optional {
-                Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+                Seq(Specific(","), InSpecific(Token.Type.SYMBOL))
             }
         )
     }),
@@ -480,33 +480,33 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
             })
         }
     }),
-    RODATA(isSection = true, rule = Rule{
+    RODATA(isSection = true, rule = Rule {
         Optional {
-            emulator.kit.compiler.Rule.Component.InSpecific(emulator.kit.compiler.lexer.Token.SYMBOL::class)
+            emulator.kit.compiler.Rule.Component.InSpecific(emulator.kit.compiler.lexer.Token.Type.SYMBOL)
         }
     }),
     RELOC(rule = Rule {
         Seq(
             SpecNode(GASNodeType.EXPRESSION_ABS),
             Specific(","),
-            InSpecific(Token.SYMBOL::class)
+            InSpecific(Token.Type.SYMBOL)
         )
     }),
     REPT(rule = Rule {
         SpecNode(GASNodeType.EXPRESSION_ABS)
     }),
     SBTTL(rule = Rule {
-        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+        SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
     SCL(rule = Rule {
-        InSpecific(Token.SYMBOL::class)
+        InSpecific(Token.Type.SYMBOL)
     }),
     SECTION(isSection = true, rule = Rule {
         XOR(Dir(".DATA"), Dir(".TEXT"), Dir(".RODATA"), Dir(".BSS"))
     }),
     SET(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Specific(","),
             SpecNode(GASNodeType.EXPRESSION_ANY)
         )
@@ -574,26 +574,26 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
         SpecNode(GASNodeType.EXPRESSION_ABS)
     }),
     SUBSECTION(rule = Rule {
-        InSpecific(Token.SYMBOL::class)
+        InSpecific(Token.Type.SYMBOL)
     }),
     SYMVER,
     TAG(rule = Rule {
-        InSpecific(Token.SYMBOL::class)
+        InSpecific(Token.Type.SYMBOL)
     }),
     TEXT(rule = Rule {
-        Optional{
-            InSpecific(Token.SYMBOL::class)
+        Optional {
+            InSpecific(Token.Type.SYMBOL)
         }
     }),
     TITLE(rule = Rule {
-        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+        SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
     TLS_COMMON(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Specific(","),
             SpecNode(GASNodeType.EXPRESSION_ABS),
-            Optional{
+            Optional {
                 Seq(
                     Specific(","),
                     SpecNode(GASNodeType.EXPRESSION_ABS)
@@ -609,39 +609,39 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
             })
         }
     }),
-    VAL(rule = Rule{
+    VAL(rule = Rule {
         SpecNode(GASNodeType.EXPRESSION_ABS)
     }),
-    VERSION(rule = Rule{
-        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+    VERSION(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
-    VTABLE_ENTRY(rule = Rule{
+    VTABLE_ENTRY(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Specific(","),
             SpecNode(GASNodeType.EXPRESSION_ABS)
         )
     }),
-    VTABLE_INHERIT(rule = Rule{
+    VTABLE_INHERIT(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            InSpecific(Token.SYMBOL::class)
+            InSpecific(Token.Type.SYMBOL)
         )
     }),
-    WARNING(rule = Rule{
+    WARNING(rule = Rule {
         SpecNode(GASNodeType.EXPRESSION_STRING)
     }),
-    WEAK(rule = Rule{
-        Seq(InSpecific(Token.SYMBOL::class), emulator.kit.compiler.Rule.Component.Repeatable {
-            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+    WEAK(rule = Rule {
+        Seq(InSpecific(Token.Type.SYMBOL), emulator.kit.compiler.Rule.Component.Repeatable {
+            Seq(Specific(","), InSpecific(Token.Type.SYMBOL))
         })
     }),
-    WEAKREF(rule = Rule{
+    WEAKREF(rule = Rule {
         Seq(
-            InSpecific(Token.SYMBOL::class),
+            InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            InSpecific(Token.SYMBOL::class)
+            InSpecific(Token.Type.SYMBOL)
         )
     }),
     WORD(rule = Rule {
@@ -651,13 +651,13 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
             })
         }
     }),
-    ZERO(rule = Rule{
+    ZERO(rule = Rule {
         SpecNode(GASNodeType.EXPRESSION_ABS)
     }),
-    _2BYTE(rule = Rule{
+    _2BYTE(rule = Rule {
         Seq(
             SpecNode(GASNodeType.EXPRESSION_ABS),
-            Repeatable{
+            Repeatable {
                 Seq(
                     Specific(","),
                     SpecNode(GASNodeType.EXPRESSION_ABS)
@@ -665,10 +665,10 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
             }
         )
     }),
-    _4BYTE(rule = Rule{
+    _4BYTE(rule = Rule {
         Seq(
             SpecNode(GASNodeType.EXPRESSION_ABS),
-            Repeatable{
+            Repeatable {
                 Seq(
                     Specific(","),
                     SpecNode(GASNodeType.EXPRESSION_ABS)
@@ -676,10 +676,10 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
             }
         )
     }),
-    _8BYTE(rule = Rule{
+    _8BYTE(rule = Rule {
         Seq(
             SpecNode(GASNodeType.EXPRESSION_ABS),
-            Repeatable{
+            Repeatable {
                 Seq(
                     Specific(","),
                     SpecNode(GASNodeType.EXPRESSION_ABS)
@@ -690,10 +690,11 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
 
     override fun getDetectionString(): String = this.name.removePrefix("_")
 
-    override fun buildDirectiveContent(dirName: Token.KEYWORD.Directive, tokens: List<Token>, definedAssembly: DefinedAssembly): Node? {
+    override fun buildDirectiveContent(dirName: Token, tokens: List<Token>, definedAssembly: DefinedAssembly): Node? {
+        val type = dirName.dir ?: return null
         val result = this.rule.matchStart(tokens, definedAssembly)
         if (result.matches) {
-            return GASNode.Directive(dirName, result.matchingTokens, result.matchingNodes)
+            return GASNode.Directive(type, dirName, result.matchingTokens, result.matchingNodes)
         }
         return null
     }

@@ -7,7 +7,7 @@ import emulator.kit.compiler.parser.Node
 import emulator.kit.types.Variable
 import kotlin.math.exp
 
-class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val paramType: IKRMiniSyntax.ParamType, instrName: Token.KEYWORD.InstrName, allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(instrName, allTokens, nodes) {
+class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val paramType: IKRMiniSyntax.ParamType, instrName: Token, allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(instrName, allTokens, nodes) {
 
     val expressions = nodes.filterIsInstance<Expression>()
     override fun getWidth(): Variable.Size {

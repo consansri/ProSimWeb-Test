@@ -60,8 +60,8 @@ class T6502Assembly() : DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instrType.name, ext, actualParamType.byteAmount)
     }
 
-    override fun parseInstrParams(instrToken: Token.KEYWORD.InstrName, remainingSource: List<Token>): GASNode.Instr? {
-        val instrType = InstrType.entries.firstOrNull { instrToken.instrType.getDetectionName() == it.name } ?: return null
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+        val instrType = InstrType.entries.firstOrNull { instrToken.instr?.getDetectionName() == it.name } ?: return null
         val validParamModes = instrType.opCode.map { it.key }
         for (amode in validParamModes) {
             val seq = amode.tokenSequence
@@ -77,7 +77,6 @@ class T6502Assembly() : DefinedAssembly {
             val result = seq.matchStart(*remaining.toTypedArray())
             if (!result.matches) continue
             val allTokens = result.sequenceMap.flatMap { it.token.toList() }
-            val constant = result.sequenceMap.map { it.token }.filterIsInstance<Token.LITERAL.NUMBER.INTEGER>().firstOrNull() ?: continue
             return T6502Instr(instrType, amode, instrToken, allTokens, result.nodes)
         }
         return null

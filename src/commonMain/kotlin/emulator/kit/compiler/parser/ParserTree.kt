@@ -4,7 +4,7 @@ import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
 
 class ParserTree(val rootNode: Node?, val source: List<Token>, val treeRelevantTokens: List<Token>) {
-    fun contains(token: Token): Parser.SearchResult? = rootNode?.searchTokenNode(token, listOf())
+    fun contains(token: Token): Parser.SearchResult? = rootNode?.searchBaseNode(token, listOf())
 
     fun hasErrors(): Boolean {
         if (rootNode == null) return false

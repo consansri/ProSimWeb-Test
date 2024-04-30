@@ -42,7 +42,7 @@ class IKRRisc2Assembler : DefinedAssembly {
         TODO("Not yet implemented")
     }
 
-    override fun parseInstrParams(instrToken: Token.KEYWORD.InstrName, remainingSource: List<Token>): GASNode.Instr? {
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
         TODO("Not yet implemented")
     }
 }

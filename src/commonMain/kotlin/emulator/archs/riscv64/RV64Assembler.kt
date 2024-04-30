@@ -64,8 +64,8 @@ class RV64Assembler: DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instr.type.id, instr.type.paramType.getTSParamString(arch, instr.binMap.toMutableMap()), instr.type.memWords)
     }
 
-    override fun parseInstrParams(instrToken: Token.KEYWORD.InstrName, remainingSource: List<Token>): GASNode.Instr? {
-        val types = RV64Syntax.InstrType.entries.filter { it.getDetectionName() == instrToken.instrType.getDetectionName() }
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+        val types = RV64Syntax.InstrType.entries.filter { it.getDetectionName() == instrToken.instr?.getDetectionName() }
 
         for (type in types) {
             val paramType = type.paramType

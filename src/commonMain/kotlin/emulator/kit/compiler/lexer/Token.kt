@@ -7,10 +7,112 @@ import emulator.kit.compiler.InstrTypeInterface
 import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 
-sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
+class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null) {
     var hlContent = content
+    private var isPrefix = false
     private var severities: MutableList<Severity> = mutableListOf()
     private var codeStyle: CodeStyle? = CodeStyle.BASE0
+
+    init {
+        isPrefix = type == Type.COMPLEMENT
+    }
+
+    fun lowerOrEqualPrecedenceAs(other: Token): Boolean {
+        val thisPrecedence = getPrecedence() ?: return false
+        val otherPrecedence = getPrecedence() ?: return false
+        return thisPrecedence.ordinal <= otherPrecedence.ordinal
+    }
+
+    fun isPrefix(): Boolean = isPrefix
+
+    fun markAsPrefix() {
+        isPrefix = true
+    }
+
+    fun getPrecedence(): Precedence? {
+        return when (type) {
+            Type.COMPLEMENT -> Precedence.PREFIX
+            Type.MULT -> Precedence.HIGH
+            Type.DIV -> Precedence.HIGH
+            Type.REM -> Precedence.HIGH
+            Type.SHL -> Precedence.HIGH
+            Type.SHR -> Precedence.HIGH
+            Type.BITWISE_OR -> Precedence.INTERMEDIATE
+            Type.BITWISE_AND -> Precedence.INTERMEDIATE
+            Type.BITWISE_XOR -> Precedence.INTERMEDIATE
+            Type.BITWISE_ORNOT -> Precedence.INTERMEDIATE
+            Type.PLUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
+            Type.MINUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
+            else -> null
+        }
+    }
+
+    enum class Type(
+        val regex: Regex? = null,
+        val isOperator: Boolean = false,
+        val couldBePrefix: Boolean = false,
+        val isPunctuation: Boolean = false,
+        val isOpeningBracket: Boolean = false,
+        val isClosingBracket: Boolean = false,
+        val isNumberLiteral: Boolean = false,
+        val isStringLiteral: Boolean = false,
+        val isCharLiteral: Boolean = false
+    ) {
+        WHITESPACE(Regex("""^[\t ]+""")),
+        LINEBREAK(Regex("^(\\r\\n|\\r|\\n)")),
+        COMMENT_SL(Regex("^//.*")),
+        COMMENT_ML(Regex("""^/\*([^*]|\*+[^*/])*\*/""")),
+        DIRECTIVE,
+        REGISTER,
+        INSTRNAME,
+        INT_DEC(Regex("^${Regex.escape(Settings.PRESTRING_DECIMAL)}([0-9]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
+        INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
+        INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
+        INT_OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
+        STRING_ML(Regex("^\"\"\"(?:\\.|[^\"])*\"\"\""), isStringLiteral = true),
+        STRING_SL(Regex("""^"(\\.|[^\\"])*""""), isStringLiteral = true),
+        CHAR(Regex("""'(\\.|[^\\'])'"""), isCharLiteral = true),
+        SYMBOL(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
+        COMPLEMENT(Regex("^~"), isOperator = true),
+        MULT(Regex("^\\*"), isOperator = true),
+        DIV(Regex("^/"), isOperator = true),
+        REM(Regex("^%"), isOperator = true),
+        SHL(Regex("^<<"), isOperator = true),
+        SHR(Regex("^>>"), isOperator = true),
+        BITWISE_OR(Regex("^\\|"), isOperator = true),
+        BITWISE_AND(Regex("^&"), isOperator = true),
+        BITWISE_XOR(Regex("^\\^"), isOperator = true),
+        BITWISE_ORNOT(Regex("^!"), isOperator = true),
+        PLUS(Regex("^\\+"), isOperator = true, couldBePrefix = true),
+        MINUS(Regex("^-"), isOperator = true, couldBePrefix = true),
+        COMMA(Regex("^,"), isPunctuation = true),
+        SEMICOLON(Regex("^;"), isPunctuation = true),
+        COLON(Regex("^:"), isPunctuation = true),
+        BRACKET_OPENING(Regex("^\\("), isPunctuation = true, isOpeningBracket = true),
+        BRACKET_CLOSING(Regex("^\\)"), isPunctuation = true, isClosingBracket = true),
+        CURLY_BRACKET_OPENING(Regex("^${Regex.escape("{")}"), isPunctuation = true, isOpeningBracket = true),
+        CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"), isPunctuation = true, isClosingBracket = true),
+        SQUARE_BRACKET_OPENING(Regex("^\\["), isPunctuation = true, isOpeningBracket = true),
+        SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"), isPunctuation = true, isClosingBracket = true),
+        ERROR(Regex("^."));
+
+        fun isLiteral(): Boolean = isStringLiteral || isNumberLiteral || isCharLiteral
+        fun isBasicBracket(): Boolean = this == BRACKET_OPENING || this == BRACKET_CLOSING
+    }
+
+    enum class BracketPairs(val opening: Type, val closing: Type) {
+        BASIC(Type.BRACKET_OPENING, Type.BRACKET_CLOSING),
+        CURLY(Type.CURLY_BRACKET_OPENING, Type.CURLY_BRACKET_CLOSING),
+        SQUARE(Type.SQUARE_BRACKET_OPENING, Type.SQUARE_BRACKET_CLOSING)
+    }
+
+    enum class Precedence {
+        LOWEST,
+        LOW,
+        INTERMEDIATE,
+        HIGH,
+        PREFIX,
+    }
 
     fun printError(): String? {
         val errors = severities.filter { it.type == Severity.Type.ERROR }
@@ -40,7 +142,7 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
         severities.addAll(buffered.filter { it.type != Severity.Type.ERROR })
     }
 
-    open fun hl(vararg codeStyle: CodeStyle) {
+    fun hl(vararg codeStyle: CodeStyle) {
         this.codeStyle = codeStyle.firstOrNull()
     }
 
@@ -52,288 +154,6 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
     data class LineLoc(val fileName: String, var lineID: Int, val startIndex: Int, val endIndex: Int) {
         override fun toString(): String {
             return "$fileName[line ${lineID + 1}]:"
-        }
-    }
-
-    class LINEBREAK(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        companion object {
-            val REGEX = Regex("^(\\r\\n|\\r|\\n)")
-        }
-    }
-
-    class SPACE(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        companion object {
-            val REGEX = Regex("""^[\t ]+""")
-        }
-    }
-
-    class COMMENT(val type: CommentType, lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        init {
-            hl(CodeStyle.comment)
-        }
-
-        enum class CommentType(val regex: Regex) {
-            SINGLELINE(Regex("^//.*")),
-            MULTILINE(Regex("""^/\*([^*]|\*+[^*/])*\*/"""))
-        }
-    }
-
-    sealed class KEYWORD(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        class Register(val register: RegContainer.Register, lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            init {
-                hl(CodeStyle.keyWordReg)
-            }
-        }
-
-        class InstrName(val instrType: InstrTypeInterface, lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            init {
-                hl(CodeStyle.keyWordInstr)
-            }
-        }
-
-        class Directive(val dirType: DirTypeInterface, lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-            init {
-                hl(CodeStyle.keyWordDir)
-            }
-        }
-    }
-
-    sealed class LABEL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        init {
-            this.hl(CodeStyle.label)
-        }
-
-        class Local(val identifier: Int, lineLoc: LineLoc, content: String, id: Int) : LABEL(lineLoc, content, id) {
-            companion object {
-                val REGEX = Regex("^[0-9]*:")
-            }
-        }
-
-        class Basic(lineLoc: LineLoc, content: String, id: Int) : LABEL(lineLoc, content, id) {
-            companion object {
-                val REGEX = Regex("^[a-zA-Z\$._][a-zA-Z0-9\$._]*:")
-            }
-
-            val identifier: String = content.removeSuffix(":")
-        }
-    }
-
-    sealed class LITERAL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-
-        abstract fun getValue(size: Variable.Size? = null): Variable.Value
-        sealed class NUMBER(lineLoc: LineLoc, content: String, id: Int) : LITERAL(lineLoc, content, id) {
-            class INTEGER(val format: IntegerFormat, val matchResult: MatchResult, lineLoc: LineLoc, content: String, id: Int) : NUMBER(lineLoc, content, id) {
-
-                val digits: String
-
-                init {
-                    hl(CodeStyle.integer)
-                    digits = matchResult.groupValues.getOrNull(1) ?: content
-                }
-
-                enum class IntegerFormat(val regex: Regex) {
-                    BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE)),
-                    HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE)),
-                    OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE)),
-                    DEC(Regex("^${Regex.escape(Settings.PRESTRING_DECIMAL)}([0-9]+)", RegexOption.IGNORE_CASE)),
-                }
-
-                override fun getValue(size: Variable.Size?): Variable.Value {
-                    return when (format) {
-                        IntegerFormat.BIN -> if (size != null) Variable.Value.Bin(digits, size) else Variable.Value.Bin(digits)
-                        IntegerFormat.HEX -> if (size != null) Variable.Value.Hex(digits, size) else Variable.Value.Hex(digits)
-                        IntegerFormat.OCT -> if (size != null) Variable.Value.Bin(digits.toInt(8).toString(2), size) else Variable.Value.Bin(digits.toInt(8).toString(2))
-                        IntegerFormat.DEC -> if (size != null) Variable.Value.Dec(digits, size) else Variable.Value.Dec(digits)
-                    }
-                }
-            }
-        }
-
-        sealed class CHARACTER(lineLoc: LineLoc, content: String, id: Int) : LITERAL(lineLoc, content, id) {
-            abstract val rawContent: String
-
-            class STRING(val type: StringType, val matchResult: MatchResult, lineLoc: LineLoc, content: String, id: Int) : CHARACTER(lineLoc, content, id) {
-
-                override val rawContent: String = when (type) {
-                    StringType.SINGLELINE -> content.substring(1, content.length - 1)
-                    StringType.MULTILINE -> content.substring(3, content.length - 3)
-                }
-
-                init {
-                    hl(CodeStyle.string)
-                }
-
-                enum class StringType(val regex: Regex) {
-                    SINGLELINE(Regex("""^"(\\.|[^\\"])*"""")),
-                    MULTILINE(Regex("^\"\"\"(?:\\.|[^\"])*\"\"\""))
-                }
-
-                override fun getValue(size: Variable.Size?): Variable.Value {
-                    val stringChars = rawContent.map { it.code.toString(16) }.joinToString("") { it }
-                    return if (size != null) Variable.Value.Hex(stringChars, size) else Variable.Value.Hex(stringChars)
-                }
-            }
-
-            class CHAR(val matchResult: MatchResult, lineLoc: LineLoc, content: String, id: Int) : CHARACTER(lineLoc, content, id) {
-
-                override val rawContent: String = content.substring(1, content.length - 1)
-
-                companion object {
-                    val REGEX = Regex("""'(\\.|[^\\'])'""")
-                }
-
-                init {
-                    hl(CodeStyle.char)
-                }
-
-                override fun getValue(size: Variable.Size?): Variable.Value {
-                    val stringChars = rawContent.map { it.code.toString(16) }.joinToString("") { it }
-                    return if (size != null) Variable.Value.Hex(stringChars, size) else Variable.Value.Hex(stringChars)
-                }
-            }
-        }
-    }
-
-    class SYMBOL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        companion object {
-            val REGEX = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
-        }
-    }
-
-    class SYMBOLREF(lineLoc: LineLoc,content: String, id: Int) : Token(lineLoc, content, id){
-        val refName = content.removePrefix("\\")
-        companion object{
-            val REGEX = Regex("""^\\[a-zA-Z$._][a-zA-Z0-9$._]*""")
-        }
-    }
-
-    class OPERATOR(val operatorType: OperatorType, lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-
-        private var isPrefix = false
-
-        init {
-            hl(CodeStyle.operator)
-            isPrefix = operatorType == OperatorType.COMPLEMENT
-        }
-
-        fun lowerOrEqualPrecedenceAs(other: OPERATOR): Boolean {
-            return getPrecedence().ordinal <= other.getPrecedence().ordinal
-        }
-
-        fun isPrefix(): Boolean = isPrefix
-
-        fun markAsPrefix() {
-            isPrefix = true
-        }
-
-        fun getPrecedence(): Precedence {
-            return when (operatorType) {
-                OperatorType.COMPLEMENT -> Precedence.PREFIX
-                OperatorType.MULT -> Precedence.HIGH
-                OperatorType.DIV -> Precedence.HIGH
-                OperatorType.REM -> Precedence.HIGH
-                OperatorType.SHL -> Precedence.HIGH
-                OperatorType.SHR -> Precedence.HIGH
-                OperatorType.BITWISE_OR -> Precedence.INTERMEDIATE
-                OperatorType.BITWISE_AND -> Precedence.INTERMEDIATE
-                OperatorType.BITWISE_XOR -> Precedence.INTERMEDIATE
-                OperatorType.BITWISE_ORNOT -> Precedence.INTERMEDIATE
-                OperatorType.PLUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
-                OperatorType.MINUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
-            }
-        }
-
-        enum class OperatorType(val regex: Regex, val couldBePrefix: Boolean = false) {
-            COMPLEMENT(Regex("^~")),
-            MULT(Regex("^\\*")),
-            DIV(Regex("^/")),
-            REM(Regex("^%")),
-            SHL(Regex("^<<")),
-            SHR(Regex("^>>")),
-            BITWISE_OR(Regex("^\\|")),
-            BITWISE_AND(Regex("^&")),
-            BITWISE_XOR(Regex("^\\^")),
-            BITWISE_ORNOT(Regex("^!")),
-            PLUS(Regex("^\\+"), true),
-            MINUS(Regex("^-"), true)
-        }
-
-        enum class Precedence {
-            LOWEST,
-            LOW,
-            INTERMEDIATE,
-            HIGH,
-            PREFIX,
-        }
-    }
-
-    class PUNCTUATION(val type: PunctuationType, lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        init {
-            hl(CodeStyle.punctuation)
-        }
-
-        fun isAnyBracket(): Boolean {
-            return when (type) {
-                PunctuationType.DOT -> false
-                PunctuationType.COMMA -> false
-                PunctuationType.SEMICOLON -> false
-                PunctuationType.COLON -> false
-                PunctuationType.BRACKET_OPENING -> true
-                PunctuationType.BRACKET_CLOSING -> true
-                PunctuationType.CURLY_BRACKET_OPENING -> true
-                PunctuationType.CURLY_BRACKET_CLOSING -> true
-                PunctuationType.SQUARE_BRACKET_OPENING -> true
-                PunctuationType.SQUARE_BRACKET_CLOSING -> true
-            }
-        }
-
-        fun isBasicBracket(): Boolean {
-            return type == PunctuationType.BRACKET_OPENING || type == PunctuationType.BRACKET_CLOSING
-        }
-
-        fun isOpening(): Boolean {
-            BracketPairs.entries.forEach {
-                if (type == it.opening) return true
-            }
-            return false
-        }
-
-        fun isClosing(): Boolean {
-            BracketPairs.entries.forEach {
-                if (type == it.closing) return true
-            }
-            return false
-        }
-
-        enum class PunctuationType(val regex: Regex) {
-            DOT(Regex("^\\.")),
-            COMMA(Regex("^,")),
-            SEMICOLON(Regex("^;")),
-            COLON(Regex("^:")),
-            BRACKET_OPENING(Regex("^\\(")),
-            BRACKET_CLOSING(Regex("^\\)")),
-            CURLY_BRACKET_OPENING(Regex("^${Regex.escape("{")}")),
-            CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}")),
-            SQUARE_BRACKET_OPENING(Regex("^\\[")),
-            SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}")),
-        }
-
-        enum class BracketPairs(val opening: PunctuationType, val closing: PunctuationType) {
-            BASIC(PunctuationType.BRACKET_OPENING, PunctuationType.BRACKET_CLOSING),
-            CURLY(PunctuationType.CURLY_BRACKET_OPENING, PunctuationType.CURLY_BRACKET_CLOSING),
-            SQUARE(PunctuationType.SQUARE_BRACKET_OPENING, PunctuationType.SQUARE_BRACKET_CLOSING)
-        }
-    }
-
-    class ANYCHAR(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        companion object {
-            val REGEX = Regex("^.")
-        }
-    }
-
-    class ERROR(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-        init {
-            hl(CodeStyle.error)
         }
     }
 }

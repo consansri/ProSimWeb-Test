@@ -9,7 +9,7 @@ import emulator.kit.compiler.parser.Node
 class T6502Instr(
     val type: InstrType,
     val addressingMode: AModes,
-    nameToken: Token.KEYWORD.InstrName,
+    nameToken: Token,
     allTokens: List<Token>,
     nodes: List<Node>
 ) : GASNode.Instr(

@@ -8,5 +8,5 @@ interface DirTypeInterface {
     fun getDetectionString(): String
     val isSection: Boolean
     val rule: Rule
-    fun buildDirectiveContent(dirName: Token.KEYWORD.Directive, tokens: List<Token>, definedAssembly: DefinedAssembly): Node?
+    fun buildDirectiveContent(dirName: Token, tokens: List<Token>, definedAssembly: DefinedAssembly): Node?
 }

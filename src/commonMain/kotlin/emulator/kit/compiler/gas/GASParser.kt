@@ -28,6 +28,11 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          * - TYPE CHECKING
          */
 
+        /**
+         * Collect Providers
+         */
+
+
 
 
         return ParserTree(root, source, filteredSource)
@@ -42,25 +47,13 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         while (remaining.isNotEmpty()) {
             // Add Base Node if not found any special node
-            val shouldAdd = when (remaining.first()) {
-                is Token.COMMENT -> false
-                is Token.SPACE -> false
-                is Token.LINEBREAK -> true
-                is Token.ANYCHAR -> true
-                is Token.ERROR -> true
-                is Token.KEYWORD.InstrName -> true
-                is Token.KEYWORD.Register -> true
-                is Token.KEYWORD.Directive -> true
-                is Token.LITERAL.CHARACTER.CHAR -> true
-                is Token.LITERAL.CHARACTER.STRING -> true
-                is Token.LITERAL.NUMBER.INTEGER -> true
-                is Token.OPERATOR -> true
-                is Token.PUNCTUATION -> true
-                is Token.SYMBOL -> true
-                is Token.LABEL.Basic -> true
-                is Token.LABEL.Local -> true
-                is Token.SYMBOLREF -> true
+            val shouldAdd = when (remaining.first().type) {
+                Token.Type.WHITESPACE -> false
+                Token.Type.COMMENT_SL -> false
+                Token.Type.COMMENT_ML -> false
+                else -> true
             }
+
             if (shouldAdd) elements.add(remaining.removeFirst()) else remaining.removeFirst()
         }
 

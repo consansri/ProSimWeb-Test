@@ -11,7 +11,7 @@ class RV32BinMapper {
     fun getBinaryFromInstrDef(instr: RV32Instr, architecture: emulator.kit.Architecture): Array<Variable.Value.Bin> {
         val binArray = mutableListOf<Variable.Value.Bin>()
         val instrAddr = instr.addr ?: return emptyArray()
-        val regs = instr.registers.map { it.register.address.toBin() }
+        val regs = instr.registers.map { it.address.toBin() }
         val type = instr.instrType
 
         if (DebugTools.RV32_showBinMapperInfo) {
@@ -656,7 +656,7 @@ class RV32BinMapper {
         }
 
         val endianess = architecture.getMemory().getEndianess()
-        return binArray.flatMap { if(endianess == Memory.Endianess.BigEndian) it.splitToByteArray().toList() else it.splitToByteArray().reversed() }.toTypedArray()
+        return binArray.flatMap { if (endianess == Memory.Endianess.BigEndian) it.splitToByteArray().toList() else it.splitToByteArray().reversed() }.toTypedArray()
     }
 
     fun getInstrFromBinary(bin: Variable.Value.Bin): InstrResult? {

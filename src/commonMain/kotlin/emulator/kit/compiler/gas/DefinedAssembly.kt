@@ -20,7 +20,7 @@ interface DefinedAssembly {
     fun getInstrSpace(arch: emulator.kit.Architecture, instr: GASNode.Instr): Int
     fun getOpBinFromInstr(arch: emulator.kit.Architecture, instr: GASNode.Instr): Array<Variable.Value.Bin>
     fun getInstrFromBinary(arch: emulator.kit.Architecture, currentAddress: Variable.Value.Hex): StandardAssembler.ResolvedInstr?
-    fun parseInstrParams(instrToken: Token.KEYWORD.InstrName, remainingSource: List<Token>): GASNode.Instr?
+    fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr?
 
     interface NumberPrefixes{
         val hex: String

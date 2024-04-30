@@ -19,7 +19,7 @@ enum class GASRVDirType(override val isSection: Boolean = false, override val ru
     INSN,
     ATTRIBUTE    ;
 
-    override fun buildDirectiveContent(dirName: Token.KEYWORD.Directive, tokens: List<Token>, definedAssembly: DefinedAssembly): Node? {
+    override fun buildDirectiveContent(dirName: Token, tokens: List<Token>, definedAssembly: DefinedAssembly): Node? {
 
         return null
     }
