@@ -2,7 +2,7 @@ package emulator.kit.optional
 
 import Coroutines
 import debug.DebugTools
-import emulator.kit.compiler.CompilerFile
+import emulator.kit.assembler.CompilerFile
 import emulator.kit.loadFiles
 import emulator.kit.nativeWarn
 import emulator.kit.updateFiles

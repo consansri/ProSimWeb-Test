@@ -2,11 +2,11 @@ package emulator.archs.ikrmini
 
 import emulator.kit.Architecture
 import emulator.kit.assembly.standards.StandardAssembler
-import emulator.kit.compiler.DirTypeInterface
-import emulator.kit.compiler.InstrTypeInterface
-import emulator.kit.compiler.gas.DefinedAssembly
-import emulator.kit.compiler.gas.nodes.GASNode
-import emulator.kit.compiler.lexer.Token
+import emulator.kit.assembler.DirTypeInterface
+import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.gas.DefinedAssembly
+import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.lexer.Token
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 

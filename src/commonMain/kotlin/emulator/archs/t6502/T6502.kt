@@ -8,7 +8,6 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.common.Docs.DocComponent.*
-import emulator.kit.compiler.gas.GASAssembler
 
 
 /**

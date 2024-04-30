@@ -1,8 +1,7 @@
 package emulator.kit.common
 
-import Settings
 import emulator.kit.Architecture
-import emulator.kit.compiler.CompilerFile
+import emulator.kit.assembler.CompilerFile
 import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable

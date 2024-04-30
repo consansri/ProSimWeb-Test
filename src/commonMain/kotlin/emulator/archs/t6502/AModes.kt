@@ -1,6 +1,6 @@
 package emulator.archs.t6502
 
-import emulator.kit.compiler.lexer.TokenSeq
+import emulator.kit.assembler.lexer.TokenSeq
 import emulator.kit.types.Variable
 
 /**

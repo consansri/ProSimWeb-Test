@@ -1,11 +1,10 @@
 package emulator.archs.ikrmini
 
 import emulator.kit.Architecture
-import emulator.kit.compiler.gas.nodes.GASNode
-import emulator.kit.compiler.lexer.Token
-import emulator.kit.compiler.parser.Node
+import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.lexer.Token
+import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
-import kotlin.math.exp
 
 class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val paramType: IKRMiniSyntax.ParamType, instrName: Token, allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(instrName, allTokens, nodes) {
 

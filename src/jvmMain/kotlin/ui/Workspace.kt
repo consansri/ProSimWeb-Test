@@ -1,6 +1,6 @@
 package me.c3.ui
 
-import emulator.kit.compiler.CompilerFile
+import emulator.kit.assembler.CompilerFile
 import emulator.kit.toCompilerFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

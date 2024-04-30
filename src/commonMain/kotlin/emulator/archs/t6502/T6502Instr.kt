@@ -1,10 +1,10 @@
 package emulator.archs.t6502
 
-import emulator.kit.compiler.gas.nodes.GASNode
-import emulator.kit.compiler.lexer.Token
+import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.lexer.Token
 import emulator.kit.types.Variable
 import emulator.archs.t6502.AModes.*
-import emulator.kit.compiler.parser.Node
+import emulator.kit.assembler.parser.Node
 
 class T6502Instr(
     val type: InstrType,

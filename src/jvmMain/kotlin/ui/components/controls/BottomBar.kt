@@ -1,6 +1,6 @@
 package me.c3.ui.components.controls
 
-import emulator.kit.compiler.CodeStyle
+import emulator.kit.assembler.CodeStyle
 import kotlinx.coroutines.*
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CLabel

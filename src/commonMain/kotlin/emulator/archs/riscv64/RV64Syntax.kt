@@ -2,14 +2,10 @@ package emulator.archs.riscv64
 
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
-import emulator.kit.compiler.InstrTypeInterface
-import emulator.kit.compiler.gas.nodes.GASNode
-import emulator.kit.compiler.lexer.Token
-import emulator.kit.compiler.lexer.TokenSeq
-import emulator.kit.compiler.lexer.TokenSeq.Component.Specific
-import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
-import emulator.kit.nativeLog
-import emulator.kit.optional.Feature
+import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.lexer.TokenSeq
+import emulator.kit.assembler.lexer.TokenSeq.Component.Specific
+import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
 
 class RV64Syntax {
     enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: TokenSeq?) {

@@ -1,8 +1,8 @@
 package emulator.archs.riscv64
 
-import emulator.kit.compiler.gas.nodes.GASNode
-import emulator.kit.compiler.lexer.Token
-import emulator.kit.compiler.parser.Node
+import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.lexer.Token
+import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
 
 class RV64Instr(val instrType: RV64Syntax.InstrType, val paramType: RV64Syntax.ParamType, nameToken: Token,allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(nameToken, allTokens, nodes) {

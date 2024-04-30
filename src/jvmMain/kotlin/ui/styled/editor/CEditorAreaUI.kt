@@ -1,6 +1,6 @@
 package me.c3.ui.styled.editor
 
-import emulator.kit.compiler.CodeStyle
+import emulator.kit.assembler.CodeStyle
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*

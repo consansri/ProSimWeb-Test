@@ -7,11 +7,10 @@ import emulator.kit.optional.Cache
 import emulator.kit.types.Variable
 
 import debug.DebugTools
-import emulator.kit.compiler.*
-import emulator.kit.compiler.gas.DefinedAssembly
+import emulator.kit.assembler.*
+import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
-import kotlinx.coroutines.Deferred
 
 /**
  *  Architecture Blueprint

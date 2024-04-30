@@ -1,6 +1,5 @@
 package visual
 
-import Constants
 import StyleAttr
 import emotion.react.css
 import emulator.kit.optional.FileHandler
@@ -20,9 +19,9 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import debug.DebugTools
 import emulator.kit.common.ArchState
-import emulator.kit.compiler.Assembly
-import emulator.kit.compiler.CodeStyle
-import emulator.kit.compiler.lexer.Severity
+import emulator.kit.assembler.Assembly
+import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.lexer.Severity
 import visual.StyleExt.get
 import visual.StyleExt.getVCRows
 import web.cssom.ClassName

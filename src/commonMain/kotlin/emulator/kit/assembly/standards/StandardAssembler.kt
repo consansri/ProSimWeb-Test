@@ -1,9 +1,9 @@
 package emulator.kit.assembly.standards
 
 import emulator.kit.Architecture
-import emulator.kit.compiler.Assembly
+import emulator.kit.assembler.Assembly
 import emulator.kit.common.Transcript
-import emulator.kit.compiler.parser.ParserTree
+import emulator.kit.assembler.parser.ParserTree
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 

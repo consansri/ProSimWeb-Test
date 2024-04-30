@@ -1,8 +1,7 @@
 package me.c3.ui.components.transcript
 
-import emulator.kit.common.ArchState
 import emulator.kit.common.Transcript
-import emulator.kit.compiler.CodeStyle
+import emulator.kit.assembler.CodeStyle
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel

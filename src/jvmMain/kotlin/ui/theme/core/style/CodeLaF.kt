@@ -1,6 +1,6 @@
 package me.c3.ui.theme.core.style
 
-import emulator.kit.compiler.CodeStyle
+import emulator.kit.assembler.CodeStyle
 import java.awt.Color
 import java.awt.Font
 import java.awt.GraphicsEnvironment

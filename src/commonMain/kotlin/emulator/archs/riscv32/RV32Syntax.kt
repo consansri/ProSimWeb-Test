@@ -2,13 +2,13 @@ package emulator.archs.riscv32
 
 
 import emulator.kit.types.Variable
-import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
-import emulator.kit.compiler.lexer.TokenSeq.Component.Specific
-import emulator.kit.compiler.lexer.TokenSeq.Component.SpecNode
+import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
+import emulator.kit.assembler.lexer.TokenSeq.Component.Specific
+import emulator.kit.assembler.lexer.TokenSeq.Component.SpecNode
 import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
-import emulator.kit.compiler.InstrTypeInterface
-import emulator.kit.compiler.lexer.TokenSeq
+import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.lexer.TokenSeq
 
 class RV32Syntax {
 

@@ -4,12 +4,11 @@ import emulator.kit.Architecture
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
 import emulator.kit.common.Memory
-import emulator.kit.compiler.InstrTypeInterface
-import emulator.kit.compiler.lexer.TokenSeq
-import emulator.kit.compiler.lexer.TokenSeq.Component.SpecNode.*
-import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
-import emulator.kit.compiler.lexer.TokenSeq.Component.Specific
-import emulator.kit.optional.Feature
+import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.lexer.TokenSeq
+import emulator.kit.assembler.lexer.TokenSeq.Component.SpecNode.*
+import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
+import emulator.kit.assembler.lexer.TokenSeq.Component.Specific
 import emulator.kit.types.Variable
 
 class IKRMiniSyntax {

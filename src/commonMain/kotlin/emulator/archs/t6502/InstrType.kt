@@ -1,6 +1,6 @@
 package emulator.archs.t6502
 
-import emulator.kit.compiler.InstrTypeInterface
+import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.types.Variable
 import emulator.archs.t6502.AModes.*
 

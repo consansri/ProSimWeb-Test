@@ -1,19 +1,14 @@
 package me.c3.emulator.kit
 
 import emulator.kit.common.IConsole
-import emulator.kit.compiler.lexer.Token
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import emulator.kit.assembler.lexer.Token
 import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Font
 import java.awt.GraphicsEnvironment
-import javax.swing.JComponent
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
-import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
-import javax.swing.text.StyledDocument
 
 
 fun List<Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {

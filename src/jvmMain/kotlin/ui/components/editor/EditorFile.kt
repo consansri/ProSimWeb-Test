@@ -1,7 +1,7 @@
 package me.c3.ui.components.editor
 
 import emulator.kit.*
-import emulator.kit.compiler.CompilerFile
+import emulator.kit.assembler.CompilerFile
 import kotlinx.coroutines.*
 import me.c3.ui.styled.editor.FileInterface
 import java.io.File

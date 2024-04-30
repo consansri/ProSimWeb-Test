@@ -1,7 +1,7 @@
 package me.c3.ui.components.processor
 
 import emulator.kit.common.Memory
-import emulator.kit.compiler.CodeStyle
+import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager

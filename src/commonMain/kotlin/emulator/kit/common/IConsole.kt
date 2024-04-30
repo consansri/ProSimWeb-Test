@@ -1,6 +1,6 @@
 package emulator.kit.common
 
-import emulator.kit.compiler.CodeStyle
+import emulator.kit.assembler.CodeStyle
 import kotlinx.datetime.Clock
 
 /**

@@ -6,8 +6,8 @@ import emulator.kit.Architecture
 import emulator.kit.common.Docs
 import emulator.kit.optional.FileHandler
 import emulator.kit.common.Memory
-import emulator.kit.compiler.CodeStyle
-import emulator.kit.compiler.lexer.Token
+import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.lexer.Token
 import react.FC
 import react.Props
 import react.StateInstance
