@@ -4,6 +4,7 @@ import emulator.kit.compiler.DirTypeInterface
 import emulator.kit.compiler.Rule
 import emulator.kit.compiler.Rule.Component.*
 import emulator.kit.compiler.gas.nodes.GASNode
+import emulator.kit.compiler.gas.nodes.GASNodeType
 import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
 import emulator.kit.compiler.parser.Node
@@ -12,8 +13,8 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     ABORT(disabled = true),
     ALIGN(rule = Rule {
         Optional {
-            Seq(Expression, Repeatable(maxLength = 2) {
-                Seq(Specific(","), Expression)
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
             })
         }
     }),
@@ -41,22 +42,22 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     ATTACH_TO_GROUP_NAME,
     BALIGN(rule = Rule {
         Optional {
-            Seq(Expression, Repeatable(maxLength = 2) {
-                Seq(Specific(","), Expression)
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
             })
         }
     }),
-    BALIGN1(rule = Rule {
+    BALIGNL(rule = Rule {
         Optional {
-            Seq(Expression, Repeatable(maxLength = 2) {
-                Seq(Specific(","), Expression)
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
             })
         }
     }),
     BALIGNW(rule = Rule {
         Optional {
-            Seq(Expression, Repeatable(maxLength = 2) {
-                Seq(Specific(","), Expression)
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
             })
         }
     }),
@@ -65,124 +66,632 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
     }),
     BYTE(rule = Rule {
         Optional {
-            Seq(Expression, Repeatable {
-                Seq(Specific(","), Expression)
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
             })
         }
     }),
     COMM(rule = Rule {
-        Seq(InSpecific(Token.SYMBOL::class), Specific(","), Expression)
+        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
     }),
     DATA(isSection = true, rule = Rule {
         Optional { InSpecific(Token.SYMBOL::class) }
     }),
-    DEF(),
-    DESC,
+    DEF(rule = Rule {
+        Seq(Repeatable {
+            Except(Dir(".ENDEF"))
+        }, Dir(".ENDEF"))
+    }),
+    DESC(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+    }),
     DIM,
-    DOUBLE,
+    DOUBLE(disabled = true),
     EJECT,
     ELSE,
     ELSEIF,
     END,
+    ENDM,
+    ENDR,
     ENDEF,
     ENDFUNC,
     ENDIF,
-    EQU,
-    EQUIV,
-    EQV,
+    EQU(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
+    }),
+    EQUIV(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
+    }),
+    EQV(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ANY))
+    }),
     ERR,
-    ERROR,
+    ERROR(rule = Rule {
+        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+    }),
     EXITM,
     EXTERN,
-    FAIL,
-    FILE,
-    FILL,
-    FLOAT,
-    FUNC,
-    GLOBAL,
-    GNU_ATTRIBUTE_TAG,
-    HIDDEN,
-    HWORD,
+    FAIL(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_ANY)
+    }),
+    FILE(rule = Rule {
+        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+    }),
+    FILL(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+    }),
+    FLOAT(disabled = true),
+    FUNC(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Optional {
+            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        })
+    }),
+    GLOBAL(rule = Rule {
+        InSpecific(Token.SYMBOL::class)
+    }),
+    GLOBL(rule = Rule {
+        InSpecific(Token.SYMBOL::class)
+    }),
+    GNU_ATTRIBUTE(disabled = true),
+    HIDDEN(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        })
+    }),
+    HWORD(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
     IDENT,
-    IF,
-    INCBIN,
-    INCLUDE,
-    INT,
-    INTERNAL,
-    IRP,
-    IRPC,
-    LCOMM,
+    IF(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFDEF(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), InSpecific(Token.SYMBOL::class), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFB(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFC(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFEQ(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFEQS(rule = Rule {
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_STRING),
+            Specific(","),
+            SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
+                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+            }, Repeatable {
+                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+            }, Optional {
+                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+            }, Dir(".endif")
+        )
+    }),
+    IFGE(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFGT(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFLE(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFLT(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFNB(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFNC(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFNDEF(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), InSpecific(Token.SYMBOL::class), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFNOTDEF(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), InSpecific(Token.SYMBOL::class), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFNE(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    IFNES(rule = Rule {
+        Seq(SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
+            Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+        }, Repeatable {
+            Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Optional {
+            Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+        }, Dir(".endif"))
+    }),
+    INCBIN(rule = Rule {
+        Seq(InSpecific(Token.LITERAL.CHARACTER.STRING::class), Optional {
+            Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS), Optional {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        })
+    }),
+    INCLUDE(rule = Rule {
+        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+    }),
+    INT(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    INTERNAL(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        })
+    }),
+    IRP(rule = Rule {
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Repeatable {
+                Seq(
+                    Specific(","),
+                    Except(XOR(Dir(".ENDR"), InSpecific(Token.LINEBREAK::class))),
+                )
+            },
+            Repeatable {
+                Except(Dir(".ENDR"))
+            }, Dir(".ENDR")
+        )
+    }),
+    IRPC(rule = Rule {
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Specific(","),
+            Optional { Except(XOR(Dir(".ENDR"), InSpecific(Token.LINEBREAK::class))) },
+            Repeatable {
+                Except(Dir(".ENDR"))
+            }, Dir(".ENDR")
+        )
+    }),
+    LCOMM(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+    }),
     LFLAGS,
-    LINE,
-    LINKONCE,
+    LINE(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
+    LINKONCE(rule = Rule {
+        InSpecific(Token.SYMBOL::class)
+    }),
     LIST,
-    LN,
-    LOC,
-    LOC_MARK_LABELS,
-    LOCAL,
-    LONG,
-    MACRO,
-    MRI,
+    LN(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
+    LOC(disabled = true),
+    LOC_MARK_LABELS(disabled = true),
+    LOCAL(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        })
+    }),
+    LONG(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    MACRO(rule = Rule {
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Optional {
+                Seq(
+                    SpecNode(GASNodeType.IDENTIFIER),
+                    Repeatable {
+                        Seq(
+                            Specific(","),
+                            SpecNode(GASNodeType.IDENTIFIER),
+                        )
+                    }
+                )
+            },
+            InSpecific(Token.LINEBREAK::class),
+            Repeatable {
+                SpecNode(GASNodeType.STATEMENT)
+            },
+            Dir(".ENDM")
+        )
+    }),
+    MRI(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
     NOALTMACRO,
     NOLIST,
-    NOP,
-    NOPS,
-    OCTA,
-    OFFSET,
-    ORG,
-    P2ALIGN,
+    NOP(rule = Rule {
+        Optional {
+            SpecNode(GASNodeType.EXPRESSION_ABS)
+        }
+    }),
+    NOPS(rule = Rule {
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Optional {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            }
+        )
+    }),
+    OCTA(rule = Rule {
+        Optional {
+            Seq(
+                SpecNode(GASNodeType.EXPRESSION_ABS),
+                Repeatable {
+                    Seq(
+                        Specific(","),
+                        SpecNode(GASNodeType.EXPRESSION_ABS)
+                    )
+                }
+            )
+        }
+    }),
+    OFFSET(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
+    ORG(disabled = true),
+    P2ALIGN(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    P2ALIGNW(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    P2ALIGNL(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
     POPSECTION,
     PREVIOUS,
-    PRINT,
-    PROTECTED,
-    PSIZE,
-    PURGEM,
-    PUSHSECTION,
-    QUAD,
-    RELOC,
-    REPT,
-    SBTTL,
-    SCL,
-    SECTION(isSection = true),
-    SET,
-    SHORT,
-    SINGLE,
+    PRINT(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_STRING)
+    }),
+    PROTECTED(rule = Rule {
+        Seq(InSpecific(Token.SYMBOL::class), Repeatable {
+            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        })
+    }),
+    PSIZE(rule = Rule {
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Specific(","),
+            SpecNode(GASNodeType.EXPRESSION_ABS)
+        )
+    }),
+    PURGEM(rule = Rule {
+        InSpecific(Token.SYMBOL::class)
+    }),
+    PUSHSECTION(rule = Rule {
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Optional {
+                Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+            }
+        )
+    }),
+    QUAD(rule = Rule {
+        Optional {
+            Seq(emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS), emulator.kit.compiler.Rule.Component.Repeatable {
+                Seq(Specific(","), emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    RODATA(isSection = true, rule = Rule{
+        Optional {
+            emulator.kit.compiler.Rule.Component.InSpecific(emulator.kit.compiler.lexer.Token.SYMBOL::class)
+        }
+    }),
+    RELOC(rule = Rule {
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Specific(","),
+            InSpecific(Token.SYMBOL::class)
+        )
+    }),
+    REPT(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
+    SBTTL(rule = Rule {
+        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+    }),
+    SCL(rule = Rule {
+        InSpecific(Token.SYMBOL::class)
+    }),
+    SECTION(isSection = true, rule = Rule {
+        XOR(Dir(".DATA"), Dir(".TEXT"), Dir(".RODATA"), Dir(".BSS"))
+    }),
+    SET(rule = Rule {
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Specific(","),
+            SpecNode(GASNodeType.EXPRESSION_ANY)
+        )
+    }),
+    SHORT(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    SINGLE(disabled = true),
     SIZE,
-    SKIP,
-    SLEB128,
-    SPACE,
+    SKIP(rule = Rule {
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Optional {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            }
+        )
+    }),
+    SLEB128(rule = Rule {
+        Optional {
+            Seq(emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS), emulator.kit.compiler.Rule.Component.Repeatable {
+                Seq(Specific(","), emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    SPACE(rule = Rule {
+        Seq(
+            emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS),
+            emulator.kit.compiler.Rule.Component.Optional {
+                Seq(Specific(","), emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS))
+            }
+        )
+    }),
     STABD,
     STABN,
     STABS,
-    STRING,
-    STRING8,
-    STRING16,
-    STRUCT,
-    SUBSECTION,
+    STRING(rule = Rule {
+        Seq(
+            emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_STRING),
+            emulator.kit.compiler.Rule.Component.Optional {
+                Seq(Specific(","), emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_STRING))
+            }
+        )
+    }),
+    STRING8(rule = Rule {
+        Seq(
+            emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_STRING),
+            emulator.kit.compiler.Rule.Component.Optional {
+                Seq(Specific(","), emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_STRING))
+            }
+        )
+    }),
+    STRING16(rule = Rule {
+        Seq(
+            emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_STRING),
+            emulator.kit.compiler.Rule.Component.Optional {
+                Seq(Specific(","), emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_STRING))
+            }
+        )
+    }),
+    STRUCT(rule = Rule {
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
+    SUBSECTION(rule = Rule {
+        InSpecific(Token.SYMBOL::class)
+    }),
     SYMVER,
-    TAG,
-    TEXT,
-    TITLE,
-    TLS_COMMON_SYMBOL,
+    TAG(rule = Rule {
+        InSpecific(Token.SYMBOL::class)
+    }),
+    TEXT(rule = Rule {
+        Optional{
+            InSpecific(Token.SYMBOL::class)
+        }
+    }),
+    TITLE(rule = Rule {
+        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+    }),
+    TLS_COMMON(rule = Rule {
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Specific(","),
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Optional{
+                Seq(
+                    Specific(","),
+                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                )
+            }
+        )
+    }),
     TYPE,
-    ULEB128,
-    VAL,
-    VERSION,
-    VTABLE_ENTRY,
-    VTABLE_INHERIT,
-    WARNING,
-    WEAK,
-    WEAKREF,
-    WORD,
-    ZERO,
-    _2BYTE,
-    _4BYTE,
-    _8BYTE;
+    ULEB128(rule = Rule {
+        Optional {
+            Seq(emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS), emulator.kit.compiler.Rule.Component.Repeatable {
+                Seq(Specific(","), emulator.kit.compiler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    VAL(rule = Rule{
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
+    VERSION(rule = Rule{
+        InSpecific(Token.LITERAL.CHARACTER.STRING::class)
+    }),
+    VTABLE_ENTRY(rule = Rule{
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Specific(","),
+            SpecNode(GASNodeType.EXPRESSION_ABS)
+        )
+    }),
+    VTABLE_INHERIT(rule = Rule{
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Specific(","),
+            InSpecific(Token.SYMBOL::class)
+        )
+    }),
+    WARNING(rule = Rule{
+        SpecNode(GASNodeType.EXPRESSION_STRING)
+    }),
+    WEAK(rule = Rule{
+        Seq(InSpecific(Token.SYMBOL::class), emulator.kit.compiler.Rule.Component.Repeatable {
+            Seq(Specific(","), InSpecific(Token.SYMBOL::class))
+        })
+    }),
+    WEAKREF(rule = Rule{
+        Seq(
+            InSpecific(Token.SYMBOL::class),
+            Specific(","),
+            InSpecific(Token.SYMBOL::class)
+        )
+    }),
+    WORD(rule = Rule {
+        Optional {
+            Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+            })
+        }
+    }),
+    ZERO(rule = Rule{
+        SpecNode(GASNodeType.EXPRESSION_ABS)
+    }),
+    _2BYTE(rule = Rule{
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Repeatable{
+                Seq(
+                    Specific(","),
+                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                )
+            }
+        )
+    }),
+    _4BYTE(rule = Rule{
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Repeatable{
+                Seq(
+                    Specific(","),
+                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                )
+            }
+        )
+    }),
+    _8BYTE(rule = Rule{
+        Seq(
+            SpecNode(GASNodeType.EXPRESSION_ABS),
+            Repeatable{
+                Seq(
+                    Specific(","),
+                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                )
+            }
+        )
+    });
 
     override fun getDetectionString(): String = this.name.removePrefix("_")
 
-    override fun buildDirectiveContent(dirName: Token.KEYWORD.Directive, tokens: List<Token>): Node? {
-        val result = this.rule.matchStart(tokens)
+    override fun buildDirectiveContent(dirName: Token.KEYWORD.Directive, tokens: List<Token>, definedAssembly: DefinedAssembly): Node? {
+        val result = this.rule.matchStart(tokens, definedAssembly)
         if (result.matches) {
             return GASNode.Directive(dirName, result.matchingTokens, result.matchingNodes)
         }

@@ -118,15 +118,6 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
         }
     }
 
-    class SYMBOL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
-
-        companion object {
-            val REGEX = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
-        }
-
-        var value: Variable.Value? = null
-    }
-
     sealed class LITERAL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
 
         abstract fun getValue(size: Variable.Size? = null): Variable.Value
@@ -200,6 +191,19 @@ sealed class Token(val lineLoc: LineLoc, val content: String, val id: Int) {
                     return if (size != null) Variable.Value.Hex(stringChars, size) else Variable.Value.Hex(stringChars)
                 }
             }
+        }
+    }
+
+    class SYMBOL(lineLoc: LineLoc, content: String, id: Int) : Token(lineLoc, content, id) {
+        companion object {
+            val REGEX = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
+        }
+    }
+
+    class SYMBOLREF(lineLoc: LineLoc,content: String, id: Int) : Token(lineLoc, content, id){
+        val refName = content.removePrefix("\\")
+        companion object{
+            val REGEX = Regex("""^\\[a-zA-Z$._][a-zA-Z0-9$._]*""")
         }
     }
 

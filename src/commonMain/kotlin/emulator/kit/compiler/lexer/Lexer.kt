@@ -167,6 +167,15 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 continue
             }
 
+            // Symbol Refs
+            val symbolRef = Token.SYMBOLREF.REGEX.find(remaining)
+            if(symbolRef != null){
+                val token = Token.SYMBOLREF(LineLoc(file.name, lineID, startIndex, startIndex + symbolRef.value.length), symbolRef.value, tokenList.size)
+                tokenList += token
+                startIndex += symbolRef.value.length
+                remaining = file.content.substring(startIndex)
+                continue
+            }
 
             /**
              * Resolve Literals

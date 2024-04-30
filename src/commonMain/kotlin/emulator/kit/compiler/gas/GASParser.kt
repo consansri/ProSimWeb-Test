@@ -59,6 +59,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                 is Token.SYMBOL -> true
                 is Token.LABEL.Basic -> true
                 is Token.LABEL.Local -> true
+                is Token.SYMBOLREF -> true
             }
             if (shouldAdd) elements.add(remaining.removeFirst()) else remaining.removeFirst()
         }

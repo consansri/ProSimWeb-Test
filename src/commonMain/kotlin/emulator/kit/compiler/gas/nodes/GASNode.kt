@@ -1,9 +1,6 @@
 package emulator.kit.compiler.gas.nodes
 
-import emulator.kit.compiler.DirTypeInterface
-import emulator.kit.compiler.gas.GASDirType
 import emulator.kit.compiler.gas.DefinedAssembly
-import emulator.kit.compiler.gas.SectionType
 import emulator.kit.compiler.lexer.Severity
 import emulator.kit.compiler.lexer.Token
 import emulator.kit.compiler.parser.Node
@@ -11,7 +8,6 @@ import emulator.kit.types.Variable
 import emulator.kit.compiler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.compiler.parser.NodeSeq.Component.*
 import emulator.kit.nativeError
-import emulator.kit.nativeLog
 
 /**
  * --------------------
@@ -90,7 +86,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         return null
                     }
                     remainingTokens.remove(directiveToken)
-                    val node = directiveToken.dirType.buildDirectiveContent(directiveToken, remainingTokens)
+                    val node = directiveToken.dirType.buildDirectiveContent(directiveToken, remainingTokens, definedAssembly)
                     node
                 }
 
@@ -103,8 +99,45 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     definedAssembly.parseInstrParams(first, remainingTokens)
                 }
 
-                GASNodeType.EXPRESSION -> {
-                    val expression = Expression.parse(remainingTokens)
+                GASNodeType.IDENTIFIER -> {
+                    val first = remainingTokens.firstOrNull() ?: return null
+                    if (first !is Token.SYMBOL) {
+                        return null
+                    }
+                    remainingTokens.removeFirst()
+                    val assignmentOperator = remainingTokens.firstOrNull()
+                    if (assignmentOperator == null || assignmentOperator.content != "=") {
+                        Identifier(first)
+                    } else {
+                        remainingTokens.removeFirst()
+                        val literal = buildNode(GASNodeType.EXPRESSION_ANY, source, definedAssembly)
+                        if (literal == null || literal !is Expression) {
+                            literal?.getAllTokens()?.firstOrNull()?.addSeverity(Severity(Severity.Type.ERROR, "Expected a expression for the symbol assignment!"))
+                            Identifier(first)
+                        } else {
+                            Identifier(first, assignmentOperator, literal)
+                        }
+                    }
+                }
+
+                GASNodeType.EXPRESSION_ABS -> {
+                    val expression = Expression.parse(Expression.Type.ABSOLUTE, remainingTokens)
+                    expression?.let {
+                        remainingTokens.removeAll(it.getAllTokens().toSet())
+                    }
+                    expression
+                }
+
+                GASNodeType.EXPRESSION_ANY -> {
+                    val expression = Expression.parse(Expression.Type.ANY, remainingTokens)
+                    expression?.let {
+                        remainingTokens.removeAll(it.getAllTokens().toSet())
+                    }
+                    expression
+                }
+
+                GASNodeType.EXPRESSION_STRING -> {
+                    val expression = Expression.parse(Expression.Type.STRING, remainingTokens)
                     expression?.let {
                         remainingTokens.removeAll(it.getAllTokens().toSet())
                     }
@@ -153,22 +186,23 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             addChild(BaseNode(lineBreak))
         }
 
+        override val identifier: String? = when(label){
+            is Token.LABEL.Basic -> label.identifier
+            is Token.LABEL.Local -> label.identifier.toString()
+            null -> null
+        }
+
+        override fun getType(): Expression.Type = Expression.Type.ABSOLUTE
+
         override fun getValue(size: Variable.Size?): Variable.Value {
             TODO("Not yet implemented")
         }
 
-        class DirType(label: Token.LABEL?, val directive: Directive, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak, directive) {
-            override fun isAbsolute(): Boolean = false
-        }
+        class DirType(label: Token.LABEL?, val directive: Directive, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak, directive)
 
-        class InstrType(label: Token.LABEL?, val instruction: Instr, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak, instruction) {
+        class InstrType(label: Token.LABEL?, val instruction: Instr, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak, instruction)
 
-            override fun isAbsolute(): Boolean = false
-        }
-
-        class Empty(label: Token.LABEL?, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak) {
-            override fun isAbsolute(): Boolean = false
-        }
+        class Empty(label: Token.LABEL?, lineBreak: Token.LINEBREAK) : Statement(label, lineBreak)
     }
 
     /**
@@ -197,32 +231,46 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
     }
 
     /**
+     * Symbol
+     */
+    class Identifier(val symbolName: Token.SYMBOL, val equalOperator: Token? = null, val assignement: Expression? = null) : GASNode(), Provider {
+        var value: Expression.Value? = null
+        override fun getType(): Expression.Type = value?.type ?: assignement?.getType() ?: Expression.Type.ANY
+
+        override val identifier: String = symbolName.content
+        override fun getValue(size: Variable.Size?): Variable.Value {
+            TODO("Not yet implemented")
+        }
+    }
+
+    /**
      * [Expression]
      *
      *
      *
      *
      */
-    sealed class Expression(brackets: List<Token>, vararg operands: Expression) : GASNode(*operands) {
+    sealed class Expression(val type: Type, brackets: List<Token>, vararg operands: Expression) : GASNode(*operands) {
+
         init {
             for (bracket in brackets) {
                 this.addChild(BaseNode(bracket))
             }
         }
 
-        abstract fun isAbsolute(): Boolean
+        abstract fun getType(): Type
 
         abstract fun getValue(size: Variable.Size? = null): Variable.Value
 
         companion object {
-            fun parse(tokens: List<Token>): Expression? {
+            fun parse(type: Type, tokens: List<Token>): Expression? {
                 val relevantTokens = takeRelevantTokens(tokens)
                 markPrefixes(relevantTokens)
                 if (relevantTokens.isEmpty()) return null
 
                 // Convert tokens to postfix notation
                 val postFixTokens = convertToPostfix(relevantTokens)
-                val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet())
+                val expression = buildExpressionFromPostfixNotation(type, postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet())
                 return expression
             }
 
@@ -251,14 +299,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
             }
 
-            private fun buildExpressionFromPostfixNotation(tokens: MutableList<Token>, brackets: List<Token>): Expression? {
+            private fun buildExpressionFromPostfixNotation(type: Type, tokens: MutableList<Token>, brackets: List<Token>): Expression? {
                 val operator = when (val last = tokens.removeLast()) {
                     is Token.OPERATOR -> {
                         last
                     }
 
                     is Token.SYMBOL -> {
-                        return Operand.Symbol(last)
+                        return Operand.Receiver(type, last)
                     }
 
                     is Token.LITERAL.NUMBER -> {
@@ -276,9 +324,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
                 val operandA = when (tokens.lastOrNull()) {
                     is Token.OPERATOR -> {
-                        buildExpressionFromPostfixNotation(tokens, brackets)
+                        buildExpressionFromPostfixNotation(type, tokens, brackets)
                     }
-                    is Token.SYMBOL -> Operand.Symbol(tokens.removeLast() as Token.SYMBOL)
+
+                    is Token.SYMBOL -> Operand.Receiver(type, tokens.removeLast() as Token.SYMBOL)
                     is Token.LITERAL.NUMBER -> Operand.Number(tokens.removeLast() as Token.LITERAL.NUMBER)
                     else -> {
                         tokens.lastOrNull()?.addSeverity(Severity(Severity.Type.ERROR, Severity.MSG_EXPRESSION_TOKEN_IS_NOT_AN_OPERAND))
@@ -292,10 +341,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 val operandB = when (tokens.lastOrNull()) {
                     is Token.OPERATOR -> {
-                        buildExpressionFromPostfixNotation(tokens, brackets)
+                        buildExpressionFromPostfixNotation(type, tokens, brackets)
                     }
 
-                    is Token.SYMBOL -> Operand.Symbol(tokens.removeLast() as Token.SYMBOL)
+                    is Token.SYMBOL -> Operand.Receiver(type, tokens.removeLast() as Token.SYMBOL)
                     is Token.LITERAL.NUMBER -> Operand.Number(tokens.removeLast() as Token.LITERAL.NUMBER)
                     else -> null
                 }
@@ -371,12 +420,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          * - [operator] [Operand]
          *
          */
-        class Prefix(val operator: Token.OPERATOR, val operand: Expression, brackets: List<Token>) : Expression(brackets, operand) {
+        class Prefix(val operator: Token.OPERATOR, val operand: Expression, brackets: List<Token>) : Expression(Type.ABSOLUTE, brackets, operand) {
             init {
                 addChild(BaseNode(operator))
             }
 
-            override fun isAbsolute(): Boolean = operand.isAbsolute()
+            override fun getType(): Type = operand.getType()
 
             override fun getValue(size: Variable.Size?): Variable.Value {
                 return when (operator.operatorType) {
@@ -394,13 +443,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          * [Classic]
          * - [operandA] [operator] [operandB]
          */
-        class Classic(val operandA: Expression, val operator: Token.OPERATOR, val operandB: Expression, brackets: List<Token>) : Expression(brackets, operandA, operandB) {
+        class Classic(val operandA: Expression, val operator: Token.OPERATOR, val operandB: Expression, brackets: List<Token>) : Expression(type = Type.ABSOLUTE, brackets, operandA, operandB) {
 
             init {
                 addChild(BaseNode(operator))
             }
 
-            override fun isAbsolute(): Boolean = operandA.isAbsolute() && operandB.isAbsolute()
+            override fun getType(): Type = operandA.getType()
 
             override fun getValue(size: Variable.Size?): Variable.Value {
                 return when (operator.operatorType) {
@@ -427,51 +476,59 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          * [Empty]
          * - [lbracket] [operand] [rbracket]
          */
-        class Empty(val lbracket: Token.PUNCTUATION, val operand: Expression, val rbracket: Token.PUNCTUATION) : Expression(listOf(lbracket, rbracket), operand) {
-            override fun isAbsolute(): Boolean = operand.isAbsolute()
+        class Empty(type: Type, val lbracket: Token.PUNCTUATION, val operand: Expression, val rbracket: Token.PUNCTUATION) : Expression(type, listOf(lbracket, rbracket), operand) {
+            override fun getType(): Type = operand.getType()
 
             override fun getValue(size: Variable.Size?): Variable.Value {
                 return operand.getValue(size)
             }
         }
 
-        sealed class Operand(token: Token) : Expression(brackets = listOf()) {
+        sealed class Operand(type: Type, token: Token) : Expression(type, brackets = listOf()) {
             init {
                 addChild(BaseNode(token))
             }
 
-            class Symbol(val symbol: Token.SYMBOL) : Operand(symbol) {
-                var linkedProvider: Provider? = null
-                override fun isAbsolute(): Boolean = linkedProvider?.isAbsolute() ?: false
-
+            class Receiver(type: Type, val symbol: Token.SYMBOL) : Operand(type, symbol), GASNode.Receiver {
+                override var linkedProvider: Provider? = null
+                override fun getType(): Type = linkedProvider?.getType() ?: Type.ANY
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return linkedProvider?.getValue(size) ?: throw ProviderNotLinkedYetException(this)
                 }
             }
 
-            class Number(val number: Token.LITERAL.NUMBER) : Operand(number) {
-                override fun isAbsolute(): Boolean = true
+            class Number(val number: Token.LITERAL.NUMBER) : Operand(Type.ABSOLUTE, number) {
+                override fun getType(): Type = Type.ABSOLUTE
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return number.getValue(size)
                 }
             }
 
-            class Char(val char: Token.LITERAL.CHARACTER) : Operand(char) {
-                override fun isAbsolute(): Boolean = true
+            class Char(val char: Token.LITERAL.CHARACTER) : Operand(Type.STRING, char) {
+                override fun getType(): Type = Type.STRING
                 override fun getValue(size: Variable.Size?): Variable.Value {
                     return char.getValue(size)
                 }
             }
         }
+
+        enum class Type {
+            ANY,
+            STRING,
+            ABSOLUTE
+        }
+
+        data class Value(val type: Type, val content: String)
     }
 
     interface Provider {
+        val identifier: String?
         fun getValue(size: Variable.Size? = null): Variable.Value
-        fun isAbsolute(): Boolean
+        fun getType(): Expression.Type
     }
 
-    interface Receiver{
-
+    interface Receiver {
+        var linkedProvider: Provider?
     }
 
     class ValueNotLinkedYetException(provider: Provider) : Exception() {
