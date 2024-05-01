@@ -73,8 +73,8 @@ class RV32Assembler: DefinedAssembly {
 
             val allTokens = result.sequenceMap.flatMap { it.token.toList() }
             val regs = allTokens.filter { it.type == Token.Type.REGISTER }
-            val expressions = result.nodes.mapNotNull { it as? GASNode.Expression }
-            return RV32Instr(type, paramType, instrToken, regs, expressions)
+            val numericExprs = result.nodes.mapNotNull { it as? GASNode.NumericExpr }
+            return RV32Instr(type, paramType, instrToken, regs, numericExprs)
         }
 
         return null

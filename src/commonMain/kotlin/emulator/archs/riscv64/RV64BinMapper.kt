@@ -5,7 +5,6 @@ import Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64Syntax.InstrType
 import emulator.kit.common.Memory
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 
 class RV64BinMapper {
@@ -17,7 +16,7 @@ class RV64BinMapper {
         try {
             when (instr.instrType) {
                 InstrType.LUI, InstrType.AUIPC -> {
-                    val imm20 = instr.expressions.first().getValue(Variable.Size.Bit20()).toBin()
+                    val imm20 = instr.numericExprs.first().getValue(Variable.Size.Bit20()).toBin()
                     val opCode = instr.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM20 to imm20))
                     opCode?.let {
                         binArray.add(opCode)
@@ -25,7 +24,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.JAL -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit20()).toBin()
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit20()).toBin()
                     val imm20toWork = imm.getRawBinStr()
 
                     /**
@@ -41,7 +40,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.JALR -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     val opCode = instr.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to imm, MaskLabel.RS1 to regs[1]))
                     opCode?.let {
                         binArray.add(opCode)
@@ -56,7 +55,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.BEQ, InstrType.BNE, InstrType.BLT, InstrType.BGE, InstrType.BLTU, InstrType.BGEU -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     val imm12 = imm.getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
@@ -68,7 +67,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.BEQ1, InstrType.BNE1, InstrType.BLT1, InstrType.BGE1, InstrType.BLTU1, InstrType.BGEU1 -> {
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -85,7 +84,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.LB, InstrType.LH, InstrType.LW, InstrType.LD, InstrType.LBU, InstrType.LHU, InstrType.LWU -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     val opCode = instr.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to imm, MaskLabel.RS1 to regs[1]))
                     opCode?.let {
                         binArray.add(opCode)
@@ -93,7 +92,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.SB, InstrType.SH, InstrType.SW, InstrType.SD -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     val imm12 = imm.getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(imm12.length - 5))
                     val imm7 = Variable.Value.Bin(imm12.substring(imm12.length - 12, imm12.length - 5))
@@ -105,7 +104,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.ADDI, InstrType.ADDIW, InstrType.SLTI, InstrType.SLTIU, InstrType.XORI, InstrType.ORI, InstrType.ANDI -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     val opCode = instr.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.RS1 to regs[1], MaskLabel.IMM12 to imm))
                     opCode?.let {
                         binArray.add(opCode)
@@ -113,7 +112,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.SLLI, InstrType.SLLIW, InstrType.SRLI, InstrType.SRLIW, InstrType.SRAI, InstrType.SRAIW -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit6()).toBin()
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit6()).toBin()
                     val opCode = instr.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.RS1 to regs[1], MaskLabel.SHAMT6 to imm))
                     opCode?.let {
                         binArray.add(opCode)
@@ -128,8 +127,8 @@ class RV64BinMapper {
                 }
 
                 InstrType.CSRRW, InstrType.CSRRS, InstrType.CSRRC -> {
-                    val csrAddr = if (instr.expressions.size == 1) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 1) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[1].toBin()
                     }
@@ -140,12 +139,12 @@ class RV64BinMapper {
                 }
 
                 InstrType.CSRRWI, InstrType.CSRRSI, InstrType.CSRRCI -> {
-                    val csrAddr = if (instr.expressions.size == 2) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 2) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[1].toBin()
                     }
-                    val uimm5 = instr.expressions.last().getValue(Variable.Size.Bit5()).toBin()
+                    val uimm5 = instr.numericExprs.last().getValue(Variable.Size.Bit5()).toBin()
                     val opCode = instr.instrType.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.CSR to csrAddr, MaskLabel.UIMM5 to uimm5))
                     opCode?.let {
                         binArray.add(opCode)
@@ -153,8 +152,8 @@ class RV64BinMapper {
                 }
 
                 InstrType.CSRW -> {
-                    val csrAddr = if (instr.expressions.size == 1) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 1) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[0].toBin()
                     }
@@ -166,8 +165,8 @@ class RV64BinMapper {
                 }
 
                 InstrType.CSRR -> {
-                    val csrAddr = if (instr.expressions.size == 1) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 1) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[1].toBin()
                     }
@@ -209,7 +208,7 @@ class RV64BinMapper {
                      *
                      */
 
-                    val imm28 = instr.expressions.first().getValue(Variable.Size.Bit28()).toBin()
+                    val imm28 = instr.numericExprs.first().getValue(Variable.Size.Bit28()).toBin()
                     if (!imm28.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${imm28.checkResult.message}")
                     }
@@ -230,7 +229,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.Li32Signed -> {
-                    val imm32 = instr.expressions.first().getValue(Variable.Size.Bit32()).toBin()
+                    val imm32 = instr.numericExprs.first().getValue(Variable.Size.Bit32()).toBin()
 
                     if (!imm32.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${imm32.checkResult.message}")
@@ -261,7 +260,7 @@ class RV64BinMapper {
                      *            LUI                 ORI            ORI
                      *
                      */
-                    val imm40 = instr.expressions.first().getValue(Variable.Size.Bit40()).toBin()
+                    val imm40 = instr.numericExprs.first().getValue(Variable.Size.Bit40()).toBin()
                     if (!imm40.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${imm40.checkResult.message}")
                     }
@@ -299,7 +298,7 @@ class RV64BinMapper {
                      *            LUI                 ORI            ORI            ORI
                      *
                      */
-                    val imm52 = instr.expressions.first().getValue(Variable.Size.Bit52()).toBin()
+                    val imm52 = instr.numericExprs.first().getValue(Variable.Size.Bit52()).toBin()
                     if (!imm52.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${imm52.checkResult.message}")
                     }
@@ -343,7 +342,7 @@ class RV64BinMapper {
                      *            LUI                 ORI            ORI            ORI            ORI
                      *
                      */
-                    val imm64 = instr.expressions.first().getValue(Variable.Size.Bit64()).toBin()
+                    val imm64 = instr.numericExprs.first().getValue(Variable.Size.Bit64()).toBin()
                     if (!imm64.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${imm64.checkResult.message}")
                     }
@@ -383,7 +382,7 @@ class RV64BinMapper {
 
                 InstrType.La -> {
                     val regBin = regs[0]
-                    val address = instr.expressions.first().getValue()
+                    val address = instr.numericExprs.first().getValue()
                     val offset = (address - instrAddr).toBin().getUResized(RV64.WORD_WIDTH)
                     if (!offset.checkResult.valid) {
                         architecture.getConsole().error("RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.instrType.name}]\n${offset.checkResult.message}")
@@ -470,7 +469,7 @@ class RV64BinMapper {
 
                 InstrType.Beqz -> {
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -487,7 +486,7 @@ class RV64BinMapper {
 
                 InstrType.Bnez -> {
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -504,7 +503,7 @@ class RV64BinMapper {
 
                 InstrType.Blez -> {
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -521,7 +520,7 @@ class RV64BinMapper {
 
                 InstrType.Bgez -> {
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -538,7 +537,7 @@ class RV64BinMapper {
 
                 InstrType.Bltz -> {
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -555,7 +554,7 @@ class RV64BinMapper {
 
                 InstrType.BGTZ -> {
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -571,7 +570,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.Bgt -> {
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -588,7 +587,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.Ble -> {
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -605,7 +604,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.Bgtu -> {
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -622,7 +621,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.Bleu -> {
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -641,7 +640,7 @@ class RV64BinMapper {
                 InstrType.J -> {
                     val rd = Variable.Value.Bin("0", Variable.Size.Bit5())
 
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit20())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -662,7 +661,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.JAL1 -> {
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit20())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -684,7 +683,7 @@ class RV64BinMapper {
 
                 InstrType.JAL2 -> {
                     val rd = Variable.Value.Bin("1", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
 
                     offset.checkSizeSigned(Variable.Size.Bit20())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
@@ -728,7 +727,7 @@ class RV64BinMapper {
                 }
 
                 InstrType.JALR2 -> {
-                    val opCode = InstrType.JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to instr.expressions.first().getValue(Variable.Size.Bit12()).toBin(), MaskLabel.RS1 to regs[1]))
+                    val opCode = InstrType.JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin(), MaskLabel.RS1 to regs[1]))
                     opCode?.let {
                         binArray.add(opCode)
                     }
@@ -749,7 +748,7 @@ class RV64BinMapper {
                 InstrType.Call -> {
                     val x1 = Variable.Value.Bin("1", Variable.Size.Bit5())
 
-                    val pcRelAddress32 = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val pcRelAddress32 = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     val imm32 = pcRelAddress32.getRawBinStr()
 
                     val jalrOff = Variable.Value.Bin(imm32.substring(20), Variable.Size.Bit12())
@@ -768,7 +767,7 @@ class RV64BinMapper {
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                     val x6 = Variable.Value.Hex("6", Variable.Size.Bit5()).toBin()
 
-                    val pcRelAddress32 = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val pcRelAddress32 = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     val imm32 = pcRelAddress32.getRawBinStr()
 
                     val jalrOff = Variable.Value.Bin(imm32.substring(20), Variable.Size.Bit12())

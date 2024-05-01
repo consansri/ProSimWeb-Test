@@ -129,10 +129,10 @@ class TokenSeq(private vararg val components: Component, val ignoreSpaces: Boole
         override fun toString(): String = this::class.simpleName.toString()
 
         sealed class SpecNode : Component() {
-            abstract fun parse(tokens: List<Token>): GASNode.Expression?
+            abstract fun parse(tokens: List<Token>): GASNode.NumericExpr?
             class EXPRESSION() : SpecNode() {
-                override fun parse(tokens: List<Token>): GASNode.Expression? {
-                    return GASNode.Expression.parse(GASNode.Expression.Type.ANY,tokens)
+                override fun parse(tokens: List<Token>): GASNode.NumericExpr? {
+                    return GASNode.NumericExpr.parse(tokens)
                 }
             }
         }

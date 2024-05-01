@@ -86,8 +86,8 @@ class IKRMiniAssembler: DefinedAssembly {
             val remaining = remainingSource.toMutableList()
             val result = seq.matchStart(*remaining.toTypedArray())
             if (!result.matches) continue
-            val expressions = result.nodes.filterIsInstance<GASNode.Expression>()
-            return IKRMiniInstr(instrType, amode, instrToken, listOf(),expressions)
+            val numericExprs = result.nodes.filterIsInstance<GASNode.NumericExpr>()
+            return IKRMiniInstr(instrType, amode, instrToken, listOf(),numericExprs)
         }
         return null
     }

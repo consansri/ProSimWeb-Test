@@ -15,13 +15,13 @@ class RV32BinMapper {
         val type = instr.instrType
 
         if (DebugTools.RV32_showBinMapperInfo) {
-            println("BinMapper.getBinaryFromInstrDef(): \t${type.id} -> values: ${instr.expressions.joinToString { it.print("") }}")
+            println("BinMapper.getBinaryFromInstrDef(): \t${type.id} -> values: ${instr.numericExprs.joinToString { it.print("") }}")
         }
 
         try {
             when (type) {
                 LUI, AUIPC -> {
-                    val imm20 = instr.expressions.first().getValue(Variable.Size.Bit20()).toBin()
+                    val imm20 = instr.numericExprs.first().getValue(Variable.Size.Bit20()).toBin()
                     val opCode = type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM20 to imm20))
                     opCode?.let {
                         binArray.add(opCode)
@@ -29,7 +29,7 @@ class RV32BinMapper {
                 }
 
                 JAL -> {
-                    val immediate = instr.expressions.first().getValue(Variable.Size.Bit20())
+                    val immediate = instr.numericExprs.first().getValue(Variable.Size.Bit20())
                     val imm20toWork = immediate.toBin().getRawBinStr()
 
                     /**
@@ -45,7 +45,7 @@ class RV32BinMapper {
                 }
 
                 JALR -> {
-                    val immediate = instr.expressions.first().getValue(Variable.Size.Bit12())
+                    val immediate = instr.numericExprs.first().getValue(Variable.Size.Bit12())
                     val opCode = type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to immediate.toBin(), MaskLabel.RS1 to regs[1]))
                     opCode?.let {
                         binArray.add(opCode)
@@ -60,7 +60,7 @@ class RV32BinMapper {
                 }
 
                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
-                    val immediate = instr.expressions.first().getValue(Variable.Size.Bit12())
+                    val immediate = instr.numericExprs.first().getValue(Variable.Size.Bit12())
                     val imm12 = immediate.toBin().getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                     val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
@@ -72,7 +72,7 @@ class RV32BinMapper {
                 }
 
                 BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -88,7 +88,7 @@ class RV32BinMapper {
                 }
 
                 LB, LH, LW, LBU, LHU -> {
-                    val immediate = instr.expressions.first().getValue(Variable.Size.Bit12())
+                    val immediate = instr.numericExprs.first().getValue(Variable.Size.Bit12())
                     val opCode = type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to immediate.toBin(), MaskLabel.RS1 to regs[1]))
                     opCode?.let {
                         binArray.add(opCode)
@@ -96,7 +96,7 @@ class RV32BinMapper {
                 }
 
                 SB, SH, SW -> {
-                    val immediate = instr.expressions.first().getValue(Variable.Size.Bit12())
+                    val immediate = instr.numericExprs.first().getValue(Variable.Size.Bit12())
                     val imm12 = immediate.toBin().getRawBinStr()
                     val imm5 = Variable.Value.Bin(imm12.substring(imm12.length - 5))
                     val imm7 = Variable.Value.Bin(imm12.substring(imm12.length - 12, imm12.length - 5))
@@ -108,7 +108,7 @@ class RV32BinMapper {
                 }
 
                 ADDI, SLTI, SLTIU, XORI, ORI, ANDI -> {
-                    val imm12 = instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val imm12 = instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     val opCode = type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.RS1 to regs[1], MaskLabel.IMM12 to imm12))
                     opCode?.let {
                         binArray.add(opCode)
@@ -116,7 +116,7 @@ class RV32BinMapper {
                 }
 
                 SLLI, SRLI, SRAI -> {
-                    val imm5 = instr.expressions.first().getValue(Variable.Size.Bit5()).toBin()
+                    val imm5 = instr.numericExprs.first().getValue(Variable.Size.Bit5()).toBin()
                     val opCode = type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.RS1 to regs[1], MaskLabel.SHAMT to imm5))
                     opCode?.let {
                         binArray.add(opCode)
@@ -131,8 +131,8 @@ class RV32BinMapper {
                 }
 
                 CSRRW, CSRRS, CSRRC -> {
-                    val csrAddr = if (instr.expressions.size == 1) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 1) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[1].toBin()
                     }
@@ -143,12 +143,12 @@ class RV32BinMapper {
                 }
 
                 CSRRWI, CSRRSI, CSRRCI -> {
-                    val csrAddr = if (instr.expressions.size == 2) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 2) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[1].toBin()
                     }
-                    val immediate = instr.expressions.last().getValue(Variable.Size.Bit5())
+                    val immediate = instr.numericExprs.last().getValue(Variable.Size.Bit5())
                     val uimm5 = immediate.toBin()
                     val opCode = type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.CSR to csrAddr, MaskLabel.UIMM5 to uimm5))
                     opCode?.let {
@@ -157,8 +157,8 @@ class RV32BinMapper {
                 }
 
                 CSRW -> {
-                    val csrAddr = if (instr.expressions.size == 1) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 1) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[0].toBin()
                     }
@@ -170,8 +170,8 @@ class RV32BinMapper {
                 }
 
                 CSRR -> {
-                    val csrAddr = if (instr.expressions.size == 1) {
-                        instr.expressions.first().getValue(Variable.Size.Bit12()).toBin()
+                    val csrAddr = if (instr.numericExprs.size == 1) {
+                        instr.numericExprs.first().getValue(Variable.Size.Bit12()).toBin()
                     } else {
                         regs[1].toBin()
                     }
@@ -183,7 +183,7 @@ class RV32BinMapper {
                 }
 
                 Li -> {
-                    val imm = instr.expressions.first().getValue(Variable.Size.Bit32())
+                    val imm = instr.numericExprs.first().getValue(Variable.Size.Bit32())
                     val hi20 = imm.toBin().getRawBinStr().substring(0, 20)
                     val low12 = imm.toBin().getRawBinStr().substring(20)
 
@@ -207,7 +207,7 @@ class RV32BinMapper {
 
                 La -> {
                     val regBin = regs[0]
-                    val address = instr.expressions.first().getValue()
+                    val address = instr.numericExprs.first().getValue()
                     val offset = (address - instrAddr).toBin()
 
                     val hi20 = offset.getRawBinStr().substring(0, 20)
@@ -232,7 +232,7 @@ class RV32BinMapper {
                 }
 
                 JAL1 -> {
-                    val lblAddr = instr.expressions.first().getValue()
+                    val lblAddr = instr.numericExprs.first().getValue()
                     val rd = regs[0]
                     val imm20toWork = ((lblAddr - instrAddr).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinStr()
 
@@ -250,7 +250,7 @@ class RV32BinMapper {
                 }
 
                 JAL2 -> {
-                    val lblAddr = instr.expressions.first().getValue()
+                    val lblAddr = instr.numericExprs.first().getValue()
                     val rd = Variable.Value.Bin("1", Variable.Size.Bit5())
                     val imm20toWork = ((lblAddr - instrAddr).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinStr()
 
@@ -268,7 +268,7 @@ class RV32BinMapper {
                 }
 
                 J -> {
-                    val lblAddr = instr.expressions.first().getValue()
+                    val lblAddr = instr.numericExprs.first().getValue()
                     val rd = Variable.Value.Bin("0", Variable.Size.Bit5())
                     val imm20toWork = ((lblAddr - instrAddr).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinStr()
 
@@ -329,7 +329,7 @@ class RV32BinMapper {
                 }
 
                 Call -> {
-                    val lblAddr = instr.expressions.first().getValue()
+                    val lblAddr = instr.numericExprs.first().getValue()
                     val x1 = Variable.Value.Bin("1", Variable.Size.Bit5())
 
                     val pcRelAddress32 = (lblAddr - instrAddr).toBin()
@@ -348,7 +348,7 @@ class RV32BinMapper {
                 }
 
                 Tail -> {
-                    val lblAddr = instr.expressions.first().getValue()
+                    val lblAddr = instr.numericExprs.first().getValue()
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                     val x6 = Variable.Value.Hex("6", Variable.Size.Bit5()).toBin()
 
@@ -464,7 +464,7 @@ class RV32BinMapper {
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
 
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -483,7 +483,7 @@ class RV32BinMapper {
                 Bnez -> {
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -501,7 +501,7 @@ class RV32BinMapper {
                 Blez -> {
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -520,7 +520,7 @@ class RV32BinMapper {
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
 
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -538,7 +538,7 @@ class RV32BinMapper {
                 Bltz -> {
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -556,7 +556,7 @@ class RV32BinMapper {
                 BGTZ -> {
                     val rs1 = regs[0]
                     val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -574,7 +574,7 @@ class RV32BinMapper {
                 Bgt -> {
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -593,7 +593,7 @@ class RV32BinMapper {
                 Ble -> {
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -612,7 +612,7 @@ class RV32BinMapper {
                 Bgtu -> {
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }
@@ -631,7 +631,7 @@ class RV32BinMapper {
                 Bleu -> {
                     val rs1 = regs[0]
                     val rs2 = regs[1]
-                    val offset = (instr.expressions.first().getValue() - instrAddr).toBin()
+                    val offset = (instr.numericExprs.first().getValue() - instrAddr).toBin()
                     offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                         architecture.getConsole().error("Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                     }

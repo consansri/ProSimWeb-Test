@@ -8,7 +8,7 @@ import emulator.kit.types.Variable
 
 class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val paramType: IKRMiniSyntax.ParamType, instrName: Token, allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(instrName, allTokens, nodes) {
 
-    val expressions = nodes.filterIsInstance<Expression>()
+    val numericExprs = nodes.filterIsInstance<NumericExpr>()
     override fun getWidth(): Variable.Size {
         TODO("Not yet implemented")
     }
@@ -16,7 +16,7 @@ class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val paramType: IKRMiniSynt
     fun getOpBin(arch: Architecture): Array<Variable.Value.Bin> {
         val opCode = type.paramMap[paramType]
         val addr = addr
-        val expression = expressions.firstOrNull()
+        val expression = numericExprs.firstOrNull()
         if (opCode == null) {
             arch.getConsole().error("Couldn't resolve opcode for the following combination: ${type.name} and ${paramType.name}")
             return emptyArray()

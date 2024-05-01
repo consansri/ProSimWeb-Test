@@ -17,7 +17,7 @@ class T6502Instr(
     allTokens,
     nodes
 ) {
-    val expression = nodes.firstOrNull{it is Expression} as Expression?
+    val numericExpr = nodes.firstOrNull{it is NumericExpr} as NumericExpr?
 
     fun getOpBin(arch: emulator.kit.Architecture): Array<Variable.Value.Hex> {
         val opCode = type.opCode[addressingMode]
@@ -29,29 +29,29 @@ class T6502Instr(
 
         val codeWithExt: Array<Variable.Value.Hex> = when (addressingMode) {
             ZP_X, ZP_Y, ZPIND_Y, ZP_X_IND, ZP, IMM -> {
-                if (expression == null) {
+                if (numericExpr == null) {
                     arch.getConsole().error("Missing imm for the following combination: ${type.name} and ${addressingMode.name}")
                     return emptyArray()
                 }
-                arrayOf(opCode, expression.getValue(T6502.BYTE_SIZE).toHex())
+                arrayOf(opCode, numericExpr.getValue(T6502.BYTE_SIZE).toHex())
             }
 
             ABS_X, ABS_Y, ABS, IND -> {
-                if (expression == null) {
+                if (numericExpr == null) {
                     arch.getConsole().error("Missing imm for the following combination: ${type.name} and ${addressingMode.name}")
                     return emptyArray()
                 }
-                arrayOf(opCode, *expression.getValue(T6502.WORD_SIZE).toHex().splitToByteArray())
+                arrayOf(opCode, *numericExpr.getValue(T6502.WORD_SIZE).toHex().splitToByteArray())
             }
 
             ACCUMULATOR, IMPLIED -> arrayOf(opCode)
 
             REL -> {
-                if (expression == null) {
+                if (numericExpr == null) {
                     arch.getConsole().error("Missing imm for the following combination: ${type.name} and ${addressingMode.name}")
                     return emptyArray()
                 }
-                arrayOf(opCode, expression.getValue(T6502.BYTE_SIZE).toHex())
+                arrayOf(opCode, numericExpr.getValue(T6502.BYTE_SIZE).toHex())
             }
         }
         return codeWithExt

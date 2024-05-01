@@ -8,7 +8,7 @@ import emulator.kit.types.Variable
 class RV32Instr(val instrType: RV32Syntax.InstrType, val paramType: RV32Syntax.ParamType, nameToken: Token, allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(nameToken, allTokens, nodes){
 
     val registers = allTokens.mapNotNull { it.reg }
-    val expressions = nodes.filterIsInstance<Expression>()
+    val numericExprs = nodes.filterIsInstance<NumericExpr>()
     override fun getWidth(): Variable.Size {
         TODO()
     }

@@ -8,10 +8,10 @@ import emulator.kit.types.Variable
 class RV64Instr(val instrType: RV64Syntax.InstrType, val paramType: RV64Syntax.ParamType, nameToken: Token,allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(nameToken, allTokens, nodes) {
 
     val registers = allTokens.mapNotNull { it.reg }
-    val expressions = nodes.filterIsInstance<Expression>()
+    val numericExprs = nodes.filterIsInstance<NumericExpr>()
 
     init {
-        expressions.joinToString { it::class.simpleName.toString() }
+        numericExprs.joinToString { it::class.simpleName.toString() }
     }
 
     override fun getWidth(): Variable.Size {

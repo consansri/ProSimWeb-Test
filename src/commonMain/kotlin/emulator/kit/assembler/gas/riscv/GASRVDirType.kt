@@ -8,19 +8,11 @@ import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 
-enum class GASRVDirType(override val isSection: Boolean = false, override val rule: Rule = GASDirType.EMPTY) : DirTypeInterface {
-    HALF,
-    WORD,
-    DWORD,
-    DTPRELWORD,
-    DTPRELDWORD,
-    ULEB128,
-    SLEB128,
-    OPTION,
-    INSN,
-    ATTRIBUTE;
+enum class GASRVDirType(override val isSection: Boolean = false, override val rule: Rule) : DirTypeInterface {
 
-    override fun buildDirectiveContent(dirName: Token, tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive? {
+    ;
+
+    override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive? {
 
         return null
     }
