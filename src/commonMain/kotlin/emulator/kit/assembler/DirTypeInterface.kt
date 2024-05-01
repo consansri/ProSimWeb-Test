@@ -12,6 +12,6 @@ interface DirTypeInterface {
      */
     fun getDetectionString(): String
     val isSection: Boolean
-    val rule: Rule
+    val rule: Rule?
     fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive?
 }

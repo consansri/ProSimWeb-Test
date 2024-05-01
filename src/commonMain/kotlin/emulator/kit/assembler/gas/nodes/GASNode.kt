@@ -46,11 +46,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          */
         fun buildNode(gasNodeType: GASNodeType, source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): Node? {
             val remainingTokens = source.toMutableList()
-            nativeLog("Building Node $gasNodeType starting with ${source.first()}")
             when (gasNodeType) {
                 GASNodeType.ROOT -> {
                     val statements = mutableListOf<Statement>()
-                    while (remainingTokens.isNotEmpty()) {
+                    while (remainingTokens.isNotEmpty() && remainingTokens.firstOrNull { it.type == Token.Type.LINEBREAK } != null) {
                         val node = buildNode(GASNodeType.STATEMENT, remainingTokens, allDirs, definedAssembly)
 
                         if (node == null) {
@@ -94,13 +93,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
 
                     val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, allDirs, definedAssembly)
-                    if (instruction != null && instruction is Instr) {
+                    if (instruction != null && instruction is RawInstr) {
                         remainingTokens.removeAll(instruction.getAllTokens().toSet())
-                        spaces.addAll(remainingTokens.dropSpaces())
+
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
-                        val node = Statement.InstrType(label, instruction, lineBreak)
-                        node.addSpaces(spaces)
-                        return node
+                        return Statement.InstrType(label, instruction, lineBreak)
                     }
 
                     val lineBreak = remainingTokens.checkLineBreak() ?: return null
@@ -110,9 +107,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
 
                 GASNodeType.DIRECTIVE -> {
+                    nativeLog("Building Directive for ${remainingTokens.firstOrNull()?.content}")
                     allDirs.forEach {
                         val node = it.buildDirectiveContent(remainingTokens, allDirs, definedAssembly)
-                        if(node != null){
+                        if (node != null) {
+                            nativeLog("Found matching Directive node $node")
                             return node
                         }
                     }
@@ -121,49 +120,18 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
 
                 GASNodeType.INSTRUCTION -> {
+                    remainingTokens.dropSpaces()
+
                     val first = remainingTokens.firstOrNull() ?: return null
-                    if (first.type != Token.Type.INSTRNAME) {
+                    if (first.type != Token.Type.INSTRNAME){
                         return null
                     }
+                    nativeLog("Found InstrName: ${first.instr}")
                     remainingTokens.removeFirst()
-                    val spaces = remainingTokens.dropSpaces()
-                    val node = definedAssembly.parseInstrParams(first, remainingTokens)
-                    node?.addSpaces(spaces)
-                    return node
-                }
 
-                GASNodeType.IDENTIFIER -> {
-                    // Check Symbol
-                    val first = remainingTokens.firstOrNull() ?: return null
-                    if (first.type != Token.Type.SYMBOL) {
-                        return null
-                    }
+                    val params = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
 
-                    // Remove Until Next Relevant Token
-                    val spaces = mutableListOf<Token>()
-                    remainingTokens.removeFirst()
-                    spaces.addAll(remainingTokens.dropSpaces())
-
-                    // Check Assignment Operator
-                    val assignmentOperator = remainingTokens.firstOrNull()
-                    if (assignmentOperator == null || assignmentOperator.content != "=") {
-                        return SymbolDef(first)
-                    } else {
-                        // Remove Until Next Relevant Token
-                        remainingTokens.removeFirst()
-                        spaces.addAll(remainingTokens.dropSpaces())
-
-                        // Check Literal
-                        val literal = buildNode(GASNodeType.EXPRESSION_ANY, source, allDirs, definedAssembly)
-                        if (literal == null || literal !is NumericExpr) {
-                            literal?.getAllTokens()?.firstOrNull()?.addSeverity(Severity(Severity.Type.ERROR, "Expected a expression for the symbol assignment!"))
-                            return SymbolDef(first)
-                        } else {
-                            val node = SymbolDef(first, assignmentOperator, literal)
-                            node.addSpaces(spaces)
-                            return node
-                        }
-                    }
+                    return RawInstr(first, params)
                 }
 
                 GASNodeType.EXPRESSION_ABS -> {
@@ -172,6 +140,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 GASNodeType.EXPRESSION_ANY -> {
                     val stringExpr = StringExpr.parse(remainingTokens)
+                    nativeLog("Parsing any expression: ${if (stringExpr != null) "string" else "numeric or null"}")
                     if (stringExpr != null) return stringExpr
 
                     return NumericExpr.parse(remainingTokens)
@@ -242,7 +211,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
         class DirType(label: Label?, val directive: Directive, lineBreak: Token) : Statement(label, lineBreak, directive)
 
-        class InstrType(label: Label?, val instruction: Instr, lineBreak: Token) : Statement(label, lineBreak, instruction)
+        class InstrType(label: Label?, val instruction: RawInstr, lineBreak: Token) : Statement(label, lineBreak, instruction)
 
         class Empty(label: Label?, lineBreak: Token) : Statement(label, lineBreak)
     }
@@ -253,6 +222,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
     class Directive(val type: DirTypeInterface, val allTokens: List<Token> = listOf(), val additionalNodes: List<Node> = listOf()) : GASNode(*additionalNodes.toTypedArray()) {
         init {
             addChilds(*allTokens.map { BaseNode(it) }.toTypedArray())
+        }
+    }
+
+    class RawInstr(val instrName: Token, allTokens: List<Token>) : GASNode() {
+        init {
+            addChild(BaseNode(instrName))
+            addChilds(*allTokens.map { BaseNode(it) }.toTypedArray())
+            nativeLog("initiated RawInstr ${instrName.instr} ${allTokens.joinToString(" ") { it.type.name }}")
         }
     }
 
@@ -303,8 +280,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         companion object {
             fun parse(tokens: List<Token>): StringExpr? {
                 val relevantTokens = takeRelevantTokens(tokens)
-                if(relevantTokens.isEmpty()) return null
-                nativeLog("Parse String for source: ${relevantTokens.joinToString(" ") { it.type.name }}")
+                if (relevantTokens.isEmpty()) return null
                 val operands: List<Operand> = relevantTokens.map {
                     when {
                         it.type == Token.Type.SYMBOL -> Operand.Identifier(it)
@@ -314,7 +290,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         }
                     }
                 }
-                if(operands.isEmpty()) return null
+                if (operands.isEmpty()) return null
                 return if (operands.size == 1) {
                     operands.first()
                 } else {

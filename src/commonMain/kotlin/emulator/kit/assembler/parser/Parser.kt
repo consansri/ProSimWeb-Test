@@ -13,6 +13,5 @@ abstract class Parser(val compiler: CompilerInterface) {
     abstract fun getInstrs(features: List<Feature>): List<InstrTypeInterface>
     abstract fun getDirs(features: List<Feature>): List<DirTypeInterface>
     abstract fun parse(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): ParserTree
-
     data class SearchResult(val baseNode: Node.BaseNode, val path: List<Node>)
 }

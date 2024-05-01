@@ -89,7 +89,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                     }
                 }
 
-                nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
+                // nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
                 val token = Token(if (keyWordType != null) keyWordType else type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, foundReg, foundDir, foundInstr)
                 tokenList += token
                 startIndex += result.value.length
@@ -103,8 +103,10 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         return tokenList
     }
 
-    private fun InstrTypeInterface.getInstrRegex(): Regex = Regex("^${Regex.escape(this.getDetectionName())}?", RegexOption.IGNORE_CASE)
-    private fun DirTypeInterface.getDirRegex(): Regex = Regex("^\\.${Regex.escape(this.getDetectionString())}?", RegexOption.IGNORE_CASE)
-    private fun RegContainer.Register.getRegex(): Regex = Regex("^(?:${(this.names + this.aliases).joinToString("|") { Regex.escape(it) }})?")
+    val regex = Regex("^(?:jal|j)$")
+
+    private fun InstrTypeInterface.getInstrRegex(): Regex = Regex("^${Regex.escape(this.getDetectionName())}$", RegexOption.IGNORE_CASE)
+    private fun DirTypeInterface.getDirRegex(): Regex = Regex("^\\.${Regex.escape(this.getDetectionString())}$", RegexOption.IGNORE_CASE)
+    private fun RegContainer.Register.getRegex(): Regex = Regex("^(?:${(this.names + this.aliases).joinToString("|") { Regex.escape(it) }})$")
 
 }

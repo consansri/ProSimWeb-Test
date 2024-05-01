@@ -33,8 +33,6 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          */
 
 
-
-
         return ParserTree(root, source, filteredSource)
     }
 
@@ -47,17 +45,20 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         while (remaining.isNotEmpty()) {
             // Add Base Node if not found any special node
-            val replaceWithWhitespace = when (remaining.first().type) {
+            val shouldAdd = when (remaining.first().type) {
+                Token.Type.WHITESPACE -> false
                 Token.Type.COMMENT_SL -> false
                 Token.Type.COMMENT_ML -> false
                 else -> true
             }
 
-            if (replaceWithWhitespace) elements.add(remaining.removeFirst()) else {
-                val old = remaining.removeFirst()
-                elements.add(Token(Token.Type.WHITESPACE, old.lineLoc, " ", old.id))
+            if (shouldAdd) elements.add(remaining.removeFirst()) else {
+                remaining.removeFirst()
             }
         }
+
+        // Remove Spaces between DIRECTIVE and LINEBREAK
+
 
         return elements
     }

@@ -12,6 +12,8 @@ sealed class Node {
     abstract fun print(prefix: String): String
     abstract fun getLineLoc(): Token.LineLoc?
 
+    override fun toString(): String = print("")
+
     class BaseNode(val token: Token) : Node() {
         init {
             token.removeSeverityIfError()

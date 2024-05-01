@@ -9,7 +9,7 @@ import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 
-enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule) : DirTypeInterface {
+enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
     ALIGN(rule = Rule {
         Seq(
@@ -40,9 +40,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".asciz", ignoreCase = true),
             Optional {
                 Seq(
-                    Repeatable { SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_STRING) },
+                    Repeatable { SpecNode(GASNodeType.EXPRESSION_STRING) },
                     Repeatable {
-                        Seq(Specific(","), Repeatable { SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_STRING) })
+                        Seq(Specific(","), Repeatable { SpecNode(GASNodeType.EXPRESSION_STRING) })
                     }
                 )
             }
@@ -115,8 +115,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     DEF(rule = Rule {
         Seq(
             Specific(".def", ignoreCase = true),
-            Repeatable { Except(Dir(".ENDEF")) },
-            Dir(".ENDEF")
+            Repeatable { Except(Dir("ENDEF")) },
+            Dir("ENDEF")
         )
     }),
     DESC(rule = Rule {
@@ -133,11 +133,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     ELSE(rule = Rule.dirNameRule("else")),
     ELSEIF(rule = Rule.dirNameRule("elseif")),
     END(rule = Rule.dirNameRule("end")),
-    ENDM(rule = Rule.dirNameRule("endm")),
+    ENDM,
     ENDR(rule = Rule.dirNameRule("endr")),
     ENDEF(rule = Rule.dirNameRule("endef")),
     ENDFUNC(rule = Rule.dirNameRule("endfunc")),
-    ENDIF(rule = Rule.dirNameRule("endif")),
+    ENDIF(),
     EQU(rule = Rule {
         Seq(
             Specific(".equ", ignoreCase = true),
@@ -240,12 +240,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".if", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_ABS),
             Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFDEF(rule = Rule {
@@ -253,15 +253,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".ifdef", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL),
             Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir(".elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
-            Dir(".endif")
+            Dir("endif")
         )
     }),
     IFB(rule = Rule {
@@ -269,15 +269,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".ifb", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_STRING),
             Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
-            Dir(".endif")
+            Dir("endif")
         )
     }),
     IFC(rule = Rule {
@@ -287,15 +287,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(","),
             SpecNode(GASNodeType.EXPRESSION_STRING),
             Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
-            Dir(".endif")
+            Dir("endif")
         )
     }),
     IFEQ(rule = Rule {
@@ -303,15 +303,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".ifeq", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_ABS),
             Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
-            Dir(".endif")
+            Dir("endif")
         )
     }),
     IFEQS(rule = Rule {
@@ -320,132 +320,132 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             SpecNode(GASNodeType.EXPRESSION_STRING),
             Specific(","),
             SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFGE(rule = Rule {
         Seq(
             Specific(".ifge", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFGT(rule = Rule {
         Seq(
             Specific(".ifgt", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFLE(rule = Rule {
         Seq(
             Specific(".ifle", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFLT(rule = Rule {
         Seq(
             Specific(".iflt", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFNB(rule = Rule {
         Seq(
             Specific(".ifnb", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFNC(rule = Rule {
         Seq(
             Specific(".ifnc", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFNDEF(rule = Rule {
         Seq(
             Specific(".ifndef", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFNOTDEF(rule = Rule {
         Seq(
             Specific(".ifnotdef", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), InSpecific(Token.Type.SYMBOL), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFNE(rule = Rule {
         Seq(
             Specific(".ifne", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     IFNES(rule = Rule {
         Seq(
             Specific(".ifnes", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable {
-                Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif")))
+                Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir(".elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
-                Seq(Dir(".else"), Repeatable { Except(XOR(Dir(".endif"), Dir(".else"), Dir(".elseif"))) })
-            }, Dir(".endif")
+                Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+            }, Dir("endif")
         )
     }),
     INCBIN(rule = Rule {
@@ -489,12 +489,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Repeatable {
                 Seq(
                     Specific(","),
-                    Except(XOR(Dir(".ENDR"), InSpecific(Token.Type.LINEBREAK))),
+                    Except(XOR(Dir("ENDR"), InSpecific(Token.Type.LINEBREAK))),
                 )
             },
             Repeatable {
-                Except(Dir(".ENDR"))
-            }, Dir(".ENDR")
+                Except(Dir("ENDR"))
+            }, Dir("ENDR")
         )
     }),
     IRPC(rule = Rule {
@@ -502,10 +502,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".irpc", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            Optional { Except(XOR(Dir(".ENDR"), InSpecific(emulator.kit.assembler.lexer.Token.Type.LINEBREAK))) },
+            Optional { Except(XOR(Dir("ENDR"), InSpecific(emulator.kit.assembler.lexer.Token.Type.LINEBREAK))) },
             Repeatable {
-                Except(Dir(".ENDR"))
-            }, Dir(".ENDR")
+                Except(Dir("ENDR"))
+            }, Dir("ENDR")
         )
     }),
     LCOMM(rule = Rule {
@@ -554,17 +554,29 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
         )
     }),
-    MACRO(rule = Rule(ignoreSpace = false) {
+    MACRO(rule = Rule {
         Seq(
-            Specific(".macro", ignoreCase = true),
+            Dir("macro"),
             InSpecific(Token.Type.SYMBOL),
             Optional {
                 Seq(
-                    SpecNode(GASNodeType.IDENTIFIER),
+                    InSpecific(Token.Type.SYMBOL),
+                    Optional{
+                        Seq(
+                            Specific("="),
+                            SpecNode(GASNodeType.EXPRESSION_ANY)
+                        )
+                    },
                     Repeatable {
                         Seq(
                             Specific(","),
-                            SpecNode(GASNodeType.IDENTIFIER),
+                            InSpecific(Token.Type.SYMBOL),
+                            Optional{
+                                Seq(
+                                    Specific("="),
+                                    SpecNode(GASNodeType.EXPRESSION_ANY)
+                                )
+                            },
                         )
                     }
                 )
@@ -573,7 +585,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Repeatable {
                 SpecNode(GASNodeType.STATEMENT)
             },
-            Dir(".ENDM")
+            Dir("endm")
         )
     }),
     MRI(rule = Rule {
@@ -698,7 +710,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".quad", ignoreCase = true),
             Optional {
                 Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), emulator.kit.assembler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS))
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
                 })
             }
         )
@@ -740,7 +752,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     SECTION(isSection = true, rule = Rule {
         Seq(
             Specific(".section", ignoreCase = true),
-            XOR(Dir(".DATA"), Dir(".TEXT"), Dir(".RODATA"), Dir(".BSS"))
+            XOR(Dir("DATA"), Dir("text"), Dir("RODATA"), Dir("BSS"), Seq(
+                InSpecific(Token.Type.SYMBOL),
+                Optional{
+                    Seq(
+                        Specific(","),
+                        SpecNode(GASNodeType.EXPRESSION_STRING)
+                    )
+                }
+            ))
         )
     }),
     SET_ALT(contentStartsDirectly = true, rule = Rule {
@@ -784,7 +804,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".sleb128", ignoreCase = true),
             Optional {
                 Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), emulator.kit.assembler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS))
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
                 })
             }
         )
@@ -878,10 +898,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     TYPE(rule = Rule.dirNameRule("type")),
     ULEB128(rule = Rule {
         Seq(
-            emulator.kit.assembler.Rule.Component.Specific(".uleb128", ignoreCase = true),
+            Specific(".uleb128", ignoreCase = true),
             Optional {
                 Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), emulator.kit.assembler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_ABS))
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
                 })
             }
         )
@@ -993,7 +1013,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     override fun getDetectionString(): String = if (!this.contentStartsDirectly) this.name.removePrefix("_") else ""
 
     override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive? {
-        val result = this.rule.matchStart(tokens, allDirs, definedAssembly)
+        val result = this.rule?.matchStart(tokens, allDirs, definedAssembly) ?: return null
         if (result.matches) {
             return GASNode.Directive(this, result.matchingTokens, result.matchingNodes)
         }
