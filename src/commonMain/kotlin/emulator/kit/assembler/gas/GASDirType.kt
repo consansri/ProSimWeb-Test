@@ -5,6 +5,7 @@ import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNodeType
+import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 
@@ -367,7 +368,7 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
             })
         }
     }),
-    MACRO(rule = Rule {
+    MACRO(rule = Rule(ignoreSpace = false) {
         Seq(
             InSpecific(Token.Type.SYMBOL),
             Optional {
@@ -689,9 +690,13 @@ enum class GASDirType(val disabled: Boolean = false, override val isSection: Boo
 
     override fun getDetectionString(): String = this.name.removePrefix("_")
 
-    override fun buildDirectiveContent(dirName: Token, tokens: List<Token>, definedAssembly: DefinedAssembly): Node? {
-        val type = dirName.dir ?: return null
-        val result = this.rule.matchStart(tokens, definedAssembly)
+    override fun buildDirectiveContent(dirName: Token, tokens: List<Token>, allDirs: List<DirTypeInterface>,definedAssembly: DefinedAssembly): GASNode.Directive? {
+        val type = dirName.dir
+        if(type == null){
+            dirName.addSeverity(Severity(Severity.Type.ERROR, "Missing linked directive type!"))
+            return null
+        }
+        val result = this.rule.matchStart(tokens, allDirs,definedAssembly)
         if (result.matches) {
             return GASNode.Directive(type, dirName, result.matchingTokens, result.matchingNodes)
         }

@@ -47,7 +47,7 @@ class Compiler(
         architecture.getConsole().clear()
         val process = Process(mainFile, others, build)
         processes.add(process)
-        val result = process.launch(architecture.getTranscript(), lexer, parser, assembly)
+        val result = process.launch(architecture.getTranscript(), lexer, parser, assembly, architecture.getAllFeatures())
 
         result.tree?.printError()?.let {
             architecture.getConsole().error(it)

@@ -13,6 +13,9 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
 
     init {
         isPrefix = type == Type.COMPLEMENT
+        if(type.style != null){
+            hl(type.style)
+        }
     }
 
     fun lowerOrEqualPrecedenceAs(other: Token): Boolean {
@@ -47,6 +50,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
 
     enum class Type(
         val regex: Regex? = null,
+        val style: CodeStyle? = null,
         val isOperator: Boolean = false,
         val couldBePrefix: Boolean = false,
         val isPunctuation: Boolean = false,
@@ -60,9 +64,9 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         LINEBREAK(Regex("^(\\r\\n|\\r|\\n)")),
         COMMENT_SL(Regex("^//.*")),
         COMMENT_ML(Regex("""^/\*([^*]|\*+[^*/])*\*/""")),
-        DIRECTIVE,
-        REGISTER,
-        INSTRNAME,
+        DIRECTIVE(style = CodeStyle.keyWordDir),
+        REGISTER(style = CodeStyle.keyWordReg),
+        INSTRNAME(style = CodeStyle.keyWordInstr),
         INT_DEC(Regex("^${Regex.escape(Settings.PRESTRING_DECIMAL)}([0-9]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
         INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
         INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),

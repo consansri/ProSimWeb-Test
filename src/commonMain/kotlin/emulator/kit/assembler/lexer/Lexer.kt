@@ -7,6 +7,7 @@ import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.lexer.Token.LineLoc
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.nativeLog
 
 /**
  * Lexing for GNU Assembler Syntax
@@ -39,11 +40,13 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         var lineID = 0
         var startIndex = 0
 
+        var keyWordType: Token.Type? = null
         var foundReg: RegContainer.Register?
         var foundInstr: InstrTypeInterface?
         var foundDir: DirTypeInterface?
 
         while (remaining.isNotEmpty()) {
+            keyWordType = null
             foundReg = null
             foundInstr = null
             foundDir = null
@@ -53,60 +56,51 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 result = type.regex?.find(remaining)
 
                 if (result == null) {
-                    when (type) {
-                        Token.Type.DIRECTIVE -> {
-                            for (dir in dirs) {
-                                result = dir.second.find(remaining)
-                                if (result != null) {
-                                    foundDir = dir.first
-                                    break
-                                }
-                            }
-                        }
+                    continue
+                }
 
-                        Token.Type.INSTRNAME -> {
-                            for (instr in instrs) {
-                                result = instr.second.find(remaining)
-                                if (result != null) {
-                                    foundInstr = instr.first
-                                    break
-                                }
-                            }
+                if (type == Token.Type.SYMBOL) {
+                    // Check directives
+                    for (dir in dirs) {
+                        if (dir.second.matches(result.value)) {
+                            foundDir = dir.first
+                            keyWordType = Token.Type.DIRECTIVE
+                            break
                         }
+                    }
 
-                        Token.Type.REGISTER -> {
-                            if (regs == null) continue
-                            for (reg in regs) {
-                                result = reg.second.find(remaining)
-                                if (result != null) {
-                                    foundReg = reg.first
-                                    break
-                                }
-                            }
+                    // check for instruction
+                    for (instr in instrs) {
+                        if (instr.second.matches(result.value)) {
+                            foundInstr = instr.first
+                            keyWordType = Token.Type.INSTRNAME
+                            break
                         }
+                    }
 
-                        else -> {
-                            continue
+                    if (regs != null) {
+                        for (reg in regs) {
+                            if (reg.second.matches(result.value)) {
+                                foundReg = reg.first
+                                keyWordType = Token.Type.REGISTER
+                                break
+                            }
                         }
                     }
                 }
 
-                if (result != null) {
-                    val token = Token(type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, foundReg, foundDir, foundInstr)
-                    tokenList += token
-                    startIndex += result.value.length
-                    remaining = file.content.substring(startIndex)
-                    if (type == Token.Type.LINEBREAK) lineID += 1
-                    break
-                }
+                nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
+                val token = Token(if (keyWordType != null) keyWordType else type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, foundReg, foundDir, foundInstr)
+                tokenList += token
+                startIndex += result.value.length
+                remaining = file.content.substring(startIndex)
+                if (type == Token.Type.LINEBREAK) lineID += 1
+                break
             }
+
         }
 
         return tokenList
-    }
-
-    companion object {
-        val regex = Regex("^j?")
     }
 
     private fun InstrTypeInterface.getInstrRegex(): Regex = Regex("^${Regex.escape(this.getDetectionName())}?", RegexOption.IGNORE_CASE)

@@ -1,5 +1,7 @@
 package emulator.kit.assembler.gas.nodes
 
+import emulator.kit.Architecture
+import emulator.kit.assembler.Assembly
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.lexer.Severity
@@ -8,7 +10,9 @@ import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
 import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembler.parser.NodeSeq.Component.*
+import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
+import emulator.kit.nativeLog
 
 /**
  * --------------------
@@ -23,6 +27,10 @@ import emulator.kit.nativeError
  *
  */
 sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
+
+    fun addSpaces(spaces: List<Token>) {
+        addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
+    }
 
     class Label(name: Token, colon: Token) : GASNode(BaseNode(name), BaseNode(colon)) {
 
@@ -40,13 +48,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         /**
          * Severities will be set by the Lowest Node which is actually checking the token.
          */
-        fun buildNode(gasNodeType: GASNodeType, source: List<Token>, definedAssembly: DefinedAssembly): Node? {
+        fun buildNode(gasNodeType: GASNodeType, source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): Node? {
             val remainingTokens = source.toMutableList()
             val node = when (gasNodeType) {
                 GASNodeType.ROOT -> {
                     val statements = mutableListOf<Statement>()
                     while (remainingTokens.isNotEmpty()) {
-                        val node = buildNode(GASNodeType.STATEMENT, remainingTokens, definedAssembly)
+                        val node = buildNode(GASNodeType.STATEMENT, remainingTokens, allDirs, definedAssembly)
 
                         if (node == null) {
                             val lineContent = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
@@ -69,39 +77,58 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
 
                 GASNodeType.STATEMENT -> {
-                    val label = buildNode(GASNodeType.LABEL, remainingTokens, definedAssembly) as? Label
+                    val spaces = mutableListOf<Token>()
+                    spaces.addAll(remainingTokens.dropSpaces())
+
+                    val label = buildNode(GASNodeType.LABEL, remainingTokens,  allDirs, definedAssembly) as? Label
                     if (label != null) {
                         remainingTokens.removeAll(label.getAllTokens().toSet())
                     }
+                    spaces.addAll(remainingTokens.dropSpaces())
 
-                    val directive = buildNode(GASNodeType.DIRECTIVE, remainingTokens, definedAssembly)
+                    val directive = buildNode(GASNodeType.DIRECTIVE, remainingTokens,  allDirs, definedAssembly)
                     if (directive != null && directive is Directive) {
                         remainingTokens.removeAll(directive.getAllTokens().toSet())
+                        spaces.addAll(remainingTokens.dropSpaces())
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
-                        return Statement.DirType(label, directive, lineBreak)
+                        val node = Statement.DirType(label, directive, lineBreak)
+                        node.addSpaces(spaces)
+                        return node
                     }
 
-                    val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, definedAssembly)
+                    val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens,  allDirs, definedAssembly)
                     if (instruction != null && instruction is Instr) {
                         remainingTokens.removeAll(instruction.getAllTokens().toSet())
+                        spaces.addAll(remainingTokens.dropSpaces())
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
-                        return Statement.InstrType(label, instruction, lineBreak)
+                        val node = Statement.InstrType(label, instruction, lineBreak)
+                        node.addSpaces(spaces)
+                        return node
                     }
 
                     val lineBreak = remainingTokens.checkLineBreak() ?: return null
-                    Statement.Empty(label, lineBreak)
+                    val node = Statement.Empty(label, lineBreak)
+                    node.addSpaces(spaces)
+                    node
                 }
 
                 GASNodeType.DIRECTIVE -> {
                     val first = remainingTokens.removeFirstOrNull() ?: return null
+                    val spaces = mutableListOf<Token>()
                     if (first.type != Token.Type.DIRECTIVE) return null
                     remainingTokens.remove(first)
-                    definedAssembly.getAdditionalDirectives().forEach {
+                    spaces.addAll(remainingTokens.dropSpaces())
+                    allDirs.forEach {
+                        nativeLog("Comparing: .${it.getDetectionString().uppercase()} == ${first.content.uppercase()}")
                         if (".${it.getDetectionString().uppercase()}" == first.content.uppercase()) {
-                            val node = it.buildDirectiveContent(first, remainingTokens, definedAssembly)
+                            val node = it.buildDirectiveContent(first, remainingTokens, allDirs,definedAssembly)
+                            node?.addSpaces(spaces)
                             return node
                         }
                     }
+
+                    nativeLog("Couldn't find directive name! $first")
+
                     return null
                 }
 
@@ -111,26 +138,42 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         return null
                     }
                     remainingTokens.removeFirst()
-                    definedAssembly.parseInstrParams(first, remainingTokens)
+                    val spaces = remainingTokens.dropSpaces()
+                    val node = definedAssembly.parseInstrParams(first, remainingTokens)
+                    node?.addSpaces(spaces)
+                    node
                 }
 
                 GASNodeType.IDENTIFIER -> {
+                    // Check Symbol
                     val first = remainingTokens.firstOrNull() ?: return null
                     if (first.type != Token.Type.SYMBOL) {
                         return null
                     }
+
+                    // Remove Until Next Relevant Token
+                    val spaces = mutableListOf<Token>()
                     remainingTokens.removeFirst()
+                    spaces.addAll(remainingTokens.dropSpaces())
+
+                    // Check Assignment Operator
                     val assignmentOperator = remainingTokens.firstOrNull()
                     if (assignmentOperator == null || assignmentOperator.content != "=") {
                         Identifier(first)
                     } else {
+                        // Remove Until Next Relevant Token
                         remainingTokens.removeFirst()
-                        val literal = buildNode(GASNodeType.EXPRESSION_ANY, source, definedAssembly)
+                        spaces.addAll(remainingTokens.dropSpaces())
+
+                        // Check Literal
+                        val literal = buildNode(GASNodeType.EXPRESSION_ANY, source,  allDirs, definedAssembly)
                         if (literal == null || literal !is Expression) {
                             literal?.getAllTokens()?.firstOrNull()?.addSeverity(Severity(Severity.Type.ERROR, "Expected a expression for the symbol assignment!"))
                             Identifier(first)
                         } else {
-                            Identifier(first, assignmentOperator, literal)
+                            val node = Identifier(first, assignmentOperator, literal)
+                            node.addSpaces(spaces)
+                            node
                         }
                     }
                 }
@@ -171,13 +214,22 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             return node
         }
 
-        fun MutableList<Token>.checkLineBreak(): Token? {
+        private fun MutableList<Token>.checkLineBreak(): Token? {
             val first = this.firstOrNull() ?: return null
             if (first.type != Token.Type.LINEBREAK) {
                 first.addSeverity(Severity(Severity.Type.ERROR, Severity.MSG_MISSING_LINEBREAK))
                 return null
             }
             return first
+        }
+
+        private fun MutableList<Token>.dropSpaces(): List<Token> {
+            val dropped = mutableListOf<Token>()
+            while (this.isNotEmpty()) {
+                if (this.first().type != Token.Type.WHITESPACE) break
+                dropped.add(this.removeFirst())
+            }
+            return dropped
         }
     }
 
@@ -238,7 +290,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             val notYetAdded = allTokens.filter { !this.getAllTokens().contains(it) }
             addChilds(*notYetAdded.map { BaseNode(it) }.toTypedArray())
         }
-
     }
 
     /**
@@ -371,7 +422,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             private fun takeRelevantTokens(tokens: List<Token>): List<Token> {
-                return tokens.takeWhile { it.type.isOperator || it.type == Token.Type.SYMBOL || it.type.isLiteral() || it.type.isBasicBracket() }
+                return tokens.takeWhile { it.type.isOperator || it.type == Token.Type.SYMBOL || it.type.isLiteral() || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }.filter { it.type != Token.Type.WHITESPACE }
             }
 
             /**
@@ -406,15 +457,15 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         continue
                     }
 
-                    if(token.type.isPunctuation){
-                        if(token.type.isOpeningBracket){
+                    if (token.type.isPunctuation) {
+                        if (token.type.isOpeningBracket) {
                             operatorStack.add(token)
                             continue
                         }
-                        if(token.type.isClosingBracket){
+                        if (token.type.isClosingBracket) {
                             var peekedOpToken = operatorStack.lastOrNull()
-                            while(peekedOpToken != null){
-                                if(peekedOpToken.type.isOpeningBracket){
+                            while (peekedOpToken != null) {
+                                if (peekedOpToken.type.isOpeningBracket) {
                                     operatorStack.removeLast()
                                     break
                                 }
