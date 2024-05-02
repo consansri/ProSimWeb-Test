@@ -12,7 +12,7 @@ class T6502Instr(
     nameToken: Token,
     allTokens: List<Token>,
     nodes: List<Node>
-) : GASNode.Instr(
+) : GASNode.Instruction(
     nameToken,
     allTokens,
     nodes

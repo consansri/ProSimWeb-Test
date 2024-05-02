@@ -30,11 +30,11 @@ class IKRRisc2Assembler : DefinedAssembly {
         TODO("Not yet implemented")
     }
 
-    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instr): Int {
+    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instruction): Int {
         TODO("Not yet implemented")
     }
 
-    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instr): Array<Variable.Value.Bin> {
+    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin> {
         TODO("Not yet implemented")
     }
 
@@ -42,7 +42,7 @@ class IKRRisc2Assembler : DefinedAssembly {
         TODO("Not yet implemented")
     }
 
-    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
         TODO("Not yet implemented")
     }
 }

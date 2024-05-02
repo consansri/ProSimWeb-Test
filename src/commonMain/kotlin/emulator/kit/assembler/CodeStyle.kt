@@ -30,9 +30,11 @@ enum class CodeStyle(val lightHexColor: Int, val darkHexColor: Int? = null) {
         val identifier = ORANGE
         val label = identifier
 
-        val integer = BASE0
+        val integer = BLUE
         val string = GREEN
         val char = CYAN
+
+        val argument = BASE4
 
         val operator = BASE0
         val punctuation = BASE1

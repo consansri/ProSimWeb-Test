@@ -17,10 +17,10 @@ interface DefinedAssembly {
     val numberPrefixes: NumberPrefixes
     fun getInstrs(features: List<Feature>): List<InstrTypeInterface>
     fun getAdditionalDirectives(): List<DirTypeInterface>
-    fun getInstrSpace(arch: emulator.kit.Architecture, instr: GASNode.Instr): Int
-    fun getOpBinFromInstr(arch: emulator.kit.Architecture, instr: GASNode.Instr): Array<Variable.Value.Bin>
+    fun getInstrSpace(arch: emulator.kit.Architecture, instr: GASNode.Instruction): Int
+    fun getOpBinFromInstr(arch: emulator.kit.Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin>
     fun getInstrFromBinary(arch: emulator.kit.Architecture, currentAddress: Variable.Value.Hex): StandardAssembler.ResolvedInstr?
-    fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr?
+    fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction?
 
     interface NumberPrefixes{
         val hex: String

@@ -5,9 +5,7 @@ import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNodeType
-import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
-import emulator.kit.assembler.parser.Node
 
 enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -15,8 +13,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".align", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable(maxLength = 2) {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -53,8 +51,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".balign", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable(maxLength = 2) {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -63,8 +61,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".balignl", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable(maxLength = 2) {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -74,8 +72,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".balignw", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable(maxLength = 2) {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -91,8 +89,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".byte", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -103,7 +101,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".comm", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     DATA(isSection = true, rule = Rule {
@@ -124,7 +122,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".desc", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     DIM(rule = Rule.dirNameRule("dim")),
@@ -186,11 +184,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     FILL(rule = Rule {
         Seq(
             Specific(".fill", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Specific(","),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Specific(","),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     FLOAT(disabled = true, rule = Rule.dirNameRule("float")),
@@ -226,9 +224,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".hword", ignoreCase = true),
             Optional {
                 Seq(
-                    SpecNode(GASNodeType.EXPRESSION_ABS),
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER),
                     Repeatable {
-                        Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                        Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                     }
                 )
             }
@@ -238,11 +236,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     IF(rule = Rule {
         Seq(
             Specific(".if", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -301,12 +299,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     IFEQ(rule = Rule {
         Seq(
             Specific(".ifeq", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
@@ -331,10 +329,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     IFGE(rule = Rule {
         Seq(
             Specific(".ifge", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -343,10 +341,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     IFGT(rule = Rule {
         Seq(
             Specific(".ifgt", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -355,10 +353,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     IFLE(rule = Rule {
         Seq(
             Specific(".ifle", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -367,10 +365,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     IFLT(rule = Rule {
         Seq(
             Specific(".iflt", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -427,7 +425,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     IFNE(rule = Rule {
         Seq(
             Specific(".ifne", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
+            SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
                 Seq(Dir("elseif"), SpecNode(GASNodeType.EXPRESSION_STRING), Specific(","), SpecNode(GASNodeType.EXPRESSION_STRING), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
@@ -452,8 +450,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".incbin", ignoreCase = true),
             SpecNode(GASNodeType.EXPRESSION_STRING), Optional {
-                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS), Optional {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER), Optional {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -468,8 +466,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".int", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -511,14 +509,14 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     LCOMM(rule = Rule {
         Seq(
             Specific(".lcomm", ignoreCase = true),
-            InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS)
+            InSpecific(Token.Type.SYMBOL), Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     LFLAGS(rule = Rule.dirNameRule("lflags")),
     LINE(rule = Rule {
         Seq(
             Specific(".line", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     LINKONCE(rule = Rule {
@@ -531,7 +529,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     LN(rule = Rule {
         Seq(
             Specific(".ln", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     LOC(disabled = true, rule = Rule.dirNameRule("loc")),
@@ -548,42 +546,34 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".long", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
     }),
     MACRO(rule = Rule {
         Seq(
-            Dir("macro"),
-            InSpecific(Token.Type.SYMBOL),
-            Optional {
-                Seq(
-                    InSpecific(Token.Type.SYMBOL),
-                    Optional{
-                        Seq(
-                            Specific("="),
-                            SpecNode(GASNodeType.EXPRESSION_ANY)
-                        )
-                    },
-                    Repeatable {
-                        Seq(
-                            Specific(","),
-                            InSpecific(Token.Type.SYMBOL),
-                            Optional{
-                                Seq(
-                                    Specific("="),
-                                    SpecNode(GASNodeType.EXPRESSION_ANY)
-                                )
-                            },
-                        )
-                    }
-                )
-            },
-            InSpecific(emulator.kit.assembler.lexer.Token.Type.LINEBREAK),
-            Repeatable {
-                SpecNode(GASNodeType.STATEMENT)
+            Seq(
+                Dir("macro"),
+                InSpecific(Token.Type.SYMBOL),
+                Optional {
+                    Seq(
+                        SpecNode(GASNodeType.ARGUMENT),
+                        Repeatable {
+                            Seq(
+                                Optional {
+                                    Specific(",")
+                                },
+                                SpecNode(GASNodeType.ARGUMENT)
+                            )
+                        }
+                    )
+                },
+                InSpecific(emulator.kit.assembler.lexer.Token.Type.LINEBREAK)
+            ),
+            Repeatable(ignoreSpaces = false) {
+                Except(Dir("endm"))
             },
             Dir("endm")
         )
@@ -591,7 +581,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     MRI(rule = Rule {
         Seq(
             Specific(".mri", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     NOALTMACRO(rule = Rule.dirNameRule("noaltmacro")),
@@ -600,16 +590,16 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".nop", ignoreCase = true),
             Optional {
-                SpecNode(GASNodeType.EXPRESSION_ABS)
+                SpecNode(GASNodeType.EXPRESSION_INTEGER)
             }
         )
     }),
     NOPS(rule = Rule {
         Seq(
             Specific(".nops", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Optional {
-                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
             }
         )
     }),
@@ -618,11 +608,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".octa", ignoreCase = true),
             Optional {
                 Seq(
-                    SpecNode(GASNodeType.EXPRESSION_ABS),
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER),
                     Repeatable {
                         Seq(
                             Specific(","),
-                            SpecNode(GASNodeType.EXPRESSION_ABS)
+                            SpecNode(GASNodeType.EXPRESSION_INTEGER)
                         )
                     }
                 )
@@ -632,7 +622,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     OFFSET(rule = Rule {
         Seq(
             Specific(".offset", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     ORG(disabled = true, rule = Rule.dirNameRule("org")),
@@ -640,8 +630,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".p2align", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable(maxLength = 2) {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -650,8 +640,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".p2alignw", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable(maxLength = 2) {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -660,8 +650,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".p2alignl", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable(maxLength = 2) {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable(maxLength = 2) {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -685,9 +675,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     PSIZE(rule = Rule {
         Seq(
             Specific(".psize", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Specific(","),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     PURGEM(rule = Rule {
@@ -709,8 +699,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".quad", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -726,7 +716,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     RELOC(rule = Rule {
         Seq(
             Specific(".reloc", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Specific(","),
             InSpecific(Token.Type.SYMBOL)
         )
@@ -734,7 +724,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     REPT(rule = Rule {
         Seq(
             Specific(".rept", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     SBTTL(rule = Rule {
@@ -754,7 +744,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".section", ignoreCase = true),
             XOR(Dir("DATA"), Dir("text"), Dir("RODATA"), Dir("BSS"), Seq(
                 InSpecific(Token.Type.SYMBOL),
-                Optional{
+                Optional {
                     Seq(
                         Specific(","),
                         SpecNode(GASNodeType.EXPRESSION_STRING)
@@ -782,8 +772,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".short", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -793,9 +783,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     SKIP(rule = Rule {
         Seq(
             Specific(".skip", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Optional {
-                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
             }
         )
     }),
@@ -803,8 +793,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".sleb128", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -812,9 +802,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     SPACE(rule = Rule {
         Seq(
             Specific(".space", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Optional {
-                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
             }
         )
     }),
@@ -851,7 +841,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     STRUCT(rule = Rule {
         Seq(
             Specific(".struct", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     SUBSECTION(rule = Rule {
@@ -886,11 +876,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".tls_common", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Optional {
                 Seq(
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
                 )
             }
         )
@@ -900,8 +890,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".uleb128", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -909,7 +899,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     VAL(rule = Rule {
         Seq(
             Specific(".val", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     VERSION(rule = Rule {
@@ -923,7 +913,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".vtable_entry", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     VTABLE_INHERIT(rule = Rule {
@@ -961,8 +951,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".word", ignoreCase = true),
             Optional {
-                Seq(SpecNode(GASNodeType.EXPRESSION_ABS), Repeatable {
-                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_ABS))
+                Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Repeatable {
+                    Seq(Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
                 })
             }
         )
@@ -970,17 +960,17 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     ZERO(rule = Rule {
         Seq(
             Specific(".zero", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS)
+            SpecNode(GASNodeType.EXPRESSION_INTEGER)
         )
     }),
     _2BYTE(rule = Rule {
         Seq(
             Specific(".2byte", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Repeatable {
                 Seq(
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
                 )
             }
         )
@@ -988,11 +978,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     _4BYTE(rule = Rule {
         Seq(
             Specific(".4byte", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Repeatable {
                 Seq(
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
                 )
             }
         )
@@ -1000,11 +990,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     _8BYTE(rule = Rule {
         Seq(
             Specific(".8byte", ignoreCase = true),
-            SpecNode(GASNodeType.EXPRESSION_ABS),
+            SpecNode(GASNodeType.EXPRESSION_INTEGER),
             Repeatable {
                 Seq(
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_ABS)
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
                 )
             }
         )
@@ -1015,7 +1005,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive? {
         val result = this.rule?.matchStart(tokens, allDirs, definedAssembly) ?: return null
         if (result.matches) {
-            return GASNode.Directive(this, result.matchingTokens, result.matchingNodes)
+            return GASNode.Directive(this, result.matchingTokens + result.ignoredSpaces, result.matchingNodes)
         }
         return null
     }

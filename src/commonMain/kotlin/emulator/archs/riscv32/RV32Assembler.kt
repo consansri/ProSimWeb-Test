@@ -42,7 +42,7 @@ class RV32Assembler: DefinedAssembly {
 
     override fun getAdditionalDirectives(): List<DirTypeInterface> = GASRVDirType.entries
 
-    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instr): Int {
+    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instruction): Int {
         if (instr !is RV32Instr) {
             arch.getConsole().error("Expected [${RV32Instr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return 1
@@ -50,7 +50,7 @@ class RV32Assembler: DefinedAssembly {
         return instr.instrType.memWords
     }
 
-    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instr): Array<Variable.Value.Bin> {
+    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin> {
         if (instr !is RV32Instr) {
             arch.getConsole().error("Expected [${RV32Instr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return emptyArray()
@@ -63,7 +63,7 @@ class RV32Assembler: DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instr.type.id, instr.type.paramType.getTSParamString(arch, instr.binMap.toMutableMap()), instr.type.memWords)
     }
 
-    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
         val types = RV32Syntax.InstrType.entries.filter { it.getDetectionName().uppercase() == instrToken.content.uppercase() }
 
         for (type in types) {

@@ -62,20 +62,21 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
     ) {
         WHITESPACE(Regex("""^[\t ]+""")),
         LINEBREAK(Regex("^(\\r\\n|\\r|\\n)")),
-        COMMENT_SL(Regex("^//.*")),
-        COMMENT_ML(Regex("""^/\*([^*]|\*+[^*/])*\*/""")),
+        COMMENT_SL(Regex("^//.*"), CodeStyle.comment),
+        COMMENT_ML(Regex("""^/\*([^*]|\*+[^*/])*\*/"""), CodeStyle.comment),
         DIRECTIVE(style = CodeStyle.keyWordDir),
         REGISTER(style = CodeStyle.keyWordReg),
         INSTRNAME(style = CodeStyle.keyWordInstr),
-        INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
-        INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
-        INT_OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
-        INT_DEC(Regex("^${Regex.escape(Settings.PRESTRING_DECIMAL)}([0-9]+)", RegexOption.IGNORE_CASE),  isNumberLiteral = true),
-        STRING_ML(Regex("^\"\"\"(?:\\.|[^\"])*\"\"\""), isStringLiteral = true),
-        STRING_SL(Regex("""^"(\\.|[^\\"])*""""), isStringLiteral = true),
-        CHAR(Regex("""'(\\.|[^\\'])'"""), isCharLiteral = true),
+        INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE), CodeStyle.integer,  isNumberLiteral = true),
+        INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE), CodeStyle.integer,  isNumberLiteral = true),
+        INT_OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE), CodeStyle.integer,  isNumberLiteral = true),
+        INT_DEC(Regex("^${Regex.escape(Settings.PRESTRING_DECIMAL)}([0-9]+)", RegexOption.IGNORE_CASE), CodeStyle.integer,  isNumberLiteral = true),
+        STRING_ML(Regex("^\"\"\"(?:\\.|[^\"])*\"\"\""),CodeStyle.string, isStringLiteral = true),
+        STRING_SL(Regex("""^"(\\.|[^\\"])*""""), CodeStyle.string,isStringLiteral = true),
+        CHAR(Regex("""^'(\\.|[^\\'])'"""), CodeStyle.char, isCharLiteral = true),
         SYMBOL(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
-        SYMBOL_REF(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
+        ARG_REF(Regex("""^\\[a-zA-Z$._][a-zA-Z0-9$._]*"""), CodeStyle.argument),
+        ARG_SEPARATOR(Regex("""^\\\(\)"""),CodeStyle.argument),
         COMPLEMENT(Regex("^~"), isOperator = true),
         MULT(Regex("^\\*"), isOperator = true),
         DIV(Regex("^/"), isOperator = true),
@@ -133,6 +134,10 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
 
     fun isPseudo(): Boolean {
         return id < 0
+    }
+
+    fun addSeverity(type: Severity.Type, message: String){
+        this.severities.add(Severity(type, message))
     }
 
     fun addSeverity(severity: Severity) {

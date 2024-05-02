@@ -24,6 +24,23 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         /**
          * SEMANTIC ANALYSIS
+         * - Expand MACRO and IRP Directives
+         *   Iterate over statements if
+         *   - Definition add to definitions
+         *   - Resolve Unmatched Statements
+         *
+         * - Resolve Absolute Symbol Values
+         *   Iterate over statements if
+         *   - Directive is symbol defining -> add to local list of symbols (Valid Types: Undefined, String, Integer, Reg)
+         *   - Directive is symbol setting -> change setted value and type
+         *   - Statement contains symbol as Operand in Expression -> set Operand Value to symbol value (throw error if invalid type)
+         *
+         *
+         *
+         * - Calculate Relative Label Addresses
+         *
+         *
+         *
          * - LINK Providers with Receivers
          * - TYPE CHECKING
          */
@@ -45,20 +62,19 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         while (remaining.isNotEmpty()) {
             // Add Base Node if not found any special node
-            val shouldAdd = when (remaining.first().type) {
-                Token.Type.WHITESPACE -> false
-                Token.Type.COMMENT_SL -> false
-                Token.Type.COMMENT_ML -> false
-                else -> true
+            val replaceWithSpace = when (remaining.first().type) {
+                Token.Type.COMMENT_SL -> true
+                Token.Type.COMMENT_ML -> true
+                else -> false
             }
 
-            if (shouldAdd) elements.add(remaining.removeFirst()) else {
-                remaining.removeFirst()
+            if (!replaceWithSpace) elements.add(remaining.removeFirst()) else {
+                val replacing = remaining.removeFirst()
+                elements.add(Token(Token.Type.WHITESPACE, replacing.lineLoc, " ", replacing.id))
             }
         }
 
         // Remove Spaces between DIRECTIVE and LINEBREAK
-
 
         return elements
     }

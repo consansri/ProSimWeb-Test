@@ -2,13 +2,15 @@ package emulator.kit.assembler.gas.nodes
 
 import emulator.kit.assembler.Rule
 
-enum class GASNodeType() {
-    ROOT,
-    STATEMENT,
-    DIRECTIVE,
-    INSTRUCTION,
-    LABEL,
-    EXPRESSION_ABS,
+enum class GASNodeType(val rule: Rule? = null) {
+    EXPRESSION_INTEGER,
     EXPRESSION_STRING,
-    EXPRESSION_ANY
+    EXPRESSION_ANY,
+    LABEL,
+    ARGUMENT,
+    INSTRUCTION,
+    DIRECTIVE,
+    STATEMENT,
+    ROOT,
+
 }

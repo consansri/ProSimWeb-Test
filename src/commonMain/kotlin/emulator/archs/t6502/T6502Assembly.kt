@@ -25,7 +25,7 @@ class T6502Assembly() : DefinedAssembly {
     override val MEM_ADDRESS_SIZE: Variable.Size = T6502.MEM_ADDR_SIZE
     override val WORD_SIZE: Variable.Size = T6502.WORD_SIZE
 
-    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instr): Int {
+    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instruction): Int {
         if (instr !is T6502Instr) {
             arch.getConsole().error("Expected [${T6502Instr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return 1
@@ -34,7 +34,7 @@ class T6502Assembly() : DefinedAssembly {
         return t6502Instr.addressingMode.byteAmount
     }
 
-    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instr): Array<Bin> {
+    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Bin> {
         if (instr !is T6502Instr) {
             arch.getConsole().error("Expected [${T6502Instr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return emptyArray()
@@ -59,7 +59,7 @@ class T6502Assembly() : DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instrType.name, ext, actualParamType.byteAmount)
     }
 
-    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
         val instrType = InstrType.entries.firstOrNull { instrToken.instr?.getDetectionName() == it.name } ?: return null
         val validParamModes = instrType.opCode.map { it.key }
         for (amode in validParamModes) {

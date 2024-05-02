@@ -45,13 +45,14 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         var foundInstr: InstrTypeInterface?
         var foundDir: DirTypeInterface?
 
+        var result: MatchResult?
         while (remaining.isNotEmpty()) {
+            result = null
             keyWordType = null
             foundReg = null
             foundInstr = null
             foundDir = null
 
-            var result: MatchResult?
             for (type in Token.Type.entries) {
                 result = type.regex?.find(remaining)
 
@@ -89,7 +90,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                     }
                 }
 
-                // nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
+                //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
                 val token = Token(if (keyWordType != null) keyWordType else type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, foundReg, foundDir, foundInstr)
                 tokenList += token
                 startIndex += result.value.length
@@ -97,7 +98,6 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 if (type == Token.Type.LINEBREAK) lineID += 1
                 break
             }
-
         }
 
         return tokenList

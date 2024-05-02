@@ -6,7 +6,7 @@ import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
 
-class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val paramType: IKRMiniSyntax.ParamType, instrName: Token, allTokens: List<Token>, nodes: List<Node>) : GASNode.Instr(instrName, allTokens, nodes) {
+class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val paramType: IKRMiniSyntax.ParamType, instrName: Token, allTokens: List<Token>, nodes: List<Node>) : GASNode.Instruction(instrName, allTokens, nodes) {
 
     val numericExprs = nodes.filterIsInstance<NumericExpr>()
     override fun getWidth(): Variable.Size {

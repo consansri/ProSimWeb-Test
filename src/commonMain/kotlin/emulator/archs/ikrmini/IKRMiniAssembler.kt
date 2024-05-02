@@ -25,7 +25,7 @@ class IKRMiniAssembler: DefinedAssembly {
 
     override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
 
-    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instr): Int {
+    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instruction): Int {
         if (instr !is IKRMiniInstr) {
             arch.getConsole().error("Expected [${IKRMiniInstr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return 1
@@ -33,7 +33,7 @@ class IKRMiniAssembler: DefinedAssembly {
         return instr.paramType.wordAmount
     }
 
-    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instr): Array<Variable.Value.Bin> {
+    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin> {
         if (instr !is IKRMiniInstr) {
             arch.getConsole().error("Expected [${IKRMiniInstr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return emptyArray()
@@ -70,7 +70,7 @@ class IKRMiniAssembler: DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instrType.name, extString, actualParamType.wordAmount)
     }
 
-    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
         val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { instrToken.content.uppercase() == it.getDetectionName().uppercase() } ?: return null
         val validParamModes = instrType.paramMap.map { it.key }
         for (amode in validParamModes) {

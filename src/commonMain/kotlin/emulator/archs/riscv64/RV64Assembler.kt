@@ -42,7 +42,7 @@ class RV64Assembler: DefinedAssembly {
 
     override fun getAdditionalDirectives(): List<DirTypeInterface> = GASRVDirType.entries
 
-    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instr): Int {
+    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instruction): Int {
         if (instr !is RV64Instr) {
             arch.getConsole().error("Expected [${RV64Instr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return 1
@@ -50,7 +50,7 @@ class RV64Assembler: DefinedAssembly {
         return instr.instrType.memWords
     }
 
-    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instr): Array<Variable.Value.Bin> {
+    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin> {
         if (instr !is RV64Instr) {
             arch.getConsole().error("Expected [${RV64Instr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return emptyArray()
@@ -63,16 +63,15 @@ class RV64Assembler: DefinedAssembly {
         return StandardAssembler.ResolvedInstr(instr.type.id, instr.type.paramType.getTSParamString(arch, instr.binMap.toMutableMap()), instr.type.memWords)
     }
 
-    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instr? {
+    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
         val types = RV64Syntax.InstrType.entries.filter { it.getDetectionName() == instrToken.instr?.getDetectionName() }
 
         for (type in types) {
             val paramType = type.paramType
-            val result = paramType.tokenSeq?.matchStart(*remainingSource.toTypedArray()) ?: return RV64Instr(type, paramType, instrToken, listOf(), listOf())
+            val result = paramType.tokenSeq?.matchStart(remainingSource, listOf(), this) ?: return RV64Instr(type, paramType, instrToken, listOf(), listOf())
             if (!result.matches) continue
 
-            val allTokens = result.sequenceMap.flatMap { it.token.toList() }
-            return RV64Instr(type, paramType, instrToken, allTokens,result.nodes)
+            return RV64Instr(type, paramType, instrToken, result.matchingTokens + result.ignoredSpaces,result.matchingNodes)
         }
 
         return null
