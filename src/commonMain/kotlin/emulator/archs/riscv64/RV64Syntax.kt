@@ -1911,6 +1911,7 @@ class RV64Syntax {
         },
 
         // Pseudo
+        FENCEI("FENCE.I", true, ParamType.PS_NONE),
         Nop("NOP", true, ParamType.PS_NONE),
         Mv("MV", true, ParamType.PS_RD_RS1),
         Li64("LI", true, ParamType.PS_RD_LI_I64, memWords = 8),

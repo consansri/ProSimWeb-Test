@@ -6,11 +6,10 @@ import emulator.kit.assembler.gas.GASAssembler
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
-import emulator.kit.assembler.lexer.TokenSeq.Component.*
-import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
+import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
 import kotlinx.datetime.*
 
@@ -62,8 +61,10 @@ class Compiler(
 
         if (result.hasErrors()) {
             architecture.getConsole().error("Process failed with an exception!\n$process")
+            nativeError("Process failed with an exception!\n$process")
         } else {
             architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
+            nativeInfo("Process finished SUCCESSFUL\n$process")
         }
 
 

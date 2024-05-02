@@ -646,6 +646,10 @@ class RV64BinMapper {
                         binArray.add(jalrOpCode)
                     }
                 }
+
+                InstrType.FENCEI -> {
+                    // Ignoring
+                }
             }
 
         } catch (e: Exception) {

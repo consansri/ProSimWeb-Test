@@ -1,5 +1,6 @@
 package emulator.kit.assembler
 
+import debug.DebugTools
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNode.Companion.dropSpaces
@@ -21,12 +22,6 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
 
     fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
         val result = comp.matchStart(source, allDirs, definedAssembly)
-        val nameComp = if (comp is Component.Seq) {
-            comp.comps.firstOrNull()
-        } else null
-        if (source.firstOrNull()?.content == ".set" && nameComp is Component.Specific && nameComp.content == ".set") {
-            nativeLog("Rule: ${comp.print()}\nTokens: ${source.joinToString(" ") { "${it.lineLoc} $it" }}\nResult: ${result.matchingTokens.joinToString(" ") { it::class.simpleName.toString() }}")
-        }
         return result
     }
 
@@ -38,7 +33,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
             private val comp = comp()
             override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
                 val result = comp.matchStart(source, allDirs, definedAssembly)
-                nativeLog("Match: Optional ${comp.print()}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Optional ${comp.print()}")
                 return MatchResult(true, result.matchingTokens, result.matchingNodes, result.remainingTokens)
             }
 
@@ -52,7 +47,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 for (comp in comps) {
                     result = comp.matchStart(source, allDirs, definedAssembly)
                     if (result.matches) {
-                        nativeLog("Match: XOR ${result.matchingTokens.joinToString { it.type.name }}")
+                        if (DebugTools.KIT_showRuleChecks) nativeLog("Match: XOR ${result.matchingTokens.joinToString { it.type.name }}")
                         result = MatchResult(true, result.matchingTokens, result.matchingNodes, result.remainingTokens)
                         return result
                     }
@@ -94,7 +89,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     result = comp.matchStart(remainingTokens, allDirs, definedAssembly)
                 }
 
-                nativeLog("Match: Repeatable ${comp.print()} iterations: ${iteration + 1}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Repeatable ${comp.print()} iterations: ${iteration + 1}")
 
                 return MatchResult(true, matchingTokens, matchingNodes, remainingTokens, ignoredSpaces)
             }
@@ -126,7 +121,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     remaining.addAll(result.remainingTokens)
                 }
 
-                nativeLog("Match: Seq ${comps.joinToString { it.print() }}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Seq ${comps.joinToString { it.print() }}")
 
                 return MatchResult(true, matchingTokens, matchingNodes, remaining, ignoredSpaces)
             }
@@ -141,7 +136,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 if (result.matches) {
                     return MatchResult(false, listOf(), listOf(), source)
                 }
-                nativeLog("Match: Except ${comp.print()}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Except ${comp.print()}")
                 return MatchResult(true, listOf(source.first()), listOf(), source - source.first())
             }
 
@@ -156,29 +151,29 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 } else {
                     if (first.content != content) return MatchResult(false, listOf(), listOf(), source)
                 }
-                nativeLog("Match: Specific $content -> $first")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Specific $content -> $first")
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
             override fun print(): String = "[specific:${content}]"
         }
 
-        class Reg(private val inRegFile: RegContainer.RegisterFile? = null, private val notInRegFile: RegContainer.RegisterFile? = null) : Component(){
+        class Reg(private val inRegFile: RegContainer.RegisterFile? = null, private val notInRegFile: RegContainer.RegisterFile? = null) : Component() {
             override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
                 val reg = first.reg
-                if(first.type != Token.Type.REGISTER || reg == null) return MatchResult(false, listOf(), listOf(), source)
+                if (first.type != Token.Type.REGISTER || reg == null) return MatchResult(false, listOf(), listOf(), source)
 
-                if(inRegFile != null && !inRegFile.unsortedRegisters.contains(reg)) return MatchResult(false, listOf(), listOf(), source)
+                if (inRegFile != null && !inRegFile.unsortedRegisters.contains(reg)) return MatchResult(false, listOf(), listOf(), source)
 
-                if(notInRegFile != null && notInRegFile.unsortedRegisters.contains(reg)) return MatchResult(false, listOf(), listOf(), source)
+                if (notInRegFile != null && notInRegFile.unsortedRegisters.contains(reg)) return MatchResult(false, listOf(), listOf(), source)
 
-                nativeLog("Match: Reg ${reg} -> ${first.content}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Reg ${reg} -> ${first.content}")
 
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(): String = "[reg: ${if(inRegFile != null) "in ${inRegFile.name}"  else ""} and ${if(notInRegFile != null) "not in ${notInRegFile.name}" else ""}]"
+            override fun print(): String = "[reg: ${if (inRegFile != null) "in ${inRegFile.name}" else ""} and ${if (notInRegFile != null) "not in ${notInRegFile.name}" else ""}]"
 
         }
 
@@ -186,7 +181,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
             override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
                 if (first.type == Token.Type.DIRECTIVE && ".${dirName.uppercase()}" == first.content.uppercase()) {
-                    nativeLog("Match: Dir ${dirName}")
+                    if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Dir ${dirName}")
                     return MatchResult(true, listOf(first), listOf(), source - first)
                 }
                 return MatchResult(false, listOf(), listOf(), source)
@@ -199,7 +194,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
             override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
                 if (first.type != type) return MatchResult(false, listOf(), listOf(), source)
-                nativeLog("Match: InSpecific ${type.name}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: InSpecific ${type.name}")
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
@@ -210,10 +205,10 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
             override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
                 val node = GASNode.buildNode(type, source, allDirs, definedAssembly)
                 if (node == null) {
-                    nativeLog("Mismatch: SpecNode ${type.name}")
+                    if (DebugTools.KIT_showRuleChecks) nativeLog("Mismatch: SpecNode ${type.name}")
                     return MatchResult(false, listOf(), listOf(), source)
                 }
-                nativeLog("Match: SpecNode ${type.name}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: SpecNode ${type.name}")
                 return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
             }
 

@@ -9,7 +9,6 @@ import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.lexer.Token
-import emulator.kit.assembler.lexer.TokenSeq
 
 class RV32Syntax {
 

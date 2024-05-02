@@ -27,6 +27,9 @@ object DebugTools {
     const val KIT_showFileHandlerInfo = false
     const val KIT_showMemoryInfo = false
 
+    const val KIT_showRuleChecks = false
+    const val KIT_showGrammarTree = false
+
     const val KIT_showSyntaxInfo = false
     const val KIT_showCompilerInfo = false
     const val KIT_showAsmInfo = false

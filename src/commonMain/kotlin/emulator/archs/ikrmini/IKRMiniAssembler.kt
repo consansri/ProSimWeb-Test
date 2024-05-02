@@ -94,8 +94,7 @@ class IKRMiniAssembler : DefinedAssembly {
                 continue
             }
 
-            val remaining = remainingSource.toMutableList()
-            result = seq.matchStart(remaining, listOf(), this)
+            result = seq.matchStart(remainingSource, listOf(), this)
             if (!result.matches) continue
             validAModes.add(amode)
             lastMatchingResult = result

@@ -1,12 +1,16 @@
 package emulator.archs.t6502
 
+import emulator.archs.ikrmini.IKRMiniInstr
+import emulator.archs.ikrmini.IKRMiniSyntax
 import emulator.kit.Architecture
 import emulator.kit.assembly.standards.StandardAssembler
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.Rule
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.nativeError
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
@@ -31,7 +35,12 @@ class T6502Assembly() : DefinedAssembly {
             return 1
         }
         val t6502Instr: T6502Instr = instr
-        return t6502Instr.addressingMode.byteAmount
+        val amode = instr.addressMode
+        if(amode == null){
+            nativeError("Requesting instruction space for not yet determined instruction param type!")
+            return 1
+        }
+        return amode.byteAmount
     }
 
     override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Bin> {
@@ -61,23 +70,38 @@ class T6502Assembly() : DefinedAssembly {
 
     override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
         val instrType = InstrType.entries.firstOrNull { instrToken.instr?.getDetectionName() == it.name } ?: return null
-        val validParamModes = instrType.opCode.map { it.key }
-        for (amode in validParamModes) {
+        val possibleAModes = instrType.opCode.map { it.key }
+
+        val validAModes = mutableListOf<AModes>()
+        var lastMatchingResult: Rule.MatchResult? = null
+        var result: Rule.MatchResult
+
+        for (amode in possibleAModes) {
             val seq = amode.tokenSequence
             if (seq == null) {
-                return T6502Instr(instrType, amode, instrToken, listOf(), listOf())
+
+                validAModes.add(amode)
+                continue
             }
 
             if (remainingSource.isEmpty()) {
                 continue
             }
 
-            val remaining = remainingSource.toMutableList()
-            val result = seq.matchStart(*remaining.toTypedArray())
+            result = seq.matchStart(remainingSource, listOf(), this)
             if (!result.matches) continue
-            val allTokens = result.sequenceMap.flatMap { it.token.toList() }
-            return T6502Instr(instrType, amode, instrToken, allTokens, result.nodes)
+            validAModes.add(amode)
+            lastMatchingResult = result
         }
+
+        if(validAModes.isNotEmpty()){
+            return if(lastMatchingResult != null){
+                T6502Instr(instrType, validAModes, instrToken, lastMatchingResult.matchingTokens + lastMatchingResult.ignoredSpaces, lastMatchingResult.matchingNodes)
+            }else{
+                T6502Instr(instrType, validAModes, instrToken, listOf(), listOf())
+            }
+        }
+
         return null
     }
 

@@ -39,14 +39,10 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          *   - Directive is symbol setting -> change setted value and type
          *   - Statement contains symbol as Operand in Expression -> set Operand Value to symbol value (throw error if invalid type)
          *
-         *
+         * - Fix Instruction ParamType and WordSizes
          *
          * - Calculate Relative Label Addresses
          *
-         *
-         *
-         * - LINK Providers with Receivers
-         * - TYPE CHECKING
          */
 
         /**

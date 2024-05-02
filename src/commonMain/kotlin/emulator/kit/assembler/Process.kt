@@ -1,5 +1,6 @@
 package emulator.kit.assembler
 
+import debug.DebugTools
 import emulator.kit.common.Transcript
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
@@ -30,7 +31,7 @@ data class Process(
         nativeLog("Process: ${state.displayName}")
         val tree = parser.parse(tokens, otherFiles, features)
 
-        nativeLog("Process: Tree:\n${tree}")
+        if (DebugTools.KIT_showGrammarTree) nativeLog("Process: Tree:\n${tree}")
 
         val assemblyMap: Assembly.AssemblyMap? = if (build && !tree.hasErrors()) {
             state = State.ASSEMBLE
@@ -52,7 +53,7 @@ data class Process(
     }
 
     override fun toString(): String {
-        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) ${(Clock.System.now() - processStart).inWholeSeconds}s"
+        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeMilliseconds}ms) ${(Clock.System.now() - processStart).inWholeMilliseconds}ms"
     }
 
     enum class State(val displayName: String) {
@@ -62,12 +63,12 @@ data class Process(
         CACHE_RESULTS("caching"),
     }
 
-    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Assembly.AssemblyMap?){
-        fun hasErrors(): Boolean{
+    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Assembly.AssemblyMap?) {
+        fun hasErrors(): Boolean {
             return tree?.hasErrors() ?: false
         }
 
-        fun hasWarnings(): Boolean{
+        fun hasWarnings(): Boolean {
             return tree?.hasWarnings() ?: false
         }
     }

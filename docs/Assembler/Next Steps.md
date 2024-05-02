@@ -1,8 +1,7 @@
 # NEXT STEPS #
 
-- Rule: Implement ignoreSpace
-- Remove: TokenSeq (replace with Rule)
-- ...
+- **Semantic Analysis**
+- 
 
 ## DONE ##
 
@@ -10,6 +9,8 @@
 - **Token** (Type)
 - **Lexer** (Compiler)
 - **GAS Directives** (Grammar)
+- **Rule** implemented
+- **TokenSeq** replaced with Rule
 
 ## Documentation Links ##
 

@@ -7,11 +7,8 @@ import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
-import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembler.parser.NodeSeq.Component.*
 import emulator.kit.nativeError
-import emulator.kit.nativeLog
-import emulator.kit.nativeWarn
 
 /**
  * --------------------
