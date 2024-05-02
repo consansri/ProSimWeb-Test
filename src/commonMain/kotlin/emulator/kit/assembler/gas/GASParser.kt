@@ -1,5 +1,6 @@
 package emulator.kit.assembler.gas
 
+import emulator.Link
 import emulator.kit.assembler.CompilerFile
 import emulator.kit.assembler.CompilerInterface
 import emulator.kit.assembler.DirTypeInterface
@@ -7,6 +8,8 @@ import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNode.*
 import emulator.kit.assembler.gas.nodes.GASNodeType
+import emulator.kit.assembler.lexer.Lexer
+import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.ParserTree
@@ -28,7 +31,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         /**
          * SEMANTIC ANALYSIS
-         * - Expand MACRO and IRP Directives
+         * - Resolve Directive Statements
          *   Iterate over statements if
          *   - Definition add to definitions
          *   - Resolve Unmatched Statements
@@ -46,11 +49,25 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          */
 
         /**
-         * - Expand MACRO and IRP Directives
+         * - Resolve Statements
          */
-        val allNonEmptyStatements = root.getAllStatements()
 
+        val tempContainer = TempContainer(root)
 
+        while (root.getAllStatements().isNotEmpty()) {
+            val firstStatement = root.getAllStatements().first()
+            when (firstStatement) {
+                is Statement.Dir -> {
+                    firstStatement.directive.type.executeDirective(firstStatement, tempContainer)
+                }
+
+                is Statement.Empty -> TODO()
+                is Statement.Instr -> TODO()
+                is Statement.Unresolved -> TODO()
+            }
+
+            root.removeChild(firstStatement)
+        }
 
 
         return ParserTree(root, source, filteredSource)
@@ -83,5 +100,54 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         return elements
     }
 
+    data class TempContainer(
+        val root: Root,
+        val symbols: MutableList<Symbol> = mutableListOf(),
+        val sections: MutableList<Section> = mutableListOf(Section("text"), Section("data"), Section("bss")),
+        val macros: MutableList<Macro> = mutableListOf(),
+        var currSection: Section = sections.first(),
+    )
+
+    data class Macro(val name: String, val arguments: List<Argument>, val content: List<Statement>) {
+        fun generatePseudoStatements(lexer: Lexer, lineLoc: Token.LineLoc, argMap: List<ArgDef>): List<Token> {
+            var content = content.map { it.contentBackToString() }.joinToString("") { it }
+            val args = arguments.map { it.argName.content to it.getDefaultValue() }.toTypedArray()
+
+            // Check for mixture of positional and indexed arguments
+            argMap.forEach { def ->
+                when (def) {
+                    is ArgDef.KeyWord -> {
+                        val argID = args.indexOfFirst { it.first == def.keyWord }
+                        args[argID] = args[argID].first to def.content
+                    }
+
+                    is ArgDef.Positional -> {
+                        args[def.position] = args[def.position].first to def.content
+                    }
+                }
+            }
+
+            args.forEach {
+                content = content.replace("\\${it.first}", it.second)
+            }
+
+            return lexer.pseudoTokenize(lineLoc, content)
+        }
+
+        sealed class ArgDef(val content: String) {
+            class Positional(token: Token, content: String, val position: Int) : ArgDef(content)
+            class KeyWord(token: Token, content: String, val keyWord: String) : ArgDef(content)
+
+        }
+    }
+
+    sealed class Symbol(val name: String) {
+        class Undefined(name: String) : Symbol(name)
+        class StringExpr(name: String, val expr: GASNode.StringExpr) : Symbol(name)
+        class IntegerExpr(name: String, val expr: GASNode.NumericExpr) : Symbol(name)
+        class TokenRef(name: String, val token: Token) : Symbol(name)
+    }
+
+    data class Section(val name: String, val statements: MutableList<Statement> = mutableListOf())
 
 }

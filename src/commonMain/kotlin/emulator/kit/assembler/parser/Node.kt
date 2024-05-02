@@ -6,20 +6,21 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
 sealed class Node {
+
+    fun getContentAsString(): String = getAllTokens().sortedBy { it.id }.joinToString("") { it.getContentAsString() }
     abstract fun getAllTokens(): Array<out Token>
     abstract fun searchBaseNode(token: Token, prevPath: List<Node>): Parser.SearchResult?
     abstract fun <T : Node> filterNodes(nodeType: KClass<T>): List<T>
     abstract fun print(prefix: String): String
     abstract fun getLineLoc(): Token.LineLoc?
-
     override fun toString(): String = print("")
-
     class BaseNode(val token: Token) : Node() {
         init {
             token.removeSeverityIfError()
         }
 
         override fun getLineLoc(): Token.LineLoc = token.lineLoc
+
         override fun getAllTokens(): Array<out Token> {
             return arrayOf(token)
         }

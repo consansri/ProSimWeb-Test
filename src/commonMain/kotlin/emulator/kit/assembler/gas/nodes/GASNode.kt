@@ -3,6 +3,7 @@ package emulator.kit.assembler.gas.nodes
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.gas.DefinedAssembly
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
@@ -181,12 +182,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     spaces.addAll(remainingTokens.dropSpaces())
 
                     val third = buildNode(GASNodeType.EXPRESSION_ANY, remainingTokens, allDirs, definedAssembly)
-                    if (third == null) {
-                        remainingTokens.firstOrNull()?.addSeverity(Severity.Type.ERROR, "Expected an expression!")
-                        return Argument.Basic(first)
+                    if (third != null) {
+                        return Argument.DefaultValue(first, second, third, spaces)
                     }
 
-                    return Argument.DefaultValue(first, second, third, spaces)
+                    val thirdNotExpr = remainingTokens.firstOrNull()
+                    return Argument.DefaultValue(first, second, if (thirdNotExpr != null) BaseNode(thirdNotExpr) else null, spaces)
                 }
             }
         }
@@ -223,11 +224,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
      *
      */
     class Root(vararg statements: Statement) : GASNode(*statements) {
-        fun removeEmptyStatements(){
+        fun removeEmptyStatements() {
             ArrayList(children).filterIsInstance<Statement.Empty>().forEach {
-                if(it.label == null) children.remove(it)
+                if (it.label == null) children.remove(it)
             }
         }
+
         fun getAllStatements(): List<Statement> = children.filterIsInstance<Statement>()
     }
 
@@ -244,7 +246,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             addChild(BaseNode(lineBreak))
         }
 
-        class Dir(label: Label?, val directive: Directive, lineBreak: Token) : Statement(label, lineBreak, directive)
+        fun contentBackToString(): String = getAllTokens().sortedBy { it.id }.joinToString { it.content }
+
+        class Dir(label: Label?, val directive: Directive, lineBreak: Token) : Statement(label, lineBreak, directive){
+            fun resolve(macros: MutableList<GASParser.Macro>, sections: MutableList<GASParser.Section>){
+
+            }
+        }
 
         class Instr(label: Label?, val instruction: Instruction, lineBreak: Token) : Statement(label, lineBreak, instruction)
         class Unresolved(label: Label?, val lineTokens: List<Token>, lineBreak: Token) : Statement(label, lineBreak, *lineTokens.map { BaseNode(it) }.toTypedArray()) {
@@ -272,15 +280,23 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             argName.hl(CodeStyle.argument)
         }
 
-        class Basic(argName: Token) : Argument(argName)
+        abstract fun getDefaultValue(): String
 
-        class DefaultValue(argName: Token, val assignment: Token, val expression: GASNode, val spaces: List<Token>) : Argument(argName) {
+        class Basic(argName: Token) : Argument(argName){
+            override fun getDefaultValue(): String = ""
+        }
+
+        class DefaultValue(argName: Token, val assignment: Token, val expression: Node? = null, val spaces: List<Token>) : Argument(argName) {
             init {
-                addChild(expression)
+                expression?.let {
+                    addChild(expression)
+                }
                 addChild(BaseNode(assignment))
                 addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
                 assignment.hl(CodeStyle.argument)
             }
+
+            override fun getDefaultValue(): String = expression?.getContentAsString() ?: ""
         }
     }
 

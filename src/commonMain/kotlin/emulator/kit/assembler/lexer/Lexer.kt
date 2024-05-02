@@ -103,6 +103,80 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         return tokenList
     }
 
+    fun pseudoTokenize(lineLoc: LineLoc, content: String): List<Token>{
+        val regs = if (detectRegisters) architecture.getAllRegs().map { it to it.getRegex() } else null
+        val instrs = architecture.getAllInstrTypes().map { it to it.getInstrRegex() }
+        val dirs = architecture.getAllDirTypes().map { it to it.getDirRegex() }
+
+        val tokenList = mutableListOf<Token>()
+        var remaining: String = content
+        var lineID = 0
+        var startIndex = 0
+
+        var keyWordType: Token.Type? = null
+        var foundReg: RegContainer.Register?
+        var foundInstr: InstrTypeInterface?
+        var foundDir: DirTypeInterface?
+
+        var result: MatchResult?
+        while (remaining.isNotEmpty()) {
+            result = null
+            keyWordType = null
+            foundReg = null
+            foundInstr = null
+            foundDir = null
+
+            for (type in Token.Type.entries) {
+                result = type.regex?.find(remaining)
+
+                if (result == null) {
+                    continue
+                }
+
+                if (type == Token.Type.SYMBOL) {
+                    // Check directives
+                    for (dir in dirs) {
+                        if (dir.second.matches(result.value)) {
+                            foundDir = dir.first
+                            keyWordType = Token.Type.DIRECTIVE
+                            break
+                        }
+                    }
+
+                    // check for instruction
+                    for (instr in instrs) {
+                        if (instr.second.matches(result.value)) {
+                            foundInstr = instr.first
+                            keyWordType = Token.Type.INSTRNAME
+                            break
+                        }
+                    }
+
+                    if (regs != null) {
+                        for (reg in regs) {
+                            if (reg.second.matches(result.value)) {
+                                foundReg = reg.first
+                                keyWordType = Token.Type.REGISTER
+                                break
+                            }
+                        }
+                    }
+                }
+
+                //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
+                val token = Token(if (keyWordType != null) keyWordType else type, lineLoc, result.value, tokenList.size, foundReg, foundDir, foundInstr)
+                tokenList += token
+                startIndex += result.value.length
+                remaining = content.substring(startIndex)
+                if (type == Token.Type.LINEBREAK) lineID += 1
+                break
+            }
+        }
+
+        return tokenList
+    }
+
+
     val regex = Regex("^(?:jal|j)$")
 
     private fun InstrTypeInterface.getInstrRegex(): Regex = Regex("^${Regex.escape(this.getDetectionName())}$", RegexOption.IGNORE_CASE)

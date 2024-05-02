@@ -131,11 +131,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     ELSE(rule = Rule.dirNameRule("else")),
     ELSEIF(rule = Rule.dirNameRule("elseif")),
     END(rule = Rule.dirNameRule("end")),
-    ENDM,
+    ENDM(rule= Rule.dirNameRule("endm")),
     ENDR(rule = Rule.dirNameRule("endr")),
     ENDEF(rule = Rule.dirNameRule("endef")),
     ENDFUNC(rule = Rule.dirNameRule("endfunc")),
-    ENDIF(),
+    ENDIF(rule = Rule.dirNameRule("endif")),
     EQU(rule = Rule {
         Seq(
             Specific(".equ", ignoreCase = true),
@@ -554,28 +554,21 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     }),
     MACRO(rule = Rule {
         Seq(
-            Seq(
-                Dir("macro"),
-                InSpecific(Token.Type.SYMBOL),
-                Optional {
-                    Seq(
-                        SpecNode(GASNodeType.ARG),
-                        Repeatable {
-                            Seq(
-                                Optional {
-                                    Specific(",")
-                                },
-                                SpecNode(GASNodeType.ARG)
-                            )
-                        }
-                    )
-                },
-                InSpecific(emulator.kit.assembler.lexer.Token.Type.LINEBREAK)
-            ),
-            Repeatable(ignoreSpaces = false) {
-                Except(Dir("endm"))
-            },
-            Dir("endm")
+            Dir("macro"),
+            InSpecific(Token.Type.SYMBOL),
+            Optional {
+                Seq(
+                    SpecNode(GASNodeType.ARG),
+                    Repeatable {
+                        Seq(
+                            Optional {
+                                Specific(",")
+                            },
+                            SpecNode(GASNodeType.ARG)
+                        )
+                    }
+                )
+            }
         )
     }),
     MRI(rule = Rule {
@@ -1009,5 +1002,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         }
         return null
     }
+
+    override fun executeDirective(dirStatement: GASNode.Statement.Dir, tempContainer: GASParser.TempContainer) {
+        // TODO() Implement Directive Executions!
+    }
+
 
 }
