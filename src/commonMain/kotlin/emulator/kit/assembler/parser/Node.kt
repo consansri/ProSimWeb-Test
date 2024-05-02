@@ -44,7 +44,10 @@ sealed class Node {
         val children: MutableList<Node> = childs.toMutableList()
         private var severity: Severity? = null
 
-        override fun print(prefix: String): String = "$prefix${this::class.simpleName}:${children.joinToString("") { "\n${it.print("$prefix\t")}" }}"
+        fun printNodeName(prefix: String): String = "$prefix${this::class.simpleName}:"
+        fun printChilds(prefix: String): String = children.joinToString("") { "\n${it.print("$prefix\t")}" }
+
+        override fun print(prefix: String): String = "${printNodeName(prefix)}${printChilds(prefix)}"
 
         override fun getLineLoc(): Token.LineLoc? {
             return getAllTokens().firstOrNull()?.lineLoc

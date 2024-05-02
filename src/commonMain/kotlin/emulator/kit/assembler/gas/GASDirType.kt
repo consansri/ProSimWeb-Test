@@ -559,13 +559,13 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 InSpecific(Token.Type.SYMBOL),
                 Optional {
                     Seq(
-                        SpecNode(GASNodeType.ARGUMENT),
+                        SpecNode(GASNodeType.ARG),
                         Repeatable {
                             Seq(
                                 Optional {
                                     Specific(",")
                                 },
-                                SpecNode(GASNodeType.ARGUMENT)
+                                SpecNode(GASNodeType.ARG)
                             )
                         }
                     )

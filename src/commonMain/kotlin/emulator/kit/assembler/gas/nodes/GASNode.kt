@@ -11,6 +11,7 @@ import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembler.parser.NodeSeq.Component.*
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 
 /**
  * --------------------
@@ -96,7 +97,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, allDirs, definedAssembly)
                     if (instruction != null && instruction is Instruction) {
                         remainingTokens.removeAll(instruction.getAllTokens().toSet())
-
+                        spaces.addAll(remainingTokens.dropSpaces())
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
                         val node = Statement.Instr(label, instruction, lineBreak)
                         node.addSpaces(spaces)
@@ -107,6 +108,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     if (lineBreak == null) {
                         val remainingLineContent = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
                         remainingTokens.removeAll(remainingLineContent)
+                        spaces.addAll(remainingTokens.dropSpaces())
                         val newLineBreak = remainingTokens.checkLineBreak() ?: return null
                         val node = Statement.Unresolved(label, remainingLineContent, newLineBreak)
                         node.addSpaces(spaces)
@@ -119,11 +121,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
 
                 GASNodeType.DIRECTIVE -> {
-                    nativeLog("Building Directive for ${remainingTokens.firstOrNull()?.content}")
                     allDirs.forEach {
                         val node = it.buildDirectiveContent(remainingTokens, allDirs, definedAssembly)
                         if (node != null) {
-                            nativeLog("Found matching Directive node $node")
+                            nativeWarn("Found dir ${it.getDetectionString()}")
                             return node
                         }
                     }
@@ -138,7 +139,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     if (first.type != Token.Type.INSTRNAME) {
                         return null
                     }
-                    nativeLog("Found InstrName: ${first.instr}")
                     remainingTokens.removeFirst()
 
                     val params = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
@@ -151,7 +151,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 GASNodeType.EXPRESSION_ANY -> {
                     val stringExpr = StringExpr.parse(remainingTokens)
-                    nativeLog("Parsing any expression: ${if (stringExpr != null) "string" else "numeric or null"}")
                     if (stringExpr != null) return stringExpr
 
                     return NumericExpr.parse(remainingTokens)
@@ -170,7 +169,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     return Label(first, second)
                 }
 
-                GASNodeType.ARGUMENT -> {
+                GASNodeType.ARG -> {
                     val spaces = mutableListOf<Token>()
                     spaces.addAll(remainingTokens.dropSpaces())
 
@@ -192,7 +191,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
 
                     return Argument.DefaultValue(first, second, third, spaces)
-
                 }
             }
         }
@@ -262,12 +260,22 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
     }
 
-    class RawInstr(val instrName: Token, allTokens: List<Token>) : GASNode() {
+    sealed class ArgAssignment(val node: Node) : GASNode() {
         init {
-            addChild(BaseNode(instrName))
-            addChilds(*allTokens.map { BaseNode(it) }.toTypedArray())
-            nativeLog("initiated RawInstr ${instrName.instr} ${allTokens.joinToString(" ") { it.type.name }}")
+            addChild(node)
         }
+
+        class Direct(val token: Token) : ArgAssignment(BaseNode(token))
+
+        class Expr(val expression: GASNode) : ArgAssignment(expression)
+
+        class WithIdentifier(val argName: Token, val assignment: Token, exprOrBaseNode: Node) : ArgAssignment(exprOrBaseNode) {
+            init {
+                addChild(BaseNode(argName))
+                addChild(BaseNode(assignment))
+            }
+        }
+
     }
 
     sealed class Argument(val argName: Token) : GASNode() {
@@ -287,7 +295,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 assignment.hl(CodeStyle.argument)
             }
         }
-
     }
 
     abstract class Instruction(val instrName: Token, allTokens: List<Token>, allNodes: List<Node>) : GASNode() {
@@ -335,8 +342,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
 
         companion object {
-            fun parse(tokens: List<Token>): StringExpr? {
-                val relevantTokens = takeRelevantTokens(tokens).toMutableList()
+            fun parse(tokens: List<Token>, allowSymbolsAsOperands: Boolean = true): StringExpr? {
+                val relevantTokens = takeRelevantTokens(tokens, allowSymbolsAsOperands).toMutableList()
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
                 relevantTokens.removeAll(spaces)
                 if (relevantTokens.isEmpty()) return null
@@ -357,8 +364,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
             }
 
-            private fun takeRelevantTokens(tokens: List<Token>): List<Token> {
-                return tokens.takeWhile { it.type == Token.Type.SYMBOL || it.type.isStringLiteral || it.type == Token.Type.WHITESPACE }
+            private fun takeRelevantTokens(tokens: List<Token>, allowSymbolsAsOperands: Boolean): List<Token> {
+                return if (allowSymbolsAsOperands) {
+                    tokens.takeWhile { it.type == Token.Type.SYMBOL || it.type.isStringLiteral || it.type == Token.Type.WHITESPACE }
+                } else {
+                    tokens.takeWhile { it.type.isStringLiteral || it.type == Token.Type.WHITESPACE }
+                }
             }
         }
     }
@@ -377,8 +388,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         abstract fun getValue(size: Variable.Size? = null): Variable.Value
 
         companion object {
-            fun parse(tokens: List<Token>): NumericExpr? {
-                val relevantTokens = takeRelevantTokens(tokens).toMutableList()
+            fun parse(tokens: List<Token>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
+                val relevantTokens = takeRelevantTokens(tokens, allowSymbolsAsOperands).toMutableList()
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
                 relevantTokens.removeAll(spaces)
                 markPrefixes(relevantTokens)
@@ -476,8 +487,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 } else null
             }
 
-            private fun takeRelevantTokens(tokens: List<Token>): List<Token> {
-                return tokens.takeWhile { it.type.isOperator || it.type == Token.Type.SYMBOL || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
+            private fun takeRelevantTokens(tokens: List<Token>, allowSymbolsAsOperands: Boolean): List<Token> {
+                return if (allowSymbolsAsOperands) {
+                    tokens.takeWhile { it.type.isOperator || it.type == Token.Type.SYMBOL || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
+                } else {
+                    tokens.takeWhile { it.type.isOperator || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
+                }
             }
 
             /**

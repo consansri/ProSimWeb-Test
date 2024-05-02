@@ -77,6 +77,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         SYMBOL(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
         ARG_REF(Regex("""^\\[a-zA-Z$._][a-zA-Z0-9$._]*"""), CodeStyle.argument),
         ARG_SEPARATOR(Regex("""^\\\(\)"""),CodeStyle.argument),
+        ASSIGNMENT(Regex("^=")),
         COMPLEMENT(Regex("^~"), isOperator = true),
         MULT(Regex("^\\*"), isOperator = true),
         DIV(Regex("^/"), isOperator = true),
