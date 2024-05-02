@@ -11,6 +11,7 @@ import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
+import emulator.kit.nativeWarn
 import kotlinx.datetime.*
 
 /**
@@ -52,6 +53,11 @@ class Compiler(
         result.tree?.printError()?.let {
             architecture.getConsole().error(it)
             nativeError(it)
+        }
+
+        result.tree?.printWarning()?.let {
+            architecture.getConsole().warn(it)
+            nativeWarn(it)
         }
 
         if (result.hasErrors()) {

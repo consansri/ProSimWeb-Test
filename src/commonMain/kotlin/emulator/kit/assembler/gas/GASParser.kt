@@ -21,6 +21,10 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         // Build the tree
         val root = GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)
+        if (root == null || root !is Root) return ParserTree(null, source, filteredSource)
+
+        // Filter
+        root.removeEmptyStatements()
 
         /**
          * SEMANTIC ANALYSIS
@@ -46,8 +50,11 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          */
 
         /**
-         * Collect Providers
+         * - Expand MACRO and IRP Directives
          */
+        val allNonEmptyStatements = root.getAllStatements()
+
+
 
 
         return ParserTree(root, source, filteredSource)
@@ -63,6 +70,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         while (remaining.isNotEmpty()) {
             // Add Base Node if not found any special node
             val replaceWithSpace = when (remaining.first().type) {
+                Token.Type.COMMENT_NATIVE -> true
                 Token.Type.COMMENT_SL -> true
                 Token.Type.COMMENT_ML -> true
                 else -> false

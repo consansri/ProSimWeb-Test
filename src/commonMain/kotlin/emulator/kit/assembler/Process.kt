@@ -66,6 +66,10 @@ data class Process(
         fun hasErrors(): Boolean{
             return tree?.hasErrors() ?: false
         }
+
+        fun hasWarnings(): Boolean{
+            return tree?.hasWarnings() ?: false
+        }
     }
 
 }

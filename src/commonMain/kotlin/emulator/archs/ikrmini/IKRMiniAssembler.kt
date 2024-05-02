@@ -4,18 +4,20 @@ import emulator.kit.Architecture
 import emulator.kit.assembly.standards.StandardAssembler
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.Rule
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.nativeError
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 
-class IKRMiniAssembler: DefinedAssembly {
+class IKRMiniAssembler : DefinedAssembly {
     override val MEM_ADDRESS_SIZE: Variable.Size = IKRMini.MEM_ADDRESS_WIDTH
     override val WORD_SIZE: Variable.Size = IKRMini.WORDSIZE
     override val INSTRS_ARE_WORD_ALIGNED: Boolean = true
     override val detectRegistersByName: Boolean = false
-    override val numberPrefixes: DefinedAssembly.NumberPrefixes = object : DefinedAssembly.NumberPrefixes{
+    override val numberPrefixes: DefinedAssembly.NumberPrefixes = object : DefinedAssembly.NumberPrefixes {
         override val hex: String = "0x"
         override val bin: String = "0b"
         override val dec: String = ""
@@ -30,7 +32,12 @@ class IKRMiniAssembler: DefinedAssembly {
             arch.getConsole().error("Expected [${IKRMiniInstr::class.simpleName}] but received [${instr::class.simpleName}]!")
             return 1
         }
-        return instr.paramType.wordAmount
+        val amode = instr.addressMode
+        if(amode == null){
+            nativeError("Requesting instruction space for not yet determined instruction param type!")
+            return 1
+        }
+        return amode.wordAmount
     }
 
     override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin> {
@@ -73,10 +80,14 @@ class IKRMiniAssembler: DefinedAssembly {
     override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
         val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { instrToken.content.uppercase() == it.getDetectionName().uppercase() } ?: return null
         val validParamModes = instrType.paramMap.map { it.key }
+        val validAModes = mutableListOf<IKRMiniSyntax.ParamType>()
+        var lastMatchingResult: Rule.MatchResult? = null
+        var result: Rule.MatchResult
         for (amode in validParamModes) {
             val seq = amode.tokenSeq
             if (seq == null) {
-                return IKRMiniInstr(instrType, amode, instrToken, listOf(), listOf())
+                validAModes.add(amode)
+                continue
             }
 
             if (remainingSource.isEmpty()) {
@@ -84,10 +95,18 @@ class IKRMiniAssembler: DefinedAssembly {
             }
 
             val remaining = remainingSource.toMutableList()
-            val result = seq.matchStart(*remaining.toTypedArray())
+            result = seq.matchStart(remaining, listOf(), this)
             if (!result.matches) continue
-            val numericExprs = result.nodes.filterIsInstance<GASNode.NumericExpr>()
-            return IKRMiniInstr(instrType, amode, instrToken, listOf(),numericExprs)
+            validAModes.add(amode)
+            lastMatchingResult = result
+
+        }
+        if(validAModes.isNotEmpty()){
+            return if(lastMatchingResult != null){
+                IKRMiniInstr(instrType, validAModes, instrToken, lastMatchingResult.matchingTokens + lastMatchingResult.ignoredSpaces, lastMatchingResult.matchingNodes)
+            }else{
+                IKRMiniInstr(instrType, validAModes, instrToken, listOf(), listOf())
+            }
         }
         return null
     }

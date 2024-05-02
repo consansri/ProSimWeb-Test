@@ -124,7 +124,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     allDirs.forEach {
                         val node = it.buildDirectiveContent(remainingTokens, allDirs, definedAssembly)
                         if (node != null) {
-                            nativeWarn("Found dir ${it.getDetectionString()}")
                             return node
                         }
                     }
@@ -226,8 +225,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
      *  - BSS
      *
      */
-    class Root(vararg val statements: Statement) : GASNode(*statements) {
-
+    class Root(vararg statements: Statement) : GASNode(*statements) {
+        fun removeEmptyStatements(){
+            ArrayList(children).filterIsInstance<Statement.Empty>().forEach {
+                if(it.label == null) children.remove(it)
+            }
+        }
+        fun getAllStatements(): List<Statement> = children.filterIsInstance<Statement>()
     }
 
     /**
@@ -246,7 +250,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         class Dir(label: Label?, val directive: Directive, lineBreak: Token) : Statement(label, lineBreak, directive)
 
         class Instr(label: Label?, val instruction: Instruction, lineBreak: Token) : Statement(label, lineBreak, instruction)
-        class Unresolved(label: Label?, val lineTokens: List<Token>, lineBreak: Token) : Statement(label, lineBreak, *lineTokens.map { BaseNode(it) }.toTypedArray())
+        class Unresolved(label: Label?, val lineTokens: List<Token>, lineBreak: Token) : Statement(label, lineBreak, *lineTokens.map { BaseNode(it) }.toTypedArray()) {
+            init {
+                lineTokens.firstOrNull()?.addSeverity(Severity.Type.WARNING, "Found unresolved statement!")
+            }
+        }
 
         class Empty(label: Label?, lineBreak: Token) : Statement(label, lineBreak)
     }
@@ -258,24 +266,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         init {
             addChilds(*allTokens.map { BaseNode(it) }.toTypedArray())
         }
-    }
-
-    sealed class ArgAssignment(val node: Node) : GASNode() {
-        init {
-            addChild(node)
-        }
-
-        class Direct(val token: Token) : ArgAssignment(BaseNode(token))
-
-        class Expr(val expression: GASNode) : ArgAssignment(expression)
-
-        class WithIdentifier(val argName: Token, val assignment: Token, exprOrBaseNode: Node) : ArgAssignment(exprOrBaseNode) {
-            init {
-                addChild(BaseNode(argName))
-                addChild(BaseNode(assignment))
-            }
-        }
-
     }
 
     sealed class Argument(val argName: Token) : GASNode() {
@@ -391,6 +381,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             fun parse(tokens: List<Token>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
                 val relevantTokens = takeRelevantTokens(tokens, allowSymbolsAsOperands).toMutableList()
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
+                if (relevantTokens.lastOrNull()?.type?.isOpeningBracket == true) relevantTokens.removeLast()
                 relevantTokens.removeAll(spaces)
                 markPrefixes(relevantTokens)
                 if (relevantTokens.isEmpty()) return null

@@ -5,18 +5,17 @@ import emulator.kit.types.Variable.Value.*
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
 import emulator.kit.common.Memory
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.lexer.TokenSeq
-import emulator.kit.assembler.lexer.TokenSeq.Component.SpecNode.*
-import emulator.kit.assembler.lexer.TokenSeq.Component.InSpecific.*
-import emulator.kit.assembler.lexer.TokenSeq.Component.Specific
+import emulator.kit.assembler.Rule
+import emulator.kit.assembler.Rule.Component.*
+import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.kit.types.Variable
 
 class IKRMiniSyntax {
-    enum class ParamType(val tokenSeq: TokenSeq?, val wordAmount: Int, val exampleString: String) {
-        INDIRECT(TokenSeq(Specific("("), Specific("("), EXPRESSION(), Specific(")"), Specific(")")), 2, "(([16 Bit]))"),
-        DIRECT(TokenSeq( Specific("("), EXPRESSION(), Specific(")")), 2, "([16 Bit])"),
-        IMMEDIATE(TokenSeq( Specific("#"), INTEGER(WORDSIZE)), 2, "#[16 Bit]"),
-        DESTINATION(TokenSeq( EXPRESSION()), 2, "[label]"),
+    enum class ParamType(val tokenSeq: Rule?, val wordAmount: Int, val exampleString: String) {
+        INDIRECT(Rule{ Seq(Specific("("), Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"), Specific(")"))}, 2, "(([16 Bit]))"),
+        DIRECT(Rule{ Seq( Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"))}, 2, "([16 Bit])"),
+        IMMEDIATE(Rule{ Seq( Specific("#"), SpecNode(GASNodeType.EXPRESSION_INTEGER))}, 2, "#[16 Bit]"),
+        DESTINATION(Rule{ Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER))}, 2, "[label]"),
         IMPLIED(null, 1, ""),
     }
 
@@ -454,7 +453,7 @@ class IKRMiniSyntax {
             pc.set(pc.get() + Hex((paramtype.wordAmount * WORDSIZE.getByteCount()).toString(16), WORDSIZE))
         }
 
-        fun getFlags(arch: emulator.kit.Architecture): Flags {
+        fun getFlags(arch: Architecture): Flags {
             val flags = arch.getRegByName("NZVC")
             if (flags == null) {
                 arch.getConsole().error("Flag register not found!")
@@ -468,7 +467,7 @@ class IKRMiniSyntax {
             return Flags(n, z, v, c)
         }
 
-        fun setFlags(arch: emulator.kit.Architecture, n: Boolean? = null, z: Boolean? = null, v: Boolean? = null, c: Boolean? = null) {
+        fun setFlags(arch: Architecture, n: Boolean? = null, z: Boolean? = null, v: Boolean? = null, c: Boolean? = null) {
             val flags = arch.getRegByName("NZVC")
             if (flags == null) {
                 arch.getConsole().error("Flag register not found!")

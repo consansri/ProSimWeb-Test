@@ -245,46 +245,6 @@ class RV64Syntax {
                 )
             }
         ),
-        PS_RD_LI_I28Unsigned(
-            true, "rd, imm28u",
-            Rule {
-                Seq(
-                    Reg(RV64.standardRegFile),
-                    Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
-                )
-            }
-        ), // rd, imm28 unsigned
-        PS_RD_LI_I32Signed(
-            true, "rd, imm32s",
-            Rule {
-                Seq(
-                    Reg(RV64.standardRegFile),
-                    Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
-                )
-            }
-        ), // rd, imm32
-        PS_RD_LI_I40Unsigned(
-            true, "rd, imm40u",
-            Rule {
-                Seq(
-                    Reg(RV64.standardRegFile),
-                    Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
-                )
-            }
-        ),
-        PS_RD_LI_I52Unsigned(
-            true, "rd, imm52u",
-            Rule {
-                Seq(
-                    Reg(RV64.standardRegFile),
-                    Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
-                )
-            }
-        ),
         PS_RD_LI_I64(
             true, "rd, imm64",
             Rule {
@@ -1953,10 +1913,6 @@ class RV64Syntax {
         // Pseudo
         Nop("NOP", true, ParamType.PS_NONE),
         Mv("MV", true, ParamType.PS_RD_RS1),
-        Li28Unsigned("LI", true, ParamType.PS_RD_LI_I28Unsigned, memWords = 2),
-        Li32Signed("LI", true, ParamType.PS_RD_LI_I32Signed, memWords = 2),
-        Li40Unsigned("LI", true, ParamType.PS_RD_LI_I40Unsigned, memWords = 4),
-        Li52Unsigned("LI", true, ParamType.PS_RD_LI_I52Unsigned, memWords = 6),
         Li64("LI", true, ParamType.PS_RD_LI_I64, memWords = 8),
         La("LA", true, ParamType.PS_RD_Albl, memWords = 2),
         Not("NOT", true, ParamType.PS_RD_RS1),

@@ -99,6 +99,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"), isPunctuation = true, isClosingBracket = true),
         SQUARE_BRACKET_OPENING(Regex("^\\["), isPunctuation = true, isOpeningBracket = true),
         SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"), isPunctuation = true, isClosingBracket = true),
+        COMMENT_NATIVE(Regex("^#.+"), CodeStyle.comment),
         ERROR(Regex("^."));
 
         fun isLiteral(): Boolean = isStringLiteral || isNumberLiteral || isCharLiteral

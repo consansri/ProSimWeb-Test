@@ -209,7 +209,10 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         class SpecNode(private val type: GASNodeType) : Component() {
             override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
                 val node = GASNode.buildNode(type, source, allDirs, definedAssembly)
-                if (node == null) return MatchResult(false, listOf(), listOf(), source)
+                if (node == null) {
+                    nativeLog("Mismatch: SpecNode ${type.name}")
+                    return MatchResult(false, listOf(), listOf(), source)
+                }
                 nativeLog("Match: SpecNode ${type.name}")
                 return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
             }

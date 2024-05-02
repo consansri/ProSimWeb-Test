@@ -68,13 +68,10 @@ class RV32Assembler: DefinedAssembly {
 
         for (type in types) {
             val paramType = type.paramType
-            val result = paramType.tokenSeq?.matchStart(*remainingSource.toTypedArray()) ?: return RV32Instr(type, paramType, instrToken, listOf(), listOf())
+            val result = paramType.tokenSeq?.matchStart(remainingSource, listOf(), this) ?: return RV32Instr(type, paramType, instrToken, listOf(), listOf())
             if (!result.matches) continue
 
-            val allTokens = result.sequenceMap.flatMap { it.token.toList() }
-            val regs = allTokens.filter { it.type == Token.Type.REGISTER }
-            val numericExprs = result.nodes.mapNotNull { it as? GASNode.NumericExpr }
-            return RV32Instr(type, paramType, instrToken, regs, numericExprs)
+            return RV32Instr(type, paramType, instrToken, result.matchingTokens + result.ignoredSpaces, result.matchingNodes)
         }
 
         return null
