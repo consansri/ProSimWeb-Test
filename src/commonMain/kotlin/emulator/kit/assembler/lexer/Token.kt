@@ -1,5 +1,6 @@
 package emulator.kit.assembler.lexer
 
+import Settings
 import emulator.kit.common.RegContainer
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
@@ -59,6 +60,16 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
             Type.PLUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
             Type.MINUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
             else -> null
+        }
+    }
+
+    fun getNumberStringWithoutPrefix(): String{
+        return when(type){
+            Type.INT_BIN -> content.removePrefix(Settings.PRESTRING_BINARY)
+            Type.INT_HEX -> content.removePrefix(Settings.PRESTRING_HEX)
+            Type.INT_OCT -> content.removePrefix(Settings.PRESTRING_OCT)
+            Type.INT_DEC -> content.removePrefix(Settings.PRESTRING_DECIMAL)
+            else -> content
         }
     }
 

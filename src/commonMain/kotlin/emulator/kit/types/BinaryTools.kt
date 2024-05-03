@@ -18,6 +18,11 @@ object BinaryTools {
         'C' to "1100", 'D' to "1101", 'E' to "1110", 'F' to "1111"
     )
     val binToHexDigit = hexToBinDigit.map { it.value to it.key }.toMap()
+    val octToBinDigit = mapOf(
+        '0' to "000", '1' to "001", '2' to "010", '3' to "011",
+        '4' to "100", '5' to "101", '6' to "110", '7' to "111",
+    )
+    val binToOctDigit = octToBinDigit.map { it.value to it.key }.toMap()
 
     fun negotiate(aBin: String): String {
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)

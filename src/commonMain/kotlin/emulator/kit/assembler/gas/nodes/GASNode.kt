@@ -248,8 +248,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
         fun contentBackToString(): String = getAllTokens().sortedBy { it.id }.joinToString { it.content }
 
-        class Dir(label: Label?, val directive: Directive, lineBreak: Token) : Statement(label, lineBreak, directive){
-            fun resolve(macros: MutableList<GASParser.Macro>, sections: MutableList<GASParser.Section>){
+        class Dir(label: Label?, val directive: Directive, lineBreak: Token) : Statement(label, lineBreak, directive) {
+            fun resolve(macros: MutableList<GASParser.Macro>, sections: MutableList<GASParser.Section>) {
 
             }
         }
@@ -282,7 +282,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
         abstract fun getDefaultValue(): String
 
-        class Basic(argName: Token) : Argument(argName){
+        class Basic(argName: Token) : Argument(argName) {
             override fun getDefaultValue(): String = ""
         }
 
@@ -315,14 +315,15 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
     sealed class StringExpr(spaces: List<Token> = listOf(), vararg operands: StringExpr) : GASNode(*operands) {
 
-        abstract fun getValue(): String
+        abstract fun evaluate(): String
+        fun getValue(): String = evaluate()
 
         init {
             addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
         }
 
-        class Concatination(spaces: List<Token>, vararg val exprs: StringExpr) : StringExpr(spaces, *exprs) {
-            override fun getValue(): String = exprs.joinToString("") { it.getValue() }
+        class Concatenation(spaces: List<Token>, vararg val exprs: StringExpr) : StringExpr(spaces, *exprs) {
+            override fun evaluate(): String = exprs.joinToString("") { it.getValue() }
         }
 
         sealed class Operand(val token: Token) : StringExpr() {
@@ -332,15 +333,22 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             class Identifier(val symbol: Token) : Operand(symbol) {
-                override fun getValue(): String = TODO()
+                override fun evaluate(): String {
+                    symbol.addSeverity(Severity.Type.WARNING, "Symbol is not a string or not yet defined. returning \"\".")
+                    return ""
+                }
             }
 
             class StringLiteral(val string: Token) : Operand(string) {
-                override fun getValue(): String = when (string.type) {
-                    Token.Type.STRING_ML -> token.content.substring(3, token.content.length - 3)
-                    Token.Type.STRING_SL -> token.content.substring(1, token.content.length - 1)
-                    else -> ""
+                private val stringContent: String
+                init {
+                    stringContent = when (string.type) {
+                        Token.Type.STRING_ML -> token.content.substring(3, token.content.length - 3)
+                        Token.Type.STRING_SL -> token.content.substring(1, token.content.length - 1)
+                        else -> ""
+                    }
                 }
+                override fun evaluate(): String = stringContent
             }
         }
 
@@ -363,7 +371,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 return if (operands.size == 1) {
                     operands.first()
                 } else {
-                    Concatination(spaces, *operands.toTypedArray())
+                    Concatenation(spaces, *operands.toTypedArray())
                 }
             }
 
@@ -388,7 +396,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             this.addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
         }
 
-        abstract fun getValue(size: Variable.Size? = null): Variable.Value
+        abstract fun evaluate(): Variable.Value
+        fun getValue(size: Variable.Size? = null): Variable.Value{
+            return if(size != null){
+                evaluate().toBin().getResized(size)
+            }else{
+                evaluate()
+            }
+        }
 
         companion object {
             fun parse(tokens: List<Token>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
@@ -571,13 +586,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 addChild(BaseNode(operator))
             }
 
-            override fun getValue(size: Variable.Size?): Variable.Value {
+            override fun evaluate(): Variable.Value {
                 return when (operator.type) {
-                    Token.Type.COMPLEMENT -> operand.getValue(size).toBin().inv()
-                    Token.Type.MINUS -> -operand.getValue(size)
+                    Token.Type.COMPLEMENT -> operand.evaluate().toBin().inv()
+                    Token.Type.MINUS -> -operand.evaluate()
+                    Token.Type.PLUS -> operand.evaluate()
                     else -> {
                         nativeError("${operator} is not a Prefix operator!")
-                        operand.getValue(size)
+                        operand.evaluate()
                     }
                 }
             }
@@ -593,22 +609,22 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 addChild(BaseNode(operator))
             }
 
-            override fun getValue(size: Variable.Size?): Variable.Value {
+            override fun evaluate(): Variable.Value {
                 return when (operator.type) {
-                    Token.Type.MULT -> operandA.getValue(size) * operandB.getValue(size)
-                    Token.Type.DIV -> operandA.getValue(size) * operandB.getValue(size)
-                    Token.Type.REM -> operandA.getValue(size) % operandB.getValue(size)
-                    Token.Type.SHL -> operandA.getValue(size).toBin() shl (operandB.getValue(size).toDec().toIntOrNull() ?: return operandA.getValue(size))
-                    Token.Type.SHR -> operandA.getValue(size).toBin() shl (operandB.getValue(size).toDec().toIntOrNull() ?: return operandA.getValue(size))
-                    Token.Type.BITWISE_OR -> operandA.getValue(size).toBin() or operandB.getValue(size).toBin()
-                    Token.Type.BITWISE_AND -> operandA.getValue(size).toBin() and operandB.getValue(size).toBin()
-                    Token.Type.BITWISE_XOR -> operandA.getValue(size).toBin() xor operandB.getValue(size).toBin()
-                    Token.Type.BITWISE_ORNOT -> operandA.getValue(size).toBin() or operandB.getValue(size).toBin().inv()
-                    Token.Type.PLUS -> operandA.getValue(size) + operandB.getValue(size)
-                    Token.Type.MINUS -> operandA.getValue(size) - operandB.getValue(size)
+                    Token.Type.MULT -> operandA.evaluate() * operandB.evaluate()
+                    Token.Type.DIV -> operandA.evaluate() * operandB.evaluate()
+                    Token.Type.REM -> operandA.evaluate() % operandB.evaluate()
+                    Token.Type.SHL -> operandA.evaluate().toBin() shl (operandB.evaluate().toDec().toIntOrNull() ?: return operandA.evaluate())
+                    Token.Type.SHR -> operandA.evaluate().toBin() shl (operandB.evaluate().toDec().toIntOrNull() ?: return operandA.evaluate())
+                    Token.Type.BITWISE_OR -> operandA.evaluate().toBin() or operandB.evaluate().toBin()
+                    Token.Type.BITWISE_AND -> operandA.evaluate().toBin() and operandB.evaluate().toBin()
+                    Token.Type.BITWISE_XOR -> operandA.evaluate().toBin() xor operandB.evaluate().toBin()
+                    Token.Type.BITWISE_ORNOT -> operandA.evaluate().toBin() or operandB.evaluate().toBin().inv()
+                    Token.Type.PLUS -> operandA.evaluate() + operandB.evaluate()
+                    Token.Type.MINUS -> operandA.evaluate() - operandB.evaluate()
                     else -> {
                         nativeError("$operator is not a Classic Expression operator!")
-                        operandA.getValue(size)
+                        operandA.evaluate()
                     }
                 }
             }
@@ -620,24 +636,73 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             class Identifier(val symbol: Token) : Operand(symbol) {
-                var provider: Node? = null
-
-                override fun getValue(size: Variable.Size?): Variable.Value {
-                    TODO("Not yet implemented")
+                override fun evaluate(): Variable.Value {
+                    symbol.addSeverity(Severity.Type.ERROR, "Can't evaluate from a undefined symbol. Returning 0.")
+                    return Variable.Value.Bin("0", Variable.Size.Bit32())
                 }
-
             }
 
             class Number(val number: Token) : Operand(number) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
-                    TODO()
+                val type: Type
+                val value: Variable.Value
+
+                init {
+                    val intVal: Variable.Value
+                    val bigNumVal: Variable.Value
+                    when (number.type) {
+                        Token.Type.INT_BIN -> {
+                            intVal = Variable.Value.Bin(number.getNumberStringWithoutPrefix(),  Variable.Size.Bit32())
+                            bigNumVal = Variable.Value.Bin(number.getNumberStringWithoutPrefix())
+                        }
+
+                        Token.Type.INT_HEX -> {
+                            intVal = Variable.Value.Hex(number.getNumberStringWithoutPrefix(),  Variable.Size.Bit32())
+                            bigNumVal = Variable.Value.Hex(number.getNumberStringWithoutPrefix())
+                        }
+
+                        Token.Type.INT_OCT -> {
+                            intVal = Variable.Value.Oct(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
+                            bigNumVal = Variable.Value.Oct(number.getNumberStringWithoutPrefix())
+                        }
+
+                        Token.Type.INT_DEC -> {
+                            intVal = Variable.Value.Dec(number.getNumberStringWithoutPrefix(),  Variable.Size.Bit32())
+                            bigNumVal = Variable.Value.Dec(number.getNumberStringWithoutPrefix())
+                        }
+
+                        else -> {
+                            number.addSeverity(Severity.Type.ERROR, "$number is not an Integer or BigNum. Returning 0 as Integer.")
+                            intVal = Variable.Value.Bin("0", Variable.Size.Bit32())
+                            bigNumVal = Variable.Value.Bin("0")
+                        }
+                    }
+
+                    if (intVal.checkResult.valid) {
+                        value = intVal
+                        type = Type.Integer
+                    } else {
+                        value = bigNumVal
+                        type = Type.BigNum
+                    }
+                }
+
+                override fun evaluate(): Variable.Value = value
+
+                enum class Type() {
+                    Integer(),
+                    BigNum()
                 }
             }
 
             class Char(val char: Token) : Operand(char) {
-                override fun getValue(size: Variable.Size?): Variable.Value {
-                    TODO()
+
+                val value: Variable.Value
+                init {
+                    val hexString = Variable.Tools.asciiToHex(char.toString())
+                    value = Variable.Value.Hex(hexString, Variable.Size.Bit8())
                 }
+
+                override fun evaluate(): Variable.Value = value
             }
         }
     }

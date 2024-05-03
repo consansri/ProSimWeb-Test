@@ -146,6 +146,7 @@ class Variable {
         abstract fun check(size: Size): CheckResult
         abstract fun toBin(): Bin
         abstract fun toHex(): Hex
+        abstract fun toOct(): Oct
         abstract fun toDec(): Dec
         abstract fun toUDec(): UDec
         abstract fun toASCII(): String
@@ -176,6 +177,7 @@ class Variable {
                 is Bin -> false
                 is Hex -> false
                 is UDec -> false
+                is Oct -> false
             }
         }
 
@@ -304,6 +306,7 @@ class Variable {
             }
 
             override fun toHex(): Hex = Conversion.getHex(this)
+            override fun toOct(): Oct = Conversion.getOct(this)
             override fun toBin(): Bin = this
             override fun toDec(): Dec = Conversion.getDec(this)
             override fun toUDec(): UDec = Conversion.getUDec(this)
@@ -500,44 +503,45 @@ class Variable {
 
             override fun check(size: Size): CheckResult = check(getRawHexStr(), size)
             override fun toBin(): Bin = Conversion.getBinary(this)
+            override fun toOct(): Oct = Conversion.getOct(this.toBin())
             override fun toDec(): Dec = Conversion.getDec(this.toBin())
             override fun toUDec(): UDec = Conversion.getUDec(this.toBin())
             override fun toASCII(): String = Conversion.getASCII(this)
-            override fun getBiggest(): Value = Hex("F".repeat(size.hexChars), size)
+            override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
             override fun plus(operand: Value): Value {
                 val result = BinaryTools.add(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(result, biggerSize).toHex()
+                return Bin(result, biggerSize)
             }
 
             override fun minus(operand: Value): Value {
                 val result = BinaryTools.sub(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(result, biggerSize).toHex()
+                return Bin(result, biggerSize)
             }
 
             override fun times(operand: Value): Value {
                 val result = BinaryTools.multiply(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(result, biggerSize).toHex()
+                return Bin(result, biggerSize)
             }
 
             override fun div(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(divResult.result, biggerSize).toHex()
+                return Bin(divResult.result, biggerSize)
             }
 
             override fun rem(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-                return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize).toHex()
+                return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
             }
 
-            override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.toBin().getRawBinStr()), size).toHex()
-            override fun inc(): Value = Bin(BinaryTools.add(this.toBin().getRawBinStr(), "1"), size).toHex()
-            override fun dec(): Value = Bin(BinaryTools.sub(this.toBin().getRawBinStr(), "1"), size).toHex()
+            override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.toBin().getRawBinStr()), size)
+            override fun inc(): Value = Bin(BinaryTools.add(this.toBin().getRawBinStr(), "1"), size)
+            override fun dec(): Value = Bin(BinaryTools.sub(this.toBin().getRawBinStr(), "1"), size)
             override fun compareTo(other: Value): Int = if (BinaryTools.isEqual(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
                 0
             } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
@@ -550,6 +554,106 @@ class Variable {
             override fun toString(): String = this.hexString
             override fun toHex(): Hex = this
 
+        }
+
+        /**
+         * Provides the octal representation of [Value]
+         */
+        class Oct(octString: String, size: Size) : Value(octString, size) {
+            private val octString: String
+            val regex = Regex("[0-7]+")
+
+            init {
+                this.checkResult = check(input, size)
+                this.octString = checkResult.corrected
+            }
+
+            fun getRawOctStr(): String = octString.removePrefix(Settings.PRESTRING_OCT)
+            fun getOctString(): String = octString
+            fun getUResized(size: Size): Oct = Oct(getRawOctStr(), size)
+
+            constructor(octString: String) : this(octString, Size.Original(octString.trim().removePrefix(Settings.PRESTRING_OCT).length * 3))
+
+            override fun check(string: String, size: Size): CheckResult {
+                var formatted = string.trim().removePrefix(Settings.PRESTRING_OCT).padStart(size.octChars, '0').uppercase()
+                val message: String
+                if (regex.matches(formatted)) {
+                    return if (formatted.length <= size.octChars) {
+                        formatted = formatted.padStart(size.octChars, '0')
+                        CheckResult(true, Settings.PRESTRING_OCT + formatted)
+                    } else {
+                        val trimmedString = formatted.substring(formatted.length - size.octChars)
+                        message = "Oct.check(): $string is to long! Casted to TrimmedString(${trimmedString}) This value is layouted to hold up values with width <= ${size.octChars}!"
+                        CheckResult(false, Settings.PRESTRING_OCT + trimmedString, message)
+                    }
+                } else {
+                    val zeroString = Settings.PRESTRING_OCT + "0".repeat(size.octChars)
+                    message = "Oct.check(): $string does not match the hex Pattern (${Settings.PRESTRING_OCT + "X".repeat(size.octChars)} where X is element of [0-7]), returning $zeroString instead!"
+                    nativeError(message)
+                    return CheckResult(false, zeroString, message)
+                }
+            }
+
+            override fun check(size: Size): CheckResult = check(getRawOctStr(), size)
+
+            override fun toBin(): Bin = Conversion.getBinary(this)
+
+            override fun toHex(): Hex = Conversion.getBinary(this).toHex()
+            override fun toOct(): Oct = this
+
+            override fun toDec(): Dec = Conversion.getBinary(this).toDec()
+
+            override fun toUDec(): UDec = Conversion.getBinary(this).toUDec()
+
+            override fun toASCII(): String = Conversion.getASCII(this)
+
+            override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
+
+            override fun plus(operand: Value): Value {
+                val result = BinaryTools.add(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return Bin(result, biggerSize)
+            }
+
+            override fun minus(operand: Value): Value {
+                val result = BinaryTools.sub(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return Bin(result, biggerSize)
+            }
+
+            override fun times(operand: Value): Value {
+                val result = BinaryTools.multiply(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return Bin(result, biggerSize)
+            }
+            override fun div(operand: Value): Value {
+                val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return Bin(divResult.result, biggerSize)
+            }
+            override fun rem(operand: Value): Value {
+                val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
+                val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+                return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
+            }
+
+            override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.toBin().getRawBinStr()), size)
+
+            override fun inc(): Value = Bin(BinaryTools.add(this.toBin().getRawBinStr(), "1"), size)
+
+            override fun dec(): Value = Bin(BinaryTools.sub(this.toBin().getRawBinStr(), "1"), size)
+
+            override fun compareTo(other: Value): Int = if (BinaryTools.isEqual(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
+                0
+            } else if (BinaryTools.isGreaterThan(this.toBin().getRawBinStr(), other.toBin().getRawBinStr())) {
+                1
+            } else {
+                -1
+            }
+
+            override fun toRawString(): String = getRawOctStr()
+
+            override fun toString(): String = getOctString()
         }
 
         /**
@@ -598,6 +702,7 @@ class Variable {
             override fun check(size: Size): CheckResult = check(getRawDecStr(), size)
             override fun toBin(): Bin = Conversion.getBinary(this)
             override fun toHex(): Hex = Conversion.getBinary(this).toHex()
+            override fun toOct(): Oct = Conversion.getBinary(this).toOct()
             override fun toDec(): Dec = this
             override fun toUDec(): UDec = Conversion.getUDec(this.toBin())
             override fun toASCII(): String = Conversion.getBinary(this).toASCII()
@@ -695,6 +800,7 @@ class Variable {
             override fun check(size: Size): CheckResult = check(getRawUDecStr(), size)
             override fun toBin(): Bin = Conversion.getBinary(this)
             override fun toHex(): Hex = Conversion.getBinary(this).toHex()
+            override fun toOct(): Oct = Conversion.getBinary(this).toOct()
             override fun toDec(): Dec = Conversion.getBinary(this).toDec()
             override fun toUDec(): UDec = this
             override fun toASCII(): String = Conversion.getASCII(this)
@@ -749,7 +855,6 @@ class Variable {
 
             override fun toRawString(): String = this.getRawUDecStr()
             override fun toString(): String = this.udecString
-
         }
 
         /**
@@ -764,6 +869,10 @@ class Variable {
                 removedPrefString = string.trim().removePrefix(Settings.PRESTRING_HEX)
                 if (removedPrefString.length < string.trim().length - 1) {
                     return Hex("0", Size.Bit8())
+                }
+                removedPrefString = string.trim().removePrefix(Settings.PRESTRING_OCT)
+                if (removedPrefString.length < string.trim().length - 1) {
+                    return Oct("0", Size.Bit8())
                 }
                 removedPrefString = string.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
                 if (removedPrefString.length < string.trim().length - 1) {
@@ -792,6 +901,42 @@ class Variable {
                 }
 
                 return Hex(hexStr, bin.size)
+            }
+
+            fun getOct(bin: Bin): Oct {
+                var octStr = ""
+
+                var binStr = bin.getRawBinStr()
+                binStr = if (binStr.length % 3 != 0) {
+                    "0".repeat(3 - (binStr.length % 3)) + binStr
+                } else {
+                    binStr
+                }
+
+                for (i in binStr.indices step 3) {
+                    val substring = binStr.substring(i, i + 3)
+                    octStr += BinaryTools.binToOctDigit[substring] ?: break
+                }
+
+                if (DebugTools.KIT_showValTypeConversionInfo) {
+                    nativeInfo("Conversion: ${bin.getBinaryStr()} to $octStr")
+                }
+
+                return Oct(octStr, bin.size)
+            }
+
+            fun getBinary(oct: Oct): Bin {
+                var binStr = ""
+
+                val hexStr = oct.toRawString()
+
+                for (i in hexStr.indices) {
+                    binStr += BinaryTools.octToBinDigit[hexStr[i]]
+                }
+                if (DebugTools.KIT_showValTypeConversionInfo) {
+                    nativeInfo("Conversion: ${oct} to $binStr")
+                }
+                return Bin(binStr, oct.size)
             }
 
             fun getBinary(hex: Hex): Bin {
@@ -936,6 +1081,7 @@ class Variable {
 
                 val hexString = when (value) {
                     is Hex -> value.getRawHexStr()
+                    is Oct -> value.toHex().getRawHexStr()
                     is Bin -> value.toHex().getRawHexStr()
                     is Dec -> value.toHex().getRawHexStr()
                     is UDec -> value.toHex().getRawHexStr()
@@ -981,6 +1127,7 @@ class Variable {
     sealed class Size(val name: String, val bitWidth: Int) {
 
         val hexChars = bitWidth / 4 + if (bitWidth % 4 == 0) 0 else 1
+        val octChars = bitWidth / 3 + if (bitWidth % 3 == 0) 0 else 1
 
         override fun equals(other: Any?): Boolean {
             when (other) {
