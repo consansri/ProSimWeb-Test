@@ -110,6 +110,8 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             }
         }
 
+        nativeLog("Labels:" + allLinkedLabels.joinToString("") { "\n\t${it.first.label.identifier} -> ${it.second}" })
+
         /**
          * Generate Bytes
          */
@@ -221,7 +223,9 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         }
 
         fun linkLabels(sectionStartAddress: Variable.Value.Hex): List<Pair<Label, Variable.Value.Hex>> {
-            return content.filterIsInstance<MappedContent<Label>>().map { it.content to (sectionStartAddress + it.offset).toHex() }
+            return content.filter { it.content is Label }.filterIsInstance<MappedContent<Label>>().map {
+                it.content to (sectionStartAddress + it.offset).toHex()
+            }
         }
 
         fun generateBytes(sectionStartAddress: Variable.Value.Hex, labels: List<Pair<Label, Variable.Value.Hex>>) {
@@ -234,7 +238,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         data class MappedContent<T : SecContent>(val offset: Variable.Value.Hex, val content: T) {
             var bytes: Array<Variable.Value.Bin> = arrayOf()
-            override fun toString(): String = "${if(content.bytesNeeded != 0) offset.toString() else ""}${if (bytes.isNotEmpty()) " " + bytes.joinToString("") { it.toHex().getRawHexStr() } else ""} ${content.getContentString()}"
+            override fun toString(): String = "${if (content.bytesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) " " + bytes.joinToString("") { it.toHex().getRawHexStr() } + " " else ""}${content.getContentString()}"
         }
     }
 
@@ -252,10 +256,6 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
     data class Label(val label: GASNode.Label) : SecContent {
         override val bytesNeeded: Int = 0
-
-        init {
-            nativeLog("Found label ${label.identifier}")
-        }
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> = emptyArray()
         override fun getContentString(): String = label.identifier + ":"
     }

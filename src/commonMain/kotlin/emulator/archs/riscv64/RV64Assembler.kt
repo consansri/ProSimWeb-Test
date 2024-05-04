@@ -78,7 +78,7 @@ class RV64Assembler : DefinedAssembly {
             return RV64BinMapper.getBinaryFromInstrDef(this, yourAddr.toHex(), labelAddr ?: Hex("0", yourAddr.size), immediate)
         }
 
-        override fun getContentString(): String = "${type.id} ${type.paramType.getContentString(this)}"
+        override fun getContentString(): String = "${type.id.lowercase()} ${type.paramType.getContentString(this)}"
     }
 
     private fun GASNode.NumericExpr.checkInstrType(type: RV64Syntax.InstrType): Variable.Value {

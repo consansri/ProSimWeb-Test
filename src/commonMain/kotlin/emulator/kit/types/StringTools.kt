@@ -4,6 +4,8 @@ package emulator.kit.types
  *  This Object contains some often needed [String] helping functions.
  */
 object StringTools {
+    private val leadingZerosRegex = Regex("^0+(?!$)")
+    fun removeLeadingZeros(inputString: String): String = inputString.replaceFirst(leadingZerosRegex, "").ifEmpty { "0" }
     fun splitStringAtFirstOccurrence(inputString: String, delimiter: Char): Pair<String, String> {
         val indexOfDelimiter = inputString.indexOf(delimiter)
         return if (indexOfDelimiter != -1) {

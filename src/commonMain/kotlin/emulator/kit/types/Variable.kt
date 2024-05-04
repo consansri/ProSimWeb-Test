@@ -170,6 +170,7 @@ class Variable {
         }
 
         abstract fun toRawString(): String
+        fun toRawZeroTrimmedString(): String = StringTools.removeLeadingZeros(toRawString())
         abstract override fun toString(): String
         fun isSigned(): Boolean {
             return when (this) {
@@ -472,8 +473,8 @@ class Variable {
 
             constructor(hexString: String) : this(hexString, Size.Original(hexString.trim().removePrefix(Settings.PRESTRING_HEX).length * 4))
 
-            fun getRawHexStr(): String = hexString.removePrefix(Settings.PRESTRING_HEX)
-            fun getHexStr(): String = hexString
+            fun getRawHexStr(): String = hexString.removePrefix(Settings.PRESTRING_HEX).lowercase()
+            fun getHexStr(): String = hexString.lowercase()
             fun getUResized(size: Size): Hex = Hex(getRawHexStr(), size)
 
             fun splitToByteArray(): Array<Hex> {
@@ -551,7 +552,7 @@ class Variable {
             }
 
             override fun toRawString(): String = this.getRawHexStr()
-            override fun toString(): String = this.hexString
+            override fun toString(): String = this.hexString.lowercase()
             override fun toHex(): Hex = this
 
         }
