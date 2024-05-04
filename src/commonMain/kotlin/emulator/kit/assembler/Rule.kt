@@ -2,6 +2,7 @@ package emulator.kit.assembler
 
 import debug.DebugTools
 import emulator.kit.assembler.gas.DefinedAssembly
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNode.Companion.dropSpaces
 import emulator.kit.assembler.gas.nodes.GASNodeType
@@ -20,19 +21,19 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
 
     private val comp = comp()
 
-    fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
-        val result = comp.matchStart(source, allDirs, definedAssembly)
+    fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
+        val result = comp.matchStart(source, allDirs, definedAssembly, assignedSymbols)
         return result
     }
 
     sealed class Component {
-        abstract fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult
+        abstract fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult
         abstract fun print(): String
 
         class Optional(comp: () -> Component) : Component() {
             private val comp = comp()
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
-                val result = comp.matchStart(source, allDirs, definedAssembly)
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
+                val result = comp.matchStart(source, allDirs, definedAssembly, assignedSymbols)
                 if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Optional ${comp.print()}")
                 return MatchResult(true, result.matchingTokens, result.matchingNodes, result.remainingTokens)
             }
@@ -41,11 +42,11 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class XOR(private vararg val comps: Component) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
 
                 var result: MatchResult = MatchResult(false, listOf(), listOf(), source)
                 for (comp in comps) {
-                    result = comp.matchStart(source, allDirs, definedAssembly)
+                    result = comp.matchStart(source, allDirs, definedAssembly, assignedSymbols)
                     if (result.matches) {
                         if (DebugTools.KIT_showRuleChecks) nativeLog("Match: XOR ${result.matchingTokens.joinToString { it.type.name }}")
                         result = MatchResult(true, result.matchingTokens, result.matchingNodes, result.remainingTokens)
@@ -60,7 +61,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
 
         class Repeatable(private val ignoreSpaces: Boolean = true, private val maxLength: Int? = null, comp: () -> Component) : Component() {
             private val comp = comp()
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 val remainingTokens = source.toMutableList()
                 val ignoredSpaces = mutableListOf<Token>()
                 val matchingTokens = mutableListOf<Token>()
@@ -71,7 +72,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     ignoredSpaces.addAll(remainingTokens.dropSpaces())
                 }
 
-                var result = comp.matchStart(remainingTokens, allDirs, definedAssembly)
+                var result = comp.matchStart(remainingTokens, allDirs, definedAssembly, assignedSymbols)
                 while (result.matches) {
                     matchingNodes.addAll(result.matchingNodes)
                     matchingTokens.addAll(result.matchingTokens)
@@ -86,7 +87,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     if (ignoreSpaces) {
                         ignoredSpaces.addAll(remainingTokens.dropSpaces())
                     }
-                    result = comp.matchStart(remainingTokens, allDirs, definedAssembly)
+                    result = comp.matchStart(remainingTokens, allDirs, definedAssembly, assignedSymbols)
                 }
 
                 if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Repeatable ${comp.print()} iterations: ${iteration + 1}")
@@ -98,7 +99,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class Seq(vararg val comps: Component, private val ignoreSpaces: Boolean = true) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 val ignoredSpaces = mutableListOf<Token>()
                 val remaining = source.toMutableList()
                 val matchingNodes = mutableListOf<Node>()
@@ -109,7 +110,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                         ignoredSpaces.addAll(remaining.dropSpaces())
                     }
 
-                    val result = comp.matchStart(remaining, allDirs, definedAssembly)
+                    val result = comp.matchStart(remaining, allDirs, definedAssembly, assignedSymbols)
                     if (!result.matches) {
                         //nativeLog("seq comp isn't matching: ${comp.print()} -> ${remaining.joinToString(" ") { "[${it.type.toString()} ${it.content}]" }}")
                         return MatchResult(false, listOf(), listOf(), source)
@@ -130,9 +131,9 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class Except(private val comp: Component) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 if (source.isEmpty()) return MatchResult(false, listOf(), listOf(), source)
-                val result = comp.matchStart(source, allDirs, definedAssembly)
+                val result = comp.matchStart(source, allDirs, definedAssembly, assignedSymbols)
                 if (result.matches) {
                     return MatchResult(false, listOf(), listOf(), source)
                 }
@@ -144,7 +145,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class Specific(val content: String, private val ignoreCase: Boolean = false) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
                 if (ignoreCase) {
                     if (first.content.uppercase() != content.uppercase()) return MatchResult(false, listOf(), listOf(), source)
@@ -159,7 +160,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class Reg(private val inRegFile: RegContainer.RegisterFile? = null, private val notInRegFile: RegContainer.RegisterFile? = null) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
                 val reg = first.reg
                 if (first.type != Token.Type.REGISTER || reg == null) return MatchResult(false, listOf(), listOf(), source)
@@ -178,7 +179,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class Dir(private val dirName: String) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
                 if (first.type == Token.Type.DIRECTIVE && ".${dirName.uppercase()}" == first.content.uppercase()) {
                     if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Dir ${dirName}")
@@ -191,7 +192,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class InSpecific(private val type: Token.Type) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 val first = source.firstOrNull() ?: return MatchResult(false, listOf(), listOf(), source)
                 if (first.type != type) return MatchResult(false, listOf(), listOf(), source)
                 if (DebugTools.KIT_showRuleChecks) nativeLog("Match: InSpecific ${type.name}")
@@ -202,8 +203,8 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         class SpecNode(private val type: GASNodeType) : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
-                val node = GASNode.buildNode(type, source, allDirs, definedAssembly)
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
+                val node = GASNode.buildNode(type, source, allDirs, definedAssembly, assignedSymbols)
                 if (node == null) {
                     if (DebugTools.KIT_showRuleChecks) nativeLog("Mismatch: SpecNode ${type.name}")
                     return MatchResult(false, listOf(), listOf(), source)
@@ -216,7 +217,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         }
 
         data object Nothing : Component() {
-            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): MatchResult {
+            override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 return MatchResult(true, listOf(), listOf(), source)
             }
 

@@ -44,7 +44,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         /**
          * Severities will be set by the Lowest Node which is actually checking the token.
          */
-        fun buildNode(gasNodeType: GASNodeType, source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode? {
+        fun buildNode(gasNodeType: GASNodeType, source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol> = emptyList()): GASNode? {
             val remainingTokens = source.toMutableList()
             when (gasNodeType) {
                 GASNodeType.ROOT -> {
@@ -93,7 +93,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
 
                     val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, allDirs, definedAssembly)
-                    if (instruction != null && instruction is Instruction) {
+                    if (instruction != null && instruction is RawInstr) {
                         remainingTokens.removeAll(instruction.getAllTokens().toSet())
                         spaces.addAll(remainingTokens.dropSpaces())
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
@@ -139,22 +139,22 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     remainingTokens.removeFirst()
 
                     val params = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
-                    return definedAssembly.parseInstrParams(first, params)
+                    return RawInstr(first, params)
                 }
 
                 GASNodeType.EXPRESSION_INTEGER -> {
-                    return NumericExpr.parse(remainingTokens)
+                    return NumericExpr.parse(remainingTokens, assignedSymbols)
                 }
 
                 GASNodeType.EXPRESSION_ANY -> {
                     val stringExpr = StringExpr.parse(remainingTokens)
                     if (stringExpr != null) return stringExpr
 
-                    return NumericExpr.parse(remainingTokens)
+                    return NumericExpr.parse(remainingTokens, assignedSymbols)
                 }
 
                 GASNodeType.EXPRESSION_STRING -> {
-                    return StringExpr.parse(remainingTokens)
+                    return StringExpr.parse(remainingTokens, assignedSymbols)
                 }
 
                 GASNodeType.LABEL -> {
@@ -254,7 +254,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
         }
 
-        class Instr(label: Label?, val instruction: Instruction, lineBreak: Token) : Statement(label, lineBreak, instruction)
+        class Instr(label: Label?, val rawInstr: RawInstr, lineBreak: Token) : Statement(label, lineBreak, rawInstr) {
+
+        }
+
         class Unresolved(label: Label?, val lineTokens: List<Token>, lineBreak: Token) : Statement(label, lineBreak, *lineTokens.map { BaseNode(it) }.toTypedArray()) {
             init {
                 lineTokens.firstOrNull()?.addSeverity(Severity.Type.WARNING, "Found unresolved statement!")
@@ -300,15 +303,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
     }
 
-    abstract class Instruction(val instrName: Token, allTokens: List<Token>, allNodes: List<Node>) : GASNode() {
-        abstract fun getWidth(): Variable.Size
+    class RawInstr(val instrName: Token, val remainingTokens: List<Token>) : GASNode() {
         var addr: Variable.Value? = null
 
         init {
             addChild(BaseNode(instrName))
-            addChilds(*allNodes.toTypedArray())
-            val notYetAdded = allTokens.filter { !this.getAllTokens().contains(it) }
-            addChilds(*notYetAdded.map { BaseNode(it) }.toTypedArray())
+            addChilds(*remainingTokens.map { BaseNode(it) }.toTypedArray())
         }
     }
 
@@ -322,8 +322,21 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
         }
 
-        class Concatenation(spaces: List<Token>, vararg val exprs: StringExpr) : StringExpr(spaces, *exprs) {
-            override fun evaluate(): String = exprs.joinToString("") { it.getValue() }
+        abstract fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>)
+
+        class Concatenation(spaces: List<Token>, exprs: Array<StringExpr>) : StringExpr(spaces, *exprs) {
+            val exprs: Array<StringExpr>
+
+            init {
+                this.exprs = exprs
+            }
+
+            override fun evaluate(): String = exprs.joinToString("") { it.evaluate() }
+            override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
+                exprs.forEach { expr ->
+                    expr.replaceIdentifierWithExpr(assignedSymbols)
+                }
+            }
         }
 
         sealed class Operand(val token: Token) : StringExpr() {
@@ -333,14 +346,48 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             class Identifier(val symbol: Token) : Operand(symbol) {
+                var expr: StringExpr? = null
                 override fun evaluate(): String {
-                    symbol.addSeverity(Severity.Type.WARNING, "Symbol is not a string or not yet defined. returning \"\".")
-                    return ""
+                    val currExpr = expr
+                    if (currExpr == null) {
+                        symbol.addSeverity(Severity.Type.WARNING, "Symbol is not a string or not yet defined. returning \"\".")
+                        return ""
+                    }
+                    return currExpr.evaluate()
+                }
+
+                override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
+                    val assignement = assignedSymbols.firstOrNull { it.name == symbol.content }
+
+                    if (assignement == null) {
+                        symbol.addSeverity(Severity.Type.WARNING, "Symbol is undefined!")
+                        return
+                    }
+
+                    when (assignement) {
+                        is GASParser.Symbol.IntegerExpr -> {
+                            symbol.addSeverity(Severity.Type.ERROR, "Unable to assign a Integer to a String Identifier!")
+                        }
+
+                        is GASParser.Symbol.StringExpr -> {
+                            symbol.removeSeverityIfError()
+                            expr = assignement.expr
+                        }
+
+                        is GASParser.Symbol.TokenRef -> {
+                            symbol.addSeverity(Severity.Type.ERROR, "Unable to assign a Token to a String Identifier!")
+                        }
+
+                        is GASParser.Symbol.Undefined -> {
+                            symbol.addSeverity(Severity.Type.ERROR, "Unable to assign a Undefined Symbol to a String Identifier!")
+                        }
+                    }
                 }
             }
 
             class StringLiteral(val string: Token) : Operand(string) {
                 private val stringContent: String
+
                 init {
                     stringContent = when (string.type) {
                         Token.Type.STRING_ML -> token.content.substring(3, token.content.length - 3)
@@ -348,12 +395,16 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         else -> ""
                     }
                 }
+
                 override fun evaluate(): String = stringContent
+                override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
+                    /*Nothing*/
+                }
             }
         }
 
         companion object {
-            fun parse(tokens: List<Token>, allowSymbolsAsOperands: Boolean = true): StringExpr? {
+            fun parse(tokens: List<Token>, assignedSymbols: List<GASParser.Symbol> = listOf(), allowSymbolsAsOperands: Boolean = true): StringExpr? {
                 val relevantTokens = takeRelevantTokens(tokens, allowSymbolsAsOperands).toMutableList()
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
                 relevantTokens.removeAll(spaces)
@@ -368,11 +419,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
                 }
                 if (operands.isEmpty()) return null
-                return if (operands.size == 1) {
+
+                val expr = if (operands.size == 1) {
                     operands.first()
                 } else {
-                    Concatenation(spaces, *operands.toTypedArray())
+                    Concatenation(spaces, operands.toTypedArray())
                 }
+                expr.replaceIdentifierWithExpr(assignedSymbols)
+                return expr
             }
 
             private fun takeRelevantTokens(tokens: List<Token>, allowSymbolsAsOperands: Boolean): List<Token> {
@@ -397,16 +451,19 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
 
         abstract fun evaluate(): Variable.Value
-        fun getValue(size: Variable.Size? = null): Variable.Value{
-            return if(size != null){
+
+        abstract fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>)
+
+        fun getValue(size: Variable.Size? = null): Variable.Value {
+            return if (size != null) {
                 evaluate().toBin().getResized(size)
-            }else{
+            } else {
                 evaluate()
             }
         }
 
         companion object {
-            fun parse(tokens: List<Token>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
+            fun parse(tokens: List<Token>, assignedSymbols: List<GASParser.Symbol>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
                 val relevantTokens = takeRelevantTokens(tokens, allowSymbolsAsOperands).toMutableList()
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
                 if (relevantTokens.lastOrNull()?.type?.isOpeningBracket == true) relevantTokens.removeLast()
@@ -417,6 +474,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 // Convert tokens to postfix notation
                 val postFixTokens = convertToPostfix(relevantTokens)
                 val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), spaces)
+                expression?.assignIdentifier(assignedSymbols)
+
                 return expression
             }
 
@@ -582,6 +641,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          *
          */
         class Prefix(val operator: Token, val operand: NumericExpr, brackets: List<Token>, spaces: List<Token>) : NumericExpr(spaces, brackets, operand) {
+
             init {
                 addChild(BaseNode(operator))
             }
@@ -596,6 +656,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         operand.evaluate()
                     }
                 }
+            }
+
+            override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                operand.assignIdentifier(assignedSymbols)
             }
         }
 
@@ -628,6 +692,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
                 }
             }
+
+            override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                operandA.assignIdentifier(assignedSymbols)
+                operandB.assignIdentifier(assignedSymbols)
+            }
         }
 
         sealed class Operand(token: Token) : NumericExpr(brackets = listOf(), spaces = listOf()) {
@@ -636,9 +705,42 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             class Identifier(val symbol: Token) : Operand(symbol) {
+                private var expr: NumericExpr? = null
                 override fun evaluate(): Variable.Value {
-                    symbol.addSeverity(Severity.Type.ERROR, "Can't evaluate from a undefined symbol. Returning 0.")
-                    return Variable.Value.Bin("0", Variable.Size.Bit32())
+                    val currExpr = expr
+                    if (currExpr == null) {
+                        symbol.addSeverity(Severity.Type.ERROR, "Can't evaluate from a undefined symbol. Returning 0.")
+                        return Variable.Value.Bin("0", Variable.Size.Bit32())
+                    }
+                    return currExpr.evaluate()
+                }
+
+                override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                    val assignement = assignedSymbols.firstOrNull { it.name == symbol.content }
+
+                    if (assignement == null) {
+                        symbol.addSeverity(Severity.Type.WARNING, "Symbol is not assigned!")
+                        return
+                    }
+
+                    when (assignement) {
+                        is GASParser.Symbol.IntegerExpr -> {
+                            symbol.removeSeverityIfError()
+                            expr = assignement.expr
+                        }
+
+                        is GASParser.Symbol.StringExpr -> {
+                            symbol.addSeverity(Severity.Type.ERROR, "Unable to assign a String to an Integer Identifier!")
+                        }
+
+                        is GASParser.Symbol.TokenRef -> {
+                            symbol.addSeverity(Severity.Type.ERROR, "Unable to assign a Token to an Integer Identifier!")
+                        }
+
+                        is GASParser.Symbol.Undefined -> {
+                            symbol.addSeverity(Severity.Type.ERROR, "Unable to assign a Undefined Symbol to an Integer Identifier!")
+                        }
+                    }
                 }
             }
 
@@ -651,12 +753,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     val bigNumVal: Variable.Value
                     when (number.type) {
                         Token.Type.INT_BIN -> {
-                            intVal = Variable.Value.Bin(number.getNumberStringWithoutPrefix(),  Variable.Size.Bit32())
+                            intVal = Variable.Value.Bin(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
                             bigNumVal = Variable.Value.Bin(number.getNumberStringWithoutPrefix())
                         }
 
                         Token.Type.INT_HEX -> {
-                            intVal = Variable.Value.Hex(number.getNumberStringWithoutPrefix(),  Variable.Size.Bit32())
+                            intVal = Variable.Value.Hex(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
                             bigNumVal = Variable.Value.Hex(number.getNumberStringWithoutPrefix())
                         }
 
@@ -666,7 +768,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         }
 
                         Token.Type.INT_DEC -> {
-                            intVal = Variable.Value.Dec(number.getNumberStringWithoutPrefix(),  Variable.Size.Bit32())
+                            intVal = Variable.Value.Dec(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
                             bigNumVal = Variable.Value.Dec(number.getNumberStringWithoutPrefix())
                         }
 
@@ -688,30 +790,32 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 override fun evaluate(): Variable.Value = value
 
-                enum class Type() {
-                    Integer(),
-                    BigNum()
+                override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                    // NOTHING
+                }
+
+                enum class Type {
+                    Integer,
+                    BigNum
                 }
             }
 
             class Char(val char: Token) : Operand(char) {
 
                 val value: Variable.Value
+
                 init {
                     val hexString = Variable.Tools.asciiToHex(char.toString())
                     value = Variable.Value.Hex(hexString, Variable.Size.Bit8())
                 }
 
                 override fun evaluate(): Variable.Value = value
+                override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                    // NOTHING
+                }
             }
         }
     }
-
-
-    class ProviderNotLinkedYetException(numericExpr: NumericExpr) : Exception() {
-        override val message: String = "${numericExpr::class.simpleName}: Value provider wasn't linked yet!"
-    }
-
 }
 
 

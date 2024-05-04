@@ -1,6 +1,5 @@
 package emulator.kit.assembler.gas
 
-import emulator.Link
 import emulator.kit.assembler.CompilerFile
 import emulator.kit.assembler.CompilerInterface
 import emulator.kit.assembler.DirTypeInterface
@@ -13,7 +12,10 @@ import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.ParserTree
+import emulator.kit.common.Memory
+import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
+import emulator.kit.types.Variable
 
 class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembly) : Parser(compiler) {
     override fun getDirs(features: List<Feature>): List<DirTypeInterface> = definedAssembly.getAdditionalDirectives() + GASDirType.entries
@@ -24,7 +26,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         // Build the tree
         val root = GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)
-        if (root == null || root !is Root) return ParserTree(null, source, filteredSource)
+        if (root == null || root !is Root) return ParserTree(null, source, filteredSource, arrayOf())
 
         // Filter
         root.removeEmptyStatements()
@@ -45,32 +47,84 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          * - Fix Instruction ParamType and WordSizes
          *
          * - Calculate Relative Label Addresses
-         *
          */
 
         /**
          * - Resolve Statements
          */
 
-        val tempContainer = TempContainer(root)
+        val tempContainer = TempContainer(definedAssembly.MEM_ADDRESS_SIZE, root)
 
-        while (root.getAllStatements().isNotEmpty()) {
-            val firstStatement = root.getAllStatements().first()
-            when (firstStatement) {
-                is Statement.Dir -> {
-                    firstStatement.directive.type.executeDirective(firstStatement, tempContainer)
+        try {
+            while (root.getAllStatements().isNotEmpty()) {
+                val firstStatement = root.getAllStatements().first()
+                firstStatement.label?.let {
+                    tempContainer.currSection.addContent(Label(it))
+                }
+                when (firstStatement) {
+                    is Statement.Dir -> {
+                        firstStatement.directive.type.executeDirective(firstStatement, tempContainer)
+                    }
+
+                    is Statement.Empty -> {
+
+                    }
+
+                    is Statement.Instr -> {
+                        definedAssembly.parseInstrParams(firstStatement.rawInstr, tempContainer).forEach {
+                            tempContainer.currSection.addContent(it)
+                        }
+                    }
+
+                    is Statement.Unresolved -> {
+
+                    }
                 }
 
-                is Statement.Empty -> TODO()
-                is Statement.Instr -> TODO()
-                is Statement.Unresolved -> TODO()
+                root.removeChild(firstStatement)
             }
-
-            root.removeChild(firstStatement)
+        } catch (e: ParserError) {
+            e.token.addSeverity(Severity.Type.ERROR, e.message)
         }
 
+        val sections = tempContainer.sections.toTypedArray()
 
-        return ParserTree(root, source, filteredSource)
+        /**
+         * Define Section Start Addresses
+         */
+        var currentAddress: Variable.Value = Variable.Value.Hex("0", definedAssembly.MEM_ADDRESS_SIZE)
+        val sectionAddressMap = mutableMapOf<Section, Variable.Value.Hex>()
+        sections.forEach {
+            sectionAddressMap.set(it, currentAddress.toHex())
+            currentAddress += it.lastOffset
+        }
+
+        /**
+         * Link All Section Labels
+         */
+        val allLinkedLabels = mutableListOf<Pair<Label, Variable.Value.Hex>>()
+        sections.forEach { sec ->
+            val addr = sectionAddressMap[sec]
+            addr?.let {
+                allLinkedLabels.addAll(sec.linkLabels(it))
+            }
+        }
+
+        /**
+         * Generate Bytes
+         */
+        sections.forEach { sec ->
+            val addr = sectionAddressMap[sec]
+            addr?.let {
+                sec.generateBytes(it, allLinkedLabels)
+            }
+        }
+
+        nativeLog(tempContainer.sections.joinToString("\n\n") {
+            it.toString()
+        })
+
+        return ParserTree(root, source, filteredSource, sections)
     }
 
     /**
@@ -101,9 +155,10 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
     }
 
     data class TempContainer(
+        val addressSize: Variable.Size,
         val root: Root,
         val symbols: MutableList<Symbol> = mutableListOf(),
-        val sections: MutableList<Section> = mutableListOf(Section("text"), Section("data"), Section("bss")),
+        val sections: MutableList<Section> = mutableListOf(Section("text", addressSize), Section("data", addressSize), Section("bss", addressSize)),
         val macros: MutableList<Macro> = mutableListOf(),
         var currSection: Section = sections.first(),
     )
@@ -148,6 +203,61 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         class TokenRef(name: String, val token: Token) : Symbol(name)
     }
 
-    data class Section(val name: String, val statements: MutableList<Statement> = mutableListOf())
+    data class Section(val name: String, val addressSize: Variable.Size) {
+        private val content: MutableList<MappedContent<*>> = mutableListOf()
+        var lastOffset: Variable.Value = Variable.Value.Hex("0", addressSize)
+
+        fun addContent(sectionContent: SecContent) {
+            content.add(MappedContent(lastOffset.toHex(), sectionContent))
+            lastOffset += Variable.Value.Hex(sectionContent.bytesNeeded.toString(16), addressSize)
+        }
+
+        fun getLastAddress(addressSize: Variable.Size): Variable.Value {
+            return lastOffset
+        }
+
+        fun calcPadding(alignement: Int): Variable.Value {
+            return Variable.Value.Hex(alignement.toString(16)) - lastOffset % Variable.Value.Hex(alignement.toString(16))
+        }
+
+        fun linkLabels(sectionStartAddress: Variable.Value.Hex): List<Pair<Label, Variable.Value.Hex>> {
+            return content.filterIsInstance<MappedContent<Label>>().map { it.content to (sectionStartAddress + it.offset).toHex() }
+        }
+
+        fun generateBytes(sectionStartAddress: Variable.Value.Hex, labels: List<Pair<Label, Variable.Value.Hex>>) {
+            content.forEach {
+                it.bytes = it.content.getBinaryArray(sectionStartAddress + it.offset, labels)
+            }
+        }
+
+        override fun toString(): String = "Section $name: ${content.joinToString("") { "\n\t$it" }}"
+
+        data class MappedContent<T : SecContent>(val offset: Variable.Value.Hex, val content: T) {
+            var bytes: Array<Variable.Value.Bin> = arrayOf()
+            override fun toString(): String = "${if(content.bytesNeeded != 0) offset.toString() else ""}${if (bytes.isNotEmpty()) " " + bytes.joinToString("") { it.toHex().getRawHexStr() } else ""} ${content.getContentString()}"
+        }
+    }
+
+    interface SecContent {
+        val bytesNeeded: Int
+
+        /**
+         * This will be stored into memory!
+         *
+         * Values larger than one byte will be stored memory endianness dependent!
+         */
+        fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin>
+        fun getContentString(): String
+    }
+
+    data class Label(val label: GASNode.Label) : SecContent {
+        override val bytesNeeded: Int = 0
+
+        init {
+            nativeLog("Found label ${label.identifier}")
+        }
+        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> = emptyArray()
+        override fun getContentString(): String = label.identifier + ":"
+    }
 
 }

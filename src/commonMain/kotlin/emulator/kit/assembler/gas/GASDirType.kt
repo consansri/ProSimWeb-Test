@@ -996,7 +996,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     override fun getDetectionString(): String = if (!this.contentStartsDirectly) this.name.removePrefix("_") else ""
 
     override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive? {
-        val result = this.rule?.matchStart(tokens, allDirs, definedAssembly) ?: return null
+        val result = this.rule?.matchStart(tokens, allDirs, definedAssembly, listOf()) ?: return null
         if (result.matches) {
             return GASNode.Directive(this, result.matchingTokens + result.ignoredSpaces, result.matchingNodes)
         }

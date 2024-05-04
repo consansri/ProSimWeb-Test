@@ -6,8 +6,11 @@ import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.gas.DefinedAssembly
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.assembler.parser.Parser
+import emulator.kit.common.Memory
 import emulator.kit.nativeError
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
@@ -27,86 +30,85 @@ class IKRMiniAssembler : DefinedAssembly {
 
     override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
 
-    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instruction): Int {
-        if (instr !is IKRMiniInstr) {
-            arch.getConsole().error("Expected [${IKRMiniInstr::class.simpleName}] but received [${instr::class.simpleName}]!")
-            return 1
-        }
-        val amode = instr.addressMode
-        if(amode == null){
-            nativeError("Requesting instruction space for not yet determined instruction param type!")
-            return 1
-        }
-        return amode.wordAmount
-    }
 
-    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin> {
-        if (instr !is IKRMiniInstr) {
-            arch.getConsole().error("Expected [${IKRMiniInstr::class.simpleName}] but received [${instr::class.simpleName}]!")
-            return emptyArray()
-        }
-        val ikrInstr: IKRMiniInstr = instr
-        return ikrInstr.getOpBin(arch)
-    }
 
-    override fun getInstrFromBinary(arch: Architecture, currentAddress: Variable.Value.Hex): StandardAssembler.ResolvedInstr? {
-        val loaded = arch.getMemory().loadArray(currentAddress, IKRMini.WORDSIZE.getByteCount() * 2)
-        val opCode = Variable.Value.Hex(loaded.take(2).joinToString("") { it.toHex().getRawHexStr() }, IKRMini.WORDSIZE)
-        val ext = Variable.Value.Hex(loaded.drop(2).joinToString("") { it.toHex().getRawHexStr() }, IKRMini.WORDSIZE).getRawHexStr()
-
-        var paramType: IKRMiniSyntax.ParamType? = null
-        val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { type ->
-            paramType = type.paramMap.entries.firstOrNull { opCode.getRawHexStr().uppercase() == it.value.getRawHexStr().uppercase() }?.key
-            paramType != null
-        }
-
-        val actualParamType = paramType
-        if (actualParamType == null || instrType == null) {
-            return null
-        }
-
-        val extString: String = when (actualParamType) {
-            IKRMiniSyntax.ParamType.INDIRECT -> "(($${ext.uppercase()}))"
-            IKRMiniSyntax.ParamType.DIRECT -> "($${ext.uppercase()})"
-            IKRMiniSyntax.ParamType.IMMEDIATE -> "#$${ext.uppercase()}"
-            IKRMiniSyntax.ParamType.DESTINATION -> "$${ext.uppercase()}"
-            IKRMiniSyntax.ParamType.IMPLIED -> ""
-            null -> ""
-        }
-
-        return StandardAssembler.ResolvedInstr(instrType.name, extString, actualParamType.wordAmount)
-    }
-
-    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
-        val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { instrToken.content.uppercase() == it.getDetectionName().uppercase() } ?: return null
+    override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
+        val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { rawInstr.instrName.content.uppercase() == it.getDetectionName().uppercase() } ?: throw Parser.ParserError(rawInstr.instrName, "Is not a IKRMini Instruction!")
         val validParamModes = instrType.paramMap.map { it.key }
-        val validAModes = mutableListOf<IKRMiniSyntax.ParamType>()
-        var lastMatchingResult: Rule.MatchResult? = null
+
         var result: Rule.MatchResult
         for (amode in validParamModes) {
             val seq = amode.tokenSeq
             if (seq == null) {
-                validAModes.add(amode)
-                continue
+                return listOf(IKRMiniInstr(instrType, amode, rawInstr,null))
             }
 
-            if (remainingSource.isEmpty()) {
-                continue
-            }
-
-            result = seq.matchStart(remainingSource, listOf(), this)
+            result = seq.matchStart(rawInstr.remainingTokens, listOf(), this, tempContainer.symbols)
             if (!result.matches) continue
-            validAModes.add(amode)
-            lastMatchingResult = result
 
-        }
-        if(validAModes.isNotEmpty()){
-            return if(lastMatchingResult != null){
-                IKRMiniInstr(instrType, validAModes, instrToken, lastMatchingResult.matchingTokens + lastMatchingResult.ignoredSpaces, lastMatchingResult.matchingNodes)
-            }else{
-                IKRMiniInstr(instrType, validAModes, instrToken, listOf(), listOf())
+            val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()
+
+            val immediate = expr?.evaluate()
+            val resized = when (immediate) {
+                is Variable.Value.Dec -> {
+                    immediate.getResized(IKRMini.WORDSIZE).toHex()
+                }
+
+                else -> {
+                    immediate?.toBin()?.getUResized(IKRMini.WORDSIZE)?.toHex()
+                }
             }
+
+            return listOf(IKRMiniInstr(instrType, amode, rawInstr, resized))
         }
-        return null
+        throw Parser.ParserError(rawInstr.instrName, "Illegal Operands for IKRMini Instruction!")
+    }
+
+    class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, immediate: Variable.Value.Hex? ) : GASParser.SecContent {
+        override val bytesNeeded: Int = aMode.wordAmount * 2
+        val immediate: Variable.Value.Hex
+
+        init {
+            this.immediate = immediate ?: Variable.Value.Hex("0", Variable.Size.Bit16())
+        }
+
+        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {
+            val currentAMode = aMode
+
+            val opCode = type.paramMap[currentAMode]
+            val addr = yourAddr
+
+            if (opCode == null) {
+                throw Parser.ParserError(rawInstr.instrName, "Couldn't resolve opcode for the following combination: ${type.name} and ${currentAMode.name}")
+            }
+            val opCodeArray = mutableListOf(*opCode.splitToByteArray().map { it.toBin() }.toTypedArray())
+
+            when (currentAMode) {
+                IKRMiniSyntax.ParamType.IMMEDIATE, IKRMiniSyntax.ParamType.DIRECT, IKRMiniSyntax.ParamType.INDIRECT -> {
+                    opCodeArray.addAll(immediate.splitToByteArray().map { it.toBin() })
+                }
+
+                IKRMiniSyntax.ParamType.DESTINATION -> {
+                    opCodeArray.addAll(immediate.splitToByteArray().map { it.toBin() })
+                }
+
+                IKRMiniSyntax.ParamType.IMPLIED -> {}
+            }
+            return opCodeArray.toTypedArray()
+        }
+
+        override fun getContentString(): String = "$type $aMode ${getParamString()}"
+
+        fun getParamString(): String {
+            val extString: String = when (aMode) {
+                IKRMiniSyntax.ParamType.INDIRECT -> "(($${immediate}))"
+                IKRMiniSyntax.ParamType.DIRECT -> "($${immediate})"
+                IKRMiniSyntax.ParamType.IMMEDIATE -> "#$${immediate}"
+                IKRMiniSyntax.ParamType.DESTINATION -> "$${immediate}"
+                IKRMiniSyntax.ParamType.IMPLIED -> ""
+            }
+
+            return extString
+        }
     }
 }

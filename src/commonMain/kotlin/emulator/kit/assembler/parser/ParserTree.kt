@@ -1,9 +1,10 @@
 package emulator.kit.assembler.parser
 
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 
-class ParserTree(val rootNode: Node?, val source: List<Token>, val treeRelevantTokens: List<Token>) {
+class ParserTree(val rootNode: Node?, val source: List<Token>, val treeRelevantTokens: List<Token>, val sections: Array<GASParser.Section>) {
     fun contains(token: Token): Parser.SearchResult? = rootNode?.searchBaseNode(token, listOf())
 
     fun hasErrors(): Boolean {

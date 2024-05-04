@@ -4,7 +4,6 @@ import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.lexer.Token
-import emulator.kit.assembler.parser.Node
 
 interface DirTypeInterface {
 
@@ -19,7 +18,9 @@ interface DirTypeInterface {
     /**
      * Execute the usage of a macro!
      *
-     * Return a section to change the current section!
+     * Symbols in expressions must be assigned manually!
+     * - [GASNode.NumericExpr.assignIdentifier]
+     * - [GASNode.StringExpr.replaceIdentifierWithExpr]
      */
     fun executeDirective(
         dirStatement: GASNode.Statement.Dir,

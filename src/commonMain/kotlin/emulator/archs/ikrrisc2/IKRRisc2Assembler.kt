@@ -5,6 +5,7 @@ import emulator.kit.assembly.standards.StandardAssembler
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.DefinedAssembly
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.optional.Feature
@@ -30,19 +31,7 @@ class IKRRisc2Assembler : DefinedAssembly {
         TODO("Not yet implemented")
     }
 
-    override fun getInstrSpace(arch: Architecture, instr: GASNode.Instruction): Int {
-        TODO("Not yet implemented")
-    }
-
-    override fun getOpBinFromInstr(arch: Architecture, instr: GASNode.Instruction): Array<Variable.Value.Bin> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getInstrFromBinary(arch: Architecture, currentAddress: Variable.Value.Hex): StandardAssembler.ResolvedInstr? {
-        TODO("Not yet implemented")
-    }
-
-    override fun parseInstrParams(instrToken: Token, remainingSource: List<Token>): GASNode.Instruction? {
+    override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         TODO("Not yet implemented")
     }
 }

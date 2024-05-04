@@ -7,6 +7,7 @@ import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.common.RegContainer
 
 
 class RV64Syntax {
@@ -320,6 +321,31 @@ class RV64Syntax {
 
         open fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
             return "pseudo param type"
+        }
+
+        fun getContentString(instr: RV64Assembler.RV64Instr ): String{
+            return when(this){
+                RD_I20 -> "${instr.regs[0]},${instr.immediate}"
+                RD_Off12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
+                RS2_Off12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
+                RD_RS1_RS2 -> instr.regs.joinToString { it.toString() }
+                RD_RS1_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                RD_RS1_SHAMT6 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                RS1_RS2_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                CSR_RD_OFF12_RS1 -> "${instr.regs.joinToString { it.toString() }}"
+                CSR_RD_OFF12_UIMM5 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                PS_RS1_RS2_Jlbl -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
+                PS_RD_LI_I64 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                PS_RS1_Jlbl -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
+                PS_RD_Albl -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
+                PS_lbl -> "${instr.label}"
+                PS_RD_RS1 -> "${instr.regs.joinToString { it.toString() }}"
+                PS_RS1 -> "${instr.regs.joinToString { it.toString() }}"
+                PS_CSR_RS1 ->"${instr.regs.joinToString { it.toString() }}"
+                PS_RD_CSR -> "${instr.regs.joinToString { it.toString() }}"
+                NONE -> ""
+                PS_NONE -> ""
+            }
         }
     }
 

@@ -5,6 +5,7 @@ import emulator.kit.assembler.CompilerInterface
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.common.Memory
 import emulator.kit.optional.Feature
 
 abstract class Parser(val compiler: CompilerInterface) {
@@ -14,4 +15,5 @@ abstract class Parser(val compiler: CompilerInterface) {
     abstract fun getDirs(features: List<Feature>): List<DirTypeInterface>
     abstract fun parse(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): ParserTree
     data class SearchResult(val baseNode: Node.BaseNode, val path: List<Node>)
+    data class ParserError(val token: Token, override val message: String): Exception(message)
 }

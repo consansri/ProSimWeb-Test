@@ -771,7 +771,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         }
     }
 
-    private fun getFlags(arch: emulator.kit.Architecture): T6502Assembly.Flags? {
+    private fun getFlags(arch: emulator.kit.Architecture): T6502Assembler.Flags? {
         val sr = arch.getRegByName("SR") ?: return null
         val nflag = sr.get().toBin().getBit(0) ?: return null
         val vflag = sr.get().toBin().getBit(1) ?: return null
@@ -780,7 +780,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         val iflag = sr.get().toBin().getBit(5) ?: return null
         val zflag = sr.get().toBin().getBit(6) ?: return null
         val cflag = sr.get().toBin().getBit(7) ?: return null
-        return T6502Assembly.Flags(nflag, vflag, zflag, cflag, dflag, bflag, iflag)
+        return T6502Assembler.Flags(nflag, vflag, zflag, cflag, dflag, bflag, iflag)
     }
 
     private fun setFlags(arch: emulator.kit.Architecture, n: Variable.Value.Bin? = null, v: Variable.Value.Bin? = null, b: Variable.Value.Bin? = null, d: Variable.Value.Bin? = null, i: Variable.Value.Bin? = null, z: Variable.Value.Bin? = null, c: Variable.Value.Bin? = null, checkZero: Variable.Value.Bin? = null, seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {

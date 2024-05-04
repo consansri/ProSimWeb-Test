@@ -97,7 +97,7 @@ object T6502 {
     )
 
     val asmConfig = AsmConfig(
-        T6502Assembly()
+        T6502Assembler()
     )
 
 

@@ -6,6 +6,7 @@ import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.ParserTree
+import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import kotlinx.datetime.Clock
@@ -24,7 +25,7 @@ data class Process(
         }
     var currentStateStart: Instant = Clock.System.now()
 
-    fun launch(transcript: Transcript, lexer: Lexer, parser: Parser, assembly: Assembly, features: List<Feature>): Result {
+    fun launch(lexer: Lexer, parser: Parser, assembly: Assembly, features: List<Feature>): Result {
         nativeLog("Process: ${state.displayName}")
         val tokens = lexer.tokenize(file)
         state = State.PARSE

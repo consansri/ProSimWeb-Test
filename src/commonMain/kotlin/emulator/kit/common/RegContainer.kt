@@ -107,6 +107,8 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         fun getRegexList(): List<Regex> {
             return regexList
         }
+
+        override fun toString(): String = aliases.firstOrNull() ?: names.firstOrNull() ?: address.toString()
     }
 
     data class PC(val variable: Variable, val initial: Variable.Value) {
@@ -127,7 +129,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
     data class RegisterFile(
         val name: String, val unsortedRegisters: Array<Register>, val hasPrivileges: Boolean = false
     ) {
-        private val registers: Array<Register> = unsortedRegisters.sortedBy { if(it.aliases.isNotEmpty()) null else it.address.input }.toTypedArray()
+        private val registers: Array<Register> = unsortedRegisters.sortedBy { if (it.aliases.isNotEmpty()) null else it.address.input }.toTypedArray()
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

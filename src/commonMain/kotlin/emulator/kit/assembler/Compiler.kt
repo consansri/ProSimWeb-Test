@@ -47,7 +47,7 @@ class Compiler(
         architecture.getConsole().clear()
         val process = Process(mainFile, others, build)
         processes.add(process)
-        val result = process.launch(architecture.getTranscript(), lexer, parser, assembly, architecture.getAllFeatures())
+        val result = process.launch(lexer, parser, assembly, architecture.getAllFeatures())
 
         result.tree?.printError()?.let {
             architecture.getConsole().error(it)
@@ -66,7 +66,6 @@ class Compiler(
             architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
             nativeInfo("Process finished SUCCESSFUL\n$process")
         }
-
 
         return result
     }

@@ -50,4 +50,22 @@ enum class AModes(val tokenSequence: Rule?, val byteAmount: Int, val exampleStri
             IMPLIED -> ""
         }
     }
+
+    fun getString(immediate: Variable.Value.Hex): String{
+        return when (this) {
+            ZP_X -> "$${immediate}, X"
+            ZP_Y -> "$${immediate}, Y"
+            ABS_X -> "$${immediate}, X"
+            ABS_Y -> "$${immediate}, Y"
+            ZP_X_IND -> "($${immediate}, X)"
+            ZPIND_Y -> "($${immediate}), Y"
+            IND -> "(${immediate})"
+            ACCUMULATOR -> "A"
+            IMM -> "#$${immediate}"
+            REL -> "$${immediate}"
+            ZP -> "$${immediate}"
+            ABS -> "$${immediate}"
+            IMPLIED -> ""
+        }
+    }
 }
