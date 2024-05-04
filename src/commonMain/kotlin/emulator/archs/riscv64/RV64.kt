@@ -29,20 +29,6 @@ object RV64 {
     const val CSR_REGFILE_NAME = "csr"
     private const val MAIN_REGFILE_NAME = "common"
 
-    enum class TsCompiledHeaders {
-        Address,
-        Label,
-        Instruction,
-        Parameters
-    }
-
-    enum class TsDisassembledHeaders {
-        Address,
-        Label,
-        Instruction,
-        Parameters
-    }
-
     /**
      * RV64 Extensions supplied through feature functionality
      */
@@ -425,8 +411,7 @@ object RV64 {
             pcSize = REG_VALUE_SIZE,
             standardRegFileName = MAIN_REGFILE_NAME
         ),
-        Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
-        Transcript(TsCompiledHeaders.entries.map { it.name }, TsDisassembledHeaders.entries.map { it.name })
+        Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)
     )
 
 }

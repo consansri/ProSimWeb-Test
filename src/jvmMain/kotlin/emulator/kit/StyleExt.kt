@@ -16,7 +16,7 @@ fun List<Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
 }
 
 fun Token.toStyledCharSequence(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
-    val severity = getSeverity()
+    val severity = this.getMajorSeverity()
     val codeStyle = getCodeStyle()
 
     val color = codeLaF.getColor(severity?.type?.codeStyle ?: codeStyle)

@@ -11,7 +11,6 @@ data class Config(
     val fileEnding: String,
     val regContainer: RegContainer,
     val memory: Memory,
-    val transcript: Transcript,
     val cache: Cache?
 ) {
 
@@ -20,15 +19,7 @@ data class Config(
         fileEnding: String,
         regContainer: RegContainer,
         memory: Memory
-    ) : this(description, fileEnding, regContainer, memory, Transcript(), null)
-
-    constructor(
-        description: Description,
-        fileEnding: String,
-        regContainer: RegContainer,
-        memory: Memory,
-        transcript: Transcript
-    ) : this(description, fileEnding, regContainer, memory, transcript, null)
+    ) : this(description, fileEnding, regContainer, memory, null)
 
     data class Description(val name: String, val fullName: String, val docs: Docs)
 }

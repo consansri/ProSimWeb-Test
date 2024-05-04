@@ -59,8 +59,8 @@ class EditorControls(mainManager: MainManager, private val editor: CodeEditor) :
             statusIcon.rotating = true
         }
 
-        mainManager.eventManager.addCompileListener { success ->
-            if (success) {
+        mainManager.eventManager.addCompileListener { result ->
+            if (result.success) {
                 statusIcon.svgIcon = mainManager.icons.statusFine
                 statusIcon.rotating = false
             } else {

@@ -1,7 +1,8 @@
 package me.c3.ui.components.transcript
 
-import emulator.kit.common.Transcript
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.Process
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
@@ -21,17 +22,13 @@ import javax.swing.SwingUtilities
 class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
     // SubComponents
-    val compiledModel = TSTableModel()
-    val compiledView = CTable(mainManager.themeManager, mainManager.scaleManager, compiledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
+    val model = TSTableModel()
+    val modelView = CTable(mainManager.themeManager, mainManager.scaleManager, model, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
-    var currCompiledRows: List<Transcript.Row> = emptyList()
-
-    val disassembledModel = TSTableModel()
-    val disasmView = CTable(mainManager.themeManager, mainManager.scaleManager, disassembledModel, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
-        minimumSize = Dimension(0, 0)
-    }
-    var currDisasmRows: List<Transcript.Row> = emptyList()
+    val sections: MutableMap<GASParser.Section, Array<GASParser.Section.BundledContent>> = mutableMapOf()
+    var section: GASParser.Section? = null
+    var content: Array<GASParser.Section.BundledContent> = arrayOf()
 
     val label = CVerticalLabel(mainManager.themeManager, mainManager.scaleManager, "compile transcript", FontType.CODE)
 
@@ -53,15 +50,13 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
     init {
         mainManager.eventManager.addCompileListener {
             SwingUtilities.invokeLater {
-                updateContent(mainManager)
-                updateSizing()
+                updateResult(it)
             }
         }
 
         mainManager.addWSChangedListener {
             SwingUtilities.invokeLater {
-                updateContent(mainManager)
-                updateSizing()
+                updateResult()
             }
         }
 
@@ -72,11 +67,20 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         SwingUtilities.invokeLater {
             attachSettings()
             attachMainComponents()
-            setSelectedView()
+            switchSection()
             updateContent(mainManager)
             updateSizing()
             attachContentMouseListeners()
         }
+    }
+
+    private fun updateResult(result: Process.Result? = null){
+        sections.clear()
+        result?.tree?.sections?.forEach {
+            sections[it] = it.getTSContent()
+        }
+        switchSection()
+        updateSizing()
     }
 
     private fun executeUntilAddress(address: Variable.Value.Hex) {
@@ -102,21 +106,12 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
     }
 
     private fun attachContentMouseListeners() {
-        compiledView.addMouseListener(object : MouseAdapter() {
+        modelView.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
-                val row = compiledView.rowAtPoint(e?.point ?: return)
+                val row = modelView.rowAtPoint(e?.point ?: return)
                 if (row >= 0) {
-                    val address = currCompiledRows.getOrNull(row)?.getAddresses()?.firstOrNull()?.toHex() ?: return
-                    executeUntilAddress(address)
-                }
-            }
-        })
-        disasmView.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent?) {
-                val row = disasmView.rowAtPoint(e?.point ?: return)
-                if (row >= 0) {
-                    val address = currDisasmRows.getOrNull(row)?.getAddresses()?.firstOrNull()?.toHex() ?: return
-                    executeUntilAddress(address)
+                    val addr = content.getOrNull(row)?.address ?: return
+                    executeUntilAddress(addr)
                 }
             }
         })
@@ -127,42 +122,37 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         label.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 showCompiled = !showCompiled
-                setSelectedView()
+                switchSection()
             }
         })
     }
 
-    private fun setSelectedView() {
-        label.text = if (showCompiled) "compile transcript" else "disassemble transcript"
-        contentPane.setViewportView(if (showCompiled) compiledView else disasmView)
+    private fun switchSection() {
+        val index = sections.map { it.key }.indexOf(section)
+        if (index >= 0 && index < sections.size - 1) {
+            section = sections.map { it.key }.getOrNull(index + 1)
+        } else {
+            section = sections.map { it.key }.getOrNull(0)
+        }
+
+        label.text = section?.name ?: "[no section selected]"
+        content = section?.getTSContent() ?: arrayOf()
+        updateContent(mainManager)
     }
 
     private fun updateContent(mainManager: MainManager) {
-        disassembledModel.rowCount = 0
-        compiledModel.rowCount = 0
-        val transcript = mainManager.currArch().getTranscript()
-        if (!transcript.deactivated()) {
-            val disasmIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.DISASSEMBLED)
-            val compIDs = mainManager.currArch().getTranscript().getHeaders(Transcript.Type.COMPILED)
-            currDisasmRows = mainManager.currArch().getTranscript().getContent(Transcript.Type.DISASSEMBLED)
-            currCompiledRows = mainManager.currArch().getTranscript().getContent(Transcript.Type.COMPILED)
+        model.rowCount = 0
 
-            disassembledModel.setColumnIdentifiers(disasmIDs.toTypedArray())
-            for (row in currDisasmRows) {
-                disassembledModel.addRow(row.getContent().toTypedArray())
-            }
+        if (section == null) return
 
-            compiledModel.setColumnIdentifiers(compIDs.toTypedArray())
-            for (row in currCompiledRows) {
-                compiledModel.addRow(row.getContent().toTypedArray())
-            }
-            compiledView.fitColumnWidths(mainManager.currScale().borderScale.insets)
-            disasmView.fitColumnWidths(mainManager.currScale().borderScale.insets)
-            highlightPCRow(mainManager)
-            contentPane.isVisible = true
-        } else {
-            contentPane.isVisible = true
+        val compIDs = listOf("Address", "Labels", "Bytes", "Disassembled")
+
+        model.setColumnIdentifiers(compIDs.toTypedArray())
+        for (row in content) {
+            model.addRow(row.getAddrLblBytesTranscript())
         }
+        modelView.fitColumnWidths(mainManager.currScale().borderScale.insets)
+        highlightPCRow(mainManager)
     }
 
     private fun updateSizing() {
@@ -179,11 +169,9 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
 
     private fun highlightPCRow(mainManager: MainManager) {
         val currPC = mainManager.currArch().getRegContainer().pc
-        val currTS = mainManager.currArch().getTranscript()
-        val pcIndexCompiledTS = currTS.compiled.indexOfFirst { it.getAddresses().map { it.toHex().getRawHexStr() }.contains(currPC.get().toHex().getRawHexStr()) }
-        val pcIndexDisasmTS = currTS.disassembled.indexOfFirst { it.getAddresses().map { it.toHex().getRawHexStr() }.contains(currPC.get().toHex().getRawHexStr()) }
-        compiledView.setCellHighlighting(pcIndexCompiledTS, null, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
-        disasmView.setCellHighlighting(pcIndexDisasmTS, null, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
+
+        val index = content.indexOfFirst { it.address.getRawHexStr() == currPC.get().toHex().getRawHexStr() }
+        modelView.setCellHighlighting(index, null, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
     }
 
 }

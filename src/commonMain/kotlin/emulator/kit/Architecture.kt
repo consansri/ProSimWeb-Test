@@ -41,14 +41,12 @@ import emulator.kit.optional.Feature
  *
  */
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
-
     private val description: Config.Description
     val fileEnding: String
     private val regContainer: RegContainer
     private val memory: Memory
     private val iConsole: IConsole
     private val compiler: CompilerInterface
-    private val transcript: Transcript
     private val cache: Cache?
     private val features: List<Feature>
     private val settings: List<ArchSetting>
@@ -60,7 +58,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.fileEnding = config.fileEnding
         this.regContainer = config.regContainer
         this.memory = config.memory
-        this.transcript = config.transcript
         this.cache = config.cache
         this.iConsole = IConsole("${config.description.name} Console")
         this.features = asmConfig.features
@@ -75,7 +72,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     // Getter for Architecture Components
     fun getDescription(): Config.Description = description
     fun getRegContainer(): RegContainer = regContainer
-    fun getTranscript(): Transcript = transcript
     fun getMemory(): Memory = memory
     fun getConsole(): IConsole = iConsole
     fun getCompiler(): CompilerInterface = compiler

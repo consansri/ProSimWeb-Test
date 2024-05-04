@@ -43,9 +43,9 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
     }
 
     private suspend fun compile(build: Boolean): Process.Result {
-        val result = mainManager.currArch().compile(editorFile.toCompilerFile(), mainManager.currWS().getCompilerFiles(editorFile.file), build).await()
+        val result = mainManager.currArch().compile(editorFile.toCompilerFile(), mainManager.currWS().getCompilerFiles(editorFile.file), build)
         SwingUtilities.invokeLater {
-            mainManager.eventManager.triggerCompileFinished(result.success)
+            mainManager.eventManager.triggerCompileFinished(result)
         }
         return result
     }

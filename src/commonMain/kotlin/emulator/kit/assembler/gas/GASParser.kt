@@ -12,7 +12,6 @@ import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.ParserTree
-import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
@@ -209,6 +208,8 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         private val content: MutableList<MappedContent<*>> = mutableListOf()
         var lastOffset: Variable.Value = Variable.Value.Hex("0", addressSize)
 
+        private var sectionStart: Variable.Value.Hex = Variable.Value.Hex("0", addressSize)
+
         fun addContent(sectionContent: SecContent) {
             content.add(MappedContent(lastOffset.toHex(), sectionContent))
             lastOffset += Variable.Value.Hex(sectionContent.bytesNeeded.toString(16), addressSize)
@@ -223,15 +224,28 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         }
 
         fun linkLabels(sectionStartAddress: Variable.Value.Hex): List<Pair<Label, Variable.Value.Hex>> {
+            sectionStart = sectionStartAddress
             return content.filter { it.content is Label }.filterIsInstance<MappedContent<Label>>().map {
                 it.content to (sectionStartAddress + it.offset).toHex()
             }
         }
 
         fun generateBytes(sectionStartAddress: Variable.Value.Hex, labels: List<Pair<Label, Variable.Value.Hex>>) {
+            sectionStart = sectionStartAddress
             content.forEach {
                 it.bytes = it.content.getBinaryArray(sectionStartAddress + it.offset, labels)
             }
+        }
+
+        fun getSectionAddr() = sectionStart
+        fun getContent() = content.toTypedArray()
+
+        fun getTSContent(): Array<BundledContent> {
+            val labels = content.filter { it.content is Label }
+
+            return content.filter { it.content !is Label }.map { mapped ->
+                BundledContent((sectionStart + mapped.offset).toHex(), mapped.bytes, mapped.content.getContentString(), labels.filter { lbl -> lbl.offset == mapped.offset }.map { it.content }.filterIsInstance<Label>())
+            }.toTypedArray()
         }
 
         override fun toString(): String = "Section $name: ${content.joinToString("") { "\n\t$it" }}"
@@ -239,6 +253,10 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         data class MappedContent<T : SecContent>(val offset: Variable.Value.Hex, val content: T) {
             var bytes: Array<Variable.Value.Bin> = arrayOf()
             override fun toString(): String = "${if (content.bytesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) " " + bytes.joinToString("") { it.toHex().getRawHexStr() } + " " else ""}${content.getContentString()}"
+        }
+
+        data class BundledContent(val address: Variable.Value.Hex, val bytes: Array<Variable.Value.Bin>, val content: String, val label: List<Label>) {
+            fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString(), label.joinToString(" ") { it.getContentString() }, bytes.joinToString("") { it.toHex().getRawHexStr() }, content)
         }
     }
 

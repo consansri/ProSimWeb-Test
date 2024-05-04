@@ -1,12 +1,10 @@
 package emulator.kit.assembler
 
 import debug.DebugTools
-import emulator.kit.common.Transcript
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.ParserTree
-import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import kotlinx.datetime.Clock

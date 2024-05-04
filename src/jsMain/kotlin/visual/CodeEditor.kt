@@ -21,6 +21,7 @@ import debug.DebugTools
 import emulator.kit.common.ArchState
 import emulator.kit.assembler.Assembly
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
 import visual.StyleExt.get
 import visual.StyleExt.getVCRows
@@ -60,6 +61,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     val state = ArchState()
     var assemblyMap: Assembly.AssemblyMap? = null
+    val lastSections = useState<Array<GASParser.Section>>(arrayOf())
 
     val (currExeLine, setCurrExeLine) = useState(-1)
     val (exeFile, setExeFile) = useState<FileHandler.File>()
@@ -71,7 +73,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     val (lineNumbers, setLineNumbers) = useState(1)
     val (infoPanelText, setInfoPanelText) = useState("")
 
-    val (tsActive, setTSActive) = useState(false)
     val (undoActive, setUndoActive) = useState(false)
     val (redoActive, setRedoActive) = useState(false)
 
@@ -112,16 +113,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             if (height != 0) {
                 it.style.height = "${height}px"
             }
-        }
-    }
-
-    fun updateTsButton() {
-        if (state.currentState == ArchState.State.EXECUTABLE || state.currentState == ArchState.State.EXECUTION) {
-            btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
-            setTSActive(true)
-        } else {
-            btnSwitchRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
-            setTSActive(false)
         }
     }
 
@@ -169,6 +160,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 setvcRows(hlTaList)
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
                 assemblyMap = compilationResult.assemblyMap
+                compilationResult.tree?.let {
+                    lastSections.component2().invoke(compilationResult.tree.sections)
+                }
                 state.check(compilationResult.success)
             }
             if (analysisTime.inWholeMilliseconds <= Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
@@ -230,7 +224,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     fun redo() {
-       state.edit()
+        state.edit()
 
         props.fileState.component1().redoCurr()
         textareaRef.current?.let {
@@ -287,10 +281,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     src = StyleAttr.Icons.disassembler
                 }
 
-                if (tsActive) {
-                    onClick = {
-                        setTranscriptView(!transcriptView)
-                    }
+                onClick = {
+                    setTranscriptView(!transcriptView)
                 }
             }
 
@@ -504,6 +496,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 TranscriptView {
                     this.taVal = taVal
                     this.arch = props.archState
+                    this.sections = lastSections
                     this.exeEventState = props.exeEventState
                     this.compileEventState = props.compileEventState
                 }
@@ -946,16 +939,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     }
 
     useEffect(props.compileEventState) {
-        updateTsButton()
         setFiles(props.fileState.component1().getAllFiles())
     }
 
     useEffect(state.currentState) {
         when (state.currentState) {
             ArchState.State.EXECUTABLE -> {
-                if (!props.archState.component1().getTranscript().deactivated()) {
-                    btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
-                }
+                btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
             }
 
             else -> {
