@@ -52,7 +52,10 @@ class RV64Assembler : DefinedAssembly {
 
         for (type in types) {
             val paramType = type.paramType
-            val result = paramType.tokenSeq?.matchStart(rawInstr.remainingTokens, listOf(), this, tempContainer.symbols) ?: continue
+            val result = paramType.tokenSeq?.matchStart(rawInstr.remainingTokens, listOf(), this, tempContainer.symbols)
+            if(result == null){
+                return getNonPseudoInstructions(rawInstr, type, arrayOf(), null, null)
+            }
             if (!result.matches) continue
 
             val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()
@@ -120,11 +123,11 @@ class RV64Assembler : DefinedAssembly {
             }
 
             RV64Syntax.ParamType.RD_RS1_SHAMT6 -> {
-                val immediate = this.evaluate().toBin()
+                val immediate = this.evaluate().toUDec()
                 val check = immediate.check(Bit6())
                 if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 6 Bits!")
 
-                return immediate.getResized(Bit6())
+                return immediate.toBin().getResized(Bit6())
             }
 
             RV64Syntax.ParamType.RS1_RS2_I12 -> {
@@ -140,11 +143,11 @@ class RV64Assembler : DefinedAssembly {
             }
 
             RV64Syntax.ParamType.CSR_RD_OFF12_UIMM5 -> {
-                val immediate = this.evaluate().toBin()
+                val immediate = this.evaluate().toUDec()
                 val check = immediate.check(Bit5())
                 if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 5 Bits!")
 
-                return immediate.getResized(Bit12())
+                return immediate.toBin().getResized(Bit12())
             }
 
             RV64Syntax.ParamType.PS_RS1_RS2_Jlbl -> {
@@ -200,14 +203,11 @@ class RV64Assembler : DefinedAssembly {
                 when(imm){
                     is Bin, is Hex, is Oct, is UDec -> {
                         val imm = imm.toBin()
-
                     }
                     is Dec -> {
 
-
                     }
                 }
-
 
                 listOf()
             }

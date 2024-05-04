@@ -10,6 +10,7 @@ import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
 import emulator.kit.assembler.parser.NodeSeq.Component.*
 import emulator.kit.nativeError
+import emulator.kit.nativeLog
 
 /**
  * --------------------
@@ -150,7 +151,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     val stringExpr = StringExpr.parse(remainingTokens)
                     if (stringExpr != null) return stringExpr
 
-                    return NumericExpr.parse(remainingTokens, assignedSymbols)
+                    val numericExpr = NumericExpr.parse(remainingTokens, assignedSymbols)
+                    return numericExpr
                 }
 
                 GASNodeType.EXPRESSION_STRING -> {

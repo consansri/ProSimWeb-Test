@@ -6,6 +6,7 @@ import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.nativeLog
 
 enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -131,7 +132,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     ELSE(rule = Rule.dirNameRule("else")),
     ELSEIF(rule = Rule.dirNameRule("elseif")),
     END(rule = Rule.dirNameRule("end")),
-    ENDM(rule= Rule.dirNameRule("endm")),
+    ENDM(rule = Rule.dirNameRule("endm")),
     ENDR(rule = Rule.dirNameRule("endr")),
     ENDEF(rule = Rule.dirNameRule("endef")),
     ENDFUNC(rule = Rule.dirNameRule("endfunc")),
@@ -1004,7 +1005,28 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     }
 
     override fun executeDirective(dirStatement: GASNode.Statement.Dir, tempContainer: GASParser.TempContainer) {
-        // TODO() Implement Directive Executions!
+        when (dirStatement.directive.type) {
+            EQU -> {
+                val symbolToken = dirStatement.directive.allTokens.first { it.type == Token.Type.SYMBOL }
+                val expr = dirStatement.directive.additionalNodes.first() as? GASNode
+                val newSymbol = when (expr) {
+                    is GASNode.NumericExpr -> {
+                        GASParser.Symbol.IntegerExpr(symbolToken.content, expr)
+                    }
+
+                    is GASNode.StringExpr -> {
+                        GASParser.Symbol.StringExpr(symbolToken.content, expr)
+                    }
+
+                    else -> {
+                        GASParser.Symbol.Undefined(symbolToken.content)
+                    }
+                }
+                tempContainer.symbols.add(newSymbol)
+            }
+        }
+
+
     }
 
 

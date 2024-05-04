@@ -1,5 +1,6 @@
 package emulator.kit.assembler.gas
 
+import debug.DebugTools
 import emulator.kit.assembler.CompilerFile
 import emulator.kit.assembler.CompilerInterface
 import emulator.kit.assembler.DirTypeInterface
@@ -30,6 +31,10 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         // Filter
         root.removeEmptyStatements()
 
+        if(DebugTools.KIT_showGrammarTree){
+            nativeLog("Tree: ${root.print("")}")
+        }
+
         /**
          * SEMANTIC ANALYSIS
          * - Resolve Directive Statements
@@ -58,6 +63,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             while (root.getAllStatements().isNotEmpty()) {
                 val firstStatement = root.getAllStatements().first()
                 firstStatement.label?.let {
+                    nativeLog("Found Label: $it")
                     tempContainer.currSection.addContent(Label(it))
                 }
                 when (firstStatement) {
@@ -70,6 +76,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                     }
 
                     is Statement.Instr -> {
+                        nativeLog("Symbols: ${tempContainer.symbols.joinToString(",") { "${it.name}:${it::class.simpleName}"  }}")
                         definedAssembly.parseInstrParams(firstStatement.rawInstr, tempContainer).forEach {
                             tempContainer.currSection.addContent(it)
                         }
