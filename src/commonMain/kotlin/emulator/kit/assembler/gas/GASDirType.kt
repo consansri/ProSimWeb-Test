@@ -1,5 +1,6 @@
 package emulator.kit.assembler.gas
 
+import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
@@ -1003,11 +1004,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         return null
     }
 
-    override fun executeDirective(dirStatement: GASNode.Statement.Dir, tempContainer: GASParser.TempContainer) {
-        when (dirStatement.directive.type) {
+    override fun executeDirective(stmnt: GASNode.Statement.Dir, tempContainer: GASParser.TempContainer) {
+        when (stmnt.dir.type) {
             EQU -> {
-                val symbolToken = dirStatement.directive.allTokens.first { it.type == Token.Type.SYMBOL }
-                val expr = dirStatement.directive.additionalNodes.first() as? GASNode
+                val symbolToken = stmnt.dir.allTokens.first { it.type == Token.Type.SYMBOL }
+                symbolToken.hl(CodeStyle.symbol)
+                val expr = stmnt.dir.additionalNodes.first() as? GASNode
                 val newSymbol = when (expr) {
                     is GASNode.NumericExpr -> {
                         GASParser.Symbol.IntegerExpr(symbolToken.content, expr)
@@ -1021,22 +1023,67 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                         GASParser.Symbol.Undefined(symbolToken.content)
                     }
                 }
-                tempContainer.symbols.add(newSymbol)
+                tempContainer.setOrReplaceSymbol(newSymbol)
             }
+
+            SET_ALT -> {
+                val symbol = stmnt.dir.allTokens.first()
+                val expr = stmnt.dir.additionalNodes.first() as? GASNode
+                val newSymbol = when (expr) {
+                    is GASNode.NumericExpr -> {
+                        GASParser.Symbol.IntegerExpr(symbol.content, expr)
+                    }
+
+                    is GASNode.StringExpr -> {
+                        GASParser.Symbol.StringExpr(symbol.content, expr)
+                    }
+
+                    else -> {
+                        GASParser.Symbol.Undefined(symbol.content)
+                    }
+                }
+                tempContainer.setOrReplaceSymbol(newSymbol)
+                stmnt.dir.allTokens.forEach { it.hl(CodeStyle.symbol) }
+            }
+
+            SET -> {
+                val symbol = stmnt.dir.allTokens.first { it.type == Token.Type.SYMBOL }
+                val expr = stmnt.dir.additionalNodes.first() as? GASNode
+                val newSymbol = when (expr) {
+                    is GASNode.NumericExpr -> {
+                        GASParser.Symbol.IntegerExpr(symbol.content, expr)
+                    }
+
+                    is GASNode.StringExpr -> {
+                        GASParser.Symbol.StringExpr(symbol.content, expr)
+                    }
+
+                    else -> {
+                        GASParser.Symbol.Undefined(symbol.content)
+                    }
+                }
+                tempContainer.setOrReplaceSymbol(newSymbol)
+                symbol.hl(CodeStyle.symbol)
+            }
+
             DATA -> {
                 tempContainer.switchToOrAppendSec("data")
             }
+
             TEXT -> {
                 tempContainer.switchToOrAppendSec("text")
             }
+
             BSS -> {
                 tempContainer.switchToOrAppendSec("bss")
             }
+
             RODATA -> {
                 tempContainer.switchToOrAppendSec("rodata")
             }
+
             SECTION -> {
-                val lastToken = dirStatement.directive.allTokens.last()
+                val lastToken = stmnt.dir.allTokens.last()
                 tempContainer.switchToOrAppendSec(lastToken.getContentAsString())
             }
         }

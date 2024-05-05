@@ -94,22 +94,22 @@ val TranscriptView = FC<TranscriptProps> { props ->
                         th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
-                            +"Address"
+                            +"addr"
                         }
                         th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
-                            +"Labels"
+                            +"lbls"
                         }
                         th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
-                            +"Content"
+                            +"content"
                         }
                         th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                             scope = "col"
-                            +"Disassembled"
+                            +"disassembled"
                         }
                     }
                 }

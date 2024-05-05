@@ -1167,7 +1167,11 @@ class Variable {
         class Bit28 : Size("28 Bit", 28)
         class Bit32 : Size("32 Bit", 32)
         class Bit40 : Size("40 Bit", 40)
+        class Bit44 : Size("44 Bit", 44)
+        class Bit48 : Size("48 Bit", 48)
         class Bit52 : Size("52 Bit", 52)
+        class Bit56 : Size("56 Bit", 56)
+        class Bit60 : Size("60 Bit", 60)
         class Bit64 : Size("64 Bit", 64)
         class Bit128 : Size("128 Bit", 128)
     }
@@ -1304,11 +1308,39 @@ class Variable {
                     this.umax = "1099511627776"
                 }
 
+                is Size.Bit44 -> {
+                    this.min = "-17592186044416"
+                    this.max = "17592186044415"
+                    this.umin = "0"
+                    this.umax = "17592186044415"
+                }
+
+                is Size.Bit48 -> {
+                    this.min = "-140737488355328"
+                    this.max = "140737488355327"
+                    this.umin = "0"
+                    this.umax = "281474976710655"
+                }
+
                 is Size.Bit52 -> {
                     this.min = "-2251799813685248"
                     this.max = "2251799813685247"
                     this.umin = "0"
                     this.umax = "4503599627370496"
+                }
+
+                is Size.Bit56 -> {
+                    this.min = "-36028797018963968"
+                    this.max = "36028797018963967"
+                    this.umin = "0"
+                    this.umax = "72057594037927935"
+                }
+
+                is Size.Bit60 -> {
+                    this.min = "-576460752303423488"
+                    this.max = "576460752303423487"
+                    this.umin = "0"
+                    this.umax = "1152921504606846975"
                 }
 
                 is Size.Original -> {
@@ -1319,6 +1351,7 @@ class Variable {
                     this.umin = "0"
                     this.umax = "not identified"
                 }
+
 
             }
         }

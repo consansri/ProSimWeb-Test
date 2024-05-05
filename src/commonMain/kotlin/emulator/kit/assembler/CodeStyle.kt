@@ -24,15 +24,15 @@ enum class CodeStyle(val lightHexColor: Int, val darkHexColor: Int? = null) {
         val comment = BASE5
 
         val keyWordDir = ORANGE
-        val keyWordReg = VIOLET
+        val keyWordReg = YELLOW
         val keyWordInstr = MAGENTA
 
-        val identifier = ORANGE
-        val label = identifier
+        val symbol = CYAN
+        val label = BLUE
 
-        val integer = BLUE
-        val string = GREEN
-        val char = CYAN
+        val integer = VIOLET
+        val string = BASE2
+        val char = integer
 
         val argument = BASE4
 

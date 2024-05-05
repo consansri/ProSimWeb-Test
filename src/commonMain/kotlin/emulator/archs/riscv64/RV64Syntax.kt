@@ -327,7 +327,7 @@ class RV64Syntax {
                 RS2_Off12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
                 RD_RS1_RS2 -> instr.regs.joinToString { it.toString() }
                 RD_RS1_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                RD_RS1_SHAMT6 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                RD_RS1_SHAMT6 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate.toHex()}"
                 RS1_RS2_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 RS1_RS2_LBL -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
                 CSR_RD_OFF12_RS1 -> instr.regs.joinToString { it.toString() }
@@ -342,7 +342,6 @@ class RV64Syntax {
                 PS_RD_CSR -> instr.regs.joinToString { it.toString() }
                 NONE -> ""
                 PS_NONE -> ""
-
             }
         }
     }

@@ -18,6 +18,7 @@ object DebugTools {
     const val RV64_showAsmInfo = false
     const val RV64_showBinMapperInfo = false
     const val RV64_showGrammarScanTiers = false
+    const val RV64_showLIDecisions = false
 
     /*
      * KIT
