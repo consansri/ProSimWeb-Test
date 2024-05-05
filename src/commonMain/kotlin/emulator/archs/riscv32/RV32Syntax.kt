@@ -5,6 +5,8 @@ import emulator.kit.types.Variable
 import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
+import emulator.archs.riscv64.RV64Assembler
+import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
@@ -225,14 +227,13 @@ class RV32Syntax {
         },
 
         // PSEUDO INSTRUCTIONS
-        PS_RS1_RS2_JLBL(
+        RS1_RS2_LBL(
             true, "rs1, rs2, jlabel", Rule{ Seq(
-
                 Reg(RV32.standardRegFile),
                 Specific(","),
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                InSpecific(Token.Type.SYMBOL)
+                emulator.kit.assembler.Rule.Component.SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_INTEGER)
             )}
         ),
         PS_RD_I32(
@@ -291,6 +292,30 @@ class RV32Syntax {
 
         open fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
             return "pseudo param type"
+        }
+        fun getContentString(instr: RV64Assembler.RV64Instr ): String{
+            return when(this){
+                RD_I20 -> "${instr.regs[0]},${instr.immediate}"
+                RD_OFF12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
+                RS2_OFF12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
+                RD_RS1_RS2 -> instr.regs.joinToString { it.toString() }
+                RD_RS1_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                RD_RS1_SHAMT5 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                RS1_RS2_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                RS1_RS2_LBL -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
+                CSR_RD_OFF12_RS1 -> instr.regs.joinToString { it.toString() }
+                CSR_RD_OFF12_UIMM5 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                PS_RD_I32 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
+                PS_RS1_JLBL -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
+                PS_RD_ALBL -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
+                PS_JLBL -> "${instr.label}"
+                PS_RD_RS1 -> instr.regs.joinToString { it.toString() }
+                PS_RS1 -> instr.regs.joinToString { it.toString() }
+                PS_CSR_RS1 -> instr.regs.joinToString { it.toString() }
+                PS_RD_CSR -> instr.regs.joinToString { it.toString() }
+                NONE -> ""
+                PS_NONE -> ""
+            }
         }
     }
 
@@ -378,7 +403,7 @@ class RV32Syntax {
         ECALL("ECALL", false, ParamType.NONE, OpCode("000000000000 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))),
         EBREAK("EBREAK", false, ParamType.NONE, OpCode("000000000001 00000 000 00000 1110011", arrayOf(NONE, NONE, NONE, NONE, OPCODE))),
         BEQ(
-            "BEQ", false, ParamType.RS1_RS2_I12,
+            "BEQ", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -407,7 +432,7 @@ class RV32Syntax {
             }
         },
         BNE(
-            "BNE", false, ParamType.RS1_RS2_I12,
+            "BNE", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -435,7 +460,7 @@ class RV32Syntax {
             }
         },
         BLT(
-            "BLT", false, ParamType.RS1_RS2_I12,
+            "BLT", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -463,7 +488,7 @@ class RV32Syntax {
             }
         },
         BGE(
-            "BGE", false, ParamType.RS1_RS2_I12,
+            "BGE", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -491,7 +516,7 @@ class RV32Syntax {
             }
         },
         BLTU(
-            "BLTU", false, ParamType.RS1_RS2_I12,
+            "BLTU", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -519,7 +544,7 @@ class RV32Syntax {
             }
         },
         BGEU(
-            "BGEU", false, ParamType.RS1_RS2_I12,
+            "BGEU", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
@@ -546,12 +571,6 @@ class RV32Syntax {
                 }
             }
         },
-        BEQ1("BEQ", true, ParamType.PS_RS1_RS2_JLBL, relative = BEQ),
-        BNE1("BNE", true, ParamType.PS_RS1_RS2_JLBL, relative = BNE),
-        BLT1("BLT", true, ParamType.PS_RS1_RS2_JLBL, relative = BLT),
-        BGE1("BGE", true, ParamType.PS_RS1_RS2_JLBL, relative = BGE),
-        BLTU1("BLTU", true, ParamType.PS_RS1_RS2_JLBL, relative = BLTU),
-        BGEU1("BGEU", true, ParamType.PS_RS1_RS2_JLBL, relative = BGEU),
         LB("LB", false, ParamType.RD_OFF12, OpCode("000000000000 00000 000 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
@@ -1502,10 +1521,10 @@ class RV32Syntax {
         Bgez("BGEZ", true, ParamType.PS_RS1_JLBL),
         Bltz("BLTZ", true, ParamType.PS_RS1_JLBL),
         BGTZ("BGTZ", true, ParamType.PS_RS1_JLBL),
-        Bgt("BGT", true, ParamType.PS_RS1_RS2_JLBL),
-        Ble("BLE", true, ParamType.PS_RS1_RS2_JLBL),
-        Bgtu("BGTU", true, ParamType.PS_RS1_RS2_JLBL),
-        Bleu("BLEU", true, ParamType.PS_RS1_RS2_JLBL),
+        Bgt("BGT", true, ParamType.RS1_RS2_LBL),
+        Ble("BLE", true, ParamType.RS1_RS2_LBL),
+        Bgtu("BGTU", true, ParamType.RS1_RS2_LBL),
+        Bleu("BLEU", true, ParamType.RS1_RS2_LBL),
         J("J", true, ParamType.PS_JLBL),
         JAL1("JAL", true, ParamType.PS_RS1_JLBL, relative = JAL),
         JAL2("JAL", true, ParamType.PS_JLBL, relative = JAL),

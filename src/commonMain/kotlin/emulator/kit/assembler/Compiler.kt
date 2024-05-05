@@ -2,11 +2,11 @@ package emulator.kit.assembler
 
 import emulator.kit.Architecture
 import emulator.kit.assembler.gas.DefinedAssembly
-import emulator.kit.assembler.gas.GASAssembler
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.assembler.lexer.Lexer
+import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
 import emulator.kit.nativeInfo
@@ -34,11 +34,11 @@ class Compiler(
 ) : CompilerInterface {
 
     override val parser: Parser = GASParser(this, definedAssembly)
-    override val assembly: Assembly = GASAssembler(architecture, definedAssembly)
-
     private val lexer = Lexer(architecture, definedAssembly.detectRegistersByName)
 
     val processes: MutableList<Process> = mutableListOf()
+    private var lastLineAddrMap: Map<String, Token.LineLoc> = mapOf()
+    override fun getLastLineMap(): Map<String, Token.LineLoc> = lastLineAddrMap
 
     /**
      * Executes and controls the compilation
@@ -47,7 +47,7 @@ class Compiler(
         architecture.getConsole().clear()
         val process = Process(mainFile, others, build)
         processes.add(process)
-        val result = process.launch(lexer, parser, assembly, architecture.getAllFeatures())
+        val result = process.launch(lexer, parser, architecture.getMemory(), architecture.getAllFeatures())
 
         result.tree?.printError()?.let {
             architecture.getConsole().error(it)
@@ -67,6 +67,7 @@ class Compiler(
             nativeInfo("Process finished SUCCESSFUL\n$process")
         }
 
+        lastLineAddrMap = result.assemblyMap
         return result
     }
 

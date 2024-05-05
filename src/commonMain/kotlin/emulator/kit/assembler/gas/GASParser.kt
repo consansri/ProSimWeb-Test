@@ -13,6 +13,7 @@ import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.ParserTree
+import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
@@ -31,7 +32,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         // Filter
         root.removeEmptyStatements()
 
-        if(DebugTools.KIT_showGrammarTree){
+        if (DebugTools.KIT_showGrammarTree) {
             nativeLog("Tree: ${root.print("")}")
         }
 
@@ -76,7 +77,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                     }
 
                     is Statement.Instr -> {
-                        nativeLog("Symbols: ${tempContainer.symbols.joinToString(",") { "${it.name}:${it::class.simpleName}"  }}")
+                        nativeLog("Symbols: ${tempContainer.symbols.joinToString(",") { "${it.name}:${it::class.simpleName}" }}")
                         definedAssembly.parseInstrParams(firstStatement.rawInstr, tempContainer).forEach {
                             tempContainer.currSection.addContent(it)
                         }
@@ -169,7 +170,18 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         val sections: MutableList<Section> = mutableListOf(Section("text", addressSize), Section("data", addressSize), Section("bss", addressSize)),
         val macros: MutableList<Macro> = mutableListOf(),
         var currSection: Section = sections.first(),
-    )
+    ) {
+        fun switchToOrAppendSec(name: String) {
+            val sec = sections.firstOrNull { it.name.lowercase() == name.lowercase() }
+            if (sec != null) {
+                currSection = sec
+                return
+            }
+            val newSec = Section(name, addressSize)
+            sections.add(newSec)
+            currSection = newSec
+        }
+    }
 
     data class Macro(val name: String, val arguments: List<Argument>, val content: List<Statement>) {
         fun generatePseudoStatements(lexer: Lexer, lineLoc: Token.LineLoc, argMap: List<ArgDef>): List<Token> {
@@ -251,7 +263,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             val labels = content.filter { it.content is Label }
 
             return content.filter { it.content !is Label }.map { mapped ->
-                BundledContent((sectionStart + mapped.offset).toHex(), mapped.bytes, mapped.content.getContentString(), labels.filter { lbl -> lbl.offset == mapped.offset }.map { it.content }.filterIsInstance<Label>())
+                BundledContent((sectionStart + lastOffset).toHex().toRawZeroTrimmedString().length, (sectionStart + mapped.offset).toHex(), mapped.bytes, mapped.content.getContentString(), labels.filter { lbl -> lbl.offset == mapped.offset }.map { it.content }.filterIsInstance<Label>())
             }.toTypedArray()
         }
 
@@ -262,13 +274,15 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             override fun toString(): String = "${if (content.bytesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) " " + bytes.joinToString("") { it.toHex().getRawHexStr() } + " " else ""}${content.getContentString()}"
         }
 
-        data class BundledContent(val address: Variable.Value.Hex, val bytes: Array<Variable.Value.Bin>, val content: String, val label: List<Label>) {
-            fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString(), label.joinToString(" ") { it.getContentString() }, bytes.joinToString("") { it.toHex().getRawHexStr() }, content)
+        data class BundledContent(val addressMinLength: Int, val address: Variable.Value.Hex, val bytes: Array<Variable.Value.Bin>, val content: String, val label: List<Label>) {
+            fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString().padStart(addressMinLength, '0'), label.joinToString("\n") { it.getContentString() }, bytes.joinToString("") { it.toHex().getRawHexStr() }, content)
         }
     }
 
     interface SecContent {
         val bytesNeeded: Int
+        fun getFirstToken(): Token
+        fun getMark(): Memory.InstanceType
 
         /**
          * This will be stored into memory!
@@ -281,6 +295,8 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
     data class Label(val label: GASNode.Label) : SecContent {
         override val bytesNeeded: Int = 0
+        override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
+        override fun getFirstToken(): Token = label.getAllTokens().first()
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> = emptyArray()
         override fun getContentString(): String = label.identifier + ":"
     }

@@ -9,8 +9,8 @@ import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
 import emulator.kit.assembler.parser.NodeSeq.Component.*
+import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
-import emulator.kit.nativeLog
 
 /**
  * --------------------
@@ -317,8 +317,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
     sealed class StringExpr(spaces: List<Token> = listOf(), vararg operands: StringExpr) : GASNode(*operands) {
 
-        abstract fun evaluate(): String
-        fun getValue(): String = evaluate()
+        abstract fun evaluate(printErrors: Boolean): String
 
         init {
             addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
@@ -333,7 +332,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 this.exprs = exprs
             }
 
-            override fun evaluate(): String = exprs.joinToString("") { it.evaluate() }
+            override fun evaluate(printErrors: Boolean): String = exprs.joinToString("") { it.evaluate(printErrors) }
             override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
                 exprs.forEach { expr ->
                     expr.replaceIdentifierWithExpr(assignedSymbols)
@@ -349,20 +348,23 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
             class Identifier(val symbol: Token) : Operand(symbol) {
                 var expr: StringExpr? = null
-                override fun evaluate(): String {
+                override fun evaluate(printErrors: Boolean): String {
                     val currExpr = expr
-                    if (currExpr == null) {
-                        symbol.addSeverity(Severity.Type.WARNING, "Symbol is not a string or not yet defined. returning \"\".")
-                        return ""
+
+                    if (currExpr != null) {
+                        return currExpr.evaluate(printErrors)
                     }
-                    return currExpr.evaluate()
+
+                    if (printErrors) throw Parser.ParserError(token, "Unknown String Identifier!")
+
+                    return ""
                 }
 
                 override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
                     val assignement = assignedSymbols.firstOrNull { it.name == symbol.content }
 
                     if (assignement == null) {
-                        symbol.addSeverity(Severity.Type.WARNING, "Symbol is undefined!")
+                        // symbol.addSeverity(Severity.Type.WARNING, "Symbol is undefined!")
                         return
                     }
 
@@ -398,7 +400,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
                 }
 
-                override fun evaluate(): String = stringContent
+                override fun evaluate(printErrors: Boolean): String = stringContent
                 override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
                     /*Nothing*/
                 }
@@ -452,17 +454,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             this.addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
         }
 
-        abstract fun evaluate(): Variable.Value
+        abstract fun evaluate(printErrors: Boolean): Variable.Value
 
         abstract fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>)
-
-        fun getValue(size: Variable.Size? = null): Variable.Value {
-            return if (size != null) {
-                evaluate().toBin().getResized(size)
-            } else {
-                evaluate()
-            }
-        }
+        abstract fun isDefined(): Boolean
+        abstract fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>)
 
         companion object {
             fun parse(tokens: List<Token>, assignedSymbols: List<GASParser.Symbol>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
@@ -648,21 +644,29 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 addChild(BaseNode(operator))
             }
 
-            override fun evaluate(): Variable.Value {
+            override fun evaluate(printErrors: Boolean): Variable.Value {
                 return when (operator.type) {
-                    Token.Type.COMPLEMENT -> operand.evaluate().toBin().inv()
-                    Token.Type.MINUS -> -operand.evaluate()
-                    Token.Type.PLUS -> operand.evaluate()
+                    Token.Type.COMPLEMENT -> operand.evaluate(printErrors).toBin().inv()
+                    Token.Type.MINUS -> -operand.evaluate(printErrors)
+                    Token.Type.PLUS -> operand.evaluate(printErrors)
                     else -> {
                         nativeError("${operator} is not a Prefix operator!")
-                        operand.evaluate()
+                        operand.evaluate(printErrors)
                     }
                 }
             }
 
+            override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                operand.assignIdentifier(assigendLabels)
+            }
+
+            override fun isDefined(): Boolean = operand.isDefined()
+
             override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
                 operand.assignIdentifier(assignedSymbols)
             }
+
+            override fun print(prefix: String): String = "$prefix($operator${operand.print("")})"
         }
 
         /**
@@ -675,30 +679,39 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 addChild(BaseNode(operator))
             }
 
-            override fun evaluate(): Variable.Value {
+            override fun evaluate(printErrors: Boolean): Variable.Value {
                 return when (operator.type) {
-                    Token.Type.MULT -> operandA.evaluate() * operandB.evaluate()
-                    Token.Type.DIV -> operandA.evaluate() * operandB.evaluate()
-                    Token.Type.REM -> operandA.evaluate() % operandB.evaluate()
-                    Token.Type.SHL -> operandA.evaluate().toBin() shl (operandB.evaluate().toDec().toIntOrNull() ?: return operandA.evaluate())
-                    Token.Type.SHR -> operandA.evaluate().toBin() shl (operandB.evaluate().toDec().toIntOrNull() ?: return operandA.evaluate())
-                    Token.Type.BITWISE_OR -> operandA.evaluate().toBin() or operandB.evaluate().toBin()
-                    Token.Type.BITWISE_AND -> operandA.evaluate().toBin() and operandB.evaluate().toBin()
-                    Token.Type.BITWISE_XOR -> operandA.evaluate().toBin() xor operandB.evaluate().toBin()
-                    Token.Type.BITWISE_ORNOT -> operandA.evaluate().toBin() or operandB.evaluate().toBin().inv()
-                    Token.Type.PLUS -> operandA.evaluate() + operandB.evaluate()
-                    Token.Type.MINUS -> operandA.evaluate() - operandB.evaluate()
+                    Token.Type.MULT -> operandA.evaluate(printErrors) * operandB.evaluate(printErrors)
+                    Token.Type.DIV -> operandA.evaluate(printErrors) * operandB.evaluate(printErrors)
+                    Token.Type.REM -> operandA.evaluate(printErrors) % operandB.evaluate(printErrors)
+                    Token.Type.SHL -> operandA.evaluate(printErrors).toBin() shl (operandB.evaluate(printErrors).toDec().toIntOrNull() ?: return operandA.evaluate(printErrors))
+                    Token.Type.SHR -> operandA.evaluate(printErrors).toBin() shl (operandB.evaluate(printErrors).toDec().toIntOrNull() ?: return operandA.evaluate(printErrors))
+                    Token.Type.BITWISE_OR -> operandA.evaluate(printErrors).toBin() or operandB.evaluate(printErrors).toBin()
+                    Token.Type.BITWISE_AND -> operandA.evaluate(printErrors).toBin() and operandB.evaluate(printErrors).toBin()
+                    Token.Type.BITWISE_XOR -> operandA.evaluate(printErrors).toBin() xor operandB.evaluate(printErrors).toBin()
+                    Token.Type.BITWISE_ORNOT -> operandA.evaluate(printErrors).toBin() or operandB.evaluate(printErrors).toBin().inv()
+                    Token.Type.PLUS -> operandA.evaluate(printErrors) + operandB.evaluate(printErrors)
+                    Token.Type.MINUS -> operandA.evaluate(printErrors) - operandB.evaluate(printErrors)
                     else -> {
                         nativeError("$operator is not a Classic Expression operator!")
-                        operandA.evaluate()
+                        operandA.evaluate(printErrors)
                     }
                 }
             }
+
+            override fun print(prefix: String): String = "$prefix(${operandA.print("")} $operator ${operandB.print("")})"
 
             override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
                 operandA.assignIdentifier(assignedSymbols)
                 operandB.assignIdentifier(assignedSymbols)
             }
+
+            override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                operandA.assignIdentifier(assigendLabels)
+                operandB.assignIdentifier(assigendLabels)
+            }
+
+            override fun isDefined(): Boolean = operandA.isDefined() && operandB.isDefined()
         }
 
         sealed class Operand(token: Token) : NumericExpr(brackets = listOf(), spaces = listOf()) {
@@ -708,20 +721,31 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
             class Identifier(val symbol: Token) : Operand(symbol) {
                 private var expr: NumericExpr? = null
-                override fun evaluate(): Variable.Value {
+                private var labelAddr: Variable.Value? = null
+                fun isLinked(): Boolean = expr != null
+                override fun evaluate(throwErrors: Boolean): Variable.Value {
                     val currExpr = expr
-                    if (currExpr == null) {
-                        symbol.addSeverity(Severity.Type.ERROR, "Can't evaluate from a undefined symbol. Returning 0.")
-                        return Variable.Value.Bin("0", Variable.Size.Bit32())
+                    if (currExpr != null) {
+                        return currExpr.evaluate(throwErrors)
                     }
-                    return currExpr.evaluate()
+
+                    val currLabelAddr = labelAddr
+                    if (currLabelAddr != null) {
+                        return currLabelAddr
+                    }
+
+                    if (throwErrors) throw Parser.ParserError(symbol, "Unknown Numeric Identifier!")
+                    //symbol.addSeverity(Severity.Type.ERROR, "Can't evaluate from a undefined symbol. Returning 0.")
+                    return Variable.Value.Bin("0", Variable.Size.Bit32())
                 }
+
+                override fun print(prefix: String): String = "$prefix<$symbol>"
 
                 override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
                     val assignement = assignedSymbols.firstOrNull { it.name == symbol.content }
 
                     if (assignement == null) {
-                        symbol.addSeverity(Severity.Type.WARNING, "Symbol is not assigned!")
+                        // symbol.addSeverity(Severity.Type.WARNING, "Symbol is not assigned!")
                         return
                     }
 
@@ -744,6 +768,21 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         }
                     }
                 }
+
+                override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                    val assignment = assigendLabels.firstOrNull { it.first.label.identifier == symbol.content }
+
+                    if (assignment == null) {
+                        if (expr == null) symbol.addSeverity(Severity.Type.WARNING, "Symbol could not get assigned!")
+                        return
+                    }
+
+                    expr = null
+                    labelAddr = assignment.second
+                }
+
+                override fun isDefined(): Boolean = expr != null || labelAddr != null
+
             }
 
             class Number(val number: Token) : Operand(number) {
@@ -790,11 +829,19 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
                 }
 
-                override fun evaluate(): Variable.Value = value
+                override fun print(prefix: String): String = "$prefix$number"
+
+                override fun evaluate(printErrors: Boolean): Variable.Value = value
 
                 override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
                     // NOTHING
                 }
+
+                override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                    // NOTHING
+                }
+
+                override fun isDefined(): Boolean = true
 
                 enum class Type {
                     Integer,
@@ -811,10 +858,17 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     value = Variable.Value.Hex(hexString, Variable.Size.Bit8())
                 }
 
-                override fun evaluate(): Variable.Value = value
+                override fun evaluate(printErrors: Boolean): Variable.Value = value
                 override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
                     // NOTHING
                 }
+
+                override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                    // NOTHING
+                }
+
+                override fun print(prefix: String): String = "$prefix$value"
+                override fun isDefined(): Boolean = true
             }
         }
     }

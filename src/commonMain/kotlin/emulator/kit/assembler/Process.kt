@@ -1,10 +1,12 @@
 package emulator.kit.assembler
 
 import debug.DebugTools
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.ParserTree
+import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import kotlinx.datetime.Clock
@@ -23,7 +25,7 @@ data class Process(
         }
     var currentStateStart: Instant = Clock.System.now()
 
-    fun launch(lexer: Lexer, parser: Parser, assembly: Assembly, features: List<Feature>): Result {
+    fun launch(lexer: Lexer, parser: Parser, memory: Memory, features: List<Feature>): Result {
         nativeLog("Process: ${state.displayName}")
         val tokens = lexer.tokenize(file)
         state = State.PARSE
@@ -32,12 +34,22 @@ data class Process(
 
         if (DebugTools.KIT_showGrammarTree) nativeLog("Process: Tree:\n${tree}")
 
-        val assemblyMap: Assembly.AssemblyMap? = if (build && !tree.hasErrors()) {
+        val lineMap = if (build && !tree.hasErrors()) {
             state = State.ASSEMBLE
             nativeLog("Process: ${state.displayName}")
-            assembly.assembleTree(tree)
+
+            val lineAddressMap = mutableMapOf<String, Token.LineLoc>()
+            tree.sections.forEach {sec ->
+                val secAddr = sec.getSectionAddr()
+                sec.getContent().forEach {
+                    val addr = secAddr + it.offset
+                    lineAddressMap[addr.toHex().getRawHexStr()] = it.content.getFirstToken().lineLoc
+                    memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
+                }
+            }
+            lineAddressMap
         } else {
-            null
+            mapOf()
         }
 
         state = State.CACHE_RESULTS
@@ -46,7 +58,7 @@ data class Process(
 
         val success = !tree.hasErrors()
 
-        val result = Result(success, tokens, tree, assemblyMap)
+        val result = Result(success, tokens, tree, lineMap)
 
         return result
     }
@@ -62,7 +74,7 @@ data class Process(
         CACHE_RESULTS("caching"),
     }
 
-    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Assembly.AssemblyMap?) {
+    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Map<String, Token.LineLoc>) {
         fun hasErrors(): Boolean {
             return tree?.hasErrors() ?: false
         }

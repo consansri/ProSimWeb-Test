@@ -1,14 +1,13 @@
 package emulator.archs.t6502
 
 import emulator.archs.ikrmini.IKRMini
-import emulator.kit.Architecture
-import emulator.kit.assembly.standards.StandardAssembler
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
+import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.Memory
 import emulator.kit.optional.Feature
@@ -48,7 +47,7 @@ class T6502Assembler() : DefinedAssembly {
 
             val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()
 
-            val immediate = expr?.evaluate()
+            val immediate = expr?.evaluate(false)
             val immSize = if (amode.byteAmount == 2) {
                 Variable.Size.Bit8()
             } else {
@@ -76,11 +75,11 @@ class T6502Assembler() : DefinedAssembly {
     class T6502Instr(val type: InstrType, val amode: AModes, val rawInstr: GASNode.RawInstr, immediate: Hex? = null) : GASParser.SecContent {
         override val bytesNeeded: Int = amode.byteAmount
         val immediate: Hex
-
         init {
             this.immediate = immediate ?: Hex("0", Variable.Size.Bit8())
         }
-
+        override fun getFirstToken(): Token = rawInstr.instrName
+        override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             val opCode = type.opCode[amode]
             if (opCode == null) {

@@ -108,7 +108,7 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
         val measuredTime = measureTime {
             super.exeUntilLine(lineID, fileName)
 
-            val lineAddressMap = getCompiler().assembly.currentAssemblyMap.lineAddressMap.map { it.value to it.key }.filter { it.first.fileName == fileName }
+            val lineAddressMap = getCompiler().getLastLineMap().map { it.value to it.key }.filter { it.first.fileName == fileName }
             var closestID: Int? = null
             for (entry in lineAddressMap) {
                 if (entry.first.lineID >= lineID && entry.first.lineID != closestID) {

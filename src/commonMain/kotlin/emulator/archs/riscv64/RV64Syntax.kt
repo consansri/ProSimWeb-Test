@@ -181,6 +181,15 @@ class RV64Syntax {
                 }
             }
         }, // rs1, rs2, imm
+        RS1_RS2_LBL(false, "rs1, rs2, lbl", Rule{
+            emulator.kit.assembler.Rule.Component.Seq(
+                emulator.kit.assembler.Rule.Component.Reg(emulator.archs.riscv64.RV64.standardRegFile),
+                emulator.kit.assembler.Rule.Component.Specific(","),
+                emulator.kit.assembler.Rule.Component.Reg(emulator.archs.riscv64.RV64.standardRegFile),
+                emulator.kit.assembler.Rule.Component.Specific(","),
+                emulator.kit.assembler.Rule.Component.SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_INTEGER)
+            )
+        }),
         CSR_RD_OFF12_RS1(
             false, "rd, csr12, rs1",
             Rule {
@@ -234,18 +243,6 @@ class RV64Syntax {
         },
 
         // PSEUDO INSTRUCTIONS
-        PS_RS1_RS2_Jlbl(
-            true, "rs1, rs2, jlabel",
-            Rule {
-                Seq(
-                    Reg(RV64.standardRegFile),
-                    Specific(","),
-                    Reg(RV64.standardRegFile),
-                    Specific(","),
-                    InSpecific(Token.Type.SYMBOL)
-                )
-            }
-        ),
         PS_RD_LI_I64(
             true, "rd, imm64",
             Rule {
@@ -262,7 +259,7 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    InSpecific(Token.Type.SYMBOL)
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
                 )
             }
         ), // rs, label
@@ -272,12 +269,12 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    InSpecific(Token.Type.SYMBOL)
+                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
                 )
             }
         ), // rd, label
         PS_lbl(true, "jlabel", Rule {
-            Seq(InSpecific(Token.Type.SYMBOL))
+            Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER))
         }),  // label
         PS_RD_RS1(
             true, "rd, rs",
@@ -332,19 +329,20 @@ class RV64Syntax {
                 RD_RS1_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 RD_RS1_SHAMT6 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 RS1_RS2_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                CSR_RD_OFF12_RS1 -> "${instr.regs.joinToString { it.toString() }}"
+                RS1_RS2_LBL -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
+                CSR_RD_OFF12_RS1 -> instr.regs.joinToString { it.toString() }
                 CSR_RD_OFF12_UIMM5 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                PS_RS1_RS2_Jlbl -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
                 PS_RD_LI_I64 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                PS_RS1_Jlbl -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
-                PS_RD_Albl -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
-                PS_lbl -> "${instr.label}"
-                PS_RD_RS1 -> "${instr.regs.joinToString { it.toString() }}"
-                PS_RS1 -> "${instr.regs.joinToString { it.toString() }}"
-                PS_CSR_RS1 ->"${instr.regs.joinToString { it.toString() }}"
-                PS_RD_CSR -> "${instr.regs.joinToString { it.toString() }}"
+                PS_RS1_Jlbl -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
+                PS_RD_Albl -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
+                PS_lbl -> if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()
+                PS_RD_RS1 -> instr.regs.joinToString { it.toString() }
+                PS_RS1 -> instr.regs.joinToString { it.toString() }
+                PS_CSR_RS1 -> instr.regs.joinToString { it.toString() }
+                PS_RD_CSR -> instr.regs.joinToString { it.toString() }
                 NONE -> ""
                 PS_NONE -> ""
+
             }
         }
     }
@@ -433,7 +431,7 @@ class RV64Syntax {
         ECALL("ECALL", false, ParamType.NONE, RV64BinMapper.OpCode("000000000000 00000 000 00000 1110011", arrayOf(MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.OPCODE))),
         EBREAK("EBREAK", false, ParamType.NONE, RV64BinMapper.OpCode("000000000001 00000 000 00000 1110011", arrayOf(MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.NONE, MaskLabel.OPCODE))),
         BEQ(
-            "BEQ", false, ParamType.RS1_RS2_I12,
+            "BEQ", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -462,7 +460,7 @@ class RV64Syntax {
             }
         },
         BNE(
-            "BNE", false, ParamType.RS1_RS2_I12,
+            "BNE", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -490,7 +488,7 @@ class RV64Syntax {
             }
         },
         BLT(
-            "BLT", false, ParamType.RS1_RS2_I12,
+            "BLT", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -518,7 +516,7 @@ class RV64Syntax {
             }
         },
         BGE(
-            "BGE", false, ParamType.RS1_RS2_I12,
+            "BGE", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -546,7 +544,7 @@ class RV64Syntax {
             }
         },
         BLTU(
-            "BLTU", false, ParamType.RS1_RS2_I12,
+            "BLTU", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -574,7 +572,7 @@ class RV64Syntax {
             }
         },
         BGEU(
-            "BGEU", false, ParamType.RS1_RS2_I12,
+            "BGEU", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
@@ -601,12 +599,6 @@ class RV64Syntax {
                 }
             }
         },
-        BEQ1("BEQ", true, ParamType.PS_RS1_RS2_Jlbl, relative = BEQ),
-        BNE1("BNE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BNE),
-        BLT1("BLT", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLT),
-        BGE1("BGE", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGE),
-        BLTU1("BLTU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BLTU),
-        BGEU1("BGEU", true, ParamType.PS_RS1_RS2_Jlbl, relative = BGEU),
         LB("LB", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 000 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
             override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
@@ -1954,10 +1946,10 @@ class RV64Syntax {
         Bgez("BGEZ", true, ParamType.PS_RS1_Jlbl),
         Bltz("BLTZ", true, ParamType.PS_RS1_Jlbl),
         BGTZ("BGTZ", true, ParamType.PS_RS1_Jlbl),
-        Bgt("BGT", true, ParamType.PS_RS1_RS2_Jlbl),
-        Ble("BLE", true, ParamType.PS_RS1_RS2_Jlbl),
-        Bgtu("BGTU", true, ParamType.PS_RS1_RS2_Jlbl),
-        Bleu("BLEU", true, ParamType.PS_RS1_RS2_Jlbl),
+        Bgt("BGT", true, ParamType.RS1_RS2_LBL),
+        Ble("BLE", true, ParamType.RS1_RS2_LBL),
+        Bgtu("BGTU", true, ParamType.RS1_RS2_LBL),
+        Bleu("BLEU", true, ParamType.RS1_RS2_LBL),
         J("J", true, ParamType.PS_lbl),
         JAL1("JAL", true, ParamType.PS_RS1_Jlbl, relative = JAL),
         JAL2("JAL", true, ParamType.PS_lbl, relative = JAL),

@@ -6,7 +6,6 @@ import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.kit.assembler.lexer.Token
-import emulator.kit.nativeLog
 
 enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -1024,10 +1023,22 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 }
                 tempContainer.symbols.add(newSymbol)
             }
+            DATA -> {
+                tempContainer.switchToOrAppendSec("data")
+            }
+            TEXT -> {
+                tempContainer.switchToOrAppendSec("text")
+            }
+            BSS -> {
+                tempContainer.switchToOrAppendSec("bss")
+            }
+            RODATA -> {
+                tempContainer.switchToOrAppendSec("rodata")
+            }
+            SECTION -> {
+                val lastToken = dirStatement.directive.allTokens.last()
+                tempContainer.switchToOrAppendSec(lastToken.getContentAsString())
+            }
         }
-
-
     }
-
-
 }

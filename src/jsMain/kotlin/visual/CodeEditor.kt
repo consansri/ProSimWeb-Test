@@ -19,10 +19,10 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import debug.DebugTools
 import emulator.kit.common.ArchState
-import emulator.kit.assembler.Assembly
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
+import emulator.kit.assembler.lexer.Token
 import visual.StyleExt.get
 import visual.StyleExt.getVCRows
 import web.cssom.ClassName
@@ -60,7 +60,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- REACT STATES ----------------- */
 
     val state = ArchState()
-    var assemblyMap: Assembly.AssemblyMap? = null
+    var assemblyMap: Map<String, Token.LineLoc>? = null
     val lastSections = useState<Array<GASParser.Section>>(arrayOf())
 
     val (currExeLine, setCurrExeLine) = useState(-1)
@@ -959,9 +959,8 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             console.log("REACT: Exe Event Changed!")
         }
 
-        val lineAddressMap = assemblyMap?.lineAddressMap
         val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
-        val entry = lineAddressMap?.get(pcValue.toHex().getRawHexStr())
+        val entry = assemblyMap?.get(pcValue.toHex().getRawHexStr())
 
         if (entry != null) {
             setExeFile(props.fileState.component1().getOrNull(entry.fileName))

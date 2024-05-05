@@ -30,6 +30,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         Type.ARG_REF -> content.substring(1)
         Type.ARG_SEPARATOR -> ""
         Type.COMMENT_NATIVE -> ""
+        Type.DIRECTIVE -> content.removePrefix(".").lowercase()
         else -> content
     }
 

@@ -1,7 +1,5 @@
 package emulator.archs.ikrmini
 
-import emulator.kit.Architecture
-import emulator.kit.assembly.standards.StandardAssembler
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
@@ -11,7 +9,6 @@ import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.Memory
-import emulator.kit.nativeError
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 
@@ -48,7 +45,8 @@ class IKRMiniAssembler : DefinedAssembly {
 
             val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()
 
-            val immediate = expr?.evaluate()
+            val immediate = expr?.evaluate(false)
+            val lblExpr = if(expr != null && !expr.isDefined()) expr else null
             val resized = when (immediate) {
                 is Variable.Value.Dec -> {
                     immediate.getResized(IKRMini.WORDSIZE).toHex()
@@ -59,17 +57,19 @@ class IKRMiniAssembler : DefinedAssembly {
                 }
             }
 
-            return listOf(IKRMiniInstr(instrType, amode, rawInstr, resized))
+            return listOf(IKRMiniInstr(instrType, amode, rawInstr, resized, lblExpr))
         }
         throw Parser.ParserError(rawInstr.instrName, "Illegal Operands for IKRMini Instruction!")
     }
 
-    class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, immediate: Variable.Value.Hex? ) : GASParser.SecContent {
+    class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, immediate: Variable.Value.Hex?, val label: GASNode.NumericExpr? = null ) : GASParser.SecContent {
         override val bytesNeeded: Int = aMode.wordAmount * 2
         val immediate: Variable.Value.Hex
-
+        override fun getFirstToken(): Token = rawInstr.instrName
+        override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         init {
             this.immediate = immediate ?: Variable.Value.Hex("0", Variable.Size.Bit16())
+            // TODO(Handle Labels)
         }
 
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {

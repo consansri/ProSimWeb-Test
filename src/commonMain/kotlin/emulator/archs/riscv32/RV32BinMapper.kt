@@ -52,7 +52,18 @@ object RV32BinMapper {
             }
 
             BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
-                val imm12 = immediate.toBin().getRawBinStr()
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
+                offset.checkSizeSigned(Variable.Size.Bit12())?.let {
+                    throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                }
+
+                val imm12 = offset.shr(1).getResized(Variable.Size.Bit12()).getRawBinStr()
                 val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5())
                 val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7())
 
@@ -62,7 +73,7 @@ object RV32BinMapper {
                 }
             }
 
-            BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
+         /*   BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
                 val offset = (labelAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
@@ -76,7 +87,7 @@ object RV32BinMapper {
                 opCode?.let {
                     binArray.add(opCode)
                 }
-            }
+            }*/
 
             LB, LH, LW, LBU, LHU -> {
                 val opCode = instr.type.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to immediate.toBin(), MaskLabel.RS1 to regs[1]))
@@ -433,7 +444,13 @@ object RV32BinMapper {
                 val rs1 = regs[0]
                 val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
 
-                val offset = (labelAddr - addr).toBin()
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -452,7 +469,14 @@ object RV32BinMapper {
             Bnez -> {
                 val rs1 = regs[0]
                 val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -470,7 +494,14 @@ object RV32BinMapper {
             Blez -> {
                 val rs1 = regs[0]
                 val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -489,7 +520,13 @@ object RV32BinMapper {
                 val rs1 = regs[0]
                 val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
 
-                val offset = (labelAddr - addr).toBin()
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -507,7 +544,14 @@ object RV32BinMapper {
             Bltz -> {
                 val rs1 = regs[0]
                 val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -525,7 +569,14 @@ object RV32BinMapper {
             BGTZ -> {
                 val rs1 = regs[0]
                 val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -543,7 +594,14 @@ object RV32BinMapper {
             Bgt -> {
                 val rs1 = regs[0]
                 val rs2 = regs[1]
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -562,7 +620,14 @@ object RV32BinMapper {
             Ble -> {
                 val rs1 = regs[0]
                 val rs2 = regs[1]
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -581,7 +646,14 @@ object RV32BinMapper {
             Bgtu -> {
                 val rs1 = regs[0]
                 val rs2 = regs[1]
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -600,7 +672,14 @@ object RV32BinMapper {
             Bleu -> {
                 val rs1 = regs[0]
                 val rs2 = regs[1]
-                val offset = (labelAddr - addr).toBin()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
                 offset.checkSizeSigned(Variable.Size.Bit12())?.let {
                     throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                 }
@@ -622,7 +701,7 @@ object RV32BinMapper {
             throw Parser.ParserError(instr.rawInstr.instrName, "BinMapper: values and labels not matching for ${instr.type::class.simpleName}!")
         }
 
-        return binArray.flatMap {it.splitToByteArray().toList()}.toTypedArray()
+        return binArray.toTypedArray()
     }
 
     fun getInstrFromBinary(bin: Variable.Value.Bin): InstrResult? {

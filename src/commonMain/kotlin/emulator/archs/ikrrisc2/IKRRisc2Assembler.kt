@@ -1,7 +1,5 @@
 package emulator.archs.ikrrisc2
 
-import emulator.kit.Architecture
-import emulator.kit.assembly.standards.StandardAssembler
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.DefinedAssembly
