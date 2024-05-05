@@ -293,7 +293,7 @@ class RV32Syntax {
         open fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
             return "pseudo param type"
         }
-        fun getContentString(instr: RV64Assembler.RV64Instr ): String{
+        fun getContentString(instr: RV32Assembler.RV32Instr ): String{
             return when(this){
                 RD_I20 -> "${instr.regs[0]},${instr.immediate}"
                 RD_OFF12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
