@@ -127,7 +127,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                     sec.generateBytes(it, allLinkedLabels)
                 }
             }
-        }catch (e: ParserError){
+        } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
         }
 
@@ -143,6 +143,9 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
      */
     private fun filter(tokens: List<Token>): List<Token> {
         val remaining = tokens.toMutableList()
+        if (remaining.lastOrNull()?.type != Token.Type.LINEBREAK) {
+            remaining.lastOrNull()?.addSeverity(Severity.Type.WARNING, "File should end with a linebreak!")
+        }
         val elements = mutableListOf<Token>()
 
         while (remaining.isNotEmpty()) {
@@ -184,7 +187,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             currSection = newSec
         }
 
-        fun setOrReplaceSymbol(symbol: Symbol){
+        fun setOrReplaceSymbol(symbol: Symbol) {
             val alreadydefined = symbols.firstOrNull { it.name == symbol.name }
             symbols.remove(alreadydefined)
             symbols.add(symbol)

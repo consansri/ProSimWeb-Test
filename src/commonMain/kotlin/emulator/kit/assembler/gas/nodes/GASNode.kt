@@ -267,7 +267,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
         class Unresolved(label: Label?, val lineTokens: List<Token>, lineBreak: Token) : Statement(label, lineBreak, *lineTokens.map { BaseNode(it) }.toTypedArray()) {
             init {
-                lineTokens.firstOrNull()?.addSeverity(Severity.Type.WARNING, "Found unresolved statement!")
+                lineTokens.firstOrNull()?.addSeverity(Severity.Type.ERROR, "Found unresolved statement!")
             }
         }
 
@@ -462,9 +462,9 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
         abstract fun evaluate(throwErrors: Boolean): Variable.Value.Dec
 
-        abstract fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>)
+        abstract fun assignSymbols(assignedSymbols: List<GASParser.Symbol>)
         abstract fun isDefined(): Boolean
-        abstract fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>)
+        abstract fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>)
 
         companion object {
             fun parse(tokens: List<Token>, assignedSymbols: List<GASParser.Symbol>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
@@ -478,7 +478,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 // Convert tokens to postfix notation
                 val postFixTokens = convertToPostfix(relevantTokens)
                 val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), spaces)
-                expression?.assignIdentifier(assignedSymbols)
+                expression?.assignSymbols(assignedSymbols)
 
                 return expression
             }
@@ -661,14 +661,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
             }
 
-            override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
-                operand.assignIdentifier(assigendLabels)
+            override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                operand.assignLabels(assigendLabels)
             }
 
             override fun isDefined(): Boolean = operand.isDefined()
 
-            override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
-                operand.assignIdentifier(assignedSymbols)
+            override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
+                operand.assignSymbols(assignedSymbols)
             }
 
             override fun print(prefix: String): String = "$prefix($operator${operand.print("")})"
@@ -705,14 +705,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
             override fun print(prefix: String): String = "$prefix(${operandA.print("")} $operator ${operandB.print("")})"
 
-            override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
-                operandA.assignIdentifier(assignedSymbols)
-                operandB.assignIdentifier(assignedSymbols)
+            override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
+                operandA.assignSymbols(assignedSymbols)
+                operandB.assignSymbols(assignedSymbols)
             }
 
-            override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
-                operandA.assignIdentifier(assigendLabels)
-                operandB.assignIdentifier(assigendLabels)
+            override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                operandA.assignLabels(assigendLabels)
+                operandB.assignLabels(assigendLabels)
             }
 
             override fun isDefined(): Boolean = operandA.isDefined() && operandB.isDefined()
@@ -745,7 +745,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 override fun print(prefix: String): String = "$prefix<$symbol>"
 
-                override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
                     val assignement = assignedSymbols.firstOrNull { it.name == symbol.content }
 
                     if (assignement == null) {
@@ -773,7 +773,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     }
                 }
 
-                override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
                     val assignment = assigendLabels.firstOrNull { it.first.label.identifier == symbol.content }
 
                     if (assignment == null) {
@@ -865,11 +865,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 override fun evaluate(throwErrors: Boolean): Variable.Value.Dec = value
 
-                override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
                     // NOTHING
                 }
 
-                override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
                     // NOTHING
                 }
 
@@ -892,11 +892,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
 
                 override fun evaluate(throwErrors: Boolean): Variable.Value.Dec = value
-                override fun assignIdentifier(assignedSymbols: List<GASParser.Symbol>) {
+                override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
                     // NOTHING
                 }
 
-                override fun assignIdentifier(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
+                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
                     // NOTHING
                 }
 

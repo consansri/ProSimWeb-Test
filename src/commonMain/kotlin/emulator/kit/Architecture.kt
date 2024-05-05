@@ -157,7 +157,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      */
     fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Boolean = true): Process.Result {
         if (build) {
-            regContainer.clear()
+            exeReset()
         }
 
         if (DebugTools.KIT_showCheckCodeEvents) {

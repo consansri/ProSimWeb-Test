@@ -3,6 +3,8 @@ package me.c3.ui.components.transcript
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
+import emulator.kit.nativeInfo
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
@@ -22,15 +24,22 @@ import javax.swing.SwingUtilities
 class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
     // SubComponents
-    val model = TSTableModel()
+    val compIDs = listOf("Address", "Labels", "Bytes", "Disassembled")
+    private val model = TSTableModel()
     val modelView = CTable(mainManager.themeManager, mainManager.scaleManager, model, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
-    val sections: MutableMap<GASParser.Section, Array<GASParser.Section.BundledContent>> = mutableMapOf()
-    var section: GASParser.Section? = null
+    private val sections: MutableMap<GASParser.Section, Array<GASParser.Section.BundledContent>> = mutableMapOf()
+    private var section: GASParser.Section? = null
+        set(value) {
+            field = value
+            label.text = section?.name ?: "[no section selected]"
+            content = section?.getTSContent() ?: arrayOf()
+            updateContent(mainManager)
+        }
     var content: Array<GASParser.Section.BundledContent> = arrayOf()
 
-    val label = CVerticalLabel(mainManager.themeManager, mainManager.scaleManager, "compile transcript", FontType.CODE)
+    private val label = CVerticalLabel(mainManager.themeManager, mainManager.scaleManager, "[no section selected]", FontType.CODE)
 
     // MainComponents
     val labelPane = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.EAST).apply {
@@ -42,6 +51,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
     }
 
     val contentPane = CScrollPane(mainManager.themeManager, mainManager.scaleManager, primary = false).apply {
+        setViewportView(modelView)
         minimumSize = Dimension(0, 0)
     }
 
@@ -74,13 +84,12 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         }
     }
 
-    private fun updateResult(result: Process.Result? = null){
+    private fun updateResult(result: Process.Result? = null) {
         sections.clear()
         result?.tree?.sections?.forEach {
             sections[it] = it.getTSContent()
         }
-        switchSection()
-        updateSizing()
+        section = sections.map { it.key }.firstOrNull()
     }
 
     private fun executeUntilAddress(address: Variable.Value.Hex) {
@@ -129,15 +138,11 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
 
     private fun switchSection() {
         val index = sections.map { it.key }.indexOf(section)
-        if (index >= 0 && index < sections.size - 1) {
-            section = sections.map { it.key }.getOrNull(index + 1)
+        section = if (index >= 0 && index < sections.size - 1) {
+            sections.map { it.key }.getOrNull(index + 1)
         } else {
-            section = sections.map { it.key }.getOrNull(0)
+            sections.map { it.key }.getOrNull(0)
         }
-
-        label.text = section?.name ?: "[no section selected]"
-        content = section?.getTSContent() ?: arrayOf()
-        updateContent(mainManager)
     }
 
     private fun updateContent(mainManager: MainManager) {
@@ -145,14 +150,14 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
 
         if (section == null) return
 
-        val compIDs = listOf("Address", "Labels", "Bytes", "Disassembled")
-
         model.setColumnIdentifiers(compIDs.toTypedArray())
         for (row in content) {
             model.addRow(row.getAddrLblBytesTranscript())
         }
         modelView.fitColumnWidths(mainManager.currScale().borderScale.insets)
         highlightPCRow(mainManager)
+        modelView.revalidate()
+        modelView.repaint()
     }
 
     private fun updateSizing() {
@@ -164,7 +169,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
     }
 
     override fun getMinimumSize(): Dimension {
-        return Dimension(label.width, 0)
+        return Dimension(label.width, 100)
     }
 
     private fun highlightPCRow(mainManager: MainManager) {

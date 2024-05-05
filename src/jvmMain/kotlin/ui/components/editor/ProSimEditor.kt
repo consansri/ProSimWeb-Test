@@ -61,7 +61,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
     }
 
     private fun markPC() {
-        val lineLoc = mainManager.currArch().getCompiler().assembly.currentAssemblyMap.lineAddressMap.get(mainManager.currArch().getRegContainer().pc.get().toHex().toRawString())
+        val lineLoc = mainManager.currArch().getCompiler().getLastLineMap().get(mainManager.currArch().getRegContainer().pc.get().toHex().toRawString())
         if (lineLoc == null) {
             mark()
             return

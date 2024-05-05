@@ -73,7 +73,7 @@ class RV64Assembler : DefinedAssembly {
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
-            label?.assignIdentifier(labels)
+            label?.assignLabels(labels)
             val labelAddr = label?.evaluate(true)?.toHex()
             return RV64BinMapper.getBinaryFromInstrDef(this, yourAddr.toHex(), labelAddr ?: Hex("0", yourAddr.size), immediate)
         }

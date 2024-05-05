@@ -12,8 +12,6 @@ import emulator.kit.common.RegContainer
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 import emulator.archs.riscv32.RV32Syntax.ParamType.*
-import emulator.archs.riscv64.RV64Assembler
-import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.common.Memory
 import emulator.kit.nativeLog
@@ -71,7 +69,7 @@ class RV32Assembler : DefinedAssembly {
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {
-            label?.assignIdentifier(labels)
+            label?.assignLabels(labels)
             val labelAddr = label?.evaluate(true)?.toHex()
 
             return RV32BinMapper.getBinaryFromInstrDef(this, yourAddr.toHex(), labelAddr ?: Variable.Value.Hex("0", yourAddr.size), immediate)

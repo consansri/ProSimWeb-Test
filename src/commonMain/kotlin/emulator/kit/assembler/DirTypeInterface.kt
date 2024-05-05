@@ -19,7 +19,7 @@ interface DirTypeInterface {
      * Execute the usage of a macro!
      *
      * Symbols in expressions must be assigned manually!
-     * - [GASNode.NumericExpr.assignIdentifier]
+     * - [GASNode.NumericExpr.assignSymbols]
      * - [GASNode.StringExpr.replaceIdentifierWithExpr]
      */
     fun executeDirective(

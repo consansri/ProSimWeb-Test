@@ -51,23 +51,21 @@ class Compiler(
 
         result.tree?.printError()?.let {
             architecture.getConsole().error(it)
-            nativeError(it)
         }
 
         result.tree?.printWarning()?.let {
             architecture.getConsole().warn(it)
-            nativeWarn(it)
         }
 
         if (result.hasErrors()) {
             architecture.getConsole().error("Process failed with an exception!\n$process")
-            nativeError("Process failed with an exception!\n$process")
         } else {
             architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
-            nativeInfo("Process finished SUCCESSFUL\n$process")
         }
 
         lastLineAddrMap = result.assemblyMap
+
+        processes.remove(process)
         return result
     }
 
