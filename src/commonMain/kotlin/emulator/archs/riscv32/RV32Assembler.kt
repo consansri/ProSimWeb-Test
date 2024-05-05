@@ -167,7 +167,6 @@ class RV32Assembler : DefinedAssembly {
         return when (type) {
             RV32Syntax.InstrType.Li -> {
                 val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.getAllTokens().first(), "Numeric Expression is Missing!")
-                nativeLog("Imm Delivered: ${imm.toHex()}")
 
                 var result = imm.check(Variable.Size.Bit12())
                 if (result.valid) {

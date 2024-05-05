@@ -35,7 +35,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     val (mStepAmount, setMStepAmount) = useState(localStorage.getItem(WebStorageKey.MSTEP_VALUE) ?: 10)
 
     val (allowExe, setAllowExe) = useState(true)
-    val hideRegDescr = useState(true)
+    val hideRegDescr = useState(false)
     val arch = props.archState.component1()
 
     fun queueExecution(executionType: ExecutionType, steps: Int = 1) {
