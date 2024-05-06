@@ -52,7 +52,7 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
     override fun getArchM(): ArchManager = mManager.archManager
     override fun getIcons(): ProSimIcons = mManager.icons
 
-    private val mainDivider = 0.5
+    private val mainDivider = 0.4
     private val verticalDivider = 0.8
 
     init {
@@ -100,7 +100,7 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
         infoTabPane.minimumSize = Dimension(0, 0)
 
         editorContainer.resizeWeight = 0.2
-        processorContainer.resizeWeight = 0.0
+        processorContainer.resizeWeight = 0.5
 
         // Add split panes to the frame with BorderLayout constraints
         add(topBar, BorderLayout.NORTH)

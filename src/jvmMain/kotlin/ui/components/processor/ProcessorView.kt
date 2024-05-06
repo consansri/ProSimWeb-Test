@@ -18,7 +18,8 @@ class ProcessorView(mainManager: MainManager) : CPanel(mainManager.themeManager,
         minimumSize = Dimension(0,0)
     }
     val splitPane = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView).apply {
-        resizeWeight = 1.0
+        resizeWeight = 0.7
+        setDividerLocation(0.7)
     }
     val processorSettings = ProcessorSettings(mainManager, this)
 

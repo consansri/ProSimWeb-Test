@@ -1,9 +1,11 @@
 package me.c3.emulator.kit
 
+import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.IConsole
 import emulator.kit.assembler.lexer.Token
 import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.core.style.CodeLaF
+import org.apache.bcel.classfile.Code
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import javax.swing.JTextPane
@@ -17,14 +19,12 @@ fun List<Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
 
 fun Token.toStyledCharSequence(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
     val severity = this.getMajorSeverity()
-    val codeStyle = getCodeStyle()
 
-    val color = codeLaF.getColor(severity?.type?.codeStyle ?: codeStyle)
-    val style = CEditorArea.Style(color)
-
-    val styledChars: List<CEditorArea.StyledChar> = this.content.map { CEditorArea.StyledChar(it, style) }
-
-    return styledChars
+    return this.getHL().flatMap {styled ->
+        styled.first.map {
+            CEditorArea.StyledChar(it, CEditorArea.Style(codeLaF.getColor(severity?.type?.codeStyle ?: styled.second)))
+        }
+    }
 }
 
 fun List<IConsole.Message>.toStyledContent(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {

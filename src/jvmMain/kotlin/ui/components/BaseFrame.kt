@@ -52,8 +52,8 @@ class BaseFrame(override val mManager: MainManager) : CFrame(mManager.themeManag
     override fun getArchM(): ArchManager = mManager.archManager
     override fun getIcons(): ProSimIcons = mManager.icons
 
-    private val mainDivider = 1.0
-    private val verticalDivider = 1.0
+    private val mainDivider = 0.4
+    private val verticalDivider = 0.8
     override fun toggleComponents(processorViewVisible: Boolean, consoleAndInfoVisible: Boolean) {
         if (consoleAndInfoVisible) {
             verticalMainCSplitPane.setDividerLocation(verticalDivider)

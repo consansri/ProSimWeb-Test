@@ -5,18 +5,59 @@ import emulator.kit.common.RegContainer
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.nativeLog
 
-class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val onlyNumber: String = "",val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null) {
+class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val onlyNumber: String = "", val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null) {
     private var isPrefix = false
     private var severities: MutableList<Severity> = mutableListOf()
-    private var codeStyle: CodeStyle? = CodeStyle.BASE0
+    private var codeStyle: CodeStyle = CodeStyle.BASE0
+    private val hlPairs: MutableList<Pair<String, CodeStyle>> = mutableListOf()
 
     init {
         isPrefix = type == Type.COMPLEMENT
         if (type.style != null) {
             hl(type.style)
         }
+    }
+
+    fun getHL(): List<Pair<String, CodeStyle>> {
+        return when (type) {
+            Type.STRING_SL -> getEscapedHL()
+            Type.STRING_ML -> getEscapedHL()
+            else -> listOf(content to codeStyle)
+        }
+    }
+
+    fun getEscapedHL(): List<Pair<String, CodeStyle>> {
+        val result = mutableListOf<Pair<String, CodeStyle>>()
+        var startIndex = 0
+
+        var noMatchContent = ""
+        while (startIndex < content.length) {
+            var foundEscape = false
+            for (reg in EscapedChar.entries) {
+                val match = reg.regex.find(content.substring(startIndex))
+                if (match != null) {
+                    if (noMatchContent.isNotEmpty()) {
+                        result.add(noMatchContent to CodeStyle.string)
+                        noMatchContent = ""
+                    }
+                    result.add(match.value to CodeStyle.escape)
+                    startIndex += match.value.length
+                    foundEscape = true
+                    break
+                }
+            }
+            if (foundEscape) continue
+
+            noMatchContent += content[startIndex]
+            startIndex++
+        }
+
+        if (noMatchContent.isNotEmpty()) {
+            result.add(noMatchContent to CodeStyle.string)
+        }
+
+        return result
     }
 
     fun getContentAsString(): String = when (type) {
@@ -96,26 +137,26 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         ARG_SEPARATOR(Regex("""^\\\(\)"""), CodeStyle.argument),
         ASSIGNMENT(Regex("^="), CodeStyle.operator),
         COMPLEMENT(Regex("^~"), CodeStyle.operator, isOperator = true),
-        MULT(Regex("^\\*"),  CodeStyle.operator, isOperator = true),
-        DIV(Regex("^/"),  CodeStyle.operator, isOperator = true),
-        REM(Regex("^%"),  CodeStyle.operator, isOperator = true),
-        SHL(Regex("^<<"),  CodeStyle.operator, isOperator = true),
-        SHR(Regex("^>>"),  CodeStyle.operator, isOperator = true),
-        BITWISE_OR(Regex("^\\|"),  CodeStyle.operator, isOperator = true),
-        BITWISE_AND(Regex("^&"),  CodeStyle.operator, isOperator = true),
-        BITWISE_XOR(Regex("^\\^"),  CodeStyle.operator, isOperator = true),
-        BITWISE_ORNOT(Regex("^!"),  CodeStyle.operator, isOperator = true),
-        PLUS(Regex("^\\+"),  CodeStyle.operator, isOperator = true, couldBePrefix = true),
-        MINUS(Regex("^-"),  CodeStyle.operator, isOperator = true, couldBePrefix = true),
-        COMMA(Regex("^,"),  CodeStyle.punctuation, isPunctuation = true),
-        SEMICOLON(Regex("^;"),  CodeStyle.punctuation, isPunctuation = true),
-        COLON(Regex("^:"),  CodeStyle.punctuation, isPunctuation = true),
-        BRACKET_OPENING(Regex("^\\("),  CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
-        BRACKET_CLOSING(Regex("^\\)"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
-        CURLY_BRACKET_OPENING(Regex("^${Regex.escape("{")}"),  CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
-        CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
-        SQUARE_BRACKET_OPENING(Regex("^\\["),  CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
-        SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
+        MULT(Regex("^\\*"), CodeStyle.operator, isOperator = true),
+        DIV(Regex("^/"), CodeStyle.operator, isOperator = true),
+        REM(Regex("^%"), CodeStyle.operator, isOperator = true),
+        SHL(Regex("^<<"), CodeStyle.operator, isOperator = true),
+        SHR(Regex("^>>"), CodeStyle.operator, isOperator = true),
+        BITWISE_OR(Regex("^\\|"), CodeStyle.operator, isOperator = true),
+        BITWISE_AND(Regex("^&"), CodeStyle.operator, isOperator = true),
+        BITWISE_XOR(Regex("^\\^"), CodeStyle.operator, isOperator = true),
+        BITWISE_ORNOT(Regex("^!"), CodeStyle.operator, isOperator = true),
+        PLUS(Regex("^\\+"), CodeStyle.operator, isOperator = true, couldBePrefix = true),
+        MINUS(Regex("^-"), CodeStyle.operator, isOperator = true, couldBePrefix = true),
+        COMMA(Regex("^,"), CodeStyle.punctuation, isPunctuation = true),
+        SEMICOLON(Regex("^;"), CodeStyle.punctuation, isPunctuation = true),
+        COLON(Regex("^:"), CodeStyle.punctuation, isPunctuation = true),
+        BRACKET_OPENING(Regex("^\\("), CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
+        BRACKET_CLOSING(Regex("^\\)"), CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
+        CURLY_BRACKET_OPENING(Regex("^${Regex.escape("{")}"), CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
+        CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"), CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
+        SQUARE_BRACKET_OPENING(Regex("^\\["), CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
+        SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"), CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
 
         ERROR(Regex("^."));
 
@@ -169,8 +210,8 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         severities.addAll(buffered.filter { it.type != Severity.Type.ERROR })
     }
 
-    fun hl(vararg codeStyle: CodeStyle) {
-        this.codeStyle = codeStyle.firstOrNull()
+    fun hl(codeStyle: CodeStyle) {
+        this.codeStyle = codeStyle
     }
 
     fun getCodeStyle() = codeStyle
@@ -184,16 +225,15 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         }
     }
 
-    fun String.replaceEscapedChars(): String{
+    fun String.replaceEscapedChars(): String {
         var result = this
         EscapedChar.entries.forEach {
             result = result.replace(it.id, it.replacement)
         }
-        nativeLog("ReplaceEscapedChars:\nFrom: $this\nTo: $result")
         return result
     }
 
-    enum class EscapedChar(val id: String, val replacement: String){
+    enum class EscapedChar(val id: String, val replacement: String) {
         N("\\n", "\n"),
         T("\\t", "\t"),
         R("\\r", "\r"),
@@ -201,6 +241,12 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         F("\\f", "\u000c"),
         II("\\\"", "\""),
         I("\\\'", "\'"),
-        SLASH("\\\\", "\\")
+        SLASH("\\\\", "\\");
+
+        val regex: Regex
+
+        init {
+            regex = Regex("^${Regex.escape(id)}")
+        }
     }
 }

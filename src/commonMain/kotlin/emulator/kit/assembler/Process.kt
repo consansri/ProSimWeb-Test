@@ -64,7 +64,7 @@ data class Process(
     }
 
     override fun toString(): String {
-        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeMilliseconds}ms) ${(Clock.System.now() - processStart).inWholeMilliseconds}ms"
+        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) ${(Clock.System.now() - processStart).inWholeSeconds}s"
     }
 
     enum class State(val displayName: String) {
