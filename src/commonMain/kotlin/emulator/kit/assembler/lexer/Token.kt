@@ -26,7 +26,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         Type.COMMENT_ML -> ""
         Type.STRING_ML -> content.substring(3, content.length - 3)
         Type.STRING_SL -> content.substring(1, content.length - 1)
-        Type.CHAR -> content[1].code.toString()
+        Type.CHAR -> content.last().toString()
         Type.ARG_REF -> content.substring(1)
         Type.ARG_SEPARATOR -> ""
         Type.COMMENT_NATIVE -> ""

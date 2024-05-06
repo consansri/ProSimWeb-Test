@@ -887,7 +887,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val value: Variable.Value.Dec
 
                 init {
-                    val hexString = Variable.Tools.asciiToHex(char.toString())
+                    val hexString = Variable.Tools.asciiToHex(char.getContentAsString())
                     value = Variable.Value.Hex(hexString, Variable.Size.Bit32()).toDec()
                 }
 

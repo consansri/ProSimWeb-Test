@@ -23,8 +23,8 @@ interface DirTypeInterface {
      * - [GASNode.StringExpr.replaceIdentifierWithExpr]
      */
     fun executeDirective(
-        dirStatement: GASNode.Statement.Dir,
-        tempContainer: GASParser.TempContainer
+        stmnt: GASNode.Statement.Dir,
+        cont: GASParser.TempContainer
     )
 
 }

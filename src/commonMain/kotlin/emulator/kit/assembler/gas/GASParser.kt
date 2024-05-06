@@ -304,6 +304,24 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         fun getContentString(): String
     }
 
+    class Data(val referenceToken: Token, val bin: Variable.Value.Hex, val type: DataType) : SecContent {
+        override val bytesNeeded: Int = bin.size.getByteCount()
+
+        override fun getFirstToken(): Token = referenceToken
+
+        override fun getMark(): Memory.InstanceType = Memory.InstanceType.DATA
+
+        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> = arrayOf(bin.toBin())
+
+        override fun getContentString(): String = ".${type.name.lowercase()} ${bin}"
+
+        enum class DataType{
+            BYTE,
+            SHORT,
+            WORD
+        }
+    }
+
     data class Label(val label: GASNode.Label) : SecContent {
         override val bytesNeeded: Int = 0
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
