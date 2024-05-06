@@ -896,7 +896,7 @@ class RV64Syntax {
                     val imm12 = paramMap[MaskLabel.IMM12]
                     val pc = arch.getRegContainer().pc
                     if (rd != null && imm12 != null && rs1 != null) {
-                        val paddedImm64 = imm12.getUResized(RV64.XLEN)
+                        val paddedImm64 = imm12.getResized(RV64.XLEN)
                         rd.set(rs1.get().toBin() xor paddedImm64)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -914,7 +914,7 @@ class RV64Syntax {
                     val imm12 = paramMap[MaskLabel.IMM12]
                     val pc = arch.getRegContainer().pc
                     if (rd != null && imm12 != null && rs1 != null) {
-                        val paddedImm64 = imm12.getUResized(RV64.XLEN)
+                        val paddedImm64 = imm12.getResized(RV64.XLEN)
                         rd.set(rs1.get().toBin() or paddedImm64)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -932,7 +932,7 @@ class RV64Syntax {
                     val imm12 = paramMap[MaskLabel.IMM12]
                     val pc = arch.getRegContainer().pc
                     if (rd != null && imm12 != null && rs1 != null) {
-                        val paddedImm64 = imm12.getUResized(RV64.XLEN)
+                        val paddedImm64 = imm12.getResized(RV64.XLEN)
                         rd.set(rs1.get().toBin() and paddedImm64)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -953,7 +953,7 @@ class RV64Syntax {
                     val shamt6 = paramMap[MaskLabel.SHAMT6]
                     val pc = arch.getRegContainer().pc
                     if (rd != null && shamt6 != null && rs1 != null) {
-                        rd.set(rs1.get().toBin() ushl shamt6.getRawBinStr().toInt(2))
+                        rd.set(rs1.get().toBin() ushl (shamt6.toUDec().toIntOrNull() ?: 0))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }

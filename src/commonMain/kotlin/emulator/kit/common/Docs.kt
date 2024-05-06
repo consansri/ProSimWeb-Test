@@ -17,6 +17,21 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
         DocFile.DefinedFile(
             "Version - ${Constants.VERSION}",
             Chapter(
+              "Version - 0.2.1",
+                Section(
+                    "New",
+                    UnlinkedList(
+                        Text("KIT: Rewrote whole Lexer/Parser/Assembler")
+                    )
+                ),
+                Section(
+                    "Fixed",
+                    UnlinkedList(
+                        Text("RV32 & RV64: XORI, ORI, ANDI missing sign extension!")
+                    )
+                )
+            ),
+            Chapter(
                 "Version - 0.2.0",
                 Section(
                     "New",

@@ -23,6 +23,7 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.nativeLog
 import visual.StyleExt.get
 import visual.StyleExt.getVCRows
 import web.cssom.ClassName
@@ -60,7 +61,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- REACT STATES ----------------- */
 
     val state = ArchState()
-    var assemblyMap: Map<String, Token.LineLoc>? = null
+    val (fileState, setStateFile) = useState(state.currentState)
+    val (assemblyMap, setAsmMap) = useState<Map<String, Token.LineLoc>>()
+
     val lastSections = useState<Array<GASParser.Section>>(arrayOf())
 
     val (currExeLine, setCurrExeLine) = useState(-1)
@@ -85,6 +88,23 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
 
     /* ----------------- SUGAR ----------------- */
+
+    fun markPCLine(){
+        val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
+        val entry = assemblyMap?.get(pcValue.toHex().getRawHexStr())
+
+        if (entry != null) {
+            setExeFile(props.fileState.component1().getOrNull(entry.fileName))
+            if (entry.fileName == props.fileState.component1().getCurrent().getName()) {
+                setCurrExeLine(entry.lineID + 1)
+            } else {
+                setCurrExeLine(-1)
+            }
+        } else {
+            setCurrExeLine(-1)
+            setExeFile(null)
+        }
+    }
 
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
@@ -155,15 +175,17 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         checkTimeOutRef.current = setTimeout({
             val analysisTime = measureTime {
                 state.edit()
+                setStateFile(state.currentState)
                 val compilationResult = props.archState.component1().compile(file, props.fileState.component1().getOthers(), build = true)
                 val hlTaList = compilationResult.tokens.getVCRows()
                 setvcRows(hlTaList)
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
-                assemblyMap = compilationResult.assemblyMap
                 compilationResult.tree?.let {
                     lastSections.component2().invoke(compilationResult.tree.sections)
                 }
                 state.check(compilationResult.success)
+                setStateFile(state.currentState)
+                setAsmMap(compilationResult.assemblyMap)
             }
             if (analysisTime.inWholeMilliseconds <= Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
                 setLowPerformanceMode(false)
@@ -183,11 +205,13 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             preHLTimeoutRef.current = setTimeout({
                 val analysisTime = measureTime {
                     state.edit()
+                    setStateFile(state.currentState)
                     val compilationResult = props.archState.component1().compile(value, props.fileState.component1().getOthers(), build = false)
                     val hlTaList = compilationResult.tokens.getVCRows()
                     setvcRows(hlTaList)
                     props.compileEventState.component2().invoke(!props.compileEventState.component1())
                     state.check(compilationResult.success)
+                    setStateFile(state.currentState)
                 }
                 if (analysisTime.inWholeMilliseconds > Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
                     setLowPerformanceMode(true)
@@ -292,7 +316,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     cursor = Cursor.pointer
                 }
 
-                when (state.currentState) {
+                when (fileState) {
                     ArchState.State.UNCHECKED -> {
                         title = "Status: loading..."
                         img {
@@ -321,7 +345,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             src = StyleAttr.Icons.status_fine
                         }
                     }
-
                 }
             }
 
@@ -380,7 +403,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                     }
                 }
             }
-
 
             a {
                 css {
@@ -931,6 +953,10 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         updateLineNumbers()
     }
 
+    useEffect(assemblyMap){
+        markPCLine()
+    }
+
     useEffect(taValueUpdate) {
         updateTAResize()
         updateClearButton()
@@ -959,20 +985,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             console.log("REACT: Exe Event Changed!")
         }
 
-        val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
-        val entry = assemblyMap?.get(pcValue.toHex().getRawHexStr())
-
-        if (entry != null) {
-            setExeFile(props.fileState.component1().getOrNull(entry.fileName))
-            if (entry.fileName == props.fileState.component1().getCurrent().getName()) {
-                setCurrExeLine(entry.lineID + 1)
-            } else {
-                setCurrExeLine(-1)
-            }
-        } else {
-            setCurrExeLine(-1)
-            setExeFile(null)
-        }
+        markPCLine()
     }
 
     useEffect(props.fileChangeEvent) {

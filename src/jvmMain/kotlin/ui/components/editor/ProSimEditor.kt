@@ -36,9 +36,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
     }
 
     override suspend fun highlight(text: String): List<CEditorArea.StyledChar> {
-        nativeLog("ProSimEditor: fire highlighting")
         val result = compile(false)
-        nativeLog("ProSimEditor: highlight finished!")
         return result.tokens.toStyledText(mainManager.currTheme().codeLaF)
     }
 
@@ -61,7 +59,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
     }
 
     private fun markPC() {
-        val lineLoc = mainManager.currArch().getCompiler().getLastLineMap().get(mainManager.currArch().getRegContainer().pc.get().toHex().toRawString())
+        val lineLoc = mainManager.currArch().getCompiler().getLastLineMap()[mainManager.currArch().getRegContainer().pc.get().toHex().toRawString()]
         if (lineLoc == null) {
             mark()
             return

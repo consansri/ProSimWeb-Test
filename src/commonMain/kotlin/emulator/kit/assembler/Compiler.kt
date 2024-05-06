@@ -1,6 +1,6 @@
 package emulator.kit.assembler
 
-import emulator.kit.Architecture
+import emulator.kit.*
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable.Value.*
@@ -8,9 +8,6 @@ import emulator.kit.types.Variable.Size.*
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
-import emulator.kit.nativeError
-import emulator.kit.nativeInfo
-import emulator.kit.nativeWarn
 import kotlinx.datetime.*
 
 /**
@@ -38,6 +35,10 @@ class Compiler(
 
     val processes: MutableList<Process> = mutableListOf()
     private var lastLineAddrMap: Map<String, Token.LineLoc> = mapOf()
+        set(value) {
+            field = value
+        }
+
     override fun getLastLineMap(): Map<String, Token.LineLoc> = lastLineAddrMap
 
     /**
@@ -63,9 +64,9 @@ class Compiler(
             architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
         }
 
-        lastLineAddrMap = result.assemblyMap
-
         processes.remove(process)
+
+        if (build) lastLineAddrMap = result.assemblyMap
         return result
     }
 
