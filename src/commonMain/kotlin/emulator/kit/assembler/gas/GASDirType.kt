@@ -1098,7 +1098,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     it.evaluate(false)
                 }
 
-                strings.forEach {string ->
+                strings.forEach { string ->
                     val chunks = string.chunked(4).map {
                         Variable.Tools.asciiToHex(it.reversed())
                     }
@@ -1171,6 +1171,30 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 }
             }
 
+            ZERO -> {
+                val length = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()?.evaluate(false)?.toIntOrNull() ?: return
+
+                val refToken = stmnt.dir.getAllTokens().first()
+                var index = 0
+                while (index < length) {
+                    if (index + 3 < length) {
+                        cont.currSection.addContent(GASParser.Data(refToken, zeroWord, GASParser.Data.DataType.WORD))
+                        index += 4
+                        continue
+                    }
+                    if (index + 1 < length) {
+                        cont.currSection.addContent(GASParser.Data(refToken, zeroShort, GASParser.Data.DataType.SHORT))
+                        index += 2
+                        continue
+                    }
+                    if (index < length) {
+                        cont.currSection.addContent(GASParser.Data(refToken, zeroByte, GASParser.Data.DataType.BYTE))
+                        index += 1
+                        continue
+                    }
+                }
+            }
+
             // Symbols
             EQU -> {
                 val symbolToken = stmnt.dir.allTokens.first { it.type == Token.Type.SYMBOL }
@@ -1229,6 +1253,52 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 symbol.hl(CodeStyle.symbol)
             }
 
+            COMM -> {
+                val symbol = stmnt.dir.allTokens.first { it.type == Token.Type.SYMBOL }
+                val alreadyDefined = cont.symbols.firstOrNull { it.name == symbol.content }
+
+                if (alreadyDefined == null) {
+                    cont.setOrReplaceSymbol(GASParser.Symbol.Undefined(symbol.content))
+                }
+                symbol.hl(CodeStyle.symbol)
+
+                val length = when (alreadyDefined) {
+                    is GASParser.Symbol.StringExpr -> alreadyDefined.expr.evaluate(false).length
+                    is GASParser.Symbol.IntegerExpr -> alreadyDefined.expr.evaluate(false).size.getByteCount()
+                    is GASParser.Symbol.TokenRef -> stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()?.evaluate(false)?.toIntOrNull() ?: return
+                    is GASParser.Symbol.Undefined -> stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()?.evaluate(false)?.toIntOrNull() ?: return
+                    null -> stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()?.evaluate(false)?.toIntOrNull() ?: return
+                }
+
+                val refToken = stmnt.dir.getAllTokens().first()
+                var index = 0
+                while (index < length) {
+                    if (index + 3 < length) {
+                        cont.currSection.addContent(GASParser.Data(refToken, zeroWord, GASParser.Data.DataType.WORD))
+                        index += 4
+                        continue
+                    }
+                    if (index + 1 < length) {
+                        cont.currSection.addContent(GASParser.Data(refToken, zeroShort, GASParser.Data.DataType.SHORT))
+                        index += 2
+                        continue
+                    }
+                    if (index < length) {
+                        cont.currSection.addContent(GASParser.Data(refToken, zeroByte, GASParser.Data.DataType.BYTE))
+                        index += 1
+                        continue
+                    }
+                }
+            }
+
+            DESC -> {
+                val symbol = stmnt.dir.allTokens.firstOrNull { it.type == Token.Type.SYMBOL } ?: return
+                val expr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull() ?: return
+                val desc = expr.evaluate(true)
+                if (desc.toBin().checkSizeUnsigned(Bit16()) != null) throw Parser.ParserError(expr.getAllTokens().first(),"Expression exceeds unsigned 16 Bits!")
+                cont.setOrReplaceDescriptor(symbol.content, desc.toBin().getUResized(Bit16()).toHex())
+            }
+
             // Sections
             DATA -> {
                 cont.switchToOrAppendSec("data")
@@ -1250,6 +1320,13 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val lastToken = stmnt.dir.allTokens.last()
                 cont.switchToOrAppendSec(lastToken.getContentAsString())
             }
+
         }
+    }
+
+    companion object {
+        val zeroByte = Hex("0", Bit8())
+        val zeroShort = Hex("0", Bit16())
+        val zeroWord = Hex("0", Bit32())
     }
 }

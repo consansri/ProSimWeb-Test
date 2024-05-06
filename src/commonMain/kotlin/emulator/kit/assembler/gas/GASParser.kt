@@ -17,6 +17,9 @@ import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value
 
 class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembly) : Parser(compiler) {
     override fun getDirs(features: List<Feature>): List<DirTypeInterface> = definedAssembly.getAdditionalDirectives() + GASDirType.entries
@@ -99,8 +102,8 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         /**
          * Define Section Start Addresses
          */
-        var currentAddress: Variable.Value = Variable.Value.Hex("0", definedAssembly.MEM_ADDRESS_SIZE)
-        val sectionAddressMap = mutableMapOf<Section, Variable.Value.Hex>()
+        var currentAddress: Value = Hex("0", definedAssembly.MEM_ADDRESS_SIZE)
+        val sectionAddressMap = mutableMapOf<Section, Hex>()
         sections.forEach {
             sectionAddressMap.set(it, currentAddress.toHex())
             currentAddress += it.lastOffset
@@ -109,7 +112,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         /**
          * Link All Section Labels
          */
-        val allLinkedLabels = mutableListOf<Pair<Label, Variable.Value.Hex>>()
+        val allLinkedLabels = mutableListOf<Pair<Label, Hex>>()
         sections.forEach { sec ->
             val addr = sectionAddressMap[sec]
             addr?.let {
@@ -192,6 +195,17 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             symbols.remove(alreadydefined)
             symbols.add(symbol)
         }
+
+        fun setOrReplaceDescriptor(symbolName: String, descriptor: Hex){
+            val alreadydefined = symbols.firstOrNull { it.name == symbolName }
+            if(alreadydefined != null){
+                alreadydefined.descriptor = descriptor
+                return
+            }
+            val newSymbol = Symbol.Undefined(symbolName)
+            newSymbol.descriptor = descriptor
+            symbols.add(newSymbol)
+        }
     }
 
     data class Macro(val name: String, val arguments: List<Argument>, val content: List<Statement>) {
@@ -228,39 +242,40 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
     }
 
     sealed class Symbol(val name: String) {
+        var descriptor: Hex = Hex("0", Bit16())
         class Undefined(name: String) : Symbol(name)
         class StringExpr(name: String, val expr: GASNode.StringExpr) : Symbol(name)
-        class IntegerExpr(name: String, val expr: GASNode.NumericExpr) : Symbol(name)
+        class IntegerExpr(name: String, val expr: NumericExpr) : Symbol(name)
         class TokenRef(name: String, val token: Token) : Symbol(name)
     }
 
     data class Section(val name: String, val addressSize: Variable.Size) {
         private val content: MutableList<MappedContent<*>> = mutableListOf()
-        var lastOffset: Variable.Value = Variable.Value.Hex("0", addressSize)
+        var lastOffset: Value = Hex("0", addressSize)
 
-        private var sectionStart: Variable.Value.Hex = Variable.Value.Hex("0", addressSize)
+        private var sectionStart: Hex = Hex("0", addressSize)
 
         fun addContent(sectionContent: SecContent) {
             content.add(MappedContent(lastOffset.toHex(), sectionContent))
-            lastOffset += Variable.Value.Hex(sectionContent.bytesNeeded.toString(16), addressSize)
+            lastOffset += Hex(sectionContent.bytesNeeded.toString(16), addressSize)
         }
 
-        fun getLastAddress(addressSize: Variable.Size): Variable.Value {
+        fun getLastAddress(addressSize: Variable.Size): Value {
             return lastOffset
         }
 
-        fun calcPadding(alignement: Int): Variable.Value {
-            return Variable.Value.Hex(alignement.toString(16)) - lastOffset % Variable.Value.Hex(alignement.toString(16))
+        fun calcPadding(alignement: Int): Value {
+            return Hex(alignement.toString(16)) - lastOffset % Hex(alignement.toString(16))
         }
 
-        fun linkLabels(sectionStartAddress: Variable.Value.Hex): List<Pair<Label, Variable.Value.Hex>> {
+        fun linkLabels(sectionStartAddress: Hex): List<Pair<Label, Hex>> {
             sectionStart = sectionStartAddress
             return content.filter { it.content is Label }.filterIsInstance<MappedContent<Label>>().map {
                 it.content to (sectionStartAddress + it.offset).toHex()
             }
         }
 
-        fun generateBytes(sectionStartAddress: Variable.Value.Hex, labels: List<Pair<Label, Variable.Value.Hex>>) {
+        fun generateBytes(sectionStartAddress: Hex, labels: List<Pair<Label, Hex>>) {
             sectionStart = sectionStartAddress
             content.forEach {
                 it.bytes = it.content.getBinaryArray(sectionStartAddress + it.offset, labels)
@@ -280,12 +295,12 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         override fun toString(): String = "Section $name: ${content.joinToString("") { "\n\t$it" }}"
 
-        data class MappedContent<T : SecContent>(val offset: Variable.Value.Hex, val content: T) {
-            var bytes: Array<Variable.Value.Bin> = arrayOf()
+        data class MappedContent<T : SecContent>(val offset: Hex, val content: T) {
+            var bytes: Array<Bin> = arrayOf()
             override fun toString(): String = "${if (content.bytesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().getRawHexStr() } + "\t" else ""}${content.getContentString()}"
         }
 
-        data class BundledContent(val address: Variable.Value.Hex, val bytes: Array<Variable.Value.Bin>, val content: String, val label: List<Label>) {
+        data class BundledContent(val address: Hex, val bytes: Array<Bin>, val content: String, val label: List<Label>) {
             fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString(), label.joinToString("\n") { it.getContentString() }, bytes.joinToString("\n") { it.toHex().getRawHexStr() }, content)
         }
     }
@@ -300,18 +315,18 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          *
          * Values larger than one byte will be stored memory endianness dependent!
          */
-        fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin>
+        fun getBinaryArray(yourAddr: Value, labels: List<Pair<Label, Hex>>): Array<Bin>
         fun getContentString(): String
     }
 
-    class Data(val referenceToken: Token, val bin: Variable.Value.Hex, val type: DataType) : SecContent {
+    class Data(val referenceToken: Token, val bin: Hex, val type: DataType) : SecContent {
         override val bytesNeeded: Int = bin.size.getByteCount()
 
         override fun getFirstToken(): Token = referenceToken
 
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.DATA
 
-        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> = arrayOf(bin.toBin())
+        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<Label, Hex>>): Array<Bin> = arrayOf(bin.toBin())
 
         override fun getContentString(): String = ".${type.name.lowercase()} ${bin}"
 
@@ -326,7 +341,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         override val bytesNeeded: Int = 0
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getFirstToken(): Token = label.getAllTokens().first()
-        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> = emptyArray()
+        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<Label, Hex>>): Array<Bin> = emptyArray()
         override fun getContentString(): String = label.identifier + ":"
     }
 

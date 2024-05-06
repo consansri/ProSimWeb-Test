@@ -40,7 +40,7 @@ enum class CodeStyle(val lightHexColor: Int, val darkHexColor: Int? = null) {
         val symbol = ALTBLUE
         val label = CADETBLUE // REPLACE
         val altInt = VIOLET
-        val integer = baseColor
+        val integer = VIOLET
 
         val string = GREEN // REPLACE
         val escape = ALTBLUE // REPLACE
