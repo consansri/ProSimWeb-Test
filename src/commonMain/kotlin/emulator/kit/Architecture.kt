@@ -75,7 +75,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getMemory(): Memory = memory
     fun getConsole(): IConsole = iConsole
     fun getCompiler(): CompilerInterface = compiler
-    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: CompilerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder().buildFileContentLines(this, type, currentFile, *settings)
+    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: CompilerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()

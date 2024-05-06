@@ -13,7 +13,7 @@ import javax.swing.SwingUtilities
 class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger {
     init {
         fileInterface = editorFile
-        highlighter = this
+        if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")) highlighter = this
         infoLogger = this
 
         mainManager.eventManager.addExeEventListener {
@@ -52,8 +52,10 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         nativeLog("fireCompilation")
         CoroutineScope(Dispatchers.Default).launch {
             val result = compile(build)
-            withContext(Dispatchers.Main){
-                this@ProSimEditor.setStyledContent(result.tokens.toStyledText(mainManager.currTheme().codeLaF))
+            if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")){
+                withContext(Dispatchers.Main) {
+                    this@ProSimEditor.setStyledContent(result.tokens.toStyledText(mainManager.currTheme().codeLaF))
+                }
             }
         }
     }

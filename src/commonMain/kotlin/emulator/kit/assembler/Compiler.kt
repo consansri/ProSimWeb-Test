@@ -35,9 +35,6 @@ class Compiler(
 
     val processes: MutableList<Process> = mutableListOf()
     private var lastLineAddrMap: Map<String, Token.LineLoc> = mapOf()
-        set(value) {
-            field = value
-        }
 
     override fun getLastLineMap(): Map<String, Token.LineLoc> = lastLineAddrMap
 
@@ -64,9 +61,9 @@ class Compiler(
             architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
         }
 
-        processes.remove(process)
-
         if (build) lastLineAddrMap = result.assemblyMap
+
+        processes.remove(process)
         return result
     }
 

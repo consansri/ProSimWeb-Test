@@ -15,7 +15,7 @@ import kotlin.math.roundToLong
  *
  *
  */
-class FileBuilder {
+object FileBuilder {
     fun buildFileContentLines(architecture: Architecture, format: ExportFormat, currentFile: CompilerFile, vararg settings: Setting): List<String> {
         when (format) {
             ExportFormat.VHDL, ExportFormat.MIF, ExportFormat.HEXDUMP -> {
@@ -130,16 +130,18 @@ class FileBuilder {
                                             "\n-- by ${Constants.NAME} ${architecture.getDescription().name}"
                                 )
 
-                                var contentString = ""
+                                val contentString = rowMap.map {
+                                    "${it.key.toString(16).padStart(addrWidth / 4, '0')} : ${it.value.lowercase()};"
+                                }.joinToString("\n") { it }
 
-                                for (line in 0..<2.0.pow(addrWidth).roundToLong()) {
+                                /*for (line in 0..<2.0.pow(addrWidth).roundToLong()) {
                                     val rowContent = rowMap[line]
                                     contentString += if (rowContent != null) {
                                         "\n ${line.toString(16).padStart(addrWidth / 4, '0')} : ${rowContent.lowercase()};"
                                     } else {
                                         "\n ${line.toString(16).padStart(addrWidth / 4, '0')} : ${"0".repeat(dataWidth / 4)};"
                                     }
-                                }
+                                }*/
 
                                 // CONTENT
                                 content.add(
@@ -153,7 +155,7 @@ class FileBuilder {
                                             "\nCONTENT" +
                                             "\nBEGIN" +
                                             "\n" +
-                                            contentString +
+                                            "\n$contentString" +
                                             "\n" +
                                             "\nEND;"
                                 )

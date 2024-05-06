@@ -27,6 +27,14 @@ class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.theme
             resetCompilerProcessPrinter()
         }
 
+        mainManager.eventManager.addCompileListener {
+            if (it.success) {
+                setInfo(it.shortInfoStr())
+            } else {
+                setError(it.shortInfoStr())
+            }
+        }
+
         resetCompilerProcessPrinter()
     }
 

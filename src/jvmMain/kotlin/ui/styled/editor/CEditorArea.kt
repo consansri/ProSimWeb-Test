@@ -156,7 +156,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         }
     }
 
-    private fun queryStateChange() {
+    fun queryStateChange() {
         historyScope.launch {
             if (textStateHistory.size > 1) {
                 // POP Last State if it is younger than stackQueryInterval

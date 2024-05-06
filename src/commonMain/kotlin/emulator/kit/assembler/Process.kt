@@ -1,7 +1,6 @@
 package emulator.kit.assembler
 
 import debug.DebugTools
-import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
@@ -58,13 +57,17 @@ data class Process(
 
         val success = !tree.hasErrors()
 
-        val result = Result(success, tokens, tree, lineMap)
+        val result = Result(success, tokens, tree, lineMap, this)
 
         return result
     }
 
     override fun toString(): String {
         return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) ${(Clock.System.now() - processStart).inWholeSeconds}s"
+    }
+
+    fun getFinishedStr(success: Boolean): String{
+        return "${file.name} ${if (success) "build" else "failed"} in ${(Clock.System.now() - currentStateStart).inWholeSeconds}s!"
     }
 
     enum class State(val displayName: String) {
@@ -74,10 +77,14 @@ data class Process(
         CACHE_RESULTS("caching"),
     }
 
-    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Map<String, Token.LineLoc>) {
+    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Map<String, Token.LineLoc>, val process: Process) {
         fun hasErrors(): Boolean {
             return tree?.hasErrors() ?: false
         }
+
+        fun generateTS(): String = tree?.sections?.joinToString("\n") { it.toString() } ?: ""
+
+        fun shortInfoStr(): String = process.getFinishedStr(success)
 
         fun hasWarnings(): Boolean {
             return tree?.hasWarnings() ?: false

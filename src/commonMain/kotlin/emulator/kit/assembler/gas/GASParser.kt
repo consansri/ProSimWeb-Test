@@ -299,7 +299,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             }.toTypedArray()
         }
 
-        override fun toString(): String = "Section $name: ${content.joinToString("") { "\n\t$it" }}"
+        override fun toString(): String = "$name: ${content.joinToString("") { "\n\t$it" }}"
 
         data class MappedContent<T : SecContent>(val offset: Hex, val content: T) {
             var bytes: Array<Bin> = arrayOf()
