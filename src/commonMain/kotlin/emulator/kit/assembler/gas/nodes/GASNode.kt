@@ -396,16 +396,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             class StringLiteral(val string: Token) : Operand(string) {
-                private val stringContent: String
-
-                init {
-                    stringContent = when (string.type) {
-                        Token.Type.STRING_ML -> token.content.substring(3, token.content.length - 3)
-                        Token.Type.STRING_SL -> token.content.substring(1, token.content.length - 1)
-                        else -> ""
-                    }
-                }
-
+                private val stringContent: String = token.getContentAsString()
                 override fun evaluate(printErrors: Boolean): String = stringContent
                 override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
                     /*Nothing*/

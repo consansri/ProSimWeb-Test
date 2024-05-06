@@ -17,7 +17,6 @@ import web.cssom.TextAlign
 import web.window.window
 
 object StyleExt {
-
     fun Memory.InstanceType.get(mode: StyleAttr.Mode): Color {
         return when (mode) {
             StyleAttr.Mode.LIGHT -> Color("#${this.light.toString(16)}")
@@ -36,10 +35,29 @@ object StyleExt {
         return this.joinToString("") {
             val severity = it.getMajorSeverity()?.type
             val codeStyle = it.getCodeStyle()
+            val preprocessedContent = when (it.type) {
+                Token.Type.STRING_SL -> {
+                    var result = it.content
+                    Token.EscapedChar.entries.forEach {
+                        result = result.replace(it.id, highlight(it.id, null, CodeStyle.escape.name))
+                    }
+                    result
+                }
+
+                Token.Type.STRING_ML -> {
+                    var result = it.content
+                    Token.EscapedChar.entries.forEach {
+                        result = result.replace(it.id, highlight(it.id, null, CodeStyle.escape.name))
+                    }
+                    result
+                }
+
+                else -> it.content
+            }
             if (severity != null) {
-                if (codeStyle == null) highlight(it.content, it.id, severity.name) else highlight(it.content, it.id, severity.name, codeStyle.name)
+                if (codeStyle == null) highlight(preprocessedContent, it.id, severity.name) else highlight(preprocessedContent, it.id, severity.name, codeStyle.name)
             } else {
-                if (codeStyle == null) it.content else highlight(it.content, it.id, codeStyle.name)
+                if (codeStyle == null) preprocessedContent else highlight(preprocessedContent, it.id, codeStyle.name)
             }
         }.split("\n")
     }

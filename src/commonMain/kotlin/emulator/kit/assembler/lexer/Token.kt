@@ -5,9 +5,9 @@ import emulator.kit.common.RegContainer
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.nativeLog
 
 class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null) {
-    var hlContent = content
     private var isPrefix = false
     private var severities: MutableList<Severity> = mutableListOf()
     private var codeStyle: CodeStyle? = CodeStyle.BASE0
@@ -24,9 +24,9 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         Type.LINEBREAK -> "\n"
         Type.COMMENT_SL -> ""
         Type.COMMENT_ML -> ""
-        Type.STRING_ML -> content.substring(3, content.length - 3)
-        Type.STRING_SL -> content.substring(1, content.length - 1)
-        Type.CHAR -> content.last().toString()
+        Type.STRING_ML -> content.substring(3, content.length - 3).replaceEscapedChars()
+        Type.STRING_SL -> content.substring(1, content.length - 1).replaceEscapedChars()
+        Type.CHAR -> content.substring(1).replaceEscapedChars()
         Type.ARG_REF -> content.substring(1)
         Type.ARG_SEPARATOR -> ""
         Type.COMMENT_NATIVE -> ""
@@ -93,9 +93,9 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         DIRECTIVE(style = CodeStyle.keyWordDir),
         REGISTER(style = CodeStyle.keyWordReg),
         INSTRNAME(style = CodeStyle.keyWordInstr),
-        INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE), CodeStyle.integer, isNumberLiteral = true),
-        INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE), CodeStyle.integer, isNumberLiteral = true),
-        INT_OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE), CodeStyle.integer, isNumberLiteral = true),
+        INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
+        INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
+        INT_OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
         INT_DEC(Regex("^${Regex.escape(Settings.PRESTRING_DECIMAL)}([0-9]+)", RegexOption.IGNORE_CASE), CodeStyle.integer, isNumberLiteral = true),
         STRING_ML(Regex("^\"\"\"(?:\\.|[^\"])*\"\"\""), CodeStyle.string, isStringLiteral = true),
         STRING_SL(Regex("""^"(\\.|[^\\"])*""""), CodeStyle.string, isStringLiteral = true),
@@ -103,28 +103,28 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         SYMBOL(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
         ARG_REF(Regex("""^\\[a-zA-Z$._][a-zA-Z0-9$._]*"""), CodeStyle.argument),
         ARG_SEPARATOR(Regex("""^\\\(\)"""), CodeStyle.argument),
-        ASSIGNMENT(Regex("^=")),
-        COMPLEMENT(Regex("^~"), isOperator = true),
-        MULT(Regex("^\\*"), isOperator = true),
-        DIV(Regex("^/"), isOperator = true),
-        REM(Regex("^%"), isOperator = true),
-        SHL(Regex("^<<"), isOperator = true),
-        SHR(Regex("^>>"), isOperator = true),
-        BITWISE_OR(Regex("^\\|"), isOperator = true),
-        BITWISE_AND(Regex("^&"), isOperator = true),
-        BITWISE_XOR(Regex("^\\^"), isOperator = true),
-        BITWISE_ORNOT(Regex("^!"), isOperator = true),
-        PLUS(Regex("^\\+"), isOperator = true, couldBePrefix = true),
-        MINUS(Regex("^-"), isOperator = true, couldBePrefix = true),
-        COMMA(Regex("^,"), isPunctuation = true),
-        SEMICOLON(Regex("^;"), isPunctuation = true),
-        COLON(Regex("^:"), isPunctuation = true),
-        BRACKET_OPENING(Regex("^\\("), isPunctuation = true, isOpeningBracket = true),
-        BRACKET_CLOSING(Regex("^\\)"), isPunctuation = true, isClosingBracket = true),
-        CURLY_BRACKET_OPENING(Regex("^${Regex.escape("{")}"), isPunctuation = true, isOpeningBracket = true),
-        CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"), isPunctuation = true, isClosingBracket = true),
-        SQUARE_BRACKET_OPENING(Regex("^\\["), isPunctuation = true, isOpeningBracket = true),
-        SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"), isPunctuation = true, isClosingBracket = true),
+        ASSIGNMENT(Regex("^="), CodeStyle.operator),
+        COMPLEMENT(Regex("^~"), CodeStyle.operator, isOperator = true),
+        MULT(Regex("^\\*"),  CodeStyle.operator, isOperator = true),
+        DIV(Regex("^/"),  CodeStyle.operator, isOperator = true),
+        REM(Regex("^%"),  CodeStyle.operator, isOperator = true),
+        SHL(Regex("^<<"),  CodeStyle.operator, isOperator = true),
+        SHR(Regex("^>>"),  CodeStyle.operator, isOperator = true),
+        BITWISE_OR(Regex("^\\|"),  CodeStyle.operator, isOperator = true),
+        BITWISE_AND(Regex("^&"),  CodeStyle.operator, isOperator = true),
+        BITWISE_XOR(Regex("^\\^"),  CodeStyle.operator, isOperator = true),
+        BITWISE_ORNOT(Regex("^!"),  CodeStyle.operator, isOperator = true),
+        PLUS(Regex("^\\+"),  CodeStyle.operator, isOperator = true, couldBePrefix = true),
+        MINUS(Regex("^-"),  CodeStyle.operator, isOperator = true, couldBePrefix = true),
+        COMMA(Regex("^,"),  CodeStyle.punctuation, isPunctuation = true),
+        SEMICOLON(Regex("^;"),  CodeStyle.punctuation, isPunctuation = true),
+        COLON(Regex("^:"),  CodeStyle.punctuation, isPunctuation = true),
+        BRACKET_OPENING(Regex("^\\("),  CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
+        BRACKET_CLOSING(Regex("^\\)"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
+        CURLY_BRACKET_OPENING(Regex("^${Regex.escape("{")}"),  CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
+        CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
+        SQUARE_BRACKET_OPENING(Regex("^\\["),  CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
+        SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
         COMMENT_NATIVE(Regex("^#.+"), CodeStyle.comment),
         ERROR(Regex("^."));
 
@@ -191,5 +191,25 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         override fun toString(): String {
             return "$fileName[line ${lineID + 1}]:"
         }
+    }
+
+    fun String.replaceEscapedChars(): String{
+        var result = this
+        EscapedChar.entries.forEach {
+            result = result.replace(it.id, it.replacement)
+        }
+        nativeLog("ReplaceEscapedChars:\nFrom: $this\nTo: $result")
+        return result
+    }
+
+    enum class EscapedChar(val id: String, val replacement: String){
+        N("\\n", "\n"),
+        T("\\t", "\t"),
+        R("\\r", "\r"),
+        B("\\b", "\b"),
+        F("\\f", "\u000c"),
+        II("\\\"", "\""),
+        I("\\\'", "\'"),
+        SLASH("\\\\", "\\")
     }
 }

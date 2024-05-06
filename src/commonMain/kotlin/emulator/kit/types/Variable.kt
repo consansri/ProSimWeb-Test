@@ -4,6 +4,7 @@ import Settings
 import debug.DebugTools
 import emulator.kit.nativeError
 import emulator.kit.nativeInfo
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlin.math.roundToInt
 
@@ -1459,14 +1460,9 @@ class Variable {
         }
 
         fun asciiToHex(asciiString: String): String {
-            val hexBuilder = StringBuilder()
-
-            for (char in asciiString) {
-                val hexValue = char.code.toString(16)
-                hexBuilder.append(hexValue)
-            }
-
-            return hexBuilder.toString()
+            return asciiString.map {
+                it.code.toString(16).padStart(2, '0')
+            }.joinToString("") { it }
         }
 
     }
