@@ -7,6 +7,7 @@ import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.riscv.GASRVDirType
+import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.Memory
@@ -22,10 +23,12 @@ class RV64Assembler : DefinedAssembly {
     override val WORD_SIZE: Variable.Size = RV64.WORD_WIDTH
     override val INSTRS_ARE_WORD_ALIGNED: Boolean = true
     override val detectRegistersByName: Boolean = true
-    override val numberPrefixes: DefinedAssembly.NumberPrefixes = object : DefinedAssembly.NumberPrefixes {
+    override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "0x"
         override val bin: String = "0b"
         override val dec: String = ""
+        override val oct: String = "0"
+        override val comment: String = "#"
     }
 
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> {

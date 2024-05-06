@@ -12,7 +12,13 @@ import emulator.kit.nativeLog
 /**
  * Lexing for GNU Assembler Syntax
  */
-class Lexer(private val architecture: Architecture, private val detectRegisters: Boolean) {
+class Lexer(private val architecture: Architecture, private val detectRegisters: Boolean, private val prefices: Prefices) {
+
+    val regMap: Map<Token.Type, Regex?>
+
+    init {
+        regMap = Token.Type.entries.associate { it to it.getRegex(prefices) }
+    }
 
     /**
      * Sequentially computes the [Lexer.Token]s from the [file] content.
@@ -54,7 +60,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
             foundDir = null
 
             for (type in Token.Type.entries) {
-                result = type.regex?.find(remaining)
+                result = regMap[type]?.find(remaining)
 
                 if (result == null) {
                     continue
@@ -90,8 +96,16 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                     }
                 }
 
+                val onlyNumber =  when(type){
+                    Token.Type.INT_BIN -> result.value.removePrefix(prefices.bin)
+                    Token.Type.INT_HEX -> result.value.removePrefix(prefices.hex)
+                    Token.Type.INT_OCT -> result.value.removePrefix(prefices.oct)
+                    Token.Type.INT_DEC -> result.value.removePrefix(prefices.dec)
+                    else -> result.value
+                }
+
                 //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
-                val token = Token(if (keyWordType != null) keyWordType else type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, foundReg, foundDir, foundInstr)
+                val token = Token(if (keyWordType != null) keyWordType else type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, onlyNumber,foundReg, foundDir, foundInstr)
                 tokenList += token
                 startIndex += result.value.length
                 remaining = file.content.substring(startIndex)
@@ -127,7 +141,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
             foundDir = null
 
             for (type in Token.Type.entries) {
-                result = type.regex?.find(remaining)
+                result = regMap[type]?.find(remaining)
 
                 if (result == null) {
                     continue
@@ -163,8 +177,16 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                     }
                 }
 
+                val onlyNumber =  when(type){
+                    Token.Type.INT_BIN -> result.value.removePrefix(prefices.bin)
+                    Token.Type.INT_HEX -> result.value.removePrefix(prefices.hex)
+                    Token.Type.INT_OCT -> result.value.removePrefix(prefices.oct)
+                    Token.Type.INT_DEC -> result.value.removePrefix(prefices.dec)
+                    else -> result.value
+                }
+
                 //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
-                val token = Token(if (keyWordType != null) keyWordType else type, lineLoc, result.value, tokenList.size, foundReg, foundDir, foundInstr)
+                val token = Token(if (keyWordType != null) keyWordType else type, lineLoc, result.value, tokenList.size,onlyNumber, foundReg, foundDir, foundInstr)
                 tokenList += token
                 startIndex += result.value.length
                 remaining = content.substring(startIndex)
@@ -176,11 +198,26 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         return tokenList
     }
 
-
-    val regex = Regex("^(?:jal|j)$")
-
     private fun InstrTypeInterface.getInstrRegex(): Regex = Regex("^${Regex.escape(this.getDetectionName())}$", RegexOption.IGNORE_CASE)
     private fun DirTypeInterface.getDirRegex(): Regex = Regex("^\\.${Regex.escape(this.getDetectionString())}$", RegexOption.IGNORE_CASE)
     private fun RegContainer.Register.getRegex(): Regex = Regex("^(?:${(this.names + this.aliases).joinToString("|") { Regex.escape(it) }})$")
 
+    private fun Token.Type.getRegex(prefices: Prefices): Regex?{
+        return when(this){
+            Token.Type.COMMENT_NATIVE -> Regex("^${Regex.escape(prefices.comment)}.+")
+            Token.Type.INT_BIN -> Regex("^${Regex.escape(prefices.bin)}([01]+)")
+            Token.Type.INT_HEX -> Regex("^${Regex.escape(prefices.hex)}([0-9a-f]+)", RegexOption.IGNORE_CASE)
+            Token.Type.INT_OCT -> Regex("^${Regex.escape(prefices.oct)}([0-7]+)")
+            Token.Type.INT_DEC -> Regex("^${Regex.escape(prefices.dec)}([0-9]+)")
+            else -> this.regex
+        }
+    }
+
+    interface Prefices{
+        val hex: String
+        val oct: String
+        val bin: String
+        val dec: String
+        val comment: String
+    }
 }

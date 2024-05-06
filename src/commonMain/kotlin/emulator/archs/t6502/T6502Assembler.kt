@@ -7,6 +7,7 @@ import emulator.kit.assembler.Rule
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
+import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.Memory
@@ -20,10 +21,12 @@ class T6502Assembler() : DefinedAssembly {
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
     override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
     override val detectRegistersByName: Boolean = false
-    override val numberPrefixes: DefinedAssembly.NumberPrefixes = object : DefinedAssembly.NumberPrefixes {
+    override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "$"
         override val bin: String = "%"
         override val dec: String = ""
+        override val comment: String = ";"
+        override val oct: String = "0"
     }
     override val MEM_ADDRESS_SIZE: Variable.Size = T6502.MEM_ADDR_SIZE
     override val WORD_SIZE: Variable.Size = T6502.WORD_SIZE

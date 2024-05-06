@@ -4,6 +4,7 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
+import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
@@ -790,46 +791,46 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     val bigNum128: Variable.Value?
                     when (number.type) {
                         Token.Type.INT_BIN -> {
-                            val possibleInt = Variable.Value.Bin(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
+                            val possibleInt = Variable.Value.Bin(number.onlyNumber, Variable.Size.Bit32())
                             intVal = if (possibleInt.getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum64 = Variable.Value.Bin(number.getNumberStringWithoutPrefix(), Variable.Size.Bit64())
+                            val possibleBigNum64 = Variable.Value.Bin(number.onlyNumber, Variable.Size.Bit64())
                             bigNum64 = if (possibleBigNum64.getBit(0)?.toRawString() == "1") null else possibleBigNum64
 
-                            val possibleBigNum128 = Variable.Value.Bin(number.getNumberStringWithoutPrefix(), Variable.Size.Bit128())
+                            val possibleBigNum128 = Variable.Value.Bin(number.onlyNumber, Variable.Size.Bit128())
                             bigNum128 = if (possibleBigNum128.getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_HEX -> {
-                            val possibleInt = Variable.Value.Hex(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
+                            val possibleInt = Variable.Value.Hex(number.onlyNumber, Variable.Size.Bit32())
                             intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum = Variable.Value.Hex(number.getNumberStringWithoutPrefix(), Variable.Size.Bit64())
+                            val possibleBigNum = Variable.Value.Hex(number.onlyNumber, Variable.Size.Bit64())
                             bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
 
-                            val possibleBigNum128 = Variable.Value.Hex(number.getNumberStringWithoutPrefix(), Variable.Size.Bit128())
+                            val possibleBigNum128 = Variable.Value.Hex(number.onlyNumber, Variable.Size.Bit128())
                             bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_OCT -> {
-                            val possibleInt = Variable.Value.Oct(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
+                            val possibleInt = Variable.Value.Oct(number.onlyNumber, Variable.Size.Bit32())
                             intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum = Variable.Value.Oct(number.getNumberStringWithoutPrefix(), Variable.Size.Bit64())
+                            val possibleBigNum = Variable.Value.Oct(number.onlyNumber, Variable.Size.Bit64())
                             bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
 
-                            val possibleBigNum128 = Variable.Value.Oct(number.getNumberStringWithoutPrefix(), Variable.Size.Bit128())
+                            val possibleBigNum128 = Variable.Value.Oct(number.onlyNumber, Variable.Size.Bit128())
                             bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_DEC -> {
-                            val possibleInt = Variable.Value.UDec(number.getNumberStringWithoutPrefix(), Variable.Size.Bit32())
+                            val possibleInt = Variable.Value.UDec(number.onlyNumber, Variable.Size.Bit32())
                             intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum = Variable.Value.UDec(number.getNumberStringWithoutPrefix(), Variable.Size.Bit64())
+                            val possibleBigNum = Variable.Value.UDec(number.onlyNumber, Variable.Size.Bit64())
                             bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
 
-                            val possibleBigNum128 = Variable.Value.UDec(number.getNumberStringWithoutPrefix(), Variable.Size.Bit128())
+                            val possibleBigNum128 = Variable.Value.UDec(number.onlyNumber, Variable.Size.Bit128())
                             bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 

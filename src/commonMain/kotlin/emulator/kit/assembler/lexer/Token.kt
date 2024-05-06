@@ -7,7 +7,7 @@ import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.nativeLog
 
-class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null) {
+class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val onlyNumber: String = "",val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null) {
     private var isPrefix = false
     private var severities: MutableList<Severity> = mutableListOf()
     private var codeStyle: CodeStyle? = CodeStyle.BASE0
@@ -64,16 +64,6 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         }
     }
 
-    fun getNumberStringWithoutPrefix(): String{
-        return when(type){
-            Type.INT_BIN -> content.removePrefix(Settings.PRESTRING_BINARY)
-            Type.INT_HEX -> content.removePrefix(Settings.PRESTRING_HEX)
-            Type.INT_OCT -> content.removePrefix(Settings.PRESTRING_OCT)
-            Type.INT_DEC -> content.removePrefix(Settings.PRESTRING_DECIMAL)
-            else -> content
-        }
-    }
-
     enum class Type(
         val regex: Regex? = null,
         val style: CodeStyle? = null,
@@ -90,6 +80,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         LINEBREAK(Regex("^(\\r\\n|\\r|\\n)")),
         COMMENT_SL(Regex("^//.*"), CodeStyle.comment),
         COMMENT_ML(Regex("""^/\*([^*]|\*+[^*/])*\*/"""), CodeStyle.comment),
+        COMMENT_NATIVE(Regex("^#.+"), CodeStyle.comment),
         DIRECTIVE(style = CodeStyle.keyWordDir),
         REGISTER(style = CodeStyle.keyWordReg),
         INSTRNAME(style = CodeStyle.keyWordInstr),
@@ -125,7 +116,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
         SQUARE_BRACKET_OPENING(Regex("^\\["),  CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
         SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"),  CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
-        COMMENT_NATIVE(Regex("^#.+"), CodeStyle.comment),
+
         ERROR(Regex("^."));
 
         fun isLiteral(): Boolean = isStringLiteral || isNumberLiteral || isCharLiteral

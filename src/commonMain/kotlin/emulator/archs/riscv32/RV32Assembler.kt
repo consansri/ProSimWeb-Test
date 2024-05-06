@@ -12,6 +12,7 @@ import emulator.kit.common.RegContainer
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 import emulator.archs.riscv32.RV32Syntax.ParamType.*
+import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.common.Memory
 import emulator.kit.nativeLog
@@ -21,10 +22,12 @@ class RV32Assembler : DefinedAssembly {
     override val WORD_SIZE: Variable.Size = RV32.WORD_WIDTH
     override val INSTRS_ARE_WORD_ALIGNED: Boolean = true
     override val detectRegistersByName: Boolean = true
-    override val numberPrefixes: DefinedAssembly.NumberPrefixes = object : DefinedAssembly.NumberPrefixes {
+    override val prefices: Lexer.Prefices = object : Lexer.Prefices {
+        override val hex: String = "0x"
         override val bin: String = "0b"
         override val dec: String = ""
-        override val hex: String = "0x"
+        override val oct: String = "0"
+        override val comment: String = "#"
     }
 
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> {

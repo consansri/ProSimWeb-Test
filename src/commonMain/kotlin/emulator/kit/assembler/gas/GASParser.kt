@@ -29,7 +29,12 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         val filteredSource = filter(source)
 
         // Build the tree
-        val root = GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)
+        val root = try {
+            GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)
+        } catch (e: ParserError) {
+            e.token.addSeverity(Severity.Type.ERROR, e.message)
+            null
+        }
         if (root == null || root !is Root) return ParserTree(null, source, filteredSource, arrayOf())
 
         // Filter
@@ -196,9 +201,9 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             symbols.add(symbol)
         }
 
-        fun setOrReplaceDescriptor(symbolName: String, descriptor: Hex){
+        fun setOrReplaceDescriptor(symbolName: String, descriptor: Hex) {
             val alreadydefined = symbols.firstOrNull { it.name == symbolName }
-            if(alreadydefined != null){
+            if (alreadydefined != null) {
                 alreadydefined.descriptor = descriptor
                 return
             }
@@ -243,6 +248,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
     sealed class Symbol(val name: String) {
         var descriptor: Hex = Hex("0", Bit16())
+
         class Undefined(name: String) : Symbol(name)
         class StringExpr(name: String, val expr: GASNode.StringExpr) : Symbol(name)
         class IntegerExpr(name: String, val expr: NumericExpr) : Symbol(name)
@@ -330,7 +336,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         override fun getContentString(): String = ".${type.name.lowercase()} ${bin}"
 
-        enum class DataType{
+        enum class DataType {
             BYTE,
             SHORT,
             WORD

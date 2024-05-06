@@ -5,6 +5,7 @@ import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
@@ -18,8 +19,13 @@ class IKRRisc2Assembler : DefinedAssembly {
         get() = TODO("Not yet implemented")
     override val detectRegistersByName: Boolean
         get() = TODO("Not yet implemented")
-    override val numberPrefixes: DefinedAssembly.NumberPrefixes
-        get() = TODO("Not yet implemented")
+    override val prefices: Lexer.Prefices = object : Lexer.Prefices {
+        override val hex: String = "0x"
+        override val bin: String = "0b"
+        override val dec: String = ""
+        override val oct: String = "0"
+        override val comment: String = "#"
+    }
 
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> {
         TODO("Not yet implemented")
