@@ -1,7 +1,6 @@
 # NEXT STEPS #
 
-- **Semantic Analysis**
-- 
+
 
 ## DONE ##
 
@@ -11,6 +10,9 @@
 - **GAS Directives** (Grammar)
 - **Rule** implemented
 - **TokenSeq** replaced with Rule
+- **Semantic Analysis**
+- **Assembling**
+- **Implemented few Dirs**
 
 ## Documentation Links ##
 

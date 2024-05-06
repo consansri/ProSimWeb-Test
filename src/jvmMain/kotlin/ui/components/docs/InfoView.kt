@@ -113,7 +113,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Section -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, false, BorderMode.NORTH, roundCorners = true)
+                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, false, BorderMode.NONE, roundCorners = true)
                     panel.layout = GridBagLayout()
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
@@ -169,7 +169,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Text -> {
-                    val text = CTextArea(mainManager.themeManager, mainManager.scaleManager, FontType.CODE).apply {
+                    val text = CTextArea(mainManager.themeManager, mainManager.scaleManager, FontType.BASIC).apply {
                         text = this@add.content
                         isEditable = false
                     }

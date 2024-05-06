@@ -15,26 +15,34 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
             "documents/user-manual.html"
         ),
         DocFile.DefinedFile(
-            "Version - ${Constants.VERSION}",
+            "Current: Version - ${Constants.VERSION}",
             Chapter(
               "Version - 0.2.1",
                 Section(
-                    "New",
+                    "New - Rewrote Assembler oriented on GNU Assembler.",
                     UnlinkedList(
-                        Text("KIT: Rewrote whole Lexer/Parser/Assembler")
+                        Text("JVM: File Exports now accessible through the Project File Tree."),
+                        Text("KIT: Rewrote whole Lexer/Parser/Assembler oriented on GNU Assembler."),
+                        Text("KIT: Transcript will now contain the information of each section (swap through click on section name)."),
+                        Text("KIT: Proper GNU Assembler Tree Building and execution."),
+                        Text("KIT: Proper String Expressions (Concatenation and Escaping)."),
+                        Text("KIT: Proper Numeric Expressions through Postfix conversion."),
+                        Text("KIT: Proper Numeric Literal Types (Integer, BigNum and Char)."),
+                        Text("KIT: Proper Numeric Literal Formats maintaining arch specific prefixes (Hexadecimal, Decimal, Octal and Binary)."),
+                        Text("KIT: Introducing Processes."),
                     )
                 ),
                 Section(
                     "Fixed",
                     UnlinkedList(
-                        Text("RV32 & RV64: XORI, ORI, ANDI missing sign extension!")
+                        Text("RV32 & RV64: XORI, ORI, ANDI missing sign extension.")
                     )
                 )
             ),
             Chapter(
                 "Version - 0.2.0",
                 Section(
-                    "New",
+                    "New - Desktop App",
                     UnlinkedList(
                         Text("JVM Application for MacOs Linux and Windows."),
                         Text("KIT: File Imports import Macro and Equ definitions beside the sections."),
