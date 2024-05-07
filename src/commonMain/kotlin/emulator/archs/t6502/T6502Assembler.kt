@@ -29,6 +29,7 @@ class T6502Assembler() : DefinedAssembly {
         override val dec: String = ""
         override val comment: String = ";"
         override val oct: String = "0"
+        override val symbol: Regex = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
     override val MEM_ADDRESS_SIZE: Variable.Size = T6502.MEM_ADDR_SIZE
     override val WORD_SIZE: Variable.Size = T6502.WORD_SIZE

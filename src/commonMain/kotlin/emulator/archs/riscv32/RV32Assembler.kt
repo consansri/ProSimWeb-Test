@@ -28,6 +28,7 @@ class RV32Assembler : DefinedAssembly {
         override val dec: String = ""
         override val oct: String = "0"
         override val comment: String = "#"
+        override val symbol: Regex = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
 
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> {

@@ -17,7 +17,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
     val regMap: Map<Token.Type, Regex?>
 
     init {
-        regMap = Token.Type.entries.associate { it to it.getRegex(prefices) }
+        regMap = Token.Type.entries.associateWith { it.getRegex(prefices) }
     }
 
     /**
@@ -209,6 +209,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
             Token.Type.INT_HEX -> Regex("^${Regex.escape(prefices.hex)}([0-9a-f]+)", RegexOption.IGNORE_CASE)
             Token.Type.INT_OCT -> Regex("^${Regex.escape(prefices.oct)}([0-7]+)")
             Token.Type.INT_DEC -> Regex("^${Regex.escape(prefices.dec)}([0-9]+)")
+            Token.Type.SYMBOL -> prefices.symbol
             else -> this.regex
         }
     }
@@ -219,5 +220,6 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         val bin: String
         val dec: String
         val comment: String
+        val symbol: Regex
     }
 }
