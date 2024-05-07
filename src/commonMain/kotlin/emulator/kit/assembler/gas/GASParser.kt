@@ -1,10 +1,7 @@
 package emulator.kit.assembler.gas
 
 import debug.DebugTools
-import emulator.kit.assembler.CompilerFile
-import emulator.kit.assembler.CompilerInterface
-import emulator.kit.assembler.DirTypeInterface
-import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.*
 import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.gas.nodes.GASNode.*
 import emulator.kit.assembler.gas.nodes.GASNodeType
@@ -12,7 +9,7 @@ import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
-import emulator.kit.assembler.parser.ParserTree
+import emulator.kit.assembler.parser.TreeResult
 import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
@@ -24,7 +21,7 @@ import emulator.kit.types.Variable.Value
 class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembly) : Parser(compiler) {
     override fun getDirs(features: List<Feature>): List<DirTypeInterface> = definedAssembly.getAdditionalDirectives() + GASDirType.entries
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = definedAssembly.getInstrs(features)
-    override fun parse(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): ParserTree {
+    override fun parseTree(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): TreeResult {
         // Preprocess and Filter Tokens
         val filteredSource = filter(source)
 
@@ -35,7 +32,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             e.token.addSeverity(Severity.Type.ERROR, e.message)
             null
         }
-        if (root == null || root !is Root) return ParserTree(null, source, filteredSource, arrayOf())
+        if (root == null || root !is Root) return TreeResult(null, source, filteredSource)
 
         // Filter
         root.removeEmptyStatements()
@@ -43,6 +40,13 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         if (DebugTools.KIT_showGrammarTree) {
             nativeLog("Tree: ${root.print("")}")
         }
+
+        return TreeResult(root, source, filteredSource)
+    }
+
+    override fun semanticAnalysis(tree: TreeResult, others: List<CompilerFile>, features: List<Feature>): SemanticResult {
+
+        val root = tree.rootNode ?: return SemanticResult(arrayOf())
 
         /**
          * SEMANTIC ANALYSIS
@@ -66,7 +70,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          * - Resolve Statements
          */
 
-        val tempContainer = TempContainer(definedAssembly.MEM_ADDRESS_SIZE, root)
+        val tempContainer = TempContainer(definedAssembly.MEM_ADDRESS_SIZE, compiler, others, root)
 
         try {
             while (root.getAllStatements().isNotEmpty()) {
@@ -143,7 +147,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             it.toString()
         })
 
-        return ParserTree(root, source, filteredSource, sections)
+        return SemanticResult(sections)
     }
 
     /**
@@ -178,6 +182,8 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
     data class TempContainer(
         val addressSize: Variable.Size,
+        val compiler: CompilerInterface,
+        val others: List<CompilerFile>,
         val root: Root,
         val symbols: MutableList<Symbol> = mutableListOf(),
         val sections: MutableList<Section> = mutableListOf(Section("text", addressSize), Section("data", addressSize), Section("bss", addressSize)),
@@ -194,6 +200,13 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             val newSec = Section(name, addressSize, flags)
             sections.add(newSec)
             currSection = newSec
+        }
+
+        fun importFile(name: String): Boolean {
+            val file = others.firstOrNull { it.name == name } ?: return false
+            val tree = compiler.compile(file, others - file, Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD).tree.rootNode ?: return false
+            root.addChilds(1, tree.getAllStatements())
+            return true
         }
 
         fun setOrReplaceSymbol(symbol: Symbol) {

@@ -3,8 +3,6 @@ package me.c3.ui.components.transcript
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
-import emulator.kit.nativeInfo
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.CPanel
@@ -86,7 +84,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
 
     private fun updateResult(result: Process.Result? = null) {
         sections.clear()
-        result?.tree?.sections?.forEach {
+        result?.sections?.forEach {
             sections[it] = it.getTSContent()
         }
         section = sections.map { it.key }.firstOrNull()

@@ -163,7 +163,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         if (DebugTools.KIT_showCheckCodeEvents) {
             println("Architecture.check(): input \n $mainFile \n")
         }
-        val compilationResult = compiler.compile(mainFile, others, build = build)
+
+        val mode = if(build) Process.Mode.FULLBUILD else Process.Mode.STOP_AFTER_ANALYSIS
+
+        val compilationResult = compiler.compile(mainFile, others, mode)
         return compilationResult
     }
 

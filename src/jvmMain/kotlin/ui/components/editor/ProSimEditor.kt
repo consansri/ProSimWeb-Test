@@ -3,6 +3,7 @@ package me.c3.ui.components.editor
 import Settings
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
+import emulator.kit.nativeInfo
 import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import me.c3.emulator.kit.toStyledText
@@ -28,6 +29,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         mainManager.archManager.addFeatureChangeListener {
             fireCompilation(false)
         }
+        nativeInfo( "ProSimEditor with ${editorFile.getName()}: ${editorFile.getRawContent()}")
     }
 
     override fun onLineClicked(lineNumber: Int) {
@@ -37,7 +39,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
 
     override suspend fun highlight(text: String): List<CEditorArea.StyledChar> {
         val result = compile(false)
-        return result.tokens.toStyledText(mainManager.currTheme().codeLaF)
+        return result.tree.source.toStyledText(mainManager.currTheme().codeLaF)
     }
 
     private suspend fun compile(build: Boolean): Process.Result {
@@ -54,7 +56,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
             val result = compile(build)
             if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")){
                 withContext(Dispatchers.Main) {
-                    this@ProSimEditor.setStyledContent(result.tokens.toStyledText(mainManager.currTheme().codeLaF))
+                    this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(mainManager.currTheme().codeLaF))
                 }
             }
         }

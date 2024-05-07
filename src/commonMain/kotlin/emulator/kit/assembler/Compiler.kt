@@ -41,17 +41,17 @@ class Compiler(
     /**
      * Executes and controls the compilation
      */
-    override fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Boolean): Process.Result {
+    override fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Process.Mode): Process.Result {
         architecture.getConsole().clear()
         val process = Process(mainFile, others, build)
         processes.add(process)
         val result = process.launch(lexer, parser, architecture.getMemory(), architecture.getAllFeatures())
 
-        result.tree?.printError()?.let {
+        result.tree.printError()?.let {
             architecture.getConsole().error(it)
         }
 
-        result.tree?.printWarning()?.let {
+        result.tree.printWarning()?.let {
             architecture.getConsole().warn(it)
         }
 
@@ -61,7 +61,9 @@ class Compiler(
             architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
         }
 
-        if (build) lastLineAddrMap = result.assemblyMap
+        if (build == Process.Mode.FULLBUILD) {
+            lastLineAddrMap = result.assemblyMap
+        }
 
         processes.remove(process)
         return result

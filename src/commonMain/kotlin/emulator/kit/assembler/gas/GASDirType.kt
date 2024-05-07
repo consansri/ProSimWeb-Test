@@ -1014,6 +1014,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
     override fun executeDirective(stmnt: GASNode.Statement.Dir, cont: GASParser.TempContainer) {
         when (stmnt.dir.type) {
+            // Global
+            INCLUDE -> {
+                val fileName = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull()?.evaluate(true) ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected filename is missing!")
+                cont.importFile(fileName)
+            }
+
             // Data
             ALIGN -> {
                 val exprs = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>()
@@ -1328,6 +1334,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 if (symbol == null) {
                     throw Parser.ParserError(stmnt.dir.allTokens.first(), "Section Directive expecting a section directive or at least one symbol!")
                 }
+                symbol.hl(CodeStyle.symbol)
 
                 val flags = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull()?.evaluate(false) ?: ""
                 cont.switchToOrAppendSec(symbol.content, flags)

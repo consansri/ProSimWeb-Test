@@ -23,7 +23,6 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
-import emulator.kit.nativeLog
 import visual.StyleExt.get
 import visual.StyleExt.getVCRows
 import web.cssom.ClassName
@@ -89,7 +88,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     /* ----------------- SUGAR ----------------- */
 
-    fun markPCLine(){
+    fun markPCLine() {
         val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
         val entry = assemblyMap?.get(pcValue.toHex().getRawHexStr())
 
@@ -178,11 +177,9 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 setStateFile(state.currentState)
                 val compilationResult = props.archState.component1().compile(file, props.fileState.component1().getOthers(), build = true)
                 val hlTaList = compilationResult.tokens.getVCRows()
-                setvcRows(hlTaList)
+                setvcRows(hlTaList) // Set HL Content
                 props.compileEventState.component2().invoke(!props.compileEventState.component1())
-                compilationResult.tree?.let {
-                    lastSections.component2().invoke(compilationResult.tree.sections)
-                }
+                lastSections.component2().invoke(compilationResult.sections)
                 state.check(compilationResult.success)
                 setStateFile(state.currentState)
                 setAsmMap(compilationResult.assemblyMap)
@@ -953,7 +950,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
         updateLineNumbers()
     }
 
-    useEffect(assemblyMap){
+    useEffect(assemblyMap) {
         markPCLine()
     }
 

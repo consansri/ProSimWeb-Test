@@ -54,8 +54,16 @@ sealed class Node {
             return getAllTokens().firstOrNull()?.lineLoc
         }
 
+        fun addChilds(index: Int, childs: List<Node>) {
+            children.addAll(index, childs)
+        }
+
         fun addChilds(vararg childs: Node) {
-            this.children.addAll(childs)
+            children.addAll(childs)
+        }
+
+        fun addChild(index: Int, child: Node) {
+            children.add(index, child)
         }
 
         fun addChild(child: Node) {

@@ -77,7 +77,6 @@ class CEditorAreaUI(
             editor.repaint()
         }
         caretTimer?.start()
-        editor.queryStateChange()
         editor.repaint()
     }
 

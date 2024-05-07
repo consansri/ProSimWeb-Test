@@ -40,6 +40,7 @@ class EditorFile(val file: File) : FileInterface {
     override fun getRawContent(): String = bufferedContent
 
     override suspend fun contentChanged(text: String) {
+        nativeLog("EditorFile: ContentChanged  to: $text")
         bufferedContent = text
     }
 }

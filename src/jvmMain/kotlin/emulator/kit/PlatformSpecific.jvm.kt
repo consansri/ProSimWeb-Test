@@ -42,5 +42,7 @@ actual fun nativeInfo(message: String) {
     println("Info: $message")
 }
 
-fun File.toCompilerFile(): CompilerFile = CompilerFile(this.name, this.readText())
+fun File.toCompilerFile(): CompilerFile {
+    return CompilerFile(this.name, this.readText())
+}
 

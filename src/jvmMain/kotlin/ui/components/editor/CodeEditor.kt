@@ -1,5 +1,6 @@
 package me.c3.ui.components.editor
 
+import emulator.kit.nativeInfo
 import kotlinx.coroutines.*
 import me.c3.ui.MainManager
 import me.c3.ui.components.styled.*
@@ -41,13 +42,15 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
 
     fun openFile(file: File) {
         if (searchByName(file.name) != null) return
+        nativeInfo("File found!")
 
         if (!file.exists()) {
+            nativeInfo("File does not exist so it will be created!")
             file.createNewFile()
         }
 
         val editorFile = EditorFile(file)
-
+        nativeInfo("Created EditorFile ${editorFile.getName()} ${editorFile.getRawContent()}!")
         val editPanel = ProSimEditor(mainManager, editorFile)
         panels.add(editPanel)
         addTab(CLabel(mainManager.themeManager, mainManager.scaleManager, file.getName(), FontType.BASIC), editPanel) { e, tab ->

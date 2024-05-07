@@ -1,14 +1,13 @@
 package emulator.kit.assembler.parser
 
-import emulator.kit.assembler.gas.GASParser
+import emulator.kit.assembler.gas.nodes.GASNode
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 
-class ParserTree(val rootNode: Node?, val source: List<Token>, val treeRelevantTokens: List<Token>, val sections: Array<GASParser.Section>) {
+class TreeResult(val rootNode: GASNode.Root?, val source: List<Token>, val treeRelevantTokens: List<Token>) {
     fun contains(token: Token): Parser.SearchResult? = rootNode?.searchBaseNode(token, listOf())
 
     fun hasErrors(): Boolean {
-        if (rootNode == null) return false
         source.forEach {
             if (it.getMajorSeverity()?.type == Severity.Type.ERROR) return true
         }
@@ -16,7 +15,6 @@ class ParserTree(val rootNode: Node?, val source: List<Token>, val treeRelevantT
     }
 
     fun hasWarnings(): Boolean{
-        if(rootNode == null) return false
         source.forEach {
             if(it.getMajorSeverity()?.type == Severity.Type.WARNING) return true
         }

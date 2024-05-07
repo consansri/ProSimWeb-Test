@@ -22,7 +22,6 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
                     "New - Rewrote Assembler oriented on GNU Assembler.",
                     UnlinkedList(
                         Text("JVM: File Exports now accessible through the Project File Tree."),
-                        Text("KIT: Rewrote whole Lexer/Parser/Assembler oriented on GNU Assembler."),
                         Text("KIT: Transcript will now contain the information of each section (swap through click on section name)."),
                         Text("KIT: Proper GNU Assembler Tree Building and execution."),
                         Text("KIT: Proper String Expressions (Concatenation and Escaping)."),

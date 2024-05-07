@@ -1,10 +1,11 @@
 package emulator.kit.assembler
 
 import debug.DebugTools
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
-import emulator.kit.assembler.parser.ParserTree
+import emulator.kit.assembler.parser.TreeResult
 import emulator.kit.common.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
@@ -14,7 +15,7 @@ import kotlinx.datetime.Instant
 data class Process(
     val file: CompilerFile,
     val otherFiles: List<CompilerFile>,
-    val build: Boolean,
+    val mode: Mode,
     val processStart: Instant = Clock.System.now()
 ) {
     var state: State = State.TOKENIZE
@@ -25,69 +26,103 @@ data class Process(
     var currentStateStart: Instant = Clock.System.now()
 
     fun launch(lexer: Lexer, parser: Parser, memory: Memory, features: List<Feature>): Result {
-        nativeLog("Process: ${state.displayName}")
+        /**
+         * Tokenization
+         *
+         * returns [tokens]
+         */
         val tokens = lexer.tokenize(file)
-        state = State.PARSE
-        nativeLog("Process: ${state.displayName}")
-        val tree = parser.parse(tokens, otherFiles, features)
 
-        if (DebugTools.KIT_showGrammarTree) nativeLog("Process: Tree:\n${tree}")
-
-        val lineMap = if (build && !tree.hasErrors()) {
-            state = State.ASSEMBLE
-            nativeLog("Process: ${state.displayName}")
-
-            val lineAddressMap = mutableMapOf<String, Token.LineLoc>()
-            tree.sections.forEach {sec ->
-                val secAddr = sec.getSectionAddr()
-                sec.getContent().forEach {
-                    val addr = secAddr + it.offset
-                    lineAddressMap[addr.toHex().getRawHexStr()] = it.content.getFirstToken().lineLoc
-                    memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
-                }
-            }
-            lineAddressMap
-        } else {
-            mapOf()
-        }
+        /**
+         * Parsing the Tree
+         *
+         * returns [tree]
+         */
+        state = State.PARSETREE
+        val treeResult = parser.parseTree(tokens, otherFiles, features)
 
         state = State.CACHE_RESULTS
-        nativeLog("Process: ${state.displayName}")
-        parser.treeCache[file] = tree
+        parser.treeCache[file] = treeResult
 
-        val success = !tree.hasErrors()
+        if (mode == Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD) return Result(tokens, treeResult, Parser.SemanticResult(), mapOf(), this)
 
-        val result = Result(success, tokens, tree, lineMap, this)
+        if (DebugTools.KIT_showGrammarTree) nativeLog("Tree:\n${treeResult}")
 
-        return result
+        /**
+         * Semantic Analysis
+         *
+         * returns [parsedRes]
+         */
+        state = State.SEMANTICANALYSIS
+        val sectionResult = parser.semanticAnalysis(treeResult, otherFiles, features)
+
+        if (mode == Mode.STOP_AFTER_ANALYSIS) return Result(tokens, treeResult, sectionResult, mapOf(), this)
+
+        if (treeResult.hasErrors()) return Result(tokens, treeResult, sectionResult, mapOf(), this)
+
+        /**
+         * Store Sections
+         *
+         * returns [lineMap]
+         */
+        state = State.STORETOMEMORY
+        val lineMap = storeToMemory(sectionResult.sections, memory)
+
+        return Result(tokens, treeResult, sectionResult, lineMap, this)
+    }
+
+    private fun storeToMemory(sections: Array<GASParser.Section>, memory: Memory): Map<String, Token.LineLoc> {
+        val lineAddressMap = mutableMapOf<String, Token.LineLoc>()
+        sections.forEach { sec ->
+            val secAddr = sec.getSectionAddr()
+            sec.getContent().forEach {
+                val addr = secAddr + it.offset
+                lineAddressMap[addr.toHex().getRawHexStr()] = it.content.getFirstToken().lineLoc
+                memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
+            }
+        }
+        return lineAddressMap
     }
 
     override fun toString(): String {
         return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) ${(Clock.System.now() - processStart).inWholeSeconds}s"
     }
 
-    fun getFinishedStr(success: Boolean): String{
+    fun getFinishedStr(success: Boolean): String {
         return "${file.name} ${if (success) "build" else "failed"} in ${(Clock.System.now() - currentStateStart).inWholeSeconds}s!"
+    }
+
+    enum class Mode {
+        FULLBUILD,
+        STOP_AFTER_ANALYSIS,
+        STOP_AFTER_TREE_HAS_BEEN_BUILD
     }
 
     enum class State(val displayName: String) {
         TOKENIZE("tokenizing"),
-        PARSE("parsing"),
-        ASSEMBLE("assembling"),
+        PARSETREE("parsing tree"),
+        SEMANTICANALYSIS("semantic analysis"),
+        STORETOMEMORY("store sections"),
         CACHE_RESULTS("caching"),
     }
 
-    data class Result(val success: Boolean, val tokens: List<Token>, val tree: ParserTree?, val assemblyMap: Map<String, Token.LineLoc>, val process: Process) {
+    data class Result(private val tokens: List<Token>, val tree: TreeResult, val semanticResult: Parser.SemanticResult, val assemblyMap: Map<String, Token.LineLoc>, val process: Process) {
+
+        val success: Boolean = !tree.hasErrors()
+        val sections = semanticResult.sections
+        val root = tree.rootNode
+
+
         fun hasErrors(): Boolean {
-            return tree?.hasErrors() ?: false
+            return tree.hasErrors() ?: false
         }
 
-        fun generateTS(): String = tree?.sections?.joinToString("\n") { it.toString() } ?: ""
+        fun generateTS(): String = sections.joinToString("\n") { it.toString() } ?: ""
 
         fun shortInfoStr(): String = process.getFinishedStr(success)
 
         fun hasWarnings(): Boolean {
-            return tree?.hasWarnings() ?: false
+            return tree.hasWarnings()
         }
     }
 
