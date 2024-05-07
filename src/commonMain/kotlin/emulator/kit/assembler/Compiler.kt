@@ -31,7 +31,7 @@ class Compiler(
 ) : CompilerInterface {
 
     override val parser: Parser = GASParser(this, definedAssembly)
-    private val lexer = Lexer(architecture, definedAssembly.detectRegistersByName, definedAssembly.prefices)
+    override val lexer = Lexer(architecture, definedAssembly.detectRegistersByName, definedAssembly.prefices)
 
     val processes: MutableList<Process> = mutableListOf()
     private var lastLineAddrMap: Map<String, Token.LineLoc> = mapOf()

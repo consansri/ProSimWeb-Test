@@ -9,6 +9,7 @@ import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
@@ -1000,6 +1001,22 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 )
             }
         )
+    }),
+    INSERTION(rule = Rule {
+        Seq(
+            InSpecific(Token.Type.SYMBOL),
+            Optional {
+                Seq(
+                    SpecNode(GASNodeType.ARG_DEF),
+                    Repeatable {
+                        Seq(
+                            Specific(","),
+                            SpecNode(GASNodeType.ARG_DEF),
+                        )
+                    }
+                )
+            },
+        )
     });
 
     override fun getDetectionString(): String = if (!this.contentStartsDirectly) this.name.removePrefix("_") else ""
@@ -1018,6 +1035,38 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             INCLUDE -> {
                 val fileName = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull()?.evaluate(true) ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected filename is missing!")
                 cont.importFile(fileName)
+            }
+
+            MACRO -> {
+                cont.root.removeChild(stmnt)
+
+                val name = stmnt.dir.allTokens.firstOrNull { it.type == Token.Type.SYMBOL } ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected macro name is missing!")
+
+                val arguments = stmnt.dir.additionalNodes.filterIsInstance<GASNode.Argument>()
+
+                val content = cont.root.getAllStatements().takeWhile {
+                    !(it is GASNode.Statement.Dir && it.dir.type == ENDM)
+                }
+
+                // Remove Statements From Root
+                cont.root.removeChilds(content)
+
+                cont.macros.add(GASParser.Macro(name.content, arguments, content))
+
+                val shouldEndM = cont.root.getAllStatements().firstOrNull()
+                if (shouldEndM !is GASNode.Statement.Dir || shouldEndM.dir.type != ENDM) throw Parser.ParserError(stmnt.dir.allTokens.first(), "Missing .endm for macro definition!")
+            }
+
+            INSERTION -> {
+                val name = stmnt.dir.allTokens.first { it.type == Token.Type.SYMBOL }
+                val args = stmnt.dir.additionalNodes.filterIsInstance<GASNode.ArgDef>()
+
+                val macro = cont.macros.firstOrNull { it.name == name.content } ?: throw Parser.ParserError(name, "Couldn't find macro definition for ${name.content}!")
+
+                val pseudoContent = macro.generatePseudoStatements(args)
+                val pseudoTokens = cont.pseudoTokenize(name, pseudoContent)
+                val pseudoStatements = cont.parse(pseudoTokens)
+                cont.root.addChilds(1, pseudoStatements)
             }
 
             // Data

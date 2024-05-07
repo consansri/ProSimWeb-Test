@@ -11,6 +11,7 @@ import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.TreeResult
 import emulator.kit.common.Memory
+import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
@@ -30,6 +31,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
+            nativeError(e.message)
             null
         }
         if (root == null || root !is Root) return TreeResult(null, source, filteredSource)
@@ -37,14 +39,10 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         // Filter
         root.removeEmptyStatements()
 
-        if (DebugTools.KIT_showGrammarTree) {
-            nativeLog("Tree: ${root.print("")}")
-        }
-
         return TreeResult(root, source, filteredSource)
     }
 
-    override fun semanticAnalysis(tree: TreeResult, others: List<CompilerFile>, features: List<Feature>): SemanticResult {
+    override fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<CompilerFile>, features: List<Feature>): SemanticResult {
 
         val root = tree.rootNode ?: return SemanticResult(arrayOf())
 
@@ -70,7 +68,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
          * - Resolve Statements
          */
 
-        val tempContainer = TempContainer(definedAssembly.MEM_ADDRESS_SIZE, compiler, others, root)
+        val tempContainer = TempContainer(definedAssembly, compiler, others, features, root)
 
         try {
             while (root.getAllStatements().isNotEmpty()) {
@@ -101,9 +99,9 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                 root.removeChild(firstStatement)
             }
 
-
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
+            nativeError(e.message)
         }
 
         val sections = tempContainer.sections.toTypedArray()
@@ -141,6 +139,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             }
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
+            nativeError(e.message)
         }
 
         nativeLog(tempContainer.sections.joinToString("\n\n") {
@@ -181,15 +180,24 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
     }
 
     data class TempContainer(
-        val addressSize: Variable.Size,
+        val definedAssembly: DefinedAssembly,
         val compiler: CompilerInterface,
         val others: List<CompilerFile>,
+        val features: List<Feature>,
         val root: Root,
         val symbols: MutableList<Symbol> = mutableListOf(),
-        val sections: MutableList<Section> = mutableListOf(Section("text", addressSize), Section("data", addressSize), Section("bss", addressSize)),
+        val sections: MutableList<Section> = mutableListOf(Section("text", definedAssembly.MEM_ADDRESS_SIZE), Section("data", definedAssembly.MEM_ADDRESS_SIZE), Section("bss", definedAssembly.MEM_ADDRESS_SIZE)),
         val macros: MutableList<Macro> = mutableListOf(),
         var currSection: Section = sections.first(),
     ) {
+
+        fun pseudoTokenize(pseudoOf: Token, content: String): List<Token> = compiler.lexer.pseudoTokenize(pseudoOf, content)
+
+        fun parse(tokens: List<Token>): List<GASNode.Statement> {
+            val tree = compiler.parser.parseTree(tokens, others, features)
+            return tree.rootNode?.getAllStatements() ?: listOf()
+        }
+
         fun switchToOrAppendSec(name: String, flags: String = "") {
             val sec = sections.firstOrNull { it.name.lowercase() == name.lowercase() }
             if (sec != null) {
@@ -197,7 +205,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                 if (flags.isNotEmpty()) sec.flags = flags
                 return
             }
-            val newSec = Section(name, addressSize, flags)
+            val newSec = Section(name, definedAssembly.MEM_ADDRESS_SIZE, flags)
             sections.add(newSec)
             currSection = newSec
         }
@@ -228,20 +236,35 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
     }
 
     data class Macro(val name: String, val arguments: List<Argument>, val content: List<Statement>) {
-        fun generatePseudoStatements(lexer: Lexer, lineLoc: Token.LineLoc, argMap: List<ArgDef>): List<Token> {
+        init {
+            content.forEach { stmnt ->
+                stmnt.getAllTokens().forEach {
+                    it.removeSeverityIfError()
+                }
+            }
+        }
+
+        fun generatePseudoStatements(argMap: List<ArgDef>): String {
             var content = content.map { it.contentBackToString() }.joinToString("") { it }
-            val args = arguments.map { it.argName.content to it.getDefaultValue() }.toTypedArray()
+            val args = arguments.map { it.argName to it.getDefaultValue() }.toTypedArray()
 
             // Check for mixture of positional and indexed arguments
-            argMap.forEach { def ->
+            argMap.forEachIndexed { index, def ->
                 when (def) {
-                    is ArgDef.KeyWord -> {
-                        val argID = args.indexOfFirst { it.first == def.keyWord }
-                        args[argID] = args[argID].first to def.content
+                    is ArgDef.Named -> {
+                        val argID = args.indexOfFirst { it.first.content == def.name.content }
+                        if (argID == -1) throw ParserError(def.name, "${def.name.content} is not a defined attribute name!")
+                        args[argID] = args[argID].first to def.content.joinToString("") { it.content }
                     }
 
                     is ArgDef.Positional -> {
-                        args[def.position] = args[def.position].first to def.content
+                        if (index >= args.size) {
+                            def.getAllTokens().firstOrNull()?.let {
+                                throw ParserError(it, "Macro $name has no argument expected at position $index!")
+                            }
+                            return@forEachIndexed
+                        }
+                        args[index] = args[index].first to def.content.joinToString("") { it.content }
                     }
                 }
             }
@@ -250,13 +273,9 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                 content = content.replace("\\${it.first}", it.second)
             }
 
-            return lexer.pseudoTokenize(lineLoc, content)
-        }
+            content = content.replace("\\()", "")
 
-        sealed class ArgDef(val content: String) {
-            class Positional(token: Token, content: String, val position: Int) : ArgDef(content)
-            class KeyWord(token: Token, content: String, val keyWord: String) : ArgDef(content)
-
+            return content + "\n"
         }
     }
 

@@ -8,6 +8,7 @@ enum class GASNodeType(val rule: Rule? = null) {
     EXPRESSION_ANY,
     LABEL,
     ARG,
+    ARG_DEF,
     INSTRUCTION,
     DIRECTIVE,
     STATEMENT,

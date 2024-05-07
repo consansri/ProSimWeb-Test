@@ -117,7 +117,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         return tokenList
     }
 
-    fun pseudoTokenize(lineLoc: LineLoc, content: String): List<Token>{
+    fun pseudoTokenize(pseudoOf: Token, content: String): List<Token>{
         val regs = if (detectRegisters) architecture.getAllRegs().map { it to it.getRegex() } else null
         val instrs = architecture.getAllInstrTypes().map { it to it.getInstrRegex() }
         val dirs = architecture.getAllDirTypes().map { it to it.getDirRegex() }
@@ -186,7 +186,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 }
 
                 //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
-                val token = Token(if (keyWordType != null) keyWordType else type, lineLoc, result.value, tokenList.size,onlyNumber, foundReg, foundDir, foundInstr)
+                val token = Token(if (keyWordType != null) keyWordType else type, pseudoOf.lineLoc, result.value, tokenList.size,onlyNumber, foundReg, foundDir, foundInstr, isPseudoOf = pseudoOf)
                 tokenList += token
                 startIndex += result.value.length
                 remaining = content.substring(startIndex)

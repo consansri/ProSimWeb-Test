@@ -6,7 +6,7 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 
-class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val onlyNumber: String = "", val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null) {
+class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val onlyNumber: String = "", val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null, val isPseudoOf: Token? = null) {
     private var isPrefix = false
     private var severities: MutableList<Severity> = mutableListOf()
     private var codeStyle: CodeStyle = CodeStyle.BASE0
@@ -198,16 +198,19 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
 
     fun addSeverity(type: Severity.Type, message: String) {
         this.severities.add(Severity(type, message))
+        isPseudoOf?.addSeverity(type, message)
     }
 
     fun addSeverity(severity: Severity) {
         this.severities.add(severity)
+        isPseudoOf?.addSeverity(severity)
     }
 
     fun removeSeverityIfError() {
         val buffered = ArrayList(severities)
         severities.clear()
         severities.addAll(buffered.filter { it.type != Severity.Type.ERROR })
+        isPseudoOf?.removeSeverityIfError()
     }
 
     fun hl(codeStyle: CodeStyle) {

@@ -2,9 +2,9 @@ package emulator.kit.assembler.gas.nodes
 
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
+import emulator.kit.assembler.Rule
 import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
-import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
@@ -12,6 +12,7 @@ import emulator.kit.types.Variable
 import emulator.kit.assembler.parser.NodeSeq.Component.*
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
+import emulator.kit.nativeLog
 
 /**
  * --------------------
@@ -132,7 +133,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                             return node
                         }
                     }
-
                     return null
                 }
 
@@ -197,6 +197,20 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     val thirdNotExpr = remainingTokens.firstOrNull()
                     return Argument.DefaultValue(first, second, if (thirdNotExpr != null) BaseNode(thirdNotExpr) else null, spaces)
                 }
+
+                GASNodeType.ARG_DEF -> {
+                    val named = ArgDef.Named.rule.matchStart(remainingTokens, allDirs, definedAssembly, assignedSymbols)
+                    if (named.matches) {
+                        return ArgDef.Named(named.matchingTokens[0], named.matchingTokens[1], named.matchingTokens.drop(2), named.ignoredSpaces)
+                    }
+
+                    val pos = ArgDef.Positional.rule.matchStart(remainingTokens, allDirs, definedAssembly, assignedSymbols)
+                    if (pos.matches) {
+                        return ArgDef.Positional(pos.matchingTokens, pos.ignoredSpaces)
+                    }
+
+                    return null
+                }
             }
         }
 
@@ -254,7 +268,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             addChild(BaseNode(lineBreak))
         }
 
-        fun contentBackToString(): String = getAllTokens().sortedBy { it.id }.joinToString { it.content }
+        fun contentBackToString(): String = getAllTokens().sortedBy { it.id }.joinToString("") { it.content }
 
         class Dir(label: Label?, val dir: Directive, lineBreak: Token) : Statement(label, lineBreak, dir) {
             fun resolve(macros: MutableList<GASParser.Macro>, sections: MutableList<GASParser.Section>) {
@@ -308,6 +322,44 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             override fun getDefaultValue(): String = expression?.getContentAsString() ?: ""
+        }
+    }
+
+    sealed class ArgDef(val content: List<Token>, val spaces: List<Token>) : GASNode() {
+        init {
+            addChilds(*content.map { BaseNode(it) }.toTypedArray())
+            addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
+        }
+
+        class Positional(content: List<Token>, spaces: List<Token>) : ArgDef(content, spaces) {
+            companion object {
+                val rule = Rule {
+                    Rule.Component.Seq(
+                        Rule.Component.Repeatable {
+                            Rule.Component.Except(Rule.Component.XOR(Rule.Component.Specific(","), Rule.Component.InSpecific(Token.Type.LINEBREAK)))
+                        }
+                    )
+                }
+            }
+        }
+
+        class Named(val name: Token, val assignment: Token, content: List<Token>, spaces: List<Token>) : ArgDef(content, spaces) {
+            init {
+                addChild(BaseNode(assignment))
+                addChild(BaseNode(name))
+            }
+
+            companion object {
+                val rule = Rule {
+                    Rule.Component.Seq(
+                        Rule.Component.InSpecific(Token.Type.SYMBOL),
+                        Rule.Component.Specific("="),
+                        Rule.Component.Repeatable {
+                            Rule.Component.Except(Rule.Component.XOR(Rule.Component.Specific(","), Rule.Component.InSpecific(Token.Type.LINEBREAK)))
+                        }
+                    )
+                }
+            }
         }
     }
 
@@ -506,7 +558,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             private fun buildExpressionFromPostfixNotation(tokens: MutableList<Token>, brackets: List<Token>, spaces: List<Token>): NumericExpr? {
-                val uncheckedLast1 = tokens.removeLast()
+                val uncheckedLast1 = tokens.removeLastOrNull() ?: return null
                 val operator = when {
                     uncheckedLast1.type.isOperator -> {
                         uncheckedLast1
@@ -897,6 +949,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
         }
     }
+
+
 }
 
 

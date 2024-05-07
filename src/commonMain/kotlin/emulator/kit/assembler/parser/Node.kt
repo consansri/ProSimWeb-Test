@@ -74,6 +74,10 @@ sealed class Node {
             children.remove(child)
         }
 
+        fun removeChilds(childs: List<Node>){
+            children.removeAll(childs)
+        }
+
         fun removeAllChildren() {
             children.clear()
         }

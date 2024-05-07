@@ -54,7 +54,7 @@ data class Process(
          * returns [parsedRes]
          */
         state = State.SEMANTICANALYSIS
-        val sectionResult = parser.semanticAnalysis(treeResult, otherFiles, features)
+        val sectionResult = parser.semanticAnalysis(lexer,treeResult, otherFiles, features)
 
         if (mode == Mode.STOP_AFTER_ANALYSIS) return Result(tokens, treeResult, sectionResult, mapOf(), this)
 
