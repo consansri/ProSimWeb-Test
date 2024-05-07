@@ -192,10 +192,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
     // Insertion / Deletion
     fun replaceStyledContent(styledContent: List<StyledChar>) {
+        val prevCaretPos = caret.caretPos
         styledText.clear()
         styledText.addAll(styledContent)
         caret.resetPos()
-        caret.moveCaretRight(styledContent.size)
+        caret.moveCaretRight(prevCaretPos)
         queryStateChange()
         contentChanged()
         resetSelection()

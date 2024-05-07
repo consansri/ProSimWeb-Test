@@ -53,7 +53,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         nativeLog("fireCompilation")
         CoroutineScope(Dispatchers.Default).launch {
             val result = compile(build)
-            if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")){
+            if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")) {
                 withContext(Dispatchers.Main) {
                     this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(mainManager.currTheme().codeLaF))
                 }
@@ -64,6 +64,11 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
     private fun markPC() {
         val lineLoc = mainManager.currArch().getCompiler().getLastLineMap()[mainManager.currArch().getRegContainer().pc.get().toHex().toRawString()]
         if (lineLoc == null) {
+            mark()
+            return
+        }
+
+        if (lineLoc.fileName != editorFile.getName()) {
             mark()
             return
         }
