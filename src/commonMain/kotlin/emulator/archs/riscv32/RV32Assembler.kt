@@ -141,8 +141,8 @@ class RV32Assembler : DefinedAssembly {
 
             CSR_RD_OFF12_UIMM5 -> {
                 val immediate = this.evaluate(false).toBin()
-                val check = immediate.check(Variable.Size.Bit5())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 5 Bits!")
+                val check = immediate.checkSizeSigned(Variable.Size.Bit5())
+                if (check != null) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 5 Bits!")
 
                 return immediate.getUResized(Variable.Size.Bit5()).toDec()
             }
