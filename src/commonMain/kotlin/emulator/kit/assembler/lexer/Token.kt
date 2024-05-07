@@ -23,11 +23,12 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         return when (type) {
             Type.STRING_SL -> getEscapedHL()
             Type.STRING_ML -> getEscapedHL()
+            Type.CHAR -> getEscapedHL()
             else -> listOf(content to codeStyle)
         }
     }
 
-    fun getEscapedHL(): List<Pair<String, CodeStyle>> {
+    private fun getEscapedHL(): List<Pair<String, CodeStyle>> {
         val result = mutableListOf<Pair<String, CodeStyle>>()
         var startIndex = 0
 
@@ -38,7 +39,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
                 val match = reg.regex.find(content.substring(startIndex))
                 if (match != null) {
                     if (noMatchContent.isNotEmpty()) {
-                        result.add(noMatchContent to CodeStyle.string)
+                        result.add(noMatchContent to codeStyle)
                         noMatchContent = ""
                     }
                     result.add(match.value to CodeStyle.escape)
@@ -54,7 +55,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         }
 
         if (noMatchContent.isNotEmpty()) {
-            result.add(noMatchContent to CodeStyle.string)
+            result.add(noMatchContent to codeStyle)
         }
 
         return result
@@ -239,8 +240,8 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
     enum class EscapedChar(val id: String, val replacement: String) {
         N("\\n", "\n"),
         T("\\t", "\t"),
-        R("\\r", "\r"),
         B("\\b", "\b"),
+        R("\\r", "\r"),
         F("\\f", "\u000c"),
         II("\\\"", "\""),
         I("\\\'", "\'"),

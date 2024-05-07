@@ -52,12 +52,20 @@ object StyleExt {
                     result
                 }
 
+                Token.Type.CHAR -> {
+                    var result = it.content
+                    Token.EscapedChar.entries.forEach {
+                        result = result.replace(it.id, highlight(it.id, null, CodeStyle.escape.name))
+                    }
+                    result
+                }
+
                 else -> it.content
             }
             if (severity != null) {
-                if (codeStyle == null) highlight(preprocessedContent, it.id, severity.name) else highlight(preprocessedContent, it.id, severity.name, codeStyle.name)
+                highlight(preprocessedContent, it.id, severity.name, codeStyle.name)
             } else {
-                if (codeStyle == null) preprocessedContent else highlight(preprocessedContent, it.id, codeStyle.name)
+                highlight(preprocessedContent, it.id, codeStyle.name)
             }
         }.split("\n")
     }

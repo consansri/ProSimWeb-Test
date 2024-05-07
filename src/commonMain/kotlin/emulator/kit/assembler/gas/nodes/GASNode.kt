@@ -524,6 +524,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), spaces)
                 expression?.assignSymbols(assignedSymbols)
 
+                if(expression != null){
+                    postFixTokens.forEach {
+                        if(!expression.getAllTokens().contains(it)){
+                            throw Parser.ParserError(it, "Invalid Token ${it.type} for the Numeric Expression!")
+                        }
+                    }
+                }
+
                 return expression
             }
 
