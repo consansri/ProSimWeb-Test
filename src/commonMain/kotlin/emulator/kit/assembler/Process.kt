@@ -106,7 +106,7 @@ data class Process(
         CACHE_RESULTS("caching"),
     }
 
-    data class Result(private val tokens: List<Token>, val tree: TreeResult, val semanticResult: Parser.SemanticResult, val assemblyMap: Map<String, Token.LineLoc>, val process: Process) {
+    data class Result(val tokens: List<Token>, val tree: TreeResult, val semanticResult: Parser.SemanticResult, val assemblyMap: Map<String, Token.LineLoc>, val process: Process) {
 
         val success: Boolean = !tree.hasErrors()
         val sections = semanticResult.sections

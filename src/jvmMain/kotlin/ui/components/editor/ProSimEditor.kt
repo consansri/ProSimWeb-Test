@@ -29,7 +29,6 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         mainManager.archManager.addFeatureChangeListener {
             fireCompilation(false)
         }
-        nativeInfo( "ProSimEditor with ${editorFile.getName()}: ${editorFile.getRawContent()}")
     }
 
     override fun onLineClicked(lineNumber: Int) {
@@ -39,7 +38,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
 
     override suspend fun highlight(text: String): List<CEditorArea.StyledChar> {
         val result = compile(false)
-        return result.tree.source.toStyledText(mainManager.currTheme().codeLaF)
+        return result.tokens.toStyledText(mainManager.currTheme().codeLaF)
     }
 
     private suspend fun compile(build: Boolean): Process.Result {
