@@ -1295,7 +1295,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val symbol = stmnt.dir.allTokens.firstOrNull { it.type == Token.Type.SYMBOL } ?: return
                 val expr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull() ?: return
                 val desc = expr.evaluate(true)
-                if (desc.toBin().checkSizeUnsigned(Bit16()) != null) throw Parser.ParserError(expr.getAllTokens().first(),"Expression exceeds unsigned 16 Bits!")
+                if (desc.toBin().checkSizeUnsigned(Bit16()) != null) throw Parser.ParserError(expr.getAllTokens().first(), "Expression exceeds unsigned 16 Bits!")
                 cont.setOrReplaceDescriptor(symbol.content, desc.toBin().getUResized(Bit16()).toHex())
             }
 
@@ -1317,10 +1317,21 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             SECTION -> {
-                val lastToken = stmnt.dir.allTokens.last()
-                cont.switchToOrAppendSec(lastToken.getContentAsString())
-            }
+                val dirs = stmnt.dir.allTokens.filter { it.type == Token.Type.DIRECTIVE }
 
+                if (dirs.size == 2) {
+                    cont.switchToOrAppendSec(dirs[1].getContentAsString())
+                    return
+                }
+
+                val symbol = stmnt.dir.allTokens.firstOrNull { it.type == Token.Type.SYMBOL }
+                if (symbol == null) {
+                    throw Parser.ParserError(stmnt.dir.allTokens.first(), "Section Directive expecting a section directive or at least one symbol!")
+                }
+
+                val flags = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull()?.evaluate(false) ?: ""
+                cont.switchToOrAppendSec(symbol.content, flags)
+            }
         }
     }
 

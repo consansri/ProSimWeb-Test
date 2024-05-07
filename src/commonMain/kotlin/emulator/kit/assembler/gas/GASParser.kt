@@ -184,13 +184,14 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         val macros: MutableList<Macro> = mutableListOf(),
         var currSection: Section = sections.first(),
     ) {
-        fun switchToOrAppendSec(name: String) {
+        fun switchToOrAppendSec(name: String, flags: String = "") {
             val sec = sections.firstOrNull { it.name.lowercase() == name.lowercase() }
             if (sec != null) {
                 currSection = sec
+                if (flags.isNotEmpty()) sec.flags = flags
                 return
             }
-            val newSec = Section(name, addressSize)
+            val newSec = Section(name, addressSize, flags)
             sections.add(newSec)
             currSection = newSec
         }
@@ -255,7 +256,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         class TokenRef(name: String, val token: Token) : Symbol(name)
     }
 
-    data class Section(val name: String, val addressSize: Variable.Size) {
+    data class Section(val name: String, val addressSize: Variable.Size, var flags: String = "") {
         private val content: MutableList<MappedContent<*>> = mutableListOf()
         var lastOffset: Value = Hex("0", addressSize)
 
