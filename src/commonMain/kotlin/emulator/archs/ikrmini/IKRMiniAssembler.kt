@@ -40,24 +40,22 @@ class IKRMiniAssembler : DefinedAssembly {
         for (amode in validParamModes) {
             val seq = amode.tokenSeq
             if (seq == null) {
-                return listOf(IKRMiniInstr(instrType, amode, rawInstr, null))
+                return listOf(IKRMiniInstr(instrType, amode, rawInstr, listOf()))
             }
 
             result = seq.matchStart(rawInstr.remainingTokens, listOf(), this, tempContainer.symbols)
             if (!result.matches) continue
 
-            val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()
+            val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>()
 
-            val lblExpr = if (expr != null && !expr.isDefined()) expr else null
-
-            return listOf(IKRMiniInstr(instrType, amode, rawInstr, expr, lblExpr))
+            return listOf(IKRMiniInstr(instrType, amode, rawInstr, expr))
         }
         throw Parser.ParserError(rawInstr.instrName, "Illegal Operands for IKRMini Instruction!")
     }
 
-    class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, val expr: GASNode.NumericExpr?, val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
+    class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, val expr: List<GASNode.NumericExpr>) : GASParser.SecContent {
         override val bytesNeeded: Int = aMode.wordAmount * 2
-        var calculatedImm: Variable.Value.Hex? = null
+        val calculatedImm: MutableList<Variable.Value> = mutableListOf()
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
 
@@ -70,48 +68,64 @@ class IKRMiniAssembler : DefinedAssembly {
             if (opCode == null) {
                 throw Parser.ParserError(rawInstr.instrName, "Couldn't resolve opcode for the following combination: ${type.name} and ${currentAMode.name}")
             }
-            val opCodeArray = mutableListOf(*opCode.splitToByteArray().map { it.toBin() }.toTypedArray())
+            val opCodeArray = mutableListOf(opCode.toBin())
 
-            expr?.assignLabels(labels)
+            expr.forEach { it.assignLabels(labels) }
 
             when (currentAMode) {
+                IKRMiniSyntax.ParamType.INDIRECT_WITH_OFFSET -> {
+                    val offset = expr.getOrNull(0)?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Offset!")
+                    val address = expr.getOrNull(1)?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Address!")
+                    if (!offset.check(Variable.Size.Bit16()).valid) throw Parser.ParserError(expr.first().getAllTokens().first(), "Offset exceeds 16 Bits!")
+                    if (!address.toBin().toUDec().check(Variable.Size.Bit16()).valid && !address.check(Variable.Size.Bit16()).valid) throw Parser.ParserError(expr.first().getAllTokens().first(), "Address exceeds 16 Bits!")
+                    val offset16 = offset.getResized(Variable.Size.Bit16())
+                    val address16 = address.toBin().getUResized(Variable.Size.Bit16()).toHex()
+                    calculatedImm.add(offset16)
+                    calculatedImm.add(address16)
+
+                    opCodeArray.add(offset16.toBin())
+                    opCodeArray.add(address16.toBin())
+                }
+
                 IKRMiniSyntax.ParamType.IMMEDIATE, IKRMiniSyntax.ParamType.DIRECT, IKRMiniSyntax.ParamType.INDIRECT -> {
-                    val imm = expr?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Numeric Expression!")
+                    val imm = expr.firstOrNull()?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Numeric Expression!")
                     val sizematches = if (currentAMode == IKRMiniSyntax.ParamType.IMMEDIATE) {
                         imm.check(Variable.Size.Bit16()).valid || imm.toBin().checkSizeUnsigned(Variable.Size.Bit16()) == null
                     } else {
                         imm.toBin().checkSizeUnsigned(Variable.Size.Bit16()) == null
                     }
-                    if (!sizematches) throw Parser.ParserError(expr.getAllTokens().first(), "Expression exceeds 16 Bits!")
+                    if (!sizematches) throw Parser.ParserError(expr.first().getAllTokens().first(), "Expression exceeds 16 Bits!")
                     val ext = imm.toBin().getUResized(Variable.Size.Bit16())
-                    calculatedImm = ext.toHex()
+                    calculatedImm.add(ext.toHex())
 
-                    opCodeArray.addAll(ext.splitToByteArray().map { it.toBin() })
+                    opCodeArray.add(ext)
                 }
 
                 IKRMiniSyntax.ParamType.DESTINATION -> {
-                    val imm = expr?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Numeric Expression!")
+                    val imm = expr.first().evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Numeric Expression!")
                     val sizematches = imm.toBin().checkSizeUnsigned(Variable.Size.Bit16()) == null
 
-                    if (!sizematches) throw Parser.ParserError(expr.getAllTokens().first(), "Expression exceeds 16 Bits!")
+                    if (!sizematches) throw Parser.ParserError(expr.first().getAllTokens().first(), "Expression exceeds 16 Bits!")
                     val rel = (imm.toBin().getUResized(Variable.Size.Bit16()) - yourAddr.toBin())
-                    calculatedImm = rel.toHex()
-                    opCodeArray.addAll(rel.toBin().splitToByteArray().map { it.toBin() })
+                    calculatedImm.add(rel.toHex())
+                    opCodeArray.add(rel.toBin())
                 }
 
                 IKRMiniSyntax.ParamType.IMPLIED -> {}
+
             }
             return opCodeArray.toTypedArray()
         }
 
-        override fun getContentString(): String = "$type $aMode ${getParamString()}"
+        override fun getContentString(): String = "$type ${getParamString()}"
 
-        fun getParamString(): String {
+        private fun getParamString(): String {
             val extString: String = when (aMode) {
-                IKRMiniSyntax.ParamType.INDIRECT -> "(($${calculatedImm}))"
-                IKRMiniSyntax.ParamType.DIRECT -> "($${calculatedImm})"
-                IKRMiniSyntax.ParamType.IMMEDIATE -> "#$${calculatedImm}"
-                IKRMiniSyntax.ParamType.DESTINATION -> "$${calculatedImm}"
+                IKRMiniSyntax.ParamType.INDIRECT_WITH_OFFSET -> "(${calculatedImm.getOrNull(0)}, ($${calculatedImm.getOrNull(1)?.toRawString()}))"
+                IKRMiniSyntax.ParamType.INDIRECT -> "(($${calculatedImm.firstOrNull()?.toRawString()}))"
+                IKRMiniSyntax.ParamType.DIRECT -> "($${calculatedImm.firstOrNull()?.toRawString()})"
+                IKRMiniSyntax.ParamType.IMMEDIATE -> "#$${calculatedImm.firstOrNull()?.toRawString()}"
+                IKRMiniSyntax.ParamType.DESTINATION -> "$${calculatedImm.firstOrNull()?.toRawString()}"
                 IKRMiniSyntax.ParamType.IMPLIED -> ""
             }
 

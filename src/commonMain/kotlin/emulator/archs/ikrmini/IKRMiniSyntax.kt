@@ -12,45 +12,46 @@ import emulator.kit.types.Variable
 
 class IKRMiniSyntax {
     enum class ParamType(val tokenSeq: Rule?, val wordAmount: Int, val exampleString: String) {
-        INDIRECT(Rule{ Seq(Specific("("), Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"), Specific(")"))}, 2, "(([16 Bit]))"),
-        DIRECT(Rule{ Seq( Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"))}, 2, "([16 Bit])"),
-        IMMEDIATE(Rule{ Seq( Specific("#"), SpecNode(GASNodeType.EXPRESSION_INTEGER))}, 2, "#[16 Bit]"),
-        DESTINATION(Rule{ Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER))}, 2, "[label]"),
+        INDIRECT(Rule { Seq(Specific("("), Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"), Specific(")")) }, 2, "(([16 Bit]))"),
+        INDIRECT_WITH_OFFSET(Rule { Seq(Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(","), Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"), Specific(")")) }, 3, "([16 Bit],([16 Bit]))"),
+        DIRECT(Rule { Seq(Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")")) }, 2, "([16 Bit])"),
+        IMMEDIATE(Rule { Seq(Specific("#"), SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 2, "#[16 Bit]"),
+        DESTINATION(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 2, "[label]"),
         IMPLIED(null, 1, ""),
     }
 
     enum class InstrType(val paramMap: Map<ParamType, Hex>, val descr: String) : InstrTypeInterface {
         // Data Transport
-        LOAD(mapOf(ParamType.IMMEDIATE to Hex("010C", WORDSIZE), ParamType.DIRECT to Hex("020C", WORDSIZE), ParamType.INDIRECT to Hex("030C", WORDSIZE)), "load AC"),
+        LOAD(mapOf(ParamType.IMMEDIATE to Hex("010C", WORDSIZE), ParamType.DIRECT to Hex("020C", WORDSIZE), ParamType.INDIRECT to Hex("030C", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("040C", WORDSIZE)), "load AC"),
         LOADI(mapOf(ParamType.IMPLIED to Hex("200C", WORDSIZE)), "load indirect"),
-        STORE(mapOf(ParamType.DIRECT to Hex("3200", WORDSIZE), ParamType.INDIRECT to Hex("3300", WORDSIZE)), "store AC at address"),
+        STORE(mapOf(ParamType.DIRECT to Hex("3200", WORDSIZE), ParamType.INDIRECT to Hex("3300", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("3400", WORDSIZE)), "store AC at address"),
 
         // Data Manipulation
-        AND(mapOf(ParamType.IMMEDIATE to Hex("018A", WORDSIZE), ParamType.DIRECT to Hex("028A", WORDSIZE), ParamType.INDIRECT to Hex("038A", WORDSIZE)), "and (logic)"),
-        OR(mapOf(ParamType.IMMEDIATE to Hex("0188", WORDSIZE), ParamType.DIRECT to Hex("0288", WORDSIZE), ParamType.INDIRECT to Hex("0388", WORDSIZE)), "or (logic)"),
-        XOR(mapOf(ParamType.IMMEDIATE to Hex("0189", WORDSIZE), ParamType.DIRECT to Hex("0289", WORDSIZE), ParamType.INDIRECT to Hex("0389", WORDSIZE)), "xor (logic)"),
-        ADD(mapOf(ParamType.IMMEDIATE to Hex("018D", WORDSIZE), ParamType.DIRECT to Hex("028D", WORDSIZE), ParamType.INDIRECT to Hex("038D", WORDSIZE)), "add"),
-        ADDC(mapOf(ParamType.IMMEDIATE to Hex("01AD", WORDSIZE), ParamType.DIRECT to Hex("02AD", WORDSIZE), ParamType.INDIRECT to Hex("03AD", WORDSIZE)), "add with carry"),
-        SUB(mapOf(ParamType.IMMEDIATE to Hex("018E", WORDSIZE), ParamType.DIRECT to Hex("028E", WORDSIZE), ParamType.INDIRECT to Hex("038E", WORDSIZE)), "sub"),
-        SUBC(mapOf(ParamType.IMMEDIATE to Hex("01AE", WORDSIZE), ParamType.DIRECT to Hex("02AE", WORDSIZE), ParamType.INDIRECT to Hex("03AE", WORDSIZE)), "sub with carry"),
+        AND(mapOf(ParamType.IMMEDIATE to Hex("018A", WORDSIZE), ParamType.DIRECT to Hex("028A", WORDSIZE), ParamType.INDIRECT to Hex("038A", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("048A", WORDSIZE)), "and (logic)"),
+        OR(mapOf(ParamType.IMMEDIATE to Hex("0188", WORDSIZE), ParamType.DIRECT to Hex("0288", WORDSIZE), ParamType.INDIRECT to Hex("0388", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0488", WORDSIZE)), "or (logic)"),
+        XOR(mapOf(ParamType.IMMEDIATE to Hex("0189", WORDSIZE), ParamType.DIRECT to Hex("0289", WORDSIZE), ParamType.INDIRECT to Hex("0389", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0489", WORDSIZE)), "xor (logic)"),
+        ADD(mapOf(ParamType.IMMEDIATE to Hex("018D", WORDSIZE), ParamType.DIRECT to Hex("028D", WORDSIZE), ParamType.INDIRECT to Hex("038D", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("048D", WORDSIZE)), "add"),
+        ADDC(mapOf(ParamType.IMMEDIATE to Hex("01AD", WORDSIZE), ParamType.DIRECT to Hex("02AD", WORDSIZE), ParamType.INDIRECT to Hex("03AD", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("04AD", WORDSIZE)), "add with carry"),
+        SUB(mapOf(ParamType.IMMEDIATE to Hex("018E", WORDSIZE), ParamType.DIRECT to Hex("028E", WORDSIZE), ParamType.INDIRECT to Hex("038E", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("048E", WORDSIZE)), "sub"),
+        SUBC(mapOf(ParamType.IMMEDIATE to Hex("01AE", WORDSIZE), ParamType.DIRECT to Hex("02AE", WORDSIZE), ParamType.INDIRECT to Hex("03AE", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("04AE", WORDSIZE)), "sub with carry"),
 
-        LSL(mapOf(ParamType.IMPLIED to Hex("00A0", WORDSIZE), ParamType.DIRECT to Hex("0220", WORDSIZE), ParamType.INDIRECT to Hex("0320", WORDSIZE)), "logic shift left"),
-        LSR(mapOf(ParamType.IMPLIED to Hex("00A1", WORDSIZE), ParamType.DIRECT to Hex("0221", WORDSIZE), ParamType.INDIRECT to Hex("0321", WORDSIZE)), "logic shift right"),
-        ROL(mapOf(ParamType.IMPLIED to Hex("00A2", WORDSIZE), ParamType.DIRECT to Hex("0222", WORDSIZE), ParamType.INDIRECT to Hex("0322", WORDSIZE)), "rotate left"),
-        ROR(mapOf(ParamType.IMPLIED to Hex("00A3", WORDSIZE), ParamType.DIRECT to Hex("0223", WORDSIZE), ParamType.INDIRECT to Hex("0323", WORDSIZE)), "rotate right"),
-        ASL(mapOf(ParamType.IMPLIED to Hex("00A4", WORDSIZE), ParamType.DIRECT to Hex("0224", WORDSIZE), ParamType.INDIRECT to Hex("0324", WORDSIZE)), "arithmetic shift left"),
-        ASR(mapOf(ParamType.IMPLIED to Hex("00A5", WORDSIZE), ParamType.DIRECT to Hex("0225", WORDSIZE), ParamType.INDIRECT to Hex("0325", WORDSIZE)), "arithmetic shift right"),
+        LSL(mapOf(ParamType.IMPLIED to Hex("00A0", WORDSIZE), ParamType.DIRECT to Hex("0220", WORDSIZE), ParamType.INDIRECT to Hex("0320", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0420", WORDSIZE)), "logic shift left"),
+        LSR(mapOf(ParamType.IMPLIED to Hex("00A1", WORDSIZE), ParamType.DIRECT to Hex("0221", WORDSIZE), ParamType.INDIRECT to Hex("0321", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0421", WORDSIZE)), "logic shift right"),
+        ROL(mapOf(ParamType.IMPLIED to Hex("00A2", WORDSIZE), ParamType.DIRECT to Hex("0222", WORDSIZE), ParamType.INDIRECT to Hex("0322", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0422", WORDSIZE)), "rotate left"),
+        ROR(mapOf(ParamType.IMPLIED to Hex("00A3", WORDSIZE), ParamType.DIRECT to Hex("0223", WORDSIZE), ParamType.INDIRECT to Hex("0323", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0423", WORDSIZE)), "rotate right"),
+        ASL(mapOf(ParamType.IMPLIED to Hex("00A4", WORDSIZE), ParamType.DIRECT to Hex("0224", WORDSIZE), ParamType.INDIRECT to Hex("0324", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0424", WORDSIZE)), "arithmetic shift left"),
+        ASR(mapOf(ParamType.IMPLIED to Hex("00A5", WORDSIZE), ParamType.DIRECT to Hex("0225", WORDSIZE), ParamType.INDIRECT to Hex("0325", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0425", WORDSIZE)), "arithmetic shift right"),
 
-        RCL(mapOf(ParamType.IMPLIED to Hex("00A6", WORDSIZE), ParamType.IMMEDIATE to Hex("0126", WORDSIZE), ParamType.DIRECT to Hex("0226", WORDSIZE), ParamType.INDIRECT to Hex("0326", WORDSIZE)), "rotate left with carry"),
-        RCR(mapOf(ParamType.IMPLIED to Hex("00A7", WORDSIZE), ParamType.IMMEDIATE to Hex("0127", WORDSIZE), ParamType.DIRECT to Hex("0227", WORDSIZE), ParamType.INDIRECT to Hex("0327", WORDSIZE)), "rotate right with carry"),
-        NOT(mapOf(ParamType.IMPLIED to Hex("008B", WORDSIZE), ParamType.DIRECT to Hex("020B", WORDSIZE), ParamType.INDIRECT to Hex("030B", WORDSIZE)), "invert (logic not)"),
+        RCL(mapOf(ParamType.IMPLIED to Hex("00A6", WORDSIZE), ParamType.IMMEDIATE to Hex("0126", WORDSIZE), ParamType.DIRECT to Hex("0226", WORDSIZE), ParamType.INDIRECT to Hex("0326", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0426", WORDSIZE)), "rotate left with carry"),
+        RCR(mapOf(ParamType.IMPLIED to Hex("00A7", WORDSIZE), ParamType.IMMEDIATE to Hex("0127", WORDSIZE), ParamType.DIRECT to Hex("0227", WORDSIZE), ParamType.INDIRECT to Hex("0327", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("0427", WORDSIZE)), "rotate right with carry"),
+        NOT(mapOf(ParamType.IMPLIED to Hex("008B", WORDSIZE), ParamType.DIRECT to Hex("020B", WORDSIZE), ParamType.INDIRECT to Hex("030B", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("040B", WORDSIZE)), "invert (logic not)"),
 
-        NEG(mapOf(ParamType.DIRECT to Hex("024E", WORDSIZE), ParamType.INDIRECT to Hex("034E", WORDSIZE)), "negotiate"),
+        NEG(mapOf(ParamType.DIRECT to Hex("024E", WORDSIZE), ParamType.INDIRECT to Hex("034E", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("044E", WORDSIZE)), "negotiate"),
 
         CLR(mapOf(ParamType.IMPLIED to Hex("004C", WORDSIZE)), "clear"),
 
-        INC(mapOf(ParamType.IMPLIED to Hex("009C", WORDSIZE), ParamType.DIRECT to Hex("021C", WORDSIZE), ParamType.INDIRECT to Hex("031C", WORDSIZE)), "increment (+1)"),
-        DEC(mapOf(ParamType.IMPLIED to Hex("009F", WORDSIZE), ParamType.DIRECT to Hex("021F", WORDSIZE), ParamType.INDIRECT to Hex("031F", WORDSIZE)), "decrement (-1)"),
+        INC(mapOf(ParamType.IMPLIED to Hex("009C", WORDSIZE), ParamType.DIRECT to Hex("021C", WORDSIZE), ParamType.INDIRECT to Hex("031C", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("041C", WORDSIZE)), "increment (+1)"),
+        DEC(mapOf(ParamType.IMPLIED to Hex("009F", WORDSIZE), ParamType.DIRECT to Hex("021F", WORDSIZE), ParamType.INDIRECT to Hex("031F", WORDSIZE), ParamType.INDIRECT_WITH_OFFSET to Hex("041F", WORDSIZE)), "decrement (-1)"),
 
         // Unconditional Branches
         BSR(mapOf(ParamType.DESTINATION to Hex("510C", WORDSIZE)), "branch and save return address in AC"),
@@ -75,7 +76,7 @@ class IKRMiniSyntax {
 
         override fun getDetectionName(): String = this.name
 
-        fun execute(arch: Architecture, paramtype: ParamType, ext: Hex) {
+        fun execute(arch: Architecture, paramtype: ParamType, ext: List<Hex>) {
             val pc = arch.getRegContainer().pc
             val ac = arch.getRegByName("AC")
 
@@ -85,19 +86,29 @@ class IKRMiniSyntax {
             }
 
             val operand: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.getMemory().load(arch.getMemory().load(ext, 2).toHex(), 2).toHex()
-                ParamType.DIRECT -> arch.getMemory().load(ext, 2).toHex()
-                ParamType.IMMEDIATE -> ext
-                ParamType.DESTINATION -> (pc.get() + ext).toHex()
+                ParamType.INDIRECT -> arch.getMemory().load(arch.getMemory().load(ext[0], 2).toHex(), 2).toHex()
+                ParamType.DIRECT -> arch.getMemory().load(ext[0], 2).toHex()
+                ParamType.IMMEDIATE -> ext[0]
+                ParamType.DESTINATION -> (pc.get() + ext[0]).toHex()
                 ParamType.IMPLIED -> ac.get().toHex()
+                ParamType.INDIRECT_WITH_OFFSET -> {
+                    val offset = ext[0]
+                    val address = ext[1]
+                    arch.getMemory().load((arch.getMemory().load(address, 2) + offset).toHex(), 2).toHex()
+                }
             }
 
             val address: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.getMemory().load(ext, 2).toHex()
-                ParamType.DIRECT -> ext
-                ParamType.IMMEDIATE -> ext
-                ParamType.DESTINATION -> (pc.get().toHex() + ext).toHex()
+                ParamType.INDIRECT -> arch.getMemory().load(ext[0], 2).toHex()
+                ParamType.DIRECT -> ext[0]
+                ParamType.IMMEDIATE -> ext[0]
+                ParamType.DESTINATION -> (pc.get().toHex() + ext[0]).toHex()
                 ParamType.IMPLIED -> ac.get().toHex()
+                ParamType.INDIRECT_WITH_OFFSET -> {
+                    val offset = ext[0]
+                    val address = ext[1]
+                    (arch.getMemory().load(address, 2) + offset).toHex()
+                }
             }
 
             val flags = getFlags(arch)
