@@ -11,9 +11,11 @@ import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.Memory
+import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
+import kotlin.math.exp
 
 class T6502Assembler() : DefinedAssembly {
 
@@ -31,11 +33,9 @@ class T6502Assembler() : DefinedAssembly {
     override val MEM_ADDRESS_SIZE: Variable.Size = T6502.MEM_ADDR_SIZE
     override val WORD_SIZE: Variable.Size = T6502.WORD_SIZE
 
-
-
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val instrType = InstrType.entries.firstOrNull { rawInstr.instrName.instr?.getDetectionName() == it.name } ?: throw Parser.ParserError(rawInstr.instrName, "Is not a T6502 Instruction!")
-        val possibleAModes = instrType.opCode.map { it.key }
+        val possibleAModes = AModes.entries.filter { instrType.opCode.map { it.key }.contains(it) }
 
         var result: Rule.MatchResult
 
@@ -50,7 +50,12 @@ class T6502Assembler() : DefinedAssembly {
 
             val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()
 
-            val immediate = expr?.evaluate(false)
+            val immediate = try {
+                expr?.evaluate(true)
+            } catch (e: Parser.ParserError) {
+                null
+            }
+
             val immSize = if (amode.byteAmount == 2) {
                 Variable.Size.Bit8()
             } else {
@@ -63,24 +68,29 @@ class T6502Assembler() : DefinedAssembly {
                     immediate.getResized(IKRMini.WORDSIZE).toHex()
                 }
 
+                null -> {
+                    null
+                }
+
                 else -> {
-                    if (immediate?.check(immSize)?.valid == false) continue
-                    immediate?.toBin()?.getUResized(IKRMini.WORDSIZE)?.toHex()
+                    if (immediate.check(immSize).valid == false) continue
+                    immediate.toBin().getUResized(IKRMini.WORDSIZE).toHex()
                 }
             }
 
-            return listOf(T6502Instr(instrType, amode, rawInstr, resized))
+            return listOf(T6502Instr(instrType, amode, rawInstr, expr, resized))
         }
 
         throw Parser.ParserError(rawInstr.instrName, "Instruction has illegal operands!")
     }
 
-    class T6502Instr(val type: InstrType, val amode: AModes, val rawInstr: GASNode.RawInstr, immediate: Hex? = null) : GASParser.SecContent {
+    class T6502Instr(val type: InstrType, val amode: AModes, val rawInstr: GASNode.RawInstr, val expr: GASNode.NumericExpr? = null, var immediate: Hex? = null) : GASParser.SecContent {
         override val bytesNeeded: Int = amode.byteAmount
-        val immediate: Hex
+
         init {
-            this.immediate = immediate ?: Hex("0", Variable.Size.Bit8())
+            nativeLog("Found 6502Instr: $type $amode expr:$expr imm:$immediate")
         }
+
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
@@ -89,25 +99,33 @@ class T6502Assembler() : DefinedAssembly {
                 throw Parser.ParserError(rawInstr.instrName, "Couldn't resolve opcode for the following combination: ${type.name} and ${amode.name}")
             }
 
+            expr?.assignLabels(labels)
+
             val codeWithExt: Array<Bin> = when (amode) {
                 AModes.ZP_X, AModes.ZP_Y, AModes.ZPIND_Y, AModes.ZP_X_IND, AModes.ZP, AModes.IMM -> {
-                    arrayOf(opCode.toBin(), immediate.toBin())
+                    val imm = immediate ?: expr?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Expression is missing!")
+                    immediate = imm.toHex()
+                    arrayOf(opCode.toBin(), imm.toBin())
                 }
 
                 AModes.ABS_X, AModes.ABS_Y, AModes.ABS, AModes.IND -> {
-                    arrayOf(opCode.toBin(), *immediate.splitToByteArray().map { it.toBin() }.toTypedArray())
+                    val imm = immediate ?: expr?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Expression is missing!")
+                    immediate = imm.toHex()
+                    arrayOf(opCode.toBin(), *imm.toBin().splitToByteArray().map { it.toBin() }.toTypedArray())
                 }
 
                 AModes.ACCUMULATOR, AModes.IMPLIED -> arrayOf(opCode.toBin())
 
                 AModes.REL -> {
-                    arrayOf(opCode.toBin(), immediate.toBin())
+                    val imm = immediate ?: expr?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Expression is missing!")
+                    immediate = imm.toHex()
+                    arrayOf(opCode.toBin(), (imm.toBin() - yourAddr.toBin()).toBin())
                 }
             }
             return codeWithExt
         }
 
-        override fun getContentString(): String = "$type ${amode.getString(immediate)}"
+        override fun getContentString(): String = "$type ${amode.getString(immediate ?: Hex("0", Variable.Size.Bit8()))}"
     }
 
     data class Flags(
