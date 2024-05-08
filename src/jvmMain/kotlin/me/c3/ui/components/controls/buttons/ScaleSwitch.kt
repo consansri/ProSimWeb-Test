@@ -1,4 +1,4 @@
-package ui.components.controls.buttons
+package me.c3.ui.components.controls.buttons
 
 import emulator.Link
 import me.c3.ui.MainManager
@@ -11,7 +11,7 @@ import java.awt.event.ActionListener
 class ScaleSwitch(mainManager: MainManager) : CComboBox<Scaling>(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, mainManager.scaleManager.scalings.toTypedArray(), FontType.TITLE) {
 
     init {
-        this.addActionListener(ScaleSelectorListener(mainManager))
+        this.addActionListener(me.c3.ui.components.controls.buttons.ScaleSwitch.ScaleSelectorListener(mainManager))
     }
 
     class ScaleSelectorListener(private val mainManager: MainManager): ActionListener {

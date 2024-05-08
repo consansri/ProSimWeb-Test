@@ -20,7 +20,6 @@ import visual.*
 import visual.ProcessorView
 import web.cssom.*
 
-
 val App = FC<Props> {
 
     val mainRef = useRef<HTMLElement>()

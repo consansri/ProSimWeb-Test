@@ -1,15 +1,14 @@
-package ui
+package me.c3.ui
 
 import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
-import me.c3.emulator.kit.install
 import me.c3.ui.MainManager
 import me.c3.ui.spacing.ScaleManager
 import me.c3.ui.styled.CFrame
 import me.c3.ui.styled.editor.CEditor
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.BenIcons
-import ui.components.NativeFrame
+import me.c3.ui.components.NativeFrame
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.*
@@ -22,7 +21,7 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    testBaseApp()
+    me.c3.ui.testBaseApp()
     //testAdvancedEditor()
 }
 

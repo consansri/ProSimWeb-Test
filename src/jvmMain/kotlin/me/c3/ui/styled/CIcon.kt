@@ -1,4 +1,4 @@
-package ui.styled
+package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter

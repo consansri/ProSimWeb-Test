@@ -1,4 +1,4 @@
-package ui.styled.editor
+package me.c3.ui.styled.editor
 
 import kotlinx.coroutines.*
 import me.c3.ui.components.styled.CLabel

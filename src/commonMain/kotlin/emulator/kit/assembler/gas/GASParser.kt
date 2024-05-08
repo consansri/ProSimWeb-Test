@@ -210,10 +210,16 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             currSection = newSec
         }
 
-        fun importFile(name: String): Boolean {
+        fun importFile(referenceToken: Token, name: String): Boolean {
             val file = others.firstOrNull { it.name == name } ?: return false
-            val tree = compiler.compile(file, others - file, Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD).tree.rootNode ?: return false
-            root.addChilds(1, tree.getAllStatements())
+            nativeLog("Importing: ${file.name} others: ${(others - file).joinToString { it.name }}")
+            val tree = compiler.compile(file, others - file, Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD)
+            tree.tokens.forEach {
+                it.isPseudoOf = referenceToken
+            }
+            if (tree.hasErrors()) throw ParserError(referenceToken, "Include has not succeeded! File $name has errors!")
+            val importedTree = tree.root ?: throw ParserError(referenceToken, "Include has not succeeded! File $name has errors!")
+            root.addChilds(1, importedTree.getAllStatements())
             return true
         }
 

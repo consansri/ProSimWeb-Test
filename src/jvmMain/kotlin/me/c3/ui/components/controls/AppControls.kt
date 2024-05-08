@@ -9,7 +9,7 @@ import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import ui.components.ProSimFrame
+import me.c3.ui.components.ProSimFrame
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout

@@ -64,7 +64,7 @@ kotlin {
 
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
-            this.mainClass.set("ui.AppKt")
+            this.mainClass.set("me.c3.ui.AppKt")
         }
     }
 
@@ -131,7 +131,7 @@ tasks.withType<Jar>() {
         manifest {
             val main by kotlin.jvm().compilations.getting
             attributes(
-                "Main-Class" to "ui.AppKt",
+                "Main-Class" to "me.c3.ui.AppKt",
                 "Class-Path" to main.runtimeDependencyFiles.files.joinToString(" ") { "lib/" + it.name }
             )
         }

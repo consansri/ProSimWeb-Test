@@ -11,5 +11,5 @@ interface CompilerInterface {
     fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Process.Mode = Process.Mode.FULLBUILD): Process.Result
     fun runningProcesses(): List<Process>
 
-    fun isInTreeCacheAndHasNoErrors(compilerFile: CompilerFile): Boolean
+    fun isInTreeCacheAndHasNoErrors(file: CompilerFile): Boolean
 }

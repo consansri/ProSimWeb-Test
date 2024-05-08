@@ -1,4 +1,4 @@
-package ui.components.docs
+package me.c3.ui.components.docs
 
 import emulator.kit.common.Docs
 import me.c3.ui.MainManager

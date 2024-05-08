@@ -6,6 +6,7 @@ import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
+import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.optional.Feature
 
@@ -17,7 +18,11 @@ abstract class Parser(val compiler: CompilerInterface) {
     abstract fun parseTree(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): TreeResult
     abstract fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<CompilerFile>, features: List<Feature>): SemanticResult
     data class SearchResult(val baseNode: Node.BaseNode, val path: List<Node>)
-    data class ParserError(val token: Token, override val message: String): Exception(message)
+    data class ParserError(val token: Token, override val message: String): Exception(message){
+        init {
+            token.addSeverity(Severity.Type.ERROR, message)
+        }
+    }
 
     data class SemanticResult(val sections: Array<GASParser.Section> = arrayOf()) {
         override fun equals(other: Any?): Boolean {

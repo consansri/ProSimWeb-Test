@@ -88,11 +88,12 @@ class FileHandler() {
         }
     }
 
-    fun getOrNull(fileName: String): File?{
+    fun getOrNull(fileName: String): File? {
         return files.firstOrNull { it.getName() == fileName }
     }
-    fun getOthers(): List<CompilerFile>{
-        return files.map { it.toCompilerFile() }
+
+    fun getOthers(): List<CompilerFile> {
+        return (files - files[currentID]).map { it.toCompilerFile() }
     }
 
     fun getCurrID(): Int = currentID

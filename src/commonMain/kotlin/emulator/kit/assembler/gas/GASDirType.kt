@@ -1034,7 +1034,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             // Global
             INCLUDE -> {
                 val fileName = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull()?.evaluate(true) ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected filename is missing!")
-                cont.importFile(fileName)
+                cont.importFile(stmnt.dir.allTokens.first(), fileName)
             }
 
             MACRO -> {

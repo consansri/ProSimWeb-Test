@@ -1,4 +1,4 @@
-package ui.scale.scalings
+package me.c3.ui.scale.scalings
 
 import me.c3.ui.scale.core.components.*
 import me.c3.ui.spacing.core.Scaling

@@ -16,9 +16,9 @@ import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CFrame
 import me.c3.ui.theme.ThemeManager
 import me.c3.ui.theme.icons.ProSimIcons
-import ui.components.ProSimFrame
-import ui.components.docs.InfoView
-import ui.styled.CIcon
+import me.c3.ui.components.ProSimFrame
+import me.c3.ui.components.docs.InfoView
+import me.c3.ui.styled.CIcon
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File

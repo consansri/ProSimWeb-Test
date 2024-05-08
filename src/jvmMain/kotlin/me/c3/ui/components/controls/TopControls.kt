@@ -4,7 +4,7 @@ import me.c3.ui.MainManager
 import me.c3.ui.components.controls.buttons.ArchSwitch
 import me.c3.ui.components.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
-import ui.components.controls.buttons.ScaleSwitch
+import me.c3.ui.components.controls.buttons.ScaleSwitch
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.GridBagConstraints
@@ -14,7 +14,7 @@ import javax.swing.JComponent
 
 class TopControls(mainManager: MainManager, showArchSwitch: Boolean) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.HORIZONTAL) {
 
-    val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager), ScaleSwitch(mainManager)) else listOf(ScaleSwitch(mainManager))
+    val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager), me.c3.ui.components.controls.buttons.ScaleSwitch(mainManager)) else listOf(me.c3.ui.components.controls.buttons.ScaleSwitch(mainManager))
 
     init {
         layout = GridBagLayout()
