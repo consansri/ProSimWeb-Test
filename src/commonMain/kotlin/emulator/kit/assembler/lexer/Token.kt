@@ -76,10 +76,10 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         else -> content
     }
 
-    fun lowerOrEqualPrecedenceAs(other: Token): Boolean {
+    fun higherOrEqualPrecedenceAs(other: Token): Boolean {
         val thisPrecedence = getPrecedence() ?: return false
-        val otherPrecedence = getPrecedence() ?: return false
-        return thisPrecedence.ordinal <= otherPrecedence.ordinal
+        val otherPrecedence = other.getPrecedence() ?: return false
+        return thisPrecedence.ordinal >= otherPrecedence.ordinal
     }
 
     fun isPrefix(): Boolean = isPrefix

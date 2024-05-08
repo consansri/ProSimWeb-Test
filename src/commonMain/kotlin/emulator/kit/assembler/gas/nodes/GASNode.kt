@@ -1,5 +1,6 @@
 package emulator.kit.assembler.gas.nodes
 
+import debug.DebugTools
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.Rule
@@ -524,13 +525,20 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), spaces)
                 expression?.assignSymbols(assignedSymbols)
 
-                if(expression != null){
+                if (expression != null) {
                     postFixTokens.forEach {
-                        if(!expression.getAllTokens().contains(it)){
+                        if (!expression.getAllTokens().contains(it)) {
                             throw Parser.ParserError(it, "Invalid Token ${it.type} for the Numeric Expression!")
                         }
                     }
                 }
+
+                if (DebugTools.KIT_showPostFixExpressions) nativeLog(
+                    "NumericExpr:" +
+                            "\n\tRelevantTokens: ${relevantTokens.joinToString(" ") { it.content }}" +
+                            "\n\tPostFixNotation: ${postFixTokens.joinToString(" ") { it.content }}" +
+                            "\n\tExpression: ${expression?.print("")}"
+                )
 
                 return expression
             }
@@ -559,7 +567,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         val nextMatchesPrefix = nextToken != null && (nextToken.type.isLiteral() || nextToken.type == Token.Type.SYMBOL || nextToken.content == "(")
 
                         val isPrefix = prevMatchesPrefix && nextMatchesPrefix
-                        if (isPrefix) currentToken.markAsPrefix()
+                        if (isPrefix) {
+                            currentToken.markAsPrefix()
+                            if (DebugTools.KIT_showPostFixExpressions) {
+                                nativeLog("NumericExpr: Marked ${currentToken.content} as prefix!")
+                            }
+                        }
                     }
                     i++
                 }
@@ -601,7 +614,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         return null
                     }
                 } ?: return null
-
                 if (operator.isPrefix()) {
                     return Prefix(operator, operandA, brackets, spaces)
                 }
@@ -611,8 +623,8 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     uncheckedLast3 == null -> null
                     uncheckedLast3.type.isOperator -> buildExpressionFromPostfixNotation(tokens, brackets, spaces)
                     uncheckedLast3.type == Token.Type.SYMBOL -> Operand.Identifier(tokens.removeLast())
-                    uncheckedLast2.type.isNumberLiteral -> Operand.Number(tokens.removeLast())
-                    uncheckedLast2.type.isCharLiteral -> Operand.Char(tokens.removeLast())
+                    uncheckedLast3.type.isNumberLiteral ->                         Operand.Number(tokens.removeLast())
+                    uncheckedLast3.type.isCharLiteral -> Operand.Char(tokens.removeLast())
                     else -> null
                 }
 
@@ -642,6 +654,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val operatorStack = mutableListOf<Token>()
 
                 for (token in infix) {
+                    if (DebugTools.KIT_showPostFixExpressions) nativeLog("PostFixIteration: for ${token.type}:${token.getPrecedence()} -> ${token.content}" +
+                            "\n\tOutput: ${output.joinToString(" ") { it.content }}" +
+                            "\n\tOperatorStack: ${operatorStack.joinToString("") { it.content }}"
+                    )
                     if (token.type.isLiteral() || token.type == Token.Type.SYMBOL) {
                         output.add(token)
                         continue
@@ -650,7 +666,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     if (token.type.isOperator) {
                         val higherOrEqualPrecedence = mutableListOf<Token>()
                         for (op in operatorStack) {
-                            if (op.type.isOperator && token.lowerOrEqualPrecedenceAs(op)) {
+                            if (op.type.isOperator && op.higherOrEqualPrecedenceAs(token)) {
                                 output.add(op)
                                 higherOrEqualPrecedence.add(op)
                             }
@@ -680,7 +696,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         }
                     }
 
-                    nativeError("Token (${token::class.simpleName}: ${token.content}) is not valid in a expression!")
+                    throw Parser.ParserError(token,"Token (${token::class.simpleName}: ${token.content}) is not valid in a numeric expression!")
                 }
 
                 while (operatorStack.isNotEmpty()) {
