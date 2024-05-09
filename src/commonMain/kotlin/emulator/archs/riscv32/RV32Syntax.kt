@@ -233,7 +233,7 @@ class RV32Syntax {
                 Specific(","),
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                emulator.kit.assembler.Rule.Component.SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_INTEGER)
+                SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_INTEGER)
             )}
         ),
         PS_RD_I32(
@@ -249,7 +249,7 @@ class RV32Syntax {
 
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                emulator.kit.assembler.Rule.Component.InSpecific(emulator.kit.assembler.lexer.Token.Type.SYMBOL)
+                InSpecific(emulator.kit.assembler.lexer.Token.Type.SYMBOL)
             )}
         ), // rs, label
         PS_RD_ALBL(
@@ -257,7 +257,7 @@ class RV32Syntax {
 
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                emulator.kit.assembler.Rule.Component.InSpecific(emulator.kit.assembler.lexer.Token.Type.SYMBOL)
+                emulator.kit.assembler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_INTEGER)
             )}
         ), // rd, label
         PS_JLBL(true, "jlabel", Rule{ Seq( InSpecific(Token.Type.SYMBOL))}),  // label

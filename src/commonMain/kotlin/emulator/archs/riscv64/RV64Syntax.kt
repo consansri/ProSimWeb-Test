@@ -182,12 +182,12 @@ class RV64Syntax {
             }
         }, // rs1, rs2, imm
         RS1_RS2_LBL(false, "rs1, rs2, lbl", Rule{
-            emulator.kit.assembler.Rule.Component.Seq(
-                emulator.kit.assembler.Rule.Component.Reg(emulator.archs.riscv64.RV64.standardRegFile),
-                emulator.kit.assembler.Rule.Component.Specific(","),
-                emulator.kit.assembler.Rule.Component.Reg(emulator.archs.riscv64.RV64.standardRegFile),
-                emulator.kit.assembler.Rule.Component.Specific(","),
-                emulator.kit.assembler.Rule.Component.SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_INTEGER)
+            Seq(
+                Reg(RV64.standardRegFile),
+                Specific(","),
+                Reg(RV64.standardRegFile),
+                Specific(","),
+                SpecNode(GASNodeType.EXPRESSION_INTEGER)
             )
         }),
         CSR_RD_OFF12_RS1(
