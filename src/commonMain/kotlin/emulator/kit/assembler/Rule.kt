@@ -26,19 +26,21 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
         return result
     }
 
+    override fun toString(): String = comp.print("")
+
     sealed class Component {
         abstract fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult
-        abstract fun print(): String
+        abstract fun print(prefix: String): String
 
         class Optional(comp: () -> Component) : Component() {
             private val comp = comp()
             override fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
                 val result = comp.matchStart(source, allDirs, definedAssembly, assignedSymbols)
-                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Optional ${comp.print()}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Optional ${comp.print("")}")
                 return MatchResult(true, result.matchingTokens, result.matchingNodes, result.remainingTokens)
             }
 
-            override fun print(): String = "[opt:${comp.print()}]"
+            override fun print(prefix: String): String = "$prefix[${comp.print("")}]"
         }
 
         class XOR(private vararg val comps: Component) : Component() {
@@ -56,7 +58,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return result
             }
 
-            override fun print(): String = "[${comps.joinToString(" xor ") { it.print() }}]"
+            override fun print(prefix: String): String = "$prefix${comps.joinToString("|") { it.print("") }}"
         }
 
         class Repeatable(private val ignoreSpaces: Boolean = true, private val maxLength: Int? = null, comp: () -> Component) : Component() {
@@ -90,12 +92,12 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     result = comp.matchStart(remainingTokens, allDirs, definedAssembly, assignedSymbols)
                 }
 
-                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Repeatable ${comp.print()} iterations: ${iteration + 1}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Repeatable ${comp.print("")} iterations: ${iteration + 1}")
 
                 return MatchResult(true, matchingTokens, matchingNodes, remainingTokens, ignoredSpaces)
             }
 
-            override fun print(): String = "[repeatable:${comp.print()}]"
+            override fun print(prefix: String): String = "$prefix{${comp.print("")}, ... }"
         }
 
         class Seq(vararg val comps: Component, private val ignoreSpaces: Boolean = true) : Component() {
@@ -122,12 +124,12 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     remaining.addAll(result.remainingTokens)
                 }
 
-                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Seq ${comps.joinToString { it.print() }}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Seq ${comps.joinToString { it.print("") }}")
 
                 return MatchResult(true, matchingTokens, matchingNodes, remaining, ignoredSpaces)
             }
 
-            override fun print(): String = "[${comps.joinToString(" , ") { it.print() }}]"
+            override fun print(prefix: String): String = "$prefix${comps.joinToString("") { "${it.print(prefix + "\t")}" }}$prefix"
         }
 
         class Except(private val comp: Component) : Component() {
@@ -137,11 +139,11 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 if (result.matches) {
                     return MatchResult(false, listOf(), listOf(), source)
                 }
-                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Except ${comp.print()}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Except ${comp.print("")}")
                 return MatchResult(true, listOf(source.first()), listOf(), source - source.first())
             }
 
-            override fun print(): String = "[not:${comp.print()}]"
+            override fun print(prefix: String): String = "$prefix!${comp.print("")}"
         }
 
         class Specific(val content: String, private val ignoreCase: Boolean = false) : Component() {
@@ -156,7 +158,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(): String = "[specific:${content}]"
+            override fun print(prefix: String): String = "$prefix${content}"
         }
 
         class Reg(private val inRegFile: RegContainer.RegisterFile? = null, private val notInRegFile: RegContainer.RegisterFile? = null) : Component() {
@@ -174,7 +176,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(): String = "[reg: ${if (inRegFile != null) "in ${inRegFile.name}" else ""} and ${if (notInRegFile != null) "not in ${notInRegFile.name}" else ""}]"
+            override fun print(prefix: String): String = "$prefix REG${if (inRegFile != null) "in ${inRegFile.name}" else ""} and ${if (notInRegFile != null) "not in ${notInRegFile.name}" else ""}]"
 
         }
 
@@ -188,7 +190,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(false, listOf(), listOf(), source)
             }
 
-            override fun print(): String = "[dir:${dirName}]"
+            override fun print(prefix: String): String = "$prefix${dirName}"
         }
 
         class InSpecific(private val type: Token.Type) : Component() {
@@ -199,7 +201,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(): String = "[specific:${type}]"
+            override fun print(prefix: String): String = "$prefix${type}"
         }
 
         class SpecNode(private val type: GASNodeType) : Component() {
@@ -213,7 +215,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
             }
 
-            override fun print(): String = "[node:${type.name}]"
+            override fun print(prefix: String): String = "$prefix${type.name}"
         }
 
         data object Nothing : Component() {
@@ -221,7 +223,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(), listOf(), source)
             }
 
-            override fun print(): String = "[]"
+            override fun print(prefix: String): String = "$prefix[]"
         }
     }
 

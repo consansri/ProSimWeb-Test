@@ -66,11 +66,7 @@ object RV64 {
      * RV64 Generated Documenation
      */
     private val riscVDocs = Docs(
-        usingStandard = true,
-        Docs.DocFile.SourceFile(
-            "Syntax Examples",
-            "documents/rv64/syntaxexamples.html"
-        ),
+        usingProSimAS = true,
         Docs.DocFile.DefinedFile(
             "RV32 Implemented",
             Chapter(

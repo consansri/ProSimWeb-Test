@@ -22,7 +22,7 @@ data object IKRMini {
         "IKR Mini",
         "IKR Minimalprozessor",
         Docs(
-            usingStandard = true,
+            usingProSimAS = true,
             Docs.DocFile.DefinedFile(
                 "IKR Mini Implemented",
                 Chapter(
@@ -45,9 +45,6 @@ data object IKRMini {
                     )
                 )
             ),
-            Docs.DocFile.SourceFile(
-                "Syntax Examples", "documents/ikrmini/syntaxexamples.html"
-            )
         )
     )
 

@@ -57,7 +57,7 @@ object T6502 {
         "T6502",
         "MOS Technology 6502",
         Docs(
-            usingStandard = true,
+            usingProSimAS = true,
             Docs.DocFile.DefinedFile(
                 "6502 Implemented",
                 Chapter(
@@ -81,9 +81,6 @@ object T6502 {
                         }.toTypedArray()
                     )
                 )
-            ),
-            Docs.DocFile.SourceFile(
-                "Syntax Examples", "documents/t6502/syntaxexamples.html"
             )
         )
     )

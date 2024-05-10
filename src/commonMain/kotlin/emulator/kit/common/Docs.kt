@@ -1,6 +1,7 @@
 package emulator.kit.common
 
 import Constants
+import emulator.kit.assembler.gas.GASDirType
 
 import emulator.kit.common.Docs.DocComponent.*
 
@@ -8,7 +9,7 @@ import emulator.kit.common.Docs.DocComponent.*
  * This class contains all documents which are partly supplied by specific architectures. There are two options to define a documentation file.
  * The first is by linking a source path to a specific html source file and the second is by directly defining a file as a React component, inwhich information can be generated directly from the implemented architecture.
  */
-class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
+class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
     var files: MutableList<DocFile> = (mutableListOf(
         DocFile.SourceFile(
             "User Manual",
@@ -17,7 +18,7 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
         DocFile.DefinedFile(
             "Current: Version - ${Constants.VERSION}",
             Chapter(
-              "Version - 0.2.1",
+                "Version - 0.2.1",
                 Section(
                     "New - Rewrote Assembler oriented on GNU Assembler.",
                     UnlinkedList(
@@ -342,70 +343,14 @@ class Docs(val usingStandard: Boolean, vararg docFiles: DocFile) {
             }
         }*/
         )
-    ) + if (usingStandard) DocFile.DefinedFile(
-        "Standard Syntax",
+    ) + if (usingProSimAS) DocFile.DefinedFile(
+        "ProSimAS",
         Chapter(
             "Directives",
-            //*StandardSyntax.DirMajType.entries.map { maj -> Section(maj.docName, UnlinkedList(*StandardSyntax.DirType.entries.filter { it.dirMajType == maj }.map { Text(".${it.dirname}") }.toTypedArray())) }.toTypedArray()
-        ),
-        Chapter(
-            "Example",
-            Code(
-                """
-                    #import "anotherfile.s"
-
-                    /*
-                        Important!
-                         -> The symbol which indicates a comment is set by arch
-                         -> The prefix of bin,hex,dec and udec is set by arch
-                         -> Instruction Syntax is completely handled by arch
-                    */
-
-                    .equ SOME_VALUE0, "This is a constant which will be written on address 0x0F04"
-
-                    .macro MACRO_NAME attr1, attr2
-                    	# some content insert attributes with leading '\'
-                    	# ex. "\attr1"
-                    .endm
-
-                    *=0xA000
-                    label_on_0xA000:
-                    .data
-                    			.byte 	(((4 / 2) + 33) << 1)
-                    			.half 	(0xA000 >> 12)
-                    			.word 	(-10 * 0xFFFFFFFF)
-                    			.dword	0x0123456789ABCDEF
-                    			.asciz	'#'
-                    string: 	.string SOME_VALUE0
-                    
-                    rawdata:    .hexstring \"\"\"
-                                        CAFEAFFE
-                                        DEADBEEF
-                                        01234567
-                                        89ABCDEF                                        
-                                    \"\"\"
-
-                    *=0xA100
-                    byte_array:	.half 0, 1, 2, 3, (0b1 << 2), 5, (0xC / 2), 7,
-                    			8, 9, 10, 11, 12, 13, 14, 15,
-                    			16, 17, 18, (20 - 1), 20, 21, (20 + 2), 23
-
-                    *=0xB000
-                    .rodata
-                    	.string "This can't be overwritten!"
-
-                    *=0xC000
-                    .bss
-                    	.byte
-                    	.half
-                    	.half
-                    	.word
-
-                    .text
-
-                """.trimIndent()
+            UnlinkedList(
+                *GASDirType.entries.map { Text("${it.name} : ${it.rule.toString()}") }.toTypedArray()
             )
-        )
+        ),
     ) else null).filterNotNull().toMutableList()
 
     init {

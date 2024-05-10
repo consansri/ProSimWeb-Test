@@ -56,7 +56,7 @@ object IKRRisc2 {
 
 
     val config = Config(
-        Config.Description("IKR RISC-II", "IKR RISC-II", Docs(usingStandard = true)),
+        Config.Description("IKR RISC-II", "IKR RISC-II", Docs(usingProSimAS = true)),
         fileEnding = "s",
         RegContainer(
             listOf(standardRegFile),
