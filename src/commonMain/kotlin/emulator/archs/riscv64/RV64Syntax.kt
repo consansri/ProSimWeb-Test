@@ -6,8 +6,6 @@ import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.nodes.GASNodeType
-import emulator.kit.assembler.lexer.Token
-import emulator.kit.common.RegContainer
 
 
 class RV64Syntax {
@@ -19,7 +17,7 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ) {
@@ -40,7 +38,7 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Specific("("),
                     Reg(RV64.standardRegFile),
                     Specific(")")
@@ -66,7 +64,7 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Specific("("),
                     Reg(RV64.standardRegFile),
                     Specific(")")
@@ -120,7 +118,7 @@ class RV64Syntax {
                     Specific(","),
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ) {
@@ -145,7 +143,7 @@ class RV64Syntax {
                     Specific(","),
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ) {
@@ -165,7 +163,7 @@ class RV64Syntax {
         RS1_RS2_I12(
             false, "rs1, rs2, imm12",
             Rule {
-                Seq(Reg(RV64.standardRegFile), Specific(","), Reg(RV64.standardRegFile), Specific(","), SpecNode(GASNodeType.EXPRESSION_INTEGER))
+                Seq(Reg(RV64.standardRegFile), Specific(","), Reg(RV64.standardRegFile), Specific(","), SpecNode(GASNodeType.INT_EXPR))
             }
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
@@ -187,7 +185,7 @@ class RV64Syntax {
                 Specific(","),
                 Reg(RV64.standardRegFile),
                 Specific(","),
-                SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                SpecNode(GASNodeType.INT_EXPR)
             )
         }),
         CSR_RD_OFF12_RS1(
@@ -224,7 +222,7 @@ class RV64Syntax {
                     Specific(","),
                     Reg(notInRegFile = RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ) {
@@ -249,7 +247,7 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ), // rd, imm64
@@ -259,7 +257,7 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ), // rs, label
@@ -269,12 +267,12 @@ class RV64Syntax {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ), // rd, label
         PS_lbl(true, "jlabel", Rule {
-            Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER))
+            Seq(SpecNode(GASNodeType.INT_EXPR))
         }),  // label
         PS_RD_RS1(
             true, "rd, rs",

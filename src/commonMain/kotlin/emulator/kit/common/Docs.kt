@@ -347,8 +347,9 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
         "ProSimAS",
         Chapter(
             "Directives",
-            UnlinkedList(
-                *GASDirType.entries.map { Text("${it.name} : ${it.rule.toString()}") }.toTypedArray()
+            Table(
+                listOf("type", "rule"),
+                *GASDirType.entries.map { listOf(Text(it.name), Code(it.rule.toString())) }.toTypedArray()
             )
         ),
     ) else null).filterNotNull().toMutableList()

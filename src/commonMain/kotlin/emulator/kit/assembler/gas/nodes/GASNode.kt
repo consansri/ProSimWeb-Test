@@ -150,11 +150,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     return RawInstr(first, params)
                 }
 
-                GASNodeType.EXPRESSION_INTEGER -> {
+                GASNodeType.INT_EXPR -> {
                     return NumericExpr.parse(remainingTokens, assignedSymbols)
                 }
 
-                GASNodeType.EXPRESSION_ANY -> {
+                GASNodeType.ANY_EXPR -> {
                     val stringExpr = StringExpr.parse(remainingTokens)
                     if (stringExpr != null) return stringExpr
 
@@ -162,7 +162,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     return numericExpr
                 }
 
-                GASNodeType.EXPRESSION_STRING -> {
+                GASNodeType.STRING_EXPR -> {
                     return StringExpr.parse(remainingTokens, assignedSymbols)
                 }
 
@@ -190,7 +190,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     remainingTokens.removeFirst()
                     spaces.addAll(remainingTokens.dropSpaces())
 
-                    val third = buildNode(GASNodeType.EXPRESSION_ANY, remainingTokens, allDirs, definedAssembly)
+                    val third = buildNode(GASNodeType.ANY_EXPR, remainingTokens, allDirs, definedAssembly)
                     if (third != null) {
                         return Argument.DefaultValue(first, second, third, spaces)
                     }

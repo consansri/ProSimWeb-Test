@@ -12,22 +12,22 @@ import emulator.kit.types.Variable
  */
 enum class AModes(val tokenSequence: Rule?, val byteAmount: Int, val exampleString: String, val description: String) {
 
-    ZP_X(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(","), Specific("X")) }, 2, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
-    ZP_Y(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(","), Specific("Y")) }, 2, exampleString = "$00, Y", description = "zeropage, Y-indexed"), // Zero Page Indexed with Y: zp,y
+    ZP_X(Rule { Seq(SpecNode(GASNodeType.INT_EXPR), Specific(","), Specific("X")) }, 2, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
+    ZP_Y(Rule { Seq(SpecNode(GASNodeType.INT_EXPR), Specific(","), Specific("Y")) }, 2, exampleString = "$00, Y", description = "zeropage, Y-indexed"), // Zero Page Indexed with Y: zp,y
 
-    ABS_X(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(","), Specific("X")) }, 3, exampleString = "$0000, X", description = "absolute, X-indexed"), // Absolute Indexed with X: a,x
-    ABS_Y(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(","), Specific("Y")) }, 3, exampleString = "$0000, Y", description = "absolute, Y-indexed"), // Absolute Indexed with Y: a,y
-    ZP_X_IND(Rule { Seq(Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(","), Specific("X"), Specific(")")) }, 2, exampleString = "($00, X)", description = "X-indexed, indirect"), // Zero Page Indexed Indirect: (zp,x)
+    ABS_X(Rule { Seq(SpecNode(GASNodeType.INT_EXPR), Specific(","), Specific("X")) }, 3, exampleString = "$0000, X", description = "absolute, X-indexed"), // Absolute Indexed with X: a,x
+    ABS_Y(Rule { Seq(SpecNode(GASNodeType.INT_EXPR), Specific(","), Specific("Y")) }, 3, exampleString = "$0000, Y", description = "absolute, Y-indexed"), // Absolute Indexed with Y: a,y
+    ZP_X_IND(Rule { Seq(Specific("("), SpecNode(GASNodeType.INT_EXPR), Specific(","), Specific("X"), Specific(")")) }, 2, exampleString = "($00, X)", description = "X-indexed, indirect"), // Zero Page Indexed Indirect: (zp,x)
 
-    ZPIND_Y(Rule { Seq(Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"), Specific(","), Specific("Y")) }, 2, exampleString = "($00), Y", description = "indirect, Y-indexed"), // Zero Page Indirect Indexed with Y: (zp),y
+    ZPIND_Y(Rule { Seq(Specific("("), SpecNode(GASNodeType.INT_EXPR), Specific(")"), Specific(","), Specific("Y")) }, 2, exampleString = "($00), Y", description = "indirect, Y-indexed"), // Zero Page Indirect Indexed with Y: (zp),y
 
-    IND(Rule { Seq(Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")")) }, 3, exampleString = "($0000)", description = "indirect"), // Absolute Indirect: (a)
+    IND(Rule { Seq(Specific("("), SpecNode(GASNodeType.INT_EXPR), Specific(")")) }, 3, exampleString = "($0000)", description = "indirect"), // Absolute Indirect: (a)
 
     ACCUMULATOR(Rule { Seq(Specific("A")) }, 1, exampleString = "A", description = "Accumulator"), // Accumulator: A
-    IMM(Rule { Seq(Specific("#"), SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 2, exampleString = "#$00", description = "immediate"), // Immediate: #
-    REL(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 2, exampleString = "$00", description = "relative"), // Relative: r
-    ZP(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 2, exampleString = "$00", description = "zeropage"), // Zero Page: zp
-    ABS(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 3, exampleString = "$0000", description = "absolute"), // Absolute: a
+    IMM(Rule { Seq(Specific("#"), SpecNode(GASNodeType.INT_EXPR)) }, 2, exampleString = "#$00", description = "immediate"), // Immediate: #
+    REL(Rule { Seq(SpecNode(GASNodeType.INT_EXPR)) }, 2, exampleString = "$00", description = "relative"), // Relative: r
+    ZP(Rule { Seq(SpecNode(GASNodeType.INT_EXPR)) }, 2, exampleString = "$00", description = "zeropage"), // Zero Page: zp
+    ABS(Rule { Seq(SpecNode(GASNodeType.INT_EXPR)) }, 3, exampleString = "$0000", description = "absolute"), // Absolute: a
 
     IMPLIED(null, 1, exampleString = "", description = "implied"); // Implied: i
 

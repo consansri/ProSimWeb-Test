@@ -97,7 +97,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, matchingTokens, matchingNodes, remainingTokens, ignoredSpaces)
             }
 
-            override fun print(prefix: String): String = "$prefix[${comp.print("")}, ... ]"
+            override fun print(prefix: String): String = "$prefix(vararg ${comp.print("")})"
         }
 
         class Seq(vararg val comps: Component, private val ignoreSpaces: Boolean = true) : Component() {
@@ -190,7 +190,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(false, listOf(), listOf(), source)
             }
 
-            override fun print(prefix: String): String = "$prefix${dirName}"
+            override fun print(prefix: String): String = "$prefix.${dirName}"
         }
 
         class InSpecific(private val type: Token.Type) : Component() {
@@ -201,7 +201,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(prefix: String): String = "$prefix\"${type.name}\""
+            override fun print(prefix: String): String = "$prefix${type.name}"
         }
 
         class SpecNode(private val type: GASNodeType) : Component() {
@@ -215,7 +215,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
             }
 
-            override fun print(prefix: String): String = "$prefix\"${type.name}\""
+            override fun print(prefix: String): String = "$prefix${type.name}"
         }
 
         data object Nothing : Component() {

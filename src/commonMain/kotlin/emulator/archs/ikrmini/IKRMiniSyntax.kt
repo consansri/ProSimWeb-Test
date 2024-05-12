@@ -12,11 +12,11 @@ import emulator.kit.types.Variable
 
 class IKRMiniSyntax {
     enum class ParamType(val tokenSeq: Rule?, val wordAmount: Int, val exampleString: String) {
-        INDIRECT(Rule { Seq(Specific("("), Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"), Specific(")")) }, 2, "(([16 Bit]))"),
-        INDIRECT_WITH_OFFSET(Rule { Seq(Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(","), Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")"), Specific(")")) }, 3, "([16 Bit],([16 Bit]))"),
-        DIRECT(Rule { Seq(Specific("("), SpecNode(GASNodeType.EXPRESSION_INTEGER), Specific(")")) }, 2, "([16 Bit])"),
-        IMMEDIATE(Rule { Seq(Specific("#"), SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 2, "#[16 Bit]"),
-        DESTINATION(Rule { Seq(SpecNode(GASNodeType.EXPRESSION_INTEGER)) }, 2, "[label]"),
+        INDIRECT(Rule { Seq(Specific("("), Specific("("), SpecNode(GASNodeType.INT_EXPR), Specific(")"), Specific(")")) }, 2, "(([16 Bit]))"),
+        INDIRECT_WITH_OFFSET(Rule { Seq(Specific("("), SpecNode(GASNodeType.INT_EXPR), Specific(","), Specific("("), SpecNode(GASNodeType.INT_EXPR), Specific(")"), Specific(")")) }, 3, "([16 Bit],([16 Bit]))"),
+        DIRECT(Rule { Seq(Specific("("), SpecNode(GASNodeType.INT_EXPR), Specific(")")) }, 2, "([16 Bit])"),
+        IMMEDIATE(Rule { Seq(Specific("#"), SpecNode(GASNodeType.INT_EXPR)) }, 2, "#[16 Bit]"),
+        DESTINATION(Rule { Seq(SpecNode(GASNodeType.INT_EXPR)) }, 2, "[label]"),
         IMPLIED(null, 1, ""),
     }
 

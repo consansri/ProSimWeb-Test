@@ -5,8 +5,6 @@ import emulator.kit.types.Variable
 import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
-import emulator.archs.riscv64.RV64Assembler
-import emulator.archs.riscv64.RV64Syntax
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
@@ -26,7 +24,7 @@ class RV32Syntax {
                 Seq(
                     Reg(RV32.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }
         ) {
@@ -47,7 +45,7 @@ class RV32Syntax {
                 Seq(
                     Reg(RV32.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Specific("("),
                     Reg(RV32.standardRegFile),
                     Specific(")")
@@ -72,7 +70,7 @@ class RV32Syntax {
                 Seq(
                     Reg(RV32.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Specific("("),
                     Reg(RV32.standardRegFile),
                     Specific(")")
@@ -115,7 +113,7 @@ class RV32Syntax {
                 Specific(","),
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                SpecNode(GASNodeType.INT_EXPR)
             )}
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
@@ -138,7 +136,7 @@ class RV32Syntax {
                 Specific(","),
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                SpecNode(GASNodeType.INT_EXPR)
             )}
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
@@ -161,7 +159,7 @@ class RV32Syntax {
                 Specific(","),
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                SpecNode(GASNodeType.INT_EXPR)
             )}
         ) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
@@ -209,7 +207,7 @@ class RV32Syntax {
                     Specific(","),
                     Reg(notInRegFile = RV32.standardRegFile),
                     Specific(","),
-                    SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                    SpecNode(GASNodeType.INT_EXPR)
                 )
             }) {
             override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
@@ -233,7 +231,7 @@ class RV32Syntax {
                 Specific(","),
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.EXPRESSION_INTEGER)
+                SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.INT_EXPR)
             )}
         ),
         PS_RD_I32(
@@ -241,7 +239,7 @@ class RV32Syntax {
 
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                SpecNode(GASNodeType.INT_EXPR)
             )}
         ), // rd, imm
         PS_RS1_JLBL(
@@ -257,7 +255,7 @@ class RV32Syntax {
 
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                emulator.kit.assembler.Rule.Component.SpecNode(GASNodeType.EXPRESSION_INTEGER)
+                emulator.kit.assembler.Rule.Component.SpecNode(GASNodeType.INT_EXPR)
             )}
         ), // rd, label
         PS_JLBL(true, "jlabel", Rule{ Seq( InSpecific(Token.Type.SYMBOL))}),  // label
