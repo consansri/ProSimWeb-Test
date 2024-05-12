@@ -30,7 +30,7 @@ object DebugTools {
 
     const val KIT_showRuleChecks = false
     const val KIT_showGrammarTree = false
-    const val KIT_showPostFixExpressions = true
+    const val KIT_showPostFixExpressions = false
 
 
     val KIT_ValBinaryToolsDivisionLoopLimit: Long? = null
