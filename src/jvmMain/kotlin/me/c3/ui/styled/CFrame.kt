@@ -109,8 +109,8 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
 
         val logoButton = CIconButton(themeManager, scaleManager, icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
         val titleLabel = CLabel(themeManager, scaleManager, title, FontType.BASIC)
-        val minimizeButton = CIconButton(themeManager, scaleManager, icons.minimize, CIconButton.Mode.SECONDARY_SMALL)
-        val maximizeButton = CIconButton(themeManager, scaleManager, icons.maximize, CIconButton.Mode.SECONDARY_SMALL)
+        val minimizeButton = CIconButton(themeManager, scaleManager, icons.decrease, CIconButton.Mode.SECONDARY_SMALL)
+        val maximizeButton = CIconButton(themeManager, scaleManager, icons.increase, CIconButton.Mode.SECONDARY_SMALL)
         val closeButton = CIconButton(themeManager, scaleManager, icons.close, CIconButton.Mode.SECONDARY_SMALL)
         val titleContent = CPanel(themeManager, scaleManager, primary = false)
 

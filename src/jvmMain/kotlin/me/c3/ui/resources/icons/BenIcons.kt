@@ -50,17 +50,16 @@ class BenIcons : ProSimIcons {
     override val stepOver: FlatSVGIcon = FlatSVGIcon("benicons/step_over.svg")
     override val tag: FlatSVGIcon = FlatSVGIcon("benicons/tag.svg")
 
-    override val minimize: FlatSVGIcon = FlatSVGIcon("icons/minimize.svg")
-    override val maximize: FlatSVGIcon = FlatSVGIcon("icons/maximize.svg")
-    override val close: FlatSVGIcon = FlatSVGIcon("icons/close.svg")
+    override val decrease: FlatSVGIcon = FlatSVGIcon("benicons/decrease.svg")
+    override val increase: FlatSVGIcon = FlatSVGIcon("benicons/increase.svg")
+    override val close: FlatSVGIcon = FlatSVGIcon("benicons/close.svg")
 
-    override val folder: FlatSVGIcon = FlatSVGIcon("icons/folder.svg")
-    override val file: FlatSVGIcon = FlatSVGIcon("icons/file.svg")
-    override val asmFile: FlatSVGIcon = FlatSVGIcon("icons/asm-file.svg")
-    override val folderOpen: FlatSVGIcon = FlatSVGIcon("icons/chevron-down.svg")
-    override val folderClosed: FlatSVGIcon = FlatSVGIcon("icons/chevron-right.svg")
+    override val folder: FlatSVGIcon = FlatSVGIcon("benicons/folder.svg")
+    override val file: FlatSVGIcon = FlatSVGIcon("benicons/file.svg")
+    override val asmFile: FlatSVGIcon = FlatSVGIcon("benicons/asmfile.svg")
+    override val folderOpen: FlatSVGIcon = FlatSVGIcon("benicons/chevron-down.svg")
+    override val folderClosed: FlatSVGIcon = FlatSVGIcon("benicons/chevron-right.svg")
 
-    override val console: FlatSVGIcon = FlatSVGIcon("icons/console.svg")
-
+    override val console: FlatSVGIcon = FlatSVGIcon("benicons/console.svg")
 
 }

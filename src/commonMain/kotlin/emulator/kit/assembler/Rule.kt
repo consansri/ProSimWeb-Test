@@ -97,7 +97,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, matchingTokens, matchingNodes, remainingTokens, ignoredSpaces)
             }
 
-            override fun print(prefix: String): String = "$prefix{${comp.print("")}, ... }"
+            override fun print(prefix: String): String = "$prefix[${comp.print("")}, ... ]"
         }
 
         class Seq(vararg val comps: Component, private val ignoreSpaces: Boolean = true) : Component() {
@@ -129,7 +129,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, matchingTokens, matchingNodes, remaining, ignoredSpaces)
             }
 
-            override fun print(prefix: String): String = "$prefix${comps.joinToString("") { "${it.print(prefix + "\t")}" }}$prefix"
+            override fun print(prefix: String): String = "$prefix${comps.joinToString(" ") { it.print("") }}"
         }
 
         class Except(private val comp: Component) : Component() {
@@ -176,7 +176,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(prefix: String): String = "$prefix REG${if (inRegFile != null) "in ${inRegFile.name}" else ""} and ${if (notInRegFile != null) "not in ${notInRegFile.name}" else ""}]"
+            override fun print(prefix: String): String = "$prefix reg${if (inRegFile != null) "in ${inRegFile.name}" else ""} and ${if (notInRegFile != null) "not in ${notInRegFile.name}" else ""}"
 
         }
 
@@ -201,7 +201,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(first), listOf(), source - first)
             }
 
-            override fun print(prefix: String): String = "$prefix${type}"
+            override fun print(prefix: String): String = "$prefix\"${type.name}\""
         }
 
         class SpecNode(private val type: GASNodeType) : Component() {
@@ -215,7 +215,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
             }
 
-            override fun print(prefix: String): String = "$prefix${type.name}"
+            override fun print(prefix: String): String = "$prefix\"${type.name}\""
         }
 
         data object Nothing : Component() {
@@ -223,7 +223,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                 return MatchResult(true, listOf(), listOf(), source)
             }
 
-            override fun print(prefix: String): String = "$prefix[]"
+            override fun print(prefix: String): String = "$prefix{}"
         }
     }
 

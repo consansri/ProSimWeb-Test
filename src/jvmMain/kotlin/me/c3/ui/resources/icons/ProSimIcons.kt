@@ -51,8 +51,8 @@ interface ProSimIcons {
     val tag: FlatSVGIcon
 
     // Window Decorations
-    val minimize: FlatSVGIcon
-    val maximize: FlatSVGIcon
+    val decrease: FlatSVGIcon
+    val increase: FlatSVGIcon
     val close: FlatSVGIcon
 
     // File Tree Icons

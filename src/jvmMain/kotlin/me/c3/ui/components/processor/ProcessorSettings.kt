@@ -12,8 +12,8 @@ import javax.swing.SwingUtilities
 
 class ProcessorSettings(mainManager: MainManager, processorView: ProcessorView) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
-    val increaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.splitCells)
-    val decreaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.combineCells)
+    val increaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.increase)
+    val decreaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.decrease)
     val filler = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
     val pcLabel = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.CODE)
 
