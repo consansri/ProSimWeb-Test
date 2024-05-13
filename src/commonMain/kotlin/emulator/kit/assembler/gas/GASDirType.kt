@@ -840,6 +840,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
         )
     }),
+    STRING32(rule = Rule {
+        Seq(
+            Specific(".string32", ignoreCase = true),
+            SpecNode(GASNodeType.STRING_EXPR),
+            Optional {
+                Seq(Specific(","), SpecNode(GASNodeType.STRING_EXPR))
+            }
+        )
+    }),
     STRUCT(rule = Rule {
         Seq(
             Specific(".struct", ignoreCase = true),
@@ -1210,6 +1219,120 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 }
             }
 
+            STRING -> {
+                val ref = stmnt.getAllTokens().first()
+                val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
+                    it.evaluate(false)
+                }
+
+                strings.forEach { string ->
+                    val chunks = string.chunked(4).map {
+                        Variable.Tools.asciiToHex(it.reversed())
+                    }
+                    chunks.forEach { hexStr ->
+                        when (hexStr.length) {
+                            8 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                            }
+
+                            6 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16()), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8()), GASParser.Data.DataType.BYTE))
+                            }
+
+                            4 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                            }
+
+                            2 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8()), GASParser.Data.DataType.BYTE))
+                            }
+                        }
+                    }
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8()), GASParser.Data.DataType.BYTE))
+                }
+            }
+
+            STRING8 -> {
+                val ref = stmnt.getAllTokens().first()
+                val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
+                    it.evaluate(false)
+                }
+
+                strings.forEach { string ->
+                    val chunks = string.chunked(4).map {
+                        Variable.Tools.asciiToHex(it.reversed())
+                    }
+                    chunks.forEach { hexStr ->
+                        when (hexStr.length) {
+                            8 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                            }
+
+                            6 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16()), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8()), GASParser.Data.DataType.BYTE))
+                            }
+
+                            4 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                            }
+
+                            2 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8()), GASParser.Data.DataType.BYTE))
+                            }
+                        }
+                    }
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8()), GASParser.Data.DataType.BYTE))
+                }
+            }
+
+            STRING16 -> {
+                val ref = stmnt.getAllTokens().first()
+                val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
+                    it.evaluate(false)
+                }
+
+                strings.forEach { string ->
+                    val chunks = string.chunked(2).map {
+                        Variable.Tools.asciiToHex(it.reversed())
+                    }
+                    chunks.forEach { hexStr ->
+                        when (hexStr.length) {
+                            4 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                            }
+
+                            2 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                            }
+                        }
+                    }
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit16()), GASParser.Data.DataType.SHORT))
+                }
+            }
+
+            STRING32 -> {
+                val ref = stmnt.getAllTokens().first()
+                val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
+                    it.evaluate(false)
+                }
+
+                strings.forEach { string ->
+                    val chunks = string.map {
+                        Variable.Tools.asciiToHex(it.toString())
+                    }
+                    chunks.forEach { hexStr ->
+                        when (hexStr.length) {
+                            2 -> {
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                            }
+                        }
+                    }
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit32()), GASParser.Data.DataType.WORD))
+                }
+            }
+
             WORD -> {
                 val ref = stmnt.dir.getAllTokens().first()
                 val bytes = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
@@ -1267,6 +1390,76 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     }
                 }
                 cont.setOrReplaceSymbol(newSymbol)
+            }
+
+            EQUIV -> {
+                val symbolToken = stmnt.dir.allTokens.first { it.type == Token.Type.SYMBOL }
+                cont.symbols.firstOrNull { it.name == symbolToken.content }?.let {
+                    if (it !is GASParser.Symbol.Undefined) {
+                        throw Parser.ParserError(symbolToken, "Symbol is already defined!")
+                    }
+                }
+                symbolToken.hl(CodeStyle.symbol)
+                val newSymbol = when (val expr = stmnt.dir.additionalNodes.first() as? GASNode) {
+                    is GASNode.NumericExpr -> {
+                        GASParser.Symbol.IntegerExpr(symbolToken.content, expr)
+                    }
+
+                    is GASNode.StringExpr -> {
+                        GASParser.Symbol.StringExpr(symbolToken.content, expr)
+                    }
+
+                    else -> {
+                        GASParser.Symbol.Undefined(symbolToken.content)
+                    }
+                }
+                cont.setOrReplaceSymbol(newSymbol)
+            }
+
+            EQV -> {
+                val symbolToken = stmnt.dir.allTokens.first { it.type == Token.Type.SYMBOL }
+                cont.symbols.firstOrNull { it.name == symbolToken.content }?.let {
+                    if (it !is GASParser.Symbol.Undefined) {
+                        throw Parser.ParserError(symbolToken, "Symbol is already defined!")
+                    }
+                }
+                symbolToken.hl(CodeStyle.symbol)
+                val newSymbol = when (val expr = stmnt.dir.additionalNodes.first() as? GASNode) {
+                    is GASNode.NumericExpr -> {
+                        GASParser.Symbol.IntegerExpr(symbolToken.content, expr)
+                    }
+
+                    is GASNode.StringExpr -> {
+                        GASParser.Symbol.StringExpr(symbolToken.content, expr)
+                    }
+
+                    else -> {
+                        GASParser.Symbol.Undefined(symbolToken.content)
+                    }
+                }
+                cont.setOrReplaceSymbol(newSymbol)
+            }
+
+            ERR -> {
+                val token = stmnt.dir.allTokens.first()
+                throw Parser.ParserError(token, "thrown by Developer!")
+            }
+
+            ERROR -> {
+                val token = stmnt.dir.allTokens.first()
+                val stringExpr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull() ?: throw Parser.ParserError(token, "Expected String expression!")
+                throw Parser.ParserError(token, stringExpr.evaluate(true))
+            }
+
+            FAIL -> {
+                val token = stmnt.dir.allTokens.first()
+                val numericExpr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull() ?: throw Parser.ParserError(token, "Expected Numeric expression!")
+                val value = numericExpr.evaluate(true)
+                if (value >= Dec("500", Bit32())) {
+                    token.addSeverity(Severity.Type.WARNING, "Value is $value.")
+                } else {
+                    throw Parser.ParserError(token, "Value is $value!")
+                }
             }
 
             SET_ALT -> {
