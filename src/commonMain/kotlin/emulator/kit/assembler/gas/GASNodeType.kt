@@ -1,4 +1,4 @@
-package emulator.kit.assembler.gas.nodes
+package emulator.kit.assembler.gas
 
 import emulator.kit.assembler.Rule
 
@@ -13,5 +13,4 @@ enum class GASNodeType(val rule: Rule? = null) {
     DIRECTIVE,
     STATEMENT,
     ROOT,
-
 }

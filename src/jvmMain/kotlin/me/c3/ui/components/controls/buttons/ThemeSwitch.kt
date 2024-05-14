@@ -1,8 +1,7 @@
 package me.c3.ui.components.controls.buttons
 
-import me.c3.ui.components.styled.CIconButton
-import me.c3.ui.MainManager
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.styled.CIconButton
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 
 class ThemeSwitch(themeManager: ThemeManager, scaleManager: ScaleManager) : CIconButton(themeManager, scaleManager, mode = Mode.PRIMARY_NORMAL) {

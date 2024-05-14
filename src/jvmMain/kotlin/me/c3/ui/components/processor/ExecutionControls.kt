@@ -1,8 +1,8 @@
 package me.c3.ui.components.processor
 
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.CIconButton
-import me.c3.ui.components.styled.CPanel
+import me.c3.ui.styled.CIconButton
+import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CIconInput
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType

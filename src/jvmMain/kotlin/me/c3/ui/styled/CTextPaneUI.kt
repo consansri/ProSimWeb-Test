@@ -2,9 +2,8 @@ package me.c3.ui.styled
 
 import com.formdev.flatlaf.ui.FlatTextPaneUI
 import emulator.kit.assembler.CodeStyle
-import me.c3.emulator.kit.install
-import me.c3.ui.components.styled.CTextPane
-import me.c3.ui.spacing.ScaleManager
+import emulator.kit.install
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import javax.swing.BorderFactory
 import javax.swing.JComponent

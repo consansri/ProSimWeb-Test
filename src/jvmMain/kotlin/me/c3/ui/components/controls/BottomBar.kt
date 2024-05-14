@@ -3,8 +3,8 @@ package me.c3.ui.components.controls
 import emulator.kit.assembler.CodeStyle
 import kotlinx.coroutines.*
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.CLabel
-import me.c3.ui.components.styled.CPanel
+import me.c3.ui.styled.CLabel
+import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints

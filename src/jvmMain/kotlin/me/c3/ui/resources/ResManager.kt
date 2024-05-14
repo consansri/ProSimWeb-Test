@@ -1,4 +1,4 @@
-package me.c3.ui.components.resources
+package me.c3.ui.resources
 
 import emulator.Link
 import me.c3.ui.ArchManager

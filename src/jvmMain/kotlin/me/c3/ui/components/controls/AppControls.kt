@@ -3,8 +3,8 @@ package me.c3.ui.components.controls
 import emulator.kit.optional.Feature
 import me.c3.ui.components.controls.buttons.ThemeSwitch
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.CIconButton
-import me.c3.ui.components.styled.CPanel
+import me.c3.ui.styled.CIconButton
+import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.BorderMode

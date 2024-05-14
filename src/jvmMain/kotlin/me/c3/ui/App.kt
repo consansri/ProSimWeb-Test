@@ -2,12 +2,11 @@ package me.c3.ui
 
 import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
-import me.c3.ui.MainManager
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.CFrame
 import me.c3.ui.styled.editor.CEditor
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.icons.BenIcons
+import me.c3.ui.resources.icons.BenIcons
 import me.c3.ui.components.NativeFrame
 import java.awt.BorderLayout
 import java.awt.Dimension

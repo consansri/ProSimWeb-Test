@@ -1,8 +1,7 @@
 package emulator.kit.assembler
 
-import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
-import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.lexer.Token
 
 interface DirTypeInterface {

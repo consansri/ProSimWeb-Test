@@ -1,30 +1,33 @@
-package emulator.kit.assembler.gas.nodes
+package emulator.kit.assembler.gas
 
 import debug.DebugTools
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
+import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
-import emulator.kit.assembler.gas.DefinedAssembly
-import emulator.kit.assembler.gas.GASParser
+import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
-import emulator.kit.assembler.parser.NodeSeq.Component.*
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
 
 /**
+ * Node Relatives
  * --------------------
  * 1. [Root]
- *   - [Section]
- *
- * --------------------
- * 2. [Section]
  *   - [Statement]
  * --------------------
- * 3.
+ * 2. [Statement]
+ *   Each Statement can contain an optional [Label]
+ *
+ *   - [Statement.Empty] No Content
+ *   - [Statement.Dir] Content determined by [DirTypeInterface]
+ *   - [Statement.Instr] Content determined by [InstrTypeInterface]
+ *   - [Statement.Unresolved] Unresolved Content
+ * --------------------
  *
  */
 sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
@@ -234,18 +237,6 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
     }
 
-
-    /**
-     * [Root]
-     * - [Section]
-     *
-     *
-     * [Root] has minimum 3 Sections
-     *  - TEXT
-     *  - DATA
-     *  - BSS
-     *
-     */
     class Root(vararg statements: Statement) : GASNode(*statements) {
         fun removeEmptyStatements() {
             ArrayList(children).filterIsInstance<Statement.Empty>().forEach {
@@ -258,7 +249,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
     /**
      * [Statement]
+     * Each Statement can contain an optional [Label].
      *
+     *  - [Statement.Empty] No Content
+     *  - [Statement.Dir] Content determined by [Directive]
+     *  - [Statement.Instr] Content determined by [RawInstr]
+     *  - [Statement.Unresolved] Unresolved Content
      */
     sealed class Statement(val label: Label?, lineBreak: Token, vararg childs: Node) : GASNode() {
         init {
@@ -271,17 +267,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
         fun contentBackToString(): String = getAllTokens().sortedBy { it.id }.joinToString("") { it.content }
 
-        class Dir(label: Label?, val dir: Directive, lineBreak: Token) : Statement(label, lineBreak, dir) {
-            fun resolve(macros: MutableList<GASParser.Macro>, sections: MutableList<GASParser.Section>) {
+        class Dir(label: Label?, val dir: Directive, lineBreak: Token) : Statement(label, lineBreak, dir)
 
-            }
-        }
+        class Instr(label: Label?, val rawInstr: RawInstr, lineBreak: Token) : Statement(label, lineBreak, rawInstr)
 
-        class Instr(label: Label?, val rawInstr: RawInstr, lineBreak: Token) : Statement(label, lineBreak, rawInstr) {
-
-        }
-
-        class Unresolved(label: Label?, val lineTokens: List<Token>, lineBreak: Token) : Statement(label, lineBreak, *lineTokens.map { BaseNode(it) }.toTypedArray()) {
+        class Unresolved(label: Label?, lineTokens: List<Token>, lineBreak: Token) : Statement(label, lineBreak, *lineTokens.map { BaseNode(it) }.toTypedArray()) {
             init {
                 lineTokens.firstOrNull()?.addSeverity(Severity.Type.ERROR, "Found unresolved statement!")
             }
@@ -312,7 +302,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             override fun getDefaultValue(): String = ""
         }
 
-        class DefaultValue(argName: Token, val assignment: Token, val expression: Node? = null, val spaces: List<Token>) : Argument(argName) {
+        class DefaultValue(argName: Token, assignment: Token, private val expression: Node? = null, spaces: List<Token>) : Argument(argName) {
             init {
                 expression?.let {
                     addChild(expression)
@@ -326,7 +316,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
     }
 
-    sealed class ArgDef(val content: List<Token>, val spaces: List<Token>) : GASNode() {
+    sealed class ArgDef(val content: List<Token>, spaces: List<Token>) : GASNode() {
         init {
             addChilds(*content.map { BaseNode(it) }.toTypedArray())
             addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
@@ -344,7 +334,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
         }
 
-        class Named(val name: Token, val assignment: Token, content: List<Token>, spaces: List<Token>) : ArgDef(content, spaces) {
+        class Named(val name: Token, assignment: Token, content: List<Token>, spaces: List<Token>) : ArgDef(content, spaces) {
             init {
                 addChild(BaseNode(assignment))
                 addChild(BaseNode(name))
@@ -384,12 +374,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
         abstract fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>)
 
-        class Concatenation(spaces: List<Token>, exprs: Array<StringExpr>) : StringExpr(spaces, *exprs) {
-            val exprs: Array<StringExpr>
-
-            init {
-                this.exprs = exprs
-            }
+        class Concatenation(spaces: List<Token>, private val exprs: Array<StringExpr>) : StringExpr(spaces, *exprs) {
 
             override fun evaluate(printErrors: Boolean): String = exprs.joinToString("") { it.evaluate(printErrors) }
             override fun replaceIdentifierWithExpr(assignedSymbols: List<GASParser.Symbol>) {
@@ -406,7 +391,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             }
 
             class Identifier(val symbol: Token) : Operand(symbol) {
-                var expr: StringExpr? = null
+                private var expr: StringExpr? = null
                 override fun evaluate(printErrors: Boolean): String {
                     val currExpr = expr
 
@@ -623,7 +608,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     uncheckedLast3 == null -> null
                     uncheckedLast3.type.isOperator -> buildExpressionFromPostfixNotation(tokens, brackets, spaces)
                     uncheckedLast3.type == Token.Type.SYMBOL -> Operand.Identifier(tokens.removeLast())
-                    uncheckedLast3.type.isNumberLiteral ->                         Operand.Number(tokens.removeLast())
+                    uncheckedLast3.type.isNumberLiteral -> Operand.Number(tokens.removeLast())
                     uncheckedLast3.type.isCharLiteral -> Operand.Char(tokens.removeLast())
                     else -> null
                 }
@@ -644,9 +629,9 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             /**
              * [convertToPostfix] converts infix notated expression to postfix notated expression
              *
-             * Operators: [Token.OPERATOR] -> Precedence through [Token.OPERATOR.operatorType] which contains [Token.OPERATOR.Precedence]
-             * Operands: [Token.LITERAL]
-             * Brackets: [Token.PUNCTUATION]
+             * Operators: [Token.Type.isOperator] -> Precedence through [Token.getPrecedence] which contains [Token.Precedence]
+             * Operands: [Token.Type.isLiteral]
+             * Brackets: [Token.Type.isBasicBracket]
              *
              */
             private fun convertToPostfix(infix: List<Token>): List<Token> {
@@ -712,7 +697,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          * - [operator] [Operand]
          *
          */
-        class Prefix(val operator: Token, val operand: NumericExpr, brackets: List<Token>, spaces: List<Token>) : NumericExpr(spaces, brackets, operand) {
+        class Prefix(private val operator: Token, private val operand: NumericExpr, brackets: List<Token>, spaces: List<Token>) : NumericExpr(spaces, brackets, operand) {
 
             init {
                 addChild(BaseNode(operator))
@@ -746,7 +731,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
          * [Classic]
          * - [operandA] [operator] [operandB]
          */
-        class Classic(val operandA: NumericExpr, val operator: Token, val operandB: NumericExpr, brackets: List<Token>, spaces: List<Token>) : NumericExpr(spaces, brackets, operandA, operandB) {
+        class Classic(private val operandA: NumericExpr, private val operator: Token, private val operandB: NumericExpr, brackets: List<Token>, spaces: List<Token>) : NumericExpr(spaces, brackets, operandA, operandB) {
 
             init {
                 addChild(BaseNode(operator))
@@ -950,7 +935,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
             }
 
-            class Char(val char: Token) : Operand(char) {
+            class Char(char: Token) : Operand(char) {
 
                 val value: Variable.Value.Dec
 

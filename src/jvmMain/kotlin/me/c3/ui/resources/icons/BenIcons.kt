@@ -1,7 +1,6 @@
-package me.c3.ui.theme.icons
+package me.c3.ui.resources.icons
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import java.awt.Image
 
 class BenIcons : ProSimIcons {
 

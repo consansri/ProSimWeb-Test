@@ -1,11 +1,11 @@
-package emulator.kit.assembly.standards
+package emulator.kit.optional
 
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
 import kotlin.time.measureTime
 
-abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
+abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
     override fun exeContinuous() {
         var instrCount = 0
         val measuredTime = measureTime {
@@ -22,7 +22,6 @@ abstract class StandardArch(config: Config, asmConfig: AsmConfig) : emulator.kit
     }
 
     override fun exeSingleStep() {
-
         val measuredTime = measureTime {
             super.exeSingleStep() // clears console
             executeNext()

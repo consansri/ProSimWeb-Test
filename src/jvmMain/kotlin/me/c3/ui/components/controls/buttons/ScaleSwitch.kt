@@ -1,8 +1,7 @@
 package me.c3.ui.components.controls.buttons
 
-import emulator.Link
 import me.c3.ui.MainManager
-import me.c3.ui.spacing.core.Scaling
+import me.c3.ui.scale.core.Scaling
 import me.c3.ui.styled.CComboBox
 import me.c3.ui.styled.params.FontType
 import java.awt.event.ActionEvent

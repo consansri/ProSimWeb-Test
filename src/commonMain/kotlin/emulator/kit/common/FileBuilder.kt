@@ -11,7 +11,7 @@ import kotlin.math.pow
 import kotlin.math.roundToLong
 
 /**
- * The [FileBuilder] can [build] [ExportFormat]'s which then will be returned as a [Blob]. In addition to that the [FileBuilder] can receive [Setting]'s which allow to control the fileoutput in certain aspects.
+ * The [FileBuilder] can [buildFileContentLines] [ExportFormat]'s which then will be returned as a List<String>. In addition to that the [FileBuilder] can receive [Setting]'s which allow to control the fileoutput in certain aspects.
  *
  *
  */

@@ -2,8 +2,8 @@ package me.c3.ui.components.docs
 
 import emulator.kit.common.Docs
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.CLabel
-import me.c3.ui.components.styled.CPanel
+import me.c3.ui.styled.CLabel
+import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CTextArea
 import me.c3.ui.styled.params.BorderMode

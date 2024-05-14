@@ -1,4 +1,4 @@
-package me.c3.ui.spacing.core
+package me.c3.ui.scale.core
 
 import me.c3.ui.scale.core.components.*
 

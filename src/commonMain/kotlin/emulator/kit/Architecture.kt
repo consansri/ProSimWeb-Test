@@ -8,7 +8,7 @@ import emulator.kit.types.Variable
 
 import debug.DebugTools
 import emulator.kit.assembler.*
-import emulator.kit.assembler.gas.DefinedAssembly
+import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 
@@ -26,17 +26,13 @@ import emulator.kit.optional.Feature
  *
  *  Essential Features
  *  @property description Essential: Given by Config
- *  @property fileHandler Essential: Given by Config
  *  @property regContainer Essential: Given by Config
  *  @property memory Essential: Given by Config
- *  @property transcript Essential: Given by Config
  *
  *  @property iConsole Instantiated with Config name
- *  @property archState Instantiated
  *  @property compiler Instantiated with AsmConfig grammar and assembly and ArchConst COMPILER_REGEX and StandardHL
  *
  *  Possible Features
- *  @property flagsConditions Not Essential: Possibly given by Config
  *  @property cache Not Essential: Possibly given by Config
  *
  */
@@ -46,7 +42,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val regContainer: RegContainer
     private val memory: Memory
     private val iConsole: IConsole
-    private val compiler: CompilerInterface
+    private val compiler: Compiler
     private val cache: Cache?
     private val features: List<Feature>
     private val settings: List<ArchSetting>
@@ -74,7 +70,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getRegContainer(): RegContainer = regContainer
     fun getMemory(): Memory = memory
     fun getConsole(): IConsole = iConsole
-    fun getCompiler(): CompilerInterface = compiler
+    fun getCompiler(): Compiler = compiler
     fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: CompilerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings

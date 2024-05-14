@@ -3,7 +3,7 @@ package me.c3.ui.theme.themes
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.core.style.*
-import me.c3.ui.theme.icons.ProSimIcons
+import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.Color
 
 class DarkTheme(icons: ProSimIcons) : Theme {

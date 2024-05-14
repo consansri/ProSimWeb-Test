@@ -1,12 +1,12 @@
 package me.c3.ui.styled
 
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.Color
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
 
-open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean,  vararg val columnAlignments: Int, private val shouldDrawComponents: Boolean = false) : JTable(tableModel) {
+open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int, private val shouldDrawComponents: Boolean = false) : JTable(tableModel) {
 
     val clickableHeaderIds = mutableListOf<Int>()
 

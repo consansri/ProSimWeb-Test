@@ -1,10 +1,7 @@
 package emulator.kit.assembler.gas
 
-import debug.DebugTools
 import emulator.kit.assembler.*
-import emulator.kit.assembler.gas.nodes.GASNode
-import emulator.kit.assembler.gas.nodes.GASNode.*
-import emulator.kit.assembler.gas.nodes.GASNodeType
+import emulator.kit.assembler.gas.GASNode.*
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
@@ -19,7 +16,7 @@ import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value
 
-class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembly) : Parser(compiler) {
+class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly) : Parser(compiler) {
     override fun getDirs(features: List<Feature>): List<DirTypeInterface> = definedAssembly.getAdditionalDirectives() + GASDirType.entries
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = definedAssembly.getInstrs(features)
     override fun parseTree(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): TreeResult {
@@ -112,8 +109,8 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         var currentAddress: Value = Hex("0", definedAssembly.MEM_ADDRESS_SIZE)
         val sectionAddressMap = mutableMapOf<Section, Hex>()
         sections.forEach {
-            sectionAddressMap.set(it, currentAddress.toHex())
-            currentAddress += it.lastOffset
+            sectionAddressMap[it] = currentAddress.toHex()
+            currentAddress += it.getLastAddress()
         }
 
         /**
@@ -150,14 +147,16 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
     }
 
     /**
-     * Filter the [tokens] and Build up the List of Matching [GASElement]s
+     * Filters the [tokens] for only relevant ones for the parsing process.
+     *
+     * - Replaces comments with whitespaces
      */
     private fun filter(tokens: List<Token>): List<Token> {
         val remaining = tokens.toMutableList()
         if (remaining.lastOrNull()?.type != Token.Type.LINEBREAK) {
             remaining.lastOrNull()?.addSeverity(Severity.Type.WARNING, "File should end with a linebreak!")
         }
-        val elements = mutableListOf<Token>()
+        val filtered = mutableListOf<Token>()
 
         while (remaining.isNotEmpty()) {
             // Add Base Node if not found any special node
@@ -168,20 +167,18 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
                 else -> false
             }
 
-            if (!replaceWithSpace) elements.add(remaining.removeFirst()) else {
+            if (!replaceWithSpace) filtered.add(remaining.removeFirst()) else {
                 val replacing = remaining.removeFirst()
-                elements.add(Token(Token.Type.WHITESPACE, replacing.lineLoc, " ", replacing.id))
+                filtered.add(Token(Token.Type.WHITESPACE, replacing.lineLoc, " ", replacing.id))
             }
         }
 
-        // Remove Spaces between DIRECTIVE and LINEBREAK
-
-        return elements
+        return filtered
     }
 
     data class TempContainer(
         val definedAssembly: DefinedAssembly,
-        val compiler: CompilerInterface,
+        val compiler: Compiler,
         val others: List<CompilerFile>,
         val features: List<Feature>,
         val root: Root,
@@ -193,7 +190,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         fun pseudoTokenize(pseudoOf: Token, content: String): List<Token> = compiler.lexer.pseudoTokenize(pseudoOf, content)
 
-        fun parse(tokens: List<Token>): List<GASNode.Statement> {
+        fun parse(tokens: List<Token>): List<Statement> {
             val tree = compiler.parser.parseTree(tokens, others, features)
             return tree.rootNode?.getAllStatements() ?: listOf()
         }
@@ -296,7 +293,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
     data class Section(val name: String, val addressSize: Variable.Size, var flags: String = "") {
         private val content: MutableList<MappedContent<*>> = mutableListOf()
-        var lastOffset: Value = Hex("0", addressSize)
+        private var lastOffset: Value = Hex("0", addressSize)
 
         private var sectionStart: Hex = Hex("0", addressSize)
 
@@ -305,7 +302,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
             lastOffset += Hex(sectionContent.bytesNeeded.toString(16), addressSize)
         }
 
-        fun getLastAddress(addressSize: Variable.Size): Value {
+        fun getLastAddress(): Value {
             return lastOffset
         }
 
@@ -347,6 +344,25 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         data class BundledContent(val address: Hex, val bytes: Array<Bin>, val content: String, val label: List<Label>) {
             fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString(), label.joinToString("\n") { it.getContentString() }, bytes.joinToString("\n") { it.toHex().getRawHexStr() }, content)
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other !is BundledContent) return false
+
+                if (address != other.address) return false
+                if (!bytes.contentEquals(other.bytes)) return false
+                if (content != other.content) return false
+                if (label != other.label) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = address.hashCode()
+                result = 31 * result + bytes.contentHashCode()
+                result = 31 * result + content.hashCode()
+                result = 31 * result + label.hashCode()
+                return result
+            }
         }
     }
 
@@ -364,7 +380,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
         fun getContentString(): String
     }
 
-    class Data(val referenceToken: Token, val bin: Hex, val type: DataType) : SecContent {
+    class Data(private val referenceToken: Token, val bin: Hex, val type: DataType) : SecContent {
         override val bytesNeeded: Int = bin.size.getByteCount()
 
         override fun getFirstToken(): Token = referenceToken
@@ -373,7 +389,7 @@ class GASParser(compiler: CompilerInterface, val definedAssembly: DefinedAssembl
 
         override fun getBinaryArray(yourAddr: Value, labels: List<Pair<Label, Hex>>): Array<Bin> = arrayOf(bin.toBin())
 
-        override fun getContentString(): String = ".${type.name.lowercase()} ${bin}"
+        override fun getContentString(): String = ".${type.name.lowercase()} $bin"
 
         enum class DataType {
             BYTE,

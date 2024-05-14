@@ -1179,7 +1179,6 @@ class Variable {
 
     /**
      * Bounds are used to check if a specific [Value] is in it's [Bounds]. Sizes won't need to be defined.
-     * throws an [CommonConsole].[error] if the [Bounds] of a specific [Size] isn't defined.
      */
     class Bounds {
 

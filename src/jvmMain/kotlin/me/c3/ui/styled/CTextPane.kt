@@ -1,7 +1,6 @@
-package me.c3.ui.components.styled
+package me.c3.ui.styled
 
-import me.c3.ui.spacing.ScaleManager
-import me.c3.ui.styled.CTextPaneUI
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JScrollPane
 import javax.swing.JTextPane

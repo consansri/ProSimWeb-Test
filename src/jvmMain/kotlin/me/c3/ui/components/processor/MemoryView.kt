@@ -6,8 +6,8 @@ import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
 import me.c3.ui.components.processor.models.MemTableModel
-import me.c3.ui.components.styled.CPanel
-import me.c3.ui.components.styled.CScrollPane
+import me.c3.ui.styled.CPanel
+import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities

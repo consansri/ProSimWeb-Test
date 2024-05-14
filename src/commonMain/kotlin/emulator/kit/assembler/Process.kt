@@ -29,14 +29,14 @@ data class Process(
         /**
          * Tokenization
          *
-         * returns [tokens]
+         * returns tokens
          */
         val tokens = lexer.tokenize(file)
 
         /**
          * Parsing the Tree
          *
-         * returns [tree]
+         * returns tree
          */
         state = State.PARSETREE
         val treeResult = parser.parseTree(tokens, otherFiles, features)
@@ -51,7 +51,7 @@ data class Process(
         /**
          * Semantic Analysis
          *
-         * returns [parsedRes]
+         * returns parsed Result
          */
         state = State.SEMANTICANALYSIS
         val sectionResult = parser.semanticAnalysis(lexer,treeResult, otherFiles, features)
@@ -63,7 +63,7 @@ data class Process(
         /**
          * Store Sections
          *
-         * returns [lineMap]
+         * returns lineMap
          */
         state = State.STORETOMEMORY
         val lineMap = storeToMemory(sectionResult.sections, memory)

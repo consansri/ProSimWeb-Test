@@ -1,6 +1,6 @@
-package me.c3.ui.components.styled
+package me.c3.ui.styled
 
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.CTextButtonUI
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager

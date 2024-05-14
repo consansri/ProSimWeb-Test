@@ -1,11 +1,10 @@
 package emulator.kit.assembler.gas
 
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
-import emulator.kit.assembler.gas.nodes.GASNode
-import emulator.kit.assembler.gas.nodes.GASNodeType
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
@@ -1097,7 +1096,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     exprs[2].evaluate(true)
                 } else null
 
-                val lastOffset = cont.currSection.lastOffset
+                val lastOffset = cont.currSection.getLastAddress()
 
                 val padding = (alignment - (lastOffset % alignment)).toDec().toIntOrNull() ?: throw Parser.ParserError(exprs[0].getAllTokens().first(), "Couldn't convert Numeric Expr to Int!")
                 if (padding == alignment.toIntOrNull()) return

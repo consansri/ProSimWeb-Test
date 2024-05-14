@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.c3.ui.components.editor.CodeEditor
-import me.c3.ui.components.styled.CTree
+import me.c3.ui.styled.CTree
 import me.c3.ui.styled.CMenuItem
 import me.c3.ui.styled.COptionPane
 import me.c3.ui.styled.CPopupMenu

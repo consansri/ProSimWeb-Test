@@ -1,16 +1,13 @@
 package emulator.kit.assembler.parser
 
-import emulator.kit.assembler.CompilerFile
-import emulator.kit.assembler.CompilerInterface
-import emulator.kit.assembler.DirTypeInterface
-import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.*
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.optional.Feature
 
-abstract class Parser(val compiler: CompilerInterface) {
+abstract class Parser(val compiler: Compiler) {
 
     val treeCache: MutableMap<CompilerFile, TreeResult> = mutableMapOf()
     abstract fun getInstrs(features: List<Feature>): List<InstrTypeInterface>

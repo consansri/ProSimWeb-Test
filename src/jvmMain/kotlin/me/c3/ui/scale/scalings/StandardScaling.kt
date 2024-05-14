@@ -1,7 +1,7 @@
 package me.c3.ui.scale.scalings
 
 import me.c3.ui.scale.core.components.*
-import me.c3.ui.spacing.core.Scaling
+import me.c3.ui.scale.core.Scaling
 
 class StandardScaling : Scaling {
     override val name: String = "100%"

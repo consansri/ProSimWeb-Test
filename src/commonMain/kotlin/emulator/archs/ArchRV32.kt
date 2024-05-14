@@ -3,9 +3,9 @@ package emulator.archs
 import emulator.archs.riscv32.RV32
 import emulator.archs.riscv32.RV32BinMapper
 import emulator.archs.riscv32.RV32Syntax
-import emulator.kit.assembly.standards.StandardArch
+import emulator.kit.optional.BasicArchImpl
 
-class ArchRV32 : StandardArch(RV32.config, RV32.asmConfig) {
+class ArchRV32 : BasicArchImpl(RV32.config, RV32.asmConfig) {
     override fun executeNext(): ExecutionResult {
         val currentPc = getRegContainer().pc.get().toHex()
         val instrBin = getMemory().load(currentPc, RV32.WORD_WIDTH.getByteCount())

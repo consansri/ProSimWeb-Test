@@ -2,7 +2,7 @@ package emulator.archs.riscv32
 
 
 import emulator.kit.types.Variable
-import emulator.kit.assembler.gas.nodes.GASNodeType
+import emulator.kit.assembler.gas.GASNodeType
 import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
 import emulator.kit.assembler.InstrTypeInterface
@@ -231,7 +231,7 @@ class RV32Syntax {
                 Specific(","),
                 Reg(RV32.standardRegFile),
                 Specific(","),
-                SpecNode(emulator.kit.assembler.gas.nodes.GASNodeType.INT_EXPR)
+                SpecNode(GASNodeType.INT_EXPR)
             )}
         ),
         PS_RD_I32(

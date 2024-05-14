@@ -7,7 +7,7 @@ import emulator.kit.common.Memory
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
-import emulator.kit.assembler.gas.nodes.GASNodeType
+import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.types.Variable
 
 class IKRMiniSyntax {

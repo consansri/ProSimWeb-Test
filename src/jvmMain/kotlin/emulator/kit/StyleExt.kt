@@ -1,11 +1,9 @@
-package me.c3.emulator.kit
+package emulator.kit
 
-import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.IConsole
 import emulator.kit.assembler.lexer.Token
 import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.core.style.CodeLaF
-import org.apache.bcel.classfile.Code
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import javax.swing.JTextPane

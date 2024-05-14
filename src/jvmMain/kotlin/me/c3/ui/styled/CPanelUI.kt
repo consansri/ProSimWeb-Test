@@ -1,14 +1,8 @@
 package me.c3.ui.styled
 
-import me.c3.ui.components.styled.CPanel
-import me.c3.ui.spacing.ScaleManager
-import me.c3.ui.styled.borders.DirectionalBorder
-import me.c3.ui.styled.params.BorderMode
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.core.ui.UIAdapter
 import java.awt.*
-import javax.swing.AbstractButton
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPanelUI
 

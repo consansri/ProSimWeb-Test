@@ -1,7 +1,7 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.assembler.CodeStyle
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import javax.swing.BorderFactory

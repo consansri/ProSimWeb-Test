@@ -1,8 +1,8 @@
 package me.c3.ui.components.processor
 
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.CPanel
-import me.c3.ui.components.styled.CSplitPane
+import me.c3.ui.styled.CPanel
+import me.c3.ui.styled.CSplitPane
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout

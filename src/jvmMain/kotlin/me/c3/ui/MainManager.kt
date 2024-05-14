@@ -7,11 +7,10 @@ import kotlinx.coroutines.launch
 import me.c3.ui.components.controls.BottomBar
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.events.EventManager
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.icons.BenIcons
+import me.c3.ui.resources.icons.BenIcons
 import java.nio.file.Paths
-import javax.swing.SwingUtilities
 
 
 class MainManager {

@@ -1,10 +1,8 @@
 package me.c3.ui.styled.editor
 
-import kotlinx.coroutines.*
-import me.c3.ui.components.styled.CLabel
-import me.c3.ui.components.styled.CPanel
-import me.c3.ui.spacing.ScaleManager
-import me.c3.ui.styled.editor.CEditorArea
+import me.c3.ui.styled.CLabel
+import me.c3.ui.styled.CPanel
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.BorderLayout

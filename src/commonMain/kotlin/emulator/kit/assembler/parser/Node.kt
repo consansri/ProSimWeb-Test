@@ -75,7 +75,7 @@ sealed class Node {
         }
 
         fun removeChilds(childs: List<Node>){
-            children.removeAll(childs)
+            children.removeAll(childs.toSet())
         }
 
         fun removeAllChildren() {
@@ -96,7 +96,7 @@ sealed class Node {
         }
 
         override fun searchBaseNode(token: Token, prevPath: List<Node>): Parser.SearchResult? {
-            children.forEach {
+            children.forEach { _ ->
                 val subResult = searchBaseNode(token, prevPath + this)
                 if (subResult != null) {
                     return subResult

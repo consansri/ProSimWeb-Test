@@ -2,11 +2,10 @@ package emulator.archs.ikrrisc2
 
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.gas.DefinedAssembly
+import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
-import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.lexer.Lexer
-import emulator.kit.assembler.lexer.Token
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 

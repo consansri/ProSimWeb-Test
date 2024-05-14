@@ -1,6 +1,6 @@
 package me.c3.ui.styled.editor
 
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.*
 import java.awt.event.MouseAdapter

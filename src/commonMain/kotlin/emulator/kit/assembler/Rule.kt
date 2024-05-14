@@ -1,11 +1,10 @@
 package emulator.kit.assembler
 
 import debug.DebugTools
-import emulator.kit.assembler.gas.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
-import emulator.kit.assembler.gas.nodes.GASNode
-import emulator.kit.assembler.gas.nodes.GASNode.Companion.dropSpaces
-import emulator.kit.assembler.gas.nodes.GASNodeType
+import emulator.kit.assembler.gas.GASNode
+import emulator.kit.assembler.gas.GASNode.Companion.dropSpaces
+import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 import emulator.kit.common.RegContainer

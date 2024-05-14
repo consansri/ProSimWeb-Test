@@ -1,10 +1,9 @@
 package me.c3.ui.components.editor
 
-import emulator.kit.nativeInfo
 import kotlinx.coroutines.*
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.*
 import me.c3.ui.styled.CAdvancedTabPane
+import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.params.FontType
 import java.io.File
 import javax.swing.*

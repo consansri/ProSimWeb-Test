@@ -1,6 +1,6 @@
 package emulator.kit.assembler.parser
 
-import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 

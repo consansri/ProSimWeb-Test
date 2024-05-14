@@ -1,8 +1,7 @@
-package me.c3.ui.components.styled
+package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.spacing.ScaleManager
-import me.c3.ui.styled.CIconButtonUI
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.Color
 import java.awt.Graphics

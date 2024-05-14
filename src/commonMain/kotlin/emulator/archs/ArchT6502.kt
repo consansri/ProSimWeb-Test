@@ -3,12 +3,12 @@ package emulator.archs
 import emulator.archs.t6502.AModes
 import emulator.archs.t6502.InstrType
 import emulator.archs.t6502.T6502
-import emulator.kit.assembly.standards.StandardArch
+import emulator.kit.optional.BasicArchImpl
 
 /**
  * MOS Technology 6502 Architecture
  */
-class ArchT6502 : StandardArch(T6502.config, T6502.asmConfig) {
+class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
     override fun executeNext(): ExecutionResult {
         val currentPC = getRegContainer().pc.get().toHex()
         val threeBytes = getMemory().loadArray(currentPC, 3)

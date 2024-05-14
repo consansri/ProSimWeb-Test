@@ -26,13 +26,6 @@ object Settings {
      */
     const val EDITOR_MAX_ANALYSIS_MILLIS = 2000
 
-    // COMPILER
-    /**
-     * [COMPILER_TOKEN_PSEUDOID] defines the pseudo id of compiler tokens which have no real text representation.
-     * They are generated through the [Compiler.pseudoTokenize] function which is used to analyze code which is for example generated through a macro.
-     */
-    const val COMPILER_TOKEN_PSEUDOID = -100
-
     // TYPE IDENTIFICATION
     /**
      * [PRESTRING_HEX] defines the prefix of hexadecimal values.

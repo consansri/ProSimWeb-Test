@@ -1,8 +1,7 @@
-package emulator.kit.assembler.gas
+package emulator.kit.assembler
 
-import emulator.kit.assembler.DirTypeInterface
-import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.gas.nodes.GASNode
+import emulator.kit.assembler.gas.GASParser
+import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable

@@ -1,12 +1,11 @@
 package me.c3.ui.styled
 
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
-import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicMenuItemUI

@@ -1,9 +1,8 @@
-package me.c3.ui.spacing
+package me.c3.ui.scale
 
 import emulator.kit.nativeLog
 import me.c3.ui.scale.scalings.StandardScaling
-import me.c3.ui.spacing.core.Scaling
-import me.c3.ui.scale.scalings.LargeScaling
+import me.c3.ui.scale.core.Scaling
 import me.c3.ui.scale.scalings.LargerScaling
 import me.c3.ui.scale.scalings.SmallScaling
 

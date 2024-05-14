@@ -5,8 +5,8 @@ import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.CPanel
-import me.c3.ui.components.styled.CScrollPane
+import me.c3.ui.styled.CPanel
+import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
 import me.c3.ui.styled.CVerticalLabel
 import me.c3.ui.styled.params.BorderMode

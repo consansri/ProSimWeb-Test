@@ -9,13 +9,13 @@ import me.c3.ui.components.controls.TopControls
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.editor.EditorControls
 import me.c3.ui.components.processor.ProcessorView
-import me.c3.ui.components.styled.CSplitPane
+import me.c3.ui.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.icons.ProSimIcons
+import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.components.docs.InfoView
 
 interface ProSimFrame {

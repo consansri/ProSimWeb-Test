@@ -2,11 +2,10 @@ package emulator.archs
 
 import emulator.archs.ikrmini.IKRMini
 import emulator.archs.ikrmini.IKRMiniSyntax
-import emulator.kit.assembly.standards.StandardArch
-import emulator.kit.types.Variable
+import emulator.kit.optional.BasicArchImpl
 import emulator.kit.types.Variable.Value.*
 
-class ArchIKRMini : StandardArch(IKRMini.config, IKRMini.asmConfig) {
+class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
 
     override fun executeNext(): ExecutionResult {
 

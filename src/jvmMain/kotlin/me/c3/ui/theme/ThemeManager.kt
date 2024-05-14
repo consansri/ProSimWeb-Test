@@ -1,8 +1,7 @@
 package me.c3.ui.theme
 
-import emulator.kit.nativeLog
 import me.c3.ui.theme.core.Theme
-import me.c3.ui.theme.icons.ProSimIcons
+import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.theme.themes.DarkTheme
 import me.c3.ui.theme.themes.LightTheme
 

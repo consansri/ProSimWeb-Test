@@ -21,9 +21,7 @@ import emulator.kit.common.Docs.DocComponent.*
  *
  * The implemented docs are generated in [riscVDocs].
  *
- * [RV32Syntax] and [RV32Assembly] are linked through the [asmConfig], while every other architecture configuration is defined in [config] such as the name, [Description], [FileHandler], [RegContainer], [Memory] and [Transcript].
- *
- * Transcript Header References are defined through [TsCompiledHeaders] and [TsDisassembledHeaders].
+ * [RV32Syntax] and [RV32Assembler] are linked through the [asmConfig], while every other architecture configuration is defined in [config] such as the name, [Description], [RegContainer] and [Memory].
  *
  */
 object RV32 {

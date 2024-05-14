@@ -6,6 +6,15 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 
+/**
+ * [Token]s will be created by the [Lexer] and further be used by the Parser to create Nodes out of it.
+ * @property type identificates [Token.Type].
+ * @property lineLoc identificates the file location ([LineLoc]) of the token.
+ * @property id contains an [Int] from which the place in a sequence of multiple tokens always can be determined.
+ * @property isPseudoOf when creating tokens from pseudo content it is important to link them to a real token to display severities the right way.
+ * @property severities a [Token] can hold multiple Messages.
+ * @property codeStyle holds the style information for Editors.
+ */
 class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: Int, val onlyNumber: String = "", val reg: RegContainer.Register? = null, val dir: DirTypeInterface? = null, val instr: InstrTypeInterface? = null, var isPseudoOf: Token? = null) {
     private var isPrefix = false
     private var severities: MutableList<Severity> = mutableListOf()
@@ -229,7 +238,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         }
     }
 
-    fun String.replaceEscapedChars(): String {
+    private fun String.replaceEscapedChars(): String {
         var result = this
         EscapedChar.entries.forEach {
             result = result.replace(it.id, it.replacement)
@@ -247,10 +256,6 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         I("\\\'", "\'"),
         SLASH("\\\\", "\\");
 
-        val regex: Regex
-
-        init {
-            regex = Regex("^${Regex.escape(id)}")
-        }
+        val regex: Regex = Regex("^${Regex.escape(id)}")
     }
 }

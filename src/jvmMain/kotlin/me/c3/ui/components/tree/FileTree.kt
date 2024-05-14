@@ -4,9 +4,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.c3.ui.MainManager
-import me.c3.ui.components.styled.CPanel
-import me.c3.ui.components.styled.CScrollPane
-import me.c3.ui.components.styled.CTextButton
+import me.c3.ui.styled.CPanel
+import me.c3.ui.styled.CScrollPane
+import me.c3.ui.styled.CTextButton
 import me.c3.ui.styled.COptionPane
 import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout

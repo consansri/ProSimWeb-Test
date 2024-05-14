@@ -6,34 +6,24 @@ import emulator.kit.assembler.CompilerFile
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.lexer.Token.LineLoc
-import emulator.kit.assembler.lexer.Token
-import emulator.kit.nativeLog
 
 /**
  * Lexing for GNU Assembler Syntax
  */
 class Lexer(private val architecture: Architecture, private val detectRegisters: Boolean, private val prefices: Prefices) {
 
-    val regMap: Map<Token.Type, Regex?>
+    private val regMap: Map<Token.Type, Regex?>
 
     init {
         regMap = Token.Type.entries.associateWith { it.getRegex(prefices) }
     }
 
     /**
-     * Sequentially computes the [Lexer.Token]s from the [file] content.
+     * Sequentially consumes the [Token]s from the [file] content.
      *
-     * Sequence:
-     * 1.  [Token.LINEBREAK] LineBreaks
-     * 2.  [Token.SPACE] WhiteSpaces
-     * 3.  [Token.COMMENT] Comments
-     * 4.  [Token.KEYWORD] Keywords (Directives, Instructions, Registers)
-     * 5.  [Token.LITERAL] Literals
-     * 6.  [Token.SYMBOL] Symbols
-     * 7.  [Token.OPERATOR] Operators
-     * 8.  [Token.PUNCTUATION] Punctuation
-     * 9.  [Token.ANYCHAR] Any single char
-     * 10. [Token.ERROR] ErrorTokens
+     * The [Token.Type.entries] will be analyzed top down.
+     * Before adding consuming a [Token.Type.SYMBOL] it first will be tried to match to a [DirTypeInterface], [InstrTypeInterface] or [RegContainer.Register].
+     * Only if those aren't matching it will be consumed as a symbol.
      *
      */
     fun tokenize(file: CompilerFile): List<Token> {
@@ -46,14 +36,13 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         var lineID = 0
         var startIndex = 0
 
-        var keyWordType: Token.Type? = null
+        var keyWordType: Token.Type?
         var foundReg: RegContainer.Register?
         var foundInstr: InstrTypeInterface?
         var foundDir: DirTypeInterface?
 
         var result: MatchResult?
         while (remaining.isNotEmpty()) {
-            result = null
             keyWordType = null
             foundReg = null
             foundInstr = null
@@ -105,7 +94,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 }
 
                 //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
-                val token = Token(if (keyWordType != null) keyWordType else type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, onlyNumber,foundReg, foundDir, foundInstr)
+                val token = Token(keyWordType ?: type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, onlyNumber,foundReg, foundDir, foundInstr)
                 tokenList += token
                 startIndex += result.value.length
                 remaining = file.content.substring(startIndex)
@@ -117,6 +106,10 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         return tokenList
     }
 
+    /**
+     * [pseudoTokenize] does the same as [tokenize]
+     * but generating pseudo content which has a reference to a none pseudo token [pseudoOf], from the [content]
+     */
     fun pseudoTokenize(pseudoOf: Token, content: String): List<Token>{
         val regs = if (detectRegisters) architecture.getAllRegs().map { it to it.getRegex() } else null
         val instrs = architecture.getAllInstrTypes().map { it to it.getInstrRegex() }
@@ -127,14 +120,13 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
         var lineID = 0
         var startIndex = 0
 
-        var keyWordType: Token.Type? = null
+        var keyWordType: Token.Type?
         var foundReg: RegContainer.Register?
         var foundInstr: InstrTypeInterface?
         var foundDir: DirTypeInterface?
 
         var result: MatchResult?
         while (remaining.isNotEmpty()) {
-            result = null
             keyWordType = null
             foundReg = null
             foundInstr = null
@@ -186,7 +178,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 }
 
                 //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
-                val token = Token(if (keyWordType != null) keyWordType else type, pseudoOf.lineLoc, result.value, tokenList.size,onlyNumber, foundReg, foundDir, foundInstr, isPseudoOf = pseudoOf)
+                val token = Token(keyWordType ?: type, pseudoOf.lineLoc, result.value, tokenList.size,onlyNumber, foundReg, foundDir, foundInstr, isPseudoOf = pseudoOf)
                 tokenList += token
                 startIndex += result.value.length
                 remaining = content.substring(startIndex)

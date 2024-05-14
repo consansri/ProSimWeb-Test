@@ -2,11 +2,10 @@ package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.Workspace
-import me.c3.ui.components.styled.CTree
-import me.c3.ui.spacing.ScaleManager
+import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.icons.ProSimIcons
+import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent

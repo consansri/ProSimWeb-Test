@@ -3,10 +3,9 @@ package me.c3.ui.components.editor
 import Settings
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
-import emulator.kit.nativeInfo
 import emulator.kit.nativeLog
 import kotlinx.coroutines.*
-import me.c3.emulator.kit.toStyledText
+import emulator.kit.toStyledText
 import me.c3.ui.MainManager
 import me.c3.ui.styled.editor.*
 import javax.swing.SwingUtilities

@@ -1,8 +1,7 @@
 package me.c3.ui.components.console
 
-import me.c3.emulator.kit.toStyledContent
+import emulator.kit.toStyledContent
 import me.c3.ui.MainManager
-import me.c3.ui.styled.editor.CConsole
 
 class ConsoleView(mainManager: MainManager) : me.c3.ui.styled.editor.CConsole(mainManager.themeManager, mainManager.scaleManager){
     init {
