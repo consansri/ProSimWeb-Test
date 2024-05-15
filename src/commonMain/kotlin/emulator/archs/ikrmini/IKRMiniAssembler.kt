@@ -62,7 +62,6 @@ class IKRMiniAssembler : DefinedAssembly {
             val currentAMode = aMode
 
             val opCode = type.paramMap[currentAMode]
-            val addr = yourAddr
 
             if (opCode == null) {
                 throw Parser.ParserError(rawInstr.instrName, "Couldn't resolve opcode for the following combination: ${type.name} and ${currentAMode.name}")
@@ -101,7 +100,7 @@ class IKRMiniAssembler : DefinedAssembly {
                 }
 
                 IKRMiniSyntax.ParamType.DESTINATION -> {
-                    val imm = expr.first().evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Numeric Expression!")
+                    val imm = expr.first().evaluate(true)
                     val sizematches = imm.toBin().checkSizeUnsigned(Variable.Size.Bit16()) == null
 
                     if (!sizematches) throw Parser.ParserError(expr.first().getAllTokens().first(), "Expression exceeds 16 Bits!")

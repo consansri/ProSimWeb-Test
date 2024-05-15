@@ -114,10 +114,10 @@ data class Process(
 
 
         fun hasErrors(): Boolean {
-            return tree.hasErrors() ?: false
+            return tree.hasErrors()
         }
 
-        fun generateTS(): String = sections.joinToString("\n") { it.toString() } ?: ""
+        fun generateTS(): String = sections.joinToString("\n") { it.toString() }
 
         fun shortInfoStr(): String = process.getFinishedStr(success)
 
