@@ -18,6 +18,16 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
         DocFile.DefinedFile(
             "Current: Version - ${Constants.VERSION}",
             Chapter(
+              "Version - 0.2.2",
+                Section(
+                    "Fixed",
+                    UnlinkedList(
+                        Text("KIT: Incorrect VHDL Export."),
+                        Text("RV32: Incorrect Invalid Arguments Error for Instructions without expected params.")
+                    )
+                )
+            ),
+            Chapter(
                 "Version - 0.2.1",
                 Section(
                     "New - Rewrote Assembler oriented on GNU Assembler.",

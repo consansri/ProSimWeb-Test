@@ -68,7 +68,7 @@ class RV64Assembler : DefinedAssembly {
             return getNonPseudoInstructions(rawInstr, type, regs.toTypedArray(), immExpr, labelExpr)
         }
 
-        throw Parser.ParserError(rawInstr.instrName, "Invalid Arguments for ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${rawInstr.remainingTokens.joinToString { it.toString() }}")
+        throw Parser.ParserError(rawInstr.instrName, "Invalid Arguments for ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${rawInstr.remainingTokens.joinToString("") { it.toString() }}")
     }
 
     class RV64Instr(val rawInstr: GASNode.RawInstr, val type: RV64Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
