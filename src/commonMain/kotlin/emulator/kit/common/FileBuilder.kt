@@ -111,7 +111,7 @@ object FileBuilder {
                                             "\n\tconstant ADDR_WIDTH : positive := $addrWidth;" +
                                             "\n\tconstant DATA_WIDTH : positive := $dataWidth;" +
                                             "\n\ttype mem_content_type is array (0 to 2**ADDR_WIDTH - 1) of std_logic_vector(DATA_WIDTH - 1 downto 0);" +
-                                            "\n\tconstant mem_content : mem_content_type := (${rowMap.toList().joinToString(",") { "\n\t\t${it.first} => X\"${it.second.lowercase()}\"" }},\n\t\tothers => ${"0".repeat(dataWidth / 4)});" +
+                                            "\n\tconstant mem_content : mem_content_type := (${rowMap.toList().joinToString(",") { "\n\t\t${it.first} => X\"${it.second.lowercase()}\"" }},\n\t\tothers => X\"${"0".repeat(dataWidth / 4)}\");" +
                                             "\n\t" +
                                             "\n\tconstant mem_used : positive := ${rowMap.size - 1};" +
                                             "\nend mem_contents;" +
