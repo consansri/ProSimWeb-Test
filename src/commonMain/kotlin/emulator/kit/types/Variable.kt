@@ -133,6 +133,7 @@ class Variable {
      * [compareTo], [equals]: Allow to compare values with the standard comparing syntax in kotlin.
      *
      * [toString]: Provides the string representation of the value with its prefixes.
+     * [toRawString]: Provides the string representation of the value without its prefixes.
      *
      */
     sealed class Value(val input: String, val size: Size) {
