@@ -113,18 +113,26 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
             currentAddress += it.getLastAddress()
         }
 
-        /**
-         * Link All Section Labels
-         */
-        val allLinkedLabels = mutableListOf<Pair<Label, Hex>>()
-        sections.forEach { sec ->
-            val addr = sectionAddressMap[sec]
-            addr?.let {
-                allLinkedLabels.addAll(sec.linkLabels(it))
-            }
-        }
+
 
         try {
+            /**
+             * Link All Section Labels
+             */
+            val allLinkedLabels = mutableListOf<Pair<Label, Hex>>()
+            sections.forEach { sec ->
+                val addr = sectionAddressMap[sec]
+                addr?.let {
+                    allLinkedLabels.addAll(sec.linkLabels(it))
+                }
+            }
+
+            /**
+             * Check Label Semantic
+             */
+            allLinkedLabels.checkLabelSemantic()
+
+
             /**
              * Generate Bytes
              */
@@ -144,6 +152,22 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         })
 
         return SemanticResult(sections)
+    }
+
+    private fun List<Pair<Label, Hex>>.checkLabelSemantic() {
+        this.forEach { lbl ->
+            when(lbl.first.label.type){
+                GASNode.Label.Type.LOCAL -> {
+
+                }
+                GASNode.Label.Type.GLOBAL -> {
+                    val multiDef =(this - lbl).firstOrNull { it.first.label.identifier == lbl.first.label.identifier }
+                    if( multiDef != null){
+                        throw ParserError(lbl.first.label.getAllTokens().first(), "Label is defined multiple times!")
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -399,6 +423,8 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
     }
 
     data class Label(val label: GASNode.Label) : SecContent {
+        fun getID(): String = label.identifier
+
         override val bytesNeeded: Int = 0
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getFirstToken(): Token = label.getAllTokens().first()

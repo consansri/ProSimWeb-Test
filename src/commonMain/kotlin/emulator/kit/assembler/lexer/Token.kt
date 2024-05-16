@@ -135,6 +135,8 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         DIRECTIVE(style = CodeStyle.keyWordDir),
         REGISTER(style = CodeStyle.keyWordReg),
         INSTRNAME(style = CodeStyle.keyWordInstr),
+        L_LABEL_REF(Regex("^[0-9]+[bf]")),
+        SYMBOL(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
         INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
         INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
         INT_OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
@@ -142,7 +144,6 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         STRING_ML(Regex("^\"\"\"(?:\\.|[^\"])*\"\"\""), CodeStyle.string, isStringLiteral = true),
         STRING_SL(Regex("""^"(\\.|[^\\"])*""""), CodeStyle.string, isStringLiteral = true),
         CHAR(Regex("""^'(\\.|[^\\'])"""), CodeStyle.char, isCharLiteral = true),
-        SYMBOL(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
         ARG_REF(Regex("""^\\[a-zA-Z$._][a-zA-Z0-9$._]*"""), CodeStyle.argument),
         ARG_SEPARATOR(Regex("""^\\\(\)"""), CodeStyle.argument),
         ASSIGNMENT(Regex("^="), CodeStyle.operator),
@@ -170,6 +171,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
 
         ERROR(Regex("^."));
 
+        fun isLinkableSymbol(): Boolean = this == SYMBOL || this == L_LABEL_REF
         fun isLiteral(): Boolean = isStringLiteral || isNumberLiteral || isCharLiteral
         fun isBasicBracket(): Boolean = this == BRACKET_OPENING || this == BRACKET_CLOSING
     }

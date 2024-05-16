@@ -5,7 +5,6 @@ import Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64Syntax.InstrType
 import emulator.kit.assembler.parser.Parser
-import emulator.kit.common.Memory
 import emulator.kit.nativeWarn
 
 object RV64BinMapper {
@@ -24,8 +23,18 @@ object RV64BinMapper {
             }
 
             InstrType.JAL -> {
-                val imm = immediate.toBin().getResized(Variable.Size.Bit20())
-                val imm20toWork = imm.getRawBinStr()
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
+                offset.checkSizeSigned(Variable.Size.Bit20())?.let {
+                    throw Parser.ParserError(instr.rawInstr.instrName, "Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                }
+
+                val imm20toWork = offset.shr(1).getResized(Variable.Size.Bit20()).getRawBinStr()
 
                 /**
                  *      RV64IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
@@ -596,33 +605,6 @@ object RV64BinMapper {
             }
 
             InstrType.JAL1 -> {
-                val targetAddr = if (instr.label == null) {
-                    immediate
-                }else{
-                    instr.label.evaluate(true)
-                }
-
-                val offset = (targetAddr - addr).toBin()
-                offset.checkSizeSigned(Variable.Size.Bit20())?.let {
-                    throw Parser.ParserError(instr.rawInstr.instrName, "Calculated offset exceeds ${it.expectedSize} with ${offset}!")
-                }
-
-                val imm20toWork = offset.shr(1).getResized(Variable.Size.Bit20()).getRawBinStr()
-
-                /**
-                 *      RV64IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
-                 *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
-                 */
-                val imm20 = Variable.Value.Bin(imm20toWork[0].toString() + imm20toWork.substring(10) + imm20toWork[9] + imm20toWork.substring(1, 9), Variable.Size.Bit20())
-
-                val jalOpCode = InstrType.JAL.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM20 to imm20))
-
-                if (jalOpCode != null) {
-                    binArray.add(jalOpCode)
-                }
-            }
-
-            InstrType.JAL2 -> {
                 val rd = Variable.Value.Bin("1", Variable.Size.Bit5())
 
                 val targetAddr = if (instr.label == null) {

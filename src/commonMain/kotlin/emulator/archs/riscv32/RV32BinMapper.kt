@@ -5,7 +5,6 @@ import Settings
 import emulator.kit.types.Variable
 import emulator.archs.riscv32.RV32Syntax.InstrType.*
 import emulator.kit.assembler.parser.Parser
-import emulator.kit.common.Memory
 import emulator.kit.nativeWarn
 
 object RV32BinMapper {
@@ -23,7 +22,18 @@ object RV32BinMapper {
             }
 
             JAL -> {
-                val imm20toWork = immediate.toBin().getRawBinStr()
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
+                offset.checkSizeSigned(Variable.Size.Bit20())?.let {
+                    throw Parser.ParserError(instr.rawInstr.instrName, "Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                }
+
+                val imm20toWork = offset.shr(1).getResized(Variable.Size.Bit20()).getRawBinStr()
 
                 /**
                  *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
@@ -212,27 +222,20 @@ object RV32BinMapper {
             }
 
             JAL1 -> {
-                val lblAddr = immediate
-                val rd = regs[0]
-                val imm20toWork = ((lblAddr - addr).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinStr()
-
-                /**
-                 *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
-                 *        String Index    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
-                 */
-                val imm20 = Variable.Value.Bin(imm20toWork[0].toString() + imm20toWork.substring(10) + imm20toWork[9] + imm20toWork.substring(1, 9), Variable.Size.Bit20())
-
-                val jalOpCode = JAL.opCode?.getOpCode(mapOf(MaskLabel.RD to rd, MaskLabel.IMM20 to imm20))
-
-                if (jalOpCode != null) {
-                    binArray.add(jalOpCode)
-                }
-            }
-
-            JAL2 -> {
-                val lblAddr = immediate
                 val rd = Variable.Value.Bin("1", Variable.Size.Bit5())
-                val imm20toWork = ((lblAddr - addr).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinStr()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
+                offset.checkSizeSigned(Variable.Size.Bit20())?.let {
+                    throw Parser.ParserError(instr.rawInstr.instrName, "Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                }
+
+                val imm20toWork = offset.shr(1).getResized(Variable.Size.Bit20()).getRawBinStr()
 
                 /**
                  *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
@@ -248,9 +251,20 @@ object RV32BinMapper {
             }
 
             J -> {
-                val lblAddr = immediate
                 val rd = Variable.Value.Bin("0", Variable.Size.Bit5())
-                val imm20toWork = ((lblAddr - addr).toBin() shr 1).getResized(Variable.Size.Bit20()).getRawBinStr()
+
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
+                val offset = (targetAddr - addr).toBin()
+                offset.checkSizeSigned(Variable.Size.Bit20())?.let {
+                    throw Parser.ParserError(instr.rawInstr.instrName, "Calculated offset exceeds ${it.expectedSize} with ${offset}!")
+                }
+
+                val imm20toWork = offset.shr(1).getResized(Variable.Size.Bit20()).getRawBinStr()
 
                 /**
                  *      RV32IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
@@ -309,10 +323,15 @@ object RV32BinMapper {
             }
 
             Call -> {
-                val lblAddr = immediate
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
                 val x1 = Variable.Value.Bin("1", Variable.Size.Bit5())
 
-                val pcRelAddress32 = (lblAddr - addr).toBin()
+                val pcRelAddress32 = (targetAddr - addr).toBin()
                 val imm32 = pcRelAddress32.getRawBinStr()
 
                 val jalrOff = Variable.Value.Bin(imm32.substring(20), Variable.Size.Bit12())
@@ -328,11 +347,16 @@ object RV32BinMapper {
             }
 
             Tail -> {
-                val lblAddr = immediate
+                val targetAddr = if (instr.label == null) {
+                    immediate
+                }else{
+                    instr.label.evaluate(true)
+                }
+
                 val x0 = Variable.Value.Bin("0", Variable.Size.Bit5())
                 val x6 = Variable.Value.Hex("6", Variable.Size.Bit5()).toBin()
 
-                val pcRelAddress32 = (lblAddr - addr).toBin()
+                val pcRelAddress32 = (targetAddr - addr).toBin()
                 val imm32 = pcRelAddress32.getRawBinStr()
 
                 val jalrOff = Variable.Value.Bin(imm32.substring(20), Variable.Size.Bit12())

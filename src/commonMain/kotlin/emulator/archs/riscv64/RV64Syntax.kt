@@ -20,18 +20,7 @@ class RV64Syntax {
                     SpecNode(GASNodeType.INT_EXPR)
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[MaskLabel.RD]
-                return if (rd != null) {
-                    paramMap.remove(MaskLabel.RD)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, imm
+        ), // rd, imm
         RD_Off12(
             false, "rd, imm12(rs)",
             Rule {
@@ -44,20 +33,7 @@ class RV64Syntax {
                     Specific(")")
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[MaskLabel.RD]
-                val rs1 = paramMap[MaskLabel.RS1]
-                return if (rd != null && rs1 != null) {
-                    paramMap.remove(MaskLabel.RD)
-                    paramMap.remove(MaskLabel.RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, imm12(rs)
+        ), // rd, imm12(rs)
         RS2_Off12(
             false, "rs2, imm12(rs1)",
             Rule {
@@ -70,20 +46,7 @@ class RV64Syntax {
                     Specific(")")
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rs2 = paramMap[MaskLabel.RS2]
-                val rs1 = paramMap[MaskLabel.RS1]
-                return if (rs2 != null && rs1 != null) {
-                    paramMap.remove(MaskLabel.RS2)
-                    paramMap.remove(MaskLabel.RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rs2, imm5(rs1)
+        ), // rs2, imm5(rs1)
         RD_RS1_RS2(
             false, "rd, rs1, rs2",
             Rule {
@@ -95,21 +58,7 @@ class RV64Syntax {
                     Reg(RV64.standardRegFile)
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[MaskLabel.RD]
-                val rs1 = paramMap[MaskLabel.RS1]
-                val rs2 = paramMap[MaskLabel.RS2]
-                return if (rd != null && rs2 != null && rs1 != null) {
-                    paramMap.remove(MaskLabel.RD)
-                    paramMap.remove(MaskLabel.RS2)
-                    paramMap.remove(MaskLabel.RS1)
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()}"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, rs1, rs2
+        ), // rd, rs1, rs2
         RD_RS1_I12(
             false, "rd, rs1, imm12",
             Rule {
@@ -121,20 +70,7 @@ class RV64Syntax {
                     SpecNode(GASNodeType.INT_EXPR)
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[MaskLabel.RD]
-                val rs1 = paramMap[MaskLabel.RS1]
-                return if (rd != null && rs1 != null) {
-                    paramMap.remove(MaskLabel.RD)
-                    paramMap.remove(MaskLabel.RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, rs, imm
+        ), // rd, rs, imm
         RD_RS1_SHAMT6(
             false, "rd, rs1, shamt6",
             Rule {
@@ -146,40 +82,14 @@ class RV64Syntax {
                     SpecNode(GASNodeType.INT_EXPR)
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[MaskLabel.RD]
-                val rs1 = paramMap[MaskLabel.RS1]
-                return if (rd != null && rs1 != null) {
-                    paramMap.remove(MaskLabel.RD)
-                    paramMap.remove(MaskLabel.RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, rs, shamt
+        ), // rd, rs, shamt
         RS1_RS2_I12(
             false, "rs1, rs2, imm12",
             Rule {
                 Seq(Reg(RV64.standardRegFile), Specific(","), Reg(RV64.standardRegFile), Specific(","), SpecNode(GASNodeType.INT_EXPR))
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rs2 = paramMap[MaskLabel.RS2]
-                val rs1 = paramMap[MaskLabel.RS1]
-                return if (rs2 != null && rs1 != null) {
-                    paramMap.remove(MaskLabel.RS2)
-                    paramMap.remove(MaskLabel.RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rs1, rs2, imm
-        RS1_RS2_LBL(false, "rs1, rs2, lbl", Rule{
+        ), // rs1, rs2, imm
+        RS1_RS2_LBL(false, "rs1, rs2, lbl", Rule {
             Seq(
                 Reg(RV64.standardRegFile),
                 Specific(","),
@@ -199,21 +109,7 @@ class RV64Syntax {
                     Reg(RV64.standardRegFile)
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[MaskLabel.RD]
-                val csr = paramMap[MaskLabel.CSR]
-                val rs1 = paramMap[MaskLabel.RS1]
-                return if (rd != null && csr != null && rs1 != null) {
-                    paramMap.remove(MaskLabel.RD)
-                    paramMap.remove(MaskLabel.CSR)
-                    paramMap.remove(MaskLabel.RS1)
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV64.CSR_REGFILE_NAME)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
-                } else {
-                    "param missing"
-                }
-            }
-        },
+        ),
         CSR_RD_OFF12_UIMM5(
             false, "rd, offset, uimm5",
             Rule {
@@ -225,20 +121,7 @@ class RV64Syntax {
                     SpecNode(GASNodeType.INT_EXPR)
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[MaskLabel.RD]
-                val csr = paramMap[MaskLabel.CSR]
-                return if (rd != null && csr != null) {
-                    paramMap.remove(MaskLabel.RD)
-                    paramMap.remove(MaskLabel.CSR)
-                    val immString = paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toBin().toString() }
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV64.CSR_REGFILE_NAME)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
-            }
-        },
+        ),
 
         // PSEUDO INSTRUCTIONS
         PS_RD_LI_I64(
@@ -291,7 +174,7 @@ class RV64Syntax {
         ),
         PS_CSR_RS1(
             true, "csr, rs1",
-            Rule{
+            Rule {
                 Seq(
                     Reg(notInRegFile = RV64.standardRegFile),
                     Specific(","),
@@ -301,7 +184,7 @@ class RV64Syntax {
         ),
         PS_RD_CSR(
             true, "rd, csr",
-            Rule{
+            Rule {
                 Seq(
                     Reg(RV64.standardRegFile),
                     Specific(","),
@@ -314,26 +197,22 @@ class RV64Syntax {
         NONE(false, "none", null),
         PS_NONE(true, "none", null);
 
-        open fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<MaskLabel, Variable.Value.Bin>): String {
-            return "pseudo param type"
-        }
-
-        fun getContentString(instr: RV64Assembler.RV64Instr ): String{
-            return when(this){
-                RD_I20 -> "${instr.regs[0]},${instr.immediate}"
+        fun getContentString(instr: RV64Assembler.RV64Instr): String {
+            return when (this) {
+                RD_I20 -> "${instr.regs[0]},${if (instr.label == null) instr.immediate.toString() else instr.label.evaluate(false).toHex().toRawZeroTrimmedString()}"
                 RD_Off12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
                 RS2_Off12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
                 RD_RS1_RS2 -> instr.regs.joinToString { it.toString() }
                 RD_RS1_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 RD_RS1_SHAMT6 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate.toHex()}"
                 RS1_RS2_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                RS1_RS2_LBL -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
+                RS1_RS2_LBL -> "${instr.regs.joinToString { it.toString() }},${if (instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}" else instr.immediate.toString()}"
                 CSR_RD_OFF12_RS1 -> instr.regs.joinToString { it.toString() }
                 CSR_RD_OFF12_UIMM5 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 PS_RD_LI_I64 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                PS_RS1_Jlbl -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
-                PS_RD_Albl -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
-                PS_lbl -> if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()
+                PS_RS1_Jlbl -> "${instr.regs.joinToString { it.toString() }},${if (instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}" else instr.immediate.toString()}"
+                PS_RD_Albl -> "${instr.regs.joinToString { it.toString() }},${if (instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}" else instr.immediate.toString()}"
+                PS_lbl -> if (instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}" else instr.immediate.toString()
                 PS_RD_RS1 -> instr.regs.joinToString { it.toString() }
                 PS_RS1 -> instr.regs.joinToString { it.toString() }
                 PS_CSR_RS1 -> instr.regs.joinToString { it.toString() }
@@ -1948,8 +1827,7 @@ class RV64Syntax {
         Bgtu("BGTU", true, ParamType.RS1_RS2_LBL),
         Bleu("BLEU", true, ParamType.RS1_RS2_LBL),
         J("J", true, ParamType.PS_lbl),
-        JAL1("JAL", true, ParamType.PS_RS1_Jlbl, relative = JAL),
-        JAL2("JAL", true, ParamType.PS_lbl, relative = JAL),
+        JAL1("JAL", true, ParamType.PS_lbl, relative = JAL),
         Jr("JR", true, ParamType.PS_RS1),
         JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
         JALR2("JALR", true, ParamType.RD_Off12, relative = JALR),

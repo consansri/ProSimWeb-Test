@@ -17,5 +17,4 @@ interface DefinedAssembly {
     fun getAdditionalDirectives(): List<DirTypeInterface>
     fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent>
 
-
 }

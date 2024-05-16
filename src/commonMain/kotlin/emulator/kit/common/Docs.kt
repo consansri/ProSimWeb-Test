@@ -23,7 +23,8 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                     "Fixed",
                     UnlinkedList(
                         Text("KIT: Incorrect VHDL Export."),
-                        Text("RV32: Incorrect Invalid Arguments Error for Instructions without expected params.")
+                        Text("RV32: Incorrect Invalid Arguments Error for Instructions without expected params."),
+                        Text("RV32 & RV64: Fixed wrong calculation of JAL and removed excessive code.")
                     )
                 )
             ),

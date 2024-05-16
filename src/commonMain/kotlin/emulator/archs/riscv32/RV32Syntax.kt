@@ -8,7 +8,6 @@ import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
-import emulator.kit.assembler.lexer.Token
 
 class RV32Syntax {
 
@@ -20,28 +19,17 @@ class RV32Syntax {
         // NORMAL INSTRUCTIONS
         RD_I20(
             false, "rd, imm20",
-            Rule{
+            Rule {
                 Seq(
                     Reg(RV32.standardRegFile),
                     Specific(","),
                     SpecNode(GASNodeType.INT_EXPR)
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[RD]
-                return if (rd != null) {
-                    paramMap.remove(RD)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, imm
+        ) , // rd, imm
         RD_OFF12(
             false, "rd, imm12(rs)",
-            Rule{
+            Rule {
                 Seq(
                     Reg(RV32.standardRegFile),
                     Specific(","),
@@ -51,20 +39,7 @@ class RV32Syntax {
                     Specific(")")
                 )
             }
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[RD]
-                val rs1 = paramMap[RS1]
-                return if (rd != null && rs1 != null) {
-                    paramMap.remove(RD)
-                    paramMap.remove(RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, imm12(rs)
+        ) , // rd, imm12(rs)
         RS2_OFF12(false, "rs2, imm12(rs1)",
             Rule {
                 Seq(
@@ -75,238 +50,160 @@ class RV32Syntax {
                     Reg(RV32.standardRegFile),
                     Specific(")")
                 )
-            }) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rs2 = paramMap[RS2]
-                val rs1 = paramMap[RS1]
-                return if (rs2 != null && rs1 != null) {
-                    paramMap.remove(RS2)
-                    paramMap.remove(RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString(${arch.getRegByAddr(rs1)?.aliases?.first()})"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rs2, imm5(rs1)
+            }), // rs2, imm5(rs1)
         RD_RS1_RS2(
-            false, "rd, rs1, rs2", Rule{ Seq( Reg(RV32.standardRegFile), Specific(","), Reg(RV32.standardRegFile), Specific(","), Reg(RV32.standardRegFile))}
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[RD]
-                val rs1 = paramMap[RS1]
-                val rs2 = paramMap[RS2]
-                return if (rd != null && rs2 != null && rs1 != null) {
-                    paramMap.remove(RD)
-                    paramMap.remove(RS2)
-                    paramMap.remove(RS1)
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()}"
-                } else {
-                    "param missing"
-                }
-            }
-        }, // rd, rs1, rs2
+            false, "rd, rs1, rs2", Rule { Seq(Reg(RV32.standardRegFile), Specific(","), Reg(RV32.standardRegFile), Specific(","), Reg(RV32.standardRegFile)) }
+        ) , // rd, rs1, rs2
         RD_RS1_I12(
-            false, "rd, rs1, imm12", Rule{ Seq(
+            false, "rd, rs1, imm12", Rule {
+                Seq(
 
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
-            )}
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[RD]
-                val rs1 = paramMap[RS1]
-                return if (rd != null && rs1 != null) {
-                    paramMap.remove(RD)
-                    paramMap.remove(RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    SpecNode(GASNodeType.INT_EXPR)
+                )
             }
-        }, // rd, rs, imm
+        ) , // rd, rs, imm
         RD_RS1_SHAMT5(
-            false, "rd, rs1, shamt5", Rule{ Seq(
+            false, "rd, rs1, shamt5", Rule {
+                Seq(
 
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
-            )}
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[RD]
-                val rs1 = paramMap[RS1]
-                return if (rd != null && rs1 != null) {
-                    paramMap.remove(RD)
-                    paramMap.remove(RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    SpecNode(GASNodeType.INT_EXPR)
+                )
             }
-        }, // rd, rs, shamt
+        ) , // rd, rs, shamt
         RS1_RS2_I12(
-            false, "rs1, rs2, imm12", Rule{ Seq(
+            false, "rs1, rs2, imm12", Rule {
+                Seq(
 
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
-            )}
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rs2 = paramMap[RS2]
-                val rs1 = paramMap[RS1]
-                return if (rs2 != null && rs1 != null) {
-                    paramMap.remove(RS2)
-                    paramMap.remove(RS1)
-                    val immString = "0x${paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toHex().getRawHexStr() }}"
-                    "${arch.getRegByAddr(rs1)?.aliases?.first()},\t${arch.getRegByAddr(rs2)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    SpecNode(GASNodeType.INT_EXPR)
+                )
             }
-        }, // rs1, rs2, imm
+        ) , // rs1, rs2, imm
         CSR_RD_OFF12_RS1(
-            false, "rd, csr12, rs1", Rule{ Seq(
-
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                Reg(notInRegFile = RV32.standardRegFile),
-                Specific(","),
-                Reg(RV32.standardRegFile)
-            )}
-        ) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[RD]
-                val csr = paramMap[CSR]
-                val rs1 = paramMap[RS1]
-                return if (rd != null && csr != null && rs1 != null) {
-                    paramMap.remove(RD)
-                    paramMap.remove(CSR)
-                    paramMap.remove(RS1)
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV32.CSR_REGFILE_NAME)?.aliases?.first()},\t${arch.getRegByAddr(rs1)?.aliases?.first()}"
-                } else {
-                    "param missing"
-                }
-            }
-        },
-        CSR_RD_OFF12_UIMM5(
-            false, "rd, offset, uimm5", Rule {
+            false, "rd, csr12, rs1", Rule {
                 Seq(
 
                     Reg(RV32.standardRegFile),
                     Specific(","),
                     Reg(notInRegFile = RV32.standardRegFile),
                     Specific(","),
+                    Reg(RV32.standardRegFile)
+                )
+            }
+        ) ,
+        CSR_RD_OFF12_UIMM5(
+            false, "rd, offset, uimm5", Rule {
+                Seq(
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    Reg(notInRegFile = RV32.standardRegFile),
+                    Specific(","),
                     SpecNode(GASNodeType.INT_EXPR)
                 )
-            }) {
-            override fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-                val rd = paramMap[RD]
-                val csr = paramMap[CSR]
-                return if (rd != null && csr != null) {
-                    paramMap.remove(RD)
-                    paramMap.remove(CSR)
-                    val immString = paramMap.map { it.value }.sortedBy { it.size.bitWidth }.reversed().joinToString("") { it.toBin().toString() }
-                    "${arch.getRegByAddr(rd)?.aliases?.first()},\t${arch.getRegByAddr(csr.toHex(), RV32.CSR_REGFILE_NAME)?.aliases?.first()},\t$immString"
-                } else {
-                    "param missing"
-                }
-            }
-        },
+            }) ,
 
         // PSEUDO INSTRUCTIONS
         RS1_RS2_LBL(
-            true, "rs1, rs2, jlabel", Rule{ Seq(
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
-            )}
+            true, "rs1, rs2, jlabel", Rule {
+                Seq(
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    SpecNode(GASNodeType.INT_EXPR)
+                )
+            }
         ),
         PS_RD_I32(
-            true, "rd, imm32", Rule{ Seq(
-
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
-            )}
+            true, "rd, imm32", Rule {
+                Seq(
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    SpecNode(GASNodeType.INT_EXPR)
+                )
+            }
         ), // rd, imm
         PS_RS1_JLBL(
-            true, "rs, jlabel", Rule{ Seq(
+            true, "rs, jlabel", Rule {
+                Seq(
 
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                InSpecific(emulator.kit.assembler.lexer.Token.Type.SYMBOL)
-            )}
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    SpecNode(GASNodeType.INT_EXPR)
+                )
+            }
         ), // rs, label
         PS_RD_ALBL(
-            true, "rd, alabel", Rule{ Seq(
-
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                emulator.kit.assembler.Rule.Component.SpecNode(GASNodeType.INT_EXPR)
-            )}
+            true, "rd, alabel", Rule {
+                Seq(
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    SpecNode(GASNodeType.INT_EXPR)
+                )
+            }
         ), // rd, label
-        PS_JLBL(true, "jlabel", Rule{ Seq( InSpecific(Token.Type.SYMBOL))}),  // label
+        PS_JLBL(true, "jlabel", Rule { Seq(SpecNode(GASNodeType.INT_EXPR)) }),  // label
         PS_RD_RS1(
-            true, "rd, rs", Rule{ Seq(
-
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                Reg(RV32.standardRegFile)
-            )}
+            true, "rd, rs", Rule {
+                Seq(
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    Reg(RV32.standardRegFile)
+                )
+            }
         ), // rd, rs
-        PS_RS1(true, "rs1", Rule{ Seq( Reg(RV32.standardRegFile))}),
+        PS_RS1(true, "rs1", Rule { Seq(Reg(RV32.standardRegFile)) }),
         PS_CSR_RS1(
-            true, "csr, rs1", Rule{ Seq(
+            true, "csr, rs1", Rule {
+                Seq(
 
-                Reg(notInRegFile = RV32.standardRegFile),
-                Specific(","),
-                Reg(RV32.standardRegFile)
-            )}
+                    Reg(notInRegFile = RV32.standardRegFile),
+                    Specific(","),
+                    Reg(RV32.standardRegFile)
+                )
+            }
         ),
         PS_RD_CSR(
-            true, "rd, csr", Rule{ Seq(
-                Reg(RV32.standardRegFile),
-                Specific(","),
-                Reg( notInRegFile = RV32.standardRegFile)
-            )}
+            true, "rd, csr", Rule {
+                Seq(
+                    Reg(RV32.standardRegFile),
+                    Specific(","),
+                    Reg(notInRegFile = RV32.standardRegFile)
+                )
+            }
         ),
 
         // NONE PARAM INSTR
         NONE(false, "none", null),
         PS_NONE(true, "none", null);
 
-        open fun getTSParamString(arch: emulator.kit.Architecture, paramMap: MutableMap<RV32BinMapper.MaskLabel, Variable.Value.Bin>): String {
-            return "pseudo param type"
-        }
-        fun getContentString(instr: RV32Assembler.RV32Instr ): String{
-            return when(this){
-                RD_I20 -> "${instr.regs[0]},${instr.immediate}"
+        fun getContentString(instr: RV32Assembler.RV32Instr): String {
+            return when (this) {
+                RD_I20 -> "${instr.regs[0]},${if (instr.label == null) instr.immediate.toString() else instr.label.evaluate(false).toHex().toRawZeroTrimmedString()}"
                 RD_OFF12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
                 RS2_OFF12 -> "${instr.regs[0]},${instr.immediate}(${instr.regs[1]})"
                 RD_RS1_RS2 -> instr.regs.joinToString { it.toString() }
                 RD_RS1_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 RD_RS1_SHAMT5 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 RS1_RS2_I12 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                RS1_RS2_LBL -> "${instr.regs.joinToString { it.toString() }},${if(instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}"  else instr.immediate.toString()}"
+                RS1_RS2_LBL -> "${instr.regs.joinToString { it.toString() }},${if (instr.label != null) "${instr.label.evaluate(false).toHex().toRawZeroTrimmedString()} ${instr.label.print("")}" else instr.immediate.toString()}"
                 CSR_RD_OFF12_RS1 -> instr.regs.joinToString { it.toString() }
                 CSR_RD_OFF12_UIMM5 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
                 PS_RD_I32 -> "${instr.regs.joinToString { it.toString() }},${instr.immediate}"
-                PS_RS1_JLBL -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
-                PS_RD_ALBL -> "${instr.regs.joinToString { it.toString() }},${instr.label}"
-                PS_JLBL -> "${instr.label}"
+                PS_RS1_JLBL -> "${instr.regs.joinToString { it.toString() }},${if (instr.label == null) instr.immediate.toString() else instr.label.evaluate(false).toHex().toRawZeroTrimmedString()}"
+                PS_RD_ALBL -> "${instr.regs.joinToString { it.toString() }},${if (instr.label == null) instr.immediate.toString() else instr.label.evaluate(false).toHex().toRawZeroTrimmedString()}"
+                PS_JLBL -> "${if (instr.label == null) instr.immediate.toString() else instr.label.evaluate(false).toHex().toRawZeroTrimmedString()}"
                 PS_RD_RS1 -> instr.regs.joinToString { it.toString() }
                 PS_RS1 -> instr.regs.joinToString { it.toString() }
                 PS_CSR_RS1 -> instr.regs.joinToString { it.toString() }
@@ -1524,8 +1421,7 @@ class RV32Syntax {
         Bgtu("BGTU", true, ParamType.RS1_RS2_LBL),
         Bleu("BLEU", true, ParamType.RS1_RS2_LBL),
         J("J", true, ParamType.PS_JLBL),
-        JAL1("JAL", true, ParamType.PS_RS1_JLBL, relative = JAL),
-        JAL2("JAL", true, ParamType.PS_JLBL, relative = JAL),
+        JAL1("JAL", true, ParamType.PS_JLBL, relative = JAL),
         Jr("JR", true, ParamType.PS_RS1),
         JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
         JALR2("JALR", true, ParamType.RD_OFF12, relative = JALR),

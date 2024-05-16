@@ -542,14 +542,14 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                          * - null
                          * - not a literal or a symbol
                          */
-                        val prevMatchesPrefix: Boolean = previousToken == null || !(previousToken.type.isLiteral() || previousToken.type == Token.Type.SYMBOL)
+                        val prevMatchesPrefix: Boolean = previousToken == null || !(previousToken.type.isLiteral() || previousToken.type.isLinkableSymbol())
 
                         /**
                          * Is Prefix if next is:
                          * - not null
                          * - a literal or a symbol or an opening bracket
                          */
-                        val nextMatchesPrefix = nextToken != null && (nextToken.type.isLiteral() || nextToken.type == Token.Type.SYMBOL || nextToken.content == "(")
+                        val nextMatchesPrefix = nextToken != null && (nextToken.type.isLiteral() || nextToken.type.isLinkableSymbol() || nextToken.content == "(")
 
                         val isPrefix = prevMatchesPrefix && nextMatchesPrefix
                         if (isPrefix) {
@@ -570,7 +570,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         uncheckedLast1
                     }
 
-                    uncheckedLast1.type == Token.Type.SYMBOL -> {
+                    uncheckedLast1.type.isLinkableSymbol() -> {
                         return Operand.Identifier(uncheckedLast1)
                     }
 
@@ -590,7 +590,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val uncheckedLast2 = tokens.lastOrNull() ?: return null
                 val operandA = when {
                     uncheckedLast2.type.isOperator -> buildExpressionFromPostfixNotation(tokens, brackets, spaces)
-                    uncheckedLast2.type == Token.Type.SYMBOL -> Operand.Identifier(tokens.removeLast())
+                    uncheckedLast2.type.isLinkableSymbol() -> Operand.Identifier(tokens.removeLast())
                     uncheckedLast2.type.isNumberLiteral -> Operand.Number(tokens.removeLast())
                     uncheckedLast2.type.isCharLiteral -> Operand.Char(tokens.removeLast())
 
@@ -607,7 +607,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val operandB = when {
                     uncheckedLast3 == null -> null
                     uncheckedLast3.type.isOperator -> buildExpressionFromPostfixNotation(tokens, brackets, spaces)
-                    uncheckedLast3.type == Token.Type.SYMBOL -> Operand.Identifier(tokens.removeLast())
+                    uncheckedLast3.type.isLinkableSymbol() -> Operand.Identifier(tokens.removeLast())
                     uncheckedLast3.type.isNumberLiteral -> Operand.Number(tokens.removeLast())
                     uncheckedLast3.type.isCharLiteral -> Operand.Char(tokens.removeLast())
                     else -> null
@@ -620,7 +620,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
             private fun takeRelevantTokens(tokens: List<Token>, allowSymbolsAsOperands: Boolean): List<Token> {
                 return if (allowSymbolsAsOperands) {
-                    tokens.takeWhile { it.type.isOperator || it.type == Token.Type.SYMBOL || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
+                    tokens.takeWhile { it.type.isOperator || it.type.isLinkableSymbol() || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
                 } else {
                     tokens.takeWhile { it.type.isOperator || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
                 }
@@ -639,11 +639,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 val operatorStack = mutableListOf<Token>()
 
                 for (token in infix) {
-                    if (DebugTools.KIT_showPostFixExpressions) nativeLog("PostFixIteration: for ${token.type}:${token.getPrecedence()} -> ${token.content}" +
-                            "\n\tOutput: ${output.joinToString(" ") { it.content }}" +
-                            "\n\tOperatorStack: ${operatorStack.joinToString("") { it.content }}"
+                    if (DebugTools.KIT_showPostFixExpressions) nativeLog(
+                        "PostFixIteration: for ${token.type}:${token.getPrecedence()} -> ${token.content}" +
+                                "\n\tOutput: ${output.joinToString(" ") { it.content }}" +
+                                "\n\tOperatorStack: ${operatorStack.joinToString("") { it.content }}"
                     )
-                    if (token.type.isLiteral() || token.type == Token.Type.SYMBOL) {
+                    if (token.type.isLiteral() || token.type.isLinkableSymbol()) {
                         output.add(token)
                         continue
                     }
@@ -681,7 +682,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         }
                     }
 
-                    throw Parser.ParserError(token,"Token (${token::class.simpleName}: ${token.content}) is not valid in a numeric expression!")
+                    throw Parser.ParserError(token, "Token (${token::class.simpleName}: ${token.content}) is not valid in a numeric expression!")
                 }
 
                 while (operatorStack.isNotEmpty()) {
@@ -799,16 +800,16 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 override fun print(prefix: String): String = "$prefix<$symbol>"
 
                 override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
-                    val assignement = assignedSymbols.firstOrNull { it.name == symbol.content }
+                    val assignment = assignedSymbols.firstOrNull { it.name == symbol.content }
 
-                    if (assignement == null) {
+                    if (assignment == null) {
                         return
                     }
 
-                    when (assignement) {
+                    when (assignment) {
                         is GASParser.Symbol.IntegerExpr -> {
                             symbol.removeSeverityIfError()
-                            expr = assignement.expr
+                            expr = assignment.expr
                             symbol.hl(CodeStyle.symbol)
                         }
 
@@ -827,7 +828,30 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
 
                 override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Variable.Value.Hex>>) {
-                    val assignment = assigendLabels.firstOrNull { it.first.label.identifier == symbol.content }
+                    val assignment = when (symbol.type) {
+                        Token.Type.L_LABEL_REF -> {
+                            val backwards = symbol.content.endsWith("b")
+                            if (backwards) {
+                                val lineLoc = symbol.lineLoc
+                                val before = assigendLabels.filter {
+                                    it.first.getFirstToken().lineLoc.fileName == lineLoc.fileName &&
+                                            it.first.getFirstToken().lineLoc.lineID <= lineLoc.lineID
+                                }.sortedBy { it.first.getFirstToken().lineLoc.lineID }
+                                val id = symbol.content.removeSuffix("b")
+                                before.lastOrNull { it.first.getID() == id }
+                            } else {
+                                val lineLoc = symbol.lineLoc
+                                val after = assigendLabels.filter {
+                                    it.first.getFirstToken().lineLoc.fileName == lineLoc.fileName &&
+                                            it.first.getFirstToken().lineLoc.lineID >= lineLoc.lineID
+                                }.sortedBy { it.first.getFirstToken().lineLoc.lineID }
+                                val id = symbol.content.removeSuffix("f")
+                                after.firstOrNull { it.first.getID() == id }
+                            }
+                        }
+
+                        else -> assigendLabels.firstOrNull { it.first.getID() == symbol.content }
+                    }
 
                     if (assignment == null) {
                         return
