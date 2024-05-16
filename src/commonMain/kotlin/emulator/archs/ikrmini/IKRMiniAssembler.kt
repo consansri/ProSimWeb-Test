@@ -14,9 +14,9 @@ import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 
 class IKRMiniAssembler : DefinedAssembly {
-    override val MEM_ADDRESS_SIZE: Variable.Size = IKRMini.MEM_ADDRESS_WIDTH
-    override val WORD_SIZE: Variable.Size = IKRMini.WORDSIZE
-    override val INSTRS_ARE_WORD_ALIGNED: Boolean = true
+    override val memAddrSize: Variable.Size = IKRMini.MEM_ADDRESS_WIDTH
+    override val wordSize: Variable.Size = IKRMini.WORDSIZE
+    override val instrsAreWordAligned: Boolean = true
     override val detectRegistersByName: Boolean = false
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "$"

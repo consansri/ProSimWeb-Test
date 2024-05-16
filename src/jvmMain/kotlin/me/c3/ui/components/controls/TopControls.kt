@@ -9,9 +9,15 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 
+/**
+ * Represents a panel for top controls.
+ * @property mainManager The main manager instance.
+ * @property showArchSwitch A boolean indicating whether to show the architecture switch button.
+ */
 class TopControls(mainManager: MainManager, showArchSwitch: Boolean) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.HORIZONTAL) {
 
-    val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager), me.c3.ui.components.controls.buttons.ScaleSwitch(mainManager)) else listOf(me.c3.ui.components.controls.buttons.ScaleSwitch(mainManager))
+    // List of control buttons
+    private val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager), me.c3.ui.components.controls.buttons.ScaleSwitch(mainManager)) else listOf(me.c3.ui.components.controls.buttons.ScaleSwitch(mainManager))
 
     init {
         layout = GridBagLayout()

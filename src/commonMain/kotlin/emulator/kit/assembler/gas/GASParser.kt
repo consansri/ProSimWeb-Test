@@ -106,7 +106,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         /**
          * Define Section Start Addresses
          */
-        var currentAddress: Value = Hex("0", definedAssembly.MEM_ADDRESS_SIZE)
+        var currentAddress: Value = Hex("0", definedAssembly.memAddrSize)
         val sectionAddressMap = mutableMapOf<Section, Hex>()
         sections.forEach {
             sectionAddressMap[it] = currentAddress.toHex()
@@ -207,7 +207,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         val features: List<Feature>,
         val root: Root,
         val symbols: MutableList<Symbol> = mutableListOf(),
-        val sections: MutableList<Section> = mutableListOf(Section("text", definedAssembly.MEM_ADDRESS_SIZE), Section("data", definedAssembly.MEM_ADDRESS_SIZE), Section("bss", definedAssembly.MEM_ADDRESS_SIZE)),
+        val sections: MutableList<Section> = mutableListOf(Section("text", definedAssembly.memAddrSize), Section("data", definedAssembly.memAddrSize), Section("bss", definedAssembly.memAddrSize)),
         val macros: MutableList<Macro> = mutableListOf(),
         var currSection: Section = sections.first(),
     ) {
@@ -226,7 +226,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
                 if (flags.isNotEmpty()) sec.flags = flags
                 return
             }
-            val newSec = Section(name, definedAssembly.MEM_ADDRESS_SIZE, flags)
+            val newSec = Section(name, definedAssembly.memAddrSize, flags)
             sections.add(newSec)
             currSection = newSec
         }

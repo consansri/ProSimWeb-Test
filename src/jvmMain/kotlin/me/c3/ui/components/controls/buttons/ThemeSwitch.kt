@@ -4,6 +4,9 @@ import me.c3.ui.styled.CIconButton
 import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 
+/**
+ * This class represents a button used for switching between themes within the application.
+ */
 class ThemeSwitch(themeManager: ThemeManager, scaleManager: ScaleManager) : CIconButton(themeManager, scaleManager, mode = Mode.PRIMARY_NORMAL) {
 
     private var currentIndex = 0

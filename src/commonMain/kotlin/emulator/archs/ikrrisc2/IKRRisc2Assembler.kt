@@ -10,11 +10,11 @@ import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 
 class IKRRisc2Assembler : DefinedAssembly {
-    override val MEM_ADDRESS_SIZE: Variable.Size
+    override val memAddrSize: Variable.Size
         get() = TODO("Not yet implemented")
-    override val WORD_SIZE: Variable.Size
+    override val wordSize: Variable.Size
         get() = TODO("Not yet implemented")
-    override val INSTRS_ARE_WORD_ALIGNED: Boolean
+    override val instrsAreWordAligned: Boolean
         get() = TODO("Not yet implemented")
     override val detectRegistersByName: Boolean
         get() = TODO("Not yet implemented")

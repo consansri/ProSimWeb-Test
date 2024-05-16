@@ -1,63 +1,37 @@
 package me.c3.ui
 
-import com.formdev.flatlaf.ui.FlatRootPaneUI
 import com.formdev.flatlaf.util.SystemInfo
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.styled.CFrame
-import me.c3.ui.styled.editor.CEditor
-import me.c3.ui.theme.ThemeManager
-import me.c3.ui.resources.icons.BenIcons
 import me.c3.ui.components.NativeFrame
-import java.awt.BorderLayout
-import java.awt.Dimension
 import javax.swing.*
 
+/**
+ * The main entry point for the ProSim application.
+ */
 fun main() {
-    println("#######################################\nWhaaaat ProSimWeb has a jvm ui?\nCrazy! :D\n#######################################")
+    // Print a startup message to the console.
+    println("#######################################\nProSimWeb has a jvm ui?\nCrazy :D\n#######################################")
 
+    // Check if the application is running on Linux.
     if (SystemInfo.isLinux) {
+        // Set default look and feel for JFrame and JDialog on Linux.
         JFrame.setDefaultLookAndFeelDecorated(true)
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    me.c3.ui.testBaseApp()
-    //testAdvancedEditor()
+    // Initialize and test the base application.
+    testBaseApp()
 }
 
-fun testAdvancedEditor() {
-    val manager = MainManager()
-    //    manager.themeManager.curr = DarkTheme(BenIcons())
-
-    val editor = CEditor(manager.themeManager, manager.scaleManager)
-
-    val frame = JFrame()
-    frame.layout = BorderLayout()
-    frame.rootPane.setUI(FlatRootPaneUI())
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-    frame.setLocationRelativeTo(null)
-    frame.size = Dimension(600, 300)
-
-    frame.add(editor, BorderLayout.CENTER)
-
-    frame.isVisible = true
-}
-
-fun testFlatWindows() {
-    val frame = JFrame()
-    frame.rootPane.setUI(FlatRootPaneUI())
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-    frame.setLocationRelativeTo(null)
-    frame.isVisible = true
-}
-
+/**
+ * Initializes the base application for testing purposes.
+ */
 fun testBaseApp() {
+    // Create and display the main application frame using NativeFrame.
     NativeFrame(MainManager())
-    //BaseFrame(UIManager())
+
+    // Uncomment the following line if BaseFrame with UIManager is needed.
+    // BaseFrame(UIManager())
 }
 
-fun testCustomFrame() {
-    val frame = CFrame(ThemeManager(BenIcons()), ScaleManager(), BenIcons())
-    frame.setFrameTitle("ProSimWeb")
-}
 
 

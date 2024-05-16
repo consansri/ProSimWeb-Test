@@ -7,8 +7,14 @@ import me.c3.ui.styled.params.BorderMode
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 
+/**
+ * Represents the control panel for the code editor.
+ * @property mainManager The main manager instance.
+ * @property editor The code editor associated with the controls.
+ */
 class EditorControls(mainManager: MainManager, private val editor: CodeEditor) : CPanel(mainManager.themeManager, mainManager.scaleManager, false, borderMode = BorderMode.EAST) {
 
+    // Control buttons
     private val statusIcon: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.statusLoading)
     private val undoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.backwards)
     private val redoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.forwards)
@@ -53,6 +59,10 @@ class EditorControls(mainManager: MainManager, private val editor: CodeEditor) :
         statusIcon.rotating = true
     }
 
+    /**
+     * Installs the status button and handles its functionality.
+     * @param mainManager The main manager instance.
+     */
     private fun installStatusButton(mainManager: MainManager) {
         mainManager.editor.addFileEditEvent {
             statusIcon.svgIcon = mainManager.icons.statusLoading
@@ -70,6 +80,10 @@ class EditorControls(mainManager: MainManager, private val editor: CodeEditor) :
         }
     }
 
+    /**
+     * Installs the build button and handles its functionality.
+     * @param codeEditor The code editor instance.
+     */
     private fun installBuildButton(codeEditor: CodeEditor) {
         buildButton.addActionListener {
             codeEditor.compileCurrent(build = true)
@@ -81,5 +95,4 @@ class EditorControls(mainManager: MainManager, private val editor: CodeEditor) :
             codeEditor.getCurrentEditor()?.redo()
         }
     }
-
 }

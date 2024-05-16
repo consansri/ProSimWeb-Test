@@ -14,9 +14,14 @@ import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 
+/**
+ * Represents a panel for displaying documentation.
+ * @property mainManager The main manager instance.
+ */
 class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
-    val docTabs = CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, primary = false, icons = mainManager.icons, tabsAreCloseable = false).apply {
+    // Tabbed pane for displaying documentation
+    private val docTabs = CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, primary = false, icons = mainManager.icons, tabsAreCloseable = false).apply {
         contentPane.verticalScrollBar.unitIncrement = mainManager.scaleManager.curr.controlScale.normalSize
     }
 
@@ -25,6 +30,10 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
         attachListeners(mainManager)
     }
 
+    /**
+     * Updates the documentation based on the current architecture.
+     * @param mainManager The main manager instance.
+     */
     private fun updateDocs(mainManager: MainManager) {
         docTabs.removeAllTabs()
         val docs = mainManager.currArch().getDescription().docs
@@ -33,6 +42,10 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
         }
     }
 
+    /**
+     * Attaches listeners for architecture change events.
+     * @param mainManager The main manager instance.
+     */
     private fun attachListeners(mainManager: MainManager) {
         mainManager.archManager.addArchChangeListener {
             updateDocs(mainManager)
@@ -41,11 +54,18 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
         updateDocs(mainManager)
     }
 
+    /**
+     * Attaches components to the panel.
+     */
     private fun attachComponents() {
         layout = BorderLayout()
         add(docTabs, BorderLayout.CENTER)
     }
 
+    /**
+     * Represents a panel for displaying a documentation file.
+     * @property docFile The documentation file.
+     */
     inner class CDocFile(private val docFile: Docs.DocFile.DefinedFile) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.BASIC) {
 
         val titlePane = CLabel(mainManager.themeManager, mainManager.scaleManager, docFile.title, FontType.TITLE).apply {
@@ -70,6 +90,9 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
             appendElements()
         }
 
+        /**
+         * Appends elements to the documentation file panel.
+         */
         private fun appendElements() {
             docFile.chapters.forEach {
                 it.add(this, gbc)
@@ -77,6 +100,11 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
             }
         }
 
+        /**
+         * Adds a component to the documentation file panel.
+         * @param component The component to add.
+         * @param gbc The GridBagConstraints for layout.
+         */
         private fun Docs.DocComponent.add(component: JComponent, gbc: GridBagConstraints) {
             when (this) {
                 is Docs.DocComponent.Chapter -> {

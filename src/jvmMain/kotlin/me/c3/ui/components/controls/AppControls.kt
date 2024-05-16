@@ -10,14 +10,19 @@ import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.components.ProSimFrame
+import me.c3.ui.components.controls.buttons.FeatureSwitch
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Insets
 import javax.swing.SwingUtilities
 
+/**
+ * This class represents the application control panel within the ProSimFrame window.
+ * It contains buttons for various functionalities like theme switching,
+ * processor/disassembler toggling, and feature activation.
+ */
 class AppControls(private val psFrame: ProSimFrame) : CPanel(psFrame.getThemeM(), psFrame.getScaleM(), primary = false, BorderMode.WEST) {
-
     private var processorShown = false
         set(value) {
             field = value
@@ -30,7 +35,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(psFrame.getThemeM()
             psFrame.toggleComponents(processorShown,  consoleAndInfoShown)
         }
 
-    val buttons = listOf(
+    private val buttons = listOf(
         ThemeSwitch(psFrame.getThemeM(), psFrame.getScaleM()),
         CIconButton(psFrame.getThemeM(), psFrame.getScaleM(), psFrame.getIcons().processor).apply {
             addActionListener {
@@ -103,51 +108,6 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(psFrame.getThemeM()
     private fun updateFeatureButtons() {
         featureButtons.forEach {
             it.updateFeatureState()
-        }
-    }
-
-    class FeatureSwitch(private val feature: Feature, mainManager: MainManager) : CToggleButton(mainManager.themeManager, mainManager.scaleManager, feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC) {
-
-        private var switchingFeatures = false
-
-        init {
-            mainManager.archManager.addArchChangeListener {
-                if (!switchingFeatures) {
-                    isActive = feature.isActive()
-                }
-            }
-
-            this.addActionListener {
-                if (!feature.static) {
-                    SwingUtilities.invokeLater {
-                        switchingFeatures = true
-                        if (feature.isActive()) {
-                            for (featToUpdate in mainManager.currArch().getAllFeatures()) {
-                                if (featToUpdate.enableIDs.contains(feature.id)) {
-                                    featToUpdate.deactivate()
-                                }
-                            }
-                        } else {
-                            for (id in feature.enableIDs) {
-                                mainManager.currArch().getAllFeatures().firstOrNull { it.id == id }?.activate()
-                            }
-                        }
-                        feature.switch()
-
-                        isActive = feature.isActive()
-                        mainManager.archManager.triggerFeatureChanged()
-                        switchingFeatures = false
-                    }
-                }
-            }
-
-            isActive = feature.isActive()
-        }
-
-        fun updateFeatureState() {
-            switchingFeatures = true
-            isActive = feature.isActive()
-            switchingFeatures = false
         }
     }
 }

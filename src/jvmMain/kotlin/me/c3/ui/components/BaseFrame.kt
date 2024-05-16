@@ -27,6 +27,10 @@ import javax.swing.ImageIcon
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
 
+/**
+ * Represents the main UI frame of the application, providing a Swing-based interface.
+ * @param mManager The main manager responsible for coordinating UI components and actions.
+ */
 class BaseFrame(override val mManager: MainManager) : CFrame(mManager.themeManager, mManager.scaleManager, mManager.icons), ProSimFrame {
 
     override val editor = mManager.editor
@@ -53,6 +57,12 @@ class BaseFrame(override val mManager: MainManager) : CFrame(mManager.themeManag
 
     private val mainDivider = 0.4
     private val verticalDivider = 0.8
+
+    /**
+     * Toggles the visibility and layout of specific components dynamically based on boolean flags.
+     * @param processorViewVisible Flag indicating whether the processor view should be visible.
+     * @param consoleAndInfoVisible Flag indicating whether the console and info views should be visible.
+     */
     override fun toggleComponents(processorViewVisible: Boolean, consoleAndInfoVisible: Boolean) {
         if (consoleAndInfoVisible) {
             verticalMainCSplitPane.setDividerLocation(verticalDivider)

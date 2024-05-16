@@ -8,37 +8,28 @@ import me.c3.ui.styled.params.FontType
 import java.io.File
 import javax.swing.*
 
+/**
+ * Represents a code editor with tabbed interface for managing multiple files.
+ * @property mainManager The main manager instance.
+ */
 class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, true, true, emptyMessage = "Open File through the tree!") {
 
+    // List of editor panels
     private val panels = mutableListOf<ProSimEditor>()
+    // List of file edit events
     private val fileEditEvents = mutableListOf<(EditorFile) -> Unit>()
 
     init {
+        // Attach workspace listener
         attachWorkspaceListener()
+        // Select current tab
         selectCurrentTab(null)
     }
 
-    private fun attachWorkspaceListener() {
-        mainManager.addWSChangedListener { ws ->
-            SwingUtilities.invokeLater {
-                val bufferedTabs = ArrayList(tabs)
-                for (tab in bufferedTabs) {
-                    val content = tab.content
-                    if (content !is ProSimEditor) {
-                        removeTab(tab)
-                        continue
-                    }
-
-                    if (ws.getAllFiles().firstOrNull { it.path == content.editorFile.file.path && it.name == content.editorFile.file.name } == null) {
-                        removeTab(tab)
-                        panels.remove(content)
-                        continue
-                    }
-                }
-            }
-        }
-    }
-
+    /**
+     * Opens a file in the editor.
+     * @param file The file to be opened.
+     */
     fun openFile(file: File) {
         if (searchByName(file.name) != null) return
 
@@ -59,24 +50,68 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
         }
     }
 
+    /**
+     * Gets the controls associated with the editor.
+     * @return The editor controls.
+     */
     fun getControls(): EditorControls = EditorControls(mainManager, this)
 
+    /**
+     * Searches for an editor panel by file name.
+     * @param fileName The name of the file.
+     * @return The editor panel if found, null otherwise.
+     */
     fun searchByName(fileName: String): ProSimEditor? {
         return tabs.firstOrNull { fileName == (it.content as? ProSimEditor)?.editorFile?.file?.name }?.content as? ProSimEditor?
     }
 
+    /**
+     * Compiles the current editor file.
+     * @param build Whether to build before compilation.
+     */
     fun compileCurrent(build: Boolean) {
         CoroutineScope(Dispatchers.Default).launch {
             getCurrentEditor()?.fireCompilation(build)
         }
     }
 
+    /**
+     * Gets the current editor panel.
+     * @return The current editor panel.
+     */
     fun getCurrentEditor(): ProSimEditor? {
         return getCurrent()?.content as? ProSimEditor
     }
 
+    /**
+     * Adds a file edit event listener.
+     * @param event The event handler.
+     */
     fun addFileEditEvent(event: (EditorFile) -> Unit) {
         fileEditEvents.add(event)
     }
 
+    /**
+     * Attaches a workspace change listener to remove tabs for files that are no longer in the workspace.
+     */
+    private fun attachWorkspaceListener() {
+        mainManager.addWSChangedListener { ws ->
+            SwingUtilities.invokeLater {
+                val bufferedTabs = ArrayList(tabs)
+                for (tab in bufferedTabs) {
+                    val content = tab.content
+                    if (content !is ProSimEditor) {
+                        removeTab(tab)
+                        continue
+                    }
+
+                    if (ws.getAllFiles().firstOrNull { it.path == content.editorFile.file.path && it.name == content.editorFile.file.name } == null) {
+                        removeTab(tab)
+                        panels.remove(content)
+                        continue
+                    }
+                }
+            }
+        }
+    }
 }

@@ -18,7 +18,7 @@ import emulator.kit.types.Variable.Value.*
 
 class T6502Assembler() : DefinedAssembly {
 
-    override val INSTRS_ARE_WORD_ALIGNED: Boolean = false
+    override val instrsAreWordAligned: Boolean = false
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
     override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
     override val detectRegistersByName: Boolean = false
@@ -30,8 +30,8 @@ class T6502Assembler() : DefinedAssembly {
         override val oct: String = "0"
         override val symbol: Regex = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
-    override val MEM_ADDRESS_SIZE: Variable.Size = T6502.MEM_ADDR_SIZE
-    override val WORD_SIZE: Variable.Size = T6502.WORD_SIZE
+    override val memAddrSize: Variable.Size = T6502.MEM_ADDR_SIZE
+    override val wordSize: Variable.Size = T6502.WORD_SIZE
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val instrType = InstrType.entries.firstOrNull { rawInstr.instrName.instr?.getDetectionName() == it.name } ?: throw Parser.ParserError(rawInstr.instrName, "Is not a T6502 Instruction!")

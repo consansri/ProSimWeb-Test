@@ -26,6 +26,10 @@ import javax.swing.JFrame
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
 
+/**
+ * Represents the main frame of the application, built using Swing components.
+ * @param mManager The main manager responsible for coordinating UI components and actions.
+ */
 class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
 
     override val editor = mManager.editor
@@ -38,9 +42,7 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
     override val console: ConsoleView = ConsoleView(mManager)
     override val infoView: InfoView = InfoView(mManager)
     override val rightBar = AppControls(this)
-
     override val infoTabPane: CAdvancedTabPane = CAdvancedTabPane(getThemeM(), getScaleM(), primary = false, icons = mManager.icons, tabsAreCloseable = false)
-
     override val editorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
     override val processorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
     override val mainContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
@@ -62,6 +64,11 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
         }
     }
 
+    /**
+     * Toggles the visibility and layout of specific components dynamically based on boolean flags.
+     * @param processorViewVisible Flag indicating whether the processor view should be visible.
+     * @param consoleAndInfoVisible Flag indicating whether the console and info views should be visible.
+     */
     override fun toggleComponents(processorViewVisible: Boolean, consoleAndInfoVisible: Boolean) {
         if (consoleAndInfoVisible) {
             verticalMainCSplitPane.setDividerLocation(verticalDivider)
@@ -83,6 +90,9 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
         repaint()
     }
 
+    /**
+     * Attaches UI components to the frame and sets up their initial configuration.
+     */
     private fun attachComponents() {
         layout = BorderLayout()
 
@@ -108,10 +118,16 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
         add(bottomBar, BorderLayout.SOUTH)
     }
 
+    /**
+     * Styles the frame, setting its icon image.
+     */
     private fun styleFrame() {
         iconImage = mManager.icons.appLogo.derive(64, 64).image
     }
 
+    /**
+     * Sets up the frame title, default close operation, size, and visibility.
+     */
     private fun setup() {
         title = "ProSimJVM"
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -120,6 +136,11 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
         isVisible = true
     }
 
+    /**
+     * Loads an image from the specified path and returns it as an ImageIcon.
+     * @param path The path to the image file.
+     * @return ImageIcon representing the loaded image, or null if loading fails.
+     */
     private fun loadImage(path: String): ImageIcon? {
         return try {
             val url = File(path).toURI().toURL()

@@ -19,6 +19,10 @@ import java.awt.event.MouseEvent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
+/**
+ * Represents a panel containing a transcript view for displaying assembly code and its execution status.
+ * @property mainManager The main manager responsible for coordinating UI components and actions.
+ */
 class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
 
     // SubComponents
@@ -82,6 +86,10 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         }
     }
 
+    /**
+     * Updates the transcript view with the compilation result.
+     * @param result The result of the compilation process.
+     */
     private fun updateResult(result: Process.Result? = null) {
         sections.clear()
         result?.sections?.forEach {
@@ -90,11 +98,18 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         section = sections.map { it.key }.firstOrNull()
     }
 
+    /**
+     * Executes the code until the specified address.
+     * @param address The address to execute until.
+     */
     private fun executeUntilAddress(address: Variable.Value.Hex) {
         mainManager.currArch().exeUntilAddress(address)
         mainManager.eventManager.triggerExeEvent()
     }
 
+    /**
+     * Attaches main components to the transcript view.
+     */
     private fun attachMainComponents() {
         layout = GridBagLayout()
 
@@ -112,6 +127,9 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         add(contentPane, gbc)
     }
 
+    /**
+     * Attaches mouse listeners to the transcript content.
+     */
     private fun attachContentMouseListeners() {
         modelView.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
@@ -124,6 +142,9 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         })
     }
 
+    /**
+     * Attaches settings and event listeners to the transcript view label.
+     */
     private fun attachSettings() {
         // Attach Listeners
         label.addMouseListener(object : MouseAdapter() {
@@ -134,6 +155,9 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         })
     }
 
+    /**
+     * Switches to the next section in the transcript view.
+     */
     private fun switchSection() {
         val index = sections.map { it.key }.indexOf(section)
         section = if (index >= 0 && index < sections.size - 1) {
@@ -143,6 +167,10 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         }
     }
 
+    /**
+     * Updates the content of the transcript view.
+     * @param mainManager The main manager responsible for coordinating UI components and actions.
+     */
     private fun updateContent(mainManager: MainManager) {
         model.rowCount = 0
 
@@ -158,6 +186,9 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         modelView.repaint()
     }
 
+    /**
+     * Updates the sizing of the transcript view.
+     */
     private fun updateSizing() {
         if (contentPane.isVisible) {
             this.maximumSize = Dimension(label.width + contentPane.maximumSize.width, maximumSize.height)
@@ -166,10 +197,10 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         }
     }
 
-    override fun getMinimumSize(): Dimension {
-        return Dimension(label.width, 100)
-    }
-
+    /**
+     * Highlights the row in the transcript view corresponding to the current program counter value.
+     * @param mainManager The main manager responsible for coordinating UI components and actions.
+     */
     private fun highlightPCRow(mainManager: MainManager) {
         val currPC = mainManager.currArch().getRegContainer().pc
 
@@ -177,4 +208,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         modelView.setCellHighlighting(index, null, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
     }
 
+    override fun getMinimumSize(): Dimension {
+        return Dimension(label.width, 100)
+    }
 }

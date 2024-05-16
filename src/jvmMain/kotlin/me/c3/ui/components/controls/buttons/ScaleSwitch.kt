@@ -7,12 +7,20 @@ import me.c3.ui.styled.params.FontType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 
+/**
+ * This class represents a combo box used for selecting and switching between different scaling options within the application.
+ * It retrieves available scaling options from the provided MainManager instance.
+ */
 class ScaleSwitch(mainManager: MainManager) : CComboBox<Scaling>(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, mainManager.scaleManager.scalings.toTypedArray(), FontType.TITLE) {
 
     init {
-        this.addActionListener(me.c3.ui.components.controls.buttons.ScaleSwitch.ScaleSelectorListener(mainManager))
+        this.addActionListener(ScaleSelectorListener(mainManager))
     }
 
+    /**
+     * This inner class listens to the selection events on the ScaleSwitch combo box.
+     * When a new scaling option is selected, it updates the current scaling mode in the MainManager.
+     */
     class ScaleSelectorListener(private val mainManager: MainManager): ActionListener {
         override fun actionPerformed(e: ActionEvent?) {
             val comboBox = e?.source as? CComboBox<*>
@@ -20,5 +28,4 @@ class ScaleSwitch(mainManager: MainManager) : CComboBox<Scaling>(mainManager.the
             mainManager.scaleManager.curr = selectedMode
         }
     }
-
 }

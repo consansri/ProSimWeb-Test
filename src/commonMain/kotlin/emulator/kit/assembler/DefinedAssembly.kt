@@ -8,9 +8,9 @@ import emulator.kit.types.Variable
 
 interface DefinedAssembly {
 
-    val MEM_ADDRESS_SIZE: Variable.Size
-    val WORD_SIZE: Variable.Size
-    val INSTRS_ARE_WORD_ALIGNED: Boolean
+    val memAddrSize: Variable.Size
+    val wordSize: Variable.Size
+    val instrsAreWordAligned: Boolean
     val detectRegistersByName: Boolean
     val prefices: Lexer.Prefices
     fun getInstrs(features: List<Feature>): List<InstrTypeInterface>

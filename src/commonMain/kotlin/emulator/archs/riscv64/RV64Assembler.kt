@@ -18,9 +18,9 @@ import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 
 class RV64Assembler : DefinedAssembly {
-    override val MEM_ADDRESS_SIZE: Variable.Size = RV64.XLEN
-    override val WORD_SIZE: Variable.Size = RV64.WORD_WIDTH
-    override val INSTRS_ARE_WORD_ALIGNED: Boolean = true
+    override val memAddrSize: Variable.Size = RV64.XLEN
+    override val wordSize: Variable.Size = RV64.WORD_WIDTH
+    override val instrsAreWordAligned: Boolean = true
     override val detectRegistersByName: Boolean = true
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "0x"

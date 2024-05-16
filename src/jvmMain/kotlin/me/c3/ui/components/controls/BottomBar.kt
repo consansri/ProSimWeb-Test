@@ -10,34 +10,56 @@ import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 
+/**
+ * Represents a panel for displaying information at the bottom.
+ * @property mainManager The main manager instance.
+ */
 class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, borderMode = BorderMode.NORTH) {
 
+    // Labels for displaying various types of information
     val tagInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "Back to work? :D", FontType.BASIC)
     val editorInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
     val compilerInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
     val generalPurpose = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
 
+    // Coroutine variables for observing compiler processes
     private var compilerObservingProcess: Job? = null
     private var compilerObserverScope = CoroutineScope(Dispatchers.Default)
 
     init {
         attachComponents()
-
-        mainManager.archManager.addArchChangeListener {
-            resetCompilerProcessPrinter()
-        }
-
-        mainManager.eventManager.addCompileListener {
-            if (it.success) {
-                setInfo(it.shortInfoStr())
-            } else {
-                setError(it.shortInfoStr())
-            }
-        }
-
+        observeArchitectureChange()
+        observeCompilation()
         resetCompilerProcessPrinter()
     }
 
+    /**
+     * Sets error text and color.
+     * @param text The text to display.
+     */
+    fun setError(text: String) {
+        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(CodeStyle.RED))
+    }
+
+    /**
+     * Sets warning text and color.
+     * @param text The text to display.
+     */
+    fun setWarning(text: String) {
+        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(CodeStyle.YELLOW))
+    }
+
+    /**
+     * Sets informational text and color.
+     * @param text The text to display.
+     */
+    fun setInfo(text: String) {
+        generalPurpose.setColouredText(text, mainManager.currTheme().textLaF.baseSecondary)
+    }
+
+    /**
+     * Attaches the components to the layout.
+     */
     private fun attachComponents() {
         layout = GridBagLayout()
 
@@ -65,18 +87,31 @@ class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.theme
         add(editorInfo, gbc)
     }
 
-    fun setError(text: String) {
-        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(CodeStyle.RED))
+    /**
+     * Observes architecture change and resets compiler process printer.
+     */
+    private fun observeArchitectureChange() {
+        mainManager.archManager.addArchChangeListener {
+            resetCompilerProcessPrinter()
+        }
     }
 
-    fun setWarning(text: String) {
-        generalPurpose.setColouredText(text, mainManager.currTheme().codeLaF.getColor(CodeStyle.YELLOW))
+    /**
+     * Observes compilation and updates the display accordingly.
+     */
+    private fun observeCompilation() {
+        mainManager.eventManager.addCompileListener { result ->
+            if (result.success) {
+                setInfo(result.shortInfoStr())
+            } else {
+                setError(result.shortInfoStr())
+            }
+        }
     }
 
-    fun setInfo(text: String) {
-        generalPurpose.setColouredText(text, mainManager.currTheme().textLaF.baseSecondary)
-    }
-
+    /**
+     * Resets the compiler process printer coroutine.
+     */
     private fun resetCompilerProcessPrinter() {
         compilerObservingProcess?.cancel()
 

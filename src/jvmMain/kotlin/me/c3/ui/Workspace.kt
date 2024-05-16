@@ -20,17 +20,33 @@ import javax.swing.SwingUtilities
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
+/**
+ * Manages the workspace for the code editor, including the file tree and related UI components.
+ * @param path The path to the workspace directory.
+ * @param codeEditor The code editor instance.
+ * @param mainManager The main manager instance.
+ */
 class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: MainManager) {
+    // Root directory of the workspace.
     private val rootDir = File(path)
+
+    // Root node of the file tree.
     private val rootNode = DefaultMutableTreeNode(TreeFile(rootDir))
+
+    // Tree model representing the file tree structure.
     private val treeModel = DefaultTreeModel(rootNode)
+
+    // UI component representing the file tree.
     val tree: CTree
 
     init {
+        // Build the file tree starting from the root directory.
         buildFileTree(rootDir, rootNode)
 
+        // Initialize the file tree UI component.
         tree = CTree(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, treeModel, FontType.BASIC)
 
+        // Add mouse listener for handling user interactions with the file tree.
         tree.addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {
                 if (SwingUtilities.isRightMouseButton(e)) {
@@ -59,21 +75,47 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             }
         })
 
+        // Set the initial look and feel of the file tree.
         setTreeLook(mainManager.themeManager)
     }
 
+    /**
+     * Constructs a string representing the file path relative to the project root directory.
+     * @param file The file for which to generate the relative path.
+     * @return The relative file path.
+     */
     fun getFileWithProjectPath(file: File): String {
         return rootDir.name + file.path.removePrefix(rootDir.path)
     }
 
+    /**
+     * Formats the file path for display by replacing certain characters.
+     * @return The formatted file path string.
+     */
     fun String.formatPathForDrawing(): String = this.replace("/", " > ").replace("\\", " > ").replace(":", "")
 
+    /**
+     * Retrieves all files in the workspace.
+     * @return A list of all files in the workspace.
+     */
     fun getAllFiles(): List<File> {
         return getAllFiles(rootDir)
     }
 
-    fun getCompilerFiles(exclude: File): List<CompilerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && it.name.endsWith(".s") }.map { it.toCompilerFile() }
+    /**
+     * Retrieves all compiler files in the workspace, excluding a specified file.
+     * @param exclude The file to exclude from the list.
+     * @return A list of compiler files.
+     */
+    fun getCompilerFiles(exclude: File): List<CompilerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S"))}.map { it.toCompilerFile() }
 
+    /**
+     * Displays a context menu with various file operations.
+     * @param mainManager The main manager instance.
+     * @param treeFile The file for which the context menu is shown.
+     * @param x The x-coordinate of the context menu location.
+     * @param y The y-coordinate of the context menu location.
+     */
     private fun showContextMenu(mainManager: MainManager, treeFile: TreeFile, x: Int, y: Int) {
         val popupMenu = CPopupMenu(mainManager.themeManager, mainManager.scaleManager)
 
@@ -268,6 +310,11 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         popupMenu.show(tree, x, y)
     }
 
+    /**
+     * Recursively retrieves all files from the specified directory.
+     * @param directory The root directory to search.
+     * @return A list of all files in the directory.
+     */
     private fun getAllFiles(directory: File): List<File> {
         val files = mutableListOf<File>()
 
@@ -282,6 +329,10 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         return files
     }
 
+    /**
+     * Sets the visual appearance of the file tree based on the current theme.
+     * @param themeManager The theme manager instance.
+     */
     private fun setTreeLook(themeManager: ThemeManager) {
         themeManager.addThemeChangeListener {
             tree.background = it.globalLaF.bgSecondary
@@ -290,6 +341,11 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         tree.isFocusable = false
     }
 
+    /**
+     * Builds the file tree structure recursively.
+     * @param file The current file or directory.
+     * @param parentNode The parent node in the tree.
+     */
     private fun buildFileTree(file: File, parentNode: DefaultMutableTreeNode) {
         val files = file.listFiles() ?: return
 
@@ -303,6 +359,11 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         }
     }
 
+    /**
+     * Represents a file or directory in the tree structure.
+     * @param file The file or directory.
+     * @param displayPath Whether to display the full path or just the name.
+     */
     data class TreeFile(val file: File, val displayPath: Boolean = false) {
         override fun toString(): String {
             return if (displayPath) file.path else file.name
