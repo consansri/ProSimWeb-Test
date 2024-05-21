@@ -20,7 +20,6 @@ import emulator.kit.nativeLog
 class RV32Assembler : DefinedAssembly {
     override val memAddrSize: Variable.Size = RV32.MEM_ADDRESS_WIDTH
     override val wordSize: Variable.Size = RV32.WORD_WIDTH
-    override val instrsAreWordAligned: Boolean = true
     override val detectRegistersByName: Boolean = true
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "0x"

@@ -19,7 +19,6 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
     private var isPrefix = false
     private var severities: MutableList<Severity> = mutableListOf()
     private var codeStyle: CodeStyle = CodeStyle.BASE0
-    private val hlPairs: MutableList<Pair<String, CodeStyle>> = mutableListOf()
 
     init {
         isPrefix = type == Type.COMPLEMENT
@@ -28,6 +27,9 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         }
     }
 
+    /**
+     * Gets the highlighted content of the token.
+     */
     fun getHL(): List<Pair<String, CodeStyle>> {
         return when (type) {
             Type.STRING_SL -> getEscapedHL()
@@ -35,6 +37,142 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
             Type.CHAR -> getEscapedHL()
             else -> listOf(content to codeStyle)
         }
+    }
+
+    /**
+     * Gets the content of the token as a string.
+     */
+    fun getContentAsString(): String = when (type) {
+        Type.WHITESPACE -> ""
+        Type.LINEBREAK -> "\n"
+        Type.COMMENT_SL -> ""
+        Type.COMMENT_ML -> ""
+        Type.STRING_ML -> content.substring(3, content.length - 3).replaceEscapedChars()
+        Type.STRING_SL -> content.substring(1, content.length - 1).replaceEscapedChars()
+        Type.CHAR -> content.substring(1).replaceEscapedChars()
+        Type.ARG_REF -> content.substring(1)
+        Type.ARG_SEPARATOR -> ""
+        Type.COMMENT_NATIVE -> ""
+        Type.DIRECTIVE -> content.removePrefix(".").lowercase()
+        else -> content
+    }
+
+    /**
+     * Checks if the token has a higher or equal precedence compared to another token.
+     */
+    fun higherOrEqualPrecedenceAs(other: Token): Boolean {
+        val thisPrecedence = getPrecedence() ?: return false
+        val otherPrecedence = other.getPrecedence() ?: return false
+        return thisPrecedence.ordinal >= otherPrecedence.ordinal
+    }
+
+    /**
+     * Checks if the token is a prefix operator.
+     */
+    fun isPrefix(): Boolean = isPrefix
+
+    /**
+     * Marks the token as a prefix operator.
+     */
+    fun markAsPrefix() {
+        isPrefix = true
+    }
+
+    /**
+     * Gets the precedence of the token.
+     */
+    fun getPrecedence(): Precedence? {
+        return when (type) {
+            Type.COMPLEMENT -> Precedence.PREFIX
+            Type.MULT -> Precedence.HIGH
+            Type.DIV -> Precedence.HIGH
+            Type.REM -> Precedence.HIGH
+            Type.SHL -> Precedence.HIGH
+            Type.SHR -> Precedence.HIGH
+            Type.BITWISE_OR -> Precedence.INTERMEDIATE
+            Type.BITWISE_AND -> Precedence.INTERMEDIATE
+            Type.BITWISE_XOR -> Precedence.INTERMEDIATE
+            Type.BITWISE_ORNOT -> Precedence.INTERMEDIATE
+            Type.PLUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
+            Type.MINUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
+            else -> null
+        }
+    }
+
+    /**
+     * Prints the error message associated with the token.
+     */
+    fun printError(): String? {
+        val errors = severities.filter { it.type == Severity.Type.ERROR }
+        if (errors.isEmpty()) return null
+        val errorString = errors.joinToString("\n\t") { it.message }
+        return "Error at $lineLoc {${this::class.simpleName}:${this.content}} $errorString"
+    }
+
+    /**
+     * Prints the warning message associated with the token.
+     */
+    fun printWarning(): String? {
+        val warnings = severities.filter { it.type == Severity.Type.WARNING }
+        if (warnings.isEmpty()) return null
+        val warningString = warnings.joinToString("\n\t") { it.message }
+        return "Warning at $lineLoc $warningString"
+    }
+
+    /**
+     * Adds a severity to the token.
+     */
+    fun addSeverity(type: Severity.Type, message: String) {
+        this.severities.add(Severity(type, message))
+        isPseudoOf?.addSeverity(type, message)
+    }
+
+    /**
+     * Adds a severity to the token.
+     */
+    fun addSeverity(severity: Severity) {
+        this.severities.add(severity)
+        isPseudoOf?.addSeverity(severity)
+    }
+
+    /**
+     * Removes the severity if it is an error.
+     */
+    fun removeSeverityIfError() {
+        val buffered = ArrayList(severities)
+        severities.clear()
+        severities.addAll(buffered.filter { it.type != Severity.Type.ERROR })
+        isPseudoOf?.removeSeverityIfError()
+    }
+
+    /**
+     * Highlights the token using the provided code style.
+     */
+    fun hl(codeStyle: CodeStyle) {
+        this.codeStyle = codeStyle
+    }
+
+    /**
+     * Gets the code style of the token.
+     */
+    fun getCodeStyle() = codeStyle
+
+    /**
+     * Gets the major severity of the token.
+     */
+    fun getMajorSeverity() = severities.firstOrNull { it.type == Severity.Type.ERROR } ?: severities.firstOrNull { it.type == Severity.Type.WARNING } ?: severities.firstOrNull { it.type == Severity.Type.INFO }
+
+    /**
+     * Gets all severities associated with the token.
+     */
+    fun getSeverities(): List<Severity> = severities
+
+    private fun String.replaceEscapedChars(): String {
+        var result = this
+        EscapedChar.entries.forEach {
+            result = result.replace(it.id, it.replacement)
+        }
+        return result
     }
 
     private fun getEscapedHL(): List<Pair<String, CodeStyle>> {
@@ -70,51 +208,11 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         return result
     }
 
-    fun getContentAsString(): String = when (type) {
-        Type.WHITESPACE -> ""
-        Type.LINEBREAK -> "\n"
-        Type.COMMENT_SL -> ""
-        Type.COMMENT_ML -> ""
-        Type.STRING_ML -> content.substring(3, content.length - 3).replaceEscapedChars()
-        Type.STRING_SL -> content.substring(1, content.length - 1).replaceEscapedChars()
-        Type.CHAR -> content.substring(1).replaceEscapedChars()
-        Type.ARG_REF -> content.substring(1)
-        Type.ARG_SEPARATOR -> ""
-        Type.COMMENT_NATIVE -> ""
-        Type.DIRECTIVE -> content.removePrefix(".").lowercase()
-        else -> content
-    }
+    override fun toString(): String = content
 
-    fun higherOrEqualPrecedenceAs(other: Token): Boolean {
-        val thisPrecedence = getPrecedence() ?: return false
-        val otherPrecedence = other.getPrecedence() ?: return false
-        return thisPrecedence.ordinal >= otherPrecedence.ordinal
-    }
-
-    fun isPrefix(): Boolean = isPrefix
-
-    fun markAsPrefix() {
-        isPrefix = true
-    }
-
-    fun getPrecedence(): Precedence? {
-        return when (type) {
-            Type.COMPLEMENT -> Precedence.PREFIX
-            Type.MULT -> Precedence.HIGH
-            Type.DIV -> Precedence.HIGH
-            Type.REM -> Precedence.HIGH
-            Type.SHL -> Precedence.HIGH
-            Type.SHR -> Precedence.HIGH
-            Type.BITWISE_OR -> Precedence.INTERMEDIATE
-            Type.BITWISE_AND -> Precedence.INTERMEDIATE
-            Type.BITWISE_XOR -> Precedence.INTERMEDIATE
-            Type.BITWISE_ORNOT -> Precedence.INTERMEDIATE
-            Type.PLUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
-            Type.MINUS -> if (isPrefix) Precedence.PREFIX else Precedence.LOW
-            else -> null
-        }
-    }
-
+    /**
+     * Represents the type of a token.
+     */
     enum class Type(
         val regex: Regex? = null,
         val style: CodeStyle? = null,
@@ -176,12 +274,18 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         fun isBasicBracket(): Boolean = this == BRACKET_OPENING || this == BRACKET_CLOSING
     }
 
+    /**
+     * Represents pairs of opening and closing brackets.
+     */
     enum class BracketPairs(val opening: Type, val closing: Type) {
         BASIC(Type.BRACKET_OPENING, Type.BRACKET_CLOSING),
         CURLY(Type.CURLY_BRACKET_OPENING, Type.CURLY_BRACKET_CLOSING),
         SQUARE(Type.SQUARE_BRACKET_OPENING, Type.SQUARE_BRACKET_CLOSING)
     }
 
+    /**
+     * Represents the precedence of a token.
+     */
     enum class Precedence {
         LOWEST,
         LOW,
@@ -190,64 +294,18 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         PREFIX,
     }
 
-    fun printError(): String? {
-        val errors = severities.filter { it.type == Severity.Type.ERROR }
-        if (errors.isEmpty()) return null
-        val errorString = errors.joinToString("\n\t") { it.message }
-        return "Error at $lineLoc {${this::class.simpleName}:${this.content}} $errorString"
-    }
-
-    fun printWarning(): String? {
-        val warnings = severities.filter { it.type == Severity.Type.WARNING }
-        if (warnings.isEmpty()) return null
-        val warningString = warnings.joinToString("\n\t") { it.message }
-        return "Warning at $lineLoc $warningString"
-    }
-
-    fun isPseudo(): Boolean {
-        return id < 0
-    }
-
-    fun addSeverity(type: Severity.Type, message: String) {
-        this.severities.add(Severity(type, message))
-        isPseudoOf?.addSeverity(type, message)
-    }
-
-    fun addSeverity(severity: Severity) {
-        this.severities.add(severity)
-        isPseudoOf?.addSeverity(severity)
-    }
-
-    fun removeSeverityIfError() {
-        val buffered = ArrayList(severities)
-        severities.clear()
-        severities.addAll(buffered.filter { it.type != Severity.Type.ERROR })
-        isPseudoOf?.removeSeverityIfError()
-    }
-
-    fun hl(codeStyle: CodeStyle) {
-        this.codeStyle = codeStyle
-    }
-
-    fun getCodeStyle() = codeStyle
-    fun getMajorSeverity() = severities.firstOrNull { it.type == Severity.Type.ERROR } ?: severities.firstOrNull { it.type == Severity.Type.WARNING } ?: severities.firstOrNull { it.type == Severity.Type.INFO }
-    fun getSeverities(): List<Severity> = severities
-
-    override fun toString(): String = content
+    /**
+     * Represents the location of the [Token].
+     */
     data class LineLoc(val fileName: String, var lineID: Int, val startIndex: Int, val endIndex: Int) {
         override fun toString(): String {
             return "$fileName[line ${lineID + 1}]:"
         }
     }
 
-    private fun String.replaceEscapedChars(): String {
-        var result = this
-        EscapedChar.entries.forEach {
-            result = result.replace(it.id, it.replacement)
-        }
-        return result
-    }
-
+    /**
+     * Represents escaped characters.
+     */
     enum class EscapedChar(val id: String, val replacement: String) {
         N("\\n", "\n"),
         T("\\t", "\t"),

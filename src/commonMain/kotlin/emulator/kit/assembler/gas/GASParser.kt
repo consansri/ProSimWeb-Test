@@ -16,9 +16,36 @@ import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value
 
+/**
+ * The GASParser class is responsible for parsing GAS (GNU Assembler) syntax.
+ * It extends the Parser class and overrides methods to handle directives and instructions specific to GAS.
+ */
 class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly) : Parser(compiler) {
+
+    /**
+     * Retrieves the list of directive types supported by the parser.
+     *
+     * @param features The list of features that may modify the supported directives.
+     * @return A list of DirTypeInterface instances representing the supported directives.
+     */
     override fun getDirs(features: List<Feature>): List<DirTypeInterface> = definedAssembly.getAdditionalDirectives() + GASDirType.entries
+
+    /**
+     * Retrieves the list of instruction types supported by the parser.
+     *
+     * @param features The list of features that may modify the supported instructions.
+     * @return A list of InstrTypeInterface instances representing the supported instructions.
+     */
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = definedAssembly.getInstrs(features)
+
+    /**
+     * Parses the source tokens into a syntax tree.
+     *
+     * @param source The list of tokens to be parsed.
+     * @param others Additional files to be considered during parsing.
+     * @param features The list of features that may influence the parsing process.
+     * @return A TreeResult instance containing the parsed tree and tokens.
+     */
     override fun parseTree(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): TreeResult {
         // Preprocess and Filter Tokens
         val filteredSource = filter(source)
@@ -39,6 +66,15 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         return TreeResult(root, source, filteredSource)
     }
 
+    /**
+     * Performs semantic analysis on the parsed syntax tree.
+     *
+     * @param lexer The lexer used for tokenization.
+     * @param tree The parsed syntax tree.
+     * @param others Additional files to be considered during analysis.
+     * @param features The list of features that may influence the analysis.
+     * @return A SemanticResult instance containing the analyzed sections.
+     */
     override fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<CompilerFile>, features: List<Feature>): SemanticResult {
 
         val root = tree.rootNode ?: return SemanticResult(arrayOf())
@@ -154,6 +190,9 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         return SemanticResult(sections)
     }
 
+    /**
+     * Checks the semantic validity of labels, ensuring no multiple definitions.
+     */
     private fun List<Pair<Label, Hex>>.checkLabelSemantic() {
         this.forEach { lbl ->
             when(lbl.first.label.type){
@@ -174,6 +213,9 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
      * Filters the [tokens] for only relevant ones for the parsing process.
      *
      * - Replaces comments with whitespaces
+     *
+     * @param tokens The list of tokens to filter.
+     * @return A list of filtered tokens.
      */
     private fun filter(tokens: List<Token>): List<Token> {
         val remaining = tokens.toMutableList()
@@ -200,6 +242,19 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         return filtered
     }
 
+    /**
+     * Temporary container class used during the parsing and semantic analysis processes.
+     *
+     * @property definedAssembly The defined assembly.
+     * @property compiler The compiler instance.
+     * @property others Additional files to consider.
+     * @property features The list of features that may influence the process.
+     * @property root The root node of the syntax tree.
+     * @property symbols The list of symbols.
+     * @property sections The list of sections.
+     * @property macros The list of macros.
+     * @property currSection The current section being processed.
+     */
     data class TempContainer(
         val definedAssembly: DefinedAssembly,
         val compiler: Compiler,
@@ -212,13 +267,32 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         var currSection: Section = sections.first(),
     ) {
 
+        /**
+         * Generates pseudo tokens for a given content.
+         *
+         * @param pseudoOf The reference token.
+         * @param content The content to tokenize.
+         * @return A list of generated tokens.
+         */
         fun pseudoTokenize(pseudoOf: Token, content: String): List<Token> = compiler.lexer.pseudoTokenize(pseudoOf, content)
 
+        /**
+         * Parses a list of tokens into a list of statements.
+         *
+         * @param tokens The list of tokens to parse.
+         * @return A list of parsed statements.
+         */
         fun parse(tokens: List<Token>): List<Statement> {
             val tree = compiler.parser.parseTree(tokens, others, features)
             return tree.rootNode?.getAllStatements() ?: listOf()
         }
 
+        /**
+         * Switches to or appends a new section with the given name and flags.
+         *
+         * @param name The name of the section.
+         * @param flags The flags for the section.
+         */
         fun switchToOrAppendSec(name: String, flags: String = "") {
             val sec = sections.firstOrNull { it.name.lowercase() == name.lowercase() }
             if (sec != null) {
@@ -231,6 +305,13 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
             currSection = newSec
         }
 
+        /**
+         * Imports a file for compilation.
+         *
+         * @param referenceToken The reference token.
+         * @param name The name of the file to import.
+         * @return True if the file was imported successfully, false otherwise.
+         */
         fun importFile(referenceToken: Token, name: String): Boolean {
             val file = others.firstOrNull { it.name == name } ?: return false
             nativeLog("Importing: ${file.name} others: ${(others - file).joinToString { it.name }}")
@@ -244,12 +325,23 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
             return true
         }
 
+        /**
+         * Sets or replaces a symbol in the symbol list.
+         *
+         * @param symbol The symbol to set or replace.
+         */
         fun setOrReplaceSymbol(symbol: Symbol) {
             val alreadydefined = symbols.firstOrNull { it.name == symbol.name }
             symbols.remove(alreadydefined)
             symbols.add(symbol)
         }
 
+        /**
+         * Sets or replaces a descriptor for a symbol.
+         *
+         * @param symbolName The name of the symbol.
+         * @param descriptor The descriptor to set.
+         */
         fun setOrReplaceDescriptor(symbolName: String, descriptor: Hex) {
             val alreadydefined = symbols.firstOrNull { it.name == symbolName }
             if (alreadydefined != null) {
@@ -262,6 +354,13 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         }
     }
 
+    /**
+     * Represents a macro with a name, arguments, and content.
+     *
+     * @property name The name of the macro.
+     * @property arguments The list of arguments for the macro.
+     * @property content The content of the macro.
+     */
     data class Macro(val name: String, val arguments: List<Argument>, val content: List<Statement>) {
         init {
             content.forEach { stmnt ->
@@ -271,6 +370,12 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
             }
         }
 
+        /**
+         * Generates pseudo statements by replacing arguments in the content.
+         *
+         * @param argMap The list of argument definitions.
+         * @return The content with arguments replaced.
+         */
         fun generatePseudoStatements(argMap: List<ArgDef>): String {
             var content = content.map { it.contentBackToString() }.joinToString("") { it }
             val args = arguments.map { it.argName to it.getDefaultValue() }.toTypedArray()
@@ -306,6 +411,11 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         }
     }
 
+    /**
+     * Sealed class representing a symbol with a name and descriptor.
+     *
+     * @property name The name of the symbol.
+     */
     sealed class Symbol(val name: String) {
         var descriptor: Hex = Hex("0", Bit16())
 
@@ -315,25 +425,44 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         class TokenRef(name: String, val token: Token) : Symbol(name)
     }
 
+    /**
+     * Represents a section in the assembly with a name, address size, and flags.
+     *
+     * @property name The name of the section.
+     * @property addressSize The size of the address space.
+     * @property flags The flags for the section.
+     */
     data class Section(val name: String, val addressSize: Variable.Size, var flags: String = "") {
         private val content: MutableList<MappedContent<*>> = mutableListOf()
         private var lastOffset: Value = Hex("0", addressSize)
 
         private var sectionStart: Hex = Hex("0", addressSize)
 
+        /**
+         * Adds content to the section.
+         *
+         * @param sectionContent The content to add.
+         */
         fun addContent(sectionContent: SecContent) {
             content.add(MappedContent(lastOffset.toHex(), sectionContent))
             lastOffset += Hex(sectionContent.bytesNeeded.toString(16), addressSize)
         }
 
+        /**
+         * Gets the last address in the section.
+         *
+         * @return The last address as a Value.
+         */
         fun getLastAddress(): Value {
             return lastOffset
         }
 
-        fun calcPadding(alignement: Int): Value {
-            return Hex(alignement.toString(16)) - lastOffset % Hex(alignement.toString(16))
-        }
-
+        /**
+         * Links labels to their addresses within the section.
+         *
+         * @param sectionStartAddress The starting address of the section.
+         * @return A list of label-address pairs.
+         */
         fun linkLabels(sectionStartAddress: Hex): List<Pair<Label, Hex>> {
             sectionStart = sectionStartAddress
             return content.filter { it.content is Label }.filterIsInstance<MappedContent<Label>>().map {
@@ -341,6 +470,12 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
             }
         }
 
+        /**
+         * Generates bytes for the section content.
+         *
+         * @param sectionStartAddress The starting address of the section.
+         * @param labels The list of label-address pairs.
+         */
         fun generateBytes(sectionStartAddress: Hex, labels: List<Pair<Label, Hex>>) {
             sectionStart = sectionStartAddress
             content.forEach {
@@ -348,9 +483,25 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
             }
         }
 
+        /**
+         * Gets the starting address of the section.
+         *
+         * @return The starting address as a Hex value.
+         */
         fun getSectionAddr() = sectionStart
+
+        /**
+         * Gets the content of the section.
+         *
+         * @return An array of MappedContent instances.
+         */
         fun getContent() = content.toTypedArray()
 
+        /**
+         * Gets the bundled content of the section.
+         *
+         * @return An array of BundledContent instances.
+         */
         fun getTSContent(): Array<BundledContent> {
             val labels = content.filter { it.content is Label }
 
@@ -361,11 +512,25 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
 
         override fun toString(): String = "$name: ${content.joinToString("") { "\n\t$it" }}"
 
+        /**
+         * Data class mapping content to an offset.
+         *
+         * @property offset The offset of the content.
+         * @property content The content.
+         */
         data class MappedContent<T : SecContent>(val offset: Hex, val content: T) {
             var bytes: Array<Bin> = arrayOf()
             override fun toString(): String = "${if (content.bytesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().getRawHexStr() } + "\t" else ""}${content.getContentString()}"
         }
 
+        /**
+         * Data class representing bundled content with an address, bytes, content, and labels.
+         *
+         * @property address The address of the content.
+         * @property bytes The bytes of the content.
+         * @property content The content as a string.
+         * @property label The list of labels associated with the content.
+         */
         data class BundledContent(val address: Hex, val bytes: Array<Bin>, val content: String, val label: List<Label>) {
             fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString(), label.joinToString("\n") { it.getContentString() }, bytes.joinToString("\n") { it.toHex().getRawHexStr() }, content)
             override fun equals(other: Any?): Boolean {
@@ -390,20 +555,35 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         }
     }
 
+    /**
+     * Interface for section content.
+     */
     interface SecContent {
         val bytesNeeded: Int
         fun getFirstToken(): Token
         fun getMark(): Memory.InstanceType
 
         /**
+         * Generates a binary array for the section content.
          * This will be stored into memory!
          *
          * Values larger than one byte will be stored memory endianness dependent!
+         *
+         * @param yourAddr The address of the content.
+         * @param labels The list of label-address pairs.
+         * @return An array of binary values.
          */
         fun getBinaryArray(yourAddr: Value, labels: List<Pair<Label, Hex>>): Array<Bin>
         fun getContentString(): String
     }
 
+    /**
+     * Class representing data content in a section.
+     *
+     * @property referenceToken The reference token.
+     * @property bin The binary data.
+     * @property type The data type.
+     */
     class Data(private val referenceToken: Token, val bin: Hex, val type: DataType) : SecContent {
         override val bytesNeeded: Int = bin.size.getByteCount()
 
@@ -415,6 +595,9 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
 
         override fun getContentString(): String = ".${type.name.lowercase()} $bin"
 
+        /**
+         * Enum representing the types of data.
+         */
         enum class DataType {
             BYTE,
             SHORT,
@@ -422,6 +605,11 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         }
     }
 
+    /**
+     * Data class representing a label in the assembly.
+     *
+     * @property label The label node.
+     */
     data class Label(val label: GASNode.Label) : SecContent {
         fun getID(): String = label.identifier
 

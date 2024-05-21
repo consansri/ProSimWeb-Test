@@ -237,6 +237,10 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         }
     }
 
+    /**
+     * [Root]
+     * A RootNode only contains several [Statement]s.
+     */
     class Root(vararg statements: Statement) : GASNode(*statements) {
         fun removeEmptyStatements() {
             ArrayList(children).filterIsInstance<Statement.Empty>().forEach {

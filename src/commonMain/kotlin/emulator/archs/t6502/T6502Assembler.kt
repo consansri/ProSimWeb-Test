@@ -17,8 +17,6 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
 class T6502Assembler() : DefinedAssembly {
-
-    override val instrsAreWordAligned: Boolean = false
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
     override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
     override val detectRegistersByName: Boolean = false

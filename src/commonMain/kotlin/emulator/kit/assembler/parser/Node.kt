@@ -5,15 +5,55 @@ import emulator.kit.assembler.lexer.Token
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
-sealed class Node {
 
+/**
+ * Represents a node in the parse tree.
+ */
+sealed class Node {
+    /** Retrieves the content of the node as a string. */
     fun getContentAsString(): String = getAllTokens().sortedBy { it.id }.joinToString("") { it.getContentAsString() }
+
+    /**
+     * Retrieves all tokens associated with the node.
+     *
+     * @return Array of tokens.
+     */
     abstract fun getAllTokens(): Array<out Token>
+
+    /**
+     * Searches for the base node containing the specified token.
+     *
+     * @param token The token to search for.
+     * @param prevPath List of previous nodes visited in the search path.
+     * @return The search result if the token is found, null otherwise.
+     */
     abstract fun searchBaseNode(token: Token, prevPath: List<Node>): Parser.SearchResult?
+
+    /**
+     * Filters nodes based on the specified node type.
+     *
+     * @param nodeType The class representing the node type.
+     * @return List of nodes of the specified type.
+     */
     abstract fun <T : Node> filterNodes(nodeType: KClass<T>): List<T>
+
+    /**
+     * Generates a string representation of the node.
+     *
+     * @param prefix The prefix string to prepend to each line of the output.
+     * @return The string representation of the node.
+     */
     abstract fun print(prefix: String): String
+
+    /** Retrieves the line location associated with the node. */
     abstract fun getLineLoc(): Token.LineLoc?
     override fun toString(): String = print("")
+
+    /**
+     * Represents the base node containing a single token.
+     *
+     * @property token The token associated with the base node.
+     */
     class BaseNode(val token: Token) : Node() {
         init {
             token.removeSeverityIfError()
@@ -41,45 +81,55 @@ sealed class Node {
         override fun print(prefix: String): String = prefix + if (token.content != "\n") token.content else ""
     }
 
+    /** Represents a hierarchical node containing child nodes. */
     abstract class HNode(vararg childs: Node) : Node() {
         val children: MutableList<Node> = childs.toMutableList()
-        private var severity: Severity? = null
 
+        /** Prints the name of the node with the specified prefix. */
         fun printNodeName(prefix: String): String = "$prefix${this::class.simpleName}:"
+
+        /** Prints the child nodes with the specified prefix. */
         fun printChilds(prefix: String): String = children.joinToString("") { "\n${it.print("$prefix\t")}" }
+
+        /** Adds child nodes at the specified index. */
+        fun addChilds(index: Int, childs: List<Node>) {
+            children.addAll(index, childs)
+        }
+
+        /** Adds multiple child nodes. */
+        fun addChilds(vararg childs: Node) {
+            children.addAll(childs)
+        }
+
+        /** Adds a child node at the specified index. */
+        fun addChild(index: Int, child: Node) {
+            children.add(index, child)
+        }
+
+        /** Adds a single child node. */
+        fun addChild(child: Node) {
+            children.add(child)
+        }
+
+        /** Removes a child node. */
+        fun removeChild(child: Node) {
+            children.remove(child)
+        }
+
+        /** Removes multiple child nodes. */
+        fun removeChilds(childs: List<Node>){
+            children.removeAll(childs.toSet())
+        }
+
+        /** Removes all child nodes. */
+        fun removeAllChildren() {
+            children.clear()
+        }
 
         override fun print(prefix: String): String = "${printNodeName(prefix)}${printChilds(prefix)}"
 
         override fun getLineLoc(): Token.LineLoc? {
             return getAllTokens().firstOrNull()?.lineLoc
-        }
-
-        fun addChilds(index: Int, childs: List<Node>) {
-            children.addAll(index, childs)
-        }
-
-        fun addChilds(vararg childs: Node) {
-            children.addAll(childs)
-        }
-
-        fun addChild(index: Int, child: Node) {
-            children.add(index, child)
-        }
-
-        fun addChild(child: Node) {
-            children.add(child)
-        }
-
-        fun removeChild(child: Node) {
-            children.remove(child)
-        }
-
-        fun removeChilds(childs: List<Node>){
-            children.removeAll(childs.toSet())
-        }
-
-        fun removeAllChildren() {
-            children.clear()
         }
 
         override fun getAllTokens(): Array<out Token> {

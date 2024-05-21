@@ -28,7 +28,7 @@ class Compiler(
     fun getLastLineMap(): Map<String, Token.LineLoc> = lastLineAddrMap
 
     /**
-     * Executes and controls the compilation
+     * Executes and controls the compilation process
      */
     fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Process.Mode): Process.Result {
         architecture.getConsole().clear()

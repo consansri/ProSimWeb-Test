@@ -14,8 +14,6 @@ class IKRRisc2Assembler : DefinedAssembly {
         get() = TODO("Not yet implemented")
     override val wordSize: Variable.Size
         get() = TODO("Not yet implemented")
-    override val instrsAreWordAligned: Boolean
-        get() = TODO("Not yet implemented")
     override val detectRegistersByName: Boolean
         get() = TODO("Not yet implemented")
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
