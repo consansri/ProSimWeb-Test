@@ -7,14 +7,14 @@ import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 
 /**
- * The [Compiler] handles all [Process].
+ * The [Assembler] handles all [Process].
  * Processes can be initiated and Process Results will be delivered.
  *
  * @param definedAssembly delivers the arch dependent assembler implementation for the [Parser].
  * @property parser holds the Parser Implementation this Compiler will always use the [GASParser] for this.
  * @property lexer holds the Lexer Implementation this Compiler will always use the [Lexer] for this.
  */
-class Compiler(
+class Assembler(
     private val architecture: Architecture,
     private val definedAssembly: DefinedAssembly
 ) {
@@ -30,7 +30,7 @@ class Compiler(
     /**
      * Executes and controls the compilation process
      */
-    fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Process.Mode): Process.Result {
+    fun compile(mainFile: AssemblerFile, others: List<AssemblerFile>, build: Process.Mode): Process.Result {
         architecture.getConsole().clear()
         val process = Process(mainFile, others, build)
         processes.add(process)
@@ -45,9 +45,9 @@ class Compiler(
         }
 
         if (result.hasErrors()) {
-            architecture.getConsole().error("Process failed with an exception!\n$process")
+            architecture.getConsole().error(process.getFinishedStr(false))
         } else {
-            architecture.getConsole().info("Process finished SUCCESSFUL\n$process")
+            architecture.getConsole().info(process.getFinishedStr(true))
         }
 
         if (build == Process.Mode.FULLBUILD) {
@@ -60,6 +60,6 @@ class Compiler(
 
     fun runningProcesses(): List<Process> = processes
 
-    fun isInTreeCacheAndHasNoErrors(file: CompilerFile): Boolean = !(parser.treeCache[file]?.hasErrors() ?: true)
+    fun isInTreeCacheAndHasNoErrors(file: AssemblerFile): Boolean = !(parser.treeCache[file]?.hasErrors() ?: true)
 
 }

@@ -1040,8 +1040,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         when (this) {
             // Global
             INCLUDE -> {
-                val fileName = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull()?.evaluate(true) ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected filename is missing!")
-                cont.importFile(stmnt.dir.allTokens.first(), fileName)
+                val stringExpr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull() ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected filename is missing!")
+                val fileName = stringExpr.evaluate(true)
+                cont.importFile(stringExpr.getAllTokens().first(), fileName)
             }
 
             MACRO -> {
@@ -1582,7 +1583,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
             else -> {
                 stmnt.getAllTokens().firstOrNull()?.let {
-                    it.addSeverity(Severity.Type.WARNING,"Not yet Implemented!")
+                    it.addSeverity(Severity.Type.WARNING, "Not yet Implemented!")
                 }
             }
         }

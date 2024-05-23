@@ -2,7 +2,7 @@ package emulator.kit.assembler.lexer
 
 import emulator.kit.Architecture
 import emulator.kit.common.RegContainer
-import emulator.kit.assembler.CompilerFile
+import emulator.kit.assembler.AssemblerFile
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.lexer.Token.LineLoc
@@ -26,7 +26,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
      * Only if those aren't matching it will be consumed as a symbol.
      *
      */
-    fun tokenize(file: CompilerFile): List<Token> {
+    fun tokenize(file: AssemblerFile): List<Token> {
         val regs = if (detectRegisters) architecture.getAllRegs().map { it to it.getRegex() } else null
         val instrs = architecture.getAllInstrTypes().map { it to it.getInstrRegex() }
         val dirs = architecture.getAllDirTypes().map { it to it.getDirRegex() }

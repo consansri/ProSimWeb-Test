@@ -106,7 +106,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         val errors = severities.filter { it.type == Severity.Type.ERROR }
         if (errors.isEmpty()) return null
         val errorString = errors.joinToString("\n\t") { it.message }
-        return "Error at $lineLoc {${this::class.simpleName}:${this.content}} $errorString"
+        return "$lineLoc Error: {${this.type} ${this.content}} $errorString"
     }
 
     /**
@@ -116,7 +116,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         val warnings = severities.filter { it.type == Severity.Type.WARNING }
         if (warnings.isEmpty()) return null
         val warningString = warnings.joinToString("\n\t") { it.message }
-        return "Warning at $lineLoc $warningString"
+        return "$lineLoc Warning: $warningString"
     }
 
     /**
@@ -299,7 +299,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
      */
     data class LineLoc(val fileName: String, var lineID: Int, val startIndex: Int, val endIndex: Int) {
         override fun toString(): String {
-            return "$fileName[line ${lineID + 1}]:"
+            return "$fileName[line ${lineID + 1}]"
         }
     }
 

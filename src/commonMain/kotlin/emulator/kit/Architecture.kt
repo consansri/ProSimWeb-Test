@@ -30,7 +30,7 @@ import emulator.kit.optional.Feature
  *  @property memory Essential: Given by Config
  *
  *  @property iConsole Instantiated with Config name
- *  @property compiler Instantiated with AsmConfig grammar and assembly and ArchConst COMPILER_REGEX and StandardHL
+ *  @property assembler Instantiated with AsmConfig grammar and assembly and ArchConst COMPILER_REGEX and StandardHL
  *
  *  Possible Features
  *  @property cache Not Essential: Possibly given by Config
@@ -42,11 +42,11 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val regContainer: RegContainer
     private val memory: Memory
     private val iConsole: IConsole
-    private val compiler: Compiler
+    private val assembler: Assembler
     private val cache: Cache?
     private val features: List<Feature>
     private val settings: List<ArchSetting>
-    private var lastFile: CompilerFile? = null
+    private var lastFile: AssemblerFile? = null
     private val definedAssembly: DefinedAssembly
 
     init {
@@ -59,7 +59,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.features = asmConfig.features
         this.settings = asmConfig.settings
         this.definedAssembly = asmConfig.definedAssembly
-        this.compiler = Compiler(
+        this.assembler = Assembler(
             this,
             asmConfig.definedAssembly
         )
@@ -70,14 +70,14 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getRegContainer(): RegContainer = regContainer
     fun getMemory(): Memory = memory
     fun getConsole(): IConsole = iConsole
-    fun getCompiler(): Compiler = compiler
-    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: CompilerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
+    fun getCompiler(): Assembler = assembler
+    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AssemblerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
     fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
-    fun getAllInstrTypes(): List<InstrTypeInterface> = compiler.parser.getInstrs(features)
-    fun getAllDirTypes(): List<DirTypeInterface> = compiler.parser.getDirs(features)
+    fun getAllInstrTypes(): List<InstrTypeInterface> = assembler.parser.getInstrs(features)
+    fun getAllDirTypes(): List<DirTypeInterface> = assembler.parser.getDirs(features)
     fun getRegByName(name: String, regFile: String? = null): RegContainer.Register? = regContainer.getReg(name, features, regFile)
     fun getRegByAddr(addr: Variable.Value, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
 
@@ -151,7 +151,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Compilation Event
      * already implemented
      */
-    fun compile(mainFile: CompilerFile, others: List<CompilerFile>, build: Boolean = true): Process.Result {
+    fun compile(mainFile: AssemblerFile, others: List<AssemblerFile>, build: Boolean = true): Process.Result {
         if (build) {
             exeReset()
         }
@@ -162,7 +162,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
 
         val mode = if(build) Process.Mode.FULLBUILD else Process.Mode.STOP_AFTER_ANALYSIS
 
-        val compilationResult = compiler.compile(mainFile, others, mode)
+        val compilationResult = assembler.compile(mainFile, others, mode)
         return compilationResult
     }
 

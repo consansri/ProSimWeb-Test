@@ -20,7 +20,7 @@ import emulator.kit.types.Variable.Value
  * The GASParser class is responsible for parsing GAS (GNU Assembler) syntax.
  * It extends the Parser class and overrides methods to handle directives and instructions specific to GAS.
  */
-class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly) : Parser(compiler) {
+class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssembly) : Parser(assembler) {
 
     /**
      * Retrieves the list of directive types supported by the parser.
@@ -46,7 +46,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
      * @param features The list of features that may influence the parsing process.
      * @return A TreeResult instance containing the parsed tree and tokens.
      */
-    override fun parseTree(source: List<Token>, others: List<CompilerFile>, features: List<Feature>): TreeResult {
+    override fun parseTree(source: List<Token>, others: List<AssemblerFile>, features: List<Feature>): TreeResult {
         // Preprocess and Filter Tokens
         val filteredSource = filter(source)
 
@@ -75,7 +75,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
      * @param features The list of features that may influence the analysis.
      * @return A SemanticResult instance containing the analyzed sections.
      */
-    override fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<CompilerFile>, features: List<Feature>): SemanticResult {
+    override fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<AssemblerFile>, features: List<Feature>): SemanticResult {
 
         val root = tree.rootNode ?: return SemanticResult(arrayOf())
 
@@ -101,7 +101,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
          * - Resolve Statements
          */
 
-        val tempContainer = TempContainer(definedAssembly, compiler, others, features, root)
+        val tempContainer = TempContainer(definedAssembly, assembler, others, features, root)
 
         try {
             while (root.getAllStatements().isNotEmpty()) {
@@ -246,7 +246,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
      * Temporary container class used during the parsing and semantic analysis processes.
      *
      * @property definedAssembly The defined assembly.
-     * @property compiler The compiler instance.
+     * @property assembler The compiler instance.
      * @property others Additional files to consider.
      * @property features The list of features that may influence the process.
      * @property root The root node of the syntax tree.
@@ -257,8 +257,8 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
      */
     data class TempContainer(
         val definedAssembly: DefinedAssembly,
-        val compiler: Compiler,
-        val others: List<CompilerFile>,
+        val assembler: Assembler,
+        val others: List<AssemblerFile>,
         val features: List<Feature>,
         val root: Root,
         val symbols: MutableList<Symbol> = mutableListOf(),
@@ -274,7 +274,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
          * @param content The content to tokenize.
          * @return A list of generated tokens.
          */
-        fun pseudoTokenize(pseudoOf: Token, content: String): List<Token> = compiler.lexer.pseudoTokenize(pseudoOf, content)
+        fun pseudoTokenize(pseudoOf: Token, content: String): List<Token> = assembler.lexer.pseudoTokenize(pseudoOf, content)
 
         /**
          * Parses a list of tokens into a list of statements.
@@ -283,7 +283,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
          * @return A list of parsed statements.
          */
         fun parse(tokens: List<Token>): List<Statement> {
-            val tree = compiler.parser.parseTree(tokens, others, features)
+            val tree = assembler.parser.parseTree(tokens, others, features)
             return tree.rootNode?.getAllStatements() ?: listOf()
         }
 
@@ -315,7 +315,7 @@ class GASParser(compiler: Compiler, private val definedAssembly: DefinedAssembly
         fun importFile(referenceToken: Token, name: String): Boolean {
             val file = others.firstOrNull { it.name == name } ?: return false
             nativeLog("Importing: ${file.name} others: ${(others - file).joinToString { it.name }}")
-            val tree = compiler.compile(file, others - file, Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD)
+            val tree = assembler.compile(file, others - file, Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD)
             tree.tokens.forEach {
                 it.isPseudoOf = referenceToken
             }

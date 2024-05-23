@@ -1,6 +1,6 @@
 package me.c3.ui
 
-import emulator.kit.assembler.CompilerFile
+import emulator.kit.assembler.AssemblerFile
 import emulator.kit.common.FileBuilder
 import emulator.kit.toCompilerFile
 import kotlinx.coroutines.CoroutineScope
@@ -107,7 +107,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
      * @param exclude The file to exclude from the list.
      * @return A list of compiler files.
      */
-    fun getCompilerFiles(exclude: File): List<CompilerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S"))}.map { it.toCompilerFile() }
+    fun getCompilerFiles(exclude: File): List<AssemblerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S"))}.map { it.toCompilerFile() }
 
     /**
      * Displays a context menu with various file operations.

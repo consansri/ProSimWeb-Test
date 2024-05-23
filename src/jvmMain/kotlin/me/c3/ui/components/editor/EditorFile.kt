@@ -1,7 +1,7 @@
 package me.c3.ui.components.editor
 
 import emulator.kit.*
-import emulator.kit.assembler.CompilerFile
+import emulator.kit.assembler.AssemblerFile
 import kotlinx.coroutines.*
 import me.c3.ui.styled.editor.FileInterface
 import java.io.File
@@ -32,7 +32,7 @@ class EditorFile(val file: File) : FileInterface {
      * Converts the editor file to a compiler file.
      * @return The compiler file object.
      */
-    fun toCompilerFile(): CompilerFile = file.toCompilerFile()
+    fun toCompilerFile(): AssemblerFile = file.toCompilerFile()
 
     /**
      * Stores the buffered content of the file.

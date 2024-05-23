@@ -21,8 +21,8 @@ import kotlinx.datetime.Instant
  * @property processStart The timestamp when the process started.
  */
 data class Process(
-    val file: CompilerFile,
-    val otherFiles: List<CompilerFile>,
+    val file: AssemblerFile,
+    val otherFiles: List<AssemblerFile>,
     val mode: Mode,
     val processStart: Instant = Clock.System.now()
 ) {
@@ -94,7 +94,7 @@ data class Process(
     }
 
     override fun toString(): String {
-        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) ${(Clock.System.now() - processStart).inWholeSeconds}s"
+        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) in ${(Clock.System.now() - processStart).inWholeSeconds}s"
     }
 
     /**

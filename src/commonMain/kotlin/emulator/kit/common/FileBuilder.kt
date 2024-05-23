@@ -1,7 +1,7 @@
 package emulator.kit.common
 
 import emulator.kit.Architecture
-import emulator.kit.assembler.CompilerFile
+import emulator.kit.assembler.AssemblerFile
 import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
@@ -16,7 +16,7 @@ import kotlin.math.roundToLong
  *
  */
 object FileBuilder {
-    fun buildFileContentLines(architecture: Architecture, format: ExportFormat, currentFile: CompilerFile, vararg settings: Setting): List<String> {
+    fun buildFileContentLines(architecture: Architecture, format: ExportFormat, currentFile: AssemblerFile, vararg settings: Setting): List<String> {
         when (format) {
             ExportFormat.VHDL, ExportFormat.MIF, ExportFormat.HEXDUMP -> {
                 val content = mutableListOf("Empty...")

@@ -1,6 +1,6 @@
 package emulator.kit
 
-import emulator.kit.assembler.CompilerFile
+import emulator.kit.assembler.AssemblerFile
 import emulator.kit.optional.FileHandler
 import java.io.File
 
@@ -42,7 +42,7 @@ actual fun nativeInfo(message: String) {
     println("Info: $message")
 }
 
-fun File.toCompilerFile(): CompilerFile {
-    return CompilerFile(this.name, this.readText())
+fun File.toCompilerFile(): AssemblerFile {
+    return AssemblerFile(this.name, this.readText())
 }
 
