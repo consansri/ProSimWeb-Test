@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-    kotlin("multiplatform") version "1.9.24"
+    kotlin("multiplatform") version "2.0.0"
     id("org.jetbrains.dokka") version "1.9.20"
     distribution
 }
@@ -60,8 +60,6 @@ kotlin {
     }
 
     jvm {
-        jvmToolchain(11)
-
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
             this.mainClass.set("me.c3.ui.AppKt")

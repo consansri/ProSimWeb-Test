@@ -986,12 +986,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
                 KeyEvent.VK_BACK_SPACE -> {
                     if (isEditable) {
-                        if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex()))
+                        if (selStart != -1 && selEnd != -1) deleteSelected() else {if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex())}
                     }
                 }
 
                 KeyEvent.VK_DELETE -> if (isEditable) {
-                    if (selStart != -1 && selEnd != -1) deleteSelected() else (if (caret.getIndex() <= styledText.size) deleteText(caret.getIndex(), caret.getIndex() + 1))
+                    if (selStart != -1 && selEnd != -1) deleteSelected() else {if (caret.getIndex() <= styledText.size) deleteText(caret.getIndex(), caret.getIndex() + 1)}
                 }
 
                 KeyEvent.VK_HOME -> {
