@@ -14,7 +14,7 @@ import java.io.FileNotFoundException
 class EditorFile(val file: File) : FileInterface {
 
     // Buffered content of the file
-    private var bufferedContent = file.readText()
+    private var bufferedContent = file.readText().replace("\r\n", "\n")
         set(value) {
             field = value
             CoroutineScope(Dispatchers.IO).launch {
@@ -40,7 +40,7 @@ class EditorFile(val file: File) : FileInterface {
     private suspend fun store() {
         withContext(Dispatchers.IO) {
             try {
-                file.writeText(bufferedContent)
+                file.writeText(bufferedContent.replace("\n","\r\n"))
             } catch (e: FileNotFoundException) {
                 nativeWarn("File ${getName()} isn't writeable!")
             }
