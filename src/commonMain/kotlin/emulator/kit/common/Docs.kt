@@ -22,7 +22,9 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "Changed",
                     UnlinkedList(
-                        Text("JVM: Improved Code Quality.")
+                        Text("JVM: Improved Code Quality."),
+                        Text("GLOBAL: Upgraded to Kotlin 2.0.0"),
+                        Text("KIT: Assembler Messages are more transparent with not yet implemented directives.")
                     )
                 ),
                 Section(
