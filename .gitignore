@@ -3,7 +3,6 @@ build/
 .idea/
 shell/
 .kotlin
-kotlin-js-store
 .classpath
 .project
 *.eml
