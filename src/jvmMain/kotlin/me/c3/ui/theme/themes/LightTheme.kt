@@ -14,7 +14,8 @@ class LightTheme(icons: ProSimIcons) : Theme {
     override val codeLaF: CodeLaF = CodeLaF(
         font = loadFont("fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"),
         pcIdenticator = ">",
-        selectionColor = Color(0x4d90fe)
+        selectionColor = Color(0x4d90fe),
+        searchResultColor = Color(0xE2B124)
     ) {
         if (it == null) return@CodeLaF Color(0x333333)
         return@CodeLaF Color(it.lightHexColor)

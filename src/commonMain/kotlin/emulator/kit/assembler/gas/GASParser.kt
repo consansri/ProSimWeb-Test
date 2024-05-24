@@ -1,5 +1,6 @@
 package emulator.kit.assembler.gas
 
+import debug.DebugTools
 import emulator.kit.assembler.*
 import emulator.kit.assembler.gas.GASNode.*
 import emulator.kit.assembler.lexer.Lexer
@@ -177,9 +178,11 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
             e.token.addSeverity(Severity.Type.ERROR, e.message)
         }
 
-        nativeLog(tempContainer.sections.joinToString("\n\n") {
-            it.toString()
-        })
+        if (DebugTools.KIT_showSections) {
+            nativeLog(tempContainer.sections.joinToString("\n\n") {
+                it.toString()
+            })
+        }
 
         return SemanticResult(sections)
     }
@@ -189,13 +192,14 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      */
     private fun List<Pair<Label, Hex>>.checkLabelSemantic() {
         this.forEach { lbl ->
-            when(lbl.first.label.type){
+            when (lbl.first.label.type) {
                 GASNode.Label.Type.LOCAL -> {
 
                 }
+
                 GASNode.Label.Type.GLOBAL -> {
-                    val multiDef =(this - lbl).firstOrNull { it.first.label.identifier == lbl.first.label.identifier }
-                    if( multiDef != null){
+                    val multiDef = (this - lbl).firstOrNull { it.first.label.identifier == lbl.first.label.identifier }
+                    if (multiDef != null) {
                         throw ParserError(lbl.first.label.getAllTokens().first(), "Label is defined multiple times!")
                     }
                 }

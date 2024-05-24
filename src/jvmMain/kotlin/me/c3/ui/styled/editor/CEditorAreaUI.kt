@@ -16,6 +16,7 @@ class CEditorAreaUI(
 ) : ComponentUI() {
     private var defaultSelectionColor = Color(0, 0, 0, 0)
     private var defaultSearchResultColor = Color(0, 0, 0, 0)
+    private var selectedSearchResultColor = Color(0,0,0,0)
     private var caretLineBG = Color(0, 0, 0, 0)
 
     private var caretTimer: Timer? = null
@@ -27,6 +28,13 @@ class CEditorAreaUI(
             defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 77)
             defaultSearchResultColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 154)
             caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
+        }
+
+    private var searchResultColor = themeManager.curr.codeLaF.searchResultColor
+        set(value) {
+            field = value
+            defaultSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 77)
+            selectedSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 154)
         }
 
     override fun installUI(c: JComponent?) {
@@ -52,6 +60,7 @@ class CEditorAreaUI(
         editor.foreground = themeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
         editor.font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
         selectionColor = themeManager.curr.codeLaF.selectionColor
+        searchResultColor = themeManager.curr.codeLaF.searchResultColor
         editor.tabSize = scaleManager.curr.fontScale.tabSize
         editor.focusTraversalKeysEnabled = false
 
@@ -229,9 +238,9 @@ class CEditorAreaUI(
                 }
             }
 
-            val isCharInSearchResults = searchResults.firstOrNull { it.range.contains(index) } != null
-            if (isCharInSearchResults) {
-                g2d.color = defaultSearchResultColor
+            val inResult =  searchResults.firstOrNull { it.range.contains(index) }
+            if (inResult != null) {
+                g2d.color = if(editor.findAndReplace.isSelected(inResult)) selectedSearchResultColor else defaultSearchResultColor
                 if (char.content == '\n') {
                     g2d.fillRect(x, y - ascent, editor.bounds.width - x - editor.insets.right, lineHeight)
                 } else {

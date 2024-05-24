@@ -193,7 +193,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
      */
 
     // Insertion / Deletion
-    fun replaceStyledContent(styledContent: List<StyledChar>) {
+    fun replaceContent(styledContent: List<StyledChar>) {
         val prevCaretPos = caret.caretPos
         styledText.clear()
         styledText.addAll(styledContent)
@@ -206,7 +206,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         repaint()
     }
 
-    private fun insertText(pos: Int, newText: String) {
+    fun replaceContent(content: String) {
+        replaceContent(content.toStyledContent())
+    }
+
+    fun insertText(pos: Int, newText: String) {
         if (pos > styledText.size) {
             nativeError("Text Insertion invalid for position $pos and current size ${styledText.size}!")
             return
@@ -220,7 +224,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         repaint()
     }
 
-    private fun deleteText(startIndex: Int, endIndex: Int) {
+    fun deleteText(startIndex: Int, endIndex: Int) {
         if (startIndex < endIndex && endIndex <= styledText.size) {
             styledText.subList(startIndex, endIndex).clear()
             if (caret.getIndex() > startIndex) {
@@ -429,7 +433,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         while (endIndex < styledText.size - 1 && styledText[endIndex].isLetterOrDigit()) {
             endIndex++
         }
-        nativeLog("SymbolBounds: $startIndex, $endIndex")
+
         // Return the bounds of the word
         return Pair(startIndex, endIndex)
     }
@@ -623,7 +627,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
     private fun columnOf(pos: Int): Int = (splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).lastOrNull()?.size ?: 1) - 1
     fun getAbsSelection(): AbsSelection = if (selStart < selEnd) AbsSelection(selStart, selEnd, selStartLine, selEndLine, selStartColumn, selEndColumn) else AbsSelection(selEnd, selStart, selEndLine, selStartLine, selEndColumn, selStartColumn)
     fun getStyledText(): List<StyledChar> = styledText
-    fun getText(): String = styledText.joinToString("") { it.content.toString() }
+    fun getText(): String = ArrayList(styledText).joinToString("") { it.content.toString() }
     fun getLineBreakIDs() = ArrayList(lineBreakIDs)
 
     /**
@@ -654,6 +658,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
     /**
      * IO
      */
+
+    private fun String.toStyledContent(): List<StyledChar> = this.map { StyledChar(it) }
 
     private fun copyToClipboard(text: String) {
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard

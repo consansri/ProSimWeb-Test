@@ -9,6 +9,7 @@ class CodeLaF(
     font: Font,
     val pcIdenticator: String,
     val selectionColor: Color,
+    val searchResultColor: Color,
     val getColor: (CodeStyle?) -> Color
 ) {
     private var font: Font = font
