@@ -21,9 +21,9 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
     private var selectedIndex: Int = -1
         set(value) {
             field = value
-            if(selectedIndex != -1){
+            if (selectedIndex != -1) {
                 resultControls.results.text = "${selectedIndex + 1}/${searchResults.size}"
-            }else{
+            } else {
                 resultControls.results.text = "${searchResults.size}"
             }
             editor.repaint()
@@ -66,7 +66,7 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         attachComponents()
     }
 
-    fun isSelected(result: MatchResult): Boolean{
+    fun isSelected(result: MatchResult): Boolean {
         return searchResults.indexOf(result) == selectedIndex
     }
 
@@ -109,12 +109,13 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         add(searchField, gbc)
 
         gbc.gridx = 2
-        gbc.weightx = 0.0
-        gbc.fill = GridBagConstraints.VERTICAL
+        gbc.fill = GridBagConstraints.HORIZONTAL
         add(resultControls, gbc)
 
         gbc.gridx = 3
+        gbc.weightx = 0.0
         gbc.gridheight = 2
+        gbc.fill = GridBagConstraints.VERTICAL
         add(closeField, gbc)
 
         revalidate()
@@ -129,8 +130,9 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
 
                 gbc.gridx = 2
                 gbc.gridy = 1
-                gbc.weightx = 0.0
+                gbc.weightx = 1.0
                 gbc.weighty = 1.0
+                gbc.fill = GridBagConstraints.HORIZONTAL
                 gbc.gridheight = 1
 
                 add(replaceControls, gbc)
@@ -199,37 +201,35 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
 
         suspend fun search() {
-            val time = measureTime {
-                searchResults.clear()
-                selectedIndex = -1
-                val find = textField.text ?: ""
+            searchResults.clear()
+            selectedIndex = -1
+            val find = textField.text ?: ""
 
-                if (find.isNotEmpty()) {
-                    val currEditorContent = editor.getText()
+            if (find.isNotEmpty()) {
+                val currEditorContent = editor.getText()
 
-                    val matches = if (resultControls.regexMode.isActive) {
-                        var seq: Sequence<MatchResult>
-                        try {
-                            seq = find.toRegex().findAll(currEditorContent)
-                            editor.infoLogger?.clearError()
-                        } catch (e: Exception) {
-                            seq = sequenceOf()
-                            editor.infoLogger?.printError("Invalid Regex!")
-                        }
-                        seq
-                    } else {
+                val matches = if (resultControls.regexMode.isActive) {
+                    var seq: Sequence<MatchResult>
+                    try {
+                        seq = find.toRegex().findAll(currEditorContent)
                         editor.infoLogger?.clearError()
-                        Regex.escape(find).toRegex().findAll(currEditorContent)
+                    } catch (e: Exception) {
+                        seq = sequenceOf()
+                        editor.infoLogger?.printError("Invalid Regex!")
                     }
-
-                    searchResults.addAll(matches)
-                    selectedIndex = if (searchResults.isNotEmpty()) 0 else -1
+                    seq
+                } else {
+                    editor.infoLogger?.clearError()
+                    Regex.escape(find).toRegex().findAll(currEditorContent)
                 }
+
+                searchResults.addAll(matches)
+                selectedIndex = if (searchResults.isNotEmpty()) 0 else -1
             }
 
-            nativeLog("Search took ${time.inWholeNanoseconds}ns")
-
-            editor.repaint()
+            withContext(Dispatchers.Main){
+                editor.repaint()
+            }
         }
 
     }
@@ -278,11 +278,12 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
 
     inner class ReplaceControls() : CPanel(themeManager, scaleManager, true, BorderMode.NONE) {
 
+        val replace = CTextButton(themeManager, scaleManager, "replace", FontType.BASIC)
         val replaceAll = CTextButton(themeManager, scaleManager, "replace all", FontType.BASIC)
 
         init {
-            attachComponents()
             attachListeners()
+            attachComponents()
         }
 
         fun replaceAll() {
@@ -298,17 +299,19 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
 
         private fun attachListeners() {
+            replace.addActionListener {
+                replace(selectedIndex)
+            }
+
             replaceAll.addActionListener {
-                val time = measureTime {
-                    replaceAll()
-                }
-                nativeLog("Replace took ${time.inWholeNanoseconds}ns")
+                replaceAll()
             }
         }
 
         private fun attachComponents() {
             layout = BoxLayout(this, BoxLayout.X_AXIS)
 
+            add(replace)
             add(replaceAll)
         }
     }
