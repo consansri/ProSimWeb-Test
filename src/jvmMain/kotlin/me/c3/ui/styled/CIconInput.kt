@@ -8,7 +8,7 @@ import me.c3.ui.theme.ThemeManager
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 
-class CIconInput(themeManager: ThemeManager, scaleManager: ScaleManager, icon: FlatSVGIcon, fontType: FontType, primary: Boolean = false) : CPanel(themeManager, scaleManager, primary, roundCorners = true, borderMode = BorderMode.BASIC) {
+class CIconInput(themeManager: ThemeManager, scaleManager: ScaleManager, icon: FlatSVGIcon, fontType: FontType, primary: Boolean = false) : CPanel(themeManager, scaleManager, primary, roundCorners = true, borderMode = BorderMode.THICKNESS) {
 
     val button = CIconButton(themeManager, scaleManager, icon)
     val input = CTextField(themeManager, scaleManager, fontType).apply {

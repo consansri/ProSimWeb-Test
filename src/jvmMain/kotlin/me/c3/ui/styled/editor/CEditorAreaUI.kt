@@ -15,6 +15,7 @@ class CEditorAreaUI(
     private val lineOverhead: Int = 3
 ) : ComponentUI() {
     private var defaultSelectionColor = Color(0, 0, 0, 0)
+    private var defaultSearchResultColor = Color(0, 0, 0, 0)
     private var caretLineBG = Color(0, 0, 0, 0)
 
     private var caretTimer: Timer? = null
@@ -24,6 +25,7 @@ class CEditorAreaUI(
         set(value) {
             field = value
             defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 77)
+            defaultSearchResultColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 154)
             caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
         }
 
@@ -174,6 +176,7 @@ class CEditorAreaUI(
         val styledText = editor.getStyledText()
         val absSelection = editor.getAbsSelection()
         val lineBreakIDs = editor.getLineBreakIDs()
+        val searchResults = editor.findAndReplace.getResults()
 
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
@@ -219,6 +222,16 @@ class CEditorAreaUI(
             // Draw Selection
             if (index in absSelection.lowIndex until absSelection.highIndex) {
                 g2d.color = defaultSelectionColor
+                if (char.content == '\n') {
+                    g2d.fillRect(x, y - ascent, editor.bounds.width - x - editor.insets.right, lineHeight)
+                } else {
+                    g2d.fillRect(x, y - ascent, charWidth, lineHeight)
+                }
+            }
+
+            val isCharInSearchResults = searchResults.firstOrNull { it.range.contains(index) } != null
+            if (isCharInSearchResults) {
+                g2d.color = defaultSearchResultColor
                 if (char.content == '\n') {
                     g2d.fillRect(x, y - ascent, editor.bounds.width - x - editor.insets.right, lineHeight)
                 } else {

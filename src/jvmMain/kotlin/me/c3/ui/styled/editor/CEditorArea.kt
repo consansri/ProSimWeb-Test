@@ -4,6 +4,7 @@ import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
+import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.styled.CScrollPane
 import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
@@ -22,7 +23,7 @@ import java.awt.event.MouseMotionAdapter
 import java.util.Stack
 import javax.swing.JComponent
 
-class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
+class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val icons: ProSimIcons, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
 
     // Current State
     private val styledText: MutableList<StyledChar> = mutableListOf()
@@ -57,6 +58,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     var highlighter: Highlighter? = null
     val scrollPane: CScrollPane = CScrollPane(themeManager, scaleManager, true, this)
     val lineNumbers: CEditorLineNumbers = CEditorLineNumbers(themeManager, scaleManager, this)
+    val findAndReplace: CEditorAnalyzer = CEditorAnalyzer(themeManager, scaleManager, this)
 
     // State History
     private val textStateHistory = Stack<List<StyledChar>>()
@@ -458,6 +460,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         repaint()
     }
 
+    private fun getSelectedAsString(): String {
+        if (selStart == -1 || selEnd == -1) return ""
+        val absSelection = getAbsSelection()
+        return styledText.subList(absSelection.lowIndex, absSelection.highIndex).joinToString("") { it.content.toString() }
+    }
+
     /**
      * State Change Events
      */
@@ -472,6 +480,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         lineNumberScope.launch {
             lineCountChanged()
         }
+        findAndReplace.updateResults()
     }
 
     private suspend fun lineCountChanged() {
@@ -539,9 +548,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
             val contentToHighlight = ArrayList(styledText)
             val newStyled = highlighter?.highlight(contentToHighlight.joinToString("") { it.content.toString() }) ?: return@launch
+            nativeLog("Highlighting...")
             if (styledText.size == newStyled.size) {
                 styledText.clear()
                 styledText.addAll(newStyled)
+                nativeLog("Highlight matches...")
                 revalidate()
                 repaint()
             }
@@ -612,6 +623,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
     private fun columnOf(pos: Int): Int = (splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).lastOrNull()?.size ?: 1) - 1
     fun getAbsSelection(): AbsSelection = if (selStart < selEnd) AbsSelection(selStart, selEnd, selStartLine, selEndLine, selStartColumn, selEndColumn) else AbsSelection(selEnd, selStart, selEndLine, selStartLine, selEndColumn, selStartColumn)
     fun getStyledText(): List<StyledChar> = styledText
+    fun getText(): String = styledText.joinToString("") { it.content.toString() }
     fun getLineBreakIDs() = ArrayList(lineBreakIDs)
 
     /**
@@ -986,12 +998,16 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
 
                 KeyEvent.VK_BACK_SPACE -> {
                     if (isEditable) {
-                        if (selStart != -1 && selEnd != -1) deleteSelected() else {if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex())}
+                        if (selStart != -1 && selEnd != -1) deleteSelected() else {
+                            if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex())
+                        }
                     }
                 }
 
                 KeyEvent.VK_DELETE -> if (isEditable) {
-                    if (selStart != -1 && selEnd != -1) deleteSelected() else {if (caret.getIndex() <= styledText.size) deleteText(caret.getIndex(), caret.getIndex() + 1)}
+                    if (selStart != -1 && selEnd != -1) deleteSelected() else {
+                        if (caret.getIndex() <= styledText.size) deleteText(caret.getIndex(), caret.getIndex() + 1)
+                    }
                 }
 
                 KeyEvent.VK_HOME -> {
@@ -1014,6 +1030,14 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
                             caret.moveCaretEnd()
                         }
                     }
+                }
+
+                KeyEvent.VK_F -> {
+                    if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.FIND)
+                }
+
+                KeyEvent.VK_R -> {
+                    if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.REPLACE)
                 }
             }
         }
@@ -1042,11 +1066,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val lo
         }
 
         override fun mouseEntered(e: MouseEvent?) {
-            this@CEditorArea.requestFocus()
             cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
         }
 
         override fun mousePressed(e: MouseEvent) {
+            this@CEditorArea.requestFocus()
             if (shiftIsPressed) {
                 handleMouseSelection(e)
             } else {

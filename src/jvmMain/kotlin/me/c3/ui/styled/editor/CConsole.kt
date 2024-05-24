@@ -1,5 +1,6 @@
 package me.c3.ui.styled.editor
 
+import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
 import me.c3.ui.scale.ScaleManager
@@ -7,7 +8,7 @@ import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.BorderLayout
 
-open class CConsole(themeManager: ThemeManager, scaleManager: ScaleManager, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(themeManager, scaleManager, primary = true) {
+open class CConsole(themeManager: ThemeManager, scaleManager: ScaleManager, icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(themeManager, scaleManager, primary = true) {
 
     var title: String = "Console"
         set(value) {
@@ -23,7 +24,7 @@ open class CConsole(themeManager: ThemeManager, scaleManager: ScaleManager, maxS
 
     private val topBar = CPanel(themeManager, scaleManager, primary = false)
     private val titleLabel = CLabel(themeManager, scaleManager, title, FontType.TITLE)
-    private val textArea = CEditorArea(themeManager, scaleManager, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
+    private val textArea = CEditorArea(themeManager, scaleManager, icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
 
     init {
         textArea.scrollPane.setViewportView(textArea)

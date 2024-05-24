@@ -18,6 +18,28 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
         DocFile.DefinedFile(
             "Current: Version - ${Constants.VERSION}",
             Chapter(
+                "Version - 0.2.3",
+                Section(
+                    "New",
+                    UnlinkedList(
+                        Text("JVM: Added Find and Replace functionality.")
+                    )
+                ),
+                Section(
+                    "Changed",
+                    UnlinkedList(
+                        Text("JVM: Store linebreaks like other IDEs (\\r\\n)."),
+
+                    )
+                ),
+                Section(
+                    "Fixed",
+                    UnlinkedList(
+
+                    )
+                )
+            ),
+            Chapter(
                 "Version - 0.2.2",
                 Section(
                     "Changed",

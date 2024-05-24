@@ -15,7 +15,7 @@ import javax.swing.SwingUtilities
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  * @property editorFile The file associated with the editor.
  */
-class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger {
+class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger {
     init {
         fileInterface = editorFile
         // Attach listeners for various events
@@ -119,5 +119,13 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         } else ""
 
         mainManager.bBar.editorInfo.text = "$caretString $selstring"
+    }
+
+    override fun printError(text: String) {
+        mainManager.bBar.setError(text)
+    }
+
+    override fun clearError() {
+        mainManager.bBar.generalPurpose.text = ""
     }
 }

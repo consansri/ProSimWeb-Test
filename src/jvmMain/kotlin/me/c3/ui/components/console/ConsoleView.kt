@@ -8,7 +8,7 @@ import me.c3.ui.styled.editor.CConsole
  * This class represents the console view within the application.
  * It displays messages generated during execution and compilation events.
  */
-class ConsoleView(mainManager: MainManager) : CConsole(mainManager.themeManager, mainManager.scaleManager){
+class ConsoleView(mainManager: MainManager) : CConsole(mainManager.themeManager, mainManager.scaleManager, mainManager.icons){
     init {
         mainManager.eventManager.addExeEventListener {
             updateContent(mainManager.currArch().getConsole().getMessages().toStyledContent(mainManager.currTheme().codeLaF))

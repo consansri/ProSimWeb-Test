@@ -8,7 +8,6 @@ import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.parser.TreeResult
 import emulator.kit.common.Memory
-import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
@@ -55,7 +54,6 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
             GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
-            nativeError(e.message)
             null
         }
         if (root == null || root !is Root) return TreeResult(null, source, filteredSource)
@@ -134,7 +132,6 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
 
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
-            nativeError(e.message)
         }
 
         val sections = tempContainer.sections.toTypedArray()
@@ -148,8 +145,6 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
             sectionAddressMap[it] = currentAddress.toHex()
             currentAddress += it.getLastAddress()
         }
-
-
 
         try {
             /**
@@ -180,7 +175,6 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
             }
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
-            nativeError(e.message)
         }
 
         nativeLog(tempContainer.sections.joinToString("\n\n") {

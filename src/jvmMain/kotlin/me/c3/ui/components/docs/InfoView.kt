@@ -66,7 +66,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
      * Represents a panel for displaying a documentation file.
      * @property docFile The documentation file.
      */
-    inner class CDocFile(private val docFile: Docs.DocFile.DefinedFile) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.BASIC) {
+    inner class CDocFile(private val docFile: Docs.DocFile.DefinedFile) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.THICKNESS) {
 
         val titlePane = CLabel(mainManager.themeManager, mainManager.scaleManager, docFile.title, FontType.TITLE).apply {
             horizontalAlignment = SwingConstants.CENTER
@@ -130,9 +130,9 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Code -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = true, roundCorners = true, borderMode = BorderMode.BASIC)
+                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = true, roundCorners = true, borderMode = BorderMode.THICKNESS)
                     panel.layout = BorderLayout()
-                    val area = CTextArea(mainManager.themeManager, mainManager.scaleManager, FontType.CODE, true, BorderMode.BASIC).apply {
+                    val area = CTextArea(mainManager.themeManager, mainManager.scaleManager, FontType.CODE, true, BorderMode.THICKNESS).apply {
                         text = this@add.content
                         isEditable = false
                     }
@@ -164,7 +164,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Table -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, true, BorderMode.BASIC, roundCorners = true)
+                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, true, BorderMode.THICKNESS, roundCorners = true)
                     panel.layout = GridBagLayout()
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
@@ -205,7 +205,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.UnlinkedList -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, false, BorderMode.BASIC, roundCorners = true)
+                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, false, BorderMode.THICKNESS, roundCorners = true)
                     panel.layout = GridBagLayout()
 
                     val subGbc = GridBagConstraints()

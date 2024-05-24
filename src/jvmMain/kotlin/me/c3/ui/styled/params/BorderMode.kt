@@ -8,24 +8,29 @@ import javax.swing.border.Border
 
 enum class BorderMode {
     INSET,
-    BASIC,
+    THICKNESS,
     NORTH,
     SOUTH,
     WEST,
     EAST,
     HORIZONTAL,
     VERTICAL,
+    BOWL,
+    BRIDGE,
     NONE;
-    fun getBorder(themeManager: ThemeManager, scaleManager: ScaleManager): Border{
+
+    fun getBorder(themeManager: ThemeManager, scaleManager: ScaleManager): Border {
         return when (this) {
             INSET -> scaleManager.curr.borderScale.getInsetBorder()
-            BASIC -> scaleManager.curr.borderScale.getThicknessBorder()
+            THICKNESS -> scaleManager.curr.borderScale.getThicknessBorder()
             NORTH -> DirectionalBorder(themeManager, scaleManager, north = true)
             SOUTH -> DirectionalBorder(themeManager, scaleManager, south = true)
             WEST -> DirectionalBorder(themeManager, scaleManager, west = true)
             EAST -> DirectionalBorder(themeManager, scaleManager, east = true)
             HORIZONTAL -> DirectionalBorder(themeManager, scaleManager, north = true, south = true)
             VERTICAL -> DirectionalBorder(themeManager, scaleManager, west = true, east = true)
+            BOWL -> DirectionalBorder(themeManager, scaleManager, west = true, east = true, south = true)
+            BRIDGE -> DirectionalBorder(themeManager, scaleManager, west = true, east = true, north = true)
             NONE -> BorderFactory.createEmptyBorder()
         }
     }
