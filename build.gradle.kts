@@ -100,8 +100,6 @@ kotlin {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
 
-                // https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-swing
-                implementation("org.apache.xmlgraphics:batik-swing:1.7")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
             }
         }
