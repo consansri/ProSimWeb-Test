@@ -28,6 +28,12 @@ open class CEditor(themeManager: ThemeManager, scaleManager: ScaleManager, icons
             textArea.infoLogger = value
         }
 
+    var shortCuts: ShortCuts? = null
+        set(value) {
+            field = value
+            textArea.shortCuts = value
+        }
+
     init {
         textArea.scrollPane.setRowHeaderView(textArea.lineNumbers)
         textArea.scrollPane.setViewportView(textArea)

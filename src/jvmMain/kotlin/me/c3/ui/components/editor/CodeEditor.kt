@@ -16,6 +16,7 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
 
     // List of editor panels
     private val panels = mutableListOf<ProSimEditor>()
+
     // List of file edit events
     private val fileEditEvents = mutableListOf<(EditorFile) -> Unit>()
 
@@ -70,9 +71,7 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
      * @param build Whether to build before compilation.
      */
     fun compileCurrent(build: Boolean) {
-        CoroutineScope(Dispatchers.Default).launch {
-            getCurrentEditor()?.fireCompilation(build)
-        }
+        getCurrentEditor()?.fireCompilation(build)
     }
 
     /**

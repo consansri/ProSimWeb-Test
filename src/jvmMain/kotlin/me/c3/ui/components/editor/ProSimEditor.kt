@@ -15,12 +15,13 @@ import javax.swing.SwingUtilities
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  * @property editorFile The file associated with the editor.
  */
-class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger {
+class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
     init {
         fileInterface = editorFile
         // Attach listeners for various events
         if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")) highlighter = this
         infoLogger = this
+        shortCuts = this
 
         mainManager.eventManager.addExeEventListener {
             markPC()
@@ -127,5 +128,9 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
 
     override fun clearError() {
         mainManager.bBar.generalPurpose.text = ""
+    }
+
+    override fun ctrlS() {
+        fireCompilation(true)
     }
 }

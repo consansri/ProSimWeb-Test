@@ -10,6 +10,8 @@ import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import javax.swing.BoxLayout
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -66,6 +68,13 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
             Mode.FIND -> searchField.textField.requestFocus()
             Mode.REPLACE -> replaceField.textField.requestFocus()
         }
+    }
+
+    fun close(){
+        editor.scrollPane.setColumnHeaderView(null)
+        searchResults.clear()
+        selectedIndex = -1
+        opened = false
     }
 
     fun updateResults() {
@@ -197,6 +206,15 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
                     // Not needed for plain text components
                 }
             })
+            textField.addKeyListener(object : KeyAdapter(){
+                override fun keyPressed(e: KeyEvent) {
+                    when(e.keyCode){
+                        KeyEvent.VK_ESCAPE -> {
+                            close()
+                        }
+                    }
+                }
+            })
         }
 
         fun searchASync() {
@@ -260,6 +278,16 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         init {
             layout = BorderLayout()
             add(textField, BorderLayout.CENTER)
+
+            textField.addKeyListener(object : KeyAdapter(){
+                override fun keyPressed(e: KeyEvent) {
+                    when(e.keyCode){
+                        KeyEvent.VK_ESCAPE -> {
+                            close()
+                        }
+                    }
+                }
+            })
         }
     }
 
@@ -337,10 +365,7 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
 
         init {
             closeBtn.addActionListener {
-                editor.scrollPane.setColumnHeaderView(null)
-                searchResults.clear()
-                selectedIndex = -1
-                opened = false
+                close()
             }
 
             add(closeBtn)

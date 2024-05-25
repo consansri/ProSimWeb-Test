@@ -1,7 +1,6 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.nativeError
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import me.c3.ui.resources.icons.ProSimIcons
@@ -57,6 +56,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
 
     var infoLogger: InfoLogger? = null
     var highlighter: Highlighter? = null
+    var shortCuts: ShortCuts? = null
     val scrollPane: CScrollPane = CScrollPane(themeManager, scaleManager, true, this)
     val lineNumbers: CEditorLineNumbers = CEditorLineNumbers(themeManager, scaleManager, this)
     val findAndReplace: CEditorAnalyzer = CEditorAnalyzer(themeManager, scaleManager, this)
@@ -597,11 +597,9 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
 
             val contentToHighlight = ArrayList(styledText)
             val newStyled = highlighter?.highlight(contentToHighlight.joinToString("") { it.content.toString() }) ?: return@launch
-            nativeLog("Highlighting...")
             if (styledText.size == newStyled.size) {
                 styledText.clear()
                 styledText.addAll(newStyled)
-                nativeLog("Highlight matches...")
                 revalidate()
                 repaint()
             }
@@ -1093,6 +1091,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
 
                 KeyEvent.VK_R -> {
                     if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.REPLACE)
+                }
+
+                // Custom Use
+                KeyEvent.VK_S -> {
+                    if (e.isControlDown) shortCuts?.ctrlS()
                 }
             }
         }
