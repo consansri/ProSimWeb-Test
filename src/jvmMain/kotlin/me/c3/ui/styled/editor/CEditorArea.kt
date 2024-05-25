@@ -20,6 +20,7 @@ import java.awt.event.KeyListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
+import java.util.ConcurrentModificationException
 import java.util.Stack
 import javax.swing.JComponent
 
@@ -412,6 +413,12 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         selectSymbol()
     }
 
+    fun select(range: IntRange) {
+        selStart = range.first
+        selEnd = range.last + 1
+        caret.moveCaretTo(range.last + 1)
+    }
+
     private fun selectAll() {
         selStart = 0
         selEnd = styledText.size
@@ -491,6 +498,43 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         lineNumbers.lineCount = getLineCount()
     }
 
+    fun scrollTo(index: Int) {
+        val visibleRect = scrollPane.viewport.viewRect
+        val lineHeight = getFontMetrics(font).height
+        val charWidth = getFontMetrics(font).charWidth(' ')
+        val pos = getAdvancedPosition(index)
+        val posY = lineHeight * pos.line
+        val posX = charWidth * pos.column
+
+        val scrollMarginY = scrollMarginLines * lineHeight
+        val scrollMarginX = scrollMarginChars * charWidth
+
+        // Implement Smooth Scrolling if index would be out of visibleRect with scrollMargin
+        var diffY: Int? = null
+        var diffX: Int? = null
+        if (posY < visibleRect.y + scrollMarginY) {
+            diffY = posY - (visibleRect.y + scrollMarginY)
+        }
+        if (posY > visibleRect.y + visibleRect.height - scrollMarginY) {
+            diffY = posY - (visibleRect.y + visibleRect.height - scrollMarginY)
+        }
+
+        if (posX < visibleRect.x + scrollMarginX) {
+            diffX = posX - (visibleRect.x + scrollMarginX)
+        }
+        if (posX > visibleRect.x + visibleRect.width - scrollMarginX) {
+            diffX = posX - (visibleRect.x + visibleRect.width - scrollMarginX)
+        }
+
+        diffY?.let {
+            scrollPane.verticalScrollBar.value += diffY
+        }
+
+        diffX?.let {
+            scrollPane.horizontalScrollBar.value += diffX
+        }
+    }
+
     private suspend fun caretPosChanged() {
         caretMovesJob?.cancel()
         caret.isMoving = true
@@ -531,6 +575,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         diffX?.let {
             scrollPane.horizontalScrollBar.value += diffX
         }
+
         val absSelection = getAbsSelection()
         infoLogger?.printCaretInfo(InfoLogger.CodePosition(caret.getIndex(), caret.getLineInfo().lineNumber, caret.getLineInfo().columnID), absSelection.getLowPosition(), absSelection.getHighPosition())
 
@@ -613,7 +658,11 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         val fontMetrics = getFontMetrics(font)
         val charWidth = fontMetrics.charWidth(' ')
         val lineHeight = fontMetrics.ascent + fontMetrics.descent
-        val preferredWidth = insets.left + getMaxLineLength() * charWidth + insets.right
+        val preferredWidth = try {
+            insets.left + getMaxLineLength() * charWidth + insets.right
+        } catch (e: ConcurrentModificationException) {
+            insets.left + splitListAtIndices(ArrayList(styledText), lineBreakIDs).ifEmpty { listOf(listOf()) }.maxOf { it.size } * charWidth + insets.right
+        }
         val preferredHeight = getLineCount() * lineHeight + insets.top + insets.bottom
         return Dimension(preferredWidth + scrollMarginChars * charWidth, preferredHeight + scrollMarginLines * lineHeight)
     }

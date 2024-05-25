@@ -1,6 +1,5 @@
 package me.c3.ui.styled.editor
 
-import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.*
@@ -8,12 +7,12 @@ import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.BoxLayout
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
-import kotlin.time.measureTime
 
 class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val editor: CEditorArea) : CPanel(themeManager, scaleManager, primary = true, BorderMode.BOWL) {
 
@@ -22,10 +21,14 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         set(value) {
             field = value
             if (selectedIndex != -1) {
-                resultControls.results.text = "${selectedIndex + 1}/${searchResults.size}"
+                resultControls.results.text = "${selectedIndex + 1}/${searchResults.size} results"
             } else {
-                resultControls.results.text = "${searchResults.size}"
+                resultControls.results.text = "${searchResults.size} results"
             }
+            searchResults.getOrNull(selectedIndex)?.let {
+                editor.select(it.range)
+            }
+
             editor.repaint()
         }
 
@@ -35,28 +38,14 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
     val replaceField = ReplaceField()
     val resultControls = ResultControls()
     val replaceControls = ReplaceControls()
+    val space = CPanel(themeManager, scaleManager, true, BorderMode.NONE)
     val closeField = CloseField()
 
     var opened: Boolean = false
     var mode: Mode = Mode.FIND
         set(value) {
             field = value
-            when (mode) {
-                Mode.FIND -> {
-                    remove(replaceField)
-                }
-
-                Mode.REPLACE -> {
-                    val gbc = GridBagConstraints()
-                    gbc.gridx = 1
-                    gbc.gridy = 1
-                    gbc.weighty = 1.0
-                    gbc.weightx = 1.0
-                    gbc.fill = GridBagConstraints.BOTH
-                    add(replaceField, gbc)
-                }
-            }
-            updateReplaceControls()
+            updateModeComps()
             modeField.updateIcon()
             revalidate()
             repaint()
@@ -64,10 +53,6 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
 
     init {
         attachComponents()
-    }
-
-    fun isSelected(result: MatchResult): Boolean {
-        return searchResults.indexOf(result) == selectedIndex
     }
 
     fun getResults(): List<MatchResult> = ArrayList(searchResults)
@@ -109,12 +94,20 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         add(searchField, gbc)
 
         gbc.gridx = 2
-        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.weightx = 0.0
+        gbc.fill = GridBagConstraints.NONE
         add(resultControls, gbc)
 
         gbc.gridx = 3
-        gbc.weightx = 0.0
+        gbc.weightx = 1.0
+        gbc.weighty = 1.0
         gbc.gridheight = 2
+        gbc.fill = GridBagConstraints.BOTH
+        add(space, gbc)
+
+        gbc.gridx = 4
+        gbc.weightx = 0.0
+        gbc.weighty = 1.0
         gbc.fill = GridBagConstraints.VERTICAL
         add(closeField, gbc)
 
@@ -122,17 +115,27 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         repaint()
     }
 
-    private fun updateReplaceControls() {
+    private fun updateModeComps() {
         when (mode) {
-            Mode.FIND -> remove(replaceControls)
+            Mode.FIND -> {
+                remove(replaceControls)
+                remove(replaceField)
+            }
+
             Mode.REPLACE -> {
                 val gbc = GridBagConstraints()
+                gbc.gridx = 1
+                gbc.gridy = 1
+                gbc.weighty = 1.0
+                gbc.weightx = 1.0
+                gbc.fill = GridBagConstraints.BOTH
+                add(replaceField, gbc)
 
                 gbc.gridx = 2
                 gbc.gridy = 1
-                gbc.weightx = 1.0
-                gbc.weighty = 1.0
-                gbc.fill = GridBagConstraints.HORIZONTAL
+                gbc.weightx = 0.0
+                gbc.weighty = 0.0
+                gbc.fill = GridBagConstraints.NONE
                 gbc.gridheight = 1
 
                 add(replaceControls, gbc)
@@ -172,11 +175,13 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
 
     inner class SearchField() : CPanel(themeManager, scaleManager, borderMode = BorderMode.VERTICAL, primary = true) {
 
-        val textField = CTextArea(themeManager, scaleManager, FontType.BASIC)
+        val textField = CTextArea(themeManager, scaleManager, FontType.CODE)
+        val controls = SearchControls()
 
         init {
             layout = BorderLayout()
             add(textField, BorderLayout.CENTER)
+            add(controls, BorderLayout.EAST)
 
             // Add DocumentListener to the textField's Document
             textField.document.addDocumentListener(object : DocumentListener {
@@ -208,7 +213,7 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
             if (find.isNotEmpty()) {
                 val currEditorContent = editor.getText()
 
-                val matches = if (resultControls.regexMode.isActive) {
+                val matches = if (controls.regexMode.isActive) {
                     var seq: Sequence<MatchResult>
                     try {
                         seq = find.toRegex().findAll(currEditorContent)
@@ -224,18 +229,33 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
                 }
 
                 searchResults.addAll(matches)
-                selectedIndex = if (searchResults.isNotEmpty()) 0 else -1
             }
 
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
+                selectedIndex = searchResults.indexOfLast { editor.caret.getIndex() in it.range || editor.caret.getIndex() < it.range.first }
                 editor.repaint()
+            }
+        }
+
+        inner class SearchControls() : CPanel(themeManager, scaleManager, true, BorderMode.NONE) {
+            val regexMode = CToggleButton(themeManager, scaleManager, ".*", CToggleButtonUI.ToggleSwitchType.SMALL, FontType.BASIC).apply {
+                addActionListener {
+                    isActive = !isActive
+                    searchField.searchASync()
+                }
+            }
+
+            init {
+                layout = BoxLayout(this, BoxLayout.X_AXIS)
+
+                add(regexMode)
             }
         }
 
     }
 
     inner class ReplaceField() : CPanel(themeManager, scaleManager, borderMode = BorderMode.VERTICAL, primary = true) {
-        val textField = CTextArea(themeManager, scaleManager, FontType.BASIC)
+        val textField = CTextArea(themeManager, scaleManager, FontType.CODE)
 
         init {
             layout = BorderLayout()
@@ -243,25 +263,22 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
     }
 
-    inner class ResultControls() : CPanel(themeManager, scaleManager, borderMode = BorderMode.NONE, primary = true) {
-        val regexMode = CToggleButton(themeManager, scaleManager, "regex", CToggleButtonUI.ToggleSwitchType.SMALL, FontType.BASIC).apply {
-            addActionListener {
-                isActive = !isActive
-                searchField.searchASync()
-            }
-        }
+    inner class ResultControls() : CPanel(themeManager, scaleManager, borderMode = BorderMode.THICKNESS, primary = true) {
+
         val results = CLabel(themeManager, scaleManager, "0", FontType.BASIC)
         val next = CIconButton(themeManager, scaleManager, editor.icons.forwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
-                if (selectedIndex < searchResults.size - 1) {
-                    selectedIndex++
+                val nextIndex = searchResults.indexOfFirst { editor.caret.getIndex() < it.range.first }
+                if (nextIndex != -1) {
+                    selectedIndex = nextIndex
                 }
             }
         }
         val previous = CIconButton(themeManager, scaleManager, editor.icons.backwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
-                if (selectedIndex > 0) {
-                    selectedIndex--
+                val prevIndex = searchResults.indexOfLast { editor.caret.getIndex() > it.range.last + 1 }
+                if (prevIndex != -1) {
+                    selectedIndex = prevIndex
                 }
             }
         }
@@ -269,14 +286,13 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         init {
             layout = BoxLayout(this, BoxLayout.X_AXIS)
 
-            add(regexMode)
             add(previous)
             add(next)
             add(results)
         }
     }
 
-    inner class ReplaceControls() : CPanel(themeManager, scaleManager, true, BorderMode.NONE) {
+    inner class ReplaceControls() : CPanel(themeManager, scaleManager, true, BorderMode.THICKNESS) {
 
         val replace = CTextButton(themeManager, scaleManager, "replace", FontType.BASIC)
         val replaceAll = CTextButton(themeManager, scaleManager, "replace all", FontType.BASIC)
@@ -322,6 +338,8 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         init {
             closeBtn.addActionListener {
                 editor.scrollPane.setColumnHeaderView(null)
+                searchResults.clear()
+                selectedIndex = -1
                 opened = false
             }
 
