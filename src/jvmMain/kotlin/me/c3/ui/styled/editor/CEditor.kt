@@ -44,7 +44,7 @@ open class CEditor(themeManager: ThemeManager, scaleManager: ScaleManager, icons
     }
 
     protected fun setStyledContent(styledChars: List<CEditorArea.StyledChar>){
-        textArea.replaceContent(styledChars)
+        textArea.replaceAll(styledChars)
     }
 
     protected fun mark(vararg content: CEditorLineNumbers.LineContent) {

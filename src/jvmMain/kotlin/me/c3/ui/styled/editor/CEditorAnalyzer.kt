@@ -7,7 +7,6 @@ import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.BorderLayout
-import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.KeyAdapter
@@ -70,7 +69,7 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
     }
 
-    fun close(){
+    fun close() {
         editor.scrollPane.setColumnHeaderView(null)
         searchResults.clear()
         selectedIndex = -1
@@ -206,9 +205,9 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
                     // Not needed for plain text components
                 }
             })
-            textField.addKeyListener(object : KeyAdapter(){
+            textField.addKeyListener(object : KeyAdapter() {
                 override fun keyPressed(e: KeyEvent) {
-                    when(e.keyCode){
+                    when (e.keyCode) {
                         KeyEvent.VK_ESCAPE -> {
                             close()
                         }
@@ -218,23 +217,22 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
 
         fun searchASync() {
+            val currEditorContent = editor.getText()
             searchScope.launch {
-                search()
+                search(currEditorContent)
             }
         }
 
-        suspend fun search() {
+        suspend fun search(text: String) {
             searchResults.clear()
             selectedIndex = -1
             val find = textField.text ?: ""
 
             if (find.isNotEmpty()) {
-                val currEditorContent = editor.getText()
-
                 val matches = if (controls.regexMode.isActive) {
                     var seq: Sequence<MatchResult>
                     try {
-                        seq = find.toRegex().findAll(currEditorContent)
+                        seq = find.toRegex().findAll(text)
                         editor.infoLogger?.clearError()
                     } catch (e: Exception) {
                         seq = sequenceOf()
@@ -243,7 +241,7 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
                     seq
                 } else {
                     editor.infoLogger?.clearError()
-                    Regex.escape(find).toRegex().findAll(currEditorContent)
+                    Regex.escape(find).toRegex().findAll(text)
                 }
 
                 searchResults.addAll(matches)
@@ -269,7 +267,6 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
                 add(regexMode)
             }
         }
-
     }
 
     inner class ReplaceField() : CPanel(themeManager, scaleManager, borderMode = BorderMode.VERTICAL, primary = true) {
@@ -279,9 +276,9 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
             layout = BorderLayout()
             add(textField, BorderLayout.CENTER)
 
-            textField.addKeyListener(object : KeyAdapter(){
+            textField.addKeyListener(object : KeyAdapter() {
                 override fun keyPressed(e: KeyEvent) {
-                    when(e.keyCode){
+                    when (e.keyCode) {
                         KeyEvent.VK_ESCAPE -> {
                             close()
                         }
@@ -331,8 +328,16 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
 
         fun replaceAll() {
-            val content = editor.getText()
-            editor.replaceContent(content.replace(searchField.textField.text, replaceField.textField.text))
+            val currResults = searchResults.toList()
+            val replacement = replaceField.textField.text
+            var offset = 0
+            for (result in currResults) {
+                val range = result.range
+                editor.replace((range.first + offset)..(range.last + offset), replacement)
+                val diff = replacement.length - range.count()
+                offset += diff
+            }
+            //editor.replaceContent(content.replace(searchField.textField.text, replaceField.textField.text))
         }
 
         fun replace(index: Int): Boolean {

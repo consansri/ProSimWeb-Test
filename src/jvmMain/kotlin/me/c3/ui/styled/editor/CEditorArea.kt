@@ -194,7 +194,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
      */
 
     // Insertion / Deletion
-    fun replaceContent(styledContent: List<StyledChar>) {
+    fun replaceAll(styledContent: List<StyledChar>) {
         val prevCaretPos = caret.caretPos
         styledText.clear()
         styledText.addAll(styledContent)
@@ -207,8 +207,28 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
         repaint()
     }
 
-    fun replaceContent(content: String) {
-        replaceContent(content.toStyledContent())
+    fun replaceAll(content: String) {
+        replaceAll(content.toStyledContent())
+    }
+
+    fun replace(range: IntRange, newText: String) {
+        if (range.first !in styledText.indices || range.last !in styledText.indices) {
+            nativeError("Text Replacement out of Bounds for Range $range and current size ${styledText.size}")
+            return
+        }
+
+        // Remove Range
+        for (index in range.reversed()) {
+            styledText.removeAt(index)
+        }
+
+        // Insert newText
+        styledText.addAll(range.first, newText.map { StyledChar(it) })
+        queryStateChange()
+        contentChanged()
+        resetSelection()
+        revalidate()
+        repaint()
     }
 
     fun insertText(pos: Int, newText: String) {
@@ -674,8 +694,8 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
     private fun columnOf(pos: Int): Int = (splitListAtIndices(styledText.subList(0, pos), lineBreakIDs).lastOrNull()?.size ?: 1) - 1
     fun getAbsSelection(): AbsSelection = if (selStart < selEnd) AbsSelection(selStart, selEnd, selStartLine, selEndLine, selStartColumn, selEndColumn) else AbsSelection(selEnd, selStart, selEndLine, selStartLine, selEndColumn, selStartColumn)
     fun getStyledText(): List<StyledChar> = styledText
-    fun getText(): String = ArrayList(styledText).joinToString("") { it.content.toString() }
     fun getLineBreakIDs() = ArrayList(lineBreakIDs)
+    fun getText(): String = getStyledText().joinToString("") { it.content.toString() }
 
     /**
      * Data Classes

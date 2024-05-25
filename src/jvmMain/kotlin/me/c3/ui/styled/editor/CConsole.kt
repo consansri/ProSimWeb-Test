@@ -36,7 +36,7 @@ open class CConsole(themeManager: ThemeManager, scaleManager: ScaleManager, icon
     }
 
     fun updateContent(content: List<CEditorArea.StyledChar>){
-        textArea.replaceContent(content)
+        textArea.replaceAll(content)
     }
 
 

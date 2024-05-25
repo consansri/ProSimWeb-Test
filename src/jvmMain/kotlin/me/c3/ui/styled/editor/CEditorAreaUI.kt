@@ -225,9 +225,10 @@ class CEditorAreaUI(
             val style = char.style
             val charWidth = fm.charWidth(char.content)
 
-            // Draw Selection
-            if (index in absSelection.lowIndex until absSelection.highIndex) {
-                g2d.color = defaultSelectionColor
+            // Draw SearchResultBackground
+            val inResult =  searchResults.firstOrNull { it.range.contains(index) }
+            if (inResult != null) {
+                g2d.color = defaultSearchResultColor
                 if (char.content == '\n') {
                     g2d.fillRect(x, y - ascent, editor.bounds.width - x - editor.insets.right, lineHeight)
                 } else {
@@ -235,9 +236,9 @@ class CEditorAreaUI(
                 }
             }
 
-            val inResult =  searchResults.firstOrNull { it.range.contains(index) }
-            if (inResult != null) {
-                g2d.color = defaultSearchResultColor
+            // Draw Selection
+            if (index in absSelection.lowIndex until absSelection.highIndex) {
+                g2d.color = defaultSelectionColor
                 if (char.content == '\n') {
                     g2d.fillRect(x, y - ascent, editor.bounds.width - x - editor.insets.right, lineHeight)
                 } else {
