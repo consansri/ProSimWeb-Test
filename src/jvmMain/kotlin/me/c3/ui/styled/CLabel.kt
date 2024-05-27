@@ -7,10 +7,10 @@ import me.c3.ui.theme.ThemeManager
 import java.awt.Color
 import javax.swing.JLabel
 
-open class CLabel(themeManager: ThemeManager, scaleManager: ScaleManager, content: String, fontType: FontType) : JLabel(content) {
+open class CLabel(tm: ThemeManager, sm: ScaleManager, content: String, fontType: FontType) : JLabel(content) {
 
     init {
-        this.setUI(CLabelUI(themeManager, scaleManager, fontType))
+        this.setUI(CLabelUI(tm, sm, fontType))
     }
 
     fun setColouredText(text: String, color: Color) {

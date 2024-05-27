@@ -6,7 +6,7 @@ import java.awt.*
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPanelUI
 
-class CPanelUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicPanelUI() {
+class CPanelUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicPanelUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -14,10 +14,10 @@ class CPanelUI(private val themeManager: ThemeManager, private val scaleManager:
         c?.isOpaque = false
         val cPanel = c as? CPanel ?: return
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(cPanel)
         }
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(cPanel)
         }
         setDefaults(cPanel)
@@ -25,10 +25,10 @@ class CPanelUI(private val themeManager: ThemeManager, private val scaleManager:
 
     private fun setDefaults(cPanel: CPanel) {
         cPanel.background = Color(0, 0, 0, 0)
-        cPanel.border = cPanel.borderMode.getBorder(themeManager, scaleManager)
+        cPanel.border = cPanel.borderMode.getBorder(tm, sm)
 
         if (cPanel.isOverlay) {
-            cPanel.border = scaleManager.curr.borderScale.getInsetBorder()
+            cPanel.border = sm.curr.borderScale.getInsetBorder()
         }
 
         cPanel.repaint()
@@ -50,16 +50,16 @@ class CPanelUI(private val themeManager: ThemeManager, private val scaleManager:
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        g2d.color = if (cPanel.isOverlay) themeManager.curr.globalLaF.bgOverlay else if (cPanel.primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
+        g2d.color = if (cPanel.isOverlay) tm.curr.globalLaF.bgOverlay else if (cPanel.primary) tm.curr.globalLaF.bgPrimary else tm.curr.globalLaF.bgSecondary
         if (cPanel.roundedCorners) {
-            g2d.fillRoundRect(0, 0, c.width, c.height, scaleManager.curr.borderScale.cornerRadius, scaleManager.curr.borderScale.cornerRadius)
+            g2d.fillRoundRect(0, 0, c.width, c.height, sm.curr.borderScale.cornerRadius, sm.curr.borderScale.cornerRadius)
         } else {
             g2d.fillRect(0, 0, c.width, c.height)
         }
 
         if (cPanel.isOverlay) {
-            g2d.color = themeManager.curr.globalLaF.borderColor
-            g2d.drawRoundRect(0, 0, c.width - 1, c.height - 1, scaleManager.curr.borderScale.cornerRadius, scaleManager.curr.borderScale.cornerRadius)
+            g2d.color = tm.curr.globalLaF.borderColor
+            g2d.drawRoundRect(0, 0, c.width - 1, c.height - 1, sm.curr.borderScale.cornerRadius, sm.curr.borderScale.cornerRadius)
         }
 
         super.paint(g2d, c)

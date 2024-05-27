@@ -18,11 +18,11 @@ import javax.swing.SwingConstants
  * Represents a panel for displaying documentation.
  * @property mainManager The main manager instance.
  */
-class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
+class InfoView(private val mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, primary = false) {
 
     // Tabbed pane for displaying documentation
-    private val docTabs = CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, primary = false, icons = mainManager.icons, tabsAreCloseable = false).apply {
-        contentPane.verticalScrollBar.unitIncrement = mainManager.scaleManager.curr.controlScale.normalSize
+    private val docTabs = CAdvancedTabPane(mainManager.tm, mainManager.sm, primary = false, icons = mainManager.icons, tabsAreCloseable = false).apply {
+        contentPane.verticalScrollBar.unitIncrement = mainManager.sm.curr.controlScale.normalSize
     }
 
     init {
@@ -38,7 +38,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
         docTabs.removeAllTabs()
         val docs = mainManager.currArch().getDescription().docs
         docs.files.filterIsInstance<Docs.DocFile.DefinedFile>().forEach {
-            docTabs.addTab(CLabel(mainManager.themeManager, mainManager.scaleManager, it.title, FontType.BASIC), CDocFile(it))
+            docTabs.addTab(CLabel(mainManager.tm, mainManager.sm, it.title, FontType.BASIC), CDocFile(it))
         }
     }
 
@@ -66,9 +66,9 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
      * Represents a panel for displaying a documentation file.
      * @property docFile The documentation file.
      */
-    inner class CDocFile(private val docFile: Docs.DocFile.DefinedFile) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.THICKNESS) {
+    inner class CDocFile(private val docFile: Docs.DocFile.DefinedFile) : CPanel(mainManager.tm, mainManager.sm, primary = false, BorderMode.THICKNESS) {
 
-        val titlePane = CLabel(mainManager.themeManager, mainManager.scaleManager, docFile.title, FontType.TITLE).apply {
+        val titlePane = CLabel(mainManager.tm, mainManager.sm, docFile.title, FontType.TITLE).apply {
             horizontalAlignment = SwingConstants.CENTER
         }
 
@@ -81,7 +81,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
             gbc.gridy = 0
             gbc.weighty = 0.0
             gbc.weightx = 1.0
-            gbc.insets = mainManager.scaleManager.curr.borderScale.getInsets()
+            gbc.insets = mainManager.sm.curr.borderScale.getInsets()
             gbc.fill = GridBagConstraints.HORIZONTAL
 
             add(titlePane, gbc)
@@ -108,17 +108,17 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
         private fun Docs.DocComponent.add(component: JComponent, gbc: GridBagConstraints) {
             when (this) {
                 is Docs.DocComponent.Chapter -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, false, BorderMode.NORTH, roundCorners = true)
+                    val panel = CPanel(mainManager.tm, mainManager.sm, false, BorderMode.NORTH, roundCorners = true)
                     panel.layout = GridBagLayout()
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = mainManager.scaleManager.curr.borderScale.getInsets()
+                    subGbc.insets = mainManager.sm.curr.borderScale.getInsets()
                     subGbc.weightx = 0.0
                     subGbc.weighty = 1.0
                     subGbc.fill = GridBagConstraints.CENTER
 
-                    val title = CLabel(mainManager.themeManager, mainManager.scaleManager, this.chapterTitle, FontType.TITLE).apply { horizontalAlignment = SwingConstants.CENTER }
+                    val title = CLabel(mainManager.tm, mainManager.sm, this.chapterTitle, FontType.TITLE).apply { horizontalAlignment = SwingConstants.CENTER }
                     panel.add(title, subGbc)
 
                     for (content in this.chapterContent) {
@@ -130,9 +130,9 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Code -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = true, roundCorners = true, borderMode = BorderMode.THICKNESS)
+                    val panel = CPanel(mainManager.tm, mainManager.sm, primary = true, roundCorners = true, borderMode = BorderMode.THICKNESS)
                     panel.layout = BorderLayout()
-                    val area = CTextArea(mainManager.themeManager, mainManager.scaleManager, FontType.CODE, true, BorderMode.THICKNESS).apply {
+                    val area = CTextArea(mainManager.tm, mainManager.sm, FontType.CODE, true, BorderMode.THICKNESS).apply {
                         text = this@add.content
                         isEditable = false
                     }
@@ -141,17 +141,17 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Section -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, false, BorderMode.NONE, roundCorners = true)
+                    val panel = CPanel(mainManager.tm, mainManager.sm, false, BorderMode.NONE, roundCorners = true)
                     panel.layout = GridBagLayout()
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = mainManager.scaleManager.curr.borderScale.getInsets()
+                    subGbc.insets = mainManager.sm.curr.borderScale.getInsets()
                     subGbc.weightx = 0.0
                     subGbc.weighty = 1.0
                     subGbc.fill = GridBagConstraints.CENTER
 
-                    val title = CLabel(mainManager.themeManager, mainManager.scaleManager, this.sectionTitle, FontType.TITLE).apply { horizontalAlignment = SwingConstants.CENTER }
+                    val title = CLabel(mainManager.tm, mainManager.sm, this.sectionTitle, FontType.TITLE).apply { horizontalAlignment = SwingConstants.CENTER }
                     panel.add(title, subGbc)
                     subGbc.gridy++
 
@@ -164,18 +164,18 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Table -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, true, BorderMode.THICKNESS, roundCorners = true)
+                    val panel = CPanel(mainManager.tm, mainManager.sm, true, BorderMode.THICKNESS, roundCorners = true)
                     panel.layout = GridBagLayout()
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = mainManager.scaleManager.curr.borderScale.getInsets()
+                    subGbc.insets = mainManager.sm.curr.borderScale.getInsets()
                     subGbc.weightx = 1.0
                     subGbc.weighty = 1.0
                     subGbc.fill = GridBagConstraints.HORIZONTAL
 
                     for (element in this.header) {
-                        val label = CLabel(mainManager.themeManager, mainManager.scaleManager, element, FontType.TITLE).apply {
+                        val label = CLabel(mainManager.tm, mainManager.sm, element, FontType.TITLE).apply {
                             horizontalAlignment = SwingConstants.CENTER
                         }
                         panel.add(label, subGbc)
@@ -197,7 +197,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.Text -> {
-                    val text = CTextArea(mainManager.themeManager, mainManager.scaleManager, FontType.BASIC).apply {
+                    val text = CTextArea(mainManager.tm, mainManager.sm, FontType.BASIC).apply {
                         text = this@add.content
                         isEditable = false
                     }
@@ -205,13 +205,13 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.themeM
                 }
 
                 is Docs.DocComponent.UnlinkedList -> {
-                    val panel = CPanel(mainManager.themeManager, mainManager.scaleManager, false, BorderMode.THICKNESS, roundCorners = true)
+                    val panel = CPanel(mainManager.tm, mainManager.sm, false, BorderMode.THICKNESS, roundCorners = true)
                     panel.layout = GridBagLayout()
 
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = mainManager.scaleManager.curr.borderScale.getInsets()
+                    subGbc.insets = mainManager.sm.curr.borderScale.getInsets()
                     subGbc.fill = GridBagConstraints.HORIZONTAL
                     subGbc.weightx = 1.0
                     subGbc.anchor = GridBagConstraints.WEST // Align list items to the left

@@ -11,10 +11,10 @@ import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.plaf.basic.BasicButtonUI
 
-open class CIconButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicButtonUI() {
+open class CIconButtonUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicButtonUI() {
 
-    var cornerRadius = scaleManager.curr.controlScale.cornerRadius
-    var hoverColor = themeManager.curr.iconLaF.iconBgHover
+    var cornerRadius = sm.curr.controlScale.cornerRadius
+    var hoverColor = tm.curr.iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -28,11 +28,11 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
         button.isFocusable = false
         button.isOpaque = false
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(button)
         }
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(button)
         }
 
@@ -56,8 +56,8 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
     }
 
     fun setDefaults(cIconButton: CIconButton) {
-        cornerRadius = scaleManager.curr.controlScale.cornerRadius
-        hoverColor = themeManager.curr.iconLaF.iconBgHover
+        cornerRadius = sm.curr.controlScale.cornerRadius
+        hoverColor = tm.curr.iconLaF.iconBgHover
         val inset = getInset(cIconButton)
         cIconButton.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
         updateIcon(cIconButton)
@@ -65,7 +65,7 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
     }
 
     private fun updateIcon(cIconButton: CIconButton) {
-        val iconStyle = themeManager.curr.iconLaF
+        val iconStyle = tm.curr.iconLaF
         SwingUtilities.invokeLater {
             cIconButton.svgIcon?.let {
                 when (cIconButton.mode) {
@@ -82,8 +82,8 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
 
             cIconButton.background = cIconButton.iconBg
             val iconScale = when (cIconButton.mode) {
-                CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.SECONDARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> scaleManager.curr.controlScale.normalSize
-                CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.SECONDARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> scaleManager.curr.controlScale.smallSize
+                CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.SECONDARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> sm.curr.controlScale.normalSize
+                CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.SECONDARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> sm.curr.controlScale.smallSize
             }
 
             cIconButton.customColor?.let { col ->
@@ -132,9 +132,9 @@ open class CIconButtonUI(private val themeManager: ThemeManager, private val sca
     }
 
     private fun getInset(cIconButton: CIconButton): Int = when (cIconButton.mode) {
-        CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> scaleManager.curr.controlScale.normalInset
-        CIconButton.Mode.SECONDARY_NORMAL -> scaleManager.curr.controlScale.normalInset
-        CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> scaleManager.curr.controlScale.smallInset
-        CIconButton.Mode.SECONDARY_SMALL -> scaleManager.curr.controlScale.smallInset
+        CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> sm.curr.controlScale.normalInset
+        CIconButton.Mode.SECONDARY_NORMAL -> sm.curr.controlScale.normalInset
+        CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> sm.curr.controlScale.smallInset
+        CIconButton.Mode.SECONDARY_SMALL -> sm.curr.controlScale.smallInset
     }
 }

@@ -6,12 +6,12 @@ import java.awt.Color
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
 
-open class CTable(themeManager: ThemeManager, scaleManager: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int, private val shouldDrawComponents: Boolean = false) : JTable(tableModel) {
+open class CTable(tm: ThemeManager, sm: ScaleManager, tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int, private val shouldDrawComponents: Boolean = false) : JTable(tableModel) {
 
     val clickableHeaderIds = mutableListOf<Int>()
 
     init {
-        this.setUI(CTableUI(themeManager, scaleManager, primary))
+        this.setUI(CTableUI(tm, sm, primary))
     }
 
     fun fitColumnWidths(padding: Int) {

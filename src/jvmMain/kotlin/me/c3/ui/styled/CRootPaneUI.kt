@@ -8,21 +8,21 @@ import javax.swing.JComponent
 import javax.swing.JRootPane
 import javax.swing.plaf.basic.BasicRootPaneUI
 
-class CRootPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicRootPaneUI() {
+class CRootPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicRootPaneUI() {
 
-    private var inset: Int = scaleManager.curr.borderScale.insets
-    var cornerRadius: Int = scaleManager.curr.borderScale.cornerRadius
+    private var inset: Int = sm.curr.borderScale.insets
+    var cornerRadius: Int = sm.curr.borderScale.cornerRadius
 
     override fun installDefaults(c: JRootPane?) {
         super.installDefaults(c)
 
         val cRootPane = c as? CRootPane ?: return
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(cRootPane)
         }
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(cRootPane)
         }
 
@@ -46,9 +46,9 @@ class CRootPaneUI(private val themeManager: ThemeManager, private val scaleManag
     }
 
     private fun setDefaults(cRootPane: CRootPane) {
-        inset = scaleManager.curr.borderScale.insets
+        inset = sm.curr.borderScale.insets
         cRootPane.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
-        cRootPane.background = themeManager.curr.globalLaF.bgSecondary
+        cRootPane.background = tm.curr.globalLaF.bgSecondary
         cRootPane.repaint()
     }
 

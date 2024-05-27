@@ -30,8 +30,8 @@ class MainManager {
     private val wsChangedListeners = mutableListOf<(Workspace) -> Unit>()
 
     // Managers for theme, scale, and events.
-    val themeManager = ThemeManager(icons)
-    val scaleManager = ScaleManager()
+    val tm = ThemeManager(icons)
+    val sm = ScaleManager()
     val eventManager = EventManager(archManager)
 
     // Bottom bar and code editor components.
@@ -43,10 +43,10 @@ class MainManager {
 
     // Initialization block to set up listeners for theme, scale, and event changes.
     init {
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             triggerAnyEvent()
         }
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             triggerAnyEvent()
         }
         eventManager.addExeEventListener {
@@ -61,10 +61,10 @@ class MainManager {
     }
 
     // Retrieves the current theme.
-    fun currTheme() = themeManager.curr
+    fun currTheme() = tm.curr
 
     // Retrieves the current scale.
-    fun currScale() = scaleManager.curr
+    fun currScale() = sm.curr
 
     // Retrieves the current architecture.
     fun currArch() = archManager.curr

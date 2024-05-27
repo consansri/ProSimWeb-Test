@@ -9,9 +9,9 @@ import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.plaf.basic.BasicScrollPaneUI
 
-class CScrollPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : BasicScrollPaneUI() {
+class CScrollPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicScrollPaneUI() {
 
-    var scrollBarFgColor: Color = themeManager.curr.globalLaF.borderColor
+    var scrollBarFgColor: Color = tm.curr.globalLaF.borderColor
         set(value) {
             field = value
             scrollpane.verticalScrollBar.repaint()
@@ -34,11 +34,11 @@ class CScrollPaneUI(private val themeManager: ThemeManager, private val scaleMan
         pane.horizontalScrollBar.setUI(CScrollBarUI())
         pane.isOpaque = false
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(pane)
         }
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(pane)
         }
 
@@ -48,11 +48,11 @@ class CScrollPaneUI(private val themeManager: ThemeManager, private val scaleMan
     private fun setDefaults(cScrollPane: CScrollPane) {
         cScrollPane.viewport.preferredSize = cScrollPane.preferredSize
         cScrollPane.viewport.isOpaque = false
-        cScrollPane.background = if (cScrollPane.primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
-        scrollBarBgColor = if (cScrollPane.primary) themeManager.curr.globalLaF.bgPrimary else themeManager.curr.globalLaF.bgSecondary
-        scrollBarFgColor = themeManager.curr.globalLaF.borderColor
-        cScrollPane.verticalScrollBar.preferredSize = Dimension(scaleManager.curr.scrollScale.thumbSize, 0)
-        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, scaleManager.curr.scrollScale.thumbSize)
+        cScrollPane.background = if (cScrollPane.primary) tm.curr.globalLaF.bgPrimary else tm.curr.globalLaF.bgSecondary
+        scrollBarBgColor = if (cScrollPane.primary) tm.curr.globalLaF.bgPrimary else tm.curr.globalLaF.bgSecondary
+        scrollBarFgColor = tm.curr.globalLaF.borderColor
+        cScrollPane.verticalScrollBar.preferredSize = Dimension(sm.curr.scrollScale.thumbSize, 0)
+        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, sm.curr.scrollScale.thumbSize)
         cScrollPane.repaint()
     }
 

@@ -8,10 +8,10 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JTabbedPane
 
-open class CTabbedPane(themeManager: ThemeManager, scaleManager: ScaleManager, val primary: Boolean, fontType: FontType) : JTabbedPane() {
+open class CTabbedPane(tm: ThemeManager, sm: ScaleManager, val primary: Boolean, fontType: FontType) : JTabbedPane() {
 
     init {
-        this.setUI(CTabbedPaneUI(themeManager, scaleManager, primary, fontType))
+        this.setUI(CTabbedPaneUI(tm, sm, primary, fontType))
     }
 
 

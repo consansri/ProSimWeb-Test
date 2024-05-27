@@ -15,7 +15,7 @@ import javax.swing.BoxLayout
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
-class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val editor: CEditorArea) : CPanel(themeManager, scaleManager, primary = true, BorderMode.BOWL) {
+class CEditorAnalyzer(private val tm: ThemeManager, private val sm: ScaleManager, private val editor: CEditorArea) : CPanel(tm, sm, primary = true, BorderMode.BOWL) {
 
     private val searchResults = mutableListOf<MatchResult>()
     private var selectedIndex: Int = -1
@@ -39,7 +39,7 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
     val replaceField = ReplaceField()
     val resultControls = ResultControls()
     val replaceControls = ReplaceControls()
-    val space = CPanel(themeManager, scaleManager, true, BorderMode.NONE)
+    val space = CPanel(tm, sm, true, BorderMode.NONE)
     val closeField = CloseField()
 
     var opened: Boolean = false
@@ -156,8 +156,8 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         REPLACE
     }
 
-    inner class ModeField : CPanel(themeManager, scaleManager, primary = true) {
-        val modeButton = CIconButton(themeManager, scaleManager, editor.icons.folderClosed, mode = CIconButton.Mode.PRIMARY_SMALL)
+    inner class ModeField : CPanel(tm, sm, primary = true) {
+        val modeButton = CIconButton(tm, sm, editor.icons.folderClosed, mode = CIconButton.Mode.PRIMARY_SMALL)
 
         init {
             modeButton.addActionListener {
@@ -181,10 +181,10 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
     }
 
-    inner class SearchField() : CPanel(themeManager, scaleManager, borderMode = BorderMode.VERTICAL, primary = true) {
+    inner class SearchField() : CPanel(tm, sm, borderMode = BorderMode.VERTICAL, primary = true) {
 
-        val textField = CTextArea(themeManager, scaleManager, FontType.CODE)
-        val scrollPane = CScrollPane(themeManager, scaleManager, true, textField)
+        val textField = CTextArea(tm, sm, FontType.CODE)
+        val scrollPane = CScrollPane(tm, sm, true, textField)
         val controls = SearchControls()
 
         init {
@@ -254,8 +254,8 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
             }
         }
 
-        inner class SearchControls() : CPanel(themeManager, scaleManager, true, BorderMode.NONE) {
-            val regexMode = CToggleButton(themeManager, scaleManager, ".*", CToggleButtonUI.ToggleSwitchType.SMALL, FontType.BASIC).apply {
+        inner class SearchControls() : CPanel(tm, sm, true, BorderMode.NONE) {
+            val regexMode = CToggleButton(tm, sm, ".*", CToggleButtonUI.ToggleSwitchType.SMALL, FontType.BASIC).apply {
                 addActionListener {
                     isActive = !isActive
                     searchField.searchASync()
@@ -270,9 +270,9 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
     }
 
-    inner class ReplaceField() : CPanel(themeManager, scaleManager, borderMode = BorderMode.VERTICAL, primary = true) {
-        val textField = CTextArea(themeManager, scaleManager, FontType.CODE)
-        val scrollPane = CScrollPane(themeManager, scaleManager, true, textField)
+    inner class ReplaceField() : CPanel(tm, sm, borderMode = BorderMode.VERTICAL, primary = true) {
+        val textField = CTextArea(tm, sm, FontType.CODE)
+        val scrollPane = CScrollPane(tm, sm, true, textField)
         init {
             layout = BorderLayout()
             add(scrollPane, BorderLayout.CENTER)
@@ -289,10 +289,10 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
     }
 
-    inner class ResultControls() : CPanel(themeManager, scaleManager, borderMode = BorderMode.THICKNESS, primary = true) {
+    inner class ResultControls() : CPanel(tm, sm, borderMode = BorderMode.THICKNESS, primary = true) {
 
-        val results = CLabel(themeManager, scaleManager, "0", FontType.BASIC)
-        val next = CIconButton(themeManager, scaleManager, editor.icons.forwards, CIconButton.Mode.PRIMARY_SMALL).apply {
+        val results = CLabel(tm, sm, "0", FontType.BASIC)
+        val next = CIconButton(tm, sm, editor.icons.forwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
                 val nextIndex = searchResults.indexOfFirst { editor.caret.getIndex() < it.range.first }
                 if (nextIndex != -1) {
@@ -300,7 +300,7 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
                 }
             }
         }
-        val previous = CIconButton(themeManager, scaleManager, editor.icons.backwards, CIconButton.Mode.PRIMARY_SMALL).apply {
+        val previous = CIconButton(tm, sm, editor.icons.backwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
                 val prevIndex = searchResults.indexOfLast { editor.caret.getIndex() > it.range.last + 1 }
                 if (prevIndex != -1) {
@@ -318,10 +318,10 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
     }
 
-    inner class ReplaceControls() : CPanel(themeManager, scaleManager, true, BorderMode.THICKNESS) {
+    inner class ReplaceControls() : CPanel(tm, sm, true, BorderMode.THICKNESS) {
 
-        val replace = CTextButton(themeManager, scaleManager, "replace", FontType.BASIC)
-        val replaceAll = CTextButton(themeManager, scaleManager, "replace all", FontType.BASIC)
+        val replace = CTextButton(tm, sm, "replace", FontType.BASIC)
+        val replaceAll = CTextButton(tm, sm, "replace all", FontType.BASIC)
 
         init {
             attachListeners()
@@ -366,8 +366,8 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
         }
     }
 
-    inner class CloseField() : CPanel(themeManager, scaleManager, primary = true, BorderMode.WEST) {
-        private val closeBtn = CIconButton(themeManager, scaleManager, editor.icons.close, mode = CIconButton.Mode.PRIMARY_SMALL)
+    inner class CloseField() : CPanel(tm, sm, primary = true, BorderMode.WEST) {
+        private val closeBtn = CIconButton(tm, sm, editor.icons.close, mode = CIconButton.Mode.PRIMARY_SMALL)
 
         init {
             closeBtn.addActionListener {

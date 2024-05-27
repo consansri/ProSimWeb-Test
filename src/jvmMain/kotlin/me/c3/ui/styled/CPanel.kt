@@ -6,7 +6,7 @@ import me.c3.ui.styled.CPanelUI
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JPanel
 
-open class CPanel(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JPanel() {
+open class CPanel(tm: ThemeManager, sm: ScaleManager, primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JPanel() {
 
     var roundedCorners: Boolean = roundCorners
         set(value) {
@@ -26,7 +26,7 @@ open class CPanel(themeManager: ThemeManager, scaleManager: ScaleManager, primar
         }
 
     init {
-        this.setUI(CPanelUI(themeManager, scaleManager))
+        this.setUI(CPanelUI(tm, sm))
     }
 
 

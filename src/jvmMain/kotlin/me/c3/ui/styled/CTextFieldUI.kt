@@ -9,7 +9,7 @@ import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.plaf.basic.BasicTextFieldUI
 
-class CTextFieldUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val fontType: FontType): BasicTextFieldUI() {
+class CTextFieldUI(private val tm: ThemeManager, private val sm: ScaleManager, private val fontType: FontType): BasicTextFieldUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -18,11 +18,11 @@ class CTextFieldUI(private val themeManager: ThemeManager, private val scaleMana
         tf.horizontalAlignment = SwingConstants.CENTER
         tf.border = BorderFactory.createEmptyBorder()
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(tf)
         }
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(tf)
         }
 
@@ -31,9 +31,9 @@ class CTextFieldUI(private val themeManager: ThemeManager, private val scaleMana
 
     private fun setDefaults(tf: CTextField){
         tf.isOpaque = false
-        tf.font = fontType.getFont(themeManager, scaleManager)
+        tf.font = fontType.getFont(tm, sm)
         tf.background = Color(0,0,0,0)
-        tf.foreground = themeManager.curr.textLaF.base
-        tf.caretColor = themeManager.curr.textLaF.base
+        tf.foreground = tm.curr.textLaF.base
+        tf.caretColor = tm.curr.textLaF.base
     }
 }

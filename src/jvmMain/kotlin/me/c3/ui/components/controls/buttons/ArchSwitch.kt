@@ -11,7 +11,7 @@ import java.awt.event.ActionListener
  * This class represents a combo box used for selecting and switching between different architectures within the application.
  * It retrieves available architectures from the provided MainManager instance through the `Link.entries` property.
  */
-class ArchSwitch(mainManager: MainManager) : CComboBox<Link>(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, Link.entries.toTypedArray(), FontType.TITLE) {
+class ArchSwitch(mainManager: MainManager) : CComboBox<Link>(mainManager.tm, mainManager.sm, mainManager.icons, Link.entries.toTypedArray(), FontType.TITLE) {
 
     init {
         this.addActionListener(ArchSelectorListener(mainManager))

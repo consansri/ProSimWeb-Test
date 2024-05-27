@@ -10,12 +10,12 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.SwingUtilities
 
-class ProcessorSettings(mainManager: MainManager, processorView: ProcessorView) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
+class ProcessorSettings(mainManager: MainManager, processorView: ProcessorView) : CPanel(mainManager.tm, mainManager.sm, primary = false) {
 
-    val increaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.increase)
-    val decreaseRegViews = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.decrease)
-    val filler = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
-    val pcLabel = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.CODE)
+    val increaseRegViews = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.increase)
+    val decreaseRegViews = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.decrease)
+    val filler = CLabel(mainManager.tm, mainManager.sm, "", FontType.BASIC)
+    val pcLabel = CLabel(mainManager.tm, mainManager.sm, "", FontType.CODE)
 
     init {
         attachListeners(mainManager, processorView)

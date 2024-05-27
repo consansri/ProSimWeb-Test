@@ -17,11 +17,11 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
-open class CFrame(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val icons: ProSimIcons) : JFrame(), UIAdapter {
+open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, private val icons: ProSimIcons) : JFrame(), UIAdapter {
     val titleBar = TitleBar()
-    val content = CPanel(themeManager, scaleManager, primary = false)
+    val content = CPanel(tm, sm, primary = false)
 
-    private var cornerRadius: Int = scaleManager.curr.borderScale.cornerRadius
+    private var cornerRadius: Int = sm.curr.borderScale.cornerRadius
 
     private var posX = 0
     private var posY = 0
@@ -36,7 +36,7 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
         layout = BorderLayout()
 
         addBaseComponents()
-        this.setupUI(themeManager, scaleManager)
+        this.setupUI(tm, sm)
 
         isVisible = true
     }
@@ -57,28 +57,28 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
         titleBar.titleLabel.text = newtitle
     }
 
-    override fun setupUI(themeManager: ThemeManager, scaleManager: ScaleManager) {
+    override fun setupUI(tm: ThemeManager, sm: ScaleManager) {
         SwingUtilities.invokeLater {
-            scaleManager.addScaleChangeEvent {
-                setDefaults(themeManager, scaleManager)
+            sm.addScaleChangeEvent {
+                setDefaults(tm, sm)
             }
 
-            themeManager.addThemeChangeListener {
-                setDefaults(themeManager, scaleManager)
+            tm.addThemeChangeListener {
+                setDefaults(tm, sm)
             }
 
-            setDefaults(themeManager, scaleManager)
+            setDefaults(tm, sm)
         }
     }
 
-    override fun setDefaults(themeManager: ThemeManager, scaleManager: ScaleManager) {
+    override fun setDefaults(tm: ThemeManager, sm: ScaleManager) {
         rootPane.border = BorderFactory.createEmptyBorder()
         content.border = BorderFactory.createEmptyBorder()
-        cornerRadius = scaleManager.curr.borderScale.cornerRadius
-        background = themeManager.curr.globalLaF.bgSecondary
+        cornerRadius = sm.curr.borderScale.cornerRadius
+        background = tm.curr.globalLaF.bgSecondary
 
         val icon = icons.appLogo.derive(64, 64)
-        icon.colorFilter = themeManager.curr.icon.colorFilter
+        icon.colorFilter = tm.curr.icon.colorFilter
         iconImage = icon.image
     }
 
@@ -102,14 +102,14 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
         content.add(comp, constraints, index)
     }
 
-    inner class TitleBar : CPanel(themeManager, scaleManager, primary = false, BorderMode.SOUTH) {
+    inner class TitleBar : CPanel(tm, sm, primary = false, BorderMode.SOUTH) {
 
-        val logoButton = CIconButton(themeManager, scaleManager, icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
-        val titleLabel = CLabel(themeManager, scaleManager, title, FontType.BASIC)
-        val minimizeButton = CIconButton(themeManager, scaleManager, icons.decrease, CIconButton.Mode.SECONDARY_SMALL)
-        val maximizeButton = CIconButton(themeManager, scaleManager, icons.increase, CIconButton.Mode.SECONDARY_SMALL)
-        val closeButton = CIconButton(themeManager, scaleManager, icons.close, CIconButton.Mode.SECONDARY_SMALL)
-        val titleContent = CPanel(themeManager, scaleManager, primary = false)
+        val logoButton = CIconButton(tm, sm, icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
+        val titleLabel = CLabel(tm, sm, title, FontType.BASIC)
+        val minimizeButton = CIconButton(tm, sm, icons.decrease, CIconButton.Mode.SECONDARY_SMALL)
+        val maximizeButton = CIconButton(tm, sm, icons.increase, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton(tm, sm, icons.close, CIconButton.Mode.SECONDARY_SMALL)
+        val titleContent = CPanel(tm, sm, primary = false)
 
         init {
             attachContent()
@@ -120,7 +120,7 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
 
             addButtonListeners()
 
-            applyDefaultLook(themeManager, scaleManager)
+            applyDefaultLook(tm, sm)
         }
 
         private fun attachContent() {
@@ -192,23 +192,23 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
             })
         }
 
-        private fun applyDefaultLook(themeManager: ThemeManager, scaleManager: ScaleManager) {
+        private fun applyDefaultLook(tm: ThemeManager, sm: ScaleManager) {
             titleLabel.horizontalAlignment = SwingConstants.LEFT
             logoButton.isDeactivated = true
 
-            themeManager.addThemeChangeListener {
-                applyThemeDefaults(themeManager)
+            tm.addThemeChangeListener {
+                applyThemeDefaults(tm)
             }
-            scaleManager.addScaleChangeEvent {
-                applyThemeDefaults(themeManager)
+            sm.addScaleChangeEvent {
+                applyThemeDefaults(tm)
             }
 
-            applyThemeDefaults(themeManager)
+            applyThemeDefaults(tm)
         }
 
-        private fun applyThemeDefaults(themeManager: ThemeManager) {
+        private fun applyThemeDefaults(tm: ThemeManager) {
             icons.appLogo.colorFilter = FlatSVGIcon.ColorFilter {
-               themeManager.curr.textLaF.base
+               tm.curr.textLaF.base
             }
 
             logoButton.svgIcon = icons.appLogo
@@ -280,9 +280,9 @@ open class CFrame(private val themeManager: ThemeManager, private val scaleManag
     }
 
     private fun isEdge(point: Point): ResizeMode? {
-        val left = point.x <= scaleManager.curr.borderScale.insets
-        val right = point.x >= width - scaleManager.curr.borderScale.insets
-        val bottom = point.y >= height - scaleManager.curr.borderScale.insets
+        val left = point.x <= sm.curr.borderScale.insets
+        val right = point.x >= width - sm.curr.borderScale.insets
+        val bottom = point.y >= height - sm.curr.borderScale.insets
 
         return when {
             left && bottom -> ResizeMode.LEFTANDBOTTOM

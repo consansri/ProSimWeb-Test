@@ -20,7 +20,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
 import kotlin.math.abs
 
-class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = true, BorderMode.SOUTH) {
+class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, primary = true, BorderMode.SOUTH) {
 
     private val regViews = mutableListOf<CAdvancedTabPane>()
 
@@ -109,10 +109,10 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.th
     }
 
     private fun initializeRegView(): CAdvancedTabPane {
-        val cTabbedPane = CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
+        val cTabbedPane = CAdvancedTabPane(mainManager.tm, mainManager.sm, mainManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
         mainManager.currArch().getAllRegFiles().forEach {
-            val tabLabel = CLabel(mainManager.themeManager, mainManager.scaleManager, it.name, FontType.BASIC)
+            val tabLabel = CLabel(mainManager.tm, mainManager.sm, it.name, FontType.BASIC)
             if (it.getRegisters(mainManager.currArch().getAllFeatures()).isNotEmpty()) {
                 val regFileTable = RegFileTable(mainManager, it) {
                     updateAllValues()
@@ -126,7 +126,7 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.th
     }
 
     class RegFileTable(private val mainManager: MainManager, val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel(), val onRegValueChange: (RegContainer.Register) -> Unit) :
-        CTable(mainManager.themeManager, mainManager.scaleManager, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
+        CTable(mainManager.tm, mainManager.sm, tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
 
         private var currentlyUpdating = false
         private val identifierLabel = "Identifiers"

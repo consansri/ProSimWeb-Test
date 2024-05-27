@@ -6,10 +6,10 @@ import java.awt.Color
 import java.awt.Component
 import javax.swing.JDialog
 
-class CDialog(themeManager: ThemeManager, scaleManager: ScaleManager, parent: Component) : JDialog() {
+class CDialog(tm: ThemeManager, sm: ScaleManager, parent: Component) : JDialog() {
 
     init {
-        //rootPane = CRootPane(themeManager, scaleManager)
+        //rootPane = CRootPane(tm, sm)
         isAlwaysOnTop = true
         isUndecorated = true
         rootPane.isOpaque = false

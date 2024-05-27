@@ -12,14 +12,14 @@ import javax.swing.BoxLayout
  * @property mainManager The main manager instance.
  * @property editor The code editor associated with the controls.
  */
-class EditorControls(mainManager: MainManager, private val editor: CodeEditor) : CPanel(mainManager.themeManager, mainManager.scaleManager, false, borderMode = BorderMode.EAST) {
+class EditorControls(mainManager: MainManager, private val editor: CodeEditor) : CPanel(mainManager.tm, mainManager.sm, false, borderMode = BorderMode.EAST) {
 
     // Control buttons
-    private val statusIcon: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.statusLoading)
-    private val undoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.backwards)
-    private val redoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.forwards)
-    private val buildButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.build)
-    private val infoButton: CIconButton = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.info)
+    private val statusIcon: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.statusLoading)
+    private val undoButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.backwards)
+    private val redoButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.forwards)
+    private val buildButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.build)
+    private val infoButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.info)
 
     init {
         // Apply layout
@@ -38,11 +38,11 @@ class EditorControls(mainManager: MainManager, private val editor: CodeEditor) :
         add(infoButton)
 
         // Listeners
-        mainManager.scaleManager.addScaleChangeEvent {
+        mainManager.sm.addScaleChangeEvent {
             val insets = it.borderScale.insets
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
-        mainManager.themeManager.addThemeChangeListener {
+        mainManager.tm.addThemeChangeListener {
             background = it.globalLaF.bgSecondary
         }
 

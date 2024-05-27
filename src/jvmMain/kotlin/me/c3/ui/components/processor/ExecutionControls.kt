@@ -11,20 +11,20 @@ import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
-class ExecutionControls(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, BorderMode.SOUTH) {
-    val continuous = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.continuousExe).apply {
+class ExecutionControls(mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, primary = false, BorderMode.SOUTH) {
+    val continuous = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.continuousExe).apply {
         addActionListener {
             mainManager.currArch().exeContinuous()
             mainManager.eventManager.triggerExeEvent()
         }
     }
-    val singleStep = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.singleExe).apply {
+    val singleStep = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.singleExe).apply {
         addActionListener {
             mainManager.currArch().exeSingleStep()
             mainManager.eventManager.triggerExeEvent()
         }
     }
-    val mStep = CIconInput(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.stepMultiple, FontType.BASIC).apply {
+    val mStep = CIconInput(mainManager.tm, mainManager.sm, mainManager.icons.stepMultiple, FontType.BASIC).apply {
         val inputRegex = Regex("\\d+")
         input.text = 10.toString()
         button.addActionListener {
@@ -51,19 +51,19 @@ class ExecutionControls(mainManager: MainManager) : CPanel(mainManager.themeMana
         }
     }
 
-    val skipSubroutine = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.stepOver).apply {
+    val skipSubroutine = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.stepOver).apply {
         addActionListener {
             mainManager.currArch().exeSkipSubroutine()
             mainManager.eventManager.triggerExeEvent()
         }
     }
-    val returnSubroutine = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.returnSubroutine).apply {
+    val returnSubroutine = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.returnSubroutine).apply {
         addActionListener {
             mainManager.currArch().exeReturnFromSubroutine()
             mainManager.eventManager.triggerExeEvent()
         }
     }
-    val reset = CIconButton(mainManager.themeManager, mainManager.scaleManager, mainManager.icons.recompile).apply {
+    val reset = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.recompile).apply {
         addActionListener {
             mainManager.currArch().exeReset()
             mainManager.eventManager.triggerExeEvent()
@@ -81,11 +81,11 @@ class ExecutionControls(mainManager: MainManager) : CPanel(mainManager.themeMana
         reset.alignmentY = CENTER_ALIGNMENT
 
         // Listeners
-        mainManager.scaleManager.addScaleChangeEvent {
+        mainManager.sm.addScaleChangeEvent {
             layout = GridLayout(1, 0, it.borderScale.insets, 0)
         }
 
-        mainManager.themeManager.addThemeChangeListener {
+        mainManager.tm.addThemeChangeListener {
             val exeStyle = it.exeStyle
             continuous.customColor = exeStyle.continuous
             singleStep.customColor = exeStyle.single

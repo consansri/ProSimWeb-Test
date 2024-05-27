@@ -6,10 +6,10 @@ import me.c3.ui.theme.ThemeManager
 import me.c3.ui.resources.icons.ProSimIcons
 import javax.swing.JComboBox
 
-open class CComboBox<T>(themeManager: ThemeManager, scaleManager: ScaleManager, icons: ProSimIcons, array: Array<T>, fontType: FontType) : JComboBox<T>(array) {
+open class CComboBox<T>(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, array: Array<T>, fontType: FontType) : JComboBox<T>(array) {
 
     init {
-        this.setUI(CComboBoxUI(themeManager, scaleManager, icons, fontType))
+        this.setUI(CComboBoxUI(tm, sm, icons, fontType))
     }
 
 

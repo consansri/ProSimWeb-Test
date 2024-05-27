@@ -6,9 +6,9 @@ import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import java.awt.BorderLayout
 
-open class CEditor(themeManager: ThemeManager, scaleManager: ScaleManager, icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(themeManager, scaleManager, primary = true) {
+open class CEditor(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(tm, sm, primary = true) {
 
-    val textArea = CEditorArea(themeManager, scaleManager, icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
+    val textArea = CEditorArea(tm, sm, icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
 
     var fileInterface: FileInterface? = null
         set(value) {

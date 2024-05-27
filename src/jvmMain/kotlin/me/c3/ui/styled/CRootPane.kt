@@ -4,8 +4,8 @@ import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JRootPane
 
-class CRootPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JRootPane() {
-    var cornerRadius = scaleManager.curr.borderScale.cornerRadius
+class CRootPane(tm: ThemeManager, sm: ScaleManager) : JRootPane() {
+    var cornerRadius = sm.curr.borderScale.cornerRadius
         set(value) {
             field = value
             (ui as? CRootPaneUI)?.cornerRadius = value
@@ -13,6 +13,6 @@ class CRootPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JRootP
         }
 
     init {
-        setUI(CRootPaneUI(themeManager, scaleManager))
+        setUI(CRootPaneUI(tm, sm))
     }
 }

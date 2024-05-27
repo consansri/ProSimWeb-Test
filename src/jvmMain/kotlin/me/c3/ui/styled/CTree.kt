@@ -8,9 +8,9 @@ import me.c3.ui.resources.icons.ProSimIcons
 import javax.swing.*
 import javax.swing.tree.TreeModel
 
-class CTree(themeManager: ThemeManager, scaleManager: ScaleManager, icons: ProSimIcons, treeModel: TreeModel, fontType: FontType) : JTree(treeModel) {
+class CTree(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, treeModel: TreeModel, fontType: FontType) : JTree(treeModel) {
 
     init {
-        setUI(CTreeUI(themeManager, scaleManager, icons, fontType))
+        setUI(CTreeUI(tm, sm, icons, fontType))
     }
 }

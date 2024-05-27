@@ -20,16 +20,16 @@ import javax.swing.event.TreeExpansionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class COptionPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JOptionPane() {
+class COptionPane(tm: ThemeManager, sm: ScaleManager) : JOptionPane() {
 
     companion object {
-        fun showInputDialog(themeManager: ThemeManager, scaleManager: ScaleManager, parent: Component, message: String): Deferred<String> {
+        fun showInputDialog(tm: ThemeManager, sm: ScaleManager, parent: Component, message: String): Deferred<String> {
             val resultDeferred = CompletableDeferred<String>()
 
-            val cDialog = CDialog(themeManager, scaleManager, parent)
-            val cPanel = CPanel(themeManager, scaleManager, primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel(themeManager, scaleManager, message, FontType.BASIC)
-            val cTextArea = CTextField(themeManager, scaleManager, FontType.BASIC)
+            val cDialog = CDialog(tm, sm, parent)
+            val cPanel = CPanel(tm, sm, primary = false, isOverlay = true, roundCorners = true)
+            val cLabel = CLabel(tm, sm, message, FontType.BASIC)
+            val cTextArea = CTextField(tm, sm, FontType.BASIC)
 
             cTextArea.addKeyListener(object : KeyAdapter() {
                 override fun keyReleased(e: KeyEvent?) {
@@ -73,7 +73,7 @@ class COptionPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JOpt
             return resultDeferred
         }
 
-        fun showDirectoryChooser(themeManager: ThemeManager, scaleManager: ScaleManager, icons: ProSimIcons, parent: Component, message: String): Deferred<File?> {
+        fun showDirectoryChooser(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, parent: Component, message: String): Deferred<File?> {
             val resultDeferred = CompletableDeferred<File?>()
 
             SwingUtilities.invokeLater {
@@ -82,28 +82,28 @@ class COptionPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JOpt
                 // Scrollable Tree View
                 val root = DefaultMutableTreeNode("root")
                 val treeModel = DefaultTreeModel(root)
-                val tree = CTree(themeManager, scaleManager, icons, treeModel, FontType.BASIC)
-                val cScrollPane = CScrollPane(themeManager, scaleManager, false)
+                val tree = CTree(tm, sm, icons, treeModel, FontType.BASIC)
+                val cScrollPane = CScrollPane(tm, sm, false)
                 cScrollPane.setViewportView(tree)
                 cScrollPane.size = Dimension(300, 300)
 
                 // Title Label
-                val titleLabel = CLabel(themeManager, scaleManager, message, FontType.TITLE)
+                val titleLabel = CLabel(tm, sm, message, FontType.TITLE)
                 titleLabel.horizontalAlignment = SwingConstants.CENTER
 
                 // Current Path Identificator
-                val currPathTextField = CTextField(themeManager, scaleManager, FontType.BASIC)
+                val currPathTextField = CTextField(tm, sm, FontType.BASIC)
                 currPathTextField.isEditable = false
 
                 // Select Button
-                val selectButton = CTextButton(themeManager, scaleManager, "select", FontType.BASIC)
+                val selectButton = CTextButton(tm, sm, "select", FontType.BASIC)
 
                 // Content Panel
-                val cPanel = CPanel(themeManager, scaleManager, primary = false, isOverlay = true, roundCorners = true)
+                val cPanel = CPanel(tm, sm, primary = false, isOverlay = true, roundCorners = true)
                 cPanel.layout = GridBagLayout()
 
                 // Dialog Frame
-                val cDialog = CDialog(themeManager, scaleManager, parent)
+                val cDialog = CDialog(tm, sm, parent)
 
                 // Add Components to Content Panel
                 val gbc = GridBagConstraints()
@@ -218,7 +218,7 @@ class COptionPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JOpt
     }
 
     init {
-        this.setUI(COptionPaneUI(themeManager, scaleManager))
+        this.setUI(COptionPaneUI(tm, sm))
     }
 
 

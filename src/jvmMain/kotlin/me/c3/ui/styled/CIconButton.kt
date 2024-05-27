@@ -10,7 +10,7 @@ import javax.swing.JButton
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 
-open class CIconButton(themeManager: ThemeManager, scaleManager: ScaleManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL) : JButton(icon) {
+open class CIconButton(tm: ThemeManager, sm: ScaleManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL) : JButton(icon) {
 
     private var timer: Timer? = null
     private var rotationAngle: Double = 0.0
@@ -27,7 +27,7 @@ open class CIconButton(themeManager: ThemeManager, scaleManager: ScaleManager, i
             updateAnim()
         }
 
-    var iconBg = themeManager.curr.iconLaF.iconBg
+    var iconBg = tm.curr.iconLaF.iconBg
         set(value) {
             field = value
             (ui as? CIconButtonUI)?.setDefaults(this)
@@ -54,7 +54,7 @@ open class CIconButton(themeManager: ThemeManager, scaleManager: ScaleManager, i
         }
 
     init {
-        this.setUI(CIconButtonUI(themeManager, scaleManager))
+        this.setUI(CIconButtonUI(tm, sm))
     }
 
     private fun updateAnim() {

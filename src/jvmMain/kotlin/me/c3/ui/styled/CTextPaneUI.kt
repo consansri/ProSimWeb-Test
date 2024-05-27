@@ -8,19 +8,19 @@ import me.c3.ui.theme.ThemeManager
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 
-class CTextPaneUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager) : FlatTextPaneUI() {
+class CTextPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) : FlatTextPaneUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
         val pane = c as? CTextPane ?: return
 
-        pane.font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
+        pane.font = tm.curr.codeLaF.getFont().deriveFont(sm.curr.fontScale.codeSize)
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(pane)
         }
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(pane)
         }
 
@@ -29,11 +29,11 @@ class CTextPaneUI(private val themeManager: ThemeManager, private val scaleManag
     }
 
     private fun setDefaults(tp: CTextPane){
-        tp.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
-        tp.background = themeManager.curr.globalLaF.bgPrimary
-        tp.caretColor = themeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
-        tp.foreground = themeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
-        themeManager.curr.codeLaF.getFont().install(tp, scaleManager.curr.fontScale.codeSize)
+        tp.border = BorderFactory.createEmptyBorder(0, sm.curr.borderScale.insets, 0, sm.curr.borderScale.insets)
+        tp.background = tm.curr.globalLaF.bgPrimary
+        tp.caretColor = tm.curr.codeLaF.getColor(CodeStyle.BASE0)
+        tp.foreground = tm.curr.codeLaF.getColor(CodeStyle.BASE0)
+        tm.curr.codeLaF.getFont().install(tp, sm.curr.fontScale.codeSize)
     }
 
 }

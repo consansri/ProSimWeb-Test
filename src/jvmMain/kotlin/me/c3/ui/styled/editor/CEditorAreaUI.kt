@@ -10,8 +10,8 @@ import javax.swing.Timer
 import javax.swing.plaf.ComponentUI
 
 class CEditorAreaUI(
-    private val themeManager: ThemeManager,
-    private val scaleManager: ScaleManager,
+    private val tm: ThemeManager,
+    private val sm: ScaleManager,
     private val lineOverhead: Int = 3
 ) : ComponentUI() {
     private var defaultSelectionColor = Color(0, 0, 0, 0)
@@ -21,14 +21,14 @@ class CEditorAreaUI(
     private var caretTimer: Timer? = null
     private var caretColor: Color? = null
 
-    private var selectionColor = themeManager.curr.codeLaF.selectionColor
+    private var selectionColor = tm.curr.codeLaF.selectionColor
         set(value) {
             field = value
             defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 127)
             caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
         }
 
-    private var searchResultColor = themeManager.curr.codeLaF.searchResultColor
+    private var searchResultColor = tm.curr.codeLaF.searchResultColor
         set(value) {
             field = value
             defaultSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 127)
@@ -39,10 +39,10 @@ class CEditorAreaUI(
 
         val CEditorArea = c as? CEditorArea ?: return
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(CEditorArea)
         }
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(CEditorArea)
         }
 
@@ -52,13 +52,13 @@ class CEditorAreaUI(
     private fun setDefaults(editor: CEditorArea) {
         // Setup Base Editor Defaults
         editor.isOpaque = false
-        editor.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
-        editor.background = themeManager.curr.globalLaF.bgPrimary
-        editor.foreground = themeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
-        editor.font = themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
-        selectionColor = themeManager.curr.codeLaF.selectionColor
-        searchResultColor = themeManager.curr.codeLaF.searchResultColor
-        editor.tabSize = scaleManager.curr.fontScale.tabSize
+        editor.border = BorderFactory.createEmptyBorder(0, sm.curr.borderScale.insets, 0, sm.curr.borderScale.insets)
+        editor.background = tm.curr.globalLaF.bgPrimary
+        editor.foreground = tm.curr.codeLaF.getColor(CodeStyle.BASE0)
+        editor.font = tm.curr.codeLaF.getFont().deriveFont(sm.curr.fontScale.codeSize)
+        selectionColor = tm.curr.codeLaF.selectionColor
+        searchResultColor = tm.curr.codeLaF.searchResultColor
+        editor.tabSize = sm.curr.fontScale.tabSize
         editor.focusTraversalKeysEnabled = false
 
         // Setup Sub Components
@@ -67,8 +67,8 @@ class CEditorAreaUI(
         editor.lineNumbers.fm = editor.getFontMetrics(editor.font)
         editor.lineNumbers.background = editor.background
         editor.lineNumbers.font = editor.font
-        editor.lineNumbers.foreground = themeManager.curr.textLaF.baseSecondary
-        editor.lineNumbers.border = BorderFactory.createEmptyBorder(0, scaleManager.curr.borderScale.insets, 0, scaleManager.curr.borderScale.insets)
+        editor.lineNumbers.foreground = tm.curr.textLaF.baseSecondary
+        editor.lineNumbers.border = BorderFactory.createEmptyBorder(0, sm.curr.borderScale.insets, 0, sm.curr.borderScale.insets)
         editor.lineNumbers.isOpaque = false
         editor.lineNumbers.selBg = caretLineBG
 

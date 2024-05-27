@@ -4,7 +4,7 @@ import me.c3.ui.scale.ScaleManager
 import me.c3.ui.theme.ThemeManager
 
 interface UIAdapter {
-    fun setupUI(themeManager: ThemeManager, scaleManager: ScaleManager)
+    fun setupUI(tm: ThemeManager, sm: ScaleManager)
 
-    fun setDefaults(themeManager: ThemeManager, scaleManager: ScaleManager)
+    fun setDefaults(tm: ThemeManager, sm: ScaleManager)
 }

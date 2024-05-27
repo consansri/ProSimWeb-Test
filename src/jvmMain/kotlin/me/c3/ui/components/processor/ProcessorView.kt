@@ -8,7 +8,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JSplitPane
 
-class ProcessorView(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
+class ProcessorView(mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, primary = false) {
 
     val exeControl = ExecutionControls(mainManager)
     val regView = RegisterView(mainManager).apply {
@@ -17,7 +17,7 @@ class ProcessorView(mainManager: MainManager) : CPanel(mainManager.themeManager,
     val memoryView = MemoryView(mainManager).apply {
         minimumSize = Dimension(0,0)
     }
-    val splitPane = CSplitPane(mainManager.themeManager, mainManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView).apply {
+    val splitPane = CSplitPane(mainManager.tm, mainManager.sm, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView).apply {
         resizeWeight = 0.7
         setDividerLocation(0.7)
     }

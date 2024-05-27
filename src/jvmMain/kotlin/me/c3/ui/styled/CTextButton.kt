@@ -6,7 +6,7 @@ import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JButton
 
-open class CTextButton(themeManager: ThemeManager, scaleManager: ScaleManager, text: String, fontType: FontType) : JButton(text) {
+open class CTextButton(tm: ThemeManager, sm: ScaleManager, text: String, fontType: FontType) : JButton(text) {
     var isDeactivated = false
         set(value) {
             field = value
@@ -20,7 +20,7 @@ open class CTextButton(themeManager: ThemeManager, scaleManager: ScaleManager, t
         }
 
     init {
-        this.setUI(CTextButtonUI(themeManager, scaleManager, fontType))
+        this.setUI(CTextButtonUI(tm, sm, fontType))
     }
 
 

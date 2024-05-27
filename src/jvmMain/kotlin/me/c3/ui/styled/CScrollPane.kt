@@ -8,17 +8,17 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JScrollPane
 
-open class CScrollPane(themeManager: ThemeManager, scaleManager: ScaleManager, val primary: Boolean, c: Component?) : JScrollPane(c) {
+open class CScrollPane(tm: ThemeManager, sm: ScaleManager, val primary: Boolean, c: Component?) : JScrollPane(c) {
 
-    constructor(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean) : this(themeManager, scaleManager, primary, null)
+    constructor(tm: ThemeManager, sm: ScaleManager, primary: Boolean) : this(tm, sm, primary, null)
 
-    constructor(themeManager: ThemeManager, scaleManager: ScaleManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(themeManager, scaleManager, primary, component) {
+    constructor(tm: ThemeManager, sm: ScaleManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(tm, sm, primary, component) {
         this.verticalScrollBarPolicy = vsb
         this.horizontalScrollBarPolicy = hsb
     }
 
     init {
-        this.setUI(CScrollPaneUI(themeManager, scaleManager))
+        this.setUI(CScrollPaneUI(tm, sm))
     }
 
     override fun paint(g: Graphics?) {

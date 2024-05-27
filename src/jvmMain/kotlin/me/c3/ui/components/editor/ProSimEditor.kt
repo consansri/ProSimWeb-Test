@@ -15,7 +15,7 @@ import javax.swing.SwingUtilities
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  * @property editorFile The file associated with the editor.
  */
-class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
+class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.tm, mainManager.sm, mainManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
     init {
         fileInterface = editorFile
         // Attach listeners for various events

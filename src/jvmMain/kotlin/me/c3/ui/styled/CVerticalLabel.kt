@@ -5,10 +5,10 @@ import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JLabel
 
-class CVerticalLabel(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, text: String, fontType: FontType, primary: Boolean = true) : JLabel(text) {
+class CVerticalLabel(private val tm: ThemeManager, private val sm: ScaleManager, text: String, fontType: FontType, primary: Boolean = true) : JLabel(text) {
 
     init {
-        this.setUI(CVerticalLabelUI(themeManager, scaleManager, primary, fontType))
+        this.setUI(CVerticalLabelUI(tm, sm, primary, fontType))
     }
 
 }

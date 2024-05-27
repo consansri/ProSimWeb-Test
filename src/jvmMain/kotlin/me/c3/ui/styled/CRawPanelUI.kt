@@ -11,18 +11,18 @@ import javax.swing.border.AbstractBorder
 import javax.swing.plaf.ComponentUI
 import javax.swing.plaf.PanelUI
 
-class CRawPanelUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val border: AbstractBorder? = null) : PanelUI() {
+class CRawPanelUI(private val tm: ThemeManager, private val sm: ScaleManager, private val border: AbstractBorder? = null) : PanelUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val panel = c as? CEditorAnalyzer ?: return
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(panel)
         }
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(panel)
         }
 
@@ -31,7 +31,7 @@ class CRawPanelUI(private val themeManager: ThemeManager, private val scaleManag
 
     private fun setDefaults(panel: CEditorAnalyzer) {
         panel.isOpaque = false
-        panel.background = themeManager.curr.globalLaF.bgPrimary
+        panel.background = tm.curr.globalLaF.bgPrimary
 
         panel.border = BorderFactory.createEmptyBorder()
         panel.insets.set(0, 0, 0, 0)

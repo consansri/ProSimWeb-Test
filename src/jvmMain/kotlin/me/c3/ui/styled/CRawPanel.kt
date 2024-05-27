@@ -7,9 +7,9 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.AbstractBorder
 
-open class CRawPanel(themeManager: ThemeManager, scaleManager: ScaleManager, border: AbstractBorder? = null): JPanel() {
+open class CRawPanel(tm: ThemeManager, sm: ScaleManager, border: AbstractBorder? = null): JPanel() {
 
     init {
-        this.setUI(CRawPanelUI(themeManager, scaleManager, border))
+        this.setUI(CRawPanelUI(tm, sm, border))
     }
 }

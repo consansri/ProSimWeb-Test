@@ -9,26 +9,26 @@ import javax.swing.border.AbstractBorder
 import javax.swing.border.LineBorder
 
 class DirectionalBorder(
-    private val themeManager: ThemeManager,
-    private val scaleManager: ScaleManager,
+    private val tm: ThemeManager,
+    private val sm: ScaleManager,
     private val north: Boolean = false,
     private val west: Boolean = false,
     private val south: Boolean = false,
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    var lineBorder = LineBorder(themeManager.curr.globalLaF.borderColor, scaleManager.curr.borderScale.thickness)
-    var thickness = scaleManager.curr.borderScale.thickness
+    var lineBorder = LineBorder(tm.curr.globalLaF.borderColor, sm.curr.borderScale.thickness)
+    var thickness = sm.curr.borderScale.thickness
 
     init {
-        scaleManager.addScaleChangeEvent {
-            val color = themeManager.curr.globalLaF.borderColor
+        sm.addScaleChangeEvent {
+            val color = tm.curr.globalLaF.borderColor
             this.lineBorder = LineBorder(color, it.borderScale.thickness)
             this.thickness = it.borderScale.thickness
         }
 
-        themeManager.addThemeChangeListener {
-            val thickness = scaleManager.curr.borderScale.thickness
+        tm.addThemeChangeListener {
+            val thickness = sm.curr.borderScale.thickness
             this.lineBorder = LineBorder(it.globalLaF.borderColor, thickness)
             this.thickness = thickness
         }
@@ -42,11 +42,11 @@ class DirectionalBorder(
     }
 
     override fun getBorderInsets(c: Component): Insets {
-        return scaleManager.curr.borderScale.getInsets()
+        return sm.curr.borderScale.getInsets()
     }
 
     override fun getBorderInsets(c: Component, insets: Insets): Insets {
-        val themeInsets = scaleManager.curr.borderScale.getInsets()
+        val themeInsets = sm.curr.borderScale.getInsets()
         insets.set(themeInsets.top, themeInsets.left, themeInsets.bottom, themeInsets.right)
         return insets
     }

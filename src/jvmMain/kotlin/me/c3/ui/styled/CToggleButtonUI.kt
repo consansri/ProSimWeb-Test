@@ -8,7 +8,7 @@ import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.plaf.basic.BasicButtonUI
 
-class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val toggleSwitchType: ToggleSwitchType, private val fontType: FontType) : BasicButtonUI() {
+class CToggleButtonUI(private val tm: ThemeManager, private val sm: ScaleManager, private val toggleSwitchType: ToggleSwitchType, private val fontType: FontType) : BasicButtonUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -16,11 +16,11 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
         val button = c as? CToggleButton ?: return
         button.horizontalAlignment = SwingConstants.CENTER
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults( button)
         }
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults( button)
         }
 
@@ -32,17 +32,17 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
         button.isContentAreaFilled = false
         button.isFocusPainted = false
         button.isFocusable = false
-        button.font = fontType.getFont(themeManager, scaleManager)
+        button.font = fontType.getFont(tm, sm)
         button.border = when (toggleSwitchType) {
-            ToggleSwitchType.SMALL -> scaleManager.curr.controlScale.getSmallInsetBorder()
-            ToggleSwitchType.NORMAL -> scaleManager.curr.controlScale.getNormalInsetBorder()
+            ToggleSwitchType.SMALL -> sm.curr.controlScale.getSmallInsetBorder()
+            ToggleSwitchType.NORMAL -> sm.curr.controlScale.getNormalInsetBorder()
         }
         button.size = when (toggleSwitchType) {
-            ToggleSwitchType.SMALL -> scaleManager.curr.controlScale.getSmallSize()
-            ToggleSwitchType.NORMAL -> scaleManager.curr.controlScale.getNormalSize()
+            ToggleSwitchType.SMALL -> sm.curr.controlScale.getSmallSize()
+            ToggleSwitchType.NORMAL -> sm.curr.controlScale.getNormalSize()
         }
-        button.background = if (button.isActive) themeManager.curr.iconLaF.iconBgActive else themeManager.curr.iconLaF.iconBg
-        button.foreground = if (button.isDeactivated) themeManager.curr.textLaF.baseSecondary else themeManager.curr.textLaF.base
+        button.background = if (button.isActive) tm.curr.iconLaF.iconBgActive else tm.curr.iconLaF.iconBg
+        button.foreground = if (button.isDeactivated) tm.curr.textLaF.baseSecondary else tm.curr.textLaF.base
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
@@ -54,7 +54,7 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
 
         // Paint button background
         g2.color = button.background
-        g2.fillRoundRect(0, 0, width , height, scaleManager.curr.controlScale.cornerRadius, scaleManager.curr.controlScale.cornerRadius)
+        g2.fillRoundRect(0, 0, width , height, sm.curr.controlScale.cornerRadius, sm.curr.controlScale.cornerRadius)
 
         // Paint button
         super.paint(g2, c)
@@ -72,8 +72,8 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
     override fun getMinimumSize(c: JComponent?): Dimension {
         val button = c as? CToggleButton ?: return super.getPreferredSize(c)
         val preferredSize = when(toggleSwitchType){
-            ToggleSwitchType.SMALL -> scaleManager.curr.controlScale.getSmallSize()
-            ToggleSwitchType.NORMAL -> scaleManager.curr.controlScale.getNormalSize()
+            ToggleSwitchType.SMALL -> sm.curr.controlScale.getSmallSize()
+            ToggleSwitchType.NORMAL -> sm.curr.controlScale.getNormalSize()
         }
         return Dimension(preferredSize.width + c.insets.left + c.insets.right, preferredSize.height + c.insets.top + c.insets.bottom)
     }
@@ -88,8 +88,8 @@ class CToggleButtonUI(private val themeManager: ThemeManager, private val scaleM
     }
     
     private fun getInset() =  when (toggleSwitchType) {
-        ToggleSwitchType.SMALL -> scaleManager.curr.controlScale.smallInset
-        ToggleSwitchType.NORMAL -> scaleManager.curr.controlScale.normalInset
+        ToggleSwitchType.SMALL -> sm.curr.controlScale.smallInset
+        ToggleSwitchType.NORMAL -> sm.curr.controlScale.normalInset
     }
 
 }

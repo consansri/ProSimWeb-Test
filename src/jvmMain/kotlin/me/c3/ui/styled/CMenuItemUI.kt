@@ -10,21 +10,21 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicMenuItemUI
 
-class CMenuItemUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val fontType: FontType) : BasicMenuItemUI() {
+class CMenuItemUI(private val tm: ThemeManager, private val sm: ScaleManager, private val fontType: FontType) : BasicMenuItemUI() {
 
-    private var cornerRadius = scaleManager.curr.controlScale.cornerRadius
-    private var hoverBackground = themeManager.curr.iconLaF.iconBgHover
+    private var cornerRadius = sm.curr.controlScale.cornerRadius
+    private var hoverBackground = tm.curr.iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val optionPane = c as? CMenuItem ?: return
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(optionPane)
         }
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(optionPane)
         }
 
@@ -32,12 +32,12 @@ class CMenuItemUI(private val themeManager: ThemeManager, private val scaleManag
     }
 
     private fun setDefaults(item: CMenuItem) {
-        cornerRadius = scaleManager.curr.controlScale.cornerRadius
+        cornerRadius = sm.curr.controlScale.cornerRadius
         item.isOpaque = false
         item.background = Color(0, 0, 0, 0)
-        item.font = fontType.getFont(themeManager, scaleManager)
-        item.foreground = themeManager.curr.textLaF.base
-        item.border = scaleManager.curr.controlScale.getNormalInsetBorder()
+        item.font = fontType.getFont(tm, sm)
+        item.foreground = tm.curr.textLaF.base
+        item.border = sm.curr.controlScale.getNormalInsetBorder()
         selectionBackground = Color(0,0,0,0)
         selectionForeground = item.foreground
     }

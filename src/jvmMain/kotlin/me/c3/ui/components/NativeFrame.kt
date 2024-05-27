@@ -43,12 +43,12 @@ class NativeFrame(override val mManager: MainManager) : JFrame(), ProSimFrame {
     override val infoView: InfoView = InfoView(mManager)
     override val rightBar = AppControls(this)
     override val infoTabPane: CAdvancedTabPane = CAdvancedTabPane(getThemeM(), getScaleM(), primary = false, icons = mManager.icons, tabsAreCloseable = false)
-    override val editorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
-    override val processorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
-    override val mainContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
-    override val verticalMainCSplitPane = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, mainContainer, infoTabPane)
-    override fun getThemeM(): ThemeManager = mManager.themeManager
-    override fun getScaleM(): ScaleManager = mManager.scaleManager
+    override val editorContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
+    override val processorContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
+    override val mainContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
+    override val verticalMainCSplitPane = CSplitPane(mManager.tm, mManager.sm, JSplitPane.VERTICAL_SPLIT, true, mainContainer, infoTabPane)
+    override fun getThemeM(): ThemeManager = mManager.tm
+    override fun getScaleM(): ScaleManager = mManager.sm
     override fun getArchM(): ArchManager = mManager.archManager
     override fun getIcons(): ProSimIcons = mManager.icons
 

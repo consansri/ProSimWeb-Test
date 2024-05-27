@@ -7,7 +7,7 @@ import java.awt.*
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicLabelUI
 
-class CVerticalLabelUI(private val themeManager: ThemeManager, private val scaleManager: ScaleManager, private val primary: Boolean, private val fontType: FontType, private val clockwise: Boolean = true) : BasicLabelUI() {
+class CVerticalLabelUI(private val tm: ThemeManager, private val sm: ScaleManager, private val primary: Boolean, private val fontType: FontType, private val clockwise: Boolean = true) : BasicLabelUI() {
 
     private var paintIconR = Rectangle()
     private var paintTextR = Rectangle()
@@ -19,11 +19,11 @@ class CVerticalLabelUI(private val themeManager: ThemeManager, private val scale
 
         val cLabel = c as? CVerticalLabel ?: return
 
-        themeManager.addThemeChangeListener {
+        tm.addThemeChangeListener {
             setDefaults(cLabel)
         }
 
-        scaleManager.addScaleChangeEvent {
+        sm.addScaleChangeEvent {
             setDefaults(cLabel)
         }
 
@@ -31,9 +31,9 @@ class CVerticalLabelUI(private val themeManager: ThemeManager, private val scale
     }
 
     private fun setDefaults(cLabel: CVerticalLabel) {
-        cLabel.font = fontType.getFont(themeManager, scaleManager)
-        cLabel.border = scaleManager.curr.borderScale.getInsetBorder()
-        cLabel.foreground = if(primary) themeManager.curr.textLaF.base else themeManager.curr.textLaF.baseSecondary
+        cLabel.font = fontType.getFont(tm, sm)
+        cLabel.border = sm.curr.borderScale.getInsetBorder()
+        cLabel.foreground = if(primary) tm.curr.textLaF.base else tm.curr.textLaF.baseSecondary
         cLabel.repaint()
     }
 

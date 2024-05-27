@@ -9,11 +9,11 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JSplitPane
 
-open class CSplitPane(themeManager: ThemeManager, scaleManager: ScaleManager, newOrientation: Int, newContinuousLayout: Boolean, newLeftComponent: Component, newRightComponent: Component) :
+open class CSplitPane(tm: ThemeManager, sm: ScaleManager, newOrientation: Int, newContinuousLayout: Boolean, newLeftComponent: Component, newRightComponent: Component) :
     JSplitPane(newOrientation, newContinuousLayout, newLeftComponent, newRightComponent) {
 
     init {
-        this.setUI(CSplitPaneUI(themeManager, scaleManager))
+        this.setUI(CSplitPaneUI(tm, sm))
         this.addComponentListener(object : ComponentAdapter(){
             override fun componentResized(e: ComponentEvent?) {
                 val rComp = rightComponent

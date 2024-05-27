@@ -31,7 +31,7 @@ import javax.swing.SwingUtilities
  * Represents the main UI frame of the application, providing a Swing-based interface.
  * @param mManager The main manager responsible for coordinating UI components and actions.
  */
-class BaseFrame(override val mManager: MainManager) : CFrame(mManager.themeManager, mManager.scaleManager, mManager.icons), ProSimFrame {
+class BaseFrame(override val mManager: MainManager) : CFrame(mManager.tm, mManager.sm, mManager.icons), ProSimFrame {
 
     override val editor = mManager.editor
     override val fileTree = FileTree(mManager)
@@ -46,12 +46,12 @@ class BaseFrame(override val mManager: MainManager) : CFrame(mManager.themeManag
 
     override val infoTabPane: CAdvancedTabPane = CAdvancedTabPane(getThemeM(), getScaleM(), primary = false, icons = mManager.icons, tabsAreCloseable = false)
 
-    override val editorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
-    override val processorContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
-    override val mainContainer = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
-    override val verticalMainCSplitPane = CSplitPane(mManager.themeManager, mManager.scaleManager, JSplitPane.VERTICAL_SPLIT, true, mainContainer, infoTabPane)
-    override fun getThemeM(): ThemeManager = mManager.themeManager
-    override fun getScaleM(): ScaleManager = mManager.scaleManager
+    override val editorContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
+    override val processorContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
+    override val mainContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
+    override val verticalMainCSplitPane = CSplitPane(mManager.tm, mManager.sm, JSplitPane.VERTICAL_SPLIT, true, mainContainer, infoTabPane)
+    override fun getThemeM(): ThemeManager = mManager.tm
+    override fun getScaleM(): ScaleManager = mManager.sm
     override fun getArchM(): ArchManager = mManager.archManager
     override fun getIcons(): ProSimIcons = mManager.icons
 

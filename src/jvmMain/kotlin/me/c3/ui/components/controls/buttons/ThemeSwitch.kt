@@ -7,29 +7,29 @@ import me.c3.ui.theme.ThemeManager
 /**
  * This class represents a button used for switching between themes within the application.
  */
-class ThemeSwitch(themeManager: ThemeManager, scaleManager: ScaleManager) : CIconButton(themeManager, scaleManager, mode = Mode.PRIMARY_NORMAL) {
+class ThemeSwitch(tm: ThemeManager, sm: ScaleManager) : CIconButton(tm, sm, mode = Mode.PRIMARY_NORMAL) {
 
     private var currentIndex = 0
 
     init {
-        setTheme(themeManager)
+        setTheme(tm)
 
         addActionListener {
             if (!isDeactivated) {
-                if (currentIndex < themeManager.themes.size - 1) {
+                if (currentIndex < tm.themes.size - 1) {
                     currentIndex++
                 } else {
                     currentIndex = 0
                 }
 
-                setTheme(themeManager)
+                setTheme(tm)
             }
         }
     }
 
-    private fun setTheme(themeManager: ThemeManager) {
-        themeManager.themes.getOrNull(currentIndex)?.let {
-            themeManager.curr = it
+    private fun setTheme(tm: ThemeManager) {
+        tm.themes.getOrNull(currentIndex)?.let {
+            tm.curr = it
             svgIcon = it.icon
         }
     }

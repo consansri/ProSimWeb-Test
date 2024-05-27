@@ -6,10 +6,10 @@ import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.text.*
 
-class CTextPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JTextPane() {
+class CTextPane(tm: ThemeManager, sm: ScaleManager) : JTextPane() {
 
     init {
-        setUI(CTextPaneUI(themeManager, scaleManager))
+        setUI(CTextPaneUI(tm, sm))
     }
 
     override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
@@ -23,8 +23,8 @@ class CTextPane(themeManager: ThemeManager, scaleManager: ScaleManager) : JTextP
         this.document.insertString(0, text, attrs)
     }
 
-    fun createScrollPane(themeManager: ThemeManager, scaleManager: ScaleManager): CScrollPane {
-        return CScrollPane(themeManager, scaleManager, true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
+    fun createScrollPane(tm: ThemeManager, sm: ScaleManager): CScrollPane {
+        return CScrollPane(tm, sm, true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
     }
 
     override fun getScrollableTracksViewportWidth(): Boolean {

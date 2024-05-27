@@ -7,9 +7,9 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
-class CEditorLineNumbers(themeManager: ThemeManager, scaleManager: ScaleManager, private val editor: CEditorArea) : JComponent() {
+class CEditorLineNumbers(tm: ThemeManager, sm: ScaleManager, private val editor: CEditorArea) : JComponent() {
 
-    var fm: FontMetrics = getFontMetrics(themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize))
+    var fm: FontMetrics = getFontMetrics(tm.curr.codeLaF.getFont().deriveFont(sm.curr.fontScale.codeSize))
     var selBg = Color(0, 0, 0, 0)
     var lineCount: Int = 1
         set(value) {

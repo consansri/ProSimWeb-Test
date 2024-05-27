@@ -44,17 +44,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         buildFileTree(rootDir, rootNode)
 
         // Initialize the file tree UI component.
-        tree = CTree(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, treeModel, FontType.BASIC)
+        tree = CTree(mainManager.tm, mainManager.sm, mainManager.icons, treeModel, FontType.BASIC)
 
         // Add mouse listener for handling user interactions with the file tree.
         tree.addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    val selRow = tree.getRowForLocation(e.x, e.y)
-                    if (selRow != -1) {
-                        tree.selectionPath = tree.getPathForLocation(e.x, e.y)
-                    }
-                }
+
             }
 
             override fun mouseClicked(e: MouseEvent) {
@@ -76,7 +71,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         })
 
         // Set the initial look and feel of the file tree.
-        setTreeLook(mainManager.themeManager)
+        setTreeLook(mainManager.tm)
     }
 
     /**
@@ -117,30 +112,30 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
      * @param y The y-coordinate of the context menu location.
      */
     private fun showContextMenu(mainManager: MainManager, treeFile: TreeFile, x: Int, y: Int) {
-        val popupMenu = CPopupMenu(mainManager.themeManager, mainManager.scaleManager)
+        val popupMenu = CPopupMenu(mainManager.tm, mainManager.sm)
 
         /**
          * Initialize Menu Items
          */
 
         // Only Directory
-        val createFileItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "New File") else null
-        val createDirItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "New Directory") else null
-        val reloadFromDisk = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Reload") else null
+        val createFileItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.tm, mainManager.sm, "New File") else null
+        val createDirItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.tm, mainManager.sm, "New Directory") else null
+        val reloadFromDisk = if (treeFile.file.isDirectory) CMenuItem(mainManager.tm, mainManager.sm, "Reload") else null
 
         // Only File
-        val openItem = if (treeFile.file.isFile) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Open") else null
+        val openItem = if (treeFile.file.isFile) CMenuItem(mainManager.tm, mainManager.sm, "Open") else null
 
         // Only Assembly File
-        val buildFile = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Build") else null
-        val exportMIF = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate MIF") else null
-        val exportHexDump = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate HexDump") else null
-        val exportVHDL = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate VHDL") else null
-        val exportTS = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate Transcript") else null
+        val buildFile = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Build") else null
+        val exportMIF = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate MIF") else null
+        val exportHexDump = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate HexDump") else null
+        val exportVHDL = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate VHDL") else null
+        val exportTS = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate Transcript") else null
 
         // General
-        val renameItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Rename")
-        val deleteItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Delete")
+        val renameItem = CMenuItem(mainManager.tm, mainManager.sm, "Rename")
+        val deleteItem = CMenuItem(mainManager.tm, mainManager.sm, "Delete")
 
         /**
          * Implement Menu Actions
@@ -150,7 +145,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
 
         createDirItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newDirName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter directory name:").await()
+                val newDirName = COptionPane.showInputDialog(mainManager.tm, mainManager.sm, tree, "Enter directory name:").await()
                 if (newDirName.isNotBlank()) {
                     val newDir = File(treeFile.file, newDirName)
                     if (newDir.mkdir()) {
@@ -165,7 +160,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
 
         createFileItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter file name:").await()
+                val newFileName = COptionPane.showInputDialog(mainManager.tm, mainManager.sm, tree, "Enter file name:").await()
                 if (newFileName.isNotBlank()) {
                     val newFile = File(treeFile.file, newFileName)
                     if (newFile.createNewFile()) {
@@ -188,9 +183,11 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         // Files
 
         openItem?.addActionListener {
-            val file = ((tree.lastSelectedPathComponent as? DefaultMutableTreeNode)?.userObject as? TreeFile)?.file ?: return@addActionListener
-            if (file.isFile) {
-                mainManager.editor.openFile(file)
+            val files = tree.selectionPaths?.mapNotNull { (it.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? TreeFile }
+            files?.forEach {
+                if(it.file.isFile){
+                    mainManager.editor.openFile(it.file)
+                }
             }
         }
 
@@ -302,7 +299,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
 
         renameItem.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter new file name:").await()
+                val newFileName = COptionPane.showInputDialog(mainManager.tm, mainManager.sm, tree, "Enter new file name:").await()
                 if (newFileName.isNotBlank()) {
                     val newFile = File(treeFile.file.parentFile, newFileName)
                     if (treeFile.file.renameTo(newFile)) {
@@ -370,13 +367,13 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
 
     /**
      * Sets the visual appearance of the file tree based on the current theme.
-     * @param themeManager The theme manager instance.
+     * @param tm The theme manager instance.
      */
-    private fun setTreeLook(themeManager: ThemeManager) {
-        themeManager.addThemeChangeListener {
+    private fun setTreeLook(tm: ThemeManager) {
+        tm.addThemeChangeListener {
             tree.background = it.globalLaF.bgSecondary
         }
-        tree.background = themeManager.curr.globalLaF.bgSecondary
+        tree.background = tm.curr.globalLaF.bgSecondary
         tree.isFocusable = false
     }
 

@@ -14,13 +14,13 @@ import java.awt.GridBagLayout
  * Represents a panel for displaying information at the bottom.
  * @property mainManager The main manager instance.
  */
-class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, borderMode = BorderMode.NORTH) {
+class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, borderMode = BorderMode.NORTH) {
 
     // Labels for displaying various types of information
-    val tagInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "Back to work? :D", FontType.BASIC)
-    val editorInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
-    val compilerInfo = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
-    val generalPurpose = CLabel(mainManager.themeManager, mainManager.scaleManager, "", FontType.BASIC)
+    val tagInfo = CLabel(mainManager.tm, mainManager.sm, "Back to work? :D", FontType.BASIC)
+    val editorInfo = CLabel(mainManager.tm, mainManager.sm, "", FontType.BASIC)
+    val compilerInfo = CLabel(mainManager.tm, mainManager.sm, "", FontType.BASIC)
+    val generalPurpose = CLabel(mainManager.tm, mainManager.sm, "", FontType.BASIC)
 
     // Coroutine variables for observing compiler processes
     private var compilerObservingProcess: Job? = null

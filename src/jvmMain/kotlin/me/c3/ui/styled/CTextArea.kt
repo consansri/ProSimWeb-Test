@@ -6,10 +6,10 @@ import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JTextArea
 
-class CTextArea(themeManager: ThemeManager, scaleManager: ScaleManager, fontType: FontType, val primary: Boolean = true, val borderMode: BorderMode = BorderMode.THICKNESS): JTextArea() {
+class CTextArea(tm: ThemeManager, sm: ScaleManager, fontType: FontType, val primary: Boolean = true, val borderMode: BorderMode = BorderMode.THICKNESS): JTextArea() {
 
     init {
-        this.setUI(CTextAreaUI(themeManager, scaleManager, fontType))
+        this.setUI(CTextAreaUI(tm, sm, fontType))
     }
 
 }

@@ -23,7 +23,7 @@ import java.util.ConcurrentModificationException
 import java.util.Stack
 import javax.swing.JComponent
 
-class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val icons: ProSimIcons, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
+class CEditorArea(tm: ThemeManager, sm: ScaleManager, val icons: ProSimIcons, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
 
     // Current State
     private val styledText: MutableList<StyledChar> = mutableListOf()
@@ -57,9 +57,9 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
     var infoLogger: InfoLogger? = null
     var highlighter: Highlighter? = null
     var shortCuts: ShortCuts? = null
-    val scrollPane: CScrollPane = CScrollPane(themeManager, scaleManager, true, this)
-    val lineNumbers: CEditorLineNumbers = CEditorLineNumbers(themeManager, scaleManager, this)
-    val findAndReplace: CEditorAnalyzer = CEditorAnalyzer(themeManager, scaleManager, this)
+    val scrollPane: CScrollPane = CScrollPane(tm, sm, true, this)
+    val lineNumbers: CEditorLineNumbers = CEditorLineNumbers(tm, sm, this)
+    val findAndReplace: CEditorAnalyzer = CEditorAnalyzer(tm, sm, this)
 
     // State History
     private val textStateHistory = Stack<List<StyledChar>>()
@@ -106,7 +106,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
     private var selEndColumn = -1
 
     // Settings
-    var tabSize = scaleManager.curr.fontScale.tabSize
+    var tabSize = sm.curr.fontScale.tabSize
     var scrollMarginLines = 2
     var scrollMarginChars = 10
     var isEditable = true
@@ -116,7 +116,7 @@ class CEditorArea(themeManager: ThemeManager, scaleManager: ScaleManager, val ic
      */
 
     init {
-        setUI(CEditorAreaUI(themeManager, scaleManager))
+        setUI(CEditorAreaUI(tm, sm))
         textStateHistory.push(styledText.toList())
         addKeyListener(EditorKeyListener())
         addMouseListener(EditorMouseListener())

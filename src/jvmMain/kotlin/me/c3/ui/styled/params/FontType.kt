@@ -10,12 +10,12 @@ enum class FontType {
     DATA,
     TITLE;
 
-    fun getFont(themeManager: ThemeManager, scaleManager: ScaleManager): Font {
+    fun getFont(tm: ThemeManager, sm: ScaleManager): Font {
         return when (this) {
-            BASIC -> themeManager.curr.textLaF.getBaseFont().deriveFont(scaleManager.curr.fontScale.textSize)
-            CODE -> themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.codeSize)
-            DATA -> themeManager.curr.codeLaF.getFont().deriveFont(scaleManager.curr.fontScale.dataSize)
-            TITLE -> themeManager.curr.textLaF.getTitleFont().deriveFont(scaleManager.curr.fontScale.titleSize)
+            BASIC -> tm.curr.textLaF.getBaseFont().deriveFont(sm.curr.fontScale.textSize)
+            CODE -> tm.curr.codeLaF.getFont().deriveFont(sm.curr.fontScale.codeSize)
+            DATA -> tm.curr.codeLaF.getFont().deriveFont(sm.curr.fontScale.dataSize)
+            TITLE -> tm.curr.textLaF.getTitleFont().deriveFont(sm.curr.fontScale.titleSize)
         }
     }
 }

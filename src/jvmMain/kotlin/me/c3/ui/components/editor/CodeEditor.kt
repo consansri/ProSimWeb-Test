@@ -12,7 +12,7 @@ import javax.swing.*
  * Represents a code editor with tabbed interface for managing multiple files.
  * @property mainManager The main manager instance.
  */
-class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, true, true, emptyMessage = "Open File through the tree!") {
+class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainManager.tm, mainManager.sm, mainManager.icons, true, true, emptyMessage = "Open File through the tree!") {
 
     // List of editor panels
     private val panels = mutableListOf<ProSimEditor>()
@@ -45,10 +45,10 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
         val editorFile = EditorFile(file)
         val editPanel = ProSimEditor(mainManager, editorFile)
         panels.add(editPanel)
-        addTab(CLabel(mainManager.themeManager, mainManager.scaleManager, file.getName(), FontType.BASIC), editPanel) { e, tab ->
+        addTab(CLabel(mainManager.tm, mainManager.sm, file.getName(), FontType.BASIC), editPanel) { e, tab ->
             when (e) {
-                ClosableTab.Event.LOSTFOCUS -> {}
-                ClosableTab.Event.CLOSE -> {
+                Event.LOSTFOCUS -> {}
+                Event.CLOSE -> {
                     panels.remove(editPanel)
                 }
             }

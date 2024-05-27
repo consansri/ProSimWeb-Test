@@ -8,7 +8,7 @@ import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import java.awt.BorderLayout
 
-open class CConsole(themeManager: ThemeManager, scaleManager: ScaleManager, icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(themeManager, scaleManager, primary = true) {
+open class CConsole(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(tm, sm, primary = true) {
 
     var title: String = "Console"
         set(value) {
@@ -22,9 +22,9 @@ open class CConsole(themeManager: ThemeManager, scaleManager: ScaleManager, icon
             textArea.isEditable = value
         }
 
-    private val topBar = CPanel(themeManager, scaleManager, primary = false)
-    private val titleLabel = CLabel(themeManager, scaleManager, title, FontType.TITLE)
-    private val textArea = CEditorArea(themeManager, scaleManager, icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
+    private val topBar = CPanel(tm, sm, primary = false)
+    private val titleLabel = CLabel(tm, sm, title, FontType.TITLE)
+    private val textArea = CEditorArea(tm, sm, icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
 
     init {
         textArea.scrollPane.setViewportView(textArea)

@@ -23,12 +23,12 @@ import javax.swing.SwingUtilities
  * Represents a panel containing a transcript view for displaying assembly code and its execution status.
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  */
-class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false) {
+class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, primary = false) {
 
     // SubComponents
     val compIDs = listOf("Address", "Labels", "Bytes", "Disassembled")
     private val model = TSTableModel()
-    val modelView = CTable(mainManager.themeManager, mainManager.scaleManager, model, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
+    val modelView = CTable(mainManager.tm, mainManager.sm, model, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
     private val sections: MutableMap<GASParser.Section, Array<GASParser.Section.BundledContent>> = mutableMapOf()
@@ -41,10 +41,10 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         }
     var content: Array<GASParser.Section.BundledContent> = arrayOf()
 
-    private val label = CVerticalLabel(mainManager.themeManager, mainManager.scaleManager, "[no section selected]", FontType.CODE)
+    private val label = CVerticalLabel(mainManager.tm, mainManager.sm, "[no section selected]", FontType.CODE)
 
     // MainComponents
-    val labelPane = CPanel(mainManager.themeManager, mainManager.scaleManager, primary = false, borderMode = BorderMode.EAST).apply {
+    val labelPane = CPanel(mainManager.tm, mainManager.sm, primary = false, borderMode = BorderMode.EAST).apply {
         this.layout = GridBagLayout()
         val gbc = GridBagConstraints()
         gbc.weighty = 0.0
@@ -52,7 +52,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         this.add(label, gbc)
     }
 
-    val contentPane = CScrollPane(mainManager.themeManager, mainManager.scaleManager, primary = false).apply {
+    val contentPane = CScrollPane(mainManager.tm, mainManager.sm, primary = false).apply {
         setViewportView(modelView)
         minimumSize = Dimension(0, 0)
     }

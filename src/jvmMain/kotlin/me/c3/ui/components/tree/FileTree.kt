@@ -20,10 +20,10 @@ import javax.swing.BorderFactory
  * Represents a panel containing a file tree component for displaying and navigating project files.
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  */
-class FileTree(mainManager: MainManager) : CPanel(mainManager.themeManager, mainManager.scaleManager, true) {
-    private val projectButton = CTextButton(mainManager.themeManager, mainManager.scaleManager, "Project", FontType.TITLE)
-    private val title = CPanel(mainManager.themeManager, mainManager.scaleManager, false)
-    private val content = CScrollPane(mainManager.themeManager, mainManager.scaleManager, false)
+class FileTree(mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, true) {
+    private val projectButton = CTextButton(mainManager.tm, mainManager.sm, "Project", FontType.TITLE)
+    private val title = CPanel(mainManager.tm, mainManager.sm, false)
+    private val content = CScrollPane(mainManager.tm, mainManager.sm, false)
 
     init {
         attachMouseListener(mainManager)
@@ -44,7 +44,7 @@ class FileTree(mainManager: MainManager) : CPanel(mainManager.themeManager, main
         projectButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 CoroutineScope(Dispatchers.Default).launch {
-                    val file = COptionPane.showDirectoryChooser(mainManager.themeManager, mainManager.scaleManager, mainManager.icons, this@FileTree, "Workspace").await()
+                    val file = COptionPane.showDirectoryChooser(mainManager.tm, mainManager.sm, mainManager.icons, this@FileTree, "Workspace").await()
                     file?.let {
                         mainManager.setCurrWS(file.absolutePath)
                     }

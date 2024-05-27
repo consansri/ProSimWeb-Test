@@ -5,12 +5,12 @@ import me.c3.ui.styled.params.FontType
 import me.c3.ui.theme.ThemeManager
 import javax.swing.JMenuItem
 
-class CMenuItem(themeManager: ThemeManager, scaleManager: ScaleManager, text: String, fontType: FontType = FontType.BASIC) : JMenuItem(text) {
+class CMenuItem(tm: ThemeManager, sm: ScaleManager, text: String, fontType: FontType = FontType.BASIC) : JMenuItem(text) {
 
-    constructor(themeManager: ThemeManager, scaleManager: ScaleManager, fontType: FontType) : this(themeManager, scaleManager, "", fontType)
+    constructor(tm: ThemeManager, sm: ScaleManager, fontType: FontType) : this(tm, sm, "", fontType)
 
     init {
-        this.setUI(CMenuItemUI(themeManager, scaleManager, fontType))
+        this.setUI(CMenuItemUI(tm, sm, fontType))
     }
 
 }
