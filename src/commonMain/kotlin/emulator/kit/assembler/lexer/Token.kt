@@ -1,6 +1,7 @@
 package emulator.kit.assembler.lexer
 
 import Settings
+import emulator.kit.assembler.AsmFile
 import emulator.kit.common.RegContainer
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
@@ -297,9 +298,9 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
     /**
      * Represents the location of the [Token].
      */
-    data class LineLoc(val fileName: String, var lineID: Int, val startIndex: Int, val endIndex: Int) {
+    data class LineLoc(val file: AsmFile, var lineID: Int, val startIndex: Int, val endIndex: Int) {
         override fun toString(): String {
-            return "$fileName[line ${lineID + 1}]"
+            return "${file.mainRelativeName}[line ${lineID + 1}]"
         }
     }
 

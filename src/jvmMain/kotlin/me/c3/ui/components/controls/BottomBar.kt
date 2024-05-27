@@ -117,7 +117,7 @@ class BottomBar(private val mainManager: MainManager) : CPanel(mainManager.tm, m
 
         compilerObservingProcess = compilerObserverScope.launch {
             while (this.isActive) {
-                val processes = ArrayList(mainManager.currArch().getCompiler().runningProcesses())
+                val processes = ArrayList(mainManager.currArch().getAssembler().runningProcesses())
                 val stateString = processes.joinToString(" -> ") {
                     it.toString()
                 }

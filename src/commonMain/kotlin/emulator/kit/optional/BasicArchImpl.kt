@@ -120,12 +120,13 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
         getConsole().exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
-    override fun exeUntilLine(lineID: Int, fileName: String) {
+    override fun exeUntilLine(lineID: Int, wsRelativeFileName: String) {
         var instrCount = 0L
         val measuredTime = measureTime {
-            super.exeUntilLine(lineID, fileName)
+            super.exeUntilLine(lineID, wsRelativeFileName)
 
-            val lineAddressMap = getCompiler().getLastLineMap().map { it.value to it.key }.filter { it.first.fileName == fileName }
+            val lineAddressMap = getAssembler().lastInvertedLineMap(wsRelativeFileName).toList()
+
             var closestID: Int? = null
             for (entry in lineAddressMap) {
                 if (entry.first.lineID >= lineID && entry.first.lineID != closestID) {

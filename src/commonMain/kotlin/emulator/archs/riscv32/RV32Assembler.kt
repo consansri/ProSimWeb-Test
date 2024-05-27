@@ -73,6 +73,7 @@ class RV32Assembler : DefinedAssembly {
     class RV32Instr(val rawInstr: GASNode.RawInstr, val type: RV32Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Variable.Value.Dec("0", Variable.Size.Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
         override val bytesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
+        override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {
             label?.assignLabels(labels)
@@ -89,7 +90,7 @@ class RV32Assembler : DefinedAssembly {
             RD_I20 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Variable.Size.Bit20())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 20 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 20 Bits!")
 
                 return immediate.getResized(Variable.Size.Bit20())
             }
@@ -97,7 +98,7 @@ class RV32Assembler : DefinedAssembly {
             RD_OFF12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Variable.Size.Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Variable.Size.Bit12())
             }
@@ -105,7 +106,7 @@ class RV32Assembler : DefinedAssembly {
             RS2_OFF12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Variable.Size.Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Variable.Size.Bit12())
             }
@@ -113,19 +114,19 @@ class RV32Assembler : DefinedAssembly {
             RD_RS1_SHAMT5 -> {
                 val immediate = this.evaluate(false).toBin()
                 val check = immediate.checkSizeUnsigned(Variable.Size.Bit5())
-                if (check != null) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 5 Bits!")
+                if (check != null) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
 
                 return immediate.getUResized(Variable.Size.Bit5()).toDec()
             }
 
             RD_RS1_RS2 -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RD_RS1_I12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Variable.Size.Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Variable.Size.Bit12())
             }
@@ -133,19 +134,19 @@ class RV32Assembler : DefinedAssembly {
             RS1_RS2_I12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Variable.Size.Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Variable.Size.Bit12())
             }
 
             CSR_RD_OFF12_RS1 -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             CSR_RD_OFF12_UIMM5 -> {
                 val immediate = this.evaluate(false).toBin()
                 val check = immediate.checkSizeSigned(Variable.Size.Bit5())
-                if (check != null) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 5 Bits!")
+                if (check != null) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
 
                 return immediate.getUResized(Variable.Size.Bit5()).toDec()
             }
@@ -154,23 +155,23 @@ class RV32Assembler : DefinedAssembly {
                 return this.evaluate(false)
             }
 
-            PS_RD_RS1 -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            PS_RS1 -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            PS_CSR_RS1 -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            PS_RD_CSR -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            NONE -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            PS_NONE -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            RS1_RS2_LBL -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            PS_RS1_JLBL -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            PS_RD_ALBL -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
-            PS_JLBL -> throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+            PS_RD_RS1 -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            PS_RS1 -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            PS_CSR_RS1 -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            PS_RD_CSR -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            NONE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            PS_NONE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            RS1_RS2_LBL -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            PS_RS1_JLBL -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            PS_RD_ALBL -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            PS_JLBL -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
         }
     }
 
     private fun getNonPseudoInstructions(rawInstr: GASNode.RawInstr, type: RV32Syntax.InstrType, regs: Array<RegContainer.Register>, immediate: GASNode.NumericExpr? = null, label: GASNode.NumericExpr? = null): List<RV32Instr> {
         return when (type) {
             RV32Syntax.InstrType.Li -> {
-                val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.getAllTokens().first(), "Numeric Expression is Missing!")
+                val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.tokens().first(), "Numeric Expression is Missing!")
 
                 var result = imm.check(Variable.Size.Bit12())
                 if (result.valid) {
@@ -197,7 +198,7 @@ class RV32Assembler : DefinedAssembly {
                     )
                 }
 
-                throw Parser.ParserError(immediate.getAllTokens().first(), "Expression (${immediate.print("")}) exceeds 32 Bits!")
+                throw Parser.ParserError(immediate.tokens().first(), "Expression (${immediate.print("")}) exceeds 32 Bits!")
             }
 
             else -> {

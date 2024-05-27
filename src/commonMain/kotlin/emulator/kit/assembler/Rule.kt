@@ -302,7 +302,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
                     return MatchResult(false, listOf(), listOf(), source)
                 }
                 if (DebugTools.KIT_showRuleChecks) nativeLog("Match: SpecNode ${type.name}")
-                return MatchResult(true, listOf(), listOf(node), source - node.getAllTokens().toSet())
+                return MatchResult(true, listOf(), listOf(node), source - node.tokens().toSet())
             }
 
             override fun print(prefix: String): String = "$prefix${type.name}"

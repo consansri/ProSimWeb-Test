@@ -4,7 +4,6 @@ import Settings
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.nativeLog
-import emulator.kit.toAsmFile
 import kotlinx.coroutines.*
 import emulator.kit.toStyledText
 import me.c3.ui.MainManager
@@ -36,6 +35,8 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         mainManager.archManager.addFeatureChangeListener {
             fireCompilation(false)
         }
+
+        markPC()
     }
 
     /**
@@ -60,7 +61,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      * @return The compilation result.
      */
     private suspend fun compile(build: Boolean): Process.Result {
-        val result = mainManager.currArch().compile(editorFile.toCompilerFile(), mainManager.currWS().getImportableFiles(editorFile.file), build)
+        val result = mainManager.currArch().compile(editorFile.toAsmMainFile(mainManager.currWS()), mainManager.currWS().getImportableFiles(editorFile.file), build)
         SwingUtilities.invokeLater {
             mainManager.eventManager.triggerCompileFinished(result)
         }
@@ -71,13 +72,11 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      * Marks the current program counter position in the editor.
      */
     private fun markPC() {
-        val lineLoc = mainManager.currArch().getCompiler().getLastLineMap()[mainManager.currArch().getRegContainer().pc.get().toHex().toRawString()]
-        if (lineLoc == null) {
-            mark()
-            return
+        val lineLoc = mainManager.currArch().getAssembler().getLastLineMap()[mainManager.currArch().getRegContainer().pc.get().toHex().toRawString()]?.firstOrNull {
+            editorFile.matches(mainManager.currWS(), it)
         }
 
-        if (lineLoc.fileName != editorFile.getName()) {
+        if (lineLoc == null) {
             mark()
             return
         }
@@ -91,7 +90,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      * @param lineNumber The line number that was clicked.
      */
     override fun onLineClicked(lineNumber: Int) {
-        mainManager.currArch().exeUntilLine(lineNumber, editorFile.getName())
+        mainManager.currArch().exeUntilLine(lineNumber, editorFile.getWSRelativeName(mainManager.currWS()))
         mainManager.eventManager.triggerExeEvent()
     }
 

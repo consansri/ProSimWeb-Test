@@ -90,6 +90,8 @@ class T6502Assembler() : DefinedAssembly {
         }
 
         override fun getFirstToken(): Token = rawInstr.instrName
+        override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
+
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             val opCode = type.opCode[amode]

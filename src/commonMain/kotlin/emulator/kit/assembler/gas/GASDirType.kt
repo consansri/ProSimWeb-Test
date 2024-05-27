@@ -1043,9 +1043,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             INCLUDE -> {
                 nativeLog("Found include!")
                 val stringExpr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull() ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected filename is missing!")
-                nativeLog("Include String: ${stringExpr.evaluate(true)} from ${cont.others.joinToString { it.name }}")
+                nativeLog("Include String: ${stringExpr.evaluate(true)} from ${cont.others.joinToString { it.mainRelativeName }}")
                 val fileName = stringExpr.evaluate(true)
-                cont.importFile(stringExpr.getAllTokens().first(), fileName)
+                cont.importFile(stringExpr.tokens().first(), fileName)
             }
 
             ENDM -> {
@@ -1096,7 +1096,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 val byte = if (exprs.size > 1) {
                     val dec32 = exprs[1].evaluate(true).toUDec()
-                    if (!dec32.check(Bit8()).valid) throw Parser.ParserError(exprs[1].getAllTokens().first(), "Numeric Expression exceeds 8 Bits!")
+                    if (!dec32.check(Bit8()).valid) throw Parser.ParserError(exprs[1].tokens().first(), "Numeric Expression exceeds 8 Bits!")
                     dec32.toBin().getUResized(Bit8()).toHex()
                 } else Hex("0", Bit8())
 
@@ -1106,10 +1106,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 val lastOffset = cont.currSection.getLastAddress()
 
-                val padding = (alignment - (lastOffset % alignment)).toDec().toIntOrNull() ?: throw Parser.ParserError(exprs[0].getAllTokens().first(), "Couldn't convert Numeric Expr to Int!")
+                val padding = (alignment - (lastOffset % alignment)).toDec().toIntOrNull() ?: throw Parser.ParserError(exprs[0].tokens().first(), "Couldn't convert Numeric Expr to Int!")
                 if (padding == alignment.toIntOrNull()) return
 
-                val refToken = stmnt.dir.getAllTokens().first()
+                val refToken = stmnt.dir.tokens().first()
                 val word = Hex(byte.getRawHexStr().repeat(4), Bit32())
                 val short = Hex(byte.getRawHexStr().repeat(2), Bit16())
                 var index = 0
@@ -1133,7 +1133,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             ASCII -> {
-                val ref = stmnt.getAllTokens().first()
+                val ref = stmnt.tokens().first()
                 val string = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
                     it.evaluate(false)
                 }.joinToString("") { it }
@@ -1163,7 +1163,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             ASCIZ -> {
-                val ref = stmnt.getAllTokens().first()
+                val ref = stmnt.tokens().first()
                 val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
                     it.evaluate(false)
                 }
@@ -1197,12 +1197,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             BYTE -> {
-                val ref = stmnt.dir.getAllTokens().first()
+                val ref = stmnt.dir.tokens().first()
                 val bytes = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
                     val truncated = value.getUResized(Bit8()).toHex()
                     if (value.checkSizeUnsigned(Bit8()) != null) {
-                        it.getAllTokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
+                        it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated
                 }
@@ -1212,12 +1212,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             SHORT -> {
-                val ref = stmnt.dir.getAllTokens().first()
+                val ref = stmnt.dir.tokens().first()
                 val bytes = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
                     val truncated = value.getUResized(Bit16()).toHex()
                     if (value.checkSizeUnsigned(Bit16()) != null) {
-                        it.getAllTokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
+                        it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated
                 }
@@ -1227,7 +1227,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             STRING -> {
-                val ref = stmnt.getAllTokens().first()
+                val ref = stmnt.tokens().first()
                 val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
                     it.evaluate(false)
                 }
@@ -1261,7 +1261,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             STRING8 -> {
-                val ref = stmnt.getAllTokens().first()
+                val ref = stmnt.tokens().first()
                 val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
                     it.evaluate(false)
                 }
@@ -1295,7 +1295,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             STRING16 -> {
-                val ref = stmnt.getAllTokens().first()
+                val ref = stmnt.tokens().first()
                 val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
                     it.evaluate(false)
                 }
@@ -1320,7 +1320,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             STRING32 -> {
-                val ref = stmnt.getAllTokens().first()
+                val ref = stmnt.tokens().first()
                 val strings = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().map {
                     it.evaluate(false)
                 }
@@ -1341,12 +1341,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             WORD -> {
-                val ref = stmnt.dir.getAllTokens().first()
+                val ref = stmnt.dir.tokens().first()
                 val bytes = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
                     val truncated = value.getUResized(Bit32()).toHex()
                     if (value.checkSizeUnsigned(Bit32()) != null) {
-                        it.getAllTokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
+                        it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated
                 }
@@ -1358,7 +1358,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             ZERO -> {
                 val length = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()?.evaluate(false)?.toIntOrNull() ?: return
 
-                val refToken = stmnt.dir.getAllTokens().first()
+                val refToken = stmnt.dir.tokens().first()
                 var index = 0
                 while (index < length) {
                     if (index + 3 < length) {
@@ -1524,7 +1524,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     null -> stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()?.evaluate(false)?.toIntOrNull() ?: return
                 }
 
-                val refToken = stmnt.dir.getAllTokens().first()
+                val refToken = stmnt.dir.tokens().first()
                 var index = 0
                 while (index < length) {
                     if (index + 3 < length) {
@@ -1549,7 +1549,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val symbol = stmnt.dir.allTokens.firstOrNull { it.type == Token.Type.SYMBOL } ?: return
                 val expr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull() ?: return
                 val desc = expr.evaluate(true)
-                if (desc.toBin().checkSizeUnsigned(Bit16()) != null) throw Parser.ParserError(expr.getAllTokens().first(), "Expression exceeds unsigned 16 Bits!")
+                if (desc.toBin().checkSizeUnsigned(Bit16()) != null) throw Parser.ParserError(expr.tokens().first(), "Expression exceeds unsigned 16 Bits!")
                 cont.setOrReplaceDescriptor(symbol.content, desc.toBin().getUResized(Bit16()).toHex())
             }
 
@@ -1591,7 +1591,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
 
             else -> {
-                stmnt.getAllTokens().firstOrNull()?.let {
+                stmnt.tokens().firstOrNull()?.let {
                     it.addSeverity(Severity.Type.WARNING, "Not yet Implemented! ($this)")
                 }
             }

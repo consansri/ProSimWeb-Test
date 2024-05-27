@@ -61,7 +61,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     val state = ArchState()
     val (fileState, setStateFile) = useState(state.currentState)
-    val (assemblyMap, setAsmMap) = useState<Map<String, Token.LineLoc>>()
+    val (assemblyMap, setAsmMap) = useState<Map<String, List<Token.LineLoc>>>()
 
     val lastSections = useState<Array<GASParser.Section>>(arrayOf())
 
@@ -90,15 +90,11 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun markPCLine() {
         val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
-        val entry = assemblyMap?.get(pcValue.toHex().getRawHexStr())
+        val lineLocs = assemblyMap?.get(pcValue.toHex().getRawHexStr())
+        val firstValid = lineLocs?.firstOrNull { it.file.wsRelativeName == props.fileState.component1().getCurrent().getWSRelativeName() }
 
-        if (entry != null) {
-            setExeFile(props.fileState.component1().getOrNull(entry.fileName))
-            if (entry.fileName == props.fileState.component1().getCurrent().getName()) {
-                setCurrExeLine(entry.lineID + 1)
-            } else {
-                setCurrExeLine(-1)
-            }
+        if (firstValid != null) {
+            setCurrExeLine(firstValid.lineID + 1)
         } else {
             setCurrExeLine(-1)
             setExeFile(null)
@@ -532,7 +528,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB + if (file == props.fileState.component1().getCurrent()) " ${StyleAttr.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
 
                             img {
-                                src = if (props.archState.component1().getCompiler().isInTreeCacheAndHasNoErrors(file.toCompilerFile())) {
+                                src = if (props.archState.component1().getAssembler().isInTreeCacheAndHasNoErrors(file.toCompilerFile())) {
                                     StyleAttr.Icons.file_compiled
                                 } else {
                                     StyleAttr.Icons.file_not_compiled
@@ -722,7 +718,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                         for (lineNumber in 1..lineNumbers) {
                             span {
                                 onClick = { _ ->
-                                    props.archState.component1().exeUntilLine(lineNumber - 1, props.fileState.component1().getCurrent().getName())
+                                    props.archState.component1().exeUntilLine(lineNumber - 1, props.fileState.component1().getCurrent().getWSRelativeName())
                                     props.exeEventState.component2().invoke(!props.exeEventState.component1())
                                 }
                                 css {

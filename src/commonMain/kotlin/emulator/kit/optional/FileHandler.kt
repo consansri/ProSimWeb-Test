@@ -2,7 +2,7 @@ package emulator.kit.optional
 
 import Coroutines
 import debug.DebugTools
-import emulator.kit.assembler.AssemblerFile
+import emulator.kit.assembler.AsmFile
 import emulator.kit.loadFiles
 import emulator.kit.nativeWarn
 import emulator.kit.updateFiles
@@ -92,7 +92,7 @@ class FileHandler() {
         return files.firstOrNull { it.getName() == fileName }
     }
 
-    fun getOthers(): List<AssemblerFile> {
+    fun getOthers(): List<AsmFile> {
         return (files - files[currentID]).map { it.toCompilerFile() }
     }
 
@@ -129,6 +129,10 @@ class FileHandler() {
         }
 
         fun getName(): String {
+            return name
+        }
+
+        fun getWSRelativeName(): String{
             return name
         }
 
@@ -172,7 +176,7 @@ class FileHandler() {
             return redoStates
         }
 
-        fun toCompilerFile(): AssemblerFile = AssemblerFile(name, content)
+        fun toCompilerFile(): AsmFile = AsmFile(name, name, content)
 
         private fun addUndoState(fileHandler: FileHandler, content: String) {
             job?.cancel()

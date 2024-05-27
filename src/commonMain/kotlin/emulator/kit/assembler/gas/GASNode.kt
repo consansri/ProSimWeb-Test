@@ -72,13 +72,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         }
 
                         if (node !is Statement) {
-                            remainingTokens.removeAll(node.getAllTokens().toSet())
+                            remainingTokens.removeAll(node.tokens().toSet())
                             nativeError("Didn't get a statement node for GASNode.buildNode(${GASNodeType.STATEMENT})!")
                             continue
                         }
 
                         statements.add(node)
-                        remainingTokens.removeAll(node.getAllTokens().toSet())
+                        remainingTokens.removeAll(node.tokens().toSet())
                     }
 
                     return Root(*statements.toTypedArray())
@@ -90,13 +90,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                     val label = buildNode(GASNodeType.LABEL, remainingTokens, allDirs, definedAssembly) as? Label
                     if (label != null) {
-                        remainingTokens.removeAll(label.getAllTokens().toSet())
+                        remainingTokens.removeAll(label.tokens().toSet())
                     }
                     spaces.addAll(remainingTokens.dropSpaces())
 
                     val directive = buildNode(GASNodeType.DIRECTIVE, remainingTokens, allDirs, definedAssembly)
                     if (directive != null && directive is Directive) {
-                        remainingTokens.removeAll(directive.getAllTokens().toSet())
+                        remainingTokens.removeAll(directive.tokens().toSet())
                         spaces.addAll(remainingTokens.dropSpaces())
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
                         val node = Statement.Dir(label, directive, lineBreak)
@@ -106,7 +106,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                     val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, allDirs, definedAssembly)
                     if (instruction != null && instruction is RawInstr) {
-                        remainingTokens.removeAll(instruction.getAllTokens().toSet())
+                        remainingTokens.removeAll(instruction.tokens().toSet())
                         spaces.addAll(remainingTokens.dropSpaces())
                         val lineBreak = remainingTokens.checkLineBreak() ?: return null
                         val node = Statement.Instr(label, instruction, lineBreak)
@@ -269,7 +269,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
             addChild(BaseNode(lineBreak))
         }
 
-        fun contentBackToString(): String = getAllTokens().sortedBy { it.id }.joinToString("") { it.content }
+        fun contentBackToString(): String = tokens().sortedBy { it.id }.joinToString("") { it.content }
 
         class Dir(label: Label?, val dir: Directive, lineBreak: Token) : Statement(label, lineBreak, dir)
 
@@ -516,7 +516,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 if (expression != null) {
                     postFixTokens.forEach {
-                        if (!expression.getAllTokens().contains(it)) {
+                        if (!expression.tokens().contains(it)) {
                             throw Parser.ParserError(it, "Invalid Token ${it.type} for the Numeric Expression!")
                         }
                     }
@@ -838,7 +838,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                             if (backwards) {
                                 val lineLoc = symbol.lineLoc
                                 val before = assigendLabels.filter {
-                                    it.first.getFirstToken().lineLoc.fileName == lineLoc.fileName &&
+                                    it.first.getFirstToken().lineLoc.file == lineLoc.file &&
                                             it.first.getFirstToken().lineLoc.lineID <= lineLoc.lineID
                                 }.sortedBy { it.first.getFirstToken().lineLoc.lineID }
                                 val id = symbol.content.removeSuffix("b")
@@ -846,7 +846,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                             } else {
                                 val lineLoc = symbol.lineLoc
                                 val after = assigendLabels.filter {
-                                    it.first.getFirstToken().lineLoc.fileName == lineLoc.fileName &&
+                                    it.first.getFirstToken().lineLoc.file == lineLoc.file &&
                                             it.first.getFirstToken().lineLoc.lineID >= lineLoc.lineID
                                 }.sortedBy { it.first.getFirstToken().lineLoc.lineID }
                                 val id = symbol.content.removeSuffix("f")

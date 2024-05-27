@@ -46,7 +46,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @param features The list of features that may influence the parsing process.
      * @return A TreeResult instance containing the parsed tree and tokens.
      */
-    override fun parseTree(source: List<Token>, others: List<AssemblerFile>, features: List<Feature>): TreeResult {
+    override fun parseTree(source: List<Token>, others: List<AsmFile>, features: List<Feature>): TreeResult {
         // Preprocess and Filter Tokens
         val filteredSource = filter(source)
 
@@ -74,7 +74,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @param features The list of features that may influence the analysis.
      * @return A SemanticResult instance containing the analyzed sections.
      */
-    override fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<AssemblerFile>, features: List<Feature>): SemanticResult {
+    override fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<AsmFile>, features: List<Feature>): SemanticResult {
 
         val root = tree.rootNode ?: return SemanticResult(arrayOf())
 
@@ -200,7 +200,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
                 GASNode.Label.Type.GLOBAL -> {
                     val multiDef = (this - lbl).firstOrNull { it.first.label.identifier == lbl.first.label.identifier }
                     if (multiDef != null) {
-                        throw ParserError(lbl.first.label.getAllTokens().first(), "Label is defined multiple times!")
+                        throw ParserError(lbl.first.label.tokens().first(), "Label is defined multiple times!")
                     }
                 }
             }
@@ -256,7 +256,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
     data class TempContainer(
         val definedAssembly: DefinedAssembly,
         val assembler: Assembler,
-        val others: List<AssemblerFile>,
+        val others: List<AsmFile>,
         val features: List<Feature>,
         val root: Root,
         val symbols: MutableList<Symbol> = mutableListOf(),
@@ -311,11 +311,11 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          * @return True if the file was imported successfully, false otherwise.
          */
         fun importFile(referenceToken: Token, name: String): Boolean {
-            val file = others.firstOrNull { it.name == name }
+            val file = others.firstOrNull { it.mainRelativeName == name }
             if (file == null) {
                 throw ParserError(referenceToken, "Couldn't find file with relative path $name!")
             }
-            nativeLog("Importing: ${file.name} others: ${(others - file).joinToString { it.name }}")
+            nativeLog("Importing: ${file.mainRelativeName} others: ${(others - file).joinToString { it.mainRelativeName }}")
             val tree = assembler.compile(file, others - file, Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD)
             tree.tokens.forEach {
                 it.isPseudoOf = referenceToken
@@ -365,7 +365,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
     data class Macro(val name: String, val arguments: List<Argument>, val content: List<Statement>) {
         init {
             content.forEach { stmnt ->
-                stmnt.getAllTokens().forEach {
+                stmnt.tokens().forEach {
                     it.removeSeverityIfError()
                 }
             }
@@ -392,7 +392,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
 
                     is ArgDef.Positional -> {
                         if (index >= args.size) {
-                            def.getAllTokens().firstOrNull()?.let {
+                            def.tokens().firstOrNull()?.let {
                                 throw ParserError(it, "Macro $name has no argument expected at position $index!")
                             }
                             return@forEachIndexed
@@ -562,6 +562,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
     interface SecContent {
         val bytesNeeded: Int
         fun getFirstToken(): Token
+        fun allTokensIncludingPseudo(): List<Token>
         fun getMark(): Memory.InstanceType
 
         /**
@@ -589,6 +590,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
         override val bytesNeeded: Int = bin.size.getByteCount()
 
         override fun getFirstToken(): Token = referenceToken
+        override fun allTokensIncludingPseudo(): List<Token> = listOfNotNull(referenceToken, referenceToken.isPseudoOf)
 
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.DATA
 
@@ -616,7 +618,8 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
 
         override val bytesNeeded: Int = 0
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
-        override fun getFirstToken(): Token = label.getAllTokens().first()
+        override fun getFirstToken(): Token = label.tokens().first()
+        override fun allTokensIncludingPseudo(): List<Token> = label.tokensIncludingReferences().toList()
         override fun getBinaryArray(yourAddr: Value, labels: List<Pair<Label, Hex>>): Array<Bin> = emptyArray()
         override fun getContentString(): String = label.identifier + ":"
     }

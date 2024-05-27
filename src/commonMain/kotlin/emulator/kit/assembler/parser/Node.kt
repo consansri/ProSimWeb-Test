@@ -1,6 +1,5 @@
 package emulator.kit.assembler.parser
 
-import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
@@ -11,14 +10,16 @@ import kotlin.reflect.cast
  */
 sealed class Node {
     /** Retrieves the content of the node as a string. */
-    fun getContentAsString(): String = getAllTokens().sortedBy { it.id }.joinToString("") { it.getContentAsString() }
+    fun getContentAsString(): String = tokens().sortedBy { it.id }.joinToString("") { it.getContentAsString() }
 
     /**
      * Retrieves all tokens associated with the node.
      *
      * @return Array of tokens.
      */
-    abstract fun getAllTokens(): Array<out Token>
+    abstract fun tokens(): Array<out Token>
+
+    abstract fun tokensIncludingReferences(): List<Token>
 
     /**
      * Searches for the base node containing the specified token.
@@ -61,9 +62,11 @@ sealed class Node {
 
         override fun getLineLoc(): Token.LineLoc = token.lineLoc
 
-        override fun getAllTokens(): Array<out Token> {
+        override fun tokens(): Array<out Token> {
             return arrayOf(token)
         }
+
+        override fun tokensIncludingReferences(): List<Token> = listOfNotNull(token, token.isPseudoOf)
 
         override fun searchBaseNode(token: Token, prevPath: List<Node>): Parser.SearchResult? {
             return if (token == token) {
@@ -117,7 +120,7 @@ sealed class Node {
         }
 
         /** Removes multiple child nodes. */
-        fun removeChilds(childs: List<Node>){
+        fun removeChilds(childs: List<Node>) {
             children.removeAll(childs.toSet())
         }
 
@@ -129,16 +132,18 @@ sealed class Node {
         override fun print(prefix: String): String = "${printNodeName(prefix)}${printChilds(prefix)}"
 
         override fun getLineLoc(): Token.LineLoc? {
-            return getAllTokens().firstOrNull()?.lineLoc
+            return tokens().firstOrNull()?.lineLoc
         }
 
-        override fun getAllTokens(): Array<out Token> {
+        override fun tokens(): Array<out Token> {
             val tokens = mutableListOf<Token>()
             children.forEach {
-                tokens.addAll(it.getAllTokens())
+                tokens.addAll(it.tokens())
             }
             return tokens.toTypedArray()
         }
+
+        override fun tokensIncludingReferences(): List<Token> = tokens().flatMap { listOfNotNull(it, it.isPseudoOf) }
 
         override fun <T : Node> filterNodes(nodeType: KClass<T>): List<T> {
             if (nodeType.isInstance(this)) return listOf(nodeType.cast(this)) + children.flatMap { it.filterNodes(nodeType) }

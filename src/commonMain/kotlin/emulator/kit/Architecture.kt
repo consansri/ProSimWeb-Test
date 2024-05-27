@@ -46,7 +46,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     private val cache: Cache?
     private val features: List<Feature>
     private val settings: List<ArchSetting>
-    private var lastFile: AssemblerFile? = null
+    private var lastFile: AsmFile? = null
     private val definedAssembly: DefinedAssembly
 
     init {
@@ -70,8 +70,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getRegContainer(): RegContainer = regContainer
     fun getMemory(): Memory = memory
     fun getConsole(): IConsole = iConsole
-    fun getCompiler(): Assembler = assembler
-    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AssemblerFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
+    fun getAssembler(): Assembler = assembler
+    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AsmFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
     fun getAllFeatures(): List<Feature> = features
     fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
@@ -125,7 +125,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Execution Event: until line
      * should be implemented by specific archs
      */
-    open fun exeUntilLine(lineID: Int, fileName: String) {
+    open fun exeUntilLine(lineID: Int, wsRelativeFileName: String) {
         getConsole().clear()
     }
 
@@ -151,7 +151,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Compilation Event
      * already implemented
      */
-    fun compile(mainFile: AssemblerFile, others: List<AssemblerFile>, build: Boolean = true): Process.Result {
+    fun compile(mainFile: AsmFile, others: List<AsmFile>, build: Boolean = true): Process.Result {
         if (build) {
             exeReset()
         }

@@ -21,8 +21,8 @@ import kotlinx.datetime.Instant
  * @property processStart The timestamp when the process started.
  */
 data class Process(
-    val file: AssemblerFile,
-    val otherFiles: List<AssemblerFile>,
+    val file: AsmFile,
+    val otherFiles: List<AsmFile>,
     val mode: Mode,
     val processStart: Instant = Clock.System.now()
 ) {
@@ -34,7 +34,7 @@ data class Process(
     var currentStateStart: Instant = Clock.System.now()
 
     init {
-        nativeLog("Process initiated for ${file.name} with others: ${otherFiles.joinToString { it.name }}")
+        nativeLog("Process initiated for ${file.mainRelativeName} with others: ${otherFiles.joinToString { it.mainRelativeName }}")
     }
 
     /**
@@ -84,13 +84,13 @@ data class Process(
      * @param memory The memory to store the sections into.
      * @return A map of line locations by their addresses.
      */
-    private fun storeToMemory(sections: Array<GASParser.Section>, memory: Memory): Map<String, Token.LineLoc> {
-        val lineAddressMap = mutableMapOf<String, Token.LineLoc>()
+    private fun storeToMemory(sections: Array<GASParser.Section>, memory: Memory): Map<String, List<Token.LineLoc>> {
+        val lineAddressMap = mutableMapOf<String, List<Token.LineLoc>>()
         sections.forEach { sec ->
             val secAddr = sec.getSectionAddr()
             sec.getContent().forEach {
                 val addr = secAddr + it.offset
-                lineAddressMap[addr.toHex().getRawHexStr()] = it.content.getFirstToken().lineLoc
+                lineAddressMap[addr.toHex().getRawHexStr()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
                 memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
             }
         }
@@ -98,7 +98,7 @@ data class Process(
     }
 
     override fun toString(): String {
-        return "${file.name} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) in ${(Clock.System.now() - processStart).inWholeSeconds}s"
+        return "${file.mainRelativeName} (${state.displayName} ${(Clock.System.now() - currentStateStart).inWholeSeconds}s) in ${(Clock.System.now() - processStart).inWholeSeconds}s"
     }
 
     /**
@@ -108,7 +108,7 @@ data class Process(
      * @return A string message indicating the result of the process.
      */
     fun getFinishedStr(success: Boolean): String {
-        return "${file.name} ${if (success) "build" else "failed"} in ${(Clock.System.now() - currentStateStart).inWholeSeconds}s!"
+        return "${file.mainRelativeName} ${if (success) "build" else "failed"} in ${(Clock.System.now() - currentStateStart).inWholeSeconds}s!"
     }
 
     /**
@@ -142,7 +142,7 @@ data class Process(
      * @property assemblyMap The map of line locations by addresses.
      * @property process The process that produced this result.
      */
-    data class Result(val tokens: List<Token>, val tree: TreeResult, val semanticResult: Parser.SemanticResult, val assemblyMap: Map<String, Token.LineLoc>, val process: Process) {
+    data class Result(val tokens: List<Token>, val tree: TreeResult, val semanticResult: Parser.SemanticResult, val assemblyMap: Map<String, List<Token.LineLoc>>, val process: Process) {
 
         val success: Boolean = !tree.hasErrors()
         val sections = semanticResult.sections

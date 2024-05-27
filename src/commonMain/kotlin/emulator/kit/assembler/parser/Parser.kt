@@ -15,7 +15,7 @@ import emulator.kit.optional.Feature
 abstract class Parser(val assembler: Assembler) {
 
     /** Cache for storing parsed tree results. */
-    val treeCache: MutableMap<AssemblerFile, TreeResult> = mutableMapOf()
+    val treeCache: MutableMap<AsmFile, TreeResult> = mutableMapOf()
 
     /**
      * Retrieves the instruction types based on the provided features.
@@ -41,7 +41,7 @@ abstract class Parser(val assembler: Assembler) {
      * @param features The optional features influencing parsing.
      * @return The parse tree result.
      */
-    abstract fun parseTree(source: List<Token>, others: List<AssemblerFile>, features: List<Feature>): TreeResult
+    abstract fun parseTree(source: List<Token>, others: List<AsmFile>, features: List<Feature>): TreeResult
 
     /**
      * Performs semantic analysis on the parse tree.
@@ -52,7 +52,7 @@ abstract class Parser(val assembler: Assembler) {
      * @param features The optional features influencing semantic analysis.
      * @return The semantic analysis result.
      */
-    abstract fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<AssemblerFile>, features: List<Feature>): SemanticResult
+    abstract fun semanticAnalysis(lexer: Lexer, tree: TreeResult, others: List<AsmFile>, features: List<Feature>): SemanticResult
 
     /** Data class representing the search result during parsing. */
     data class SearchResult(val baseNode: Node.BaseNode, val path: List<Node>)

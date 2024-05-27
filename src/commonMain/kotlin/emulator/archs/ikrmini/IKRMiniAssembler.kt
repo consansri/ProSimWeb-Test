@@ -55,6 +55,7 @@ class IKRMiniAssembler : DefinedAssembly {
         override val bytesNeeded: Int = aMode.wordAmount * 2
         val calculatedImm: MutableList<Variable.Value> = mutableListOf()
         override fun getFirstToken(): Token = rawInstr.instrName
+        override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
 
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {
@@ -73,8 +74,8 @@ class IKRMiniAssembler : DefinedAssembly {
                 IKRMiniSyntax.ParamType.INDIRECT_WITH_OFFSET -> {
                     val offset = expr.getOrNull(0)?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Offset!")
                     val address = expr.getOrNull(1)?.evaluate(true) ?: throw Parser.ParserError(rawInstr.instrName, "Missing Address!")
-                    if (!offset.check(Variable.Size.Bit16()).valid) throw Parser.ParserError(expr.first().getAllTokens().first(), "Offset exceeds 16 Bits!")
-                    if (!address.toBin().toUDec().check(Variable.Size.Bit16()).valid && !address.check(Variable.Size.Bit16()).valid) throw Parser.ParserError(expr.first().getAllTokens().first(), "Address exceeds 16 Bits!")
+                    if (!offset.check(Variable.Size.Bit16()).valid) throw Parser.ParserError(expr.first().tokens().first(), "Offset exceeds 16 Bits!")
+                    if (!address.toBin().toUDec().check(Variable.Size.Bit16()).valid && !address.check(Variable.Size.Bit16()).valid) throw Parser.ParserError(expr.first().tokens().first(), "Address exceeds 16 Bits!")
                     val offset16 = offset.getResized(Variable.Size.Bit16())
                     val address16 = address.toBin().getUResized(Variable.Size.Bit16()).toHex()
                     calculatedImm.add(offset16)
@@ -91,7 +92,7 @@ class IKRMiniAssembler : DefinedAssembly {
                     } else {
                         imm.toBin().checkSizeUnsigned(Variable.Size.Bit16()) == null
                     }
-                    if (!sizematches) throw Parser.ParserError(expr.first().getAllTokens().first(), "Expression exceeds 16 Bits!")
+                    if (!sizematches) throw Parser.ParserError(expr.first().tokens().first(), "Expression exceeds 16 Bits!")
                     val ext = imm.toBin().getUResized(Variable.Size.Bit16())
                     calculatedImm.add(ext.toHex())
 
@@ -102,7 +103,7 @@ class IKRMiniAssembler : DefinedAssembly {
                     val imm = expr.first().evaluate(true)
                     val sizematches = imm.toBin().checkSizeUnsigned(Variable.Size.Bit16()) == null
 
-                    if (!sizematches) throw Parser.ParserError(expr.first().getAllTokens().first(), "Expression exceeds 16 Bits!")
+                    if (!sizematches) throw Parser.ParserError(expr.first().tokens().first(), "Expression exceeds 16 Bits!")
                     val rel = (imm.toBin().getUResized(Variable.Size.Bit16()) - yourAddr.toBin())
                     calculatedImm.add(rel.toHex())
                     opCodeArray.add(rel.toBin())

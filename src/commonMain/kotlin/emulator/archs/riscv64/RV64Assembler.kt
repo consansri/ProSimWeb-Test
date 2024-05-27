@@ -73,6 +73,7 @@ class RV64Assembler : DefinedAssembly {
     class RV64Instr(val rawInstr: GASNode.RawInstr, val type: RV64Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
         override val bytesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
+        override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             label?.assignLabels(labels)
@@ -88,7 +89,7 @@ class RV64Assembler : DefinedAssembly {
             RV64Syntax.ParamType.RD_I20 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Bit20())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 20 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 20 Bits!")
 
                 return immediate.getResized(Bit20())
             }
@@ -96,7 +97,7 @@ class RV64Assembler : DefinedAssembly {
             RV64Syntax.ParamType.RD_Off12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12())
             }
@@ -104,19 +105,19 @@ class RV64Assembler : DefinedAssembly {
             RV64Syntax.ParamType.RS2_Off12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12())
             }
 
             RV64Syntax.ParamType.RD_RS1_RS2 -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.RD_RS1_I12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12())
             }
@@ -124,7 +125,7 @@ class RV64Assembler : DefinedAssembly {
             RV64Syntax.ParamType.RD_RS1_SHAMT6 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Bit6())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 6 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 6 Bits!")
 
                 return immediate.toBin().getResized(Bit6()).toDec()
             }
@@ -132,7 +133,7 @@ class RV64Assembler : DefinedAssembly {
             RV64Syntax.ParamType.RS1_RS2_I12 -> {
                 val immediate = this.evaluate(false)
                 val check = immediate.check(Bit12())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12())
             }
@@ -140,19 +141,19 @@ class RV64Assembler : DefinedAssembly {
             RV64Syntax.ParamType.RS1_RS2_LBL -> {
                 val immediate = this.evaluate(false).toBin()
                 val check = immediate.check(Bit64())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Label Expression exceeds 64 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Label Expression exceeds 64 Bits!")
 
                 return immediate.toBin().getUResized(Bit64()).toDec()
             }
 
             RV64Syntax.ParamType.CSR_RD_OFF12_RS1 -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.CSR_RD_OFF12_UIMM5 -> {
                 val immediate = this.evaluate(false).toBin()
                 val check = immediate.check(Bit5())
-                if (!check.valid) throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression exceeds 5 Bits!")
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
 
                 return immediate.toBin().getUResized(Bit5()).toDec()
             }
@@ -162,39 +163,39 @@ class RV64Assembler : DefinedAssembly {
             }
 
             RV64Syntax.ParamType.PS_RS1_Jlbl -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.PS_RD_Albl -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.PS_lbl -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.PS_RD_RS1 -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.PS_RS1 -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.PS_CSR_RS1 -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.PS_RD_CSR -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.NONE -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
 
             RV64Syntax.ParamType.PS_NONE -> {
-                throw Parser.ParserError(this.getAllTokens().first(), "Numeric Expression wasn't expected!")
+                throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             }
         }
     }
@@ -202,7 +203,7 @@ class RV64Assembler : DefinedAssembly {
     private fun getNonPseudoInstructions(rawInstr: GASNode.RawInstr, type: RV64Syntax.InstrType, regs: Array<RegContainer.Register>, immediate: GASNode.NumericExpr? = null, label: GASNode.NumericExpr? = null): List<RV64Instr> {
         return when (type) {
             RV64Syntax.InstrType.Li64 -> {
-                val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.getAllTokens().first(), "Numeric Expression is Missing!")
+                val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.tokens().first(), "Numeric Expression is Missing!")
 
                 var result = imm.check(Bit12())
                 if (result.valid) {
@@ -317,7 +318,7 @@ class RV64Assembler : DefinedAssembly {
                     )
                 }
 
-                throw Parser.ParserError(immediate.getAllTokens().first(), "Expression (${immediate.print("")}) exceeds 64 Bits!")
+                throw Parser.ParserError(immediate.tokens().first(), "Expression (${immediate.print("")}) exceeds 64 Bits!")
             }
 
             else -> {

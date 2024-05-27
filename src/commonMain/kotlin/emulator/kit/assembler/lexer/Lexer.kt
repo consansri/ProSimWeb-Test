@@ -2,7 +2,7 @@ package emulator.kit.assembler.lexer
 
 import emulator.kit.Architecture
 import emulator.kit.common.RegContainer
-import emulator.kit.assembler.AssemblerFile
+import emulator.kit.assembler.AsmFile
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.lexer.Token.LineLoc
@@ -26,7 +26,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
      * Only if those aren't matching it will be consumed as a symbol.
      *
      */
-    fun tokenize(file: AssemblerFile): List<Token> {
+    fun tokenize(file: AsmFile): List<Token> {
         val regs = if (detectRegisters) architecture.getAllRegs().map { it to it.getRegex() } else null
         val instrs = architecture.getAllInstrTypes().map { it to it.getInstrRegex() }
         val dirs = architecture.getAllDirTypes().map { it to it.getDirRegex() }
@@ -94,7 +94,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 }
 
                 //nativeLog("Found ${if (keyWordType != null) keyWordType else type}: ${result.value}")
-                val token = Token(keyWordType ?: type, LineLoc(file.name, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, onlyNumber,foundReg, foundDir, foundInstr)
+                val token = Token(keyWordType ?: type, LineLoc(file, lineID, startIndex, startIndex + result.value.length), result.value, tokenList.size, onlyNumber,foundReg, foundDir, foundInstr)
                 tokenList += token
                 startIndex += result.value.length
                 remaining = file.content.substring(startIndex)

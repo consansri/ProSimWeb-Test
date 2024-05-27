@@ -1,8 +1,10 @@
 package me.c3.ui.components.editor
 
 import emulator.kit.*
-import emulator.kit.assembler.AssemblerFile
+import emulator.kit.assembler.AsmFile
+import emulator.kit.assembler.lexer.Token
 import kotlinx.coroutines.*
+import me.c3.ui.Workspace
 import me.c3.ui.styled.editor.FileInterface
 import java.io.File
 import java.io.FileNotFoundException
@@ -29,10 +31,22 @@ class EditorFile(val file: File) : FileInterface {
     fun getName(): String = file.name
 
     /**
+     * @return The relative file path from the workspace root directory.
+     */
+    fun getWSRelativeName(ws: Workspace): String = file.toRelativeString(ws.rootDir).replace('\\', '/')
+
+    /**
+     * @return true if [Token.LineLoc.file] points on [this]. Checked by Workspace dependent name.
+     */
+    fun matches(ws: Workspace, lineLoc: Token.LineLoc): Boolean {
+       return lineLoc.file.wsRelativeName == getWSRelativeName(ws)
+    }
+
+    /**
      * Converts the editor file to a compiler file.
      * @return The compiler file object.
      */
-    fun toCompilerFile(): AssemblerFile = file.toAsmFile(file.parentFile)
+    fun toAsmMainFile(workspace: Workspace): AsmFile = file.toAsmFile(file, workspace.rootDir)
 
     /**
      * Stores the buffered content of the file.

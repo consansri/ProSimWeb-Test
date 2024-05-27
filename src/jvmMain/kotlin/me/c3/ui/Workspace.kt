@@ -1,6 +1,6 @@
 package me.c3.ui
 
-import emulator.kit.assembler.AssemblerFile
+import emulator.kit.assembler.AsmFile
 import emulator.kit.common.FileBuilder
 import emulator.kit.toAsmFile
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +28,7 @@ import javax.swing.tree.DefaultTreeModel
  */
 class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: MainManager) {
     // Root directory of the workspace.
-    private val rootDir = File(path)
+    val rootDir = File(path)
 
     // Root node of the file tree.
     private val rootNode = DefaultMutableTreeNode(TreeFile(rootDir))
@@ -103,8 +103,8 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
      * @param main The file to exclude from the list.
      * @return A list of compiler files.
      */
-    fun getImportableFiles(main: File): List<AssemblerFile> {
-        return getAllFiles(main.parentFile).filter { it != main && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S")) }.map { it.toAsmFile(main.parentFile) }
+    fun getImportableFiles(main: File): List<AsmFile> {
+        return getAllFiles(main.parentFile).filter { it != main && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S")) }.map { it.toAsmFile(main, rootDir) }
     }
 
     /**
@@ -210,7 +210,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         buildFile?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach {
-                    val result = mainManager.currArch().compile(it.file.toAsmFile(it.file.parentFile), getImportableFiles(it.file), true)
+                    val result = mainManager.currArch().compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
                     mainManager.eventManager.triggerCompileFinished(result)
                 }
             }
@@ -219,12 +219,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportMIF?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach {
-                    val result = mainManager.currArch().compile(it.file.toAsmFile(it.file.parentFile), getImportableFiles(it.file), true)
+                    val result = mainManager.currArch().compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
                     mainManager.eventManager.triggerCompileFinished(result)
                     if (!result.success) {
                         return@launch
                     }
-                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.MIF, it.file.toAsmFile(it.file.parentFile))
+                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.MIF, it.file.toAsmFile(it.file, rootDir))
                     val generatedDir = File(it.file.parentFile, ".generated")
                     if (!generatedDir.exists()) {
                         generatedDir.mkdir()
@@ -244,12 +244,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportVHDL?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach { tfile ->
-                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file.parentFile), getImportableFiles(tfile.file), true)
+                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
                     mainManager.eventManager.triggerCompileFinished(result)
                     if (!result.success) {
                         return@launch
                     }
-                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.VHDL, tfile.file.toAsmFile(tfile.file.parentFile))
+                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.VHDL, tfile.file.toAsmFile(tfile.file, rootDir))
                     val generatedDir = File(tfile.file.parentFile, ".generated")
                     if (!generatedDir.exists()) {
                         generatedDir.mkdir()
@@ -270,12 +270,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportHexDump?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach { tfile ->
-                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file.parentFile), getImportableFiles(tfile.file), true)
+                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
                     mainManager.eventManager.triggerCompileFinished(result)
                     if (!result.success) {
                         return@launch
                     }
-                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.HEXDUMP, tfile.file.toAsmFile(tfile.file.parentFile))
+                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.HEXDUMP, tfile.file.toAsmFile(tfile.file, rootDir))
                     val generatedDir = File(tfile.file.parentFile, ".generated")
                     if (!generatedDir.exists()) {
                         generatedDir.mkdir()
@@ -299,7 +299,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportTS?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach { tfile ->
-                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file.parentFile), getImportableFiles(tfile.file), true)
+                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
                     mainManager.eventManager.triggerCompileFinished(result)
                     if (!result.success) {
                         return@launch
