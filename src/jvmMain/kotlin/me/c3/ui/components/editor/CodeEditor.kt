@@ -32,7 +32,11 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
      * @param file The file to be opened.
      */
     fun openFile(file: File) {
-        if (searchByName(file.name) != null) return
+        val alreadyOpen = searchByName(file)
+        if (alreadyOpen != null) {
+            select(panels.indexOf(alreadyOpen))
+            return
+        }
 
         if (!file.exists()) {
             file.createNewFile()
@@ -62,8 +66,8 @@ class CodeEditor(private val mainManager: MainManager) : CAdvancedTabPane(mainMa
      * @param fileName The name of the file.
      * @return The editor panel if found, null otherwise.
      */
-    fun searchByName(fileName: String): ProSimEditor? {
-        return tabs.firstOrNull { fileName == (it.content as? ProSimEditor)?.editorFile?.file?.name }?.content as? ProSimEditor?
+    fun searchByName(file: File): ProSimEditor? {
+        return tabs.firstOrNull { file == (it.content as? ProSimEditor)?.editorFile?.file }?.content as? ProSimEditor?
     }
 
     /**

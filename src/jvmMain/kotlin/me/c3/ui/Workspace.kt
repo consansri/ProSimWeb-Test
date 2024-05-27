@@ -107,7 +107,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
      * @param exclude The file to exclude from the list.
      * @return A list of compiler files.
      */
-    fun getCompilerFiles(exclude: File): List<AssemblerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S"))}.map { it.toCompilerFile() }
+    fun getCompilerFiles(exclude: File): List<AssemblerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S")) }.map { it.toCompilerFile() }
 
     /**
      * Displays a context menu with various file operations.
@@ -119,23 +119,34 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
     private fun showContextMenu(mainManager: MainManager, treeFile: TreeFile, x: Int, y: Int) {
         val popupMenu = CPopupMenu(mainManager.themeManager, mainManager.scaleManager)
 
+        /**
+         * Initialize Menu Items
+         */
+
+        // Only Directory
         val createFileItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "New File") else null
         val createDirItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "New Directory") else null
+        val reloadFromDisk = if (treeFile.file.isDirectory) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Reload") else null
+
+        // Only File
         val openItem = if (treeFile.file.isFile) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Open") else null
-        val deleteItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Delete")
-        val renameItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Rename")
+
+        // Only Assembly File
         val buildFile = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Build") else null
         val exportMIF = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate MIF") else null
         val exportHexDump = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate HexDump") else null
         val exportVHDL = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate VHDL") else null
         val exportTS = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Generate Transcript") else null
 
-        openItem?.addActionListener {
-            val file = ((tree.lastSelectedPathComponent as? DefaultMutableTreeNode)?.userObject as? TreeFile)?.file ?: return@addActionListener
-            if (file.isFile) {
-                mainManager.editor.openFile(file)
-            }
-        }
+        // General
+        val renameItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Rename")
+        val deleteItem = CMenuItem(mainManager.themeManager, mainManager.scaleManager, "Delete")
+
+        /**
+         * Implement Menu Actions
+         */
+
+        // Directories
 
         createDirItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
@@ -167,27 +178,19 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             }
         }
 
-        deleteItem.addActionListener {
-            if (treeFile.file.delete()) {
-                // File deleted successfully
-                mainManager.setCurrWS(path)
-            } else {
-                mainManager.bBar.setError("Failed to delete file ${treeFile.file.name}!")
+        reloadFromDisk?.addActionListener {
+            CoroutineScope(Dispatchers.IO).launch {
+                rootNode.removeAllChildren()
+                buildFileTree(rootDir, rootNode)
             }
         }
 
-        renameItem.addActionListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter new file name:").await()
-                if (newFileName.isNotBlank()) {
-                    val newFile = File(treeFile.file.parentFile, newFileName)
-                    if (treeFile.file.renameTo(newFile)) {
-                        // File renamed successfully
-                        mainManager.setCurrWS(path)
-                    } else {
-                        mainManager.bBar.setError("Failed to rename file $newFileName!")
-                    }
-                }
+        // Files
+
+        openItem?.addActionListener {
+            val file = ((tree.lastSelectedPathComponent as? DefaultMutableTreeNode)?.userObject as? TreeFile)?.file ?: return@addActionListener
+            if (file.isFile) {
+                mainManager.editor.openFile(file)
             }
         }
 
@@ -295,17 +298,53 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             }
         }
 
+        // General
+
+        renameItem.addActionListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                val newFileName = COptionPane.showInputDialog(mainManager.themeManager, mainManager.scaleManager, tree, "Enter new file name:").await()
+                if (newFileName.isNotBlank()) {
+                    val newFile = File(treeFile.file.parentFile, newFileName)
+                    if (treeFile.file.renameTo(newFile)) {
+                        // File renamed successfully
+                        mainManager.setCurrWS(path)
+                    } else {
+                        mainManager.bBar.setError("Failed to rename file $newFileName!")
+                    }
+                }
+            }
+        }
+
+        deleteItem.addActionListener {
+            if (treeFile.file.delete()) {
+                // File deleted successfully
+                mainManager.setCurrWS(path)
+            } else {
+                mainManager.bBar.setError("Failed to delete file ${treeFile.file.name}!")
+            }
+        }
+
+        /**
+         * Append Menu Items
+         */
+
+        // Directory
         createFileItem?.let { popupMenu.add(it) }
         createDirItem?.let { popupMenu.add(it) }
+        reloadFromDisk?.let { popupMenu.add(it) }
+
+        // File
         openItem?.let { popupMenu.add(it) }
-        popupMenu.add(deleteItem)
-        popupMenu.add(renameItem)
 
         buildFile?.let { popupMenu.add(it) }
         exportMIF?.let { popupMenu.add(it) }
         exportVHDL?.let { popupMenu.add(it) }
         exportHexDump?.let { popupMenu.add(it) }
         exportTS?.let { popupMenu.add(it) }
+
+        // General
+        popupMenu.add(renameItem)
+        popupMenu.add(deleteItem)
 
         popupMenu.show(tree, x, y)
     }

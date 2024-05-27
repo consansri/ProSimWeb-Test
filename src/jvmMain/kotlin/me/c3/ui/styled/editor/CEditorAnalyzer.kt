@@ -184,11 +184,12 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
     inner class SearchField() : CPanel(themeManager, scaleManager, borderMode = BorderMode.VERTICAL, primary = true) {
 
         val textField = CTextArea(themeManager, scaleManager, FontType.CODE)
+        val scrollPane = CScrollPane(themeManager, scaleManager, true, textField)
         val controls = SearchControls()
 
         init {
             layout = BorderLayout()
-            add(textField, BorderLayout.CENTER)
+            add(scrollPane, BorderLayout.CENTER)
             add(controls, BorderLayout.EAST)
 
             // Add DocumentListener to the textField's Document
@@ -271,10 +272,10 @@ class CEditorAnalyzer(private val themeManager: ThemeManager, private val scaleM
 
     inner class ReplaceField() : CPanel(themeManager, scaleManager, borderMode = BorderMode.VERTICAL, primary = true) {
         val textField = CTextArea(themeManager, scaleManager, FontType.CODE)
-
+        val scrollPane = CScrollPane(themeManager, scaleManager, true, textField)
         init {
             layout = BorderLayout()
-            add(textField, BorderLayout.CENTER)
+            add(scrollPane, BorderLayout.CENTER)
 
             textField.addKeyListener(object : KeyAdapter() {
                 override fun keyPressed(e: KeyEvent) {
