@@ -451,13 +451,13 @@ class CEditorArea(tm: ThemeManager, sm: ScaleManager, val icons: ProSimIcons, va
 
         // Find the start index of the word
         var startIndex = index
-        while (startIndex > 0 && styledText[startIndex - 1].isLetterOrDigit()) {
+        while (startIndex > 0 && styledText[startIndex - 1].isSymbolChar()) {
             startIndex--
         }
 
         // Find the end index of the word
         var endIndex = index
-        while (endIndex < styledText.size - 1 && styledText[endIndex].isLetterOrDigit()) {
+        while (endIndex < styledText.size - 1 && styledText[endIndex].isSymbolChar()) {
             endIndex++
         }
 
@@ -708,6 +708,10 @@ class CEditorArea(tm: ThemeManager, sm: ScaleManager, val icons: ProSimIcons, va
 
         fun isLetterOrDigit(): Boolean {
             return content.isLetterOrDigit()
+        }
+
+        fun isSymbolChar(): Boolean{
+            return content.isLetterOrDigit() || content == '_' || content == '$' || content == '.'
         }
 
         fun isWhiteSpace(): Boolean {

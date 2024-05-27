@@ -14,7 +14,6 @@ expect fun FileHandler.loadFiles(files: MutableList<FileHandler.File>)
  */
 expect fun FileHandler.updateFiles(files: MutableList<FileHandler.File>, onlyCurrent: Boolean, currentID: Int)
 
-
 expect fun nativeWarn(message: String)
 
 expect fun nativeLog(message: String)

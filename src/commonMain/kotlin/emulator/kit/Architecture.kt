@@ -101,7 +101,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Execution Event: multi step
      * should be implemented by specific archs
      */
-    open fun exeMultiStep(steps: Int) {
+    open fun exeMultiStep(steps: Long) {
         getConsole().clear()
     }
 

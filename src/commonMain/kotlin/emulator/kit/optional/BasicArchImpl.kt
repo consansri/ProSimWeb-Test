@@ -1,5 +1,6 @@
 package emulator.kit.optional
 
+import Performance
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
@@ -7,17 +8,20 @@ import kotlin.time.measureTime
 
 abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
     override fun exeContinuous() {
-        var instrCount = 0
+        var instrCount = 0L
         val measuredTime = measureTime {
             super.exeContinuous()
 
             var result: ExecutionResult? = null
 
-            while (result?.valid != false && instrCount <= 1000) {
+            while (result?.valid != false && instrCount <= Performance.MAX_INSTR_EXE_AMOUNT) {
                 instrCount++
                 result = executeNext()
             }
         }
+
+        Performance.updateExePerformance(instrCount, measuredTime)
+
         getConsole().exeInfo("continuous \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
@@ -27,11 +31,13 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
             executeNext()
         }
 
+        Performance.updateExePerformance(1, measuredTime)
+
         getConsole().exeInfo("single step \ntook ${measuredTime.inWholeMicroseconds} μs")
     }
 
-    override fun exeMultiStep(steps: Int) {
-        var instrCount = 0
+    override fun exeMultiStep(steps: Long) {
+        var instrCount = 0L
         val measuredTime = measureTime {
             super.exeMultiStep(steps)
 
@@ -42,11 +48,14 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
                 result = executeNext()
             }
         }
+
+        Performance.updateExePerformance(instrCount, measuredTime)
+
         getConsole().exeInfo("$steps steps \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeSkipSubroutine() {
-        var instrCount = 0
+        var instrCount = 0L
         val measuredTime = measureTime {
             super.exeSkipSubroutine()
 
@@ -63,11 +72,14 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
                 }
             }
         }
+
+        Performance.updateExePerformance(instrCount, measuredTime)
+
         getConsole().exeInfo("skip subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeReturnFromSubroutine() {
-        var instrCount = 0
+        var instrCount = 0L
         val measuredTime = measureTime {
             super.exeReturnFromSubroutine()
 
@@ -81,11 +93,14 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
                 }
             }
         }
+
+        Performance.updateExePerformance(instrCount, measuredTime)
+
         getConsole().exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeUntilAddress(address: Variable.Value.Hex) {
-        var instrCount = 0
+        var instrCount = 0L
         val measuredTime = measureTime {
             super.exeUntilAddress(address)
 
@@ -99,11 +114,14 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
                 }
             }
         }
+
+        Performance.updateExePerformance(instrCount, measuredTime)
+
         getConsole().exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeUntilLine(lineID: Int, fileName: String) {
-        var instrCount = 0
+        var instrCount = 0L
         val measuredTime = measureTime {
             super.exeUntilLine(lineID, fileName)
 
@@ -133,6 +151,9 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
                 }
             }
         }
+
+        Performance.updateExePerformance(instrCount, measuredTime)
+
         getConsole().exeInfo("until line ${lineID + 1} \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 

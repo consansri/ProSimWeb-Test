@@ -28,7 +28,7 @@ class ExecutionControls(mainManager: MainManager) : CPanel(mainManager.tm, mainM
         val inputRegex = Regex("\\d+")
         input.text = 10.toString()
         button.addActionListener {
-            val steps = this.input.text.toIntOrNull()
+            val steps = this.input.text.toLongOrNull()
             steps?.let {
                 mainManager.currArch().exeMultiStep(steps)
                 mainManager.eventManager.triggerExeEvent()

@@ -38,7 +38,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
     val hideRegDescr = useState(false)
     val arch = props.archState.component1()
 
-    fun queueExecution(executionType: ExecutionType, steps: Int = 1) {
+    fun queueExecution(executionType: ExecutionType, steps: Long = 1) {
         when (executionType) {
             Continuous -> executionQueue.current = setTimeout({
                 setAllowExe(false)
@@ -159,7 +159,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                         if (allowExe) {
                             mStepInputRef.current?.let {
                                 try {
-                                    queueExecution(MultiStep, steps = it.value.toInt())
+                                    queueExecution(MultiStep, steps = it.value.toLong())
                                 } catch (e: NumberFormatException) {
                                     console.log("(info) steps input value isn't valid!")
                                 }
