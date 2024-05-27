@@ -31,7 +31,7 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "Changed",
                     UnlinkedList(
-                        Text("JVM: Store linebreaks like other IDEs (\\r\\n)."),
+
                     )
                 ),
                 Section(
