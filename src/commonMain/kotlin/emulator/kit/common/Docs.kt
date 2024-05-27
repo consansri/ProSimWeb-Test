@@ -22,14 +22,16 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "New",
                     UnlinkedList(
-                        Text("JVM: Added Find and Replace functionality.")
+                        Text("KIT: Platform independent Performance balancing for infinite loop execution."),
+                        Text("JVM: Find and Replace functionality."),
+                        Text("JVM: Better Workspace Experience."),
+                        Text("KIT: Better Multi File Project Experience.")
                     )
                 ),
                 Section(
                     "Changed",
                     UnlinkedList(
                         Text("JVM: Store linebreaks like other IDEs (\\r\\n)."),
-
                     )
                 ),
                 Section(
