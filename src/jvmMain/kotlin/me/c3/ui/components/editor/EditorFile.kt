@@ -32,7 +32,7 @@ class EditorFile(val file: File) : FileInterface {
      * Converts the editor file to a compiler file.
      * @return The compiler file object.
      */
-    fun toCompilerFile(): AssemblerFile = file.toCompilerFile()
+    fun toCompilerFile(): AssemblerFile = file.toAsmFile(file.parentFile)
 
     /**
      * Stores the buffered content of the file.

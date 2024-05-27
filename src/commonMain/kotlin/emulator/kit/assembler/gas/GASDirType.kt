@@ -8,6 +8,7 @@ import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
@@ -1040,9 +1041,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         when (this) {
             // Global
             INCLUDE -> {
+                nativeLog("Found include!")
                 val stringExpr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.StringExpr>().firstOrNull() ?: throw Parser.ParserError(stmnt.dir.allTokens.first(), "Expected filename is missing!")
+                nativeLog("Include String: ${stringExpr.evaluate(true)} from ${cont.others.joinToString { it.name }}")
                 val fileName = stringExpr.evaluate(true)
                 cont.importFile(stringExpr.getAllTokens().first(), fileName)
+            }
+
+            ENDM -> {
+
             }
 
             MACRO -> {
@@ -1563,6 +1570,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 cont.switchToOrAppendSec("rodata")
             }
 
+
+
             SECTION -> {
                 val dirs = stmnt.dir.allTokens.filter { it.type == Token.Type.DIRECTIVE }
 
@@ -1583,7 +1592,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
             else -> {
                 stmnt.getAllTokens().firstOrNull()?.let {
-                    it.addSeverity(Severity.Type.WARNING, "Not yet Implemented!")
+                    it.addSeverity(Severity.Type.WARNING, "Not yet Implemented! ($this)")
                 }
             }
         }

@@ -33,6 +33,10 @@ data class Process(
         }
     var currentStateStart: Instant = Clock.System.now()
 
+    init {
+        nativeLog("Process initiated for ${file.name} with others: ${otherFiles.joinToString { it.name }}")
+    }
+
     /**
      * Launches the process with the given lexer, parser, memory, and features.
      *

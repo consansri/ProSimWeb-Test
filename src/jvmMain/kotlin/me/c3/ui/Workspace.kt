@@ -2,7 +2,7 @@ package me.c3.ui
 
 import emulator.kit.assembler.AssemblerFile
 import emulator.kit.common.FileBuilder
-import emulator.kit.toCompilerFile
+import emulator.kit.toAsmFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,11 +53,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             }
 
             override fun mouseClicked(e: MouseEvent) {
+                val nodes = tree.selectionPaths?.mapNotNull { it.lastPathComponent as? DefaultMutableTreeNode } ?: return
                 val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
                 val uobj = selectedNode.userObject
                 if (uobj !is TreeFile) return
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    showContextMenu(mainManager, uobj, e.x, e.y)
+                    showContextMenu(mainManager, e.x, e.y, nodes)
                 }
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (uobj.file.isFile) {
@@ -99,10 +100,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
 
     /**
      * Retrieves all compiler files in the workspace, excluding a specified file.
-     * @param exclude The file to exclude from the list.
+     * @param main The file to exclude from the list.
      * @return A list of compiler files.
      */
-    fun getCompilerFiles(exclude: File): List<AssemblerFile> = getAllFiles(rootDir).filter { it != exclude && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S")) }.map { it.toCompilerFile() }
+    fun getImportableFiles(main: File): List<AssemblerFile> {
+        return getAllFiles(main.parentFile).filter { it != main && it.isFile && (it.name.endsWith(".s") || it.name.endsWith(".S")) }.map { it.toAsmFile(main.parentFile) }
+    }
 
     /**
      * Displays a context menu with various file operations.
@@ -111,27 +114,37 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
      * @param x The x-coordinate of the context menu location.
      * @param y The y-coordinate of the context menu location.
      */
-    private fun showContextMenu(mainManager: MainManager, treeFile: TreeFile, x: Int, y: Int) {
+    private fun showContextMenu(mainManager: MainManager, x: Int, y: Int, allSelectedNodes: Collection<DefaultMutableTreeNode>) {
+        val treeFiles = allSelectedNodes.mapNotNull { it.userObject as? TreeFile }
+
         val popupMenu = CPopupMenu(mainManager.tm, mainManager.sm)
+
+        val dirs = treeFiles.filter { it.file.isDirectory }
+        val files = treeFiles.filter { it.file.isFile }
+        val asmFiles = treeFiles.filter { it.file.isFile && (it.file.name.endsWith(".s") || it.file.endsWith(".S")) }
+
+        val containsDirs = dirs.isNotEmpty()
+        val containsFiles = files.isNotEmpty()
+        val containsAsmFiles = asmFiles.isNotEmpty()
 
         /**
          * Initialize Menu Items
          */
 
         // Only Directory
-        val createFileItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.tm, mainManager.sm, "New File") else null
-        val createDirItem = if (treeFile.file.isDirectory) CMenuItem(mainManager.tm, mainManager.sm, "New Directory") else null
-        val reloadFromDisk = if (treeFile.file.isDirectory) CMenuItem(mainManager.tm, mainManager.sm, "Reload") else null
+        val createFileItem = if (containsDirs) CMenuItem(mainManager.tm, mainManager.sm, "New File") else null
+        val createDirItem = if (containsDirs) CMenuItem(mainManager.tm, mainManager.sm, "New Directory") else null
+        val reloadFromDisk = if (containsDirs) CMenuItem(mainManager.tm, mainManager.sm, "Reload") else null
 
         // Only File
-        val openItem = if (treeFile.file.isFile) CMenuItem(mainManager.tm, mainManager.sm, "Open") else null
+        val openItem = if (containsFiles) CMenuItem(mainManager.tm, mainManager.sm, "Open") else null
 
         // Only Assembly File
-        val buildFile = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Build") else null
-        val exportMIF = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate MIF") else null
-        val exportHexDump = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate HexDump") else null
-        val exportVHDL = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate VHDL") else null
-        val exportTS = if (treeFile.file.isFile && treeFile.file.name.endsWith(".s")) CMenuItem(mainManager.tm, mainManager.sm, "Generate Transcript") else null
+        val buildFile = if (containsAsmFiles) CMenuItem(mainManager.tm, mainManager.sm, "Build") else null
+        val exportMIF = if (containsAsmFiles) CMenuItem(mainManager.tm, mainManager.sm, "Generate MIF") else null
+        val exportHexDump = if (containsAsmFiles) CMenuItem(mainManager.tm, mainManager.sm, "Generate HexDump") else null
+        val exportVHDL = if (containsAsmFiles) CMenuItem(mainManager.tm, mainManager.sm, "Generate VHDL") else null
+        val exportTS = if (containsAsmFiles) CMenuItem(mainManager.tm, mainManager.sm, "Generate Transcript") else null
 
         // General
         val renameItem = CMenuItem(mainManager.tm, mainManager.sm, "Rename")
@@ -147,12 +160,14 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             CoroutineScope(Dispatchers.Main).launch {
                 val newDirName = COptionPane.showInputDialog(mainManager.tm, mainManager.sm, tree, "Enter directory name:").await()
                 if (newDirName.isNotBlank()) {
-                    val newDir = File(treeFile.file, newDirName)
-                    if (newDir.mkdir()) {
-                        // File created successfully
-                        mainManager.setCurrWS(path)
-                    } else {
-                        mainManager.bBar.setError("Failed to create directory $newDirName!")
+                    dirs.forEach {
+                        val newDir = File(it.file, newDirName)
+                        if (newDir.mkdir()) {
+                            // File created successfully
+                            mainManager.setCurrWS(path)
+                        } else {
+                            mainManager.bBar.setError("Failed to create directory $newDirName!")
+                        }
                     }
                 }
             }
@@ -162,12 +177,14 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             CoroutineScope(Dispatchers.Main).launch {
                 val newFileName = COptionPane.showInputDialog(mainManager.tm, mainManager.sm, tree, "Enter file name:").await()
                 if (newFileName.isNotBlank()) {
-                    val newFile = File(treeFile.file, newFileName)
-                    if (newFile.createNewFile()) {
-                        // File created successfully
-                        mainManager.setCurrWS(path)
-                    } else {
-                        mainManager.bBar.setError("Failed to create file $newFileName!")
+                    dirs.forEach {
+                        val newFile = File(it.file, newFileName)
+                        if (newFile.createNewFile()) {
+                            // File created successfully
+                            mainManager.setCurrWS(path)
+                        } else {
+                            mainManager.bBar.setError("Failed to create file $newFileName!")
+                        }
                     }
                 }
             }
@@ -183,9 +200,8 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         // Files
 
         openItem?.addActionListener {
-            val files = tree.selectionPaths?.mapNotNull { (it.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? TreeFile }
-            files?.forEach {
-                if(it.file.isFile){
+            files.forEach {
+                if (it.file.isFile) {
                     mainManager.editor.openFile(it.file)
                 }
             }
@@ -193,104 +209,115 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
 
         buildFile?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = mainManager.currArch().compile(treeFile.file.toCompilerFile(), getCompilerFiles(treeFile.file), true)
-                mainManager.eventManager.triggerCompileFinished(result)
+                files.forEach {
+                    val result = mainManager.currArch().compile(it.file.toAsmFile(it.file.parentFile), getImportableFiles(it.file), true)
+                    mainManager.eventManager.triggerCompileFinished(result)
+                }
             }
         }
 
         exportMIF?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = mainManager.currArch().compile(treeFile.file.toCompilerFile(), getCompilerFiles(treeFile.file), true)
-                mainManager.eventManager.triggerCompileFinished(result)
-                if (!result.success) {
-                    return@launch
-                }
-                val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.MIF, treeFile.file.toCompilerFile())
-                val generatedDir = File(treeFile.file.parentFile, ".generated")
-                if (!generatedDir.exists()) {
-                    generatedDir.mkdir()
-                }
-                val newFile = File(generatedDir, treeFile.file.name.removeSuffix(".s") + ".mif")
-                if (newFile.createNewFile()) {
-                    newFile.writeText(fileContent.joinToString("\n") { it })
-                    // File build successfully
-                    mainManager.setCurrWS(path)
-                } else {
-                    mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                files.forEach {
+                    val result = mainManager.currArch().compile(it.file.toAsmFile(it.file.parentFile), getImportableFiles(it.file), true)
+                    mainManager.eventManager.triggerCompileFinished(result)
+                    if (!result.success) {
+                        return@launch
+                    }
+                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.MIF, it.file.toAsmFile(it.file.parentFile))
+                    val generatedDir = File(it.file.parentFile, ".generated")
+                    if (!generatedDir.exists()) {
+                        generatedDir.mkdir()
+                    }
+                    val newFile = File(generatedDir, it.file.name.removeSuffix(".s") + ".mif")
+                    if (newFile.createNewFile()) {
+                        newFile.writeText(fileContent.joinToString("\n") { it })
+                        // File build successfully
+                        mainManager.setCurrWS(path)
+                    } else {
+                        mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                    }
                 }
             }
         }
 
         exportVHDL?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = mainManager.currArch().compile(treeFile.file.toCompilerFile(), getCompilerFiles(treeFile.file), true)
-                mainManager.eventManager.triggerCompileFinished(result)
-                if (!result.success) {
-                    return@launch
-                }
-                val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.VHDL, treeFile.file.toCompilerFile())
-                val generatedDir = File(treeFile.file.parentFile, ".generated")
-                if (!generatedDir.exists()) {
-                    generatedDir.mkdir()
-                }
+                files.forEach { tfile ->
+                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file.parentFile), getImportableFiles(tfile.file), true)
+                    mainManager.eventManager.triggerCompileFinished(result)
+                    if (!result.success) {
+                        return@launch
+                    }
+                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.VHDL, tfile.file.toAsmFile(tfile.file.parentFile))
+                    val generatedDir = File(tfile.file.parentFile, ".generated")
+                    if (!generatedDir.exists()) {
+                        generatedDir.mkdir()
+                    }
 
-                val newFile = File(generatedDir, treeFile.file.name.removeSuffix(".s") + ".vhd")
-                if (newFile.createNewFile()) {
-                    newFile.writeText(fileContent.joinToString("\n") { it })
-                    // File build successfully
-                    mainManager.setCurrWS(path)
-                } else {
-                    mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                    val newFile = File(generatedDir, tfile.file.name.removeSuffix(".s") + ".vhd")
+                    if (newFile.createNewFile()) {
+                        newFile.writeText(fileContent.joinToString("\n") { it })
+                        // File build successfully
+                        mainManager.setCurrWS(path)
+                    } else {
+                        mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                    }
                 }
             }
         }
 
         exportHexDump?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = mainManager.currArch().compile(treeFile.file.toCompilerFile(), getCompilerFiles(treeFile.file), true)
-                mainManager.eventManager.triggerCompileFinished(result)
-                if (!result.success) {
-                    return@launch
-                }
-                val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.HEXDUMP, treeFile.file.toCompilerFile())
-                val generatedDir = File(treeFile.file.parentFile, ".generated")
-                if (!generatedDir.exists()) {
-                    generatedDir.mkdir()
+                files.forEach { tfile ->
+                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file.parentFile), getImportableFiles(tfile.file), true)
+                    mainManager.eventManager.triggerCompileFinished(result)
+                    if (!result.success) {
+                        return@launch
+                    }
+                    val fileContent = mainManager.currArch().getFormattedFile(FileBuilder.ExportFormat.HEXDUMP, tfile.file.toAsmFile(tfile.file.parentFile))
+                    val generatedDir = File(tfile.file.parentFile, ".generated")
+                    if (!generatedDir.exists()) {
+                        generatedDir.mkdir()
+                    }
+
+                    mainManager.eventManager.triggerCompileFinished(result)
+
+                    val newFile = File(generatedDir, tfile.file.name.removeSuffix(".s") + ".hexdump")
+                    if (newFile.createNewFile()) {
+                        newFile.writeText(fileContent.joinToString("\n") { it })
+                        // File build successfully
+                        mainManager.setCurrWS(path)
+                    } else {
+                        mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                    }
                 }
 
-                mainManager.eventManager.triggerCompileFinished(result)
-
-                val newFile = File(generatedDir, treeFile.file.name.removeSuffix(".s") + ".hexdump")
-                if (newFile.createNewFile()) {
-                    newFile.writeText(fileContent.joinToString("\n") { it })
-                    // File build successfully
-                    mainManager.setCurrWS(path)
-                } else {
-                    mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
-                }
             }
         }
 
         exportTS?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = mainManager.currArch().compile(treeFile.file.toCompilerFile(), getCompilerFiles(treeFile.file), true)
-                mainManager.eventManager.triggerCompileFinished(result)
-                if (!result.success) {
-                    return@launch
-                }
-                val fileContent = result.generateTS()
-                val generatedDir = File(treeFile.file.parentFile, ".generated")
-                if (!generatedDir.exists()) {
-                    generatedDir.mkdir()
-                }
+                files.forEach { tfile ->
+                    val result = mainManager.currArch().compile(tfile.file.toAsmFile(tfile.file.parentFile), getImportableFiles(tfile.file), true)
+                    mainManager.eventManager.triggerCompileFinished(result)
+                    if (!result.success) {
+                        return@launch
+                    }
+                    val fileContent = result.generateTS()
+                    val generatedDir = File(tfile.file.parentFile, ".generated")
+                    if (!generatedDir.exists()) {
+                        generatedDir.mkdir()
+                    }
 
-                val newFile = File(generatedDir, treeFile.file.name.removeSuffix(".s") + ".transcript")
-                if (newFile.createNewFile()) {
-                    newFile.writeText(fileContent)
-                    // File build successfully
-                    mainManager.setCurrWS(path)
-                } else {
-                    mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                    val newFile = File(generatedDir, tfile.file.name.removeSuffix(".s") + ".transcript")
+                    if (newFile.createNewFile()) {
+                        newFile.writeText(fileContent)
+                        // File build successfully
+                        mainManager.setCurrWS(path)
+                    } else {
+                        mainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                    }
                 }
             }
         }
@@ -301,23 +328,57 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             CoroutineScope(Dispatchers.Main).launch {
                 val newFileName = COptionPane.showInputDialog(mainManager.tm, mainManager.sm, tree, "Enter new file name:").await()
                 if (newFileName.isNotBlank()) {
-                    val newFile = File(treeFile.file.parentFile, newFileName)
-                    if (treeFile.file.renameTo(newFile)) {
-                        // File renamed successfully
-                        mainManager.setCurrWS(path)
-                    } else {
-                        mainManager.bBar.setError("Failed to rename file $newFileName!")
+                    treeFiles.forEach {
+                        val newFile = File(it.file.parentFile, newFileName)
+                        if (it.file.renameTo(newFile)) {
+                            // File renamed successfully
+                            mainManager.setCurrWS(path)
+                        } else {
+                            mainManager.bBar.setError("Failed to rename file $newFileName!")
+                        }
                     }
                 }
             }
         }
 
         deleteItem.addActionListener {
-            if (treeFile.file.delete()) {
-                // File deleted successfully
-                mainManager.setCurrWS(path)
-            } else {
-                mainManager.bBar.setError("Failed to delete file ${treeFile.file.name}!")
+            CoroutineScope(Dispatchers.Main).launch {
+                var filesInDirs = 0
+                dirs.forEach { filesInDirs += it.file.listFiles()?.filter { child -> !files.map { it.file }.contains(child) }?.size ?: 0 }
+                val fileInfoString = when {
+                    dirs.isNotEmpty() && files.isNotEmpty() -> "${dirs.size} directories (with $filesInDirs files) and ${files.size} files"
+                    dirs.isNotEmpty() -> "${dirs.size} directories (with $filesInDirs files)"
+                    files.isNotEmpty() ->"${files.size} files"
+                    else -> "nothing"
+                }
+
+                val confirmation = COptionPane.confirm(
+                    mainManager.tm,
+                    mainManager.sm,
+                    mainManager.icons,
+                    tree,
+                    "You are about to delete $fileInfoString"
+                ).await()
+
+                if (confirmation) {
+                    files.forEach {
+                        if (!it.file.delete()) {
+                            mainManager.bBar.setError("Failed to delete file ${it.file.name}!")
+                            return@launch
+                        }
+                    }
+
+                    dirs.forEach {
+                        if (!it.file.deleteRecursively()) {
+                            mainManager.bBar.setError("Failed to delete directory ${it.file.name}!")
+                            return@launch
+                        }
+                    }
+
+                    // Files deleted successfully
+                    mainManager.setCurrWS(path)
+                    mainManager.bBar.setInfo("Deleted $fileInfoString")
+                }
             }
         }
 

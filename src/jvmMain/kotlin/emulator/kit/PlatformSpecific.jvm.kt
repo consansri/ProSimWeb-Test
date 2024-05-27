@@ -42,7 +42,9 @@ actual fun nativeInfo(message: String) {
     println("Info: $message")
 }
 
-fun File.toCompilerFile(): AssemblerFile {
-    return AssemblerFile(this.name, this.readText())
+fun File.toAsmFile(relative: File): AssemblerFile {
+    val relativePath = this.toRelativeString(relative).replace('\\', '/')
+    nativeLog("ToAsmFile: $relativePath for ${this.name} from base: ${relative.name}")
+    return AssemblerFile(relativePath, this.readText())
 }
 

@@ -200,6 +200,61 @@ class COptionPane(tm: ThemeManager, sm: ScaleManager) : JOptionPane() {
             return resultDeferred
         }
 
+        fun confirm(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, parent: Component, message: String): Deferred<Boolean>{
+            val resultDeferred = CompletableDeferred<Boolean>()
+
+            val cDialog = CDialog(tm, sm, parent)
+            val cPanel = CPanel(tm, sm, primary = false, isOverlay = true, roundCorners = true)
+            val cLabel = CLabel(tm, sm, message, FontType.BASIC)
+            val cConfirmBtn = CTextButton(tm, sm, "confirm", FontType.BASIC).apply {
+                addActionListener {
+                    resultDeferred.complete(true)
+                    cDialog.dispose()
+                }
+            }
+            val cCancelBtn = CTextButton(tm, sm, "cancel", FontType.BASIC).apply {
+                addActionListener {
+                    resultDeferred.complete(false)
+                    cDialog.dispose()
+                }
+            }
+
+            cDialog.layout = BorderLayout()
+            cPanel.layout = GridBagLayout()
+
+            val gbc = GridBagConstraints()
+            gbc.gridx = 0
+            gbc.gridy = 0
+            gbc.gridwidth = 2
+            gbc.weightx = 1.0
+            gbc.weighty = 0.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            cPanel.add(cLabel, gbc)
+
+            gbc.gridwidth = 1
+            gbc.gridy = 1
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            cPanel.add(cConfirmBtn, gbc)
+
+            gbc.gridx = 1
+            cPanel.add(cCancelBtn, gbc)
+
+            cDialog.add(cPanel, BorderLayout.CENTER)
+            cDialog.pack()
+            cDialog.setLocationRelativeTo(null)
+            cDialog.isVisible = true
+            cDialog.requestFocus()
+
+            cDialog.addFocusListener(object : FocusAdapter(){
+                override fun focusLost(e: FocusEvent?) {
+                    resultDeferred.complete(false)
+                    cDialog.dispose()
+                }
+            })
+
+            return resultDeferred
+        }
+
         private fun lazyLoadDirectory(treeModel: DefaultTreeModel, parentNode: DefaultMutableTreeNode, showOnlyDirectories: Boolean) {
             val directory = parentNode.userObject as? Workspace.TreeFile ?: return
             val files = directory.file.listFiles() ?: emptyArray()

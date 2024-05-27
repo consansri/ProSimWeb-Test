@@ -311,7 +311,10 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          * @return True if the file was imported successfully, false otherwise.
          */
         fun importFile(referenceToken: Token, name: String): Boolean {
-            val file = others.firstOrNull { it.name == name } ?: return false
+            val file = others.firstOrNull { it.name == name }
+            if (file == null) {
+                throw ParserError(referenceToken, "Couldn't find file with relative path $name!")
+            }
             nativeLog("Importing: ${file.name} others: ${(others - file).joinToString { it.name }}")
             val tree = assembler.compile(file, others - file, Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD)
             tree.tokens.forEach {
