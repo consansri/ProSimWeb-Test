@@ -25,14 +25,14 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
         this.endianess = endianess
     }
 
-    override fun load(address: Variable.Value.Hex): Variable.Value {
-        val value = memList.firstOrNull { it.address.getRawHexStr() == address.toHex().getRawHexStr() }?.variable?.value
+    override fun load(address: Variable.Value): Variable.Value {
+        val value = memList.firstOrNull { it.address.getRawHexStr() == address.toHex().getUResized(addressSize).getRawHexStr() }?.variable?.value
         return (value ?: getInitialBinary().get())
     }
 
-    override fun store(address: Variable.Value.Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean) {
+    override fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType, readonly: Boolean) {
         val hexValue = value.toHex()
-        var hexAddress = address.toHex()
+        var hexAddress = address.toHex().getUResized(addressSize)
 
         val bytes = if(endianess == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
 

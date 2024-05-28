@@ -536,7 +536,7 @@ class RV32Syntax {
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedByte = arch.memory.load(memAddr.toHex())
-                        rd.set(loadedByte.getUResized(RV32.XLEN))
+                        rd.set(loadedByte.toBin().getUResized(RV32.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
@@ -555,7 +555,7 @@ class RV32Syntax {
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedByte = arch.memory.load(memAddr.toHex(), 2)
-                        rd.set(loadedByte.getUResized(RV32.XLEN))
+                        rd.set(loadedByte.toBin().getUResized(RV32.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
@@ -578,7 +578,7 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.memory.store(memAddr, rs2.get().toBin().getResized(Variable.Size.Bit8()))
+                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit8()))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
@@ -601,7 +601,7 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.memory.store(memAddr, rs2.get().toBin().getResized(Variable.Size.Bit16()))
+                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit16()))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
@@ -624,7 +624,7 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.variable.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.memory.store(memAddr, rs2.get().toBin().getResized(Variable.Size.Bit32()))
+                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit32()))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }

@@ -1,6 +1,7 @@
 package me.c3.ui.components.processor
 
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
@@ -102,7 +103,7 @@ class MemoryView(private val mainManager: MainManager) : CPanel(mainManager.tm, 
                 }
                 val ascii = contentArray.joinToString("") {
                     when (it) {
-                        is Memory.MemInstance -> it.variable.get().toASCII()
+                        is MainMemory.MemInstance -> it.variable.get().toASCII()
                         else -> "·"
                     }
                 }

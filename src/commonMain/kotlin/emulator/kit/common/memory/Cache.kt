@@ -14,14 +14,14 @@ abstract class Cache(protected val backingMemory: Memory, val console: IConsole)
     protected abstract fun accessCache(address: Hex): Pair<AccessResult, Variable.Value>
     protected abstract fun updateCache(address: Hex, value: Variable.Value, mark: InstanceType): AccessResult
 
-    override fun load(address: Hex): Variable.Value {
-        val result = accessCache(address)
+    override fun load(address: Variable.Value): Variable.Value {
+        val result = accessCache(address.toHex().getUResized(addressSize))
         console.log("${result.first} for load($address)")
         return result.second
     }
 
-    override fun store(address: Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean) {
-        val result = updateCache(address, value, mark)
+    override fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType, readonly: Boolean) {
+        val result = updateCache(address.toHex().getUResized(addressSize), value, mark)
         console.log("${result} for store($address)")
     }
 

@@ -225,14 +225,14 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             PLA -> {
                 sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
-                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
+                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
                 ac.set(loaded)
                 setFlags(arch, n = loaded.getBit(0), checkZero = loaded)
             }
 
             PLP -> {
                 sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
-                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
+                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
                 setFlags(arch, n = loaded.getBit(0), v = loaded.getBit(1), d = loaded.getBit(4), i = loaded.getBit(5), z = loaded.getBit(6), c = loaded.getBit(7))
             }
 
@@ -366,7 +366,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val memBin = arch.memory.load(it)
+                            val memBin = arch.memory.load(it).toBin()
                             val shiftRes = memBin shl 1
                             arch.memory.store(it, shiftRes)
                             setFlags(arch, c = memBin.getBit(0), checkZero = shiftRes, n = shiftRes.getBit(0))
@@ -385,7 +385,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val loaded = arch.memory.load(it)
+                            val loaded = arch.memory.load(it).toBin()
                             val shifted = loaded ushr 1
                             setFlags(arch, n = Variable.Value.Bin("0", Variable.Size.Bit1()), checkZero = shifted, c = loaded.getBit(7))
                             arch.memory.store(it, shifted)
@@ -405,7 +405,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val loaded = arch.memory.load(it)
+                            val loaded = arch.memory.load(it).toBin()
                             val rotated = loaded.ushl(1) and flags.c.getUResized(T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(0))
                             arch.memory.store(it, rotated)
@@ -425,7 +425,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val loaded = arch.memory.load(it)
+                            val loaded = arch.memory.load(it).toBin()
                             val rotated = loaded.ushr(1) and Variable.Value.Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(7))
                             arch.memory.store(it, rotated)
@@ -603,7 +603,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     }
 
                     IND -> {
-                        pc.set(Variable.Value.Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.memory.load(bigVal).getRawBinStr(), T6502.WORD_SIZE))
+                        pc.set(Variable.Value.Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.memory.load(bigVal).toBin().getRawBinStr(), T6502.WORD_SIZE))
                     }
 
                     else -> {}
@@ -644,7 +644,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             RTI -> {
                 // Load Status Register
                 sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
-                val loadedSR = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
+                val loadedSR = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
                 setFlags(arch, n = loadedSR.getBit(0), v = loadedSR.getBit(1), d = loadedSR.getBit(4), i = loadedSR.getBit(5), z = loadedSR.getBit(6), c = loadedSR.getBit(7))
 
                 // Load Return Address

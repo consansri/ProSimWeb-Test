@@ -57,7 +57,7 @@ val MemoryView = FC<MemViewProps> { props ->
         .ioBounds?.lowerAddr?.toHex())
     val (amount, setAmount) = useState(localStorage.getItem("${WebStorageKey.MIO_AMOUNT}-${props.archState.component1().description.name}")?.toLongOrNull() ?: props.archState.component1().memory.ioBounds?.amount ?: 32)
 
-    val (editVar, setEditVar) = useState<Memory.MemInstance.EditableValue>()
+    val (editVar, setEditVar) = useState<MainMemory.MemInstance.EditableValue>()
 
     div {
         css {
@@ -350,7 +350,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                                         +memInstance.variable.get().toHex().getRawHexStr()
 
-                                        if (memInstance is Memory.MemInstance.EditableValue) {
+                                        if (memInstance is MainMemory.MemInstance.EditableValue) {
                                             onClick = {
                                                 setEditVar(memInstance)
                                             }

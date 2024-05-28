@@ -1,5 +1,6 @@
 package me.c3.ui.styled
 
+import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
 import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.borders.DirectionalBorder
@@ -55,10 +56,10 @@ class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
                 if ((highlightRow == null || highlightRow == row) && (highlightColumn == null || highlightColumn == column)) {
                     highlightColor
                 } else {
-                    if (value is Memory.MemInstance) tm.curr.dataLaF.getMemInstanceColor(value.mark) else fg
+                    if (value is MainMemory.MemInstance) tm.curr.dataLaF.getMemInstanceColor(value.mark) else fg
                 }
             } else {
-                if (value is Memory.MemInstance) tm.curr.dataLaF.getMemInstanceColor(value.mark) else fg
+                if (value is MainMemory.MemInstance) tm.curr.dataLaF.getMemInstanceColor(value.mark) else fg
             }
 
             border = BorderFactory.createEmptyBorder()

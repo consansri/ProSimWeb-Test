@@ -11,15 +11,15 @@ abstract class Memory {
     var endianess: Endianess = Endianess.BigEndian
 
 
-    abstract fun load(address: Variable.Value.Hex): Variable.Value
-    abstract fun store(address: Variable.Value.Hex, value: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false)
+    abstract fun load(address: Variable.Value): Variable.Value
+    abstract fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false)
     abstract fun clear()
 
-    fun store(address: Variable.Value.Hex, variable: Variable, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false) {
+    fun store(address: Variable.Value, variable: Variable, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false) {
         return store(address, variable.get(), mark, readonly)
     }
 
-    fun storeArray(address: Variable.Value.Hex, vararg values: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false) {
+    fun storeArray(address: Variable.Value, vararg values: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false) {
         var curraddr: Variable.Value = address
         values.forEach {
             store(curraddr.toHex(), it, mark, readonly)
@@ -27,10 +27,10 @@ abstract class Memory {
         }
     }
 
-    fun load(address: Variable.Value.Hex, amount: Int): Variable.Value.Bin {
+    fun load(address: Variable.Value, amount: Int): Variable.Value.Bin {
         val instances = mutableListOf<String>()
 
-        var instanceAddress = address.getUResized(addressSize)
+        var instanceAddress = address.toHex().getUResized(addressSize)
         for (i in 0..<amount) {
             val value = load(instanceAddress)
 
@@ -45,10 +45,10 @@ abstract class Memory {
         return Variable.Value.Bin(instances.joinToString("") { it })
     }
 
-    fun loadArray(address: Variable.Value.Hex, amount: Int): Array<Variable.Value.Bin> {
+    fun loadArray(address: Variable.Value, amount: Int): Array<Variable.Value.Bin> {
         val instances = mutableListOf<Variable.Value.Bin>()
 
-        var instanceAddress = address.getUResized(addressSize)
+        var instanceAddress = address.toHex().getUResized(addressSize)
         for (i in 0..<amount) {
             val value = load(instanceAddress)
             instances.add(value.toBin())
