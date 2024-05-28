@@ -74,7 +74,7 @@ class ProcessorSettings(mainManager: MainManager, processorView: ProcessorView) 
     }
 
     private fun updatePC(arch: Architecture) {
-        pcLabel.text = "PC(${arch.getRegContainer().pc.get().toHex().getRawHexStr()})"
+        pcLabel.text = "PC(${arch.regContainer.pc.get().toHex().getRawHexStr()})"
     }
 
 

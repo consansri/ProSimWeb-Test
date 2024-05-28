@@ -13,6 +13,8 @@ import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.common.RegContainer.Register
 import emulator.archs.riscv64.CSRegister.Privilege
 import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.memory.MainMemory
+import emulator.kit.common.memory.Memory
 
 
 /**
@@ -409,7 +411,7 @@ object RV32 {
             pcSize = Variable.Size.Bit32(),
             standardRegFileName = MAIN_REGFILE_NAME
         ),
-        Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)
+        MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)
     )
 
 

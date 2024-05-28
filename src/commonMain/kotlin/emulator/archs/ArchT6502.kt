@@ -10,8 +10,8 @@ import emulator.kit.optional.BasicArchImpl
  */
 class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
     override fun executeNext(): ExecutionResult {
-        val currentPC = getRegContainer().pc.get().toHex()
-        val threeBytes = getMemory().loadArray(currentPC, 3)
+        val currentPC = regContainer.pc.get().toHex()
+        val threeBytes = memory.loadArray(currentPC, 3)
 
         var paramType: AModes? = null
         val instrType = InstrType.entries.firstOrNull { type ->

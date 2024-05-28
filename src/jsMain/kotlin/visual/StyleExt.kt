@@ -5,9 +5,9 @@ import emotion.react.css
 import emulator.kit.Architecture
 import emulator.kit.common.Docs
 import emulator.kit.optional.FileHandler
-import emulator.kit.common.Memory
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.common.memory.Memory
 import react.FC
 import react.Props
 import react.StateInstance
@@ -92,7 +92,7 @@ object StyleExt {
                                 if (fileHandler.getAllFiles().none { it.getName() == "example" }) {
                                     fileHandler.import(FileHandler.File("example", component.content))
                                     window.scrollTo(0, 0)
-                                    arch.getConsole().info("Successfully imported 'example'!")
+                                    arch.console.info("Successfully imported 'example'!")
                                     fileChangeEvent.component2().invoke(!fileChangeEvent.component1())
                                 } else {
                                     val currentTarget = event.currentTarget
@@ -100,7 +100,7 @@ object StyleExt {
                                     web.timers.setTimeout({
                                         currentTarget.classList.remove(StyleAttr.ANIM_SHAKERED)
                                     }, 100)
-                                    arch.getConsole().warn("Documentation couldn't import code example cause filename 'example' already exists!")
+                                    arch.console.warn("Documentation couldn't import code example cause filename 'example' already exists!")
                                 }
                             }
                         }

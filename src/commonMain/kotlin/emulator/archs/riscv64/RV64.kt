@@ -12,6 +12,8 @@ import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.CSRegister.Privilege
 import emulator.kit.optional.Feature
 import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.memory.MainMemory
+import emulator.kit.common.memory.Memory
 
 object RV64 {
 
@@ -407,7 +409,7 @@ object RV64 {
             pcSize = REG_VALUE_SIZE,
             standardRegFileName = MAIN_REGFILE_NAME
         ),
-        Memory(MEM_ADDRESS_WIDTH, MEM_INIT, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)
+        MainMemory(MEM_ADDRESS_WIDTH,  MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)
     )
 
 }

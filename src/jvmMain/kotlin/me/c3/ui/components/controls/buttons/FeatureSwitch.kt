@@ -26,14 +26,14 @@ class FeatureSwitch(private val feature: Feature, mainManager: MainManager) : CT
                 SwingUtilities.invokeLater {
                     switchingFeatures = true
                     if (feature.isActive()) {
-                        for (featToUpdate in mainManager.currArch().getAllFeatures()) {
+                        for (featToUpdate in mainManager.currArch().features) {
                             if (featToUpdate.enableIDs.contains(feature.id)) {
                                 featToUpdate.deactivate()
                             }
                         }
                     } else {
                         for (id in feature.enableIDs) {
-                            mainManager.currArch().getAllFeatures().firstOrNull { it.id == id }?.activate()
+                            mainManager.currArch().features.firstOrNull { it.id == id }?.activate()
                         }
                     }
                     feature.switch()

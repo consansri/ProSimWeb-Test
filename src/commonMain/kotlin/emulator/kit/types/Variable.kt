@@ -1369,6 +1369,9 @@ class Variable {
      * Contains all additional needed tools for working with [Value].
      */
     object Tools {
+
+        fun Int.toValue(size: Size): Value.Dec = Value.Dec(this.toString(), size)
+
         fun getNearestSize(bitWidth: Int): Size {
 
             when {
@@ -1470,6 +1473,5 @@ class Variable {
     data class CheckResult(val valid: Boolean, val corrected: String, val message: String = "")
     data class AddResult(val result: Value.Bin, val carry: Boolean)
     data class SubResult(val result: Value.Bin, val borrow: Boolean)
-
 
 }

@@ -62,7 +62,7 @@ class ArchManager(initialArch: Architecture) {
         listenersCopy.forEach {
             it(curr)
         }
-        nativeLog("ArchManager: Trigger Feature Change! (${curr.getDescription().name})")
+        nativeLog("ArchManager: Trigger Feature Change! (${curr.description.name})")
     }
 
     /**
@@ -75,6 +75,6 @@ class ArchManager(initialArch: Architecture) {
             it(curr)
         }
         triggerFeatureChanged()
-        nativeLog("ArchManager: Trigger Arch Change! (${curr.getDescription().name})")
+        nativeLog("ArchManager: Trigger Arch Change! (${curr.description.name})")
     }
 }

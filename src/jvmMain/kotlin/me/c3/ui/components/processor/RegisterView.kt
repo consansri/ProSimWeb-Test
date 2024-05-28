@@ -113,7 +113,7 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.tm
 
         mainManager.currArch().getAllRegFiles().forEach {
             val tabLabel = CLabel(mainManager.tm, mainManager.sm, it.name, FontType.BASIC)
-            if (it.getRegisters(mainManager.currArch().getAllFeatures()).isNotEmpty()) {
+            if (it.getRegisters(mainManager.currArch().features).isNotEmpty()) {
                 val regFileTable = RegFileTable(mainManager, it) {
                     updateAllValues()
                 }
@@ -137,12 +137,12 @@ class RegisterView(private val mainManager: MainManager) : CPanel(mainManager.tm
             set(value) {
                 field = value
                 regs = when (value) {
-                    SortOrder.ALIASES -> regFile.getRegisters(mainManager.currArch().getAllFeatures()).sortedBy { it.aliases.firstOrNull() }
-                    SortOrder.ADDRESS -> regFile.getRegisters(mainManager.currArch().getAllFeatures()).sortedBy { it.address.toRawString() }
+                    SortOrder.ALIASES -> regFile.getRegisters(mainManager.currArch().features).sortedBy { it.aliases.firstOrNull() }
+                    SortOrder.ADDRESS -> regFile.getRegisters(mainManager.currArch().features).sortedBy { it.address.toRawString() }
                 }
             }
 
-        private var regs = regFile.getRegisters(mainManager.currArch().getAllFeatures())
+        private var regs = regFile.getRegisters(mainManager.currArch().features)
             set(value) {
                 field = value
                 updateContent()

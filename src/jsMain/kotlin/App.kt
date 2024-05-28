@@ -32,7 +32,7 @@ val App = FC<Props> {
 
 
     val archState = useState(Link.entries.getOrNull(localStorage.getItem(WebStorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0)?.arch ?: Link.entries.first().arch)
-    val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().getAllFeatures().filter { !it.invisible })
+    val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().features.filter { !it.invisible })
     val (showSettings, setShowSettings) = useState(false)
     val fileState = useState(FileHandler())
 
@@ -241,7 +241,7 @@ val App = FC<Props> {
 
                 for (feature in visibleFeatures) {
                     div {
-                        title = "${archState.component1().getDescription().name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}-${feature.name}"
+                        title = "${archState.component1().description.name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}-${feature.name}"
                         css {
                             if (!feature.isActive()) {
                                 backgroundColor = important(StyleAttr.Main.AppControls.BgColorDeActivated.get())
@@ -257,19 +257,19 @@ val App = FC<Props> {
                         }
                         onClick = {
                             if (feature.isActive()) {
-                                for (featToUpdate in archState.component1().getAllFeatures()) {
+                                for (featToUpdate in archState.component1().features) {
                                     if (featToUpdate.enableIDs.contains(feature.id)) {
                                         featToUpdate.deactivate()
                                     }
                                 }
                             } else {
                                 for (id in feature.enableIDs) {
-                                    archState.component1().getAllFeatures().firstOrNull { it.id == id }?.activate()
+                                    archState.component1().features.firstOrNull { it.id == id }?.activate()
                                 }
                             }
                             feature.switch()
-                            localStorage.setItem("${archState.component1().getDescription().name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}", feature.isActive().toString())
-                            setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
+                            localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}", feature.isActive().toString())
+                            setVisibleFeatures(archState.component1().features.filter { !it.invisible })
                             archState.component1().exeReset()
                         }
                     }
@@ -328,7 +328,7 @@ val App = FC<Props> {
                 }
             }
 
-            for (setting in archState.component1().getAllSettings()) {
+            for (setting in archState.component1().settings) {
                 div {
                     className = ClassName(StyleAttr.Header.CLASS_OVERLAY_LABELEDINPUT)
                     ReactHTML.label {
@@ -352,7 +352,7 @@ val App = FC<Props> {
                                     val hex = Variable.Value.Hex(it.currentTarget.value, RV64.XLEN)
                                     if (hex.checkResult.valid) {
                                         setting.value.set(hex)
-                                        localStorage.setItem("${archState.component1().getDescription().name}-${WebStorageKey.ARCH_SETTING}-${setting.name}", setting.value.get().toHex().getHexStr())
+                                        localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}", setting.value.get().toHex().getHexStr())
                                     } else {
                                         it.currentTarget.value = setting.value.get().toHex().getRawHexStr()
                                     }
@@ -385,22 +385,22 @@ val App = FC<Props> {
     }
     useEffect(archState.component1()) {
         if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: Switch to " + archState.component1().getDescription().fullName)
+            console.log("REACT: Switch to " + archState.component1().description.fullName)
         }
-        for (feature in archState.component1().getAllFeatures()) {
-            localStorage.getItem("${archState.component1().getDescription().name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}")?.toBooleanStrictOrNull()?.let {
+        for (feature in archState.component1().features) {
+            localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}")?.toBooleanStrictOrNull()?.let {
                 if(it) feature.activate() else feature.deactivate()
             }
         }
-        setVisibleFeatures(archState.component1().getAllFeatures().filter { !it.invisible })
-        for (setting in archState.component1().getAllSettings()) {
+        setVisibleFeatures(archState.component1().features.filter { !it.invisible })
+        for (setting in archState.component1().settings) {
             when (setting) {
                 is ArchSetting.BoolSetting -> {
                     TODO()
                 }
 
                 is ArchSetting.ImmSetting -> {
-                    localStorage.getItem("${archState.component1().getDescription().name}-${WebStorageKey.ARCH_SETTING}-${setting.name}")?.let {
+                    localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}")?.let {
                         val value = Variable.Value.Hex(it, RV64.XLEN)
                         if (value.checkResult.valid) {
                             setting.value.set(value)

@@ -167,7 +167,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
             console.log("REACT: Exe Event Changed!")
         }
 
-        val pcValue = arch.getRegContainer().pc.variable.get()
+        val pcValue = arch.regContainer.pc.variable.get()
         setCurrExeAddr(pcValue.toHex())
     }
 

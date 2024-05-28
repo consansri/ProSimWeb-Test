@@ -96,7 +96,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(psFrame.getThemeM()
             gbc.gridy--
         }
         featureButtons.clear()
-        mainManager.currArch().getAllFeatures().filter { !it.invisible && !it.static }.forEach {
+        mainManager.currArch().features.filter { !it.invisible && !it.static }.forEach {
             val fswitch = FeatureSwitch(it, mainManager)
             fswitch.alignmentX = Component.CENTER_ALIGNMENT
             featureButtons.add(fswitch)

@@ -3,12 +3,12 @@ package emulator.kit
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
-import emulator.kit.optional.Cache
 import emulator.kit.types.Variable
 
 import debug.DebugTools
 import emulator.kit.assembler.*
 import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.common.memory.MainMemory
 import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 
@@ -29,7 +29,7 @@ import emulator.kit.optional.Feature
  *  @property regContainer Essential: Given by Config
  *  @property memory Essential: Given by Config
  *
- *  @property iConsole Instantiated with Config name
+ *  @property console Instantiated with Config name
  *  @property assembler Instantiated with AsmConfig grammar and assembly and ArchConst COMPILER_REGEX and StandardHL
  *
  *  Possible Features
@@ -37,15 +37,15 @@ import emulator.kit.optional.Feature
  *
  */
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
-    private val description: Config.Description
+    val description: Config.Description
     val fileEnding: String
-    private val regContainer: RegContainer
-    private val memory: Memory
-    private val iConsole: IConsole
-    private val assembler: Assembler
-    private val cache: Cache?
-    private val features: List<Feature>
-    private val settings: List<ArchSetting>
+    val regContainer: RegContainer
+    val memory: MainMemory
+    val console: IConsole
+    val assembler: Assembler
+    val features: List<Feature>
+    val settings: List<ArchSetting>
+    
     private var lastFile: AsmFile? = null
     private val definedAssembly: DefinedAssembly
 
@@ -54,8 +54,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.fileEnding = config.fileEnding
         this.regContainer = config.regContainer
         this.memory = config.memory
-        this.cache = config.cache
-        this.iConsole = IConsole("${config.description.name} Console")
+        this.console = IConsole("${config.description.name} Console")
         this.features = asmConfig.features
         this.settings = asmConfig.settings
         this.definedAssembly = asmConfig.definedAssembly
@@ -65,15 +64,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         )
     }
 
-    // Getter for Architecture Components
-    fun getDescription(): Config.Description = description
-    fun getRegContainer(): RegContainer = regContainer
-    fun getMemory(): Memory = memory
-    fun getConsole(): IConsole = iConsole
-    fun getAssembler(): Assembler = assembler
     fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AsmFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
-    fun getAllFeatures(): List<Feature> = features
-    fun getAllSettings(): List<ArchSetting> = settings
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
     fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
     fun getAllInstrTypes(): List<InstrTypeInterface> = assembler.parser.getInstrs(features)
@@ -86,7 +77,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeContinuous() {
-        getConsole().clear()
+        console.clear()
     }
 
     /**
@@ -94,7 +85,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeSingleStep() {
-        getConsole().clear()
+        console.clear()
     }
 
     /**
@@ -102,7 +93,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeMultiStep(steps: Long) {
-        getConsole().clear()
+        console.clear()
     }
 
     /**
@@ -110,7 +101,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeSkipSubroutine() {
-        getConsole().clear()
+        console.clear()
     }
 
     /**
@@ -118,7 +109,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeReturnFromSubroutine() {
-        getConsole().clear()
+        console.clear()
     }
 
     /**
@@ -126,7 +117,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeUntilLine(lineID: Int, wsRelativeFileName: String) {
-        getConsole().clear()
+        console.clear()
     }
 
     /**
@@ -134,7 +125,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * should be implemented by specific archs
      */
     open fun exeUntilAddress(address: Variable.Value.Hex) {
-        getConsole().clear()
+        console.clear()
     }
 
     /**
@@ -144,7 +135,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     open fun exeReset() {
         regContainer.clear()
         memory.clear()
-        getConsole().exeInfo("resetting")
+        console.exeInfo("resetting")
     }
 
     /**
@@ -160,7 +151,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             println("Architecture.check(): input \n $mainFile \n")
         }
 
-        val mode = if(build) Process.Mode.FULLBUILD else Process.Mode.STOP_AFTER_ANALYSIS
+        val mode = if (build) Process.Mode.FULLBUILD else Process.Mode.STOP_AFTER_ANALYSIS
 
         val compilationResult = assembler.compile(mainFile, others, mode)
         return compilationResult

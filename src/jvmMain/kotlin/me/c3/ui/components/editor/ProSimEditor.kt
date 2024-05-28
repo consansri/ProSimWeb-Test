@@ -72,7 +72,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      * Marks the current program counter position in the editor.
      */
     private fun markPC() {
-        val lineLoc = mainManager.currArch().getAssembler().getLastLineMap()[mainManager.currArch().getRegContainer().pc.get().toHex().toRawString()]?.firstOrNull {
+        val lineLoc = mainManager.currArch().assembler.getLastLineMap()[mainManager.currArch().regContainer.pc.get().toHex().toRawString()]?.firstOrNull {
             editorFile.matches(mainManager.currWS(), it)
         }
 

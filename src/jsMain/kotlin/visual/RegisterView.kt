@@ -101,7 +101,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
             }
 
-            for (regFile in allRegFiles.filter { it.getRegisters(arch.getAllFeatures()).isNotEmpty() }) {
+            for (regFile in allRegFiles.filter { it.getRegisters(arch.features).isNotEmpty() }) {
                 a {
                     css {
                         display = Display.inlineBlock
@@ -146,11 +146,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         paddingTop = 0.5.rem
                     }
 
-                    +"PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+                    +"PC: ${arch.regContainer.pc.variable.get().toHex().getHexStr()}"
 
                     onClick = { event ->
                         pcRef.current?.let {
-                            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+                            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().getHexStr()}"
                         }
                     }
                 }
@@ -235,8 +235,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                     val measuredRegTypeChange = measureTime {
                         registerArray.let { regFile ->
-                            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
-                                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+                            for (reg in regFile.getRegisters(props.archState.component1().features)) {
+                                val regID = regFile.getRegisters(props.archState.component1().features).indexOf(reg)
 
                                 tr {
                                     td {
@@ -426,8 +426,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             allRegFiles[0]
         }
         registers.let { regFile ->
-            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
-                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+            for (reg in regFile.getRegisters(props.archState.component1().features)) {
+                val regID = regFile.getRegisters(props.archState.component1().features).indexOf(reg)
                 try {
                     val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = if (reg.containsFlags) reg.variable.get().toBin().getRawBinStr() else {
@@ -455,7 +455,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().getHexStr()}"
         }
     }
 
@@ -470,8 +470,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             allRegFiles[0]
         }
         registers.let { regFile ->
-            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
-                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+            for (reg in regFile.getRegisters(props.archState.component1().features)) {
+                val regID = regFile.getRegisters(props.archState.component1().features).indexOf(reg)
                 try {
                     val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = if (reg.containsFlags) reg.variable.get().toBin().getRawBinStr() else {
@@ -500,7 +500,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().getHexStr()}"
         }
     }
 
@@ -515,8 +515,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             allRegFiles[0]
         }
         registers.let { regFile ->
-            for (reg in regFile.getRegisters(props.archState.component1().getAllFeatures())) {
-                val regID = regFile.getRegisters(props.archState.component1().getAllFeatures()).indexOf(reg)
+            for (reg in regFile.getRegisters(props.archState.component1().features)) {
+                val regID = regFile.getRegisters(props.archState.component1().features).indexOf(reg)
                 try {
                     val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
                     regRef?.value = if(reg.containsFlags) reg.variable.get().toBin().getRawBinStr() else {
@@ -544,7 +544,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${arch.getRegContainer().pc.variable.get().toHex().getHexStr()}"
+            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().getHexStr()}"
         }
     }
 

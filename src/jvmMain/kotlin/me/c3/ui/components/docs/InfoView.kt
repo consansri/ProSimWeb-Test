@@ -36,7 +36,7 @@ class InfoView(private val mainManager: MainManager) : CPanel(mainManager.tm, ma
      */
     private fun updateDocs(mainManager: MainManager) {
         docTabs.removeAllTabs()
-        val docs = mainManager.currArch().getDescription().docs
+        val docs = mainManager.currArch().description.docs
         docs.files.filterIsInstance<Docs.DocFile.DefinedFile>().forEach {
             docTabs.addTab(CLabel(mainManager.tm, mainManager.sm, it.title, FontType.BASIC), CDocFile(it))
         }

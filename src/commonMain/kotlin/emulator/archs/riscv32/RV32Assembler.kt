@@ -14,7 +14,7 @@ import emulator.kit.types.Variable
 import emulator.archs.riscv32.RV32Syntax.ParamType.*
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
-import emulator.kit.common.Memory
+import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 
 class RV32Assembler : DefinedAssembly {

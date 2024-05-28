@@ -53,8 +53,8 @@ val InfoView = FC<InfoViewProps> { props ->
                 gap = StyleAttr.paddingSize
                 flexWrap = FlexWrap.wrap
             }
-            for (docID in arch.getDescription().docs.files.indices) {
-                val doc = arch.getDescription().docs.files[docID]
+            for (docID in arch.description.docs.files.indices) {
+                val doc = arch.description.docs.files[docID]
                 a {
                     css {
                         cursor = Cursor.pointer
@@ -197,7 +197,7 @@ val InfoView = FC<InfoViewProps> { props ->
                 ref = docDiv
 
                 currMDID?.let { id ->
-                    arch.getDescription().docs.files.getOrNull(id)?.let { file ->
+                    arch.description.docs.files.getOrNull(id)?.let { file ->
                         if (file is Docs.DocFile.DefinedFile) {
                             file.chapters.forEach {
                                 val fc = it.render(props.archState.component1(), props.fileState.component1(), props.fileChangeEvent)
@@ -214,7 +214,7 @@ val InfoView = FC<InfoViewProps> { props ->
 
     useEffect(currMDID) {
         if (currMDID != null) {
-            val file = arch.getDescription().docs.files[currMDID]
+            val file = arch.description.docs.files[currMDID]
             if (file is Docs.DocFile.SourceFile) {
                 GlobalScope.launch {
                     val snippet = fetch(file.src).text()
@@ -227,14 +227,14 @@ val InfoView = FC<InfoViewProps> { props ->
                                     if (props.fileState.component1().getAllFiles().none { it.getName() == "example" }) {
                                         props.fileState.component1().import(FileHandler.File("example", text))
                                         window.scrollTo(0, 0)
-                                        arch.getConsole().info("Successfully imported 'example'!")
+                                        arch.console.info("Successfully imported 'example'!")
                                         props.fileChangeEvent.component2().invoke(!props.fileChangeEvent.component1())
                                     } else {
                                         child.classList.add(StyleAttr.ANIM_SHAKERED)
                                         web.timers.setTimeout({
                                             child.classList.remove(StyleAttr.ANIM_SHAKERED)
                                         }, 100)
-                                        arch.getConsole().warn("Documentation couldn't import code example cause filename 'example' already exists!")
+                                        arch.console.warn("Documentation couldn't import code example cause filename 'example' already exists!")
                                     }
                                 }
                             })

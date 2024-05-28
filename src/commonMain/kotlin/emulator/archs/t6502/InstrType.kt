@@ -132,7 +132,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         val bigVal = Variable.Value.Hex(threeBytes.drop(1).joinToString("") { it.toHex().getRawHexStr() }, T6502.WORD_SIZE)
 
         val flags = this.getFlags(arch)
-        val pc = arch.getRegContainer().pc
+        val pc = arch.regContainer.pc
         val ac = arch.getRegByName("AC")
         val x = arch.getRegByName("X")
         val y = arch.getRegByName("Y")
@@ -140,7 +140,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         val sp = arch.getRegByName("SP")
 
         if (ac == null || x == null || y == null || flags == null || sp == null || sr == null) {
-            arch.getConsole().error("Register missing!")
+            arch.console.error("Register missing!")
             return
         }
         val operand = this.getOperand(arch, amode, smallVal, bigVal)
@@ -150,7 +150,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         when (this) {
             LDA -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 ac.set(operand)
@@ -159,7 +159,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             LDX -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 x.set(operand)
@@ -168,23 +168,23 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             LDY -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 y.set(operand)
                 setFlags(arch, n = y.get().toBin().getBit(0), checkZero = y.get().toBin())
             }
 
-            STA -> address?.let { arch.getMemory().store(it, ac.get()) } ?: {
-                arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+            STA -> address?.let { arch.memory.store(it, ac.get()) } ?: {
+                arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
             }
 
-            STX -> address?.let { arch.getMemory().store(it, x.get()) } ?: {
-                arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+            STX -> address?.let { arch.memory.store(it, x.get()) } ?: {
+                arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
             }
 
-            STY -> address?.let { arch.getMemory().store(it, y.get()) } ?: {
-                arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+            STY -> address?.let { arch.memory.store(it, y.get()) } ?: {
+                arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
             }
 
             TAX -> {
@@ -214,35 +214,35 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             PHA -> {
-                arch.getMemory().store(sp.get().toBin().getUResized(T6502.WORD_SIZE), ac.get())
+                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE), ac.get())
                 sp.set(sp.get().toBin() - Variable.Value.Bin("1", T6502.BYTE_SIZE))
             }
 
             PHP -> {
-                arch.getMemory().store(sp.get().toBin().getUResized(T6502.WORD_SIZE), sr.get())
+                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE), sr.get())
                 sp.set(sp.get().toBin() - Variable.Value.Bin("1", T6502.BYTE_SIZE))
             }
 
             PLA -> {
                 sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
-                val loaded = arch.getMemory().load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
+                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
                 ac.set(loaded)
                 setFlags(arch, n = loaded.getBit(0), checkZero = loaded)
             }
 
             PLP -> {
                 sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
-                val loaded = arch.getMemory().load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
+                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
                 setFlags(arch, n = loaded.getBit(0), v = loaded.getBit(1), d = loaded.getBit(4), i = loaded.getBit(5), z = loaded.getBit(6), c = loaded.getBit(7))
             }
 
             DEC -> {
                 address?.let {
-                    val dec = arch.getMemory().load(it) - Variable.Value.Bin("1", T6502.BYTE_SIZE)
-                    arch.getMemory().store(it, dec)
+                    val dec = arch.memory.load(it) - Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                    arch.memory.store(it, dec)
                     setFlags(arch, n = dec.toBin().getBit(0), checkZero = dec.toBin())
                 } ?: {
-                    arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                 }
             }
 
@@ -260,11 +260,11 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             INC -> {
                 address?.let {
-                    val inc = arch.getMemory().load(it) + Variable.Value.Bin("1", T6502.BYTE_SIZE)
-                    arch.getMemory().store(it, inc)
+                    val inc = arch.memory.load(it) + Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                    arch.memory.store(it, inc)
                     setFlags(arch, n = inc.toBin().getBit(0), checkZero = inc.toBin())
                 } ?: {
-                    arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                 }
             }
 
@@ -282,7 +282,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             ADC -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -302,7 +302,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             SBC -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -324,7 +324,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             AND -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -335,7 +335,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             EOR -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -346,7 +346,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             ORA -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -366,11 +366,11 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val memBin = arch.getMemory().load(it)
+                            val memBin = arch.memory.load(it)
                             val shiftRes = memBin shl 1
-                            arch.getMemory().store(it, shiftRes)
+                            arch.memory.store(it, shiftRes)
                             setFlags(arch, c = memBin.getBit(0), checkZero = shiftRes, n = shiftRes.getBit(0))
-                        } ?: arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+                        } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
                 }
             }
@@ -385,11 +385,11 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val loaded = arch.getMemory().load(it)
+                            val loaded = arch.memory.load(it)
                             val shifted = loaded ushr 1
                             setFlags(arch, n = Variable.Value.Bin("0", Variable.Size.Bit1()), checkZero = shifted, c = loaded.getBit(7))
-                            arch.getMemory().store(it, shifted)
-                        } ?: arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+                            arch.memory.store(it, shifted)
+                        } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
                 }
             }
@@ -405,11 +405,11 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val loaded = arch.getMemory().load(it)
+                            val loaded = arch.memory.load(it)
                             val rotated = loaded.ushl(1) and flags.c.getUResized(T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(0))
-                            arch.getMemory().store(it, rotated)
-                        } ?: arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+                            arch.memory.store(it, rotated)
+                        } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
                 }
             }
@@ -425,11 +425,11 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
                     else -> {
                         address?.let {
-                            val loaded = arch.getMemory().load(it)
+                            val loaded = arch.memory.load(it)
                             val rotated = loaded.ushr(1) and Variable.Value.Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(7))
-                            arch.getMemory().store(it, rotated)
-                        } ?: arch.getConsole().error("Couldn't load address for ${this.name} ${amode.name}!")
+                            arch.memory.store(it, rotated)
+                        } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
                 }
             }
@@ -445,7 +445,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             CMP -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -456,7 +456,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             CPX -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -467,7 +467,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             CPY -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
 
@@ -478,7 +478,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             BCC -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.c == Variable.Value.Bin("0", Variable.Size.Bit1())) {
@@ -487,13 +487,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // Carry not clear
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
             BCS -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.c == Variable.Value.Bin("1", Variable.Size.Bit1())) {
@@ -502,13 +502,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // Carry not set
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
             BEQ -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.z == Variable.Value.Bin("1", Variable.Size.Bit1())) {
@@ -517,13 +517,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // not zero
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
             BMI -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.n == Variable.Value.Bin("1", Variable.Size.Bit1())) {
@@ -532,13 +532,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // not negative
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
             BNE -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.z == Variable.Value.Bin("0", Variable.Size.Bit1())) {
@@ -547,13 +547,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // zero
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
             BPL -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.n == Variable.Value.Bin("0", Variable.Size.Bit1())) {
@@ -562,13 +562,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // not positive
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
             BVC -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.v == Variable.Value.Bin("0", Variable.Size.Bit1())) {
@@ -577,13 +577,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // overflow set
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
             BVS -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 if (flags.v == Variable.Value.Bin("1", Variable.Size.Bit1())) {
@@ -592,7 +592,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 } else {
                     // overflow clear
                     val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                    arch.getRegContainer().pc.set(nextPC)
+                    arch.regContainer.pc.set(nextPC)
                 }
             }
 
@@ -603,7 +603,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     }
 
                     IND -> {
-                        pc.set(Variable.Value.Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.getMemory().load(bigVal).getRawBinStr(), T6502.WORD_SIZE))
+                        pc.set(Variable.Value.Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.memory.load(bigVal).getRawBinStr(), T6502.WORD_SIZE))
                     }
 
                     else -> {}
@@ -612,13 +612,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             JSR -> {
                 val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                arch.getMemory().store(sp.get().toBin().getUResized(T6502.WORD_SIZE) - Variable.Value.Bin("1", T6502.WORD_SIZE), nextPC)
+                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE) - Variable.Value.Bin("1", T6502.WORD_SIZE), nextPC)
                 sp.set(sp.get().toBin() - Variable.Value.Bin("10", T6502.BYTE_SIZE))
                 pc.set(bigVal)
             }
 
             RTS -> {
-                val loadedPC = arch.getMemory().load((sp.get().toBin().getUResized(T6502.WORD_SIZE) + Variable.Value.Bin("1", T6502.WORD_SIZE)).toHex(), 2)
+                val loadedPC = arch.memory.load((sp.get().toBin().getUResized(T6502.WORD_SIZE) + Variable.Value.Bin("1", T6502.WORD_SIZE)).toHex(), 2)
                 sp.set(sp.get().toBin() + Variable.Value.Bin("10", T6502.BYTE_SIZE))
                 pc.set(loadedPC)
             }
@@ -626,16 +626,16 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             BRK -> {
                 // Store Return Address
                 val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                arch.getMemory().store(sp.get().toBin().getUResized(T6502.WORD_SIZE) - Variable.Value.Bin("1", T6502.WORD_SIZE), nextPC)
+                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE) - Variable.Value.Bin("1", T6502.WORD_SIZE), nextPC)
                 sp.set(sp.get().toBin() - Variable.Value.Bin("10", T6502.BYTE_SIZE))
 
                 // Store Status Register
-                arch.getMemory().store(sp.get().toBin().getUResized(T6502.WORD_SIZE), sr.get())
+                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE), sr.get())
                 sp.set(sp.get().toBin() - Variable.Value.Bin("1", T6502.BYTE_SIZE))
 
                 // Load Interrupt Vendor
-                val lsb = arch.getMemory().load(Variable.Value.Hex("FFFE", T6502.WORD_SIZE)).toHex()
-                val msb = arch.getMemory().load(Variable.Value.Hex("FFFF", T6502.WORD_SIZE)).toHex()
+                val lsb = arch.memory.load(Variable.Value.Hex("FFFE", T6502.WORD_SIZE)).toHex()
+                val msb = arch.memory.load(Variable.Value.Hex("FFFF", T6502.WORD_SIZE)).toHex()
 
                 // Jump to Interrupt Handler Address
                 pc.set(Variable.Value.Hex(msb.getRawHexStr() + lsb.getRawHexStr(), T6502.WORD_SIZE))
@@ -644,12 +644,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             RTI -> {
                 // Load Status Register
                 sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
-                val loadedSR = arch.getMemory().load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
+                val loadedSR = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE))
                 setFlags(arch, n = loadedSR.getBit(0), v = loadedSR.getBit(1), d = loadedSR.getBit(4), i = loadedSR.getBit(5), z = loadedSR.getBit(6), c = loadedSR.getBit(7))
 
                 // Load Return Address
                 sp.set(sp.get().toBin() + Variable.Value.Bin("10", T6502.BYTE_SIZE))
-                val retAddr = arch.getMemory().load((sp.get().toHex().getUResized(T6502.WORD_SIZE) - Variable.Value.Hex("1", T6502.WORD_SIZE)).toHex(), 2)
+                val retAddr = arch.memory.load((sp.get().toHex().getUResized(T6502.WORD_SIZE) - Variable.Value.Hex("1", T6502.WORD_SIZE)).toHex(), 2)
 
                 // Jump To Return Address
                 pc.set(retAddr)
@@ -657,7 +657,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
             BIT -> {
                 if (operand == null) {
-                    arch.getConsole().error("Couldn't load operand for ${this.name} ${amode.name}!")
+                    arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
                 val result = ac.get().toBin() and operand.toBin()
@@ -675,7 +675,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             LDA, LDX, LDY, STA, STX, STY, TAX, TAY, TSX, TXA, TXS, TYA, PHA, PHP, PLA, PLP, DEC, DEX, DEY, INC, INX, INY, ADC, SBC, AND, EOR, ORA, ASL, LSR, ROL, ROR, CLC, CLD, CLI, CLV, SEC, SED, SEI, CMP, CPX, CPY, BIT, NOP -> {
                 // Standard PC Increment
                 val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                arch.getRegContainer().pc.set(nextPC)
+                arch.regContainer.pc.set(nextPC)
             }
 
             else -> {
@@ -686,7 +686,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
     }
 
     private fun getOperand(arch: emulator.kit.Architecture, amode: AModes, smallVal: Variable.Value.Hex, bigVal: Variable.Value.Hex): Variable.Value.Hex? {
-        val pc = arch.getRegContainer().pc
+        val pc = arch.regContainer.pc
         val ac = arch.getRegByName("AC")
         val x = arch.getRegByName("X")
         val y = arch.getRegByName("Y")
@@ -701,48 +701,48 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             ZP -> {
-                arch.getMemory().load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)).toHex()
+                arch.memory.load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)).toHex()
             }
 
             ZP_X -> {
                 val addr = Variable.Value.Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-                arch.getMemory().load(addr.toHex()).toHex()
+                arch.memory.load(addr.toHex()).toHex()
             }
 
             ZP_Y -> {
                 val addr = Variable.Value.Hex("00${(smallVal + y.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-                arch.getMemory().load(addr.toHex()).toHex()
+                arch.memory.load(addr.toHex()).toHex()
             }
 
             ABS -> {
-                arch.getMemory().load(bigVal).toHex()
+                arch.memory.load(bigVal).toHex()
             }
 
             ABS_X -> {
                 val addr = bigVal + x.get().toHex()
-                arch.getMemory().load(addr.toHex()).toHex()
+                arch.memory.load(addr.toHex()).toHex()
             }
 
             ABS_Y -> {
                 val addr = bigVal + y.get().toHex()
-                arch.getMemory().load(addr.toHex()).toHex()
+                arch.memory.load(addr.toHex()).toHex()
             }
 
             IND -> {
-                val loadedAddr = arch.getMemory().load(bigVal).toHex()
-                arch.getMemory().load(loadedAddr).toHex()
+                val loadedAddr = arch.memory.load(bigVal).toHex()
+                arch.memory.load(loadedAddr).toHex()
             }
 
             ZP_X_IND -> {
                 val addr = Variable.Value.Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-                val loadedAddr = arch.getMemory().load(addr.toHex()).toHex()
-                arch.getMemory().load(loadedAddr).toHex()
+                val loadedAddr = arch.memory.load(addr.toHex()).toHex()
+                arch.memory.load(loadedAddr).toHex()
             }
 
             ZPIND_Y -> {
-                val loadedAddr = arch.getMemory().load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE))
+                val loadedAddr = arch.memory.load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE))
                 val incAddr = loadedAddr + y.get()
-                arch.getMemory().load(incAddr.toHex()).toHex()
+                arch.memory.load(incAddr.toHex()).toHex()
             }
 
             ACCUMULATOR -> {
@@ -765,8 +765,8 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             ZP -> Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)
             ZP_X -> Variable.Value.Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE)
             ZP_Y -> Variable.Value.Hex("00${(smallVal + y).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_X_IND -> arch.getMemory().load(Variable.Value.Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE), 2).toHex()
-            ZPIND_Y -> (arch.getMemory().load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE), 2) + y).toHex()
+            ZP_X_IND -> arch.memory.load(Variable.Value.Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE), 2).toHex()
+            ZPIND_Y -> (arch.memory.load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE), 2) + y).toHex()
             else -> null
         }
     }

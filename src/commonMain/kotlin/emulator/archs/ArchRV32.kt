@@ -7,8 +7,8 @@ import emulator.kit.optional.BasicArchImpl
 
 class ArchRV32 : BasicArchImpl(RV32.config, RV32.asmConfig) {
     override fun executeNext(): ExecutionResult {
-        val currentPc = getRegContainer().pc.get().toHex()
-        val instrBin = getMemory().load(currentPc, RV32.WORD_WIDTH.getByteCount())
+        val currentPc = regContainer.pc.get().toHex()
+        val instrBin = memory.load(currentPc, RV32.WORD_WIDTH.getByteCount())
         val result = RV32BinMapper.getInstrFromBinary(instrBin) ?: return ExecutionResult(valid = false, typeIsReturnFromSubroutine = false, typeIsBranchToSubroutine = false)
         result.type.execute(arch = this, result.binMap)
         val isReturnFromSubroutine = when (result.type) {

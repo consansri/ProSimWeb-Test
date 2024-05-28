@@ -48,8 +48,8 @@ val Menu = FC<MenuProps> { props ->
     val (exportHidden, setExportHidden) = useState(true)
     val (selFormat, setSelFormat) = useState(FileBuilder.ExportFormat.entries.first())
 
-    val (selAddrW, setSelAddrW) = useState(arch.getMemory().getAddressSize().bitWidth)
-    val (selDataW, setSelDataW) = useState(arch.getMemory().getWordSize().bitWidth)
+    val (selAddrW, setSelAddrW) = useState(arch.memory.addressSize.bitWidth)
+    val (selDataW, setSelDataW) = useState(arch.memory.instanceSize.bitWidth)
 
     val navRef = useRef<HTMLElement>()
     val archsRef = useRef<HTMLDivElement>()
@@ -220,7 +220,7 @@ val Menu = FC<MenuProps> { props ->
                         location.reload()
                     }
 
-                    +archLink.arch.getDescription().fullName
+                    +archLink.arch.description.fullName
                 }
             }
 

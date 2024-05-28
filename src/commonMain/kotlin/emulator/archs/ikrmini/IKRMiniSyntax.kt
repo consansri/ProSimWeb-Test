@@ -3,11 +3,11 @@ package emulator.archs.ikrmini
 import emulator.kit.Architecture
 import emulator.kit.types.Variable.Value.*
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
-import emulator.kit.common.Memory
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.GASNodeType
+import emulator.kit.common.memory.Memory
 import emulator.kit.types.Variable
 
 class IKRMiniSyntax {
@@ -77,29 +77,29 @@ class IKRMiniSyntax {
         override fun getDetectionName(): String = this.name
 
         fun execute(arch: Architecture, paramtype: ParamType, ext: List<Hex>) {
-            val pc = arch.getRegContainer().pc
+            val pc = arch.regContainer.pc
             val ac = arch.getRegByName("AC")
 
             if (ac == null) {
-                arch.getConsole().error("Couldn't find AC!")
+                arch.console.error("Couldn't find AC!")
                 return
             }
 
             val operand: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.getMemory().load(arch.getMemory().load(ext[0], 2).toHex(), 2).toHex()
-                ParamType.DIRECT -> arch.getMemory().load(ext[0], 2).toHex()
+                ParamType.INDIRECT -> arch.memory.load(arch.memory.load(ext[0], 2).toHex(), 2).toHex()
+                ParamType.DIRECT -> arch.memory.load(ext[0], 2).toHex()
                 ParamType.IMMEDIATE -> ext[0]
                 ParamType.DESTINATION -> (pc.get() + ext[0]).toHex()
                 ParamType.IMPLIED -> ac.get().toHex()
                 ParamType.INDIRECT_WITH_OFFSET -> {
                     val offset = ext[0]
                     val address = ext[1]
-                    arch.getMemory().load((arch.getMemory().load(address, 2) + offset).toHex(), 2).toHex()
+                    arch.memory.load((arch.memory.load(address, 2) + offset).toHex(), 2).toHex()
                 }
             }
 
             val address: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.getMemory().load(ext[0], 2).toHex()
+                ParamType.INDIRECT -> arch.memory.load(ext[0], 2).toHex()
                 ParamType.DIRECT -> ext[0]
                 ParamType.IMMEDIATE -> ext[0]
                 ParamType.DESTINATION -> (pc.get().toHex() + ext[0]).toHex()
@@ -107,7 +107,7 @@ class IKRMiniSyntax {
                 ParamType.INDIRECT_WITH_OFFSET -> {
                     val offset = ext[0]
                     val address = ext[1]
-                    (arch.getMemory().load(address, 2) + offset).toHex()
+                    (arch.memory.load(address, 2) + offset).toHex()
                 }
             }
 
@@ -117,8 +117,8 @@ class IKRMiniSyntax {
 
             when (this) {
                 LOAD -> ac.set(operand)
-                LOADI -> ac.set(arch.getMemory().load(operand, 2))
-                STORE -> arch.getMemory().store(address, ac.get(), Memory.InstanceType.DATA)
+                LOADI -> ac.set(arch.memory.load(operand, 2))
+                STORE -> arch.memory.store(address, ac.get(), Memory.InstanceType.DATA)
                 AND -> {
                     val result = ac.get().toBin() and operand.toBin()
                     val n = result.getBit(0)?.getRawBinStr() == "1"
@@ -467,7 +467,7 @@ class IKRMiniSyntax {
         fun getFlags(arch: Architecture): Flags {
             val flags = arch.getRegByName("NZVC")
             if (flags == null) {
-                arch.getConsole().error("Flag register not found!")
+                arch.console.error("Flag register not found!")
                 return Flags(false, false, false, false)
             }
 
@@ -481,7 +481,7 @@ class IKRMiniSyntax {
         fun setFlags(arch: Architecture, n: Boolean? = null, z: Boolean? = null, v: Boolean? = null, c: Boolean? = null) {
             val flags = arch.getRegByName("NZVC")
             if (flags == null) {
-                arch.getConsole().error("Flag register not found!")
+                arch.console.error("Flag register not found!")
                 return
             }
 

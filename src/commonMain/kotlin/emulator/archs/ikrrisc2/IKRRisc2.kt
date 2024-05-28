@@ -8,6 +8,8 @@ import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.common.RegContainer.Register
 import emulator.kit.common.RegContainer.RegisterFile
+import emulator.kit.common.memory.MainMemory
+import emulator.kit.common.memory.Memory
 
 object IKRRisc2 {
 
@@ -63,7 +65,7 @@ object IKRRisc2 {
             pcSize = WORD_WIDTH,
             standardRegFileName
         ),
-        Memory(WORD_WIDTH,"0", BYTE_WIDTH, endianess = Memory.Endianess.BigEndian)
+        MainMemory(WORD_WIDTH, BYTE_WIDTH, endianess = Memory.Endianess.BigEndian)
     )
 
     val asmConfig = AsmConfig(IKRRisc2Assembler())

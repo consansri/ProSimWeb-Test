@@ -22,7 +22,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        getConsole().exeInfo("continuous \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("continuous \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeSingleStep() {
@@ -33,7 +33,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(1, measuredTime)
 
-        getConsole().exeInfo("single step \ntook ${measuredTime.inWholeMicroseconds} μs")
+        console.exeInfo("single step \ntook ${measuredTime.inWholeMicroseconds} μs")
     }
 
     override fun exeMultiStep(steps: Long) {
@@ -51,7 +51,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        getConsole().exeInfo("$steps steps \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("$steps steps \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeSkipSubroutine() {
@@ -75,7 +75,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        getConsole().exeInfo("skip subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("skip subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeReturnFromSubroutine() {
@@ -96,7 +96,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        getConsole().exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeUntilAddress(address: Variable.Value.Hex) {
@@ -109,7 +109,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
                 result = executeNext()
-                if (getRegContainer().pc.get().toHex().getRawHexStr().uppercase() == address.getRawHexStr().uppercase()) {
+                if (regContainer.pc.get().toHex().getRawHexStr().uppercase() == address.getRawHexStr().uppercase()) {
                     break
                 }
             }
@@ -117,7 +117,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        getConsole().exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
     override fun exeUntilLine(lineID: Int, wsRelativeFileName: String) {
@@ -125,7 +125,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
         val measuredTime = measureTime {
             super.exeUntilLine(lineID, wsRelativeFileName)
 
-            val lineAddressMap = getAssembler().lastInvertedLineMap(wsRelativeFileName).toList()
+            val lineAddressMap = assembler.lastInvertedLineMap(wsRelativeFileName).toList()
 
             var closestID: Int? = null
             for (entry in lineAddressMap) {
@@ -147,7 +147,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
                 result = executeNext()
-                if (getRegContainer().pc.get().toHex().getRawHexStr().uppercase() == destAddrString.uppercase()) {
+                if (regContainer.pc.get().toHex().getRawHexStr().uppercase() == destAddrString.uppercase()) {
                     break
                 }
             }
@@ -155,7 +155,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        getConsole().exeInfo("until line ${lineID + 1} \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("until line ${lineID + 1} \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
     }
 
 

@@ -89,7 +89,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
     /* ----------------- SUGAR ----------------- */
 
     fun markPCLine() {
-        val pcValue = props.archState.component1().getRegContainer().pc.variable.get()
+        val pcValue = props.archState.component1().regContainer.pc.variable.get()
         val lineLocs = assemblyMap?.get(pcValue.toHex().getRawHexStr())
         val firstValid = lineLocs?.firstOrNull { it.file.wsRelativeName == props.fileState.component1().getCurrent().getWSRelativeName() }
 
@@ -208,7 +208,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                 }
                 if (analysisTime.inWholeMilliseconds > Settings.EDITOR_MAX_ANALYSIS_MILLIS) {
                     setLowPerformanceMode(true)
-                    props.archState.component1().getConsole()
+                    props.archState.component1().console
                         .compilerInfo("Automatic syntax analysis disabled cause last analysis took more than ${Settings.EDITOR_MAX_ANALYSIS_MILLIS}ms!\nBuild the project to recheck performance. If analysis time improved automatic syntax analysis will be reactivated.")
                 }
             }, delay)
@@ -528,7 +528,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             className = ClassName(StyleAttr.Main.Editor.TextField.CLASS_TAB + if (file == props.fileState.component1().getCurrent()) " ${StyleAttr.Main.Editor.TextField.CLASS_TAB_ACTIVE}" else "")
 
                             img {
-                                src = if (props.archState.component1().getAssembler().isInTreeCacheAndHasNoErrors(file.toCompilerFile())) {
+                                src = if (props.archState.component1().assembler.isInTreeCacheAndHasNoErrors(file.toCompilerFile())) {
                                     StyleAttr.Icons.file_compiled
                                 } else {
                                     StyleAttr.Icons.file_not_compiled
@@ -748,7 +748,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                             cols = 50
                             autoCapitalize = "off"
                             spellCheck = false
-                            placeholder = "Enter ${props.archState.component1().getDescription().name} Assembly ..."
+                            placeholder = "Enter ${props.archState.component1().description.name} Assembly ..."
 
                             onSelect = { event ->
                                 val cursorPosition = event.currentTarget.selectionStart

@@ -1,6 +1,6 @@
 package me.c3.ui.styled
 
-import emulator.kit.common.Memory
+import emulator.kit.common.memory.Memory
 import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.borders.DirectionalBorder
 import me.c3.ui.styled.params.FontType

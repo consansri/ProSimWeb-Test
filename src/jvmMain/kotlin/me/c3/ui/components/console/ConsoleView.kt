@@ -11,10 +11,10 @@ import me.c3.ui.styled.editor.CConsole
 class ConsoleView(mainManager: MainManager) : CConsole(mainManager.tm, mainManager.sm, mainManager.icons){
     init {
         mainManager.eventManager.addExeEventListener {
-            updateContent(mainManager.currArch().getConsole().getMessages().toStyledContent(mainManager.currTheme().codeLaF))
+            updateContent(mainManager.currArch().console.getMessages().toStyledContent(mainManager.currTheme().codeLaF))
         }
         mainManager.eventManager.addCompileListener {
-            updateContent(mainManager.currArch().getConsole().getMessages().toStyledContent(mainManager.currTheme().codeLaF))
+            updateContent(mainManager.currArch().console.getMessages().toStyledContent(mainManager.currTheme().codeLaF))
         }
         isEditable = false
     }

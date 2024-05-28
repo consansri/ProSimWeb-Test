@@ -33,23 +33,23 @@ class Assembler(
      * Executes and controls the compilation process
      */
     fun compile(mainFile: AsmFile, others: List<AsmFile>, build: Process.Mode): Process.Result {
-        architecture.getConsole().clear()
+        architecture.console.clear()
         val process = Process(mainFile, others, build)
         processes.add(process)
-        val result = process.launch(lexer, parser, architecture.getMemory(), architecture.getAllFeatures())
+        val result = process.launch(lexer, parser, architecture.memory, architecture.features)
 
         result.tree.printError()?.let {
-            architecture.getConsole().error(it)
+            architecture.console.error(it)
         }
 
         result.tree.printWarning()?.let {
-            architecture.getConsole().warn(it)
+            architecture.console.warn(it)
         }
 
         if (result.hasErrors()) {
-            architecture.getConsole().error(process.getFinishedStr(false))
+            architecture.console.error(process.getFinishedStr(false))
         } else {
-            architecture.getConsole().info(process.getFinishedStr(true))
+            architecture.console.info(process.getFinishedStr(true))
         }
 
         if (build == Process.Mode.FULLBUILD) {

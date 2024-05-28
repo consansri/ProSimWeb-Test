@@ -33,9 +33,9 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
 
     val scrollIVRef = useRef<Timeout>(null)
 
-    val (messages, setMessages) = useState(props.archState.component1().getConsole().getMessages())
+    val (messages, setMessages) = useState(props.archState.component1().console.getMessages())
 
-    val iConsole = props.archState.component1().getConsole()
+    val iConsole = props.archState.component1().console
 
     val (shadow, setShadow) = useState(false)
     val (scrollDown, setScrollDown) = useState(localStorage.getItem(WebStorageKey.CONSOLE_SDOWN)?.toBoolean() ?: true)
@@ -102,8 +102,8 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
             }
 
             onClick = {
-                props.archState.component1().getConsole().clear()
-                setMessages(props.archState.component1().getConsole().getMessages())
+                props.archState.component1().console.clear()
+                setMessages(props.archState.component1().console.getMessages())
             }
 
             src = StyleAttr.Icons.delete_black
@@ -331,8 +331,8 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
             }
         }
 
-        useEffect(props.exeEventState, props.compileEventState, props.archState.component1().getConsole().getMessages()) {
-            setMessages(props.archState.component1().getConsole().getMessages())
+        useEffect(props.exeEventState, props.compileEventState, props.archState.component1().console.getMessages()) {
+            setMessages(props.archState.component1().console.getMessages())
         }
 
     }

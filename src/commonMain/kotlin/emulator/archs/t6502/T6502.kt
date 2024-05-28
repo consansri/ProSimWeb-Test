@@ -8,6 +8,8 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.memory.MainMemory
+import emulator.kit.common.memory.Memory
 
 
 /**
@@ -89,7 +91,7 @@ object T6502 {
         description,
         fileEnding = "s",
         RegContainer(listOf(commonRegFile), WORD_SIZE, "common"),
-        Memory(MEM_ADDR_SIZE, initBin = "0".repeat(BYTE_SIZE.bitWidth), BYTE_SIZE, Memory.Endianess.LittleEndian)
+        MainMemory(MEM_ADDR_SIZE, BYTE_SIZE, Memory.Endianess.LittleEndian)
     )
 
     val asmConfig = AsmConfig(
