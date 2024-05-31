@@ -73,7 +73,7 @@ lru:
     nop
 ```
 
-**Before**
+**Version 0.0.3**
 
 | execution mode | time elapsed | elapsed time with performance measurement | executed instructions |
 |:--------------:|:------------:|:-----------------------------------------:|----------------------:|
@@ -85,7 +85,6 @@ lru:
 |  single step   |  16 - 32 ms  |                     -                     |                   add |
 |  single step   |  5 - 14 ms   |                     -                     |                    lb |
 |  single step   |  4 - 20 ms   |                     -                     |                    sb |
-|  single step   |    13 ms     |                     -                     |                   beq |
 |  single step   |     1 ms     |                     -                     |                  jalr |
 |  single step   |   5 - 8 ms   |                     -                     |                   blt |
 |  single step   |  18 - 19 ms  |                     -                     |                   bne |
@@ -129,7 +128,7 @@ Measurement Single Instruction add
 >
 
 
-**After**
+**Version 0.1.0**
 
 | execution mode | time elapsed | elapsed time with performance measurement | executed instructions |
 |:--------------:|:------------:|:-----------------------------------------:|----------------------:|
@@ -141,10 +140,27 @@ Measurement Single Instruction add
 |  single step   |  16 - 32 ms  |                     -                     |                   add |
 |  single step   |  5 - 14 ms   |                     -                     |                    lb |
 |  single step   |  4 - 20 ms   |                     -                     |                    sb |
-|  single step   |    13 ms     |                     -                     |                   beq |
 |  single step   |     1 ms     |                     -                     |                  jalr |
 |  single step   |   5 - 8 ms   |                     -                     |                   blt |
 |  single step   |  18 - 19 ms  |                     -                     |                   bne |
+
+**Version 0.2.3 (More than 10 times faster than Version 0.1.0)**
+
+- New Assembler
+
+| execution mode | time elapsed | elapsed time with performance measurement | executed instructions |
+|:--------------:|:------------:|:-----------------------------------------:|----------------------:|
+|   continuous   |    107 ms    |                  1302 ms                  |                   221 |
+|  single step   |    0.3 ms    |                     -                     |                   lui |
+|  single step   |    0.4 ms    |                     -                     |                  addi |
+|  single step   |    0.4 ms    |                     -                     |                   jal |
+|  single step   |    0.5 ms    |                     -                     |                   beq |
+|  single step   |    0.6 ms    |                     -                     |                   add |
+|  single step   |    0.7 ms    |                     -                     |                    lb |
+|  single step   |    1.6 ms    |                     -                     |                    sb |
+|  single step   |     1 ms     |                     -                     |                  jalr |
+|  single step   |    0.5 ms    |                     -                     |                   blt |
+|  single step   |    0.5 ms    |                     -                     |                   bne |
 
 ### RegisterEdit ###
 
