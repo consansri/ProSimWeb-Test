@@ -23,4 +23,8 @@ enum class Link(private val arch: Architecture) {
         return arch.description
     }
 
+    override fun toString(): String {
+        return descr().fullName
+    }
+
 }

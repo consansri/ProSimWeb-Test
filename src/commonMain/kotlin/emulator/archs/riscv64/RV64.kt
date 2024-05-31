@@ -72,7 +72,7 @@ object RV64 {
     private val riscVDocs = Docs(
         usingProSimAS = true,
         Docs.DocFile.DefinedFile(
-            "RV32 Implemented",
+            "RV64 Implemented",
             Chapter(
                 "Extensions",
                 UnlinkedList(entrys = RV64.EXTENSION.entries.filter { !it.invisible }.map { feature -> Text("${feature.name} (${if (feature.static) "fixed" else "switchable"}): ${feature.descr}") }.toTypedArray())
@@ -404,7 +404,7 @@ object RV64 {
      */
 
     val settings = listOf(
-        ArchSetting.Bool("Direct-Mapped-Cache", false) { arch, setting ->
+        ArchSetting.Bool("Direct-Mapped-Cache", true) { arch, setting ->
             if (arch is ArchRV64) {
                 if (setting is ArchSetting.Bool && setting.get()) {
                     arch.dataMemory = DirectMappedCache(arch.memory, arch.console, 57, 3, 4)
