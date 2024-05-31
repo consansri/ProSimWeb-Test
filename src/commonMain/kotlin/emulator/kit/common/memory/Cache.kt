@@ -3,8 +3,6 @@ package emulator.kit.common.memory
 import emulator.kit.common.IConsole
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
-import kotlin.math.pow
-import kotlin.math.roundToInt
 
 abstract class Cache(protected val backingMemory: Memory, val console: IConsole) : Memory() {
     override val initBin: String = "0"
@@ -53,12 +51,14 @@ abstract class Cache(protected val backingMemory: Memory, val console: IConsole)
         }
 
         fun writeBack(rowAddress: Hex, backingMemory: Memory) {
-            backingMemory.storeArray(rowAddress, *data, mark = InstanceType.DATA)
-            dirty = false
+            if (valid) {
+                backingMemory.storeArray(rowAddress, *data, mark = InstanceType.DATA)
+                dirty = false
+            }
         }
     }
 
-    data class AccessResult(val hit: Boolean,val valid: Boolean, val dirty: Boolean) {
+    data class AccessResult(val hit: Boolean, val valid: Boolean, val dirty: Boolean) {
         override fun toString(): String {
             return "Cache ${if (hit) "HIT" else "MISS"} (valid: $valid, dirty: $dirty)"
         }

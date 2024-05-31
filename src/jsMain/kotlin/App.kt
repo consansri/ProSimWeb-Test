@@ -338,23 +338,28 @@ val App = FC<Props> {
                     input {
                         id = "setting${setting.name}"
                         when (setting) {
-                            is ArchSetting.BoolSetting -> {
-                                TODO()
+                            is ArchSetting.Bool -> {
+                                type = InputType.checkbox
+                                defaultChecked = setting.get()
+                                onChange = {
+                                    setting.set(archState.component1(), it.currentTarget.checked)
+                                    localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}", setting.get().toString())
+                                }
                             }
 
-                            is ArchSetting.ImmSetting -> {
+                            is ArchSetting.Number -> {
                                 type = InputType.text
                                 pattern = "[0-9a-fA-F]+"
                                 placeholder = Settings.PRESTRING_HEX
-                                defaultValue = setting.value.get().toHex().getRawHexStr()
+                                defaultValue = setting.get().toHex().getRawHexStr()
 
                                 onChange = {
                                     val hex = Variable.Value.Hex(it.currentTarget.value, RV64.XLEN)
                                     if (hex.checkResult.valid) {
-                                        setting.value.set(hex)
-                                        localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}", setting.value.get().toHex().getHexStr())
+                                        setting.set(archState.component1(), hex)
+                                        localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}", setting.get().toHex().getHexStr())
                                     } else {
-                                        it.currentTarget.value = setting.value.get().toHex().getRawHexStr()
+                                        it.currentTarget.value = setting.get().toHex().getRawHexStr()
                                     }
                                 }
                             }
@@ -389,21 +394,23 @@ val App = FC<Props> {
         }
         for (feature in archState.component1().features) {
             localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}")?.toBooleanStrictOrNull()?.let {
-                if(it) feature.activate() else feature.deactivate()
+                if (it) feature.activate() else feature.deactivate()
             }
         }
         setVisibleFeatures(archState.component1().features.filter { !it.invisible })
         for (setting in archState.component1().settings) {
             when (setting) {
-                is ArchSetting.BoolSetting -> {
-                    TODO()
+                is ArchSetting.Bool -> {
+                    localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}")?.let {
+                        setting.set(archState.component1(), it.toBoolean())
+                    }
                 }
 
-                is ArchSetting.ImmSetting -> {
+                is ArchSetting.Number -> {
                     localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}")?.let {
                         val value = Variable.Value.Hex(it, RV64.XLEN)
                         if (value.checkResult.valid) {
-                            setting.value.set(value)
+                            setting.set(archState.component1(), value)
                         }
                     }
                 }

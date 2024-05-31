@@ -1,5 +1,6 @@
 package emulator.archs.riscv64
 
+import emulator.archs.ArchRV64
 import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
@@ -12,12 +13,13 @@ import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.CSRegister.Privilege
 import emulator.kit.optional.Feature
 import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
+import emulator.kit.optional.ArchSetting
 
 object RV64 {
 
-    private const val MEM_INIT: String = "0"
     private const val REG_INIT: String = "0"
 
     val XLEN: Variable.Size = Bit64()
@@ -401,6 +403,18 @@ object RV64 {
      * Configuration
      */
 
+    val settings = listOf(
+        ArchSetting.Bool("Direct-Mapped-Cache", false) { arch, setting ->
+            if (arch is ArchRV64) {
+                if (setting is ArchSetting.Bool && setting.get()) {
+                    arch.dataMemory = DirectMappedCache(arch.memory, arch.console, 48, 10, 6)
+                } else {
+                    arch.dataMemory = arch.memory
+                }
+            }
+        }
+    )
+
     val config = Config(
         Config.Description("RV64I", "RISC-V 64Bit", riscVDocs),
         fileEnding = "s",
@@ -409,7 +423,8 @@ object RV64 {
             pcSize = REG_VALUE_SIZE,
             standardRegFileName = MAIN_REGFILE_NAME
         ),
-        MainMemory(MEM_ADDRESS_WIDTH,  MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)
+        MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
+        settings
     )
 
 }

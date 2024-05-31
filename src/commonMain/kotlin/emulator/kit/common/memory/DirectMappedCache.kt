@@ -16,6 +16,7 @@ class DirectMappedCache(
     val offsets = 2.toDouble().pow(offsetBits).roundToInt()
     val rows = 2.toDouble().pow(rowBits).roundToInt()
     val block = DMBlock()
+
     init {
         if (offsetBits + tagBits + rowBits != addressSize.bitWidth) throw Exception("Direct Mapped Cache expects a valid combination of tag, row and offset widths.")
     }
@@ -68,7 +69,7 @@ class DirectMappedCache(
     }
 
     override fun writeBackAll() {
-
+        block.writeBack()
     }
 
     override fun getAllBlocks(): Array<CacheBlock> = arrayOf(block)
@@ -90,7 +91,20 @@ class DirectMappedCache(
         return newRow
     }
 
-    inner class DMBlock() : CacheBlock(rows, DMRow())
+    inner class DMBlock() : CacheBlock(rows, DMRow()) {
+        fun writeBack() {
+            data.forEachIndexed { index, cacheRow ->
+                val row = index.toString(2).padStart(rowBits, '0')
+
+                if (row.length != rowBits) throw MemoryException(this@DirectMappedCache, "$row is not of length $rowBits")
+
+                if (cacheRow !is DMRow) throw MemoryException(this@DirectMappedCache, "$cacheRow is not of type ${DMRow::class.simpleName}")
+
+                cacheRow.writeBack(row)
+            }
+        }
+    }
+
     inner class DMRow(address: Variable.Value.Hex? = null, init: Array<Variable.Value.Bin>? = null) : CacheRow(offsets, instanceSize, address != null) {
         val tag: Variable.Value.Bin?
 
@@ -109,7 +123,7 @@ class DirectMappedCache(
 
         fun check(otherTag: Variable.Value.Bin): AccessResult {
             return when (tag?.getRawBinStr()) {
-                otherTag.getRawBinStr() -> AccessResult(true,valid, dirty)
+                otherTag.getRawBinStr() -> AccessResult(true, valid, dirty)
                 else -> AccessResult(false, valid, dirty)
             }
         }

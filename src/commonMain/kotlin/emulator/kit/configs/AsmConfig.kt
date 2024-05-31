@@ -10,6 +10,5 @@ import emulator.kit.optional.Feature
  */
 data class AsmConfig(
     val definedAssembly: DefinedAssembly,
-    val features: List<Feature> = listOf(),
-    val settings: List<ArchSetting> = listOf()
+    val features: List<Feature> = listOf()
 )

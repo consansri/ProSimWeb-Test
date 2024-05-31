@@ -25,4 +25,8 @@ class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
         instrType.execute(this, actualParamType, threeBytes)
         return ExecutionResult(valid = true, typeIsReturnFromSubroutine = instrType == InstrType.RTS, typeIsBranchToSubroutine = instrType == InstrType.JSR)
     }
+
+    override fun setupMicroArch() {
+        // Not yet implemented
+    }
 }

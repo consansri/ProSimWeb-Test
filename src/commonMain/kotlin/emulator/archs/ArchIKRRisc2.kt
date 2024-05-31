@@ -7,4 +7,8 @@ class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config, IKRRisc2.asmConfig) {
     override fun executeNext(): ExecutionResult {
         TODO("Not yet implemented")
     }
+
+    override fun setupMicroArch() {
+        // Not yet implemented
+    }
 }

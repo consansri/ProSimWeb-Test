@@ -45,23 +45,26 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     val assembler: Assembler
     val features: List<Feature>
     val settings: List<ArchSetting>
-    
     private var lastFile: AsmFile? = null
     private val definedAssembly: DefinedAssembly
 
     init {
+        // Build Arch from Config
         this.description = config.description
         this.fileEnding = config.fileEnding
         this.regContainer = config.regContainer
         this.memory = config.memory
         this.console = IConsole("${config.description.name} Console")
+        this.settings = config.settings
         this.features = asmConfig.features
-        this.settings = asmConfig.settings
         this.definedAssembly = asmConfig.definedAssembly
         this.assembler = Assembler(
             this,
             asmConfig.definedAssembly
         )
+
+        // Setup Emulator Components
+        resetMicroArch()
     }
 
     fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AsmFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
@@ -135,8 +138,26 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     open fun exeReset() {
         regContainer.clear()
         memory.clear()
+
         console.exeInfo("resetting")
     }
+
+    /**
+     * Reset [MicroSetup]
+     */
+    fun resetMicroArch(){
+        MicroSetup.clear()
+        setupMicroArch()
+        console.exeInfo("reset micro architecture")
+    }
+
+    /**
+     * Setup [MicroSetup]
+     * For visibility of certain micro architectural components.
+     *
+     * Append Components in use to [MicroSetup] to make them visible.
+     */
+    abstract fun setupMicroArch()
 
     /**
      * Compilation Event

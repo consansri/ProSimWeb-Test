@@ -1,5 +1,6 @@
 package emulator.archs.riscv64
 
+import emulator.archs.ArchRV64
 import emulator.kit.types.Variable
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
 import emulator.kit.assembler.InstrTypeInterface
@@ -225,7 +226,7 @@ class RV64Syntax {
 
     enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: RV64BinMapper.OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null, val needFeatures: List<Int> = emptyList()) : InstrTypeInterface {
         LUI("LUI", false, ParamType.RD_I20, RV64BinMapper.OpCode("00000000000000000000 00000 0110111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap) // only for console information
                 // get relevant parameters from binary map
                 val rdAddr = paramMap[MaskLabel.RD]
@@ -245,7 +246,7 @@ class RV64Syntax {
             }
         },
         AUIPC("AUIPC", false, ParamType.RD_I20, RV64BinMapper.OpCode("00000000000000000000 00000 0010111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 if (rdAddr != null) {
@@ -262,7 +263,7 @@ class RV64Syntax {
             }
         },
         JAL("JAL", false, ParamType.RD_I20, RV64BinMapper.OpCode("00000000000000000000 00000 1101111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 if (rdAddr != null) {
@@ -287,7 +288,7 @@ class RV64Syntax {
             }
         },
         JALR("JALR", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 000 00000 1100111", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -310,7 +311,7 @@ class RV64Syntax {
             "BEQ", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -339,7 +340,7 @@ class RV64Syntax {
             "BNE", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -367,7 +368,7 @@ class RV64Syntax {
             "BLT", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -395,7 +396,7 @@ class RV64Syntax {
             "BGE", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -423,7 +424,7 @@ class RV64Syntax {
             "BLTU", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -451,7 +452,7 @@ class RV64Syntax {
             "BGEU", false, ParamType.RS1_RS2_LBL,
             RV64BinMapper.OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -476,7 +477,7 @@ class RV64Syntax {
             }
         },
         LB("LB", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 000 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -487,7 +488,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
-                        val loadedByte = arch.memory.load(memAddr.toHex()).toBin().getResized(RV64.XLEN)
+                        val loadedByte = arch.dataMemory.load(memAddr.toHex()).toBin().getResized(RV64.XLEN)
                         rd.set(loadedByte)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -495,7 +496,7 @@ class RV64Syntax {
             }
         },
         LH("LH", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 001 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -506,7 +507,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
-                        val loadedHalfWord = arch.memory.load(memAddr.toHex(), 2).toBin().getResized(RV64.XLEN)
+                        val loadedHalfWord = arch.dataMemory.load(memAddr.toHex(), 2).toBin().getResized(RV64.XLEN)
                         rd.set(loadedHalfWord)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -514,7 +515,7 @@ class RV64Syntax {
             }
         },
         LW("LW", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 010 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -525,7 +526,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
-                        val loadedWord = arch.memory.load(memAddr.toHex(), 4).toBin().getResized(RV64.XLEN)
+                        val loadedWord = arch.dataMemory.load(memAddr.toHex(), 4).toBin().getResized(RV64.XLEN)
                         rd.set(loadedWord)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -533,7 +534,7 @@ class RV64Syntax {
             }
         },
         LD("LD", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 011 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -544,7 +545,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
-                        val loadedWord = arch.memory.load(memAddr.toHex(), 8).toBin().getResized(RV64.XLEN)
+                        val loadedWord = arch.dataMemory.load(memAddr.toHex(), 8).toBin().getResized(RV64.XLEN)
                         rd.set(loadedWord)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -552,7 +553,7 @@ class RV64Syntax {
             }
         },
         LBU("LBU", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 100 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -563,7 +564,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
-                        val loadedByte = arch.memory.load(memAddr.toHex()).toBin()
+                        val loadedByte = arch.dataMemory.load(memAddr.toHex()).toBin()
                         rd.set(loadedByte.toBin().getUResized(RV64.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -571,7 +572,7 @@ class RV64Syntax {
             }
         },
         LHU("LHU", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 101 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -582,7 +583,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
-                        val loadedByte = arch.memory.load(memAddr.toHex(), 2)
+                        val loadedByte = arch.dataMemory.load(memAddr.toHex(), 2)
                         rd.set(loadedByte.getUResized(RV64.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -590,7 +591,7 @@ class RV64Syntax {
             }
         },
         LWU("LWU", false, ParamType.RD_Off12, RV64BinMapper.OpCode("000000000000 00000 110 00000 0000011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -601,7 +602,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
-                        val loadedWord = arch.memory.load(memAddr.toHex(), 4)
+                        val loadedWord = arch.dataMemory.load(memAddr.toHex(), 4)
                         rd.set(loadedWord.getUResized(RV64.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -609,7 +610,7 @@ class RV64Syntax {
             }
         },
         SB("SB", false, ParamType.RS2_Off12, RV64BinMapper.OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -622,14 +623,14 @@ class RV64Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV64.XLEN) + off64
-                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit8()))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit8()))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
             }
         },
         SH("SH", false, ParamType.RS2_Off12, RV64BinMapper.OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -642,14 +643,14 @@ class RV64Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV64.XLEN) + off64
-                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit16()))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit16()))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
             }
         },
         SW("SW", false, ParamType.RS2_Off12, RV64BinMapper.OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -662,14 +663,14 @@ class RV64Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.variable.get().toBin().getResized(RV64.XLEN) + off64
-                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit32()))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit32()))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
             }
         },
         SD("SD", false, ParamType.RS2_Off12, RV64BinMapper.OpCode("0000000 00000 00000 011 00000 0100011", arrayOf(MaskLabel.IMM7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.IMM5, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rs1Addr = paramMap[MaskLabel.RS1]
                 val rs2Addr = paramMap[MaskLabel.RS2]
@@ -682,14 +683,14 @@ class RV64Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.variable.get().toBin().getResized(RV64.XLEN) + off64
-                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(RV64.XLEN))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(RV64.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
             }
         },
         ADDI("ADDI", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 000 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -708,7 +709,7 @@ class RV64Syntax {
             }
         },
         ADDIW("ADDIW", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 000 00000 0011011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -727,7 +728,7 @@ class RV64Syntax {
             }
         },
         SLTI("SLTI", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 010 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -745,7 +746,7 @@ class RV64Syntax {
             }
         },
         SLTIU("SLTIU", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 011 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -763,7 +764,7 @@ class RV64Syntax {
             }
         },
         XORI("XORI", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 100 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -781,7 +782,7 @@ class RV64Syntax {
             }
         },
         ORI("ORI", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 110 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -799,7 +800,7 @@ class RV64Syntax {
             }
         },
         ANDI("ANDI", false, ParamType.RD_RS1_I12, RV64BinMapper.OpCode("000000000000 00000 111 00000 0010011", arrayOf(MaskLabel.IMM12, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -820,7 +821,7 @@ class RV64Syntax {
             "SLLI", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 001 00000 0010011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -840,7 +841,7 @@ class RV64Syntax {
             "SLLIW", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 001 00000 0011011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -860,7 +861,7 @@ class RV64Syntax {
             "SRLI", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -880,7 +881,7 @@ class RV64Syntax {
             "SRLIW", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("000000 000000 00000 101 00000 0011011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -900,7 +901,7 @@ class RV64Syntax {
             "SRAI", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("010000 000000 00000 101 00000 0010011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -920,7 +921,7 @@ class RV64Syntax {
             "SRAIW", false, ParamType.RD_RS1_SHAMT6,
             RV64BinMapper.OpCode("010000 000000 00000 101 00000 0011011", arrayOf(MaskLabel.FUNCT6, MaskLabel.SHAMT6, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -940,7 +941,7 @@ class RV64Syntax {
             "ADD", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -961,7 +962,7 @@ class RV64Syntax {
             "ADDW", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 000 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -982,7 +983,7 @@ class RV64Syntax {
             "SUB", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1003,7 +1004,7 @@ class RV64Syntax {
             "SUBW", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0100000 00000 00000 000 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1024,7 +1025,7 @@ class RV64Syntax {
             "SLL", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1045,7 +1046,7 @@ class RV64Syntax {
             "SLLW", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 001 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1066,7 +1067,7 @@ class RV64Syntax {
             "SLT", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1087,7 +1088,7 @@ class RV64Syntax {
             "SLTU", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1108,7 +1109,7 @@ class RV64Syntax {
             "XOR", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1129,7 +1130,7 @@ class RV64Syntax {
             "SRL", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1150,7 +1151,7 @@ class RV64Syntax {
             "SRLW", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 101 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1171,7 +1172,7 @@ class RV64Syntax {
             "SRA", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1192,7 +1193,7 @@ class RV64Syntax {
             "SRAW", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0100000 00000 00000 101 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1215,7 +1216,7 @@ class RV64Syntax {
             ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1236,7 +1237,7 @@ class RV64Syntax {
             "AND", false, ParamType.RD_RS1_RS2,
             RV64BinMapper.OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1262,7 +1263,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("000000000000 00000 001 00000 1110011", arrayOf(MaskLabel.CSR, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1292,7 +1293,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("000000000000 00000 010 00000 1110011", arrayOf(MaskLabel.CSR, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1322,7 +1323,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("000000000000 00000 011 00000 1110011", arrayOf(MaskLabel.CSR, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1352,7 +1353,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("000000000000 00000 101 00000 1110011", arrayOf(MaskLabel.CSR, MaskLabel.UIMM5, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val uimm5 = paramMap[MaskLabel.UIMM5]
@@ -1381,7 +1382,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("000000000000 00000 110 00000 1110011", arrayOf(MaskLabel.CSR, MaskLabel.UIMM5, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val uimm5 = paramMap[MaskLabel.UIMM5]
@@ -1410,7 +1411,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("000000000000 00000 111 00000 1110011", arrayOf(MaskLabel.CSR, MaskLabel.UIMM5, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val uimm5 = paramMap[MaskLabel.UIMM5]
@@ -1444,7 +1445,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 000 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1472,7 +1473,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 001 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1500,7 +1501,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 010 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1528,7 +1529,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 011 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1556,7 +1557,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 100 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1584,7 +1585,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 101 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1612,7 +1613,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 110 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1640,7 +1641,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 111 00000 0110011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1670,7 +1671,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 000 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1698,7 +1699,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 100 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1726,7 +1727,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 101 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1754,7 +1755,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 110 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1782,7 +1783,7 @@ class RV64Syntax {
             RV64BinMapper.OpCode("0000001 00000 00000 111 00000 0111011", arrayOf(MaskLabel.FUNCT7, MaskLabel.RS2, MaskLabel.RS1, MaskLabel.FUNCT3, MaskLabel.RD, MaskLabel.OPCODE)),
             needFeatures = listOf(RV64.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            override fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
                 super.execute(arch, paramMap)
                 val rdAddr = paramMap[MaskLabel.RD]
                 val rs1Addr = paramMap[MaskLabel.RS1]
@@ -1837,7 +1838,7 @@ class RV64Syntax {
 
         override fun getDetectionName(): String = this.id
 
-        open fun execute(arch: emulator.kit.Architecture, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+        open fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
             arch.console.log("> $id {...}")
         }
     }

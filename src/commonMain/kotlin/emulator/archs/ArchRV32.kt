@@ -22,4 +22,8 @@ class ArchRV32 : BasicArchImpl(RV32.config, RV32.asmConfig) {
 
         return ExecutionResult(true, typeIsReturnFromSubroutine = isReturnFromSubroutine, typeIsBranchToSubroutine = isBranchToSubroutine)
     }
+
+    override fun setupMicroArch() {
+        // Not yet implemented
+    }
 }
