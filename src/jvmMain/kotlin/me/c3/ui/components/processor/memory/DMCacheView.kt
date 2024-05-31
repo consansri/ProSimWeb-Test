@@ -1,10 +1,9 @@
 package me.c3.ui.components.processor.memory
 
 import emulator.kit.assembler.CodeStyle
-import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.DirectMappedCache
-import emulator.kit.common.memory.MainMemory
 import me.c3.ui.MainManager
+import me.c3.ui.components.processor.models.CacheTableModel
 import me.c3.ui.components.processor.models.MemTableModel
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CScrollPane
@@ -14,7 +13,7 @@ import javax.swing.SwingUtilities
 
 class DMCacheView(private val mm: MainManager, val cache: DirectMappedCache) : CPanel(mm.tm, mm.sm, primary = false) {
 
-    val tableModel = MemTableModel()
+    val tableModel = CacheTableModel()
     val table = CTable(mm.tm, mm.sm, tableModel, false)
     val scrollPane = CScrollPane(mm.tm, mm.sm, primary = false, table)
     val asciiTitle = "ASCII"
@@ -66,7 +65,13 @@ class DMCacheView(private val mm: MainManager, val cache: DirectMappedCache) : C
                     it.value.toASCII()
                 }
 
-                tableModel.addRow(arrayOf(index, if(row.valid) "1" else "0", if(row.dirty) "1" else "0", row.tag ?: "invalid" ,*row.data.map { it }.toTypedArray(), ascii))
+                row.data.forEachIndexed { i, value ->
+                    if (mm.currArch().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
+                        table.setCellHighlighting(index, i + 4, mm.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
+                    }
+                }
+
+                tableModel.addRow(arrayOf(index, if (row.valid) "1" else "0", if (row.dirty) "1" else "0", row.tag?.toHex()?.toRawString() ?: "invalid", *row.data.map { it }.toTypedArray(), ascii))
             }
 
             updateColumnWidths(offsets)
@@ -74,28 +79,38 @@ class DMCacheView(private val mm: MainManager, val cache: DirectMappedCache) : C
         }
     }
 
-    private fun updateColumnWidths(entrysInRow: Int) {
-        val charWidth = getFontMetrics(mm.currTheme().codeLaF.getFont().deriveFont(mm.currScale().fontScale.dataSize)).charWidth('0')
+    private fun updateColumnWidths(offsets: Int) {
         val wordSize = cache.instanceSize
-        val addrScale = cache.addressSize
-        val asciiScale = entrysInRow * wordSize.getByteCount()
-        val divider = entrysInRow * wordSize.hexChars + asciiScale + addrScale.hexChars
+
+        val rowIndexScale = cache.rows.toString(16).length + 1
+        val oneBitScale = 2
+        val tagScale = cache.tagBits / 4 + 1
+        val asciiScale = offsets * wordSize.getByteCount()
+        val divider = offsets * wordSize.hexChars + 2 * oneBitScale + tagScale + asciiScale + rowIndexScale
 
         val oneCharSpace = table.width / divider
-        val firstColumnWidth = addrScale.hexChars * oneCharSpace
+
+        val oneBitWidth = oneBitScale * oneCharSpace
+        val rowIndexWidth = rowIndexScale * oneCharSpace
+        val tagWidth = tagScale * oneCharSpace
+
         val inBetweenWidth = wordSize.hexChars * oneCharSpace
-        val lastColumnWidth = asciiScale * oneCharSpace
+        val asciiWidth = asciiScale * oneCharSpace
 
         for (colIndex in 0 until table.columnCount) {
             table.columnModel.getColumn(colIndex).preferredWidth = when (colIndex) {
-                0 -> firstColumnWidth
-                table.columnCount - 1 -> lastColumnWidth
+                0 -> rowIndexWidth
+                1, 2 -> oneBitWidth
+                3 -> tagWidth
+                table.columnCount - 1 -> asciiWidth
                 else -> inBetweenWidth
             }
             table.columnModel.getColumn(colIndex).minWidth = when (colIndex) {
-                0 -> charWidth * addrScale.hexChars
-                table.columnCount - 1 -> asciiScale * charWidth
-                else -> wordSize.hexChars * charWidth
+                0 -> rowIndexWidth
+                1, 2 -> oneBitWidth
+                3 -> tagWidth
+                table.columnCount - 1 -> asciiWidth
+                else -> inBetweenWidth
             }
         }
     }

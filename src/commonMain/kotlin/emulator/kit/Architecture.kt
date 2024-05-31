@@ -151,7 +151,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun resetMicroArch() {
         MicroSetup.clear()
         setupMicroArch()
-        console.exeInfo("reset micro architecture")
+        console.exeInfo("Loaded (${description.fullName}) Micro Architecture Setup: ${MicroSetup}")
+        nativeInfo("Loaded (${description.fullName}) Micro Architecture Setup: ${MicroSetup}")
         //nativeLog(MicroSetup.toString())
     }
 

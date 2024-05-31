@@ -1,5 +1,6 @@
 package me.c3.ui.styled
 
+import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
 import me.c3.ui.scale.ScaleManager
@@ -56,17 +57,23 @@ class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
                 if ((highlightRow == null || highlightRow == row) && (highlightColumn == null || highlightColumn == column)) {
                     highlightColor
                 } else {
-                    if (value is MainMemory.MemInstance) tm.curr.dataLaF.getMemInstanceColor(value.mark) else fg
+                    when (value) {
+                        is MainMemory.MemInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
+                        is Cache.CacheInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
+                        else -> fg
+                    }
                 }
             } else {
-                if (value is MainMemory.MemInstance) tm.curr.dataLaF.getMemInstanceColor(value.mark) else fg
+                when (value) {
+                    is MainMemory.MemInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
+                    is Cache.CacheInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
+                    else -> fg
+                }
             }
 
             border = BorderFactory.createEmptyBorder()
             background = bg
             font = FontType.DATA.getFont(tm, sm)
-            border = DirectionalBorder(tm, sm)
-            border = sm.curr.borderScale.getInsetBorder()
 
             return value as? JComponent ?: this
         }

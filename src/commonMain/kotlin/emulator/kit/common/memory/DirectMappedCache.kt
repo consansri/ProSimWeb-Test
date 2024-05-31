@@ -90,9 +90,9 @@ class DirectMappedCache(
     private fun updateRow(address: Variable.Value.Hex, rowIndex: Int, offset: Int, new: List<Variable.Value>, mark: InstanceType) {
         new.forEachIndexed() { i, newVal ->
             val addr = address + Variable.Value.Hex(i.toString(16), addressSize)
-            val offi = (offset + i) % offsets
-            val ri = rowIndex + ((offset + i) / offsets)
-            block.data[ri].update(CacheInstance(newVal, mark, addr.toHex()), offi)
+            if (offset + i < offsets) {
+                block.data[rowIndex].update(CacheInstance(newVal, mark, addr.toHex()), offset + i)
+            }
         }
     }
 
@@ -147,8 +147,7 @@ class DirectMappedCache(
         fun writeBack(row: String) {
             tag?.let {
                 if (row.length > rowBits) throw MemoryException(this@DirectMappedCache, "$row exceeds $rowBits bits")
-                val addrBinStr =  it.getRawBinStr().padStart(tagBits, '0') + row.padStart(rowBits, '0') + "0".repeat(offsetBits)
-                nativeLog("Write back to ${addrBinStr}")
+                val addrBinStr = it.getRawBinStr().padStart(tagBits, '0') + row.padStart(rowBits, '0') + "0".repeat(offsetBits)
                 writeBack(Variable.Value.Bin(addrBinStr, addressSize).toHex(), backingMemory)
             }
         }

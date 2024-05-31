@@ -45,7 +45,6 @@ actual fun nativeInfo(message: String) {
 fun File.toAsmFile(main: File,wsRoot: File): AsmFile {
     val mainRelativeName = this.toRelativeString(main.parentFile).replace('\\', '/')
     val wsRelativeName = this.toRelativeString(wsRoot).replace('\\', '/')
-    nativeLog("ToAsmFile: $mainRelativeName (ws: $wsRelativeName)")
     return AsmFile(mainRelativeName, wsRelativeName, this.readText())
 }
 

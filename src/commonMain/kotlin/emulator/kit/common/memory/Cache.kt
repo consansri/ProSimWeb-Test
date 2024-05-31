@@ -65,14 +65,17 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
 
         fun writeBack(rowAddress: Hex, backingMemory: Memory) {
             if (valid) {
-                nativeLog("Write back to ${rowAddress.toRawString()}")
                 backingMemory.storeArray(rowAddress, *data.map { it.value }.toTypedArray(), mark = InstanceType.DATA)
                 dirty = false
             }
         }
     }
 
-    data class CacheInstance(val value: Variable.Value, val mark: InstanceType = InstanceType.NOTUSED,val address: Hex? = null)
+    data class CacheInstance(val value: Variable.Value, val mark: InstanceType = InstanceType.NOTUSED,val address: Hex? = null){
+        override fun toString(): String {
+            return value.toHex().toRawString()
+        }
+    }
 
     enum class CacheRowState(val light: Int, val dark: Int? = null) {
         INVALID(0x777777),
