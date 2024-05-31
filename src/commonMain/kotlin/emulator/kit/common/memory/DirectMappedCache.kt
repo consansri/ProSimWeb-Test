@@ -101,7 +101,7 @@ class DirectMappedCache(
     private fun fetchRow(rowAddress: Variable.Value.Hex): DMRow {
         val loaded = backingMemory.loadArray(rowAddress, offsets)
         val newRow = DMRow(rowAddress, loaded)
-        val rowIndex = Variable.Value.Bin(rowAddress.toBin().toRawString().substring(tagBits, tagBits + rowBits), Variable.Size.Bit32()).toDec().toIntOrNull() ?: throw Exception("Direct Mapped Cache couldn't calculate row index ($rowAddress)!")
+        val rowIndex = Variable.Value.Bin(rowAddress.toBin().toRawString().substring(tagBits, tagBits + rowBits), Variable.Size.Bit32()).toDec().toIntOrNull() ?: throw MemoryException(this, "Direct Mapped Cache couldn't calculate row index ($rowAddress)")
         block.data[rowIndex] = newRow
         return newRow
     }
