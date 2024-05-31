@@ -229,12 +229,6 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
         }
     }
 
-    /*useEffect(props.archState.component1()) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: Arch Changed!")
-        }
-    }*/
-
     useEffect(memList) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Refresh Memory Table!")

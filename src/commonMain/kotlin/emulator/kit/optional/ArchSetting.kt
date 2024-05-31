@@ -17,6 +17,7 @@ sealed class ArchSetting(val name: String, val onChange: (Architecture, ArchSett
         override fun set(arch: Architecture, new: Any) {
             if (new !is Variable.Value) throw Exception("$new is not of type ${Variable.Value::class.simpleName}")
             number.set(new)
+            super.set(arch, new)
         }
 
         override fun get(): Variable.Value = number.get()
@@ -30,6 +31,7 @@ sealed class ArchSetting(val name: String, val onChange: (Architecture, ArchSett
         override fun set(arch: Architecture, new: Any) {
             if (new !is Boolean) throw Exception("$new is not of type ${Boolean::class.simpleName}")
             boolean = new
+            super.set(arch, new)
         }
 
         override fun get(): Boolean = boolean

@@ -8,6 +8,7 @@ import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import react.*
 import react.dom.html.ReactHTML
@@ -174,12 +175,6 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
             }
         }
     }
-
-    /*useEffect(props.archState.component1()) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: Arch Changed!")
-        }
-    }*/
 
     useEffect(props.cache.block.data) {
         if (DebugTools.REACT_showUpdateInfo) {

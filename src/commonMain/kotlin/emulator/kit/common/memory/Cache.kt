@@ -16,7 +16,6 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
     protected abstract fun writeBackAll()
 
     override fun load(address: Variable.Value): Variable.Value {
-
         val result = accessCache(address.toHex().getUResized(addressSize))
         console.log("${result.first} for load($address)")
         return result.second
@@ -34,8 +33,6 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
     }
 
     abstract fun getAllBlocks(): Array<CacheBlock>
-
-    abstract fun getAddress(row: CacheRow, index: Int): Hex
 
     open class CacheBlock(rows: Int, val initialRow: CacheRow) {
         val data: Array<CacheRow> = Array(rows) {

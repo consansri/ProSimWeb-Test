@@ -54,13 +54,12 @@ class DirectMappedCache(
 
         val result = checkRow(rowIndex, binTag)
 
-        nativeLog("Update Cache Row $rowIndex: $values\n\t${block.data[rowIndex].data.joinToString { it.value.toHex().toRawString() }}\nend")
-
         if (offset + values.size - 1 >= offsets) throw MemoryException(this, "")
 
         // Update if HIT
         if (result.second.hit) {
-            updateRow(address,rowIndex, offset, values, mark)
+            updateRow(address, rowIndex, offset, values, mark)
+            nativeLog("Update Cache Row $rowIndex: $values\n\t${block.data[rowIndex].data.joinToString { "${it.value.toHex().getRawHexStr()}:${it.mark}:${it.address}" }}\nend")
             return result.second
         }
 
@@ -71,6 +70,7 @@ class DirectMappedCache(
         val rowAddress = Variable.Value.Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
         fetchRow(rowAddress)
         updateRow(address, rowIndex, offset, values, mark)
+        nativeLog("Update Cache Row $rowIndex: $values\n\t${block.data[rowIndex].data.joinToString { "${it.value.toHex().getRawHexStr()}:${it.mark}:${it.address}" }}\nend")
         return result.second
     }
 
@@ -79,12 +79,6 @@ class DirectMappedCache(
     }
 
     override fun getAllBlocks(): Array<CacheBlock> = arrayOf(block)
-    override fun getAddress(row: CacheRow, index: Int): Variable.Value.Hex {
-        if (row !is DMRow) throw MemoryException(this, "unable to calculate address")
-        val tag = row.tag ?: throw MemoryException(this, "unable to calculate address")
-        val rowIndex = block.data.indexOf(row)
-        return Variable.Value.Bin(tag.toRawString() + rowIndex.toString(2).padStart(rowBits, '0') + index.toString(2).padStart(offsetBits, '0'), addressSize).toHex()
-    }
 
     override fun clear() {
         block.clear()
@@ -97,7 +91,7 @@ class DirectMappedCache(
 
     private fun updateRow(address: Variable.Value.Hex, rowIndex: Int, offset: Int, new: List<Variable.Value>, mark: InstanceType) {
         new.forEachIndexed() { i, newVal ->
-            val addr = address + Variable.Value.Hex((offset + i).toString(16), addressSize)
+            val addr = address + Variable.Value.Hex(i.toString(16), addressSize)
             val offi = (offset + i) % offsets
             val ri = rowIndex + ((offset + i) / offsets)
             block.data[ri].update(CacheInstance(newVal, mark, addr.toHex()), offi)
@@ -137,7 +131,10 @@ class DirectMappedCache(
             }
             init?.let {
                 for (i in init.indices) {
-                    data[i] = CacheInstance(init[i])
+                    val addr = if (address != null) {
+                        address + Variable.Value.Hex(i.toString(16), addressSize)
+                    } else null
+                    data[i] = CacheInstance(init[i], InstanceType.DATA, addr?.toHex())
                 }
             }
         }

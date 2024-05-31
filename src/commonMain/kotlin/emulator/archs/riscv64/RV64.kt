@@ -407,7 +407,7 @@ object RV64 {
         ArchSetting.Bool("Direct-Mapped-Cache", false) { arch, setting ->
             if (arch is ArchRV64) {
                 if (setting is ArchSetting.Bool && setting.get()) {
-                    arch.dataMemory = DirectMappedCache(arch.memory, arch.console, 48, 10, 6)
+                    arch.dataMemory = DirectMappedCache(arch.memory, arch.console, 55, 5, 4)
                 } else {
                     arch.dataMemory = arch.memory
                 }
