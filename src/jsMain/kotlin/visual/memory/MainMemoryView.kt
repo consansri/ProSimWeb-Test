@@ -83,7 +83,6 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
             ReactHTML.tbody {
                 ref = tbody
 
-
                 var previousAddress: Variable.Value.Hex? = null
                 val tempMemRows = memList.sortedBy { it.address.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
                 val tempRevMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.getRawHexStr() }.groupBy { it.row.getRawHexStr() }

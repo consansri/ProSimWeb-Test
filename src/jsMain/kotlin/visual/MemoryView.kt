@@ -52,9 +52,9 @@ val MemoryView = FC<MemViewProps> { props ->
 
     val (memEndianess, setEndianess) = useState<Memory.Endianess>()
     val (lowFirst, setLowFirst) = useState(true)
-    val (memList, setMemList) = useState(props.archState.component1().memory.memList)
+
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
-    val (currExeAddr, setCurrExeAddr) = useState<String>()
+    val (currMem, setCurrMem) = useState(MicroSetup.getMemoryInstances().firstOrNull())
 
     val (useBounds, setUseBounds) = useState(localStorage.getItem("${WebStorageKey.MIO_ACTIVE}-${props.archState.component1().description.name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().memory.ioBounds != null))
     val (startAddr, setStartAddr) = useState(localStorage.getItem("${WebStorageKey.MIO_START}-${props.archState.component1().description.name}")?.let { Hex(it, props.archState.component1().memory.addressSize) } ?: props.archState.component1().memory
@@ -213,10 +213,11 @@ val MemoryView = FC<MemViewProps> { props ->
                 step = 1.0
                 defaultValue = props.archState.component1().memory.entrysInRow
 
-                onInput = {
-                    props.archState.component1().memory.entrysInRow = it.currentTarget.valueAsNumber.toInt()
-                    localStorage.setItem(WebStorageKey.MEM_LENGTH, "${it.currentTarget.valueAsNumber.toInt()}")
-                    setMemList(props.archState.component1().memory.memList)
+                onInput = { event ->
+                    MicroSetup.getMemoryInstances().forEach {
+                        if (it is MainMemory) it.entrysInRow = event.currentTarget.valueAsNumber.toInt()
+                    }
+                    localStorage.setItem(WebStorageKey.MEM_LENGTH, "${event.currentTarget.valueAsNumber.toInt()}")
                 }
             }
 
@@ -237,27 +238,72 @@ val MemoryView = FC<MemViewProps> { props ->
             }
         }
 
-        console.log("Reload Memory View for ${MicroSetup.getMemoryInstances().joinToString { it::class.simpleName.toString() }}")
-        MicroSetup.getMemoryInstances().forEachIndexed { index, mem ->
-            when(mem){
-                is DirectMappedCache -> {
-                    DMCacheView{
-                        this.key = "${mem::class.simpleName}$index"
-                        this.cache = mem
-                        this.exeEventState = props.exeEventState
-                        this.archState = props.archState
+        // TABS
+        div {
+            css {
+                background = StyleAttr.Main.Processor.TableBgColor.get()
+                borderRadius = StyleAttr.borderRadius
+                display = Display.flex
+                width = 100.pct - 24.px
+                flexDirection = FlexDirection.row
+                flexWrap = FlexWrap.wrap
+                justifyContent = JustifyContent.flexStart
+                alignItems = AlignItems.center
+                gap = 1.px
+                marginLeft = 12.px
+                marginRight = 12.px
+                flexGrow = number(0.0)
+            }
+
+            MicroSetup.getMemoryInstances().forEachIndexed { i, mem ->
+                a {
+                    css {
+                        padding = StyleAttr.paddingSize
+                        cursor = Cursor.pointer
+                        if (i == 0) {
+                            borderTopLeftRadius = StyleAttr.borderRadius
+                            borderBottomLeftRadius = StyleAttr.borderRadius
+                        }
+                        if (i == MicroSetup.getMemoryInstances().size - 1) {
+                            borderTopRightRadius = StyleAttr.borderRadius
+                            borderBottomRightRadius = StyleAttr.borderRadius
+                        }
+                        if (mem == currMem) textDecoration = TextDecoration.underline
+
+                        hover {
+                            textDecoration = TextDecoration.underline
+                        }
                     }
-                }
-                is MainMemory -> {
-                    MainMemoryView{
-                        this.key = "${mem::class.simpleName}$index"
-                        this.memory = mem
-                        this.archState = props.archState
-                        this.exeEventState = props.exeEventState
-                        this.lowFirst = lowFirst
+                    +mem::class.simpleName.toString()
+
+                    onClick = {
+                        setCurrMem(mem)
                     }
                 }
             }
+        }
+
+        when (currMem) {
+            is DirectMappedCache -> {
+                DMCacheView {
+                    this.key = "${currMem::class.simpleName}"
+                    this.cache = currMem
+                    this.exeEventState = props.exeEventState
+                    this.archState = props.archState
+                }
+            }
+
+            is MainMemory -> {
+                MainMemoryView {
+                    this.key = "${currMem::class.simpleName}"
+                    this.memory = currMem
+                    this.archState = props.archState
+                    this.exeEventState = props.exeEventState
+                    this.lowFirst = lowFirst
+                }
+            }
+
+            null -> {}
         }
 
         /*div {

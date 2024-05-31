@@ -162,16 +162,6 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
                         }
                     }
                 }
-                ReactHTML.tr {
-                    ReactHTML.td {
-                        colSpan = props.cache.offsets + 4
-                        css {
-                            paddingTop = 15.rem
-                            paddingBottom = 15.rem
-                        }
-                        +"Direct Mapped Cache"
-                    }
-                }
             }
         }
     }

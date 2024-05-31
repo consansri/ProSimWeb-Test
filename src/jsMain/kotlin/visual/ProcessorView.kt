@@ -3,7 +3,6 @@ package visual
 import Constants.WebStorageKey
 import StyleAttr
 import emotion.react.css
-import emulator.kit.Architecture
 import kotlinx.browser.localStorage
 import react.*
 import react.dom.html.ReactHTML.button
@@ -241,7 +240,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.archState = props.archState
             this.compileEventState = props.compileEventState
             this.exeEventState = props.exeEventState
-            this.hideDescr = hideRegDescr
+            this.hideAdditionalInfo = hideRegDescr
             this.isFirst = true
         }
 
@@ -252,7 +251,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
                 this.archState = props.archState
                 this.compileEventState = props.compileEventState
                 this.exeEventState = props.exeEventState
-                this.hideDescr = hideRegDescr
+                this.hideAdditionalInfo = hideRegDescr
                 this.isFirst = false
             }
         }

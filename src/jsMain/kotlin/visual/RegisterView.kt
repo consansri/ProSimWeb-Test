@@ -3,7 +3,6 @@ package visual
 import StyleAttr
 import debug.DebugTools
 import emotion.react.css
-import emulator.kit.Architecture
 import Settings
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.Types.*
@@ -33,7 +32,7 @@ external interface RegisterViewProps : Props {
     var archState: StateInstance<emulator.kit.Architecture>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>
-    var hideDescr: StateInstance<Boolean>
+    var hideAdditionalInfo: StateInstance<Boolean>
     var isFirst: Boolean
 }
 
@@ -87,7 +86,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
             }
 
-            if (!props.hideDescr.component1() || props.isFirst) {
+            if (!props.hideAdditionalInfo.component1() || props.isFirst) {
                 button {
                     css {
                         color = StyleAttr.Main.Processor.FgColor.get()
@@ -133,7 +132,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 }
             }
 
-            if (!props.hideDescr.component1() || !props.isFirst) {
+            if (!props.hideAdditionalInfo.component1() || !props.isFirst) {
                 button {
                     ref = pcRef
 
@@ -216,11 +215,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                 +"Priv"
                             }
                         }
-                        th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            +"CC"
-                        }
-                        if (!props.hideDescr.component1()) {
+                        if (!props.hideAdditionalInfo.component1()) {
+                            th {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                +"CC"
+                            }
                             th {
                                 className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                                 scope = "col"
@@ -389,11 +388,12 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                             }
                                         }
                                     }
-                                    td {
-                                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                        +reg.callingConvention.displayName
-                                    }
-                                    if (!props.hideDescr.component1()) {
+
+                                    if (!props.hideAdditionalInfo.component1()) {
+                                        td {
+                                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                            +reg.callingConvention.displayName
+                                        }
                                         td {
                                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_LEFT)
                                             +reg.description
@@ -411,7 +411,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
         }
     }
 
-    useEffect(props.hideDescr) {
+    useEffect(props.hideAdditionalInfo) {
 
     }
 
