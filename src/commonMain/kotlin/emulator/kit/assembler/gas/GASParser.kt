@@ -50,6 +50,8 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
         // Preprocess and Filter Tokens
         val filteredSource = filter(source)
 
+        nativeLog("Tokens: ${filteredSource.joinToString("") { "\n\t${it.lineLoc}:${it.type}:${it.content}" }}")
+
         // Build the tree
         val root = try {
             GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)

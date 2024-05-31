@@ -98,7 +98,7 @@ class Lexer(private val architecture: Architecture, private val detectRegisters:
                 tokenList += token
                 startIndex += result.value.length
                 remaining = file.content.substring(startIndex)
-                if (type == Token.Type.LINEBREAK) lineID += 1
+                lineID += result.value.count { it == '\n' }
                 break
             }
         }
