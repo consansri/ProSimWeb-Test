@@ -4,10 +4,8 @@ import emulator.archs.riscv64.RV64
 import emulator.archs.riscv64.RV64BinMapper
 import emulator.kit.optional.BasicArchImpl
 import emulator.archs.riscv64.RV64Syntax.InstrType.*
-import emulator.kit.common.MicroSetup
-import emulator.kit.common.memory.DirectMappedCache
+import emulator.kit.MicroSetup
 import emulator.kit.common.memory.Memory
-import emulator.kit.nativeLog
 
 class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
 

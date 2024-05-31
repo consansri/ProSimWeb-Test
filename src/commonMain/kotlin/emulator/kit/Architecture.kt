@@ -137,7 +137,9 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      */
     open fun exeReset() {
         regContainer.clear()
-        memory.clear()
+        MicroSetup.getMemoryInstances().forEach {
+            it.clear()
+        }
 
         console.exeInfo("resetting")
     }

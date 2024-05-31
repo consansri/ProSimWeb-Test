@@ -1,6 +1,6 @@
 package emulator.kit.common.memory
 
-import emulator.kit.common.MicroSetup
+import emulator.kit.MicroSetup
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Tools.toValue
 

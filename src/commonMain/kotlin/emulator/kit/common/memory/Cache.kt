@@ -11,7 +11,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
     override val addressSize: Variable.Size = backingMemory.addressSize
 
     protected abstract fun accessCache(address: Hex): Pair<AccessResult, Variable.Value>
-    protected abstract fun updateCache(address: Hex, values: List<Variable.Value>, mark: InstanceType): AccessResult
+    protected abstract fun updateCache(address: Hex, bytes: List<Variable.Value>, mark: InstanceType): AccessResult
 
     protected abstract fun writeBackAll()
 
@@ -65,6 +65,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
 
         fun writeBack(rowAddress: Hex, backingMemory: Memory) {
             if (valid) {
+                nativeLog("Write back to ${rowAddress.toRawString()}")
                 backingMemory.storeArray(rowAddress, *data.map { it.value }.toTypedArray(), mark = InstanceType.DATA)
                 dirty = false
             }

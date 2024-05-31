@@ -1,4 +1,4 @@
-package emulator.kit.common
+package emulator.kit
 
 import emulator.kit.common.memory.Memory
 

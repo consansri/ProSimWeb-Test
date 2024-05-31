@@ -43,7 +43,7 @@ class DirectMappedCache(
         return result.second to fetchRow(rowAddress).data[offset].value
     }
 
-    override fun updateCache(address: Variable.Value.Hex, values: List<Variable.Value>, mark: InstanceType): AccessResult {
+    override fun updateCache(address: Variable.Value.Hex, bytes: List<Variable.Value>, mark: InstanceType): AccessResult {
         val binStr = address.toBin().getRawBinStr()
         val binTag = Variable.Value.Bin(binStr.substring(0, tagBits))
         val binRow = Variable.Value.Bin(binStr.substring(tagBits, tagBits + rowBits), Variable.Size.Bit32())
@@ -54,23 +54,21 @@ class DirectMappedCache(
 
         val result = checkRow(rowIndex, binTag)
 
-        if (offset + values.size - 1 >= offsets) throw MemoryException(this, "")
+        if (offset + bytes.size - 1 >= offsets) console.warn("Unsupported store above multiple cache rows!")
 
         // Update if HIT
         if (result.second.hit) {
-            updateRow(address, rowIndex, offset, values, mark)
-            nativeLog("Update Cache Row $rowIndex: $values\n\t${block.data[rowIndex].data.joinToString { "${it.value.toHex().getRawHexStr()}:${it.mark}:${it.address}" }}\nend")
+            updateRow(address, rowIndex, offset, bytes, mark)
             return result.second
         }
 
         // Write Back if Dirty
-        if (result.second.dirty) result.first.writeBack(binRow.toRawString())
+        if (result.second.dirty) result.first.writeBack(rowIndex.toString(2))
 
         // Load and Update Row
         val rowAddress = Variable.Value.Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
         fetchRow(rowAddress)
-        updateRow(address, rowIndex, offset, values, mark)
-        nativeLog("Update Cache Row $rowIndex: $values\n\t${block.data[rowIndex].data.joinToString { "${it.value.toHex().getRawHexStr()}:${it.mark}:${it.address}" }}\nend")
+        updateRow(address, rowIndex, offset, bytes, mark)
         return result.second
     }
 
@@ -148,7 +146,10 @@ class DirectMappedCache(
 
         fun writeBack(row: String) {
             tag?.let {
-                writeBack(Variable.Value.Bin(it.getRawBinStr() + row + "0".repeat(offsetBits), addressSize).toHex(), backingMemory)
+                if (row.length > rowBits) throw MemoryException(this@DirectMappedCache, "$row exceeds $rowBits bits")
+                val addrBinStr =  it.getRawBinStr().padStart(tagBits, '0') + row.padStart(rowBits, '0') + "0".repeat(offsetBits)
+                nativeLog("Write back to ${addrBinStr}")
+                writeBack(Variable.Value.Bin(addrBinStr, addressSize).toHex(), backingMemory)
             }
         }
     }

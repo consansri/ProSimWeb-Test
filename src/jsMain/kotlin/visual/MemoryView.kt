@@ -2,10 +2,9 @@ package visual
 
 import Constants.WebStorageKey
 import StyleAttr
-import debug.DebugTools
 import emotion.react.css
 import Settings
-import emulator.kit.common.MicroSetup
+import emulator.kit.MicroSetup
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
@@ -23,12 +22,6 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.table
-import react.dom.html.ReactHTML.tbody
-import react.dom.html.ReactHTML.td
-import react.dom.html.ReactHTML.th
-import react.dom.html.ReactHTML.thead
-import react.dom.html.ReactHTML.tr
-import visual.StyleExt.get
 import visual.memory.DMCacheView
 import visual.memory.MainMemoryView
 import web.cssom.*
