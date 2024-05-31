@@ -1,6 +1,6 @@
 # NEXT STEPS #
 
-
+- Implement more directives
 
 ## DONE ##
 

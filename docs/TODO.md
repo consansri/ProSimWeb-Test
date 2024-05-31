@@ -1,9 +1,10 @@
 # TODOS #
 
 - Value add exponential Numbers
-
-- FIX multi line comments replace lead to wrong address mapping
--
+- JVM: Save and load IDE settings
+- Change Name
+- Implement Micro Architectural Components
+- Implement IKR RISC 2
 
 # SUGAR #
 
@@ -13,6 +14,9 @@
 - add code completion
 
 # DONE #
+
+## Version 0.2.1 - Version 0.2.3 ##
+
 
 ## Version 0.2.0 ##
 - **(done)** Implemented JVM Target
