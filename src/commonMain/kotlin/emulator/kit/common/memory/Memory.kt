@@ -11,14 +11,6 @@ sealed class Memory: Throwable() {
     abstract val initBin: String
     var endianess: Endianess = Endianess.BigEndian
 
-    init {
-        addToCurrSetup()
-    }
-
-    private fun addToCurrSetup(){
-        MicroSetup.append(this)
-    }
-
     abstract fun load(address: Variable.Value): Variable.Value
     abstract fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false)
     abstract fun clear()

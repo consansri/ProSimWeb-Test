@@ -33,8 +33,4 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
         }
         return ExecutionResult(valid = false, typeIsReturnFromSubroutine = false, typeIsBranchToSubroutine = false)
     }
-
-    override fun setupMicroArch() {
-        // Not yet implemented
-    }
 }

@@ -20,7 +20,7 @@ import java.nio.file.Paths
 class MainManager {
 
     // Manager for the architectural model, initialized with RV32I architecture.
-    val archManager = ArchManager(Link.RV32I.arch)
+    val archManager = ArchManager(Link.RV32I.load())
 
     // Manager for application icons.
     val icons = BenIcons()

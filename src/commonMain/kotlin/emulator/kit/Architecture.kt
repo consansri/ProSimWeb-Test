@@ -63,8 +63,9 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
             asmConfig.definedAssembly
         )
 
-        // Setup Emulator Components
-        resetMicroArch()
+        // Starting with non micro setup
+        MicroSetup.clear()
+        MicroSetup.append(memory)
     }
 
     fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AsmFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
@@ -147,7 +148,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     /**
      * Reset [MicroSetup]
      */
-    fun resetMicroArch(){
+    fun resetMicroArch() {
         MicroSetup.clear()
         setupMicroArch()
         console.exeInfo("reset micro architecture")
@@ -160,7 +161,9 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      *
      * Append Components in use to [MicroSetup] to make them visible.
      */
-    abstract fun setupMicroArch()
+    open fun setupMicroArch() {
+        MicroSetup.append(memory)
+    }
 
     /**
      * Compilation Event

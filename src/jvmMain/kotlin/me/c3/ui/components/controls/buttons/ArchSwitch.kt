@@ -25,7 +25,7 @@ class ArchSwitch(mainManager: MainManager) : CComboBox<Link>(mainManager.tm, mai
         override fun actionPerformed(e: ActionEvent?) {
             val comboBox = e?.source as? CComboBox<*>
             val selectedMode = comboBox?.selectedItem as? Link ?: return
-            mainManager.archManager.curr = selectedMode.arch
+            mainManager.archManager.curr = selectedMode.load()
         }
     }
 }

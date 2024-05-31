@@ -13,7 +13,6 @@ import react.dom.html.ReactHTML.input
 import debug.DebugTools
 import emulator.Link
 import emulator.archs.riscv64.RV64
-import emulator.kit.nativeLog
 import emulator.kit.optional.FileHandler
 import emulator.kit.optional.ArchSetting
 import emulator.kit.types.Variable
@@ -32,7 +31,7 @@ val App = FC<Props> {
     val (showMenu, setShowMenu) = useState(true)
 
 
-    val archState = useState(Link.entries.getOrNull(localStorage.getItem(WebStorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0)?.arch ?: Link.entries.first().arch)
+    val archState = useState(Link.entries.getOrNull(localStorage.getItem(WebStorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0)?.load() ?: Link.entries.first().load())
     val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().features.filter { !it.invisible })
     val (showSettings, setShowSettings) = useState(false)
     val fileState = useState(FileHandler())

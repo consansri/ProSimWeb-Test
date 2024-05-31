@@ -1,143 +1,42 @@
 package me.c3.ui.components.processor
 
+import emulator.kit.MicroSetup
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import me.c3.ui.MainManager
+import me.c3.ui.components.processor.memory.DMCacheView
+import me.c3.ui.components.processor.memory.MainMemView
 import me.c3.ui.components.processor.models.MemTableModel
-import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.CScrollPane
-import me.c3.ui.styled.CTable
+import me.c3.ui.styled.*
+import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 
-class MemoryView(private val mm: MainManager) : CPanel(mm.tm, mm.sm, primary = false) {
-
-    val tableModel = MemTableModel()
-    val table = CTable(mm.tm, mm.sm, tableModel, false)
-    val scrollPane = CScrollPane(mm.tm, mm.sm, primary = false, table)
-    val addrTitle = "ADDR"
-    val asciiTitle = "ASCII"
-    var currentlyUpdating = false
+class MemoryView(private val mm: MainManager) : CAdvancedTabPane(mm.tm, mm.sm, mm.icons, tabsAreCloseable = false) {
 
     init {
-        layout = BorderLayout()
-        add(scrollPane, BorderLayout.CENTER)
-        this.maximumSize = table.maximumSize
-        updateContent()
         addContentChangeListener()
-        attachTableModelListener()
-    }
-
-    private fun attachTableModelListener() {
-        tableModel.addTableModelListener { e ->
-            if (e.type == TableModelEvent.UPDATE && !currentlyUpdating) {
-                val row = e.firstRow
-                val col = e.column
-                try {
-                    val rowAddr = tableModel.getValueAt(row, 0)
-                    val newValue = tableModel.getValueAt(row, col)
-                    val offset = col - 1
-                    val memInstance = mm.currArch().memory.memList.firstOrNull {
-                        it.row.getRawHexStr() == rowAddr.toString() && it.offset == offset
-                    }
-                    memInstance?.let { memInst ->
-                        val hex = Variable.Value.Hex(newValue.toString(), mm.currArch().memory.instanceSize)
-                        if (hex.checkResult.valid) {
-                            memInst.variable.set(hex)
-                        }
-                        currentlyUpdating = true
-                        tableModel.setValueAt(memInstance, row, col)
-                        currentlyUpdating = false
-                    } ?: nativeWarn("Couldn't find MemInstance for rowAddr: $rowAddr and offset: $offset")
-                } catch (e: IndexOutOfBoundsException) {
-                    nativeWarn("Received Index Out Of Bounds Exception: $e")
-                }
-            }
-        }
     }
 
     private fun addContentChangeListener() {
         mm.archManager.addArchChangeListener {
             updateContent()
         }
-
-        mm.eventManager.addExeEventListener {
-            updateContent()
-        }
-
-        mm.eventManager.addCompileListener {
-            updateContent()
-        }
+        updateContent()
     }
 
     private fun updateContent() {
-        SwingUtilities.invokeLater {
-            currentlyUpdating = true
-            tableModel.rowCount = 0
-            val rowAddresses = mutableListOf<String>()
-            val entrysInRow = mm.currArch().memory.entrysInRow
-            val copyOfMemList = ArrayList(mm.currArch().memory.memList)
-            copyOfMemList.forEach {
-                if (!rowAddresses.contains(it.row.getRawHexStr())) {
-                    rowAddresses.add(it.row.getRawHexStr())
-                }
+        removeAllTabs()
+        MicroSetup.getMemoryInstances().forEach {
+            val content = when (it) {
+                is DirectMappedCache -> DMCacheView(mm, it)
+                is MainMemory -> MainMemView(mm, it)
             }
-            rowAddresses.sort()
-
-            val columnIdentifiers: Array<String> = arrayOf(addrTitle, *Array(entrysInRow) { it.toString() }, asciiTitle)
-            tableModel.setColumnIdentifiers(columnIdentifiers)
-
-            table.resetCellHighlighting()
-
-            for (index in rowAddresses.indices) {
-                val contentArray: Array<Any> = Array(entrysInRow) { mm.currArch().memory.getInitialBinary().get().toHex().toRawString() }
-                copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
-                    contentArray[it.offset] = it
-                    if (mm.currArch().regContainer.pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
-                        table.setCellHighlighting(index, it.offset + 1, mm.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
-                    }
-                }
-                val ascii = contentArray.joinToString("") {
-                    when (it) {
-                        is MainMemory.MemInstance -> it.variable.get().toASCII()
-                        else -> "·"
-                    }
-                }
-
-                tableModel.addRow(arrayOf(rowAddresses[index], *contentArray.map { it }.toTypedArray(), ascii))
-            }
-
-            updateColumnWidths(entrysInRow)
-            currentlyUpdating = false
-        }
-    }
-
-    private fun updateColumnWidths(entrysInRow: Int) {
-        val charWidth = getFontMetrics(mm.currTheme().codeLaF.getFont().deriveFont(mm.currScale().fontScale.dataSize)).charWidth('0')
-        val wordSize = mm.currArch().memory.instanceSize
-        val addrScale = mm.currArch().memory.addressSize
-        val asciiScale = entrysInRow * wordSize.getByteCount()
-        val divider = entrysInRow * wordSize.hexChars + asciiScale + addrScale.hexChars
-
-        val oneCharSpace = table.width / divider
-        val firstColumnWidth = addrScale.hexChars * oneCharSpace
-        val inBetweenWidth = wordSize.hexChars * oneCharSpace
-        val lastColumnWidth = asciiScale * oneCharSpace
-
-        for (colIndex in 0 until table.columnCount) {
-            table.columnModel.getColumn(colIndex).preferredWidth = when (colIndex) {
-                0 -> firstColumnWidth
-                table.columnCount - 1 -> lastColumnWidth
-                else -> inBetweenWidth
-            }
-            table.columnModel.getColumn(colIndex).minWidth = when (colIndex) {
-                0 -> charWidth * addrScale.hexChars
-                table.columnCount - 1 -> asciiScale * charWidth
-                else -> wordSize.hexChars * charWidth
-            }
+            addTab(CLabel(mm.tm, mm.sm, it::class.simpleName.toString(), FontType.BASIC), content)
         }
     }
 }
