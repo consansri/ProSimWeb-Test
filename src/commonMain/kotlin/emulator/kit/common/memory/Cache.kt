@@ -14,6 +14,8 @@ abstract class Cache(protected val backingMemory: Memory, val console: IConsole)
     protected abstract fun accessCache(address: Hex): Pair<AccessResult, Variable.Value>
     protected abstract fun updateCache(address: Hex, value: Variable.Value, mark: InstanceType): AccessResult
 
+    protected abstract fun writeBackAll()
+
     override fun load(address: Variable.Value): Variable.Value {
         val result = accessCache(address.toHex().getUResized(addressSize))
         console.log("${result.first} for load($address)")
@@ -39,8 +41,7 @@ abstract class Cache(protected val backingMemory: Memory, val console: IConsole)
         }
     }
 
-    open class CacheRow(offsets: Int, instanceSize: Variable.Size) {
-        var valid: Boolean = true
+    open class CacheRow(offsets: Int, instanceSize: Variable.Size, var valid: Boolean) {
         var dirty: Boolean = false
         val data: Array<Variable.Value> = Array(offsets) {
             Bin("0", instanceSize)
@@ -53,12 +54,13 @@ abstract class Cache(protected val backingMemory: Memory, val console: IConsole)
 
         fun writeBack(rowAddress: Hex, backingMemory: Memory) {
             backingMemory.storeArray(rowAddress, *data, mark = InstanceType.DATA)
+            dirty = false
         }
     }
 
-    data class AccessResult(val valid: Boolean, val dirty: Boolean) {
+    data class AccessResult(val hit: Boolean,val valid: Boolean, val dirty: Boolean) {
         override fun toString(): String {
-            return "Cache ${if (valid) "HIT" else "MISS"} (dirty: $dirty)"
+            return "Cache ${if (hit) "HIT" else "MISS"} (valid: $valid, dirty: $dirty)"
         }
     }
 }

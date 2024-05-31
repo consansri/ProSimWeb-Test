@@ -32,7 +32,7 @@ class DirectMappedCache(
         val result = checkRow(rowIndex, binTag)
 
         // Read if HIT
-        if (result.second.valid) return result.second to result.first.data[offset]
+        if (result.second.hit) return result.second to result.first.data[offset]
 
         // Write Back if Dirty
         if (result.second.dirty) result.first.writeBack(binRow.toRawString())
@@ -53,7 +53,7 @@ class DirectMappedCache(
         val result = checkRow(rowIndex, binTag)
 
         // Update if HIT
-        if (result.second.valid) {
+        if (result.second.hit) {
             result.first.update(value, offset)
             return result.second
         }
@@ -65,6 +65,10 @@ class DirectMappedCache(
         val rowAddress = Variable.Value.Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
         fetchRow(rowAddress).update(value, offset)
         return result.second
+    }
+
+    override fun writeBackAll() {
+
     }
 
     override fun getAllBlocks(): Array<CacheBlock> = arrayOf(block)
@@ -87,7 +91,7 @@ class DirectMappedCache(
     }
 
     inner class DMBlock() : CacheBlock(rows, DMRow())
-    inner class DMRow(address: Variable.Value.Hex? = null, init: Array<Variable.Value.Bin>? = null) : CacheRow(offsets, instanceSize) {
+    inner class DMRow(address: Variable.Value.Hex? = null, init: Array<Variable.Value.Bin>? = null) : CacheRow(offsets, instanceSize, address != null) {
         val tag: Variable.Value.Bin?
 
         init {
@@ -105,8 +109,8 @@ class DirectMappedCache(
 
         fun check(otherTag: Variable.Value.Bin): AccessResult {
             return when (tag?.getRawBinStr()) {
-                otherTag.getRawBinStr() -> AccessResult(true, dirty)
-                else -> AccessResult(false, dirty)
+                otherTag.getRawBinStr() -> AccessResult(true,valid, dirty)
+                else -> AccessResult(false, valid, dirty)
             }
         }
 
