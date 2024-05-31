@@ -1,6 +1,7 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -33,16 +34,16 @@ class DirectMappedCache(
         val result = checkRow(rowIndex, binTag)
 
         // Read if HIT
-        if (result.second.hit) return result.second to result.first.data[offset]
+        if (result.second.hit) return result.second to result.first.data[offset].value
 
         // Write Back if Dirty
         if (result.second.dirty) result.first.writeBack(binRow.toRawString())
 
         val rowAddress = Variable.Value.Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
-        return result.second to fetchRow(rowAddress).data[offset]
+        return result.second to fetchRow(rowAddress).data[offset].value
     }
 
-    override fun updateCache(address: Variable.Value.Hex, value: Variable.Value, mark: InstanceType): AccessResult {
+    override fun updateCache(address: Variable.Value.Hex, values: List<Variable.Value>, mark: InstanceType): AccessResult {
         val binStr = address.toBin().getRawBinStr()
         val binTag = Variable.Value.Bin(binStr.substring(0, tagBits))
         val binRow = Variable.Value.Bin(binStr.substring(tagBits, tagBits + rowBits), Variable.Size.Bit32())
@@ -53,9 +54,13 @@ class DirectMappedCache(
 
         val result = checkRow(rowIndex, binTag)
 
+        nativeLog("Update Cache Row $rowIndex: $values\n\t${block.data[rowIndex].data.joinToString { it.value.toHex().toRawString() }}\nend")
+
+        if (offset + values.size - 1 >= offsets) throw MemoryException(this, "")
+
         // Update if HIT
         if (result.second.hit) {
-            result.first.update(value, offset)
+            updateRow(address,rowIndex, offset, values, mark)
             return result.second
         }
 
@@ -64,7 +69,8 @@ class DirectMappedCache(
 
         // Load and Update Row
         val rowAddress = Variable.Value.Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
-        fetchRow(rowAddress).update(value, offset)
+        fetchRow(rowAddress)
+        updateRow(address, rowIndex, offset, values, mark)
         return result.second
     }
 
@@ -73,6 +79,12 @@ class DirectMappedCache(
     }
 
     override fun getAllBlocks(): Array<CacheBlock> = arrayOf(block)
+    override fun getAddress(row: CacheRow, index: Int): Variable.Value.Hex {
+        if (row !is DMRow) throw MemoryException(this, "unable to calculate address")
+        val tag = row.tag ?: throw MemoryException(this, "unable to calculate address")
+        val rowIndex = block.data.indexOf(row)
+        return Variable.Value.Bin(tag.toRawString() + rowIndex.toString(2).padStart(rowBits, '0') + index.toString(2).padStart(offsetBits, '0'), addressSize).toHex()
+    }
 
     override fun clear() {
         block.clear()
@@ -81,6 +93,15 @@ class DirectMappedCache(
     private fun checkRow(rowIndex: Int, binTag: Variable.Value.Bin): Pair<DMRow, AccessResult> {
         val row = block.data.getOrNull(rowIndex) as? DMRow ?: throw Exception("Direct Mapped Cache row index ($rowIndex) out of Bounds (size ${block.data.size})!")
         return row to row.check(binTag)
+    }
+
+    private fun updateRow(address: Variable.Value.Hex, rowIndex: Int, offset: Int, new: List<Variable.Value>, mark: InstanceType) {
+        new.forEachIndexed() { i, newVal ->
+            val addr = address + Variable.Value.Hex((offset + i).toString(16), addressSize)
+            val offi = (offset + i) % offsets
+            val ri = rowIndex + ((offset + i) / offsets)
+            block.data[ri].update(CacheInstance(newVal, mark, addr.toHex()), offi)
+        }
     }
 
     private fun fetchRow(rowAddress: Variable.Value.Hex): DMRow {
@@ -116,7 +137,7 @@ class DirectMappedCache(
             }
             init?.let {
                 for (i in init.indices) {
-                    data[i] = init[i]
+                    data[i] = CacheInstance(init[i])
                 }
             }
         }

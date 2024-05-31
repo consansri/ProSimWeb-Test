@@ -7,6 +7,7 @@ import emulator.kit.common.Docs
 import emulator.kit.optional.FileHandler
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.Memory
 import react.FC
 import react.Props
@@ -18,6 +19,13 @@ import web.window.window
 
 object StyleExt {
     fun Memory.InstanceType.get(mode: StyleAttr.Mode): Color {
+        return when (mode) {
+            StyleAttr.Mode.LIGHT -> Color("#${this.light.toString(16)}")
+            StyleAttr.Mode.DARK -> Color("#${this.dark?.toString(16) ?: this.light.toString(16)}")
+        }
+    }
+
+    fun Cache.CacheRowState.get(mode: StyleAttr.Mode ): Color{
         return when (mode) {
             StyleAttr.Mode.LIGHT -> Color("#${this.light.toString(16)}")
             StyleAttr.Mode.DARK -> Color("#${this.dark?.toString(16) ?: this.light.toString(16)}")

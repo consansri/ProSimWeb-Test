@@ -138,6 +138,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     open fun exeReset() {
         regContainer.clear()
         memory.clear()
+        resetMicroArch()
 
         console.exeInfo("resetting")
     }
@@ -149,6 +150,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         MicroSetup.clear()
         setupMicroArch()
         console.exeInfo("reset micro architecture")
+        //nativeLog(MicroSetup.toString())
     }
 
     /**

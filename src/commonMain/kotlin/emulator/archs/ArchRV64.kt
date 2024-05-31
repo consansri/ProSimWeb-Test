@@ -7,10 +7,11 @@ import emulator.archs.riscv64.RV64Syntax.InstrType.*
 import emulator.kit.common.MicroSetup
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.Memory
+import emulator.kit.nativeLog
 
 class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
 
-    var dataMemory: Memory = DirectMappedCache(memory, console, 48, 10, 6)
+    var dataMemory: Memory = DirectMappedCache(memory, console, 55, 5, 4)
         set(value) {
             field = value
             resetMicroArch()
@@ -36,5 +37,6 @@ class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
     override fun setupMicroArch() {
         MicroSetup.append(memory)
         if (dataMemory != memory) MicroSetup.append(dataMemory)
+        nativeLog("Setup MicroArch")
     }
 }

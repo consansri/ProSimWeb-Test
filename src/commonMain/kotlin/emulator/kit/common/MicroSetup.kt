@@ -3,7 +3,10 @@ package emulator.kit.common
 import emulator.kit.common.memory.Memory
 
 object MicroSetup {
-    val memory = mutableListOf<Memory>()
+    private val memory = mutableListOf<Memory>()
+
+
+    fun getMemoryInstances(): List<Memory> = memory
 
     fun append(mem: Memory){
         memory.add(mem)
@@ -11,5 +14,13 @@ object MicroSetup {
 
     fun clear() {
         memory.clear()
+    }
+
+    override fun toString(): String {
+        return """
+            MicroSetup:
+                mems: ${memory.joinToString { it::class.simpleName.toString() }}
+                            
+        """.trimIndent()
     }
 }

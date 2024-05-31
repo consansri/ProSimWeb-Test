@@ -5,6 +5,8 @@ import StyleAttr
 import debug.DebugTools
 import emotion.react.css
 import Settings
+import emulator.kit.common.MicroSetup
+import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
 import emulator.kit.types.Variable.Value.Hex
@@ -27,6 +29,8 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
 import visual.StyleExt.get
+import visual.memory.DMCacheView
+import visual.memory.MainMemoryView
 import web.cssom.*
 import web.html.*
 
@@ -231,11 +235,32 @@ val MemoryView = FC<MemViewProps> { props ->
                     src = StyleAttr.Icons.reverse
                 }
             }
-
-
         }
 
-        div {
+        console.log("Reload Memory View for ${MicroSetup.getMemoryInstances().joinToString { it::class.simpleName.toString() }}")
+        MicroSetup.getMemoryInstances().forEachIndexed { index, mem ->
+            when(mem){
+                is DirectMappedCache -> {
+                    DMCacheView{
+                        this.key = "${mem::class.simpleName}$index"
+                        this.cache = mem
+                        this.exeEventState = props.exeEventState
+                        this.archState = props.archState
+                    }
+                }
+                is MainMemory -> {
+                    MainMemoryView{
+                        this.key = "${mem::class.simpleName}$index"
+                        this.memory = mem
+                        this.archState = props.archState
+                        this.exeEventState = props.exeEventState
+                        this.lowFirst = lowFirst
+                    }
+                }
+            }
+        }
+
+        /*div {
             css {
                 display = Display.block
                 overflowY = Overflow.scroll
@@ -264,7 +289,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
                         for (columnID in 0..<props.archState.component1().memory.entrysInRow) {
                             th {
-                                /* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*/
+                                *//* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*//*
                                 css {
                                     textAlign = TextAlign.center
                                     width = 4.ch
@@ -386,7 +411,7 @@ val MemoryView = FC<MemViewProps> { props ->
                     }
                 }
             }
-        }
+        }*/
     }
 
     if (editVar != null) {
@@ -507,11 +532,11 @@ val MemoryView = FC<MemViewProps> { props ->
 
     }
 
-    useEffect(memList) {
+    /*useEffect(memList) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Refresh Memory Table!")
         }
-    }
+    }*/
 
     useEffect(useBounds, startAddr, amount) {
         if (useBounds) {
@@ -529,19 +554,13 @@ val MemoryView = FC<MemViewProps> { props ->
         localStorage.setItem("${WebStorageKey.MIO_AMOUNT}-${props.archState.component1().description.name}", amount.toString())
     }
 
-    useEffect(props.exeEventState.component1()) {
+    /*useEffect(props.exeEventState.component1()) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Exe Event!")
         }
         setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().getRawHexStr())
         setMemList(props.archState.component1().memory.memList)
-    }
-
-    useEffect(props.archState.component1().memory.memList) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: Memory Map or Code State Changed!")
-        }
-    }
+    }*/
 
     useEffect(editVar) {
         if (editVar != null) {
