@@ -1,10 +1,10 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -15,23 +15,21 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
 open class CAdvancedTabPane(
-    private val tm: ThemeManager,
-    private val sm: ScaleManager,
     icons: ProSimIcons,
     private val tabsAreCloseable: Boolean,
     primary: Boolean = true,
     borderMode: BorderMode = BorderMode.NONE,
     emptyMessage: String = ""
-) : CPanel(tm, sm, primary, borderMode) {
+) : CPanel( primary, borderMode) {
 
-    private val emptyField = CLabel(tm, sm, emptyMessage, FontType.CODE).apply {
+    private val emptyField = CLabel( emptyMessage, FontType.CODE).apply {
         alignmentX = CENTER_ALIGNMENT
         alignmentY = CENTER_ALIGNMENT
         horizontalAlignment = SwingConstants.CENTER
         verticalAlignment = SwingConstants.CENTER
     }
-    private val tabsPane = CPanel(tm, sm, primary, BorderMode.SOUTH)
-    val contentPane = CScrollPane(tm, sm, primary, CPanel(tm, sm))
+    private val tabsPane = CPanel( primary, BorderMode.SOUTH)
+    val contentPane = CScrollPane( primary, CPanel())
     private val closeIcon = icons.close
 
     val tabs = mutableListOf<ClosableTab>()
@@ -64,7 +62,7 @@ open class CAdvancedTabPane(
     }
 
     fun addTab(tab: Component, content: Component) {
-        val closeableTab = ClosableTab(tm, sm, closeIcon, !primary, tabsAreCloseable, tab, content)
+        val closeableTab = ClosableTab( closeIcon, !primary, tabsAreCloseable, tab, content)
         closeableTab.closeButton.addActionListener {
             removeTab(closeableTab)
         }
@@ -79,7 +77,7 @@ open class CAdvancedTabPane(
     }
 
     fun addTab(tab: Component, content: Component, action: (Event, ClosableTab) -> Unit) {
-        val closeableTab = ClosableTab(tm, sm, closeIcon, !primary, tabsAreCloseable, tab, content, action)
+        val closeableTab = ClosableTab( closeIcon, !primary, tabsAreCloseable, tab, content, action)
         closeableTab.closeButton.addActionListener {
             removeTab(closeableTab)
         }
@@ -123,11 +121,11 @@ open class CAdvancedTabPane(
         add(contentPane, BorderLayout.CENTER)
     }
 
-    inner class ClosableTab(tm: ThemeManager, sm: ScaleManager, closeIcon: FlatSVGIcon, primary: Boolean, private val isCloseable: Boolean, val tab: Component, val content: Component, val actionEvent: ((Event, ClosableTab) -> Unit)? = null) :
-        CPanel(tm, sm, primary, roundCorners = true) {
+    inner class ClosableTab( closeIcon: FlatSVGIcon, primary: Boolean, private val isCloseable: Boolean, val tab: Component, val content: Component, val actionEvent: ((Event, ClosableTab) -> Unit)? = null) :
+        CPanel( primary, roundCorners = true) {
 
         val unselectedPrimaryValue = primary
-        val closeButton = CIconButton(tm, sm, closeIcon, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton( closeIcon, CIconButton.Mode.SECONDARY_SMALL)
 
         init {
             layout = BorderLayout()
@@ -147,9 +145,9 @@ open class CAdvancedTabPane(
         }
 
         fun showTabContextMenu(e: MouseEvent) {
-            val popupMenu = CPopupMenu(tm, sm)
+            val popupMenu = CPopupMenu()
 
-            val itemCloseAll = CMenuItem(tm, sm, "Close all tabs", FontType.BASIC).apply {
+            val itemCloseAll = CMenuItem( "Close all tabs", FontType.BASIC).apply {
                 addActionListener {
                     this@CAdvancedTabPane.removeAllTabs()
                 }

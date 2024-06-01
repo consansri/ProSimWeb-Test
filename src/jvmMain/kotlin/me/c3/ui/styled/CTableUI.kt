@@ -2,11 +2,10 @@ package me.c3.ui.styled
 
 import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
-import emulator.kit.common.memory.Memory
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.borders.DirectionalBorder
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import java.awt.event.MouseEvent
 import javax.swing.*
@@ -14,7 +13,7 @@ import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellEditor
 
-class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, private val primary: Boolean) : BasicTableUI() {
+class CTableUI( private val primary: Boolean) : BasicTableUI() {
 
     var highlightColor: Color? = null
     var highlightRow: Int? = null
@@ -25,11 +24,11 @@ class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
 
         val table = c as? CTable ?: return
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(table)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(table)
         }
 
@@ -40,8 +39,8 @@ class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
-            val fg = tm.curr.textLaF.base
-            val bg = if (primary) tm.curr.globalLaF.bgPrimary else tm.curr.globalLaF.bgSecondary
+            val fg = ThemeManager.curr.textLaF.base
+            val bg = if (primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
 
             val cTable = table as? CTable
             cTable?.let { tab ->
@@ -58,22 +57,22 @@ class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
                     highlightColor
                 } else {
                     when (value) {
-                        is MainMemory.MemInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
-                        is Cache.CacheInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
+                        is MainMemory.MemInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
+                        is Cache.CacheInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
                         else -> fg
                     }
                 }
             } else {
                 when (value) {
-                    is MainMemory.MemInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
-                    is Cache.CacheInstance -> tm.curr.dataLaF.getMemInstanceColor(value.mark)
+                    is MainMemory.MemInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
+                    is Cache.CacheInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
                     else -> fg
                 }
             }
 
             border = BorderFactory.createEmptyBorder()
             background = bg
-            font = FontType.DATA.getFont(tm, sm)
+            font = FontType.DATA.getFont()
 
             return value as? JComponent ?: this
         }
@@ -86,16 +85,16 @@ class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
             val cTable = table as? CTable ?: return component
 
             return if (column in cTable.clickableHeaderIds) {
-                CTextButton(tm, sm, "[$value]", FontType.CODE)
+                CTextButton( "[$value]", FontType.CODE)
             } else {
-                CLabel(tm, sm, value.toString(), FontType.BASIC).apply {
+                CLabel( value.toString(), FontType.BASIC).apply {
                     horizontalAlignment = SwingConstants.CENTER
                 }
             }
         }
     }
 
-    inner class CCellEditor : DefaultCellEditor(CTextField(tm, sm, FontType.CODE)), TableCellEditor {
+    inner class CCellEditor : DefaultCellEditor(CTextField( FontType.CODE)), TableCellEditor {
         init {
             (editorComponent as? CTextField)?.horizontalAlignment = JTextField.CENTER
         }
@@ -107,23 +106,23 @@ class CTableUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
     }
 
     fun setDefaults(table: CTable) {
-        table.background = tm.curr.globalLaF.bgSecondary
+        table.background = ThemeManager.curr.globalLaF.bgSecondary
         table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
         table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
         table.setDefaultEditor(Any::class.java, CCellEditor())
-        table.tableHeader.border = DirectionalBorder(tm, sm, south = true)
+        table.tableHeader.border = DirectionalBorder( south = true)
         table.isOpaque = true
         table.setShowGrid(false)
         table.showVerticalLines = false
         table.showHorizontalLines = false
         table.gridColor = table.background
-        table.rowHeight = table.getFontMetrics(tm.curr.codeLaF.getFont().deriveFont(sm.curr.fontScale.dataSize)).height + 2 * sm.curr.borderScale.insets
+        table.rowHeight = table.getFontMetrics(ThemeManager.curr.codeLaF.getFont().deriveFont(ScaleManager.curr.fontScale.dataSize)).height + 2 * ScaleManager.curr.borderScale.insets
 
         val header = table.tableHeader
         header.resizingAllowed = false
-        header.background = tm.curr.globalLaF.bgPrimary
-        header.foreground = tm.curr.textLaF.baseSecondary
-        header.font = FontType.DATA.getFont(tm, sm)
+        header.background = ThemeManager.curr.globalLaF.bgPrimary
+        header.foreground = ThemeManager.curr.textLaF.baseSecondary
+        header.font = FontType.DATA.getFont()
         header.defaultRenderer = CHeaderRenderer(!primary)
         //header.resizingAllowed = false
         header.isOpaque = true

@@ -1,7 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.text.*
@@ -9,7 +9,7 @@ import javax.swing.text.*
 class CTextPane(tm: ThemeManager, sm: ScaleManager) : JTextPane() {
 
     init {
-        setUI(CTextPaneUI(tm, sm))
+        setUI(CTextPaneUI())
     }
 
     override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
@@ -24,7 +24,7 @@ class CTextPane(tm: ThemeManager, sm: ScaleManager) : JTextPane() {
     }
 
     fun createScrollPane(tm: ThemeManager, sm: ScaleManager): CScrollPane {
-        return CScrollPane(tm, sm, true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
+        return CScrollPane( true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
     }
 
     override fun getScrollableTracksViewportWidth(): Boolean {

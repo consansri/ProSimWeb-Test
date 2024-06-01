@@ -1,12 +1,12 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Component
 import javax.swing.JDialog
 
-class CDialog(tm: ThemeManager, sm: ScaleManager, parent: Component) : JDialog() {
+class CDialog(parent: Component) : JDialog() {
 
     init {
         //rootPane = CRootPane(tm, sm)

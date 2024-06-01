@@ -1,29 +1,29 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPopupMenuUI
 
-class CPopupMenuUI(private val tm: ThemeManager, private val sm: ScaleManager, private val fontType: FontType) : BasicPopupMenuUI() {
+class CPopupMenuUI( private val fontType: FontType) : BasicPopupMenuUI() {
 
-    private var cornerRadius = sm.curr.controlScale.cornerRadius
-    private var borderColor = tm.curr.globalLaF.borderColor
-    private var background = tm.curr.globalLaF.bgOverlay
+    private var cornerRadius = ScaleManager.curr.controlScale.cornerRadius
+    private var borderColor = ThemeManager.curr.globalLaF.borderColor
+    private var background = ThemeManager.curr.globalLaF.bgOverlay
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val optionPane = c as? CPopupMenu ?: return
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(optionPane)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(optionPane)
         }
 
@@ -32,13 +32,13 @@ class CPopupMenuUI(private val tm: ThemeManager, private val sm: ScaleManager, p
 
 
     private fun setDefaults(cPopupMenu: CPopupMenu) {
-        cornerRadius = sm.curr.controlScale.cornerRadius
-        borderColor = tm.curr.globalLaF.borderColor
-        background = tm.curr.globalLaF.bgOverlay
+        cornerRadius = ScaleManager.curr.controlScale.cornerRadius
+        borderColor = ThemeManager.curr.globalLaF.borderColor
+        background = ThemeManager.curr.globalLaF.bgOverlay
         cPopupMenu.isOpaque = false
         cPopupMenu.background = Color(0, 0, 0, 0)
-        cPopupMenu.foreground = tm.curr.textLaF.base
-        cPopupMenu.font = fontType.getFont(tm, sm)
+        cPopupMenu.foreground = ThemeManager.curr.textLaF.base
+        cPopupMenu.font = fontType.getFont()
         cPopupMenu.border = BorderFactory.createEmptyBorder()
     }
 

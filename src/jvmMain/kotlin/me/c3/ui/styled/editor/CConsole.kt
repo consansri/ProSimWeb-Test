@@ -3,12 +3,12 @@ package me.c3.ui.styled.editor
 import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.BorderLayout
 
-open class CConsole(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(tm, sm, primary = true) {
+open class CConsole(icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(primary = true) {
 
     var title: String = "Console"
         set(value) {
@@ -22,9 +22,9 @@ open class CConsole(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, maxS
             textArea.isEditable = value
         }
 
-    private val topBar = CPanel(tm, sm, primary = false)
-    private val titleLabel = CLabel(tm, sm, title, FontType.TITLE)
-    private val textArea = CEditorArea(tm, sm, icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
+    private val topBar = CPanel( primary = false)
+    private val titleLabel = CLabel( title, FontType.TITLE)
+    private val textArea = CEditorArea(icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
 
     init {
         textArea.scrollPane.setViewportView(textArea)

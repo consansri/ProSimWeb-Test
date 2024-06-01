@@ -1,10 +1,11 @@
 package me.c3.ui.styled
 
 import kotlinx.coroutines.*
-import me.c3.ui.Workspace
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ResManager
+import me.c3.ui.workspace.Workspace
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.FocusAdapter
@@ -20,16 +21,16 @@ import javax.swing.event.TreeExpansionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class COptionPane(tm: ThemeManager, sm: ScaleManager) : JOptionPane() {
+class COptionPane() : JOptionPane() {
 
     companion object {
-        fun showInputDialog(tm: ThemeManager, sm: ScaleManager, parent: Component, message: String): Deferred<String> {
+        fun showInputDialog( parent: Component, message: String): Deferred<String> {
             val resultDeferred = CompletableDeferred<String>()
 
-            val cDialog = CDialog(tm, sm, parent)
-            val cPanel = CPanel(tm, sm, primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel(tm, sm, message, FontType.BASIC)
-            val cTextArea = CTextField(tm, sm, FontType.BASIC)
+            val cDialog = CDialog( parent)
+            val cPanel = CPanel( primary = false, isOverlay = true, roundCorners = true)
+            val cLabel = CLabel( message, FontType.BASIC)
+            val cTextArea = CTextField( FontType.BASIC)
 
             cTextArea.addKeyListener(object : KeyAdapter() {
                 override fun keyReleased(e: KeyEvent?) {
@@ -73,7 +74,7 @@ class COptionPane(tm: ThemeManager, sm: ScaleManager) : JOptionPane() {
             return resultDeferred
         }
 
-        fun showDirectoryChooser(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, parent: Component, message: String): Deferred<File?> {
+        fun showDirectoryChooser(parent: Component, message: String): Deferred<File?> {
             val resultDeferred = CompletableDeferred<File?>()
 
             SwingUtilities.invokeLater {
@@ -82,28 +83,28 @@ class COptionPane(tm: ThemeManager, sm: ScaleManager) : JOptionPane() {
                 // Scrollable Tree View
                 val root = DefaultMutableTreeNode("root")
                 val treeModel = DefaultTreeModel(root)
-                val tree = CTree(tm, sm, icons, treeModel, FontType.BASIC)
-                val cScrollPane = CScrollPane(tm, sm, false)
+                val tree = CTree(treeModel, FontType.BASIC)
+                val cScrollPane = CScrollPane( false)
                 cScrollPane.setViewportView(tree)
                 cScrollPane.size = Dimension(300, 300)
 
                 // Title Label
-                val titleLabel = CLabel(tm, sm, message, FontType.TITLE)
+                val titleLabel = CLabel( message, FontType.TITLE)
                 titleLabel.horizontalAlignment = SwingConstants.CENTER
 
                 // Current Path Identificator
-                val currPathTextField = CTextField(tm, sm, FontType.BASIC)
+                val currPathTextField = CTextField( FontType.BASIC)
                 currPathTextField.isEditable = false
 
                 // Select Button
-                val selectButton = CTextButton(tm, sm, "select", FontType.BASIC)
+                val selectButton = CTextButton( "select", FontType.BASIC)
 
                 // Content Panel
-                val cPanel = CPanel(tm, sm, primary = false, isOverlay = true, roundCorners = true)
+                val cPanel = CPanel( primary = false, isOverlay = true, roundCorners = true)
                 cPanel.layout = GridBagLayout()
 
                 // Dialog Frame
-                val cDialog = CDialog(tm, sm, parent)
+                val cDialog = CDialog( parent)
 
                 // Add Components to Content Panel
                 val gbc = GridBagConstraints()
@@ -200,19 +201,19 @@ class COptionPane(tm: ThemeManager, sm: ScaleManager) : JOptionPane() {
             return resultDeferred
         }
 
-        fun confirm(tm: ThemeManager, sm: ScaleManager, icons: ProSimIcons, parent: Component, message: String): Deferred<Boolean>{
+        fun confirm(parent: Component, message: String): Deferred<Boolean>{
             val resultDeferred = CompletableDeferred<Boolean>()
 
-            val cDialog = CDialog(tm, sm, parent)
-            val cPanel = CPanel(tm, sm, primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel(tm, sm, message, FontType.BASIC)
-            val cConfirmBtn = CTextButton(tm, sm, "confirm", FontType.BASIC).apply {
+            val cDialog = CDialog( parent)
+            val cPanel = CPanel( primary = false, isOverlay = true, roundCorners = true)
+            val cLabel = CLabel( message, FontType.BASIC)
+            val cConfirmBtn = CTextButton( "confirm", FontType.BASIC).apply {
                 addActionListener {
                     resultDeferred.complete(true)
                     cDialog.dispose()
                 }
             }
-            val cCancelBtn = CTextButton(tm, sm, "cancel", FontType.BASIC).apply {
+            val cCancelBtn = CTextButton( "cancel", FontType.BASIC).apply {
                 addActionListener {
                     resultDeferred.complete(false)
                     cDialog.dispose()
@@ -273,7 +274,7 @@ class COptionPane(tm: ThemeManager, sm: ScaleManager) : JOptionPane() {
     }
 
     init {
-        this.setUI(COptionPaneUI(tm, sm))
+        this.setUI(COptionPaneUI())
     }
 
 

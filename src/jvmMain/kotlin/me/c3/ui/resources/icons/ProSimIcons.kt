@@ -62,4 +62,8 @@ interface ProSimIcons {
     val folderClosed: FlatSVGIcon
     val folderOpen: FlatSVGIcon
 
+    fun getLightMode(): FlatSVGIcon = lightmode
+
+    fun getDarkMode(): FlatSVGIcon = darkmode
+
 }

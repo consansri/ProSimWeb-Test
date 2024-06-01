@@ -1,7 +1,7 @@
 package me.c3.ui.styled.borders
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Insets
@@ -9,26 +9,24 @@ import javax.swing.border.AbstractBorder
 import javax.swing.border.LineBorder
 
 class DirectionalBorder(
-    private val tm: ThemeManager,
-    private val sm: ScaleManager,
     private val north: Boolean = false,
     private val west: Boolean = false,
     private val south: Boolean = false,
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    var lineBorder = LineBorder(tm.curr.globalLaF.borderColor, sm.curr.borderScale.thickness)
-    var thickness = sm.curr.borderScale.thickness
+    var lineBorder = LineBorder(ThemeManager.curr.globalLaF.borderColor, ScaleManager.curr.borderScale.thickness)
+    var thickness = ScaleManager.curr.borderScale.thickness
 
     init {
-        sm.addScaleChangeEvent {
-            val color = tm.curr.globalLaF.borderColor
+        ScaleManager.addScaleChangeEvent {
+            val color = ThemeManager.curr.globalLaF.borderColor
             this.lineBorder = LineBorder(color, it.borderScale.thickness)
             this.thickness = it.borderScale.thickness
         }
 
-        tm.addThemeChangeListener {
-            val thickness = sm.curr.borderScale.thickness
+        ThemeManager.addThemeChangeListener {
+            val thickness = ScaleManager.curr.borderScale.thickness
             this.lineBorder = LineBorder(it.globalLaF.borderColor, thickness)
             this.thickness = thickness
         }
@@ -42,11 +40,11 @@ class DirectionalBorder(
     }
 
     override fun getBorderInsets(c: Component): Insets {
-        return sm.curr.borderScale.getInsets()
+        return ScaleManager.curr.borderScale.getInsets()
     }
 
     override fun getBorderInsets(c: Component, insets: Insets): Insets {
-        val themeInsets = sm.curr.borderScale.getInsets()
+        val themeInsets = ScaleManager.curr.borderScale.getInsets()
         insets.set(themeInsets.top, themeInsets.left, themeInsets.bottom, themeInsets.right)
         return insets
     }

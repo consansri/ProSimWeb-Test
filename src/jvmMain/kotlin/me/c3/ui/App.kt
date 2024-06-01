@@ -27,10 +27,10 @@ fun main() {
  */
 fun testBaseApp() {
     // Create and display the main application frame using NativeFrame.
-    NativeFrame(MainManager())
+    NativeFrame()
 
     // Uncomment the following line if BaseFrame with UIManager is needed.
-    // BaseFrame(UIManager())
+    // BaseFrame()
 }
 
 

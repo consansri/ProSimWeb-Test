@@ -5,8 +5,8 @@ import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.styled.CScrollPane
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Dimension
@@ -23,7 +23,7 @@ import java.util.ConcurrentModificationException
 import java.util.Stack
 import javax.swing.JComponent
 
-class CEditorArea(tm: ThemeManager, sm: ScaleManager, val icons: ProSimIcons, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
+class CEditorArea(val icons: ProSimIcons, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
 
     // Current State
     private val styledText: MutableList<StyledChar> = mutableListOf()
@@ -57,9 +57,9 @@ class CEditorArea(tm: ThemeManager, sm: ScaleManager, val icons: ProSimIcons, va
     var infoLogger: InfoLogger? = null
     var highlighter: Highlighter? = null
     var shortCuts: ShortCuts? = null
-    val scrollPane: CScrollPane = CScrollPane(tm, sm, true, this)
-    val lineNumbers: CEditorLineNumbers = CEditorLineNumbers(tm, sm, this)
-    val findAndReplace: CEditorAnalyzer = CEditorAnalyzer(tm, sm, this)
+    val scrollPane: CScrollPane = CScrollPane( true, this)
+    val lineNumbers: CEditorLineNumbers = CEditorLineNumbers( this)
+    val findAndReplace: CEditorAnalyzer = CEditorAnalyzer( this)
 
     // State History
     private val textStateHistory = Stack<List<StyledChar>>()
@@ -106,7 +106,7 @@ class CEditorArea(tm: ThemeManager, sm: ScaleManager, val icons: ProSimIcons, va
     private var selEndColumn = -1
 
     // Settings
-    var tabSize = sm.curr.fontScale.tabSize
+    var tabSize = ScaleManager.curr.fontScale.tabSize
     var scrollMarginLines = 2
     var scrollMarginChars = 10
     var isEditable = true
@@ -116,7 +116,7 @@ class CEditorArea(tm: ThemeManager, sm: ScaleManager, val icons: ProSimIcons, va
      */
 
     init {
-        setUI(CEditorAreaUI(tm, sm))
+        setUI(CEditorAreaUI())
         textStateHistory.push(styledText.toList())
         addKeyListener(EditorKeyListener())
         addMouseListener(EditorMouseListener())

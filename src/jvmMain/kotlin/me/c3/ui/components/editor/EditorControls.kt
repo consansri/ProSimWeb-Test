@@ -1,6 +1,6 @@
 package me.c3.ui.components.editor
 
-import me.c3.ui.MainManager
+import me.c3.ui.manager.*
 import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
@@ -12,14 +12,14 @@ import javax.swing.BoxLayout
  * @property mainManager The main manager instance.
  * @property editor The code editor associated with the controls.
  */
-class EditorControls(mainManager: MainManager, private val editor: CodeEditor) : CPanel(mainManager.tm, mainManager.sm, false, borderMode = BorderMode.EAST) {
+class EditorControls( private val editor: CodeEditor) : CPanel( false, borderMode = BorderMode.EAST) {
 
     // Control buttons
-    private val statusIcon: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.statusLoading)
-    private val undoButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.backwards)
-    private val redoButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.forwards)
-    private val buildButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.build)
-    private val infoButton: CIconButton = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.info)
+    private val statusIcon: CIconButton = CIconButton( ResManager.icons.statusLoading)
+    private val undoButton: CIconButton = CIconButton( ResManager.icons.backwards)
+    private val redoButton: CIconButton = CIconButton( ResManager.icons.forwards)
+    private val buildButton: CIconButton = CIconButton( ResManager.icons.build)
+    private val infoButton: CIconButton = CIconButton( ResManager.icons.info)
 
     init {
         // Apply layout
@@ -38,22 +38,22 @@ class EditorControls(mainManager: MainManager, private val editor: CodeEditor) :
         add(infoButton)
 
         // Listeners
-        mainManager.sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             val insets = it.borderScale.insets
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
-        mainManager.tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             background = it.globalLaF.bgSecondary
         }
 
         // Functions
-        installStatusButton(mainManager)
+        installStatusButton()
         installBuildButton(editor)
 
         // Set Defaults
-        val insets = mainManager.currScale().borderScale.insets
+        val insets = ScaleManager.curr.borderScale.insets
         border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-        background = mainManager.currTheme().globalLaF.bgSecondary
+        background = ThemeManager.curr.globalLaF.bgSecondary
 
         statusIcon.isDeactivated = true
         statusIcon.rotating = true
@@ -63,18 +63,18 @@ class EditorControls(mainManager: MainManager, private val editor: CodeEditor) :
      * Installs the status button and handles its functionality.
      * @param mainManager The main manager instance.
      */
-    private fun installStatusButton(mainManager: MainManager) {
-        mainManager.editor.addFileEditEvent {
-            statusIcon.svgIcon = mainManager.icons.statusLoading
+    private fun installStatusButton() {
+        MainManager.editor.addFileEditEvent {
+            statusIcon.svgIcon = ResManager.icons.statusLoading
             statusIcon.rotating = true
         }
 
-        mainManager.eventManager.addCompileListener { result ->
+        EventManager.addCompileListener { result ->
             if (result.success) {
-                statusIcon.svgIcon = mainManager.icons.statusFine
+                statusIcon.svgIcon = ResManager.icons.statusFine
                 statusIcon.rotating = false
             } else {
-                statusIcon.svgIcon = mainManager.icons.statusError
+                statusIcon.svgIcon = ResManager.icons.statusError
                 statusIcon.rotating = false
             }
         }

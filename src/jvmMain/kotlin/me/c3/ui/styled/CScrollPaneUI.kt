@@ -1,7 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JButton
@@ -9,9 +9,9 @@ import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.plaf.basic.BasicScrollPaneUI
 
-class CScrollPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicScrollPaneUI() {
+class CScrollPaneUI() : BasicScrollPaneUI() {
 
-    var scrollBarFgColor: Color = tm.curr.globalLaF.borderColor
+    var scrollBarFgColor: Color = ThemeManager.curr.globalLaF.borderColor
         set(value) {
             field = value
             scrollpane.verticalScrollBar.repaint()
@@ -34,11 +34,11 @@ class CScrollPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) 
         pane.horizontalScrollBar.setUI(CScrollBarUI())
         pane.isOpaque = false
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(pane)
         }
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(pane)
         }
 
@@ -48,11 +48,11 @@ class CScrollPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) 
     private fun setDefaults(cScrollPane: CScrollPane) {
         cScrollPane.viewport.preferredSize = cScrollPane.preferredSize
         cScrollPane.viewport.isOpaque = false
-        cScrollPane.background = if (cScrollPane.primary) tm.curr.globalLaF.bgPrimary else tm.curr.globalLaF.bgSecondary
-        scrollBarBgColor = if (cScrollPane.primary) tm.curr.globalLaF.bgPrimary else tm.curr.globalLaF.bgSecondary
-        scrollBarFgColor = tm.curr.globalLaF.borderColor
-        cScrollPane.verticalScrollBar.preferredSize = Dimension(sm.curr.scrollScale.thumbSize, 0)
-        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, sm.curr.scrollScale.thumbSize)
+        cScrollPane.background = if (cScrollPane.primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
+        scrollBarBgColor = if (cScrollPane.primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
+        scrollBarFgColor = ThemeManager.curr.globalLaF.borderColor
+        cScrollPane.verticalScrollBar.preferredSize = Dimension(ScaleManager.curr.scrollScale.thumbSize, 0)
+        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, ScaleManager.curr.scrollScale.thumbSize)
         cScrollPane.repaint()
     }
 

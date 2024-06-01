@@ -4,7 +4,7 @@ import emulator.kit.*
 import emulator.kit.assembler.AsmFile
 import emulator.kit.assembler.lexer.Token
 import kotlinx.coroutines.*
-import me.c3.ui.Workspace
+import me.c3.ui.workspace.Workspace
 import me.c3.ui.styled.editor.FileInterface
 import java.io.File
 import java.io.FileNotFoundException

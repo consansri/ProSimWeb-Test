@@ -6,7 +6,7 @@ import emulator.kit.assembler.Process
 import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import emulator.kit.toStyledText
-import me.c3.ui.MainManager
+import me.c3.ui.manager.*
 import me.c3.ui.styled.editor.*
 import javax.swing.SwingUtilities
 
@@ -15,7 +15,7 @@ import javax.swing.SwingUtilities
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  * @property editorFile The file associated with the editor.
  */
-class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorFile) : CEditor(mainManager.tm, mainManager.sm, mainManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
+class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
     init {
         fileInterface = editorFile
         // Attach listeners for various events
@@ -23,16 +23,16 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
         infoLogger = this
         shortCuts = this
 
-        mainManager.eventManager.addExeEventListener {
+        EventManager.addExeEventListener {
             markPC()
         }
-        mainManager.eventManager.addCompileListener {
+        EventManager.addCompileListener {
             markPC()
         }
-        mainManager.archManager.addArchChangeListener {
+        ArchManager.addArchChangeListener {
             fireCompilation(false)
         }
-        mainManager.archManager.addFeatureChangeListener {
+        ArchManager.addFeatureChangeListener {
             fireCompilation(false)
         }
 
@@ -49,7 +49,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
             val result = compile(build)
             if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")) {
                 withContext(Dispatchers.Main) {
-                    this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(mainManager.currTheme().codeLaF))
+                    this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(ThemeManager.curr.codeLaF))
                 }
             }
         }
@@ -61,9 +61,9 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      * @return The compilation result.
      */
     private suspend fun compile(build: Boolean): Process.Result {
-        val result = mainManager.currArch().compile(editorFile.toAsmMainFile(mainManager.currWS()), mainManager.currWS().getImportableFiles(editorFile.file), build)
+        val result = ArchManager.curr.compile(editorFile.toAsmMainFile(MainManager.currWS()), MainManager.currWS().getImportableFiles(editorFile.file), build)
         SwingUtilities.invokeLater {
-            mainManager.eventManager.triggerCompileFinished(result)
+            EventManager.triggerCompileFinished(result)
         }
         return result
     }
@@ -72,8 +72,8 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      * Marks the current program counter position in the editor.
      */
     private fun markPC() {
-        val lineLoc = mainManager.currArch().assembler.getLastLineMap()[mainManager.currArch().regContainer.pc.get().toHex().toRawString()]?.firstOrNull {
-            editorFile.matches(mainManager.currWS(), it)
+        val lineLoc = ArchManager.curr.assembler.getLastLineMap()[ArchManager.curr.regContainer.pc.get().toHex().toRawString()]?.firstOrNull {
+            editorFile.matches(MainManager.currWS(), it)
         }
 
         if (lineLoc == null) {
@@ -81,7 +81,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
             return
         }
 
-        val content = CEditorLineNumbers.LineContent.Text(lineLoc.lineID + 1, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC), ">")
+        val content = CEditorLineNumbers.LineContent.Text(lineLoc.lineID + 1, ThemeManager.curr.codeLaF.getColor(CodeStyle.GREENPC), ">")
         mark(content)
     }
 
@@ -90,8 +90,8 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      * @param lineNumber The line number that was clicked.
      */
     override fun onLineClicked(lineNumber: Int) {
-        mainManager.currArch().exeUntilLine(lineNumber, editorFile.getWSRelativeName(mainManager.currWS()))
-        mainManager.eventManager.triggerExeEvent()
+        ArchManager.curr.exeUntilLine(lineNumber, editorFile.getWSRelativeName(MainManager.currWS()))
+        EventManager.triggerExeEvent()
     }
 
     /**
@@ -101,7 +101,7 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
      */
     override suspend fun highlight(text: String): List<CEditorArea.StyledChar> {
         val result = compile(false)
-        return result.tokens.toStyledText(mainManager.currTheme().codeLaF)
+        return result.tokens.toStyledText(ThemeManager.curr.codeLaF)
     }
 
     /**
@@ -119,15 +119,15 @@ class ProSimEditor(private val mainManager: MainManager, val editorFile: EditorF
             "${caret.line}:${caret.column}"
         } else ""
 
-        mainManager.bBar.editorInfo.text = "$caretString $selstring"
+        MainManager.bBar.editorInfo.text = "$caretString $selstring"
     }
 
     override fun printError(text: String) {
-        mainManager.bBar.setError(text)
+        MainManager.bBar.setError(text)
     }
 
     override fun clearError() {
-        mainManager.bBar.generalPurpose.text = ""
+        MainManager.bBar.generalPurpose.text = ""
     }
 
     override fun ctrlS() {

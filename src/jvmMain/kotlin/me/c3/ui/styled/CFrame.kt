@@ -1,11 +1,10 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
-import me.c3.ui.theme.core.ui.UIAdapter
+import me.c3.ui.manager.ThemeManager
 import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.MouseAdapter
@@ -17,11 +16,11 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
-open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, private val icons: ProSimIcons) : JFrame(), UIAdapter {
+open class CFrame(private val icons: ProSimIcons) : JFrame() {
     val titleBar = TitleBar()
-    val content = CPanel(tm, sm, primary = false)
+    val content = CPanel( primary = false)
 
-    private var cornerRadius: Int = sm.curr.borderScale.cornerRadius
+    private var cornerRadius: Int = ScaleManager.curr.borderScale.cornerRadius
 
     private var posX = 0
     private var posY = 0
@@ -36,7 +35,7 @@ open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, pr
         layout = BorderLayout()
 
         addBaseComponents()
-        this.setupUI(tm, sm)
+        this.setupUI()
 
         isVisible = true
     }
@@ -57,28 +56,28 @@ open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, pr
         titleBar.titleLabel.text = newtitle
     }
 
-    override fun setupUI(tm: ThemeManager, sm: ScaleManager) {
+    private fun setupUI() {
         SwingUtilities.invokeLater {
-            sm.addScaleChangeEvent {
-                setDefaults(tm, sm)
+            ScaleManager.addScaleChangeEvent {
+                setDefaults()
             }
 
-            tm.addThemeChangeListener {
-                setDefaults(tm, sm)
+            ThemeManager.addThemeChangeListener {
+                setDefaults()
             }
 
-            setDefaults(tm, sm)
+            setDefaults()
         }
     }
 
-    override fun setDefaults(tm: ThemeManager, sm: ScaleManager) {
+    private fun setDefaults() {
         rootPane.border = BorderFactory.createEmptyBorder()
         content.border = BorderFactory.createEmptyBorder()
-        cornerRadius = sm.curr.borderScale.cornerRadius
-        background = tm.curr.globalLaF.bgSecondary
+        cornerRadius = ScaleManager.curr.borderScale.cornerRadius
+        background = ThemeManager.curr.globalLaF.bgSecondary
 
         val icon = icons.appLogo.derive(64, 64)
-        icon.colorFilter = tm.curr.icon.colorFilter
+        icon.colorFilter = ThemeManager.curr.icon.colorFilter
         iconImage = icon.image
     }
 
@@ -102,14 +101,14 @@ open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, pr
         content.add(comp, constraints, index)
     }
 
-    inner class TitleBar : CPanel(tm, sm, primary = false, BorderMode.SOUTH) {
+    inner class TitleBar : CPanel( primary = false, BorderMode.SOUTH) {
 
-        val logoButton = CIconButton(tm, sm, icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
-        val titleLabel = CLabel(tm, sm, title, FontType.BASIC)
-        val minimizeButton = CIconButton(tm, sm, icons.decrease, CIconButton.Mode.SECONDARY_SMALL)
-        val maximizeButton = CIconButton(tm, sm, icons.increase, CIconButton.Mode.SECONDARY_SMALL)
-        val closeButton = CIconButton(tm, sm, icons.close, CIconButton.Mode.SECONDARY_SMALL)
-        val titleContent = CPanel(tm, sm, primary = false)
+        val logoButton = CIconButton( icons.appLogo, CIconButton.Mode.GRADIENT_NORMAL)
+        val titleLabel = CLabel( title, FontType.BASIC)
+        val minimizeButton = CIconButton( icons.decrease, CIconButton.Mode.SECONDARY_SMALL)
+        val maximizeButton = CIconButton( icons.increase, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton( icons.close, CIconButton.Mode.SECONDARY_SMALL)
+        val titleContent = CPanel( primary = false)
 
         init {
             attachContent()
@@ -120,7 +119,7 @@ open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, pr
 
             addButtonListeners()
 
-            applyDefaultLook(tm, sm)
+            applyDefaultLook()
         }
 
         private fun attachContent() {
@@ -192,23 +191,23 @@ open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, pr
             })
         }
 
-        private fun applyDefaultLook(tm: ThemeManager, sm: ScaleManager) {
+        private fun applyDefaultLook() {
             titleLabel.horizontalAlignment = SwingConstants.LEFT
             logoButton.isDeactivated = true
 
-            tm.addThemeChangeListener {
-                applyThemeDefaults(tm)
+            ThemeManager.addThemeChangeListener {
+                applyThemeDefaults()
             }
-            sm.addScaleChangeEvent {
-                applyThemeDefaults(tm)
+            ScaleManager.addScaleChangeEvent {
+                applyThemeDefaults()
             }
 
-            applyThemeDefaults(tm)
+            applyThemeDefaults()
         }
 
-        private fun applyThemeDefaults(tm: ThemeManager) {
+        private fun applyThemeDefaults() {
             icons.appLogo.colorFilter = FlatSVGIcon.ColorFilter {
-               tm.curr.textLaF.base
+               ThemeManager.curr.textLaF.base
             }
 
             logoButton.svgIcon = icons.appLogo
@@ -280,9 +279,9 @@ open class CFrame(private val tm: ThemeManager, private val sm: ScaleManager, pr
     }
 
     private fun isEdge(point: Point): ResizeMode? {
-        val left = point.x <= sm.curr.borderScale.insets
-        val right = point.x >= width - sm.curr.borderScale.insets
-        val bottom = point.y >= height - sm.curr.borderScale.insets
+        val left = point.x <= ScaleManager.curr.borderScale.insets
+        val right = point.x >= width - ScaleManager.curr.borderScale.insets
+        val bottom = point.y >= height - ScaleManager.curr.borderScale.insets
 
         return when {
             left && bottom -> ResizeMode.LEFTANDBOTTOM

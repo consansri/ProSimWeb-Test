@@ -1,7 +1,7 @@
 package me.c3.ui.components
 
-import me.c3.ui.ArchManager
-import me.c3.ui.MainManager
+import me.c3.ui.manager.ArchManager
+import me.c3.ui.manager.MainManager
 import me.c3.ui.components.console.ConsoleView
 import me.c3.ui.components.controls.AppControls
 import me.c3.ui.components.controls.BottomBar
@@ -12,9 +12,9 @@ import me.c3.ui.components.processor.ProcessorView
 import me.c3.ui.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.CAdvancedTabPane
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.components.docs.InfoView
 
@@ -23,9 +23,6 @@ import me.c3.ui.components.docs.InfoView
  * It defines the main components and managers used in the application.
  */
 interface ProSimFrame {
-
-    // The main manager controlling the overall application state.
-    val mManager: MainManager
 
     // Editor component for code editing functionality.
     val editor: CodeEditor
@@ -71,18 +68,6 @@ interface ProSimFrame {
 
     // Vertical split pane for main application areas.
     val verticalMainCSplitPane: CSplitPane
-
-    // Function to retrieve the theme manager for managing application themes.
-    fun getThemeM(): ThemeManager
-
-    // Function to retrieve the scale manager for managing UI scaling.
-    fun getScaleM(): ScaleManager
-
-    // Function to retrieve the architecture manager for handling project architecture.
-    fun getArchM(): ArchManager
-
-    // Function to retrieve the icon manager for accessing application icons.
-    fun getIcons(): ProSimIcons
 
     /**
      * Function to toggle the visibility of various components.

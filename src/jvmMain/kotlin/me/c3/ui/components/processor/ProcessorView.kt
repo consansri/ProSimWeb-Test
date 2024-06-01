@@ -1,6 +1,6 @@
 package me.c3.ui.components.processor
 
-import me.c3.ui.MainManager
+import me.c3.ui.manager.MainManager
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CSplitPane
 import java.awt.Dimension
@@ -8,20 +8,20 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JSplitPane
 
-class ProcessorView(mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, primary = false) {
+class ProcessorView() : CPanel( primary = false) {
 
-    val exeControl = ExecutionControls(mainManager)
-    val regView = RegisterView(mainManager).apply {
+    val exeControl = ExecutionControls()
+    val regView = RegisterView().apply {
         minimumSize = Dimension(0,0)
     }
-    val memoryView = MemoryView(mainManager).apply {
+    val memoryView = MemoryView().apply {
         minimumSize = Dimension(0,0)
     }
-    val splitPane = CSplitPane(mainManager.tm, mainManager.sm, JSplitPane.VERTICAL_SPLIT, true, regView, memoryView).apply {
+    val splitPane = CSplitPane( JSplitPane.VERTICAL_SPLIT, true, regView, memoryView).apply {
         resizeWeight = 0.7
         setDividerLocation(0.7)
     }
-    val processorSettings = ProcessorSettings(mainManager, this)
+    val processorSettings = ProcessorSettings( this)
 
     init {
         attachContent()

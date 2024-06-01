@@ -1,7 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -11,7 +11,7 @@ import javax.swing.JSplitPane
 import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
 
-class CSplitPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicSplitPaneUI() {
+class CSplitPaneUI() : BasicSplitPaneUI() {
     var dividerColor: Color = Color(0, 0, 0, 0)
         set(value) {
             field = value
@@ -26,11 +26,11 @@ class CSplitPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) :
         pane.border = BorderFactory.createEmptyBorder()
         divider.border = BorderFactory.createEmptyBorder()
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(pane)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(pane)
         }
 
@@ -38,8 +38,8 @@ class CSplitPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) :
     }
 
     private fun setDefaults(cPane: CSplitPane) {
-        dividerColor = tm.curr.globalLaF.borderColor
-        cPane.setDividerSize(sm.curr.dividerScale.thickness)
+        dividerColor = ThemeManager.curr.globalLaF.borderColor
+        cPane.setDividerSize(ScaleManager.curr.dividerScale.thickness)
     }
 
     override fun createDefaultDivider(): BasicSplitPaneDivider {

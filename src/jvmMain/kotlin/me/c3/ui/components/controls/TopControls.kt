@@ -1,6 +1,6 @@
 package me.c3.ui.components.controls
 
-import me.c3.ui.MainManager
+import me.c3.ui.manager.MainManager
 import me.c3.ui.components.controls.buttons.*
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
@@ -14,10 +14,10 @@ import javax.swing.JComponent
  * @property mainManager The main manager instance.
  * @property showArchSwitch A boolean indicating whether to show the architecture switch button.
  */
-class TopControls(mainManager: MainManager, showArchSwitch: Boolean) : CPanel(mainManager.tm, mainManager.sm, primary = false, borderMode = BorderMode.HORIZONTAL) {
+class TopControls(showArchSwitch: Boolean) : CPanel( primary = false, borderMode = BorderMode.HORIZONTAL) {
 
     // List of control buttons
-    private val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(mainManager), ScaleSwitch(mainManager)) else listOf(ScaleSwitch(mainManager))
+    private val buttons: List<JComponent> = if(showArchSwitch) listOf(ArchSwitch(), ScaleSwitch()) else listOf(ScaleSwitch())
 
     init {
         layout = GridBagLayout()

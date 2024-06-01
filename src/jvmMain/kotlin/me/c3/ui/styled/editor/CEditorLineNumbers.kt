@@ -1,15 +1,15 @@
 package me.c3.ui.styled.editor
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
-class CEditorLineNumbers(tm: ThemeManager, sm: ScaleManager, private val editor: CEditorArea) : JComponent() {
+class CEditorLineNumbers( private val editor: CEditorArea) : JComponent() {
 
-    var fm: FontMetrics = getFontMetrics(tm.curr.codeLaF.getFont().deriveFont(sm.curr.fontScale.codeSize))
+    var fm: FontMetrics = getFontMetrics(ThemeManager.curr.codeLaF.getFont().deriveFont(ScaleManager.curr.fontScale.codeSize))
     var selBg = Color(0, 0, 0, 0)
     var lineCount: Int = 1
         set(value) {

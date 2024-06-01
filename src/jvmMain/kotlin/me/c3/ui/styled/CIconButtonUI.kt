@@ -1,8 +1,8 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -11,10 +11,10 @@ import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.plaf.basic.BasicButtonUI
 
-open class CIconButtonUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicButtonUI() {
+open class CIconButtonUI() : BasicButtonUI() {
 
-    var cornerRadius = sm.curr.controlScale.cornerRadius
-    var hoverColor = tm.curr.iconLaF.iconBgHover
+    var cornerRadius = ScaleManager.curr.controlScale.cornerRadius
+    var hoverColor = ThemeManager.curr.iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -28,11 +28,11 @@ open class CIconButtonUI(private val tm: ThemeManager, private val sm: ScaleMana
         button.isFocusable = false
         button.isOpaque = false
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(button)
         }
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(button)
         }
 
@@ -56,8 +56,8 @@ open class CIconButtonUI(private val tm: ThemeManager, private val sm: ScaleMana
     }
 
     fun setDefaults(cIconButton: CIconButton) {
-        cornerRadius = sm.curr.controlScale.cornerRadius
-        hoverColor = tm.curr.iconLaF.iconBgHover
+        cornerRadius = ScaleManager.curr.controlScale.cornerRadius
+        hoverColor = ThemeManager.curr.iconLaF.iconBgHover
         val inset = getInset(cIconButton)
         cIconButton.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
         updateIcon(cIconButton)
@@ -65,7 +65,7 @@ open class CIconButtonUI(private val tm: ThemeManager, private val sm: ScaleMana
     }
 
     private fun updateIcon(cIconButton: CIconButton) {
-        val iconStyle = tm.curr.iconLaF
+        val iconStyle = ThemeManager.curr.iconLaF
         SwingUtilities.invokeLater {
             cIconButton.svgIcon?.let {
                 when (cIconButton.mode) {
@@ -82,8 +82,8 @@ open class CIconButtonUI(private val tm: ThemeManager, private val sm: ScaleMana
 
             cIconButton.background = cIconButton.iconBg
             val iconScale = when (cIconButton.mode) {
-                CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.SECONDARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> sm.curr.controlScale.normalSize
-                CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.SECONDARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> sm.curr.controlScale.smallSize
+                CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.SECONDARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> ScaleManager.curr.controlScale.normalSize
+                CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.SECONDARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> ScaleManager.curr.controlScale.smallSize
             }
 
             cIconButton.customColor?.let { col ->
@@ -132,9 +132,9 @@ open class CIconButtonUI(private val tm: ThemeManager, private val sm: ScaleMana
     }
 
     private fun getInset(cIconButton: CIconButton): Int = when (cIconButton.mode) {
-        CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> sm.curr.controlScale.normalInset
-        CIconButton.Mode.SECONDARY_NORMAL -> sm.curr.controlScale.normalInset
-        CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> sm.curr.controlScale.smallInset
-        CIconButton.Mode.SECONDARY_SMALL -> sm.curr.controlScale.smallInset
+        CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> ScaleManager.curr.controlScale.normalInset
+        CIconButton.Mode.SECONDARY_NORMAL -> ScaleManager.curr.controlScale.normalInset
+        CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> ScaleManager.curr.controlScale.smallInset
+        CIconButton.Mode.SECONDARY_SMALL -> ScaleManager.curr.controlScale.smallInset
     }
 }

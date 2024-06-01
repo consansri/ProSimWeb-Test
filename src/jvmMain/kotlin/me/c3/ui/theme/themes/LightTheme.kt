@@ -1,14 +1,14 @@
 package me.c3.ui.theme.themes
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import me.c3.ui.manager.ResManager
 import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.core.style.*
-import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.Color
 
-class LightTheme(icons: ProSimIcons) : Theme {
+class LightTheme : Theme {
     override val name: String = "light"
-    override val icon: FlatSVGIcon = icons.lightmode
+    override val icon: FlatSVGIcon = ResManager.icons.getLightMode()
     override val dark: Boolean = false
 
     override val codeLaF: CodeLaF = CodeLaF(

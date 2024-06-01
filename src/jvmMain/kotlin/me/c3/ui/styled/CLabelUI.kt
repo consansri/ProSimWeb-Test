@@ -1,23 +1,23 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicLabelUI
 
-class CLabelUI(private val tm: ThemeManager, private val sm: ScaleManager, private val fontType: FontType) : BasicLabelUI() {
+class CLabelUI(private val fontType: FontType) : BasicLabelUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val cLabel = c as? CLabel ?: return
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(cLabel)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(cLabel)
         }
 
@@ -25,9 +25,9 @@ class CLabelUI(private val tm: ThemeManager, private val sm: ScaleManager, priva
     }
 
     private fun setDefaults(cLabel: CLabel) {
-        cLabel.font = fontType.getFont(tm, sm)
-        cLabel.border = sm.curr.borderScale.getInsetBorder()
-        cLabel.foreground = tm.curr.textLaF.base
+        cLabel.font = fontType.getFont()
+        cLabel.border = ScaleManager.curr.borderScale.getInsetBorder()
+        cLabel.foreground = ThemeManager.curr.textLaF.base
         cLabel.repaint()
     }
 

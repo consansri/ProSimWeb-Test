@@ -1,8 +1,8 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -10,7 +10,7 @@ import javax.swing.JButton
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 
-open class CIconButton(tm: ThemeManager, sm: ScaleManager, icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL) : JButton(icon) {
+open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL) : JButton(icon) {
 
     private var timer: Timer? = null
     private var rotationAngle: Double = 0.0
@@ -27,7 +27,7 @@ open class CIconButton(tm: ThemeManager, sm: ScaleManager, icon: FlatSVGIcon? = 
             updateAnim()
         }
 
-    var iconBg = tm.curr.iconLaF.iconBg
+    var iconBg = ThemeManager.curr.iconLaF.iconBg
         set(value) {
             field = value
             (ui as? CIconButtonUI)?.setDefaults(this)
@@ -54,7 +54,7 @@ open class CIconButton(tm: ThemeManager, sm: ScaleManager, icon: FlatSVGIcon? = 
         }
 
     init {
-        this.setUI(CIconButtonUI(tm, sm))
+        this.setUI(CIconButtonUI())
     }
 
     private fun updateAnim() {

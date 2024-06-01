@@ -1,28 +1,28 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JRootPane
 import javax.swing.plaf.basic.BasicRootPaneUI
 
-class CRootPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) : BasicRootPaneUI() {
+class CRootPaneUI() : BasicRootPaneUI() {
 
-    private var inset: Int = sm.curr.borderScale.insets
-    var cornerRadius: Int = sm.curr.borderScale.cornerRadius
+    private var inset: Int = ScaleManager.curr.borderScale.insets
+    var cornerRadius: Int = ScaleManager.curr.borderScale.cornerRadius
 
     override fun installDefaults(c: JRootPane?) {
         super.installDefaults(c)
 
         val cRootPane = c as? CRootPane ?: return
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(cRootPane)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(cRootPane)
         }
 
@@ -46,9 +46,9 @@ class CRootPaneUI(private val tm: ThemeManager, private val sm: ScaleManager) : 
     }
 
     private fun setDefaults(cRootPane: CRootPane) {
-        inset = sm.curr.borderScale.insets
+        inset = ScaleManager.curr.borderScale.insets
         cRootPane.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
-        cRootPane.background = tm.curr.globalLaF.bgSecondary
+        cRootPane.background = ThemeManager.curr.globalLaF.bgSecondary
         cRootPane.repaint()
     }
 

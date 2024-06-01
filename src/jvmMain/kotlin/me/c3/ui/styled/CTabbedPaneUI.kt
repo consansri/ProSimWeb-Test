@@ -1,8 +1,8 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -10,9 +10,9 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTabbedPaneUI
 
-class CTabbedPaneUI(private val tm: ThemeManager, private val sm: ScaleManager, private val primary: Boolean, private val fontType: FontType) : BasicTabbedPaneUI() {
+class CTabbedPaneUI( private val primary: Boolean, private val fontType: FontType) : BasicTabbedPaneUI() {
 
-    private var selectedColor = tm.curr.globalLaF.borderColor
+    private var selectedColor = ThemeManager.curr.globalLaF.borderColor
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -20,21 +20,21 @@ class CTabbedPaneUI(private val tm: ThemeManager, private val sm: ScaleManager, 
         val pane = c as? CTabbedPane ?: return
         pane.border = BorderFactory.createEmptyBorder()
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(pane)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(pane)
         }
         setDefaults(pane)
     }
 
     private fun setDefaults(pane: CTabbedPane) {
-        pane.background = if (primary) tm.curr.globalLaF.bgPrimary else tm.curr.globalLaF.bgSecondary
-        pane.foreground = tm.curr.textLaF.base
-        selectedColor = tm.curr.globalLaF.borderColor
-        pane.font = fontType.getFont(tm, sm)
+        pane.background = if (primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
+        pane.foreground = ThemeManager.curr.textLaF.base
+        selectedColor = ThemeManager.curr.globalLaF.borderColor
+        pane.font = fontType.getFont()
         pane.repaint()
     }
 
@@ -42,12 +42,12 @@ class CTabbedPaneUI(private val tm: ThemeManager, private val sm: ScaleManager, 
         if (isSelected) {
             val g2d = g?.create() as? Graphics2D ?: return
             g2d.color = selectedColor
-            g2d.fillRect(x, y + h - sm.curr.borderScale.markedThickness, w, sm.curr.borderScale.markedThickness)
+            g2d.fillRect(x, y + h - ScaleManager.curr.borderScale.markedThickness, w, ScaleManager.curr.borderScale.markedThickness)
             g2d.dispose()
         } else {
             val g2d = g?.create() as? Graphics2D ?: return
             g2d.color = selectedColor
-            g2d.fillRect(x, y + h - sm.curr.borderScale.thickness, w, sm.curr.borderScale.thickness)
+            g2d.fillRect(x, y + h - ScaleManager.curr.borderScale.thickness, w, ScaleManager.curr.borderScale.thickness)
             g2d.dispose()
         }
     }

@@ -4,7 +4,7 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable
-import me.c3.ui.MainManager
+import me.c3.ui.manager.*
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
@@ -23,12 +23,12 @@ import javax.swing.SwingUtilities
  * Represents a panel containing a transcript view for displaying assembly code and its execution status.
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  */
-class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.tm, mainManager.sm, primary = false) {
+class TranscriptView() : CPanel(primary = false) {
 
     // SubComponents
     val compIDs = listOf("Address", "Labels", "Bytes", "Disassembled")
     private val model = TSTableModel()
-    val modelView = CTable(mainManager.tm, mainManager.sm, model, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
+    val modelView = CTable(model, primary = false, SwingConstants.CENTER, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT).apply {
         minimumSize = Dimension(0, 0)
     }
     private val sections: MutableMap<GASParser.Section, Array<GASParser.Section.BundledContent>> = mutableMapOf()
@@ -37,14 +37,14 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
             field = value
             label.text = section?.name ?: "[no section selected]"
             content = section?.getTSContent() ?: arrayOf()
-            updateContent(mainManager)
+            updateContent()
         }
     var content: Array<GASParser.Section.BundledContent> = arrayOf()
 
-    private val label = CVerticalLabel(mainManager.tm, mainManager.sm, "[no section selected]", FontType.CODE)
+    private val label = CVerticalLabel("[no section selected]", FontType.CODE)
 
     // MainComponents
-    val labelPane = CPanel(mainManager.tm, mainManager.sm, primary = false, borderMode = BorderMode.EAST).apply {
+    val labelPane = CPanel(primary = false, borderMode = BorderMode.EAST).apply {
         this.layout = GridBagLayout()
         val gbc = GridBagConstraints()
         gbc.weighty = 0.0
@@ -52,7 +52,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         this.add(label, gbc)
     }
 
-    val contentPane = CScrollPane(mainManager.tm, mainManager.sm, primary = false).apply {
+    val contentPane = CScrollPane(primary = false).apply {
         setViewportView(modelView)
         minimumSize = Dimension(0, 0)
     }
@@ -60,27 +60,27 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
     private var showCompiled: Boolean = true
 
     init {
-        mainManager.eventManager.addCompileListener {
+        EventManager.addCompileListener {
             SwingUtilities.invokeLater {
                 updateResult(it)
             }
         }
 
-        mainManager.addWSChangedListener {
+        MainManager.addWSChangedListener {
             SwingUtilities.invokeLater {
                 updateResult()
             }
         }
 
-        mainManager.eventManager.addExeEventListener {
-            highlightPCRow(mainManager)
+        EventManager.addExeEventListener {
+            highlightPCRow()
         }
 
         SwingUtilities.invokeLater {
             attachSettings()
             attachMainComponents()
             switchSection()
-            updateContent(mainManager)
+            updateContent()
             updateSizing()
             attachContentMouseListeners()
         }
@@ -103,8 +103,8 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
      * @param address The address to execute until.
      */
     private fun executeUntilAddress(address: Variable.Value.Hex) {
-        mainManager.currArch().exeUntilAddress(address)
-        mainManager.eventManager.triggerExeEvent()
+        ArchManager.curr.exeUntilAddress(address)
+        EventManager.triggerExeEvent()
     }
 
     /**
@@ -171,7 +171,7 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
      * Updates the content of the transcript view.
      * @param mainManager The main manager responsible for coordinating UI components and actions.
      */
-    private fun updateContent(mainManager: MainManager) {
+    private fun updateContent() {
         model.rowCount = 0
 
         if (section == null) return
@@ -180,8 +180,8 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
         for (row in content) {
             model.addRow(row.getAddrLblBytesTranscript())
         }
-        modelView.fitColumnWidths(mainManager.currScale().borderScale.insets)
-        highlightPCRow(mainManager)
+        modelView.fitColumnWidths(ScaleManager.curr.borderScale.insets)
+        highlightPCRow()
         modelView.revalidate()
         modelView.repaint()
     }
@@ -201,11 +201,11 @@ class TranscriptView(private val mainManager: MainManager) : CPanel(mainManager.
      * Highlights the row in the transcript view corresponding to the current program counter value.
      * @param mainManager The main manager responsible for coordinating UI components and actions.
      */
-    private fun highlightPCRow(mainManager: MainManager) {
-        val currPC = mainManager.currArch().regContainer.pc
+    private fun highlightPCRow() {
+        val currPC = ArchManager.curr.regContainer.pc
 
         val index = content.indexOfFirst { it.address.getRawHexStr() == currPC.get().toHex().getRawHexStr() }
-        modelView.setCellHighlighting(index, null, mainManager.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
+        modelView.setCellHighlighting(index, null, ThemeManager.curr.codeLaF.getColor(CodeStyle.GREENPC))
     }
 
     override fun getMinimumSize(): Dimension {

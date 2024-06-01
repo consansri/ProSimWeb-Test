@@ -1,10 +1,10 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.*
 
-open class ColouredPanel(tm: ThemeManager, sm: ScaleManager, primary: Boolean) : CPanel(tm, sm, primary) {
+open class ColouredPanel( primary: Boolean) : CPanel( primary) {
     private var colors: List<ColorAnker> = listOf(ColorAnker(0.0f, Color(0xc76b29)), ColorAnker(1.0f, Color(0x3d8fd1)))
         set(value) {
             field = value

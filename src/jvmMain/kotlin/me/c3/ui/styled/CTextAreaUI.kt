@@ -1,24 +1,24 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTextAreaUI
 
-class CTextAreaUI(private val tm: ThemeManager, private val sm: ScaleManager, private val fontType: FontType) : BasicTextAreaUI() {
+class CTextAreaUI(private val fontType: FontType) : BasicTextAreaUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val area = (c as? CTextArea) ?: return
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(area)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(area)
         }
 
@@ -28,11 +28,11 @@ class CTextAreaUI(private val tm: ThemeManager, private val sm: ScaleManager, pr
 
     private fun setDefaults(c: CTextArea) {
         c.isOpaque = false
-        c.font = fontType.getFont(tm, sm)
+        c.font = fontType.getFont()
         c.background = Color(0,0,0,0)
-        c.border = c.borderMode.getBorder(tm, sm)
-        c.foreground = if(c.primary) tm.curr.textLaF.base else tm.curr.textLaF.baseSecondary
-        c.caretColor = tm.curr.textLaF.base
+        c.border = c.borderMode.getBorder()
+        c.foreground = if(c.primary) ThemeManager.curr.textLaF.base else ThemeManager.curr.textLaF.baseSecondary
+        c.caretColor = ThemeManager.curr.textLaF.base
     }
 
 }

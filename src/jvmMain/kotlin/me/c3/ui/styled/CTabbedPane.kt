@@ -1,17 +1,16 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.styled.CTabbedPaneUI
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JTabbedPane
 
-open class CTabbedPane(tm: ThemeManager, sm: ScaleManager, val primary: Boolean, fontType: FontType) : JTabbedPane() {
+open class CTabbedPane( val primary: Boolean, fontType: FontType) : JTabbedPane() {
 
     init {
-        this.setUI(CTabbedPaneUI(tm, sm, primary, fontType))
+        this.setUI(CTabbedPaneUI( primary, fontType))
     }
 
 

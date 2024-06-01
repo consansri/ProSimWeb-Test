@@ -1,7 +1,10 @@
 package me.c3.ui.components.processor
 
 import emulator.kit.Architecture
-import me.c3.ui.MainManager
+import me.c3.ui.manager.ArchManager
+import me.c3.ui.manager.EventManager
+import me.c3.ui.manager.MainManager
+import me.c3.ui.manager.ResManager
 import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
@@ -10,27 +13,27 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.SwingUtilities
 
-class ProcessorSettings(mainManager: MainManager, processorView: ProcessorView) : CPanel(mainManager.tm, mainManager.sm, primary = false) {
+class ProcessorSettings(processorView: ProcessorView) : CPanel( primary = false) {
 
-    val increaseRegViews = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.increase)
-    val decreaseRegViews = CIconButton(mainManager.tm, mainManager.sm, mainManager.icons.decrease)
-    val filler = CLabel(mainManager.tm, mainManager.sm, "", FontType.BASIC)
-    val pcLabel = CLabel(mainManager.tm, mainManager.sm, "", FontType.CODE)
+    val increaseRegViews = CIconButton( ResManager.icons.increase)
+    val decreaseRegViews = CIconButton( ResManager.icons.decrease)
+    val filler = CLabel( "", FontType.BASIC)
+    val pcLabel = CLabel( "", FontType.CODE)
 
     init {
-        attachListeners(mainManager, processorView)
+        attachListeners( processorView)
         attachComponents()
 
-        mainManager.archManager.addArchChangeListener {
-            updatePC(mainManager.currArch())
+        ArchManager.addArchChangeListener {
+            updatePC(ArchManager.curr)
         }
-        mainManager.eventManager.addCompileListener {
-            updatePC(mainManager.currArch())
+        EventManager.addCompileListener {
+            updatePC(ArchManager.curr)
         }
-        mainManager.eventManager.addExeEventListener {
-            updatePC(mainManager.currArch())
+        EventManager.addExeEventListener {
+            updatePC(ArchManager.curr)
         }
-        updatePC(mainManager.currArch())
+        updatePC(ArchManager.curr)
     }
 
     private fun attachComponents() {
@@ -60,7 +63,7 @@ class ProcessorSettings(mainManager: MainManager, processorView: ProcessorView) 
         }
     }
 
-    private fun attachListeners(mainManager: MainManager, processorView: ProcessorView) {
+    private fun attachListeners(processorView: ProcessorView) {
         increaseRegViews.addActionListener {
             if (processorView.regView.registerPaneCount < 4) {
                 processorView.regView.registerPaneCount++

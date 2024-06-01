@@ -2,20 +2,22 @@ package me.c3.ui.components.processor.memory
 
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.memory.DirectMappedCache
-import me.c3.ui.MainManager
+import me.c3.ui.manager.MainManager
 import me.c3.ui.components.processor.models.CacheTableModel
-import me.c3.ui.components.processor.models.MemTableModel
+import me.c3.ui.manager.ArchManager
+import me.c3.ui.manager.EventManager
+import me.c3.ui.manager.ThemeManager
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities
 
-class DMCacheView(private val mm: MainManager, val cache: DirectMappedCache) : CPanel(mm.tm, mm.sm, primary = false) {
+class DMCacheView(val cache: DirectMappedCache) : CPanel( primary = false) {
 
     val tableModel = CacheTableModel()
-    val table = CTable(mm.tm, mm.sm, tableModel, false)
-    val scrollPane = CScrollPane(mm.tm, mm.sm, primary = false, table)
+    val table = CTable( tableModel, false)
+    val scrollPane = CScrollPane( primary = false, table)
     val asciiTitle = "ASCII"
     var currentlyUpdating = false
 
@@ -33,15 +35,15 @@ class DMCacheView(private val mm: MainManager, val cache: DirectMappedCache) : C
     }
 
     private fun addContentChangeListener() {
-        mm.archManager.addArchChangeListener {
+        ArchManager.addArchChangeListener {
             updateContent()
         }
 
-        mm.eventManager.addExeEventListener {
+        EventManager.addExeEventListener {
             updateContent()
         }
 
-        mm.eventManager.addCompileListener {
+        EventManager.addCompileListener {
             updateContent()
         }
     }
@@ -66,8 +68,8 @@ class DMCacheView(private val mm: MainManager, val cache: DirectMappedCache) : C
                 }
 
                 row.data.forEachIndexed { i, value ->
-                    if (mm.currArch().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
-                        table.setCellHighlighting(index, i + 4, mm.currTheme().codeLaF.getColor(CodeStyle.GREENPC))
+                    if (ArchManager.curr.regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
+                        table.setCellHighlighting(index, i + 4, ThemeManager.curr.codeLaF.getColor(CodeStyle.GREENPC))
                     }
                 }
 

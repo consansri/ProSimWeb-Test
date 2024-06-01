@@ -1,8 +1,8 @@
 package me.c3.ui.styled.params
 
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.borders.DirectionalBorder
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import javax.swing.BorderFactory
 import javax.swing.border.Border
 
@@ -19,18 +19,18 @@ enum class BorderMode {
     BRIDGE,
     NONE;
 
-    fun getBorder(tm: ThemeManager, sm: ScaleManager): Border {
+    fun getBorder(): Border {
         return when (this) {
-            INSET -> sm.curr.borderScale.getInsetBorder()
-            THICKNESS -> sm.curr.borderScale.getThicknessBorder()
-            NORTH -> DirectionalBorder(tm, sm, north = true)
-            SOUTH -> DirectionalBorder(tm, sm, south = true)
-            WEST -> DirectionalBorder(tm, sm, west = true)
-            EAST -> DirectionalBorder(tm, sm, east = true)
-            HORIZONTAL -> DirectionalBorder(tm, sm, north = true, south = true)
-            VERTICAL -> DirectionalBorder(tm, sm, west = true, east = true)
-            BOWL -> DirectionalBorder(tm, sm, west = true, east = true, south = true)
-            BRIDGE -> DirectionalBorder(tm, sm, west = true, east = true, north = true)
+            INSET -> ScaleManager.curr.borderScale.getInsetBorder()
+            THICKNESS -> ScaleManager.curr.borderScale.getThicknessBorder()
+            NORTH -> DirectionalBorder( north = true)
+            SOUTH -> DirectionalBorder( south = true)
+            WEST -> DirectionalBorder( west = true)
+            EAST -> DirectionalBorder( east = true)
+            HORIZONTAL -> DirectionalBorder( north = true, south = true)
+            VERTICAL -> DirectionalBorder( west = true, east = true)
+            BOWL -> DirectionalBorder( west = true, east = true, south = true)
+            BRIDGE -> DirectionalBorder( west = true, east = true, north = true)
             NONE -> BorderFactory.createEmptyBorder()
         }
     }

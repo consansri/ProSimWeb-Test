@@ -1,8 +1,8 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -10,21 +10,21 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicMenuItemUI
 
-class CMenuItemUI(private val tm: ThemeManager, private val sm: ScaleManager, private val fontType: FontType) : BasicMenuItemUI() {
+class CMenuItemUI(private val fontType: FontType) : BasicMenuItemUI() {
 
-    private var cornerRadius = sm.curr.controlScale.cornerRadius
-    private var hoverBackground = tm.curr.iconLaF.iconBgHover
+    private var cornerRadius = ScaleManager.curr.controlScale.cornerRadius
+    private var hoverBackground = ThemeManager.curr.iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val optionPane = c as? CMenuItem ?: return
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(optionPane)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(optionPane)
         }
 
@@ -32,12 +32,12 @@ class CMenuItemUI(private val tm: ThemeManager, private val sm: ScaleManager, pr
     }
 
     private fun setDefaults(item: CMenuItem) {
-        cornerRadius = sm.curr.controlScale.cornerRadius
+        cornerRadius = ScaleManager.curr.controlScale.cornerRadius
         item.isOpaque = false
         item.background = Color(0, 0, 0, 0)
-        item.font = fontType.getFont(tm, sm)
-        item.foreground = tm.curr.textLaF.base
-        item.border = sm.curr.controlScale.getNormalInsetBorder()
+        item.font = fontType.getFont()
+        item.foreground = ThemeManager.curr.textLaF.base
+        item.border = ScaleManager.curr.controlScale.getNormalInsetBorder()
         selectionBackground = Color(0,0,0,0)
         selectionForeground = item.foreground
     }

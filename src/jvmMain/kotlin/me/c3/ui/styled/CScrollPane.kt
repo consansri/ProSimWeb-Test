@@ -1,24 +1,23 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
-import me.c3.ui.styled.CScrollPaneUI
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ScaleManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JScrollPane
 
-open class CScrollPane(tm: ThemeManager, sm: ScaleManager, val primary: Boolean, c: Component?) : JScrollPane(c) {
+open class CScrollPane( val primary: Boolean, c: Component?) : JScrollPane(c) {
 
-    constructor(tm: ThemeManager, sm: ScaleManager, primary: Boolean) : this(tm, sm, primary, null)
+    constructor( primary: Boolean) : this( primary, null)
 
-    constructor(tm: ThemeManager, sm: ScaleManager, primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(tm, sm, primary, component) {
+    constructor( primary: Boolean, component: Component, vsb: Int, hsb: Int) : this( primary, component) {
         this.verticalScrollBarPolicy = vsb
         this.horizontalScrollBarPolicy = hsb
     }
 
     init {
-        this.setUI(CScrollPaneUI(tm, sm))
+        this.setUI(CScrollPaneUI())
     }
 
     override fun paint(g: Graphics?) {

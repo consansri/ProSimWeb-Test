@@ -1,15 +1,15 @@
 package me.c3.ui.styled
 
-import me.c3.ui.scale.ScaleManager
+import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.theme.ThemeManager
+import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.plaf.basic.BasicTextFieldUI
 
-class CTextFieldUI(private val tm: ThemeManager, private val sm: ScaleManager, private val fontType: FontType): BasicTextFieldUI() {
+class CTextFieldUI( private val fontType: FontType): BasicTextFieldUI() {
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -18,11 +18,11 @@ class CTextFieldUI(private val tm: ThemeManager, private val sm: ScaleManager, p
         tf.horizontalAlignment = SwingConstants.CENTER
         tf.border = BorderFactory.createEmptyBorder()
 
-        tm.addThemeChangeListener {
+        ThemeManager.addThemeChangeListener {
             setDefaults(tf)
         }
 
-        sm.addScaleChangeEvent {
+        ScaleManager.addScaleChangeEvent {
             setDefaults(tf)
         }
 
@@ -31,9 +31,9 @@ class CTextFieldUI(private val tm: ThemeManager, private val sm: ScaleManager, p
 
     private fun setDefaults(tf: CTextField){
         tf.isOpaque = false
-        tf.font = fontType.getFont(tm, sm)
+        tf.font = fontType.getFont()
         tf.background = Color(0,0,0,0)
-        tf.foreground = tm.curr.textLaF.base
-        tf.caretColor = tm.curr.textLaF.base
+        tf.foreground = ThemeManager.curr.textLaF.base
+        tf.caretColor = ThemeManager.curr.textLaF.base
     }
 }

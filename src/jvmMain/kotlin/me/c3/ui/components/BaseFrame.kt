@@ -1,8 +1,6 @@
 package me.c3.ui.components
 
-import me.c3.ui.ArchManager
 import me.c3.ui.components.controls.AppControls
-import me.c3.ui.MainManager
 import me.c3.ui.components.console.ConsoleView
 import me.c3.ui.components.controls.TopControls
 import me.c3.ui.components.controls.buttons.ArchSwitch
@@ -11,12 +9,11 @@ import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
-import me.c3.ui.scale.ScaleManager
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CFrame
-import me.c3.ui.theme.ThemeManager
 import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.components.docs.InfoView
+import me.c3.ui.manager.*
 import me.c3.ui.styled.CIcon
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -31,29 +28,25 @@ import javax.swing.SwingUtilities
  * Represents the main UI frame of the application, providing a Swing-based interface.
  * @param mManager The main manager responsible for coordinating UI components and actions.
  */
-class BaseFrame(override val mManager: MainManager) : CFrame(mManager.tm, mManager.sm, mManager.icons), ProSimFrame {
+class BaseFrame() : CFrame( ResManager.icons), ProSimFrame {
 
-    override val editor = mManager.editor
-    override val fileTree = FileTree(mManager)
-    override val processorView = ProcessorView(mManager)
-    override val transcriptView = TranscriptView(mManager)
-    override val bottomBar = mManager.bBar
-    override val topBar = TopControls(mManager, showArchSwitch = true)
-    override val leftBar = mManager.editor.getControls()
-    override val console: ConsoleView = ConsoleView(mManager)
-    override val infoView: InfoView = InfoView(mManager)
+    override val editor = MainManager.editor
+    override val fileTree = FileTree()
+    override val processorView = ProcessorView()
+    override val transcriptView = TranscriptView()
+    override val bottomBar = MainManager.bBar
+    override val topBar = TopControls( showArchSwitch = true)
+    override val leftBar = MainManager.editor.getControls()
+    override val console: ConsoleView = ConsoleView()
+    override val infoView: InfoView = InfoView()
     override val rightBar = AppControls(this)
 
-    override val infoTabPane: CAdvancedTabPane = CAdvancedTabPane(getThemeM(), getScaleM(), primary = false, icons = mManager.icons, tabsAreCloseable = false)
+    override val infoTabPane: CAdvancedTabPane = CAdvancedTabPane( primary = false, icons = ResManager.icons, tabsAreCloseable = false)
 
-    override val editorContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
-    override val processorContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
-    override val mainContainer = CSplitPane(mManager.tm, mManager.sm, JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
-    override val verticalMainCSplitPane = CSplitPane(mManager.tm, mManager.sm, JSplitPane.VERTICAL_SPLIT, true, mainContainer, infoTabPane)
-    override fun getThemeM(): ThemeManager = mManager.tm
-    override fun getScaleM(): ScaleManager = mManager.sm
-    override fun getArchM(): ArchManager = mManager.archManager
-    override fun getIcons(): ProSimIcons = mManager.icons
+    override val editorContainer = CSplitPane( JSplitPane.HORIZONTAL_SPLIT, true, fileTree, editor)
+    override val processorContainer = CSplitPane( JSplitPane.HORIZONTAL_SPLIT, true, transcriptView, processorView)
+    override val mainContainer = CSplitPane( JSplitPane.HORIZONTAL_SPLIT, true, editorContainer, processorContainer)
+    override val verticalMainCSplitPane = CSplitPane( JSplitPane.VERTICAL_SPLIT, true, mainContainer, infoTabPane)
 
     private val mainDivider = 0.4
     private val verticalDivider = 0.8
@@ -94,8 +87,8 @@ class BaseFrame(override val mManager: MainManager) : CFrame(mManager.tm, mManag
     private fun attachComponents() {
         content.layout = BorderLayout()
 
-        infoTabPane.addTab(CIcon(getThemeM(), getScaleM(), mManager.icons.console, CIconButton.Mode.PRIMARY_SMALL), console)
-        infoTabPane.addTab(CIcon(getThemeM(), getScaleM(), mManager.icons.info, CIconButton.Mode.SECONDARY_SMALL), infoView)
+        infoTabPane.addTab(CIcon( ResManager.icons.console, CIconButton.Mode.PRIMARY_SMALL), console)
+        infoTabPane.addTab(CIcon( ResManager.icons.info, CIconButton.Mode.SECONDARY_SMALL), infoView)
 
         infoTabPane.select(0)
 
@@ -116,7 +109,7 @@ class BaseFrame(override val mManager: MainManager) : CFrame(mManager.tm, mManag
         addContent(leftBar, BorderLayout.WEST)
         addContent(rightBar, BorderLayout.EAST)
         addContent(bottomBar, BorderLayout.SOUTH)
-        addTitleBar(ArchSwitch(mManager))
+        addTitleBar(ArchSwitch())
     }
 
     private fun setup() {
