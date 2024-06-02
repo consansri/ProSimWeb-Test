@@ -6,7 +6,6 @@ import emulator.kit.types.Variable
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.RegTableModel
-import me.c3.ui.state.*
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CAdvancedTabPane
@@ -53,7 +52,11 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
             resetRegViews()
         }
 
-        Events.featureChange.addListener {
+        Events.archFeatureChange.addListener {
+            resetRegViews()
+        }
+
+        Events.archSettingChange.addListener {
             resetRegViews()
         }
 

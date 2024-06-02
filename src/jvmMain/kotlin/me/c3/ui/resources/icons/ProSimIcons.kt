@@ -52,6 +52,10 @@ interface ProSimIcons {
     val stepOver: FlatSVGIcon
     val tag: FlatSVGIcon
 
+    // Controls
+    val switchOn: FlatSVGIcon
+    val switchOff: FlatSVGIcon
+
     // Window Decorations
     val decrease: FlatSVGIcon
     val increase: FlatSVGIcon

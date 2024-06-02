@@ -6,6 +6,10 @@ import javax.swing.JTextField
 class CTextField(fontType: FontType) : JTextField() {
 
     init {
-        this.setUI(CTextFieldUI( fontType))
+        this.setUI(CTextFieldUI(fontType))
+    }
+
+    constructor(text: String, fontType: FontType) : this(fontType) {
+        this.text = text
     }
 }

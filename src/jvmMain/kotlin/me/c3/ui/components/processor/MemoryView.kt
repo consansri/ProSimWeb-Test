@@ -3,6 +3,7 @@ package me.c3.ui.components.processor
 import emulator.kit.MicroSetup
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
+import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.memory.DMCacheView
 import me.c3.ui.components.processor.memory.MainMemView
@@ -17,6 +18,9 @@ class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
 
     private fun addContentChangeListener() {
         States.arch.addEvent {
+            updateContent()
+        }
+        Events.archSettingChange.addListener {
             updateContent()
         }
         updateContent()

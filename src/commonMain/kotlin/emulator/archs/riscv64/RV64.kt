@@ -16,7 +16,7 @@ import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
-import emulator.kit.optional.ArchSetting
+import emulator.kit.optional.SetupSetting
 
 object RV64 {
 
@@ -404,9 +404,9 @@ object RV64 {
      */
 
     val settings = listOf(
-        ArchSetting.Bool("Direct-Mapped-Cache", true) { arch, setting ->
+        SetupSetting.Bool("Direct-Mapped-Cache", true) { arch, setting ->
             if (arch is ArchRV64) {
-                if (setting is ArchSetting.Bool && setting.get()) {
+                if (setting.get()) {
                     arch.dataMemory = DirectMappedCache(arch.memory, arch.console, 57, 3, 4)
                 } else {
                     arch.dataMemory = arch.memory

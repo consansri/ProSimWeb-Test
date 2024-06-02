@@ -54,45 +54,39 @@ open class CIconButtonUI() : BasicButtonUI() {
         })
     }
 
-    fun setDefaults(cIconButton: CIconButton) {
-        cornerRadius = States.scale.get().controlScale.cornerRadius
-        hoverColor = States.theme.get().iconLaF.iconBgHover
-        val inset = getInset(cIconButton)
-        cIconButton.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
-        updateIcon(cIconButton)
-        cIconButton.repaint()
+    fun setDefaults(btn: CIconButton) {
+        SwingUtilities.invokeLater {
+            cornerRadius = States.scale.get().controlScale.cornerRadius
+            hoverColor = States.theme.get().iconLaF.iconBgHover
+            val inset = btn.mode.getInset()
+            btn.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
+            updateIcon(btn)
+            btn.repaint()
+        }
     }
 
     private fun updateIcon(cIconButton: CIconButton) {
-        val iconStyle = States.theme.get().iconLaF
-        SwingUtilities.invokeLater {
-            cIconButton.svgIcon?.let {
-                when (cIconButton.mode) {
-                    CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.PRIMARY_SMALL -> it.colorFilter = FlatSVGIcon.ColorFilter { iconStyle.iconFgPrimary }
-                    CIconButton.Mode.SECONDARY_NORMAL, CIconButton.Mode.SECONDARY_SMALL -> it.colorFilter = FlatSVGIcon.ColorFilter { iconStyle.iconFgSecondary }
-                    CIconButton.Mode.GRADIENT_NORMAL, CIconButton.Mode.GRADIENT_SMALL -> {}
-                }
-                if (cIconButton.isDeactivated) {
-                    it.colorFilter = FlatSVGIcon.ColorFilter {
-                        iconStyle.iconFgSecondary
-                    }
+        val theme = States.theme.get()
+
+        cIconButton.svgIcon?.let {
+            cIconButton.mode.applyFilter(it, theme)
+            if (cIconButton.isDeactivated) {
+                it.colorFilter = FlatSVGIcon.ColorFilter {
+                    theme.iconLaF.iconFgSecondary
                 }
             }
-
-            cIconButton.background = cIconButton.iconBg
-            val iconScale = when (cIconButton.mode) {
-                CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.SECONDARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> States.scale.get().controlScale.normalSize
-                CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.SECONDARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> States.scale.get().controlScale.smallSize
-            }
-
-            cIconButton.customColor?.let { col ->
-                cIconButton.svgIcon?.colorFilter = FlatSVGIcon.ColorFilter {
-                    col
-                }
-            }
-
-            cIconButton.icon = cIconButton.svgIcon?.derive(iconScale, iconScale)
         }
+
+        cIconButton.background = cIconButton.iconBg
+        val iconScale = cIconButton.mode.size(States.scale.get())
+
+        cIconButton.customColor?.let { col ->
+            cIconButton.svgIcon?.colorFilter = FlatSVGIcon.ColorFilter {
+                col
+            }
+        }
+
+        cIconButton.icon = cIconButton.svgIcon?.derive(iconScale, iconScale)
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
@@ -100,7 +94,7 @@ open class CIconButtonUI() : BasicButtonUI() {
         val g2 = g as? Graphics2D ?: return
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        val inset = getInset(button)
+        val inset = button.mode.getInset()
 
         val width = button.width
         val height = button.height
@@ -118,7 +112,7 @@ open class CIconButtonUI() : BasicButtonUI() {
     override fun getPreferredSize(c: JComponent?): Dimension {
         val button = c as? CIconButton ?: return super.getPreferredSize(c)
         val preferredSize = super.getPreferredSize(button)
-        val inset = getInset(button)
+        val inset = button.mode.getInset()
         return Dimension(preferredSize.width + inset * 2, preferredSize.height + inset * 2)
     }
 
@@ -130,10 +124,5 @@ open class CIconButtonUI() : BasicButtonUI() {
         return getPreferredSize(c)
     }
 
-    private fun getInset(cIconButton: CIconButton): Int = when (cIconButton.mode) {
-        CIconButton.Mode.PRIMARY_NORMAL, CIconButton.Mode.GRADIENT_NORMAL -> States.scale.get().controlScale.normalInset
-        CIconButton.Mode.SECONDARY_NORMAL -> States.scale.get().controlScale.normalInset
-        CIconButton.Mode.PRIMARY_SMALL, CIconButton.Mode.GRADIENT_SMALL -> States.scale.get().controlScale.smallInset
-        CIconButton.Mode.SECONDARY_SMALL -> States.scale.get().controlScale.smallInset
-    }
+
 }

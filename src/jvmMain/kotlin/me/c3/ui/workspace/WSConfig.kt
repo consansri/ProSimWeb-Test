@@ -11,9 +11,9 @@ data class WSConfig(val file: File, val onChange: (File) -> Unit) {
         load()
     }
 
-    fun get(type: Type, id: String): String? = search(type, id)?.value
+    fun get(type: String, id: String): String? = search(type, id)?.value
 
-    fun set(type: Type, id: String, value: String) {
+    fun set(type: String, id: String, value: String) {
         search(type, id)?.let {
             it.value = value
             store()
@@ -52,16 +52,14 @@ data class WSConfig(val file: File, val onChange: (File) -> Unit) {
 
         nativeLog("Parsing: $line -> type: $typeStr, id: $id, val: $value")
 
-        val type = Type.entries.firstOrNull { it.toString() == typeStr } ?: return null
-
-        return Setable(type, id, value)
+        return Setable(typeStr, id, value)
     }
 
-    private fun search(type: Type, id: String): Setable? = settings.firstOrNull { it.type == type && it.id == id }
+    private fun search(type: String, id: String): Setable? = settings.firstOrNull { it.type == type && it.id == id }
 
     private fun MutableList<Setable>.toContentString(): String = this.joinToString("\n") { "${it.type}.${it.id}=${it.value}" }
 
-    inner class Setable(val type: Type, val id: String, var value: String)
+    inner class Setable(val type: String, val id: String, var value: String)
 
     enum class Type {
         IDE,

@@ -22,14 +22,14 @@ enum class BorderMode {
         return when (this) {
             INSET -> States.scale.get().borderScale.getInsetBorder()
             THICKNESS -> States.scale.get().borderScale.getThicknessBorder()
-            NORTH -> DirectionalBorder( north = true)
-            SOUTH -> DirectionalBorder( south = true)
-            WEST -> DirectionalBorder( west = true)
-            EAST -> DirectionalBorder( east = true)
-            HORIZONTAL -> DirectionalBorder( north = true, south = true)
-            VERTICAL -> DirectionalBorder( west = true, east = true)
-            BOWL -> DirectionalBorder( west = true, east = true, south = true)
-            BRIDGE -> DirectionalBorder( west = true, east = true, north = true)
+            NORTH -> DirectionalBorder(north = true)
+            SOUTH -> DirectionalBorder(south = true)
+            WEST -> DirectionalBorder(west = true)
+            EAST -> DirectionalBorder(east = true)
+            HORIZONTAL -> DirectionalBorder(north = true, south = true)
+            VERTICAL -> DirectionalBorder(west = true, east = true)
+            BOWL -> DirectionalBorder(west = true, east = true, south = true)
+            BRIDGE -> DirectionalBorder(west = true, east = true, north = true)
             NONE -> BorderFactory.createEmptyBorder()
         }
     }

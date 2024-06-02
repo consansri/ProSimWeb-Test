@@ -7,8 +7,8 @@ import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.components.ProSimFrame
+import me.c3.ui.components.controls.buttons.Settings
 import me.c3.ui.components.controls.buttons.FeatureSwitch
-import me.c3.ui.state.*
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -46,6 +46,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
                 iconBg = if (consoleAndInfoShown) States.theme.get().iconLaF.iconBgActive else States.theme.get().iconLaF.iconBg
             }
         },
+        Settings()
     )
 
     val filler = CPanel()
@@ -77,7 +78,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.weighty = 0.0
 
-        Events.featureChange.addListener {
+        Events.archFeatureChange.addListener {
             updateFeatureButtons()
         }
 

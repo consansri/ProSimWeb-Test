@@ -41,7 +41,7 @@ class FeatureSwitch(private val feature: Feature) : CToggleButton( feature.name,
                     feature.switch()
 
                     isActive = feature.isActive()
-                    Events.featureChange.triggerEvent(States.arch.get())
+                    Events.archFeatureChange.triggerEvent(States.arch.get())
                     switchingFeatures = false
                 }
             }

@@ -20,13 +20,13 @@ import javax.swing.tree.DefaultTreeModel
 class COptionPane() : JOptionPane() {
 
     companion object {
-        fun showInputDialog( parent: Component, message: String): Deferred<String> {
+        fun showInputDialog(parent: Component, message: String): Deferred<String> {
             val resultDeferred = CompletableDeferred<String>()
 
-            val cDialog = CDialog( parent)
-            val cPanel = CPanel( primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel( message, FontType.BASIC)
-            val cTextArea = CTextField( FontType.BASIC)
+            val cDialog = CDialog(parent)
+            val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
+            val cLabel = CLabel(message, FontType.BASIC)
+            val cTextArea = CTextField(FontType.BASIC)
 
             cTextArea.addKeyListener(object : KeyAdapter() {
                 override fun keyReleased(e: KeyEvent?) {
@@ -80,27 +80,27 @@ class COptionPane() : JOptionPane() {
                 val root = DefaultMutableTreeNode("root")
                 val treeModel = DefaultTreeModel(root)
                 val tree = CTree(treeModel, FontType.BASIC)
-                val cScrollPane = CScrollPane( false)
+                val cScrollPane = CScrollPane(false)
                 cScrollPane.setViewportView(tree)
                 cScrollPane.size = Dimension(300, 300)
 
                 // Title Label
-                val titleLabel = CLabel( message, FontType.TITLE)
+                val titleLabel = CLabel(message, FontType.TITLE)
                 titleLabel.horizontalAlignment = SwingConstants.CENTER
 
                 // Current Path Identificator
-                val currPathTextField = CTextField( FontType.BASIC)
+                val currPathTextField = CTextField(FontType.BASIC)
                 currPathTextField.isEditable = false
 
                 // Select Button
-                val selectButton = CTextButton( "select", FontType.BASIC)
+                val selectButton = CTextButton("select", FontType.BASIC)
 
                 // Content Panel
-                val cPanel = CPanel( primary = false, isOverlay = true, roundCorners = true)
+                val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
                 cPanel.layout = GridBagLayout()
 
                 // Dialog Frame
-                val cDialog = CDialog( parent)
+                val cDialog = CDialog(parent)
 
                 // Add Components to Content Panel
                 val gbc = GridBagConstraints()
@@ -197,19 +197,19 @@ class COptionPane() : JOptionPane() {
             return resultDeferred
         }
 
-        fun confirm(parent: Component, message: String): Deferred<Boolean>{
+        fun confirm(parent: Component, message: String): Deferred<Boolean> {
             val resultDeferred = CompletableDeferred<Boolean>()
 
-            val cDialog = CDialog( parent)
-            val cPanel = CPanel( primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel( message, FontType.BASIC)
-            val cConfirmBtn = CTextButton( "confirm", FontType.BASIC).apply {
+            val cDialog = CDialog(parent)
+            val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
+            val cLabel = CLabel(message, FontType.BASIC)
+            val cConfirmBtn = CTextButton("confirm", FontType.BASIC).apply {
                 addActionListener {
                     resultDeferred.complete(true)
                     cDialog.dispose()
                 }
             }
-            val cCancelBtn = CTextButton( "cancel", FontType.BASIC).apply {
+            val cCancelBtn = CTextButton("cancel", FontType.BASIC).apply {
                 addActionListener {
                     resultDeferred.complete(false)
                     cDialog.dispose()
@@ -242,7 +242,7 @@ class COptionPane() : JOptionPane() {
             cDialog.isVisible = true
             cDialog.requestFocus()
 
-            cDialog.addFocusListener(object : FocusAdapter(){
+            cDialog.addFocusListener(object : FocusAdapter() {
                 override fun focusLost(e: FocusEvent?) {
                     resultDeferred.complete(false)
                     cDialog.dispose()

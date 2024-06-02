@@ -57,6 +57,10 @@ open class CEditor(maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPane
         textArea.redo()
     }
 
+    fun invokeHL(){
+        textArea.debounceHighlighting()
+    }
+
     protected open fun onLineClicked(lineNumber: Int) {}
 
     private fun attachLineClickListener() {

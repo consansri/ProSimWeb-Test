@@ -1,7 +1,6 @@
 package emulator.kit.configs
 
 import emulator.kit.assembler.DefinedAssembly
-import emulator.kit.optional.ArchSetting
 import emulator.kit.optional.Feature
 
 

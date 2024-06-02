@@ -608,7 +608,7 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
      * Highlighting
      */
 
-    private fun debounceHighlighting() {
+    fun debounceHighlighting() {
         debounceJob?.cancel()
 
         debounceJob = highlighterScope.launch {

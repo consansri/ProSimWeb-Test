@@ -9,7 +9,7 @@ import debug.DebugTools
 import emulator.kit.assembler.*
 import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.common.memory.MainMemory
-import emulator.kit.optional.ArchSetting
+import emulator.kit.optional.SetupSetting
 import emulator.kit.optional.Feature
 
 /**
@@ -32,6 +32,9 @@ import emulator.kit.optional.Feature
  *  @property console Instantiated with Config name
  *  @property assembler Instantiated with AsmConfig grammar and assembly and ArchConst COMPILER_REGEX and StandardHL
  *
+ *  @property features Holds specific Assembler features.
+ *  @property settings Holds specific Architecture Setup settings.
+ *
  *  Possible Features
  *  @property cache Not Essential: Possibly given by Config
  *
@@ -44,7 +47,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     val console: IConsole
     val assembler: Assembler
     val features: List<Feature>
-    val settings: List<ArchSetting>
+    val settings: List<SetupSetting<*>>
     private var lastFile: AsmFile? = null
     private val definedAssembly: DefinedAssembly
 

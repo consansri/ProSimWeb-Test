@@ -9,7 +9,8 @@ sealed class Memory: Throwable() {
     abstract val addressSize: Variable.Size
     abstract val instanceSize: Variable.Size
     abstract val initBin: String
-    var endianess: Endianess = Endianess.BigEndian
+
+    abstract fun getEndianess(): Endianess
 
     abstract fun load(address: Variable.Value): Variable.Value
     abstract fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false)
@@ -38,7 +39,7 @@ sealed class Memory: Throwable() {
             instanceAddress = (instanceAddress + Variable.Value.Hex("01", Variable.Size.Bit8())).toHex()
         }
 
-        if (endianess == Endianess.LittleEndian) {
+        if (getEndianess() == Endianess.LittleEndian) {
             instances.reverse()
         }
 

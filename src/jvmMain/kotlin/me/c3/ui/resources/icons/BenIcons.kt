@@ -51,6 +51,9 @@ class BenIcons : ProSimIcons {
     override val stepOver: FlatSVGIcon = FlatSVGIcon("benicons/step_over.svg")
     override val tag: FlatSVGIcon = FlatSVGIcon("benicons/tag.svg")
 
+    override val switchOn: FlatSVGIcon = FlatSVGIcon("icons/switch-on.svg")
+    override val switchOff: FlatSVGIcon= FlatSVGIcon("icons/switch-off.svg")
+
     override val decrease: FlatSVGIcon = FlatSVGIcon("benicons/decrease.svg")
     override val increase: FlatSVGIcon = FlatSVGIcon("benicons/increase.svg")
     override val close: FlatSVGIcon = FlatSVGIcon("benicons/close.svg")

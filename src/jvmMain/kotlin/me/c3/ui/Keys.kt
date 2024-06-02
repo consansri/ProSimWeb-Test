@@ -9,6 +9,8 @@ data object Keys {
 
     val CONFIG_NAME = "setup.${Constants.NAME.lowercase()}"
 
+    val IDE = "ide"
+
     val IDE_ARCH = "arch"
     val IDE_THEME = "theme"
     val IDE_SCALE = "scale"

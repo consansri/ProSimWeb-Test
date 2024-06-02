@@ -6,7 +6,9 @@ import emulator.kit.types.Variable
 
 class MainMemory(override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess): Memory() {
     override val initBin: String = "0"
+    override fun getEndianess(): Endianess = endianess
 
+    var endianess: Endianess = Endianess.BigEndian
     var memList: MutableList<MemInstance> = mutableListOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
     var ioBounds: IOBounds? = null

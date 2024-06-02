@@ -2,6 +2,9 @@ package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.States
+import me.c3.ui.scale.core.Scaling
+import me.c3.ui.theme.core.Theme
+import me.c3.ui.theme.core.style.IconLaF
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -88,7 +91,29 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
         PRIMARY_SMALL,
         SECONDARY_SMALL,
         GRADIENT_NORMAL,
-        GRADIENT_SMALL
+        GRADIENT_SMALL;
+
+        fun applyFilter(icon: FlatSVGIcon, theme: Theme) {
+            when (this) {
+                PRIMARY_NORMAL, PRIMARY_SMALL -> icon.colorFilter = FlatSVGIcon.ColorFilter { theme.iconLaF.iconFgPrimary }
+                SECONDARY_NORMAL, SECONDARY_SMALL -> icon.colorFilter = FlatSVGIcon.ColorFilter { theme.iconLaF.iconFgSecondary }
+                GRADIENT_NORMAL, GRADIENT_SMALL -> {}
+            }
+        }
+
+        fun size(scale: Scaling): Int = when (this) {
+            PRIMARY_NORMAL, SECONDARY_NORMAL, GRADIENT_NORMAL -> scale.controlScale.normalSize
+            PRIMARY_SMALL, SECONDARY_SMALL, GRADIENT_SMALL -> scale.controlScale.smallSize
+        }
+
+
+        fun getInset(): Int = when (this) {
+            PRIMARY_NORMAL, GRADIENT_NORMAL -> States.scale.get().controlScale.normalInset
+            SECONDARY_NORMAL -> States.scale.get().controlScale.normalInset
+            PRIMARY_SMALL, GRADIENT_SMALL -> States.scale.get().controlScale.smallInset
+            SECONDARY_SMALL -> States.scale.get().controlScale.smallInset
+        }
+
     }
 
 }

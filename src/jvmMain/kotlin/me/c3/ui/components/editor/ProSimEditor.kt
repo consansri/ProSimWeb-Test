@@ -7,13 +7,11 @@ import emulator.kit.nativeLog
 import emulator.kit.toAsmFile
 import kotlinx.coroutines.*
 import emulator.kit.toStyledText
-import me.c3.ui.Components
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.controls.BottomBar
 import me.c3.ui.state.*
 import me.c3.ui.styled.editor.*
-import me.c3.ui.workspace.Workspace
 import javax.swing.SwingUtilities
 
 /**
@@ -36,10 +34,10 @@ class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(ma
             markPC()
         }
         States.arch.addEvent {
-            fireCompilation(false)
+            invokeHL()
         }
-        Events.featureChange.addListener {
-            fireCompilation(false)
+        Events.archFeatureChange.addListener {
+            invokeHL()
         }
 
         markPC()

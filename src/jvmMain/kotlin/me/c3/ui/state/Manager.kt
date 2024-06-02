@@ -22,7 +22,7 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
     }
 
     private fun triggerChange() {
-        onChange()
+        onChange(curr)
         ArrayList(listeners).forEach {
             it(curr)
         }
@@ -31,7 +31,7 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
         }
     }
 
-    open fun onChange() {}
+    open fun onChange(value: T) {}
 
     fun addEvent(event: (T) -> Unit) {
         listeners.add(event)
