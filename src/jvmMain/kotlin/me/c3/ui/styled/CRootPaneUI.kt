@@ -1,7 +1,6 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -10,19 +9,19 @@ import javax.swing.plaf.basic.BasicRootPaneUI
 
 class CRootPaneUI() : BasicRootPaneUI() {
 
-    private var inset: Int = ScaleManager.curr.borderScale.insets
-    var cornerRadius: Int = ScaleManager.curr.borderScale.cornerRadius
+    private var inset: Int = States.scale.get().borderScale.insets
+    var cornerRadius: Int = States.scale.get().borderScale.cornerRadius
 
     override fun installDefaults(c: JRootPane?) {
         super.installDefaults(c)
 
         val cRootPane = c as? CRootPane ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(cRootPane)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(cRootPane)
         }
 
@@ -46,9 +45,9 @@ class CRootPaneUI() : BasicRootPaneUI() {
     }
 
     private fun setDefaults(cRootPane: CRootPane) {
-        inset = ScaleManager.curr.borderScale.insets
+        inset = States.scale.get().borderScale.insets
         cRootPane.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
-        cRootPane.background = ThemeManager.curr.globalLaF.bgSecondary
+        cRootPane.background = States.theme.get().globalLaF.bgSecondary
         cRootPane.repaint()
     }
 

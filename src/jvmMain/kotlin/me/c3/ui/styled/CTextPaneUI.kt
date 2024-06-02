@@ -3,8 +3,7 @@ package me.c3.ui.styled
 import com.formdev.flatlaf.ui.FlatTextPaneUI
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.install
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 
@@ -14,13 +13,13 @@ class CTextPaneUI() : FlatTextPaneUI() {
         super.installUI(c)
         val pane = c as? CTextPane ?: return
 
-        pane.font = ThemeManager.curr.codeLaF.getFont().deriveFont(ScaleManager.curr.fontScale.codeSize)
+        pane.font = States.theme.get().codeLaF.getFont().deriveFont(States.scale.get().fontScale.codeSize)
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(pane)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(pane)
         }
 
@@ -29,11 +28,11 @@ class CTextPaneUI() : FlatTextPaneUI() {
     }
 
     private fun setDefaults(tp: CTextPane){
-        tp.border = BorderFactory.createEmptyBorder(0, ScaleManager.curr.borderScale.insets, 0, ScaleManager.curr.borderScale.insets)
-        tp.background = ThemeManager.curr.globalLaF.bgPrimary
-        tp.caretColor = ThemeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
-        tp.foreground = ThemeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
-        ThemeManager.curr.codeLaF.getFont().install(tp, ScaleManager.curr.fontScale.codeSize)
+        tp.border = BorderFactory.createEmptyBorder(0, States.scale.get().borderScale.insets, 0, States.scale.get().borderScale.insets)
+        tp.background = States.theme.get().globalLaF.bgPrimary
+        tp.caretColor = States.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        tp.foreground = States.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        States.theme.get().codeLaF.getFont().install(tp, States.scale.get().fontScale.codeSize)
     }
 
 }

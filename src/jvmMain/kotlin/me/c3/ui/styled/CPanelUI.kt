@@ -1,7 +1,6 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import java.awt.*
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPanelUI
@@ -14,10 +13,10 @@ class CPanelUI() : BasicPanelUI() {
         c?.isOpaque = false
         val cPanel = c as? CPanel ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(cPanel)
         }
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(cPanel)
         }
         setDefaults(cPanel)
@@ -28,7 +27,7 @@ class CPanelUI() : BasicPanelUI() {
         cPanel.border = cPanel.borderMode.getBorder()
 
         if (cPanel.isOverlay) {
-            cPanel.border = ScaleManager.curr.borderScale.getInsetBorder()
+            cPanel.border = States.scale.get().borderScale.getInsetBorder()
         }
 
         cPanel.repaint()
@@ -50,16 +49,16 @@ class CPanelUI() : BasicPanelUI() {
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        g2d.color = if (cPanel.isOverlay) ThemeManager.curr.globalLaF.bgOverlay else if (cPanel.primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
+        g2d.color = if (cPanel.isOverlay) States.theme.get().globalLaF.bgOverlay else if (cPanel.primary) States.theme.get().globalLaF.bgPrimary else States.theme.get().globalLaF.bgSecondary
         if (cPanel.roundedCorners) {
-            g2d.fillRoundRect(0, 0, c.width, c.height, ScaleManager.curr.borderScale.cornerRadius, ScaleManager.curr.borderScale.cornerRadius)
+            g2d.fillRoundRect(0, 0, c.width, c.height, States.scale.get().borderScale.cornerRadius, States.scale.get().borderScale.cornerRadius)
         } else {
             g2d.fillRect(0, 0, c.width, c.height)
         }
 
         if (cPanel.isOverlay) {
-            g2d.color = ThemeManager.curr.globalLaF.borderColor
-            g2d.drawRoundRect(0, 0, c.width - 1, c.height - 1, ScaleManager.curr.borderScale.cornerRadius, ScaleManager.curr.borderScale.cornerRadius)
+            g2d.color = States.theme.get().globalLaF.borderColor
+            g2d.drawRoundRect(0, 0, c.width - 1, c.height - 1, States.scale.get().borderScale.cornerRadius, States.scale.get().borderScale.cornerRadius)
         }
 
         super.paint(g2d, c)

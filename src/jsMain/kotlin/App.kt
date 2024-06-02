@@ -1,4 +1,4 @@
-import Constants.WebStorageKey
+import Keys
 import emotion.react.css
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
@@ -25,13 +25,13 @@ val App = FC<Props> {
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
 
-    val (mode, setMode) = useState(StyleAttr.Mode.entries.getOrNull(localStorage.getItem(WebStorageKey.THEME)?.toIntOrNull() ?: -1) ?: StyleAttr.mode)
+    val (mode, setMode) = useState(StyleAttr.Mode.entries.getOrNull(localStorage.getItem(Keys.THEME)?.toIntOrNull() ?: -1) ?: StyleAttr.mode)
 
     val (lPercentage, setLPct) = useState(40)
     val (showMenu, setShowMenu) = useState(true)
 
 
-    val archState = useState(Link.entries.getOrNull(localStorage.getItem(WebStorageKey.ARCH_TYPE)?.toIntOrNull() ?: 0)?.load() ?: Link.entries.first().load())
+    val archState = useState(Link.entries.getOrNull(localStorage.getItem(Keys.ARCH_TYPE)?.toIntOrNull() ?: 0)?.load() ?: Link.entries.first().load())
     val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().features.filter { !it.invisible })
     val (showSettings, setShowSettings) = useState(false)
     val fileState = useState(FileHandler())
@@ -209,7 +209,7 @@ val App = FC<Props> {
                         } else {
                             StyleAttr.Mode.entries[0]
                         }
-                        localStorage.setItem(WebStorageKey.THEME, newMode.ordinal.toString())
+                        localStorage.setItem(Keys.THEME, newMode.ordinal.toString())
                         setMode(newMode)
                     }
                 }
@@ -241,7 +241,7 @@ val App = FC<Props> {
 
                 for (feature in visibleFeatures) {
                     div {
-                        title = "${archState.component1().description.name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}-${feature.name}"
+                        title = "${archState.component1().description.name}-${Keys.ARCH_FEATURE}-${feature.id}-${feature.name}"
                         css {
                             if (!feature.isActive()) {
                                 backgroundColor = important(StyleAttr.Main.AppControls.BgColorDeActivated.get())
@@ -268,7 +268,7 @@ val App = FC<Props> {
                                 }
                             }
                             feature.switch()
-                            localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}", feature.isActive().toString())
+                            localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_FEATURE}-${feature.id}", feature.isActive().toString())
                             setVisibleFeatures(archState.component1().features.filter { !it.invisible })
                             archState.component1().exeReset()
                         }
@@ -343,7 +343,7 @@ val App = FC<Props> {
                                 defaultChecked = setting.get()
                                 onChange = {
                                     setting.set(archState.component1(), it.currentTarget.checked)
-                                    localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}", setting.get().toString())
+                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}", setting.get().toString())
                                 }
                             }
 
@@ -357,7 +357,7 @@ val App = FC<Props> {
                                     val hex = Variable.Value.Hex(it.currentTarget.value, RV64.XLEN)
                                     if (hex.checkResult.valid) {
                                         setting.set(archState.component1(), hex)
-                                        localStorage.setItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}", setting.get().toHex().getHexStr())
+                                        localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}", setting.get().toHex().getHexStr())
                                     } else {
                                         it.currentTarget.value = setting.get().toHex().getRawHexStr()
                                     }
@@ -393,7 +393,7 @@ val App = FC<Props> {
             console.log("REACT: Switch to " + archState.component1().description.fullName)
         }
         for (feature in archState.component1().features) {
-            localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_FEATURE}-${feature.id}")?.toBooleanStrictOrNull()?.let {
+            localStorage.getItem("${archState.component1().description.name}-${Keys.ARCH_FEATURE}-${feature.id}")?.toBooleanStrictOrNull()?.let {
                 if (it) feature.activate() else feature.deactivate()
             }
         }
@@ -401,13 +401,13 @@ val App = FC<Props> {
         for (setting in archState.component1().settings) {
             when (setting) {
                 is ArchSetting.Bool -> {
-                    localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}")?.let {
+                    localStorage.getItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}")?.let {
                         setting.set(archState.component1(), it.toBoolean())
                     }
                 }
 
                 is ArchSetting.Number -> {
-                    localStorage.getItem("${archState.component1().description.name}-${WebStorageKey.ARCH_SETTING}-${setting.name}")?.let {
+                    localStorage.getItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}")?.let {
                         val value = Variable.Value.Hex(it, RV64.XLEN)
                         if (value.checkResult.valid) {
                             setting.set(archState.component1(), value)

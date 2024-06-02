@@ -33,13 +33,16 @@ class EditorFile(val file: File) : FileInterface {
     /**
      * @return The relative file path from the workspace root directory.
      */
-    fun getWSRelativeName(ws: Workspace): String = file.toRelativeString(ws.rootDir).replace('\\', '/')
+    fun getWSRelativeName(ws: Workspace?): String {
+        if (ws != null) return file.toRelativeString(ws.rootDir).replace('\\', '/')
+        return file.name
+    }
 
     /**
      * @return true if [Token.LineLoc.file] points on [this]. Checked by Workspace dependent name.
      */
     fun matches(ws: Workspace, lineLoc: Token.LineLoc): Boolean {
-       return lineLoc.file.wsRelativeName == getWSRelativeName(ws)
+        return lineLoc.file.wsRelativeName == getWSRelativeName(ws)
     }
 
     /**
@@ -47,6 +50,10 @@ class EditorFile(val file: File) : FileInterface {
      * @return The compiler file object.
      */
     fun toAsmMainFile(workspace: Workspace): AsmFile = file.toAsmFile(file, workspace.rootDir)
+
+    fun reload() {
+        bufferedContent = file.readText()
+    }
 
     /**
      * Stores the buffered content of the file.

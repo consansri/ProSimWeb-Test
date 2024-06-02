@@ -1,10 +1,9 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -15,7 +14,6 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
 open class CAdvancedTabPane(
-    icons: ProSimIcons,
     private val tabsAreCloseable: Boolean,
     primary: Boolean = true,
     borderMode: BorderMode = BorderMode.NONE,
@@ -30,7 +28,7 @@ open class CAdvancedTabPane(
     }
     private val tabsPane = CPanel( primary, BorderMode.SOUTH)
     val contentPane = CScrollPane( primary, CPanel())
-    private val closeIcon = icons.close
+    private val closeIcon = States.icon.get().close
 
     val tabs = mutableListOf<ClosableTab>()
     private var currentTab: ClosableTab? = null

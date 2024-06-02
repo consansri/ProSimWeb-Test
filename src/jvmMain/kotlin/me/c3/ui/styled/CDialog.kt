@@ -1,7 +1,5 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Component
 import javax.swing.JDialog

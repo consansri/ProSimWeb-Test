@@ -1,10 +1,8 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 

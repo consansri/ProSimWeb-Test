@@ -2,10 +2,10 @@ package me.c3.ui.components.controls
 
 import emulator.kit.assembler.CodeStyle
 import kotlinx.coroutines.*
-import me.c3.ui.manager.ArchManager
-import me.c3.ui.manager.EventManager
-import me.c3.ui.manager.MainManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.Events
+import me.c3.ui.States
+
+
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
@@ -20,7 +20,7 @@ import java.awt.GridBagLayout
 class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
 
     // Labels for displaying various types of information
-    val tagInfo = CLabel( "Back to work? :D", FontType.BASIC)
+    private val wsInfo = CLabel( "Back to work? :D", FontType.BASIC)
     val editorInfo = CLabel( "", FontType.BASIC)
     val compilerInfo = CLabel( "", FontType.BASIC)
     val generalPurpose = CLabel( "", FontType.BASIC)
@@ -41,7 +41,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setError(text: String) {
-        generalPurpose.setColouredText(text, ThemeManager.curr.codeLaF.getColor(CodeStyle.RED))
+        generalPurpose.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.RED))
     }
 
     /**
@@ -49,7 +49,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setWarning(text: String) {
-        generalPurpose.setColouredText(text, ThemeManager.curr.codeLaF.getColor(CodeStyle.YELLOW))
+        generalPurpose.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
     }
 
     /**
@@ -57,7 +57,19 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setInfo(text: String) {
-        generalPurpose.setColouredText(text, ThemeManager.curr.textLaF.baseSecondary)
+        generalPurpose.setColouredText(text, States.theme.get().textLaF.baseSecondary)
+    }
+
+    fun setWSError(text: String){
+        wsInfo.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.RED))
+    }
+
+    fun setWSWarning(text: String){
+        wsInfo.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
+    }
+
+    fun setWSInfo(text: String){
+        wsInfo.setColouredText(text, States.theme.get().textLaF.baseSecondary)
     }
 
     /**
@@ -73,7 +85,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
         gbc.weightx = 1.0
         gbc.fill = GridBagConstraints.HORIZONTAL
 
-        add(tagInfo, gbc)
+        add(wsInfo, gbc)
 
         gbc.gridx = 1
         gbc.weightx = 0.0
@@ -94,7 +106,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * Observes architecture change and resets compiler process printer.
      */
     private fun observeArchitectureChange() {
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             resetCompilerProcessPrinter()
         }
     }
@@ -103,7 +115,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * Observes compilation and updates the display accordingly.
      */
     private fun observeCompilation() {
-        EventManager.addCompileListener { result ->
+        Events.compile.addListener { result ->
             if (result.success) {
                 setInfo(result.shortInfoStr())
             } else {
@@ -120,7 +132,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
 
         compilerObservingProcess = compilerObserverScope.launch {
             while (this.isActive) {
-                val processes = ArrayList(ArchManager.curr.assembler.runningProcesses())
+                val processes = ArrayList(States.arch.get().assembler.runningProcesses())
                 val stateString = processes.joinToString(" -> ") {
                     it.toString()
                 }

@@ -1,6 +1,8 @@
 package me.c3.ui.components.processor
 
-import me.c3.ui.manager.*
+import me.c3.ui.Events
+import me.c3.ui.States
+import me.c3.ui.state.*
 import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CIconInput
@@ -12,26 +14,26 @@ import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
 class ExecutionControls() : CPanel( primary = false, BorderMode.SOUTH) {
-    val continuous = CIconButton( ResManager.icons.continuousExe).apply {
+    val continuous = CIconButton( States.icon.get().continuousExe).apply {
         addActionListener {
-            ArchManager.curr.exeContinuous()
-            EventManager.triggerExeEvent()
+            States.arch.get().exeContinuous()
+            Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val singleStep = CIconButton( ResManager.icons.singleExe).apply {
+    val singleStep = CIconButton( States.icon.get().singleExe).apply {
         addActionListener {
-            ArchManager.curr.exeSingleStep()
-            EventManager.triggerExeEvent()
+            States.arch.get().exeSingleStep()
+            Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val mStep = CIconInput( ResManager.icons.stepMultiple, FontType.BASIC).apply {
+    val mStep = CIconInput( States.icon.get().stepMultiple, FontType.BASIC).apply {
         val inputRegex = Regex("\\d+")
         input.text = 10.toString()
         button.addActionListener {
             val steps = this.input.text.toLongOrNull()
             steps?.let {
-                ArchManager.curr.exeMultiStep(steps)
-                EventManager.triggerExeEvent()
+                States.arch.get().exeMultiStep(steps)
+                Events.exe.triggerEvent(States.arch.get())
             }
         }
         input.apply {
@@ -51,27 +53,27 @@ class ExecutionControls() : CPanel( primary = false, BorderMode.SOUTH) {
         }
     }
 
-    val skipSubroutine = CIconButton( ResManager.icons.stepOver).apply {
+    val skipSubroutine = CIconButton( States.icon.get().stepOver).apply {
         addActionListener {
-            ArchManager.curr.exeSkipSubroutine()
-            EventManager.triggerExeEvent()
+            States.arch.get().exeSkipSubroutine()
+            Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val returnSubroutine = CIconButton( ResManager.icons.returnSubroutine).apply {
+    val returnSubroutine = CIconButton( States.icon.get().returnSubroutine).apply {
         addActionListener {
-            ArchManager.curr.exeReturnFromSubroutine()
-            EventManager.triggerExeEvent()
+            States.arch.get().exeReturnFromSubroutine()
+            Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val reset = CIconButton( ResManager.icons.recompile).apply {
+    val reset = CIconButton( States.icon.get().recompile).apply {
         addActionListener {
-            ArchManager.curr.exeReset()
-            EventManager.triggerExeEvent()
+            States.arch.get().exeReset()
+            Events.exe.triggerEvent(States.arch.get())
         }
     }
 
     init {
-        layout = GridLayout(1, 0,ScaleManager.curr.borderScale.insets, 0)
+        layout = GridLayout(1, 0, States.scale.get().borderScale.insets, 0)
 
         continuous.alignmentY = CENTER_ALIGNMENT
         singleStep.alignmentY = CENTER_ALIGNMENT
@@ -81,11 +83,11 @@ class ExecutionControls() : CPanel( primary = false, BorderMode.SOUTH) {
         reset.alignmentY = CENTER_ALIGNMENT
 
         // Listeners
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent {
             layout = GridLayout(1, 0, it.borderScale.insets, 0)
         }
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent {
             val exeStyle = it.exeStyle
             continuous.customColor = exeStyle.continuous
             singleStep.customColor = exeStyle.single
@@ -102,7 +104,7 @@ class ExecutionControls() : CPanel( primary = false, BorderMode.SOUTH) {
         add(returnSubroutine)
         add(reset)
 
-        val exeStyle =ThemeManager.curr.exeStyle
+        val exeStyle = States.theme.get().exeStyle
         continuous.customColor = exeStyle.continuous
         singleStep.customColor = exeStyle.single
         mStep.button.customColor = exeStyle.multi

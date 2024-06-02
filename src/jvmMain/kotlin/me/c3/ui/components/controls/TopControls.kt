@@ -1,6 +1,5 @@
 package me.c3.ui.components.controls
 
-import me.c3.ui.manager.MainManager
 import me.c3.ui.components.controls.buttons.*
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode

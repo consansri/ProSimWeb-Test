@@ -1,7 +1,6 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JButton
@@ -11,7 +10,7 @@ import javax.swing.plaf.basic.BasicScrollPaneUI
 
 class CScrollPaneUI() : BasicScrollPaneUI() {
 
-    var scrollBarFgColor: Color = ThemeManager.curr.globalLaF.borderColor
+    var scrollBarFgColor: Color = States.theme.get().globalLaF.borderColor
         set(value) {
             field = value
             scrollpane.verticalScrollBar.repaint()
@@ -34,11 +33,11 @@ class CScrollPaneUI() : BasicScrollPaneUI() {
         pane.horizontalScrollBar.setUI(CScrollBarUI())
         pane.isOpaque = false
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(pane)
         }
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(pane)
         }
 
@@ -48,11 +47,11 @@ class CScrollPaneUI() : BasicScrollPaneUI() {
     private fun setDefaults(cScrollPane: CScrollPane) {
         cScrollPane.viewport.preferredSize = cScrollPane.preferredSize
         cScrollPane.viewport.isOpaque = false
-        cScrollPane.background = if (cScrollPane.primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
-        scrollBarBgColor = if (cScrollPane.primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
-        scrollBarFgColor = ThemeManager.curr.globalLaF.borderColor
-        cScrollPane.verticalScrollBar.preferredSize = Dimension(ScaleManager.curr.scrollScale.thumbSize, 0)
-        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, ScaleManager.curr.scrollScale.thumbSize)
+        cScrollPane.background = if (cScrollPane.primary) States.theme.get().globalLaF.bgPrimary else States.theme.get().globalLaF.bgSecondary
+        scrollBarBgColor = if (cScrollPane.primary) States.theme.get().globalLaF.bgPrimary else States.theme.get().globalLaF.bgSecondary
+        scrollBarFgColor = States.theme.get().globalLaF.borderColor
+        cScrollPane.verticalScrollBar.preferredSize = Dimension(States.scale.get().scrollScale.thumbSize, 0)
+        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, States.scale.get().scrollScale.thumbSize)
         cScrollPane.repaint()
     }
 

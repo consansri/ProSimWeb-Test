@@ -213,7 +213,7 @@ val Menu = FC<MenuProps> { props ->
                     onClick = { event ->
                         showArchs(false)
                         setArch(archLink.load())
-                        localStorage.setItem(Constants.WebStorageKey.ARCH_TYPE, Link.entries.indexOf(archLink).toString())
+                        localStorage.setItem(Keys.ARCH_TYPE, Link.entries.indexOf(archLink).toString())
 
                         event.currentTarget.classList.toggle("nav-arch-active")
                         props.archState.component1().exeReset()

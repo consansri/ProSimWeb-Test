@@ -1,11 +1,10 @@
 package me.c3.ui.styled.editor
 
 import kotlinx.coroutines.*
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.*
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -15,7 +14,7 @@ import javax.swing.BoxLayout
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
-class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true, BorderMode.BOWL) {
+class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, BorderMode.BOWL) {
 
     private val searchResults = mutableListOf<MatchResult>()
     private var selectedIndex: Int = -1
@@ -156,8 +155,8 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
         REPLACE
     }
 
-    inner class ModeField : CPanel( primary = true) {
-        val modeButton = CIconButton( editor.icons.folderClosed, mode = CIconButton.Mode.PRIMARY_SMALL)
+    inner class ModeField : CPanel(primary = true) {
+        val modeButton = CIconButton(States.icon.get().folderClosed, mode = CIconButton.Mode.PRIMARY_SMALL)
 
         init {
             modeButton.addActionListener {
@@ -168,8 +167,8 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
 
         fun updateIcon() {
             when (mode) {
-                Mode.FIND -> modeButton.svgIcon = editor.icons.folderClosed
-                Mode.REPLACE -> modeButton.svgIcon = editor.icons.folderOpen
+                Mode.FIND -> modeButton.svgIcon = States.icon.get().folderClosed
+                Mode.REPLACE -> modeButton.svgIcon = States.icon.get().folderOpen
             }
         }
 
@@ -181,10 +180,10 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
         }
     }
 
-    inner class SearchField() : CPanel( borderMode = BorderMode.VERTICAL, primary = true) {
+    inner class SearchField() : CPanel(borderMode = BorderMode.VERTICAL, primary = true) {
 
-        val textField = CTextArea( FontType.CODE)
-        val scrollPane = CScrollPane( true, textField)
+        val textField = CTextArea(FontType.CODE)
+        val scrollPane = CScrollPane(true, textField)
         val controls = SearchControls()
 
         init {
@@ -254,8 +253,8 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
             }
         }
 
-        inner class SearchControls() : CPanel( true, BorderMode.NONE) {
-            val regexMode = CToggleButton( ".*", CToggleButtonUI.ToggleSwitchType.SMALL, FontType.BASIC).apply {
+        inner class SearchControls() : CPanel(true, BorderMode.NONE) {
+            val regexMode = CToggleButton(".*", CToggleButtonUI.ToggleSwitchType.SMALL, FontType.BASIC).apply {
                 addActionListener {
                     isActive = !isActive
                     searchField.searchASync()
@@ -270,9 +269,10 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
         }
     }
 
-    inner class ReplaceField() : CPanel( borderMode = BorderMode.VERTICAL, primary = true) {
-        val textField = CTextArea( FontType.CODE)
-        val scrollPane = CScrollPane( true, textField)
+    inner class ReplaceField() : CPanel(borderMode = BorderMode.VERTICAL, primary = true) {
+        val textField = CTextArea(FontType.CODE)
+        val scrollPane = CScrollPane(true, textField)
+
         init {
             layout = BorderLayout()
             add(scrollPane, BorderLayout.CENTER)
@@ -289,10 +289,10 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
         }
     }
 
-    inner class ResultControls() : CPanel( borderMode = BorderMode.THICKNESS, primary = true) {
+    inner class ResultControls() : CPanel(borderMode = BorderMode.THICKNESS, primary = true) {
 
-        val results = CLabel( "0", FontType.BASIC)
-        val next = CIconButton( editor.icons.forwards, CIconButton.Mode.PRIMARY_SMALL).apply {
+        val results = CLabel("0", FontType.BASIC)
+        val next = CIconButton(States.icon.get().forwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
                 val nextIndex = searchResults.indexOfFirst { editor.caret.getIndex() < it.range.first }
                 if (nextIndex != -1) {
@@ -300,7 +300,7 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
                 }
             }
         }
-        val previous = CIconButton( editor.icons.backwards, CIconButton.Mode.PRIMARY_SMALL).apply {
+        val previous = CIconButton(States.icon.get().backwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
                 val prevIndex = searchResults.indexOfLast { editor.caret.getIndex() > it.range.last + 1 }
                 if (prevIndex != -1) {
@@ -318,10 +318,10 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
         }
     }
 
-    inner class ReplaceControls() : CPanel( true, BorderMode.THICKNESS) {
+    inner class ReplaceControls() : CPanel(true, BorderMode.THICKNESS) {
 
-        val replace = CTextButton( "replace", FontType.BASIC)
-        val replaceAll = CTextButton( "replace all", FontType.BASIC)
+        val replace = CTextButton("replace", FontType.BASIC)
+        val replaceAll = CTextButton("replace all", FontType.BASIC)
 
         init {
             attachListeners()
@@ -366,8 +366,8 @@ class CEditorAnalyzer( private val editor: CEditorArea) : CPanel( primary = true
         }
     }
 
-    inner class CloseField() : CPanel( primary = true, BorderMode.WEST) {
-        private val closeBtn = CIconButton( editor.icons.close, mode = CIconButton.Mode.PRIMARY_SMALL)
+    inner class CloseField() : CPanel(primary = true, BorderMode.WEST) {
+        private val closeBtn = CIconButton(States.icon.get().close, mode = CIconButton.Mode.PRIMARY_SMALL)
 
         init {
             closeBtn.addActionListener {

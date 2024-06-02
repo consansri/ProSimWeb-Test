@@ -1,12 +1,14 @@
 package me.c3.ui.components.controls
 
+import me.c3.ui.Events
+import me.c3.ui.States
 import me.c3.ui.components.controls.buttons.ThemeSwitch
 import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.components.ProSimFrame
 import me.c3.ui.components.controls.buttons.FeatureSwitch
-import me.c3.ui.manager.*
+import me.c3.ui.state.*
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -32,16 +34,16 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
 
     private val buttons = listOf(
         ThemeSwitch(),
-        CIconButton(ResManager.icons.processor).apply {
+        CIconButton(States.icon.get().processor).apply {
             addActionListener {
                 processorShown = !processorShown
-                iconBg = if (processorShown) ThemeManager.curr.iconLaF.iconBgActive else ThemeManager.curr.iconLaF.iconBg
+                iconBg = if (processorShown) States.theme.get().iconLaF.iconBgActive else States.theme.get().iconLaF.iconBg
             }
         },
-        CIconButton(ResManager.icons.disassembler).apply {
+        CIconButton(States.icon.get().disassembler).apply {
             addActionListener {
                 consoleAndInfoShown = !consoleAndInfoShown
-                iconBg = if (consoleAndInfoShown) ThemeManager.curr.iconLaF.iconBgActive else ThemeManager.curr.iconLaF.iconBg
+                iconBg = if (consoleAndInfoShown) States.theme.get().iconLaF.iconBgActive else States.theme.get().iconLaF.iconBg
             }
         },
     )
@@ -52,7 +54,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
     private val gbc = GridBagConstraints().apply {
         weighty = 0.0
         weightx = 1.0
-        insets = Insets(ScaleManager.curr.controlScale.normalInset, 0, ScaleManager.curr.controlScale.normalInset, 0)
+        insets = Insets(States.scale.get().controlScale.normalInset, 0, States.scale.get().controlScale.normalInset, 0)
         gridx = 0
         gridy = 0
         fill = GridBagConstraints.HORIZONTAL
@@ -75,11 +77,11 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.weighty = 0.0
 
-        ArchManager.addFeatureChangeListener {
+        Events.featureChange.addListener {
             updateFeatureButtons()
         }
 
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             attachFeatureButtons()
         }
         attachFeatureButtons()
@@ -91,7 +93,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
             gbc.gridy--
         }
         featureButtons.clear()
-        ArchManager.curr.features.filter { !it.invisible && !it.static }.forEach {
+        States.arch.get().features.filter { !it.invisible && !it.static }.forEach {
             val fswitch = FeatureSwitch(it)
             fswitch.alignmentX = Component.CENTER_ALIGNMENT
             featureButtons.add(fswitch)

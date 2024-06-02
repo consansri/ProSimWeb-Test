@@ -4,8 +4,10 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
+import me.c3.ui.Events
+import me.c3.ui.States
 import me.c3.ui.components.processor.models.MemTableModel
-import me.c3.ui.manager.*
+import me.c3.ui.state.*
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
@@ -60,15 +62,15 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
     }
 
     private fun addContentChangeListener() {
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             updateContent()
         }
 
-        EventManager.addExeEventListener {
+        Events.exe.addListener {
             updateContent()
         }
 
-        EventManager.addCompileListener {
+        Events.compile.addListener {
             updateContent()
         }
     }
@@ -96,8 +98,8 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
                 val contentArray: Array<Any> = Array(entrysInRow) { memory.getInitialBinary().get().toHex().toRawString() }
                 copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
-                    if (ArchManager.curr.regContainer.pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
-                        table.setCellHighlighting(index, it.offset + 1, ThemeManager.curr.codeLaF.getColor(CodeStyle.GREENPC))
+                    if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
+                        table.setCellHighlighting(index, it.offset + 1, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
                     }
                 }
                 val ascii = contentArray.joinToString("") {
@@ -116,7 +118,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
     }
 
     private fun updateColumnWidths(entrysInRow: Int) {
-        val charWidth = getFontMetrics(ThemeManager.curr.codeLaF.getFont().deriveFont(ScaleManager.curr.fontScale.dataSize)).charWidth('0')
+        val charWidth = getFontMetrics(States.theme.get().codeLaF.getFont().deriveFont(States.scale.get().fontScale.dataSize)).charWidth('0')
         val wordSize = memory.instanceSize
         val addrScale = memory.addressSize
         val asciiScale = entrysInRow * wordSize.getByteCount()

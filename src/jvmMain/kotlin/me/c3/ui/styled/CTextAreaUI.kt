@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTextAreaUI
@@ -14,11 +13,11 @@ class CTextAreaUI(private val fontType: FontType) : BasicTextAreaUI() {
 
         val area = (c as? CTextArea) ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(area)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(area)
         }
 
@@ -31,8 +30,8 @@ class CTextAreaUI(private val fontType: FontType) : BasicTextAreaUI() {
         c.font = fontType.getFont()
         c.background = Color(0,0,0,0)
         c.border = c.borderMode.getBorder()
-        c.foreground = if(c.primary) ThemeManager.curr.textLaF.base else ThemeManager.curr.textLaF.baseSecondary
-        c.caretColor = ThemeManager.curr.textLaF.base
+        c.foreground = if(c.primary) States.theme.get().textLaF.base else States.theme.get().textLaF.baseSecondary
+        c.caretColor = States.theme.get().textLaF.base
     }
 
 }

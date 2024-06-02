@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -18,11 +17,11 @@ class CTextFieldUI( private val fontType: FontType): BasicTextFieldUI() {
         tf.horizontalAlignment = SwingConstants.CENTER
         tf.border = BorderFactory.createEmptyBorder()
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(tf)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(tf)
         }
 
@@ -33,7 +32,7 @@ class CTextFieldUI( private val fontType: FontType): BasicTextFieldUI() {
         tf.isOpaque = false
         tf.font = fontType.getFont()
         tf.background = Color(0,0,0,0)
-        tf.foreground = ThemeManager.curr.textLaF.base
-        tf.caretColor = ThemeManager.curr.textLaF.base
+        tf.foreground = States.theme.get().textLaF.base
+        tf.caretColor = States.theme.get().textLaF.base
     }
 }

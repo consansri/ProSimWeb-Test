@@ -1,8 +1,7 @@
 package me.c3.ui.styled.editor
 
 import emulator.kit.assembler.CodeStyle
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -19,14 +18,14 @@ class CEditorAreaUI(
     private var caretTimer: Timer? = null
     private var caretColor: Color? = null
 
-    private var selectionColor = ThemeManager.curr.codeLaF.selectionColor
+    private var selectionColor = States.theme.get().codeLaF.selectionColor
         set(value) {
             field = value
             defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 127)
             caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
         }
 
-    private var searchResultColor = ThemeManager.curr.codeLaF.searchResultColor
+    private var searchResultColor = States.theme.get().codeLaF.searchResultColor
         set(value) {
             field = value
             defaultSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 127)
@@ -37,10 +36,10 @@ class CEditorAreaUI(
 
         val CEditorArea = c as? CEditorArea ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(CEditorArea)
         }
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(CEditorArea)
         }
 
@@ -50,13 +49,13 @@ class CEditorAreaUI(
     private fun setDefaults(editor: CEditorArea) {
         // Setup Base Editor Defaults
         editor.isOpaque = false
-        editor.border = BorderFactory.createEmptyBorder(0, ScaleManager.curr.borderScale.insets, 0, ScaleManager.curr.borderScale.insets)
-        editor.background = ThemeManager.curr.globalLaF.bgPrimary
-        editor.foreground = ThemeManager.curr.codeLaF.getColor(CodeStyle.BASE0)
-        editor.font = ThemeManager.curr.codeLaF.getFont().deriveFont(ScaleManager.curr.fontScale.codeSize)
-        selectionColor = ThemeManager.curr.codeLaF.selectionColor
-        searchResultColor = ThemeManager.curr.codeLaF.searchResultColor
-        editor.tabSize = ScaleManager.curr.fontScale.tabSize
+        editor.border = BorderFactory.createEmptyBorder(0, States.scale.get().borderScale.insets, 0, States.scale.get().borderScale.insets)
+        editor.background = States.theme.get().globalLaF.bgPrimary
+        editor.foreground = States.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        editor.font = States.theme.get().codeLaF.getFont().deriveFont(States.scale.get().fontScale.codeSize)
+        selectionColor = States.theme.get().codeLaF.selectionColor
+        searchResultColor = States.theme.get().codeLaF.searchResultColor
+        editor.tabSize = States.scale.get().fontScale.tabSize
         editor.focusTraversalKeysEnabled = false
 
         // Setup Sub Components
@@ -65,8 +64,8 @@ class CEditorAreaUI(
         editor.lineNumbers.fm = editor.getFontMetrics(editor.font)
         editor.lineNumbers.background = editor.background
         editor.lineNumbers.font = editor.font
-        editor.lineNumbers.foreground = ThemeManager.curr.textLaF.baseSecondary
-        editor.lineNumbers.border = BorderFactory.createEmptyBorder(0, ScaleManager.curr.borderScale.insets, 0, ScaleManager.curr.borderScale.insets)
+        editor.lineNumbers.foreground = States.theme.get().textLaF.baseSecondary
+        editor.lineNumbers.border = BorderFactory.createEmptyBorder(0, States.scale.get().borderScale.insets, 0, States.scale.get().borderScale.insets)
         editor.lineNumbers.isOpaque = false
         editor.lineNumbers.selBg = caretLineBG
 

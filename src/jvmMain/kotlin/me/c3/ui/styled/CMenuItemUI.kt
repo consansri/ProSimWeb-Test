@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -12,19 +11,19 @@ import javax.swing.plaf.basic.BasicMenuItemUI
 
 class CMenuItemUI(private val fontType: FontType) : BasicMenuItemUI() {
 
-    private var cornerRadius = ScaleManager.curr.controlScale.cornerRadius
-    private var hoverBackground = ThemeManager.curr.iconLaF.iconBgHover
+    private var cornerRadius = States.scale.get().controlScale.cornerRadius
+    private var hoverBackground = States.theme.get().iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val optionPane = c as? CMenuItem ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(optionPane)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(optionPane)
         }
 
@@ -32,12 +31,12 @@ class CMenuItemUI(private val fontType: FontType) : BasicMenuItemUI() {
     }
 
     private fun setDefaults(item: CMenuItem) {
-        cornerRadius = ScaleManager.curr.controlScale.cornerRadius
+        cornerRadius = States.scale.get().controlScale.cornerRadius
         item.isOpaque = false
         item.background = Color(0, 0, 0, 0)
         item.font = fontType.getFont()
-        item.foreground = ThemeManager.curr.textLaF.base
-        item.border = ScaleManager.curr.controlScale.getNormalInsetBorder()
+        item.foreground = States.theme.get().textLaF.base
+        item.border = States.scale.get().controlScale.getNormalInsetBorder()
         selectionBackground = Color(0,0,0,0)
         selectionForeground = item.foreground
     }

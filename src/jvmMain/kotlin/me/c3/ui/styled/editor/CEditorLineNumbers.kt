@@ -1,7 +1,6 @@
 package me.c3.ui.styled.editor
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -9,7 +8,7 @@ import javax.swing.JComponent
 
 class CEditorLineNumbers( private val editor: CEditorArea) : JComponent() {
 
-    var fm: FontMetrics = getFontMetrics(ThemeManager.curr.codeLaF.getFont().deriveFont(ScaleManager.curr.fontScale.codeSize))
+    var fm: FontMetrics = getFontMetrics(States.theme.get().codeLaF.getFont().deriveFont(States.scale.get().fontScale.codeSize))
     var selBg = Color(0, 0, 0, 0)
     var lineCount: Int = 1
         set(value) {

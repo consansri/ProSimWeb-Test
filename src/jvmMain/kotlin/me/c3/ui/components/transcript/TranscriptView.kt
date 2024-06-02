@@ -4,7 +4,10 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable
-import me.c3.ui.manager.*
+import me.c3.ui.Components
+import me.c3.ui.Events
+import me.c3.ui.States
+import me.c3.ui.state.*
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
@@ -60,19 +63,19 @@ class TranscriptView() : CPanel(primary = false) {
     private var showCompiled: Boolean = true
 
     init {
-        EventManager.addCompileListener {
+        Events.compile.addListener {
             SwingUtilities.invokeLater {
                 updateResult(it)
             }
         }
 
-        MainManager.addWSChangedListener {
+        States.ws.addEvent {
             SwingUtilities.invokeLater {
                 updateResult()
             }
         }
 
-        EventManager.addExeEventListener {
+        Events.exe.addListener {
             highlightPCRow()
         }
 
@@ -103,8 +106,8 @@ class TranscriptView() : CPanel(primary = false) {
      * @param address The address to execute until.
      */
     private fun executeUntilAddress(address: Variable.Value.Hex) {
-        ArchManager.curr.exeUntilAddress(address)
-        EventManager.triggerExeEvent()
+        States.arch.get().exeUntilAddress(address)
+        Events.exe.triggerEvent(States.arch.get())
     }
 
     /**
@@ -180,7 +183,7 @@ class TranscriptView() : CPanel(primary = false) {
         for (row in content) {
             model.addRow(row.getAddrLblBytesTranscript())
         }
-        modelView.fitColumnWidths(ScaleManager.curr.borderScale.insets)
+        modelView.fitColumnWidths(States.scale.get().borderScale.insets)
         highlightPCRow()
         modelView.revalidate()
         modelView.repaint()
@@ -202,10 +205,10 @@ class TranscriptView() : CPanel(primary = false) {
      * @param mainManager The main manager responsible for coordinating UI components and actions.
      */
     private fun highlightPCRow() {
-        val currPC = ArchManager.curr.regContainer.pc
+        val currPC = States.arch.get().regContainer.pc
 
         val index = content.indexOfFirst { it.address.getRawHexStr() == currPC.get().toHex().getRawHexStr() }
-        modelView.setCellHighlighting(index, null, ThemeManager.curr.codeLaF.getColor(CodeStyle.GREENPC))
+        modelView.setCellHighlighting(index, null, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
     }
 
     override fun getMinimumSize(): Dimension {

@@ -1,8 +1,9 @@
 package me.c3.ui.components.controls.buttons
 
 import emulator.kit.optional.Feature
-import me.c3.ui.manager.ArchManager
-import me.c3.ui.manager.MainManager
+import me.c3.ui.Events
+import me.c3.ui.States
+
 import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.FontType
@@ -16,7 +17,7 @@ class FeatureSwitch(private val feature: Feature) : CToggleButton( feature.name,
     private var switchingFeatures = false
 
     init {
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             if (!switchingFeatures) {
                 isActive = feature.isActive()
             }
@@ -27,20 +28,20 @@ class FeatureSwitch(private val feature: Feature) : CToggleButton( feature.name,
                 SwingUtilities.invokeLater {
                     switchingFeatures = true
                     if (feature.isActive()) {
-                        for (featToUpdate in ArchManager.curr.features) {
+                        for (featToUpdate in States.arch.get().features) {
                             if (featToUpdate.enableIDs.contains(feature.id)) {
                                 featToUpdate.deactivate()
                             }
                         }
                     } else {
                         for (id in feature.enableIDs) {
-                            ArchManager.curr.features.firstOrNull { it.id == id }?.activate()
+                            States.arch.get().features.firstOrNull { it.id == id }?.activate()
                         }
                     }
                     feature.switch()
 
                     isActive = feature.isActive()
-                    ArchManager.triggerFeatureChanged()
+                    Events.featureChange.triggerEvent(States.arch.get())
                     switchingFeatures = false
                 }
             }

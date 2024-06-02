@@ -4,10 +4,16 @@ import Settings
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.nativeLog
+import emulator.kit.toAsmFile
 import kotlinx.coroutines.*
 import emulator.kit.toStyledText
-import me.c3.ui.manager.*
+import me.c3.ui.Components
+import me.c3.ui.Events
+import me.c3.ui.States
+import me.c3.ui.components.controls.BottomBar
+import me.c3.ui.state.*
 import me.c3.ui.styled.editor.*
+import me.c3.ui.workspace.Workspace
 import javax.swing.SwingUtilities
 
 /**
@@ -15,7 +21,7 @@ import javax.swing.SwingUtilities
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  * @property editorFile The file associated with the editor.
  */
-class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
+class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
     init {
         fileInterface = editorFile
         // Attach listeners for various events
@@ -23,16 +29,16 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
         infoLogger = this
         shortCuts = this
 
-        EventManager.addExeEventListener {
+        Events.exe.addListener {
             markPC()
         }
-        EventManager.addCompileListener {
+        Events.compile.addListener {
             markPC()
         }
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             fireCompilation(false)
         }
-        ArchManager.addFeatureChangeListener {
+        Events.featureChange.addListener {
             fireCompilation(false)
         }
 
@@ -49,10 +55,15 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
             val result = compile(build)
             if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")) {
                 withContext(Dispatchers.Main) {
-                    this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(ThemeManager.curr.codeLaF))
+                    this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(States.theme.get().codeLaF))
                 }
             }
         }
+    }
+
+    fun reloadFromDisk() {
+        editorFile.reload()
+        this.textArea.replaceAll(editorFile.getRawContent())
     }
 
     /**
@@ -61,9 +72,16 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
      * @return The compilation result.
      */
     private suspend fun compile(build: Boolean): Process.Result {
-        val result = ArchManager.curr.compile(editorFile.toAsmMainFile(MainManager.currWS()), MainManager.currWS().getImportableFiles(editorFile.file), build)
+        val ws = States.ws.get()
+
+        val result = if (ws != null) {
+            States.arch.get().compile(editorFile.toAsmMainFile(ws), ws.getImportableFiles(editorFile.file), build)
+        } else {
+            bBar.setWSWarning("Workspace is not selected! -> Only Single File Assembling available!")
+            States.arch.get().compile(editorFile.file.toAsmFile(), listOf(), build)
+        }
         SwingUtilities.invokeLater {
-            EventManager.triggerCompileFinished(result)
+            Events.compile.triggerEvent(result)
         }
         return result
     }
@@ -72,8 +90,14 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
      * Marks the current program counter position in the editor.
      */
     private fun markPC() {
-        val lineLoc = ArchManager.curr.assembler.getLastLineMap()[ArchManager.curr.regContainer.pc.get().toHex().toRawString()]?.firstOrNull {
-            editorFile.matches(MainManager.currWS(), it)
+        val ws = States.ws.get()
+        if (ws == null) {
+            mark()
+            return
+        }
+
+        val lineLoc = States.arch.get().assembler.getLastLineMap()[States.arch.get().regContainer.pc.get().toHex().toRawString()]?.firstOrNull {
+            editorFile.matches(ws, it)
         }
 
         if (lineLoc == null) {
@@ -81,7 +105,7 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
             return
         }
 
-        val content = CEditorLineNumbers.LineContent.Text(lineLoc.lineID + 1, ThemeManager.curr.codeLaF.getColor(CodeStyle.GREENPC), ">")
+        val content = CEditorLineNumbers.LineContent.Text(lineLoc.lineID + 1, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC), ">")
         mark(content)
     }
 
@@ -90,8 +114,8 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
      * @param lineNumber The line number that was clicked.
      */
     override fun onLineClicked(lineNumber: Int) {
-        ArchManager.curr.exeUntilLine(lineNumber, editorFile.getWSRelativeName(MainManager.currWS()))
-        EventManager.triggerExeEvent()
+        States.arch.get().exeUntilLine(lineNumber, editorFile.getWSRelativeName(States.ws.get()))
+        Events.exe.triggerEvent(States.arch.get())
     }
 
     /**
@@ -101,7 +125,7 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
      */
     override suspend fun highlight(text: String): List<CEditorArea.StyledChar> {
         val result = compile(false)
-        return result.tokens.toStyledText(ThemeManager.curr.codeLaF)
+        return result.tokens.toStyledText(States.theme.get().codeLaF)
     }
 
     /**
@@ -119,15 +143,15 @@ class ProSimEditor(val editorFile: EditorFile) : CEditor(ResManager.icons, maxSt
             "${caret.line}:${caret.column}"
         } else ""
 
-        MainManager.bBar.editorInfo.text = "$caretString $selstring"
+        bBar.editorInfo.text = "$caretString $selstring"
     }
 
     override fun printError(text: String) {
-        MainManager.bBar.setError(text)
+        bBar.setError(text)
     }
 
     override fun clearError() {
-        MainManager.bBar.generalPurpose.text = ""
+        bBar.generalPurpose.text = ""
     }
 
     override fun ctrlS() {

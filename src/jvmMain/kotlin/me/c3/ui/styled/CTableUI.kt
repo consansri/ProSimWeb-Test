@@ -2,10 +2,9 @@ package me.c3.ui.styled
 
 import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.borders.DirectionalBorder
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import java.awt.event.MouseEvent
 import javax.swing.*
@@ -24,11 +23,11 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
 
         val table = c as? CTable ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(table)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(table)
         }
 
@@ -39,8 +38,8 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
-            val fg = ThemeManager.curr.textLaF.base
-            val bg = if (primary) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
+            val fg = States.theme.get().textLaF.base
+            val bg = if (primary) States.theme.get().globalLaF.bgPrimary else States.theme.get().globalLaF.bgSecondary
 
             val cTable = table as? CTable
             cTable?.let { tab ->
@@ -57,15 +56,15 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
                     highlightColor
                 } else {
                     when (value) {
-                        is MainMemory.MemInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
-                        is Cache.CacheInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
+                        is MainMemory.MemInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
+                        is Cache.CacheInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
                         else -> fg
                     }
                 }
             } else {
                 when (value) {
-                    is MainMemory.MemInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
-                    is Cache.CacheInstance -> ThemeManager.curr.dataLaF.getMemInstanceColor(value.mark)
+                    is MainMemory.MemInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
+                    is Cache.CacheInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
                     else -> fg
                 }
             }
@@ -106,7 +105,7 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
     }
 
     fun setDefaults(table: CTable) {
-        table.background = ThemeManager.curr.globalLaF.bgSecondary
+        table.background = States.theme.get().globalLaF.bgSecondary
         table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
         table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
         table.setDefaultEditor(Any::class.java, CCellEditor())
@@ -116,12 +115,12 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
         table.showVerticalLines = false
         table.showHorizontalLines = false
         table.gridColor = table.background
-        table.rowHeight = table.getFontMetrics(ThemeManager.curr.codeLaF.getFont().deriveFont(ScaleManager.curr.fontScale.dataSize)).height + 2 * ScaleManager.curr.borderScale.insets
+        table.rowHeight = table.getFontMetrics(States.theme.get().codeLaF.getFont().deriveFont(States.scale.get().fontScale.dataSize)).height + 2 * States.scale.get().borderScale.insets
 
         val header = table.tableHeader
         header.resizingAllowed = false
-        header.background = ThemeManager.curr.globalLaF.bgPrimary
-        header.foreground = ThemeManager.curr.textLaF.baseSecondary
+        header.background = States.theme.get().globalLaF.bgPrimary
+        header.foreground = States.theme.get().textLaF.baseSecondary
         header.font = FontType.DATA.getFont()
         header.defaultRenderer = CHeaderRenderer(!primary)
         //header.resizingAllowed = false

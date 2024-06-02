@@ -1,6 +1,6 @@
 package visual
 
-import Constants.WebStorageKey
+import Keys
 import StyleAttr
 import emotion.react.css
 import kotlinx.browser.document
@@ -38,9 +38,9 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
     val iConsole = props.archState.component1().console
 
     val (shadow, setShadow) = useState(false)
-    val (scrollDown, setScrollDown) = useState(localStorage.getItem(WebStorageKey.CONSOLE_SDOWN)?.toBoolean() ?: true)
-    val (pin, setPin) = useState(localStorage.getItem(WebStorageKey.CONSOLE_PIN)?.toBoolean() ?: false)
-    val (showLog, setShowLog) = useState(localStorage.getItem(WebStorageKey.CONSOLE_SHOWINFO)?.toBoolean() ?: false)
+    val (scrollDown, setScrollDown) = useState(localStorage.getItem(Keys.CONSOLE_SDOWN)?.toBoolean() ?: true)
+    val (pin, setPin) = useState(localStorage.getItem(Keys.CONSOLE_PIN)?.toBoolean() ?: false)
+    val (showLog, setShowLog) = useState(localStorage.getItem(Keys.CONSOLE_SHOWINFO)?.toBoolean() ?: false)
 
     div {
 
@@ -300,11 +300,11 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
                     it1.style.marginBottom = "0"
                 }
             }
-            localStorage.setItem(WebStorageKey.CONSOLE_PIN, pin.toString())
+            localStorage.setItem(Keys.CONSOLE_PIN, pin.toString())
         }
 
         useEffect(showLog) {
-            localStorage.setItem(WebStorageKey.CONSOLE_PIN, showLog.toString())
+            localStorage.setItem(Keys.CONSOLE_PIN, showLog.toString())
         }
 
         useEffect(scrollDown) {
@@ -319,7 +319,7 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
                     clearInterval(it)
                 }
             }
-            localStorage.setItem(WebStorageKey.CONSOLE_SDOWN, scrollDown.toString())
+            localStorage.setItem(Keys.CONSOLE_SDOWN, scrollDown.toString())
         }
 
         useEffect(document.body?.onresize) {

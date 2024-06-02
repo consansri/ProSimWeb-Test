@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicLabelUI
 
@@ -13,11 +12,11 @@ class CLabelUI(private val fontType: FontType) : BasicLabelUI() {
 
         val cLabel = c as? CLabel ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(cLabel)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(cLabel)
         }
 
@@ -26,8 +25,8 @@ class CLabelUI(private val fontType: FontType) : BasicLabelUI() {
 
     private fun setDefaults(cLabel: CLabel) {
         cLabel.font = fontType.getFont()
-        cLabel.border = ScaleManager.curr.borderScale.getInsetBorder()
-        cLabel.foreground = ThemeManager.curr.textLaF.base
+        cLabel.border = States.scale.get().borderScale.getInsetBorder()
+        cLabel.foreground = States.theme.get().textLaF.base
         cLabel.repaint()
     }
 

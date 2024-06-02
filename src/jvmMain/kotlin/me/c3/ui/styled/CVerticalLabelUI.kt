@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicLabelUI
@@ -19,11 +18,11 @@ class CVerticalLabelUI( private val primary: Boolean, private val fontType: Font
 
         val cLabel = c as? CVerticalLabel ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(cLabel)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(cLabel)
         }
 
@@ -32,8 +31,8 @@ class CVerticalLabelUI( private val primary: Boolean, private val fontType: Font
 
     private fun setDefaults(cLabel: CVerticalLabel) {
         cLabel.font = fontType.getFont()
-        cLabel.border = ScaleManager.curr.borderScale.getInsetBorder()
-        cLabel.foreground = if(primary) ThemeManager.curr.textLaF.base else ThemeManager.curr.textLaF.baseSecondary
+        cLabel.border = States.scale.get().borderScale.getInsetBorder()
+        cLabel.foreground = if(primary) States.theme.get().textLaF.base else States.theme.get().textLaF.baseSecondary
         cLabel.repaint()
     }
 

@@ -1,7 +1,6 @@
 package me.c3.ui.styled.borders
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Insets
@@ -15,19 +14,19 @@ class DirectionalBorder(
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    var lineBorder = LineBorder(ThemeManager.curr.globalLaF.borderColor, ScaleManager.curr.borderScale.thickness)
-    var thickness = ScaleManager.curr.borderScale.thickness
+    var lineBorder = LineBorder(States.theme.get().globalLaF.borderColor, States.scale.get().borderScale.thickness)
+    var thickness = States.scale.get().borderScale.thickness
 
     init {
-        ScaleManager.addScaleChangeEvent {
-            val color = ThemeManager.curr.globalLaF.borderColor
-            this.lineBorder = LineBorder(color, it.borderScale.thickness)
-            this.thickness = it.borderScale.thickness
+        States.scale.addEvent { scale ->
+            val color = States.theme.get().globalLaF.borderColor
+            this.lineBorder = LineBorder(color, scale.borderScale.thickness)
+            this.thickness = scale.borderScale.thickness
         }
 
-        ThemeManager.addThemeChangeListener {
-            val thickness = ScaleManager.curr.borderScale.thickness
-            this.lineBorder = LineBorder(it.globalLaF.borderColor, thickness)
+        States.theme.addEvent { scale ->
+            val thickness = States.scale.get().borderScale.thickness
+            this.lineBorder = LineBorder(scale.globalLaF.borderColor, thickness)
             this.thickness = thickness
         }
     }
@@ -40,11 +39,11 @@ class DirectionalBorder(
     }
 
     override fun getBorderInsets(c: Component): Insets {
-        return ScaleManager.curr.borderScale.getInsets()
+        return States.scale.get().borderScale.getInsets()
     }
 
     override fun getBorderInsets(c: Component, insets: Insets): Insets {
-        val themeInsets = ScaleManager.curr.borderScale.getInsets()
+        val themeInsets = States.scale.get().borderScale.getInsets()
         insets.set(themeInsets.top, themeInsets.left, themeInsets.bottom, themeInsets.right)
         return insets
     }

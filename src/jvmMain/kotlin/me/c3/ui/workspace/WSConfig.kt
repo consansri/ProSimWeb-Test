@@ -1,8 +1,9 @@
 package me.c3.ui.workspace
 
+import emulator.kit.nativeLog
 import java.io.File
 
-data class WSConfig(val file: File) {
+data class WSConfig(val file: File, val onChange: (File) -> Unit) {
 
     private val settings: MutableList<Setable> = mutableListOf()
 
@@ -15,10 +16,12 @@ data class WSConfig(val file: File) {
     fun set(type: Type, id: String, value: String) {
         search(type, id)?.let {
             it.value = value
+            store()
             return
         }
 
         settings.add(Setable(type, id, value))
+        store()
     }
 
     private fun load() {
@@ -29,20 +32,25 @@ data class WSConfig(val file: File) {
                 parseln(it)
             })
         }
+        nativeLog("LoadConfig: {\n${settings.toContentString()}\n}")
     }
 
     private fun store() {
         if (!file.exists()) {
             file.createNewFile()
         }
-        val content = settings.joinToString("\n") { "${it.type}.${it.id}=${it.value}" }
+        val content = settings.toContentString()
+        nativeLog("StoreConfig: {\n$content\n}")
         file.writeText(content)
+        onChange(file)
     }
 
     private fun parseln(line: String): Setable? {
         val result = setableRegex.find(line) ?: return null
 
-        val (typeStr, id, value) = result.groupValues
+        val (all, typeStr, id, value) = result.groupValues
+
+        nativeLog("Parsing: $line -> type: $typeStr, id: $id, val: $value")
 
         val type = Type.entries.firstOrNull { it.toString() == typeStr } ?: return null
 
@@ -51,13 +59,9 @@ data class WSConfig(val file: File) {
 
     private fun search(type: Type, id: String): Setable? = settings.firstOrNull { it.type == type && it.id == id }
 
-    inner class Setable(val type: Type, val id: String, value: String) {
-        var value: String = value
-            set(value) {
-                field = value
-                store()
-            }
-    }
+    private fun MutableList<Setable>.toContentString(): String = this.joinToString("\n") { "${it.type}.${it.id}=${it.value}" }
+
+    inner class Setable(val type: Type, val id: String, var value: String)
 
     enum class Type {
         IDE,

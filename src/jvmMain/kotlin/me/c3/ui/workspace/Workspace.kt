@@ -6,16 +6,18 @@ import emulator.kit.toAsmFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.c3.ui.manager.MainManager
+import kotlinx.coroutines.withContext
+import me.c3.ui.Components
+import me.c3.ui.Events
 import me.c3.ui.components.editor.CodeEditor
-import me.c3.ui.manager.ArchManager
-import me.c3.ui.manager.EventManager
+import me.c3.ui.Keys
+import me.c3.ui.States
+import me.c3.ui.States.setFromPath
 import me.c3.ui.styled.CTree
 import me.c3.ui.styled.CMenuItem
 import me.c3.ui.styled.COptionPane
 import me.c3.ui.styled.CPopupMenu
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
@@ -29,7 +31,7 @@ import javax.swing.tree.DefaultTreeModel
  * @param codeEditor The code editor instance.
  * @param mainManager The main manager instance.
  */
-class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: MainManager) {
+class Workspace(private val path: String, var editor: WSEditor? = null, var logger: WSLogger? = null) {
     // Root directory of the workspace.
     val rootDir = File(path)
 
@@ -46,9 +48,11 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
     val tree: CTree
 
     init {
-        val configFile = File("$path\\settings.wsetup")
+        val configFile = File("$path\\${Keys.CONFIG_NAME}")
 
-        config = WSConfig(configFile)
+        config = WSConfig(configFile){
+            editor?.updateFile(it)
+        }
 
         // Build the file tree starting from the root directory.
         buildFileTree(rootDir, rootNode)
@@ -73,10 +77,10 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (uobj.file.isFile) {
                         if (e.clickCount == 2) {
-                            codeEditor.openFile(uobj.file)
+                            editor?.openFile(uobj.file)
                         }
                     }
-                    MainManager.bBar.tagInfo.text = getFileWithProjectPath(uobj.file).formatPathForDrawing()
+                    logger?.log(getFileWithProjectPath(uobj.file).formatPathForDrawing())
                 }
             }
         })
@@ -174,9 +178,9 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                         val newDir = File(it.file, newDirName)
                         if (newDir.mkdir()) {
                             // File created successfully
-                            MainManager.setCurrWS(path)
+                            States.ws.setFromPath(path, editor, logger)
                         } else {
-                            MainManager.bBar.setError("Failed to create directory $newDirName!")
+                            logger?.error("Failed to create directory $newDirName!")
                         }
                     }
                 }
@@ -191,9 +195,9 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                         val newFile = File(it.file, newFileName)
                         if (newFile.createNewFile()) {
                             // File created successfully
-                            MainManager.setCurrWS(path)
+                            States.ws.setFromPath(path, editor, logger)
                         } else {
-                            MainManager.bBar.setError("Failed to create file $newFileName!")
+                            logger?.error("Failed to create file $newFileName!")
                         }
                     }
                 }
@@ -204,6 +208,11 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
             CoroutineScope(Dispatchers.IO).launch {
                 rootNode.removeAllChildren()
                 buildFileTree(rootDir, rootNode)
+                withContext(Dispatchers.Main){
+                    treeModel.reload()
+                    tree.revalidate()
+                    tree.repaint()
+                }
             }
         }
 
@@ -212,7 +221,7 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         openItem?.addActionListener {
             files.forEach {
                 if (it.file.isFile) {
-                    MainManager.editor.openFile(it.file)
+                    editor?.openFile(it.file)
                 }
             }
         }
@@ -220,8 +229,8 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         buildFile?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach {
-                    val result = ArchManager.curr.compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
-                    EventManager.triggerCompileFinished(result)
+                    val result = States.arch.get().compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
+                    Events.compile.triggerEvent(result)
                 }
             }
         }
@@ -229,12 +238,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportMIF?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach {
-                    val result = ArchManager.curr.compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
-                    EventManager.triggerCompileFinished(result)
+                    val result = States.arch.get().compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
+                    Events.compile.triggerEvent(result)
                     if (!result.success) {
                         return@launch
                     }
-                    val fileContent = ArchManager.curr.getFormattedFile(FileBuilder.ExportFormat.MIF, it.file.toAsmFile(it.file, rootDir))
+                    val fileContent = States.arch.get().getFormattedFile(FileBuilder.ExportFormat.MIF, it.file.toAsmFile(it.file, rootDir))
                     val generatedDir = File(it.file.parentFile, ".generated")
                     if (!generatedDir.exists()) {
                         generatedDir.mkdir()
@@ -243,9 +252,9 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                     if (newFile.createNewFile()) {
                         newFile.writeText(fileContent.joinToString("\n") { it })
                         // File build successfully
-                        MainManager.setCurrWS(path)
+                        States.ws.setFromPath(path, editor, logger)
                     } else {
-                        MainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                        logger?.error("Failed to save generated file ${newFile.name}!")
                     }
                 }
             }
@@ -254,12 +263,12 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportVHDL?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach { tfile ->
-                    val result = ArchManager.curr.compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
-                    EventManager.triggerCompileFinished(result)
+                    val result = States.arch.get().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
+                    Events.compile.triggerEvent(result)
                     if (!result.success) {
                         return@launch
                     }
-                    val fileContent = ArchManager.curr.getFormattedFile(FileBuilder.ExportFormat.VHDL, tfile.file.toAsmFile(tfile.file, rootDir))
+                    val fileContent = States.arch.get().getFormattedFile(FileBuilder.ExportFormat.VHDL, tfile.file.toAsmFile(tfile.file, rootDir))
                     val generatedDir = File(tfile.file.parentFile, ".generated")
                     if (!generatedDir.exists()) {
                         generatedDir.mkdir()
@@ -269,9 +278,9 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                     if (newFile.createNewFile()) {
                         newFile.writeText(fileContent.joinToString("\n") { it })
                         // File build successfully
-                        MainManager.setCurrWS(path)
+                        States.ws.setFromPath(path, editor, logger)
                     } else {
-                        MainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                        logger?.error("Failed to save generated file ${newFile.name}!")
                     }
                 }
             }
@@ -280,26 +289,26 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportHexDump?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach { tfile ->
-                    val result = ArchManager.curr.compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
-                    EventManager.triggerCompileFinished(result)
+                    val result = States.arch.get().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
+                    Events.compile.triggerEvent(result)
                     if (!result.success) {
                         return@launch
                     }
-                    val fileContent = ArchManager.curr.getFormattedFile(FileBuilder.ExportFormat.HEXDUMP, tfile.file.toAsmFile(tfile.file, rootDir))
+                    val fileContent = States.arch.get().getFormattedFile(FileBuilder.ExportFormat.HEXDUMP, tfile.file.toAsmFile(tfile.file, rootDir))
                     val generatedDir = File(tfile.file.parentFile, ".generated")
                     if (!generatedDir.exists()) {
                         generatedDir.mkdir()
                     }
 
-                    EventManager.triggerCompileFinished(result)
+                    Events.compile.triggerEvent(result)
 
                     val newFile = File(generatedDir, tfile.file.name.removeSuffix(".s") + ".hexdump")
                     if (newFile.createNewFile()) {
                         newFile.writeText(fileContent.joinToString("\n") { it })
                         // File build successfully
-                        MainManager.setCurrWS(path)
+                        States.ws.setFromPath(path, editor, logger)
                     } else {
-                        MainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                        logger?.error("Failed to save generated file ${newFile.name}!")
                     }
                 }
 
@@ -309,8 +318,8 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
         exportTS?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
                 files.forEach { tfile ->
-                    val result = ArchManager.curr.compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
-                    EventManager.triggerCompileFinished(result)
+                    val result = States.arch.get().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
+                    Events.compile.triggerEvent(result)
                     if (!result.success) {
                         return@launch
                     }
@@ -324,9 +333,9 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                     if (newFile.createNewFile()) {
                         newFile.writeText(fileContent)
                         // File build successfully
-                        MainManager.setCurrWS(path)
+                        States.ws.setFromPath(path, editor, logger)
                     } else {
-                        MainManager.bBar.setError("Failed to save generated file ${newFile.name}!")
+                        logger?.error("Failed to save generated file ${newFile.name}!")
                     }
                 }
             }
@@ -342,9 +351,9 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                         val newFile = File(it.file.parentFile, newFileName)
                         if (it.file.renameTo(newFile)) {
                             // File renamed successfully
-                            MainManager.setCurrWS(path)
+                            States.ws.setFromPath(path, editor, logger)
                         } else {
-                            MainManager.bBar.setError("Failed to rename file $newFileName!")
+                            logger?.error("Failed to rename file $newFileName!")
                         }
                     }
                 }
@@ -370,21 +379,21 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
                 if (confirmation) {
                     files.forEach {
                         if (!it.file.delete()) {
-                            MainManager.bBar.setError("Failed to delete file ${it.file.name}!")
+                            logger?.error("Failed to delete file ${it.file.name}!")
                             return@launch
                         }
                     }
 
                     dirs.forEach {
                         if (!it.file.deleteRecursively()) {
-                            MainManager.bBar.setError("Failed to delete directory ${it.file.name}!")
+                            logger?.error("Failed to delete directory ${it.file.name}!")
                             return@launch
                         }
                     }
 
                     // Files deleted successfully
-                    MainManager.setCurrWS(path)
-                    MainManager.bBar.setInfo("Deleted $fileInfoString")
+                    States.ws.setFromPath(path, editor, logger)
+                    logger?.log("Deleted $fileInfoString")
                 }
             }
         }
@@ -438,10 +447,10 @@ class Workspace(private val path: String, codeEditor: CodeEditor, mainManager: M
      * @param tm The theme manager instance.
      */
     private fun setTreeLook() {
-        ThemeManager.addThemeChangeListener {
-            tree.background = it.globalLaF.bgSecondary
+        States.theme.addEvent { theme ->
+            tree.background = theme.globalLaF.bgSecondary
         }
-        tree.background = ThemeManager.curr.globalLaF.bgSecondary
+        tree.background = States.theme.get().globalLaF.bgSecondary
         tree.isFocusable = false
     }
 

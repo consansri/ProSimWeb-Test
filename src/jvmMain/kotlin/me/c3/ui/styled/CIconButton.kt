@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
+import me.c3.ui.States
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -27,7 +26,7 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
             updateAnim()
         }
 
-    var iconBg = ThemeManager.curr.iconLaF.iconBg
+    var iconBg = States.theme.get().iconLaF.iconBg
         set(value) {
             field = value
             (ui as? CIconButtonUI)?.setDefaults(this)

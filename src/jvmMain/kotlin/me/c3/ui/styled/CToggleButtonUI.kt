@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.*
 import javax.swing.JComponent
 import javax.swing.SwingConstants
@@ -16,11 +15,11 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
         val button = c as? CToggleButton ?: return
         button.horizontalAlignment = SwingConstants.CENTER
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults( button)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults( button)
         }
 
@@ -34,15 +33,15 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
         button.isFocusable = false
         button.font = fontType.getFont()
         button.border = when (toggleSwitchType) {
-            ToggleSwitchType.SMALL -> ScaleManager.curr.controlScale.getSmallInsetBorder()
-            ToggleSwitchType.NORMAL -> ScaleManager.curr.controlScale.getNormalInsetBorder()
+            ToggleSwitchType.SMALL -> States.scale.get().controlScale.getSmallInsetBorder()
+            ToggleSwitchType.NORMAL -> States.scale.get().controlScale.getNormalInsetBorder()
         }
         button.size = when (toggleSwitchType) {
-            ToggleSwitchType.SMALL -> ScaleManager.curr.controlScale.getSmallSize()
-            ToggleSwitchType.NORMAL -> ScaleManager.curr.controlScale.getNormalSize()
+            ToggleSwitchType.SMALL -> States.scale.get().controlScale.getSmallSize()
+            ToggleSwitchType.NORMAL -> States.scale.get().controlScale.getNormalSize()
         }
-        button.background = if (button.isActive) ThemeManager.curr.iconLaF.iconBgActive else ThemeManager.curr.iconLaF.iconBg
-        button.foreground = if (button.isDeactivated) ThemeManager.curr.textLaF.baseSecondary else ThemeManager.curr.textLaF.base
+        button.background = if (button.isActive) States.theme.get().iconLaF.iconBgActive else States.theme.get().iconLaF.iconBg
+        button.foreground = if (button.isDeactivated) States.theme.get().textLaF.baseSecondary else States.theme.get().textLaF.base
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
@@ -54,7 +53,7 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
 
         // Paint button background
         g2.color = button.background
-        g2.fillRoundRect(0, 0, width , height, ScaleManager.curr.controlScale.cornerRadius, ScaleManager.curr.controlScale.cornerRadius)
+        g2.fillRoundRect(0, 0, width , height, States.scale.get().controlScale.cornerRadius, States.scale.get().controlScale.cornerRadius)
 
         // Paint button
         super.paint(g2, c)
@@ -72,8 +71,8 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
     override fun getMinimumSize(c: JComponent?): Dimension {
         val button = c as? CToggleButton ?: return super.getPreferredSize(c)
         val preferredSize = when(toggleSwitchType){
-            ToggleSwitchType.SMALL -> ScaleManager.curr.controlScale.getSmallSize()
-            ToggleSwitchType.NORMAL -> ScaleManager.curr.controlScale.getNormalSize()
+            ToggleSwitchType.SMALL -> States.scale.get().controlScale.getSmallSize()
+            ToggleSwitchType.NORMAL -> States.scale.get().controlScale.getNormalSize()
         }
         return Dimension(preferredSize.width + c.insets.left + c.insets.right, preferredSize.height + c.insets.top + c.insets.bottom)
     }
@@ -88,8 +87,8 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
     }
     
     private fun getInset() =  when (toggleSwitchType) {
-        ToggleSwitchType.SMALL -> ScaleManager.curr.controlScale.smallInset
-        ToggleSwitchType.NORMAL -> ScaleManager.curr.controlScale.normalInset
+        ToggleSwitchType.SMALL -> States.scale.get().controlScale.smallInset
+        ToggleSwitchType.NORMAL -> States.scale.get().controlScale.normalInset
     }
 
 }

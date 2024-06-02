@@ -1,8 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.editor.CEditorAnalyzer
-import me.c3.ui.manager.ThemeManager
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.border.AbstractBorder
@@ -15,11 +14,11 @@ class CRawPanelUI( private val border: AbstractBorder? = null) : PanelUI() {
 
         val panel = c as? CEditorAnalyzer ?: return
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(panel)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(panel)
         }
 
@@ -28,7 +27,7 @@ class CRawPanelUI( private val border: AbstractBorder? = null) : PanelUI() {
 
     private fun setDefaults(panel: CEditorAnalyzer) {
         panel.isOpaque = false
-        panel.background = ThemeManager.curr.globalLaF.bgPrimary
+        panel.background = States.theme.get().globalLaF.bgPrimary
 
         panel.border = BorderFactory.createEmptyBorder()
         panel.insets.set(0, 0, 0, 0)

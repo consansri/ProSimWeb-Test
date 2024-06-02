@@ -1,6 +1,6 @@
 package visual
 
-import Constants.WebStorageKey
+import Keys
 import StyleAttr
 import emotion.react.css
 import Settings
@@ -49,10 +49,10 @@ val MemoryView = FC<MemViewProps> { props ->
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
     val (currMem, setCurrMem) = useState(MicroSetup.getMemoryInstances().firstOrNull())
 
-    val (useBounds, setUseBounds) = useState(localStorage.getItem("${WebStorageKey.MIO_ACTIVE}-${props.archState.component1().description.name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().memory.ioBounds != null))
-    val (startAddr, setStartAddr) = useState(localStorage.getItem("${WebStorageKey.MIO_START}-${props.archState.component1().description.name}")?.let { Hex(it, props.archState.component1().memory.addressSize) } ?: props.archState.component1().memory
+    val (useBounds, setUseBounds) = useState(localStorage.getItem("${Keys.MIO_ACTIVE}-${props.archState.component1().description.name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().memory.ioBounds != null))
+    val (startAddr, setStartAddr) = useState(localStorage.getItem("${Keys.MIO_START}-${props.archState.component1().description.name}")?.let { Hex(it, props.archState.component1().memory.addressSize) } ?: props.archState.component1().memory
         .ioBounds?.lowerAddr?.toHex())
-    val (amount, setAmount) = useState(localStorage.getItem("${WebStorageKey.MIO_AMOUNT}-${props.archState.component1().description.name}")?.toLongOrNull() ?: props.archState.component1().memory.ioBounds?.amount ?: 32)
+    val (amount, setAmount) = useState(localStorage.getItem("${Keys.MIO_AMOUNT}-${props.archState.component1().description.name}")?.toLongOrNull() ?: props.archState.component1().memory.ioBounds?.amount ?: 32)
 
     val (editVar, setEditVar) = useState<MainMemory.MemInstance.EditableValue>()
 
@@ -210,7 +210,7 @@ val MemoryView = FC<MemViewProps> { props ->
                     MicroSetup.getMemoryInstances().forEach {
                         if (it is MainMemory) it.entrysInRow = event.currentTarget.valueAsNumber.toInt()
                     }
-                    localStorage.setItem(WebStorageKey.MEM_LENGTH, "${event.currentTarget.valueAsNumber.toInt()}")
+                    localStorage.setItem(Keys.MEM_LENGTH, "${event.currentTarget.valueAsNumber.toInt()}")
                 }
             }
 
@@ -586,11 +586,11 @@ val MemoryView = FC<MemViewProps> { props ->
         } else {
             props.archState.component1().memory.ioBounds = null
         }
-        localStorage.setItem("${WebStorageKey.MIO_ACTIVE}-${props.archState.component1().description.name}", useBounds.toString())
+        localStorage.setItem("${Keys.MIO_ACTIVE}-${props.archState.component1().description.name}", useBounds.toString())
         startAddr?.let {
-            localStorage.setItem("${WebStorageKey.MIO_START}-${props.archState.component1().description.name}", startAddr.getHexStr())
+            localStorage.setItem("${Keys.MIO_START}-${props.archState.component1().description.name}", startAddr.getHexStr())
         }
-        localStorage.setItem("${WebStorageKey.MIO_AMOUNT}-${props.archState.component1().description.name}", amount.toString())
+        localStorage.setItem("${Keys.MIO_AMOUNT}-${props.archState.component1().description.name}", amount.toString())
     }
 
     /*useEffect(props.exeEventState.component1()) {

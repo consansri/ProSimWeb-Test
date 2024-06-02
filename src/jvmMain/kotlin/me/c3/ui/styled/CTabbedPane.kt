@@ -1,8 +1,6 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
 import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JTabbedPane
@@ -13,7 +11,6 @@ open class CTabbedPane( val primary: Boolean, fontType: FontType) : JTabbedPane(
         this.setUI(CTabbedPaneUI( primary, fontType))
     }
 
-
     override fun paint(g: Graphics) {
         val g2d = g.create() as Graphics2D
 
@@ -23,6 +20,4 @@ open class CTabbedPane( val primary: Boolean, fontType: FontType) : JTabbedPane(
         super.paint(g2d)
         g2d.dispose()
     }
-
-
 }

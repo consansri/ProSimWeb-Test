@@ -3,6 +3,7 @@ package emulator
 import emulator.archs.*
 import emulator.kit.Architecture
 import emulator.kit.configs.Config
+import kotlin.reflect.KClass
 
 /**
  *  This enum-class contains every specific Architecture
@@ -22,6 +23,8 @@ enum class Link(private val arch: Architecture) {
     fun descr(): Config.Description{
         return arch.description
     }
+
+    fun classType(): KClass<*> = arch::class
 
     override fun toString(): String {
         return descr().fullName

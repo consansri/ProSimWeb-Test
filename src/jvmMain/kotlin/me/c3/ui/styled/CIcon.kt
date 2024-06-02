@@ -2,20 +2,19 @@ package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
+import me.c3.ui.States
 import me.c3.ui.styled.CIconButton.Mode
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import javax.swing.JLabel
 
 class CIcon(val svgIcon: FlatSVGIcon, val mode: Mode = Mode.PRIMARY_NORMAL) : JLabel() {
 
     init {
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults()
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults()
         }
 
@@ -26,21 +25,21 @@ class CIcon(val svgIcon: FlatSVGIcon, val mode: Mode = Mode.PRIMARY_NORMAL) : JL
         isOpaque = false
         background = Color(0, 0, 0, 0)
         border = when (mode) {
-            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> ScaleManager.curr.controlScale.getNormalInsetBorder()
-            Mode.GRADIENT_SMALL, Mode.SECONDARY_SMALL, Mode.PRIMARY_SMALL -> ScaleManager.curr.controlScale.getSmallInsetBorder()
+            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> States.scale.get().controlScale.getNormalInsetBorder()
+            Mode.GRADIENT_SMALL, Mode.SECONDARY_SMALL, Mode.PRIMARY_SMALL -> States.scale.get().controlScale.getSmallInsetBorder()
         }
 
         svgIcon.colorFilter = ColorFilter {
             when (mode) {
-                Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> ThemeManager.curr.iconLaF.iconFgPrimary
-                Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> ThemeManager.curr.iconLaF.iconFgSecondary
+                Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> States.theme.get().iconLaF.iconFgPrimary
+                Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> States.theme.get().iconLaF.iconFgSecondary
                 Mode.GRADIENT_NORMAL, Mode.GRADIENT_SMALL -> null
             }
         }
 
         val size = when (mode) {
-            Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL, Mode.GRADIENT_SMALL -> ScaleManager.curr.controlScale.smallSize
-            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> ScaleManager.curr.controlScale.normalSize
+            Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL, Mode.GRADIENT_SMALL -> States.scale.get().controlScale.smallSize
+            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> States.scale.get().controlScale.normalSize
         }
 
         icon = svgIcon.derive(size, size)

@@ -3,10 +3,9 @@ package me.c3.ui.styled.editor
 import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
+import me.c3.ui.States
 import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.styled.CScrollPane
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Dimension
@@ -23,7 +22,7 @@ import java.util.ConcurrentModificationException
 import java.util.Stack
 import javax.swing.JComponent
 
-class CEditorArea(val icons: ProSimIcons, val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
+class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
 
     // Current State
     private val styledText: MutableList<StyledChar> = mutableListOf()
@@ -106,7 +105,7 @@ class CEditorArea(val icons: ProSimIcons, val location: Location, val maxStackSi
     private var selEndColumn = -1
 
     // Settings
-    var tabSize = ScaleManager.curr.fontScale.tabSize
+    var tabSize = States.scale.get().fontScale.tabSize
     var scrollMarginLines = 2
     var scrollMarginChars = 10
     var isEditable = true

@@ -2,11 +2,9 @@ package me.c3.ui.components.processor.memory
 
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.memory.DirectMappedCache
-import me.c3.ui.manager.MainManager
+import me.c3.ui.Events
+import me.c3.ui.States
 import me.c3.ui.components.processor.models.CacheTableModel
-import me.c3.ui.manager.ArchManager
-import me.c3.ui.manager.EventManager
-import me.c3.ui.manager.ThemeManager
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
@@ -35,15 +33,15 @@ class DMCacheView(val cache: DirectMappedCache) : CPanel( primary = false) {
     }
 
     private fun addContentChangeListener() {
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             updateContent()
         }
 
-        EventManager.addExeEventListener {
+        Events.exe.addListener {
             updateContent()
         }
 
-        EventManager.addCompileListener {
+        Events.compile.addListener {
             updateContent()
         }
     }
@@ -68,8 +66,8 @@ class DMCacheView(val cache: DirectMappedCache) : CPanel( primary = false) {
                 }
 
                 row.data.forEachIndexed { i, value ->
-                    if (ArchManager.curr.regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
-                        table.setCellHighlighting(index, i + 4, ThemeManager.curr.codeLaF.getColor(CodeStyle.GREENPC))
+                    if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
+                        table.setCellHighlighting(index, i + 4, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
                     }
                 }
 

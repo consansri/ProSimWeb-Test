@@ -1,10 +1,8 @@
 package me.c3.ui.components.processor
 
 import emulator.kit.Architecture
-import me.c3.ui.manager.ArchManager
-import me.c3.ui.manager.EventManager
-import me.c3.ui.manager.MainManager
-import me.c3.ui.manager.ResManager
+import me.c3.ui.Events
+import me.c3.ui.States
 import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
@@ -15,8 +13,8 @@ import javax.swing.SwingUtilities
 
 class ProcessorSettings(processorView: ProcessorView) : CPanel( primary = false) {
 
-    val increaseRegViews = CIconButton( ResManager.icons.increase)
-    val decreaseRegViews = CIconButton( ResManager.icons.decrease)
+    val increaseRegViews = CIconButton( States.icon.get().increase)
+    val decreaseRegViews = CIconButton( States.icon.get().decrease)
     val filler = CLabel( "", FontType.BASIC)
     val pcLabel = CLabel( "", FontType.CODE)
 
@@ -24,16 +22,16 @@ class ProcessorSettings(processorView: ProcessorView) : CPanel( primary = false)
         attachListeners( processorView)
         attachComponents()
 
-        ArchManager.addArchChangeListener {
-            updatePC(ArchManager.curr)
+        States.arch.addEvent {
+            updatePC(States.arch.get())
         }
-        EventManager.addCompileListener {
-            updatePC(ArchManager.curr)
+        Events.compile.addListener {
+            updatePC(States.arch.get())
         }
-        EventManager.addExeEventListener {
-            updatePC(ArchManager.curr)
+        Events.exe.addListener {
+            updatePC(States.arch.get())
         }
-        updatePC(ArchManager.curr)
+        updatePC(States.arch.get())
     }
 
     private fun attachComponents() {

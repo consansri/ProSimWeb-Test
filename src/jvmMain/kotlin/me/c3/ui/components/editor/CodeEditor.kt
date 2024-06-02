@@ -1,8 +1,10 @@
 package me.c3.ui.components.editor
 
 import kotlinx.coroutines.*
-import me.c3.ui.manager.MainManager
-import me.c3.ui.manager.ResManager
+import me.c3.ui.Components
+import me.c3.ui.States
+import me.c3.ui.components.controls.BottomBar
+
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.params.FontType
@@ -13,7 +15,7 @@ import javax.swing.*
  * Represents a code editor with tabbed interface for managing multiple files.
  * @property mainManager The main manager instance.
  */
-class CodeEditor() : CAdvancedTabPane( ResManager.icons, true, true, emptyMessage = "Open File through the tree!") {
+class CodeEditor(val bBar: BottomBar) : CAdvancedTabPane(true, true, emptyMessage = "Open File through the tree!") {
 
     // List of editor panels
     private val panels = mutableListOf<ProSimEditor>()
@@ -44,9 +46,9 @@ class CodeEditor() : CAdvancedTabPane( ResManager.icons, true, true, emptyMessag
         }
 
         val editorFile = EditorFile(file)
-        val editPanel = ProSimEditor(editorFile)
+        val editPanel = ProSimEditor(editorFile, bBar)
         panels.add(editPanel)
-        addTab(CLabel( file.getName(), FontType.BASIC), editPanel) { e, tab ->
+        addTab(CLabel(file.getName(), FontType.BASIC), editPanel) { e, tab ->
             when (e) {
                 Event.LOSTFOCUS -> {}
                 Event.CLOSE -> {
@@ -56,11 +58,16 @@ class CodeEditor() : CAdvancedTabPane( ResManager.icons, true, true, emptyMessag
         }
     }
 
+    fun updateFile(file: File) {
+        val alreadyOpen = searchByName(file) ?: return
+        alreadyOpen.reloadFromDisk()
+    }
+
     /**
      * Gets the controls associated with the editor.
      * @return The editor controls.
      */
-    fun getControls(): EditorControls = EditorControls( this)
+    fun getControls(): EditorControls = EditorControls(this)
 
     /**
      * Searches for an editor panel by file name.
@@ -99,8 +106,13 @@ class CodeEditor() : CAdvancedTabPane( ResManager.icons, true, true, emptyMessag
      * Attaches a workspace change listener to remove tabs for files that are no longer in the workspace.
      */
     private fun attachWorkspaceListener() {
-        MainManager.addWSChangedListener { ws ->
+        States.ws.addEvent { ws ->
             SwingUtilities.invokeLater {
+                if (ws == null) {
+                    removeAllTabs()
+                    return@invokeLater
+                }
+
                 val bufferedTabs = ArrayList(tabs)
                 for (tab in bufferedTabs) {
                     val content = tab.content

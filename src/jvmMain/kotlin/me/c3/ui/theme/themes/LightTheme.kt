@@ -1,14 +1,14 @@
 package me.c3.ui.theme.themes
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.manager.ResManager
+import me.c3.ui.States
 import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.core.style.*
 import java.awt.Color
 
 class LightTheme : Theme {
     override val name: String = "light"
-    override val icon: FlatSVGIcon = ResManager.icons.getLightMode()
+    override val icon: FlatSVGIcon = States.icon.get().getLightMode()
     override val dark: Boolean = false
 
     override val codeLaF: CodeLaF = CodeLaF(

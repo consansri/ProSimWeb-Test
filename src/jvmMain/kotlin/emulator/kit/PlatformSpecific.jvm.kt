@@ -48,3 +48,5 @@ fun File.toAsmFile(main: File,wsRoot: File): AsmFile {
     return AsmFile(mainRelativeName, wsRelativeName, this.readText())
 }
 
+fun File.toAsmFile(): AsmFile = AsmFile(this.name, this.name, this.readText())
+

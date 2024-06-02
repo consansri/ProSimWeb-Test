@@ -1,7 +1,5 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D

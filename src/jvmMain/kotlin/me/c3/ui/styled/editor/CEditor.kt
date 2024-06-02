@@ -2,13 +2,11 @@ package me.c3.ui.styled.editor
 
 import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.styled.CPanel
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
 import java.awt.BorderLayout
 
-open class CEditor(icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel( primary = true) {
+open class CEditor(maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPanel(primary = true) {
 
-    val textArea = CEditorArea(icons, CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
+    val textArea = CEditorArea(CEditorArea.Location.IN_SCROLLPANE, maxStackSize, stackQueryMillis)
 
     var fileInterface: FileInterface? = null
         set(value) {
@@ -43,7 +41,7 @@ open class CEditor(icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis:
         this.add(textArea.scrollPane, BorderLayout.CENTER)
     }
 
-    protected fun setStyledContent(styledChars: List<CEditorArea.StyledChar>){
+    protected fun setStyledContent(styledChars: List<CEditorArea.StyledChar>) {
         textArea.replaceAll(styledChars)
     }
 
@@ -51,11 +49,11 @@ open class CEditor(icons: ProSimIcons, maxStackSize: Int = 30, stackQueryMillis:
         textArea.lineNumbers.mark(*content)
     }
 
-    fun undo(){
+    fun undo() {
         textArea.undo()
     }
 
-    fun redo(){
+    fun redo() {
         textArea.redo()
     }
 

@@ -1,12 +1,8 @@
 package me.c3.ui.styled
 
 import kotlinx.coroutines.*
-import me.c3.ui.manager.ResManager
 import me.c3.ui.workspace.Workspace
-import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
-import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent

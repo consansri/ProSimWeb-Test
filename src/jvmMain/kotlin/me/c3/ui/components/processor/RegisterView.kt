@@ -3,8 +3,10 @@ package me.c3.ui.components.processor
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
+import me.c3.ui.Events
+import me.c3.ui.States
 import me.c3.ui.components.processor.models.RegTableModel
-import me.c3.ui.manager.*
+import me.c3.ui.state.*
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CAdvancedTabPane
@@ -47,11 +49,11 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
         gbc.weighty = 1.0
         gbc.fill = GridBagConstraints.BOTH
 
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             resetRegViews()
         }
 
-        ArchManager.addFeatureChangeListener {
+        Events.featureChange.addListener {
             resetRegViews()
         }
 
@@ -79,7 +81,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
         regViews.add(regView)
         add(regView, gbc)
         gbc.gridx++
-        gbc.insets = Insets(0, ScaleManager.curr.borderScale.insets, 0, 0)
+        gbc.insets = Insets(0, States.scale.get().borderScale.insets, 0, 0)
     }
 
     private fun removeBox() {
@@ -109,11 +111,11 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
     }
 
     private fun initializeRegView(): CAdvancedTabPane {
-        val cTabbedPane = CAdvancedTabPane( ResManager.icons, tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
+        val cTabbedPane = CAdvancedTabPane(tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
-        ArchManager.curr.getAllRegFiles().forEach {
+        States.arch.get().getAllRegFiles().forEach {
             val tabLabel = CLabel( it.name, FontType.BASIC)
-            if (it.getRegisters(ArchManager.curr.features).isNotEmpty()) {
+            if (it.getRegisters(States.arch.get().features).isNotEmpty()) {
                 val regFileTable = RegFileTable( it) {
                     updateAllValues()
                 }
@@ -137,12 +139,12 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
             set(value) {
                 field = value
                 regs = when (value) {
-                    SortOrder.ALIASES -> regFile.getRegisters(ArchManager.curr.features).sortedBy { it.aliases.firstOrNull() }
-                    SortOrder.ADDRESS -> regFile.getRegisters(ArchManager.curr.features).sortedBy { it.address.toRawString() }
+                    SortOrder.ALIASES -> regFile.getRegisters(States.arch.get().features).sortedBy { it.aliases.firstOrNull() }
+                    SortOrder.ADDRESS -> regFile.getRegisters(States.arch.get().features).sortedBy { it.address.toRawString() }
                 }
             }
 
-        private var regs = regFile.getRegisters(ArchManager.curr.features)
+        private var regs = regFile.getRegisters(States.arch.get().features)
             set(value) {
                 field = value
                 updateContent()
@@ -161,11 +163,11 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
 
         init {
             this.setClickableHeaders(0, 1)
-            EventManager.addExeEventListener {
+            Events.exe.addListener {
                 updateRegValues()
             }
 
-            EventManager.addCompileListener {
+            Events.compile.addListener {
                 updateRegValues()
             }
 

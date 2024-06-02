@@ -1,12 +1,10 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
-import me.c3.ui.manager.ThemeManager
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.text.*
 
-class CTextPane(tm: ThemeManager, sm: ScaleManager) : JTextPane() {
+class CTextPane() : JTextPane() {
 
     init {
         setUI(CTextPaneUI())
@@ -23,7 +21,7 @@ class CTextPane(tm: ThemeManager, sm: ScaleManager) : JTextPane() {
         this.document.insertString(0, text, attrs)
     }
 
-    fun createScrollPane(tm: ThemeManager, sm: ScaleManager): CScrollPane {
+    fun createScrollPane(): CScrollPane {
         return CScrollPane( true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
     }
 

@@ -1,7 +1,5 @@
 package me.c3.ui.components
 
-import me.c3.ui.manager.ArchManager
-import me.c3.ui.manager.MainManager
 import me.c3.ui.components.console.ConsoleView
 import me.c3.ui.components.controls.AppControls
 import me.c3.ui.components.controls.BottomBar
@@ -12,11 +10,10 @@ import me.c3.ui.components.processor.ProcessorView
 import me.c3.ui.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
-import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.CAdvancedTabPane
-import me.c3.ui.manager.ThemeManager
-import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.components.docs.InfoView
+import me.c3.ui.workspace.WSEditor
+import me.c3.ui.workspace.WSLogger
 
 /**
  * Interface representing the main frame of the ProSim application.
@@ -24,11 +21,14 @@ import me.c3.ui.components.docs.InfoView
  */
 interface ProSimFrame {
 
-    // Editor component for code editing functionality.
-    val editor: CodeEditor
+    // Bottom bar component for additional controls or status information.
+    val bottomBar: BottomBar
 
-    // Component representing the file tree structure.
-    val fileTree: FileTree
+    // Top controls component, usually containing main toolbar buttons.
+    val topBar: TopControls
+
+    // Right-side controls component, for additional application controls.
+    val rightBar: AppControls
 
     // Component displaying processor-related information.
     val processorView: ProcessorView
@@ -36,17 +36,11 @@ interface ProSimFrame {
     // Component displaying transcript information.
     val transcriptView: TranscriptView
 
-    // Bottom bar component for additional controls or status information.
-    val bottomBar: BottomBar
-
-    // Top controls component, usually containing main toolbar buttons.
-    val topBar: TopControls
+    // Editor component for code editing functionality.
+    val editor: CodeEditor
 
     // Left-side controls component, associated with the editor.
     val leftBar: EditorControls
-
-    // Right-side controls component, for additional application controls.
-    val rightBar: AppControls
 
     // Console view component for displaying logs or command outputs.
     val console: ConsoleView
@@ -56,6 +50,12 @@ interface ProSimFrame {
 
     // Advanced tab pane for organizing multiple information tabs.
     val infoTabPane: CAdvancedTabPane
+
+    val wsEditor: WSEditor
+    val wsLogger: WSLogger
+
+    // Component representing the file tree structure.
+    val fileTree: FileTree
 
     // Split pane containing the editor and associated components.
     val editorContainer: CSplitPane

@@ -3,22 +3,20 @@ package me.c3.ui.components.processor
 import emulator.kit.MicroSetup
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
-import me.c3.ui.manager.MainManager
+import me.c3.ui.States
 import me.c3.ui.components.processor.memory.DMCacheView
 import me.c3.ui.components.processor.memory.MainMemView
-import me.c3.ui.manager.ArchManager
-import me.c3.ui.manager.ResManager
 import me.c3.ui.styled.*
 import me.c3.ui.styled.params.FontType
 
-class MemoryView : CAdvancedTabPane( ResManager.icons, tabsAreCloseable = false) {
+class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
 
     init {
         addContentChangeListener()
     }
 
     private fun addContentChangeListener() {
-        ArchManager.addArchChangeListener {
+        States.arch.addEvent {
             updateContent()
         }
         updateContent()

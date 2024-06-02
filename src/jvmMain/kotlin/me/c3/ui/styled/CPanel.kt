@@ -1,8 +1,6 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ScaleManager
 import me.c3.ui.styled.params.BorderMode
-import me.c3.ui.manager.ThemeManager
 import javax.swing.JPanel
 
 open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JPanel() {

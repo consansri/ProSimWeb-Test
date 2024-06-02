@@ -1,10 +1,7 @@
 package me.c3.ui.styled
 
-import me.c3.ui.manager.ResManager
-import me.c3.ui.manager.ScaleManager
+import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.manager.ThemeManager
-import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
@@ -12,7 +9,7 @@ import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxUI
 
-class CComboBoxUI(private val icons: ProSimIcons, private val fontType: FontType) : BasicComboBoxUI() {
+class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
 
     var isHovered: Boolean = false
         set(value) {
@@ -37,11 +34,11 @@ class CComboBoxUI(private val icons: ProSimIcons, private val fontType: FontType
             }
         })
 
-        ThemeManager.addThemeChangeListener {
+        States.theme.addEvent { _ ->
             setDefaults(comboBox)
         }
 
-        ScaleManager.addScaleChangeEvent {
+        States.scale.addEvent { _ ->
             setDefaults(comboBox)
         }
 
@@ -50,13 +47,13 @@ class CComboBoxUI(private val icons: ProSimIcons, private val fontType: FontType
 
     private fun setDefaults(pane: CComboBox<*>) {
         pane.font = fontType.getFont()
-        pane.foreground = ThemeManager.curr.textLaF.base
+        pane.foreground = States.theme.get().textLaF.base
         pane.renderer = CComboBoxRenderer()
         pane.repaint()
     }
 
     override fun createArrowButton(): JButton {
-        return CIconButton(ResManager.icons.folderOpen, CIconButton.Mode.SECONDARY_SMALL).apply {
+        return CIconButton(States.icon.get().folderOpen, CIconButton.Mode.SECONDARY_SMALL).apply {
             iconBg = Color(0, 0, 0, 0)
             addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
@@ -67,7 +64,7 @@ class CComboBoxUI(private val icons: ProSimIcons, private val fontType: FontType
     }
 
     override fun getMaximumSize(c: JComponent?): Dimension {
-        return Dimension(ScaleManager.curr.controlScale.comboBoxWidth, super.getPreferredSize(c).height)
+        return Dimension(States.scale.get().controlScale.comboBoxWidth, super.getPreferredSize(c).height)
     }
 
     override fun paintCurrentValueBackground(g: Graphics, bounds: Rectangle, hasFocus: Boolean) {
@@ -75,8 +72,8 @@ class CComboBoxUI(private val icons: ProSimIcons, private val fontType: FontType
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
         if (isHovered) {
-            val cornerRadius = ScaleManager.curr.controlScale.cornerRadius
-            g2.color = ThemeManager.curr.globalLaF.bgPrimary
+            val cornerRadius = States.scale.get().controlScale.cornerRadius
+            g2.color = States.theme.get().globalLaF.bgPrimary
             g2.fillRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, cornerRadius, cornerRadius)
         }
 
@@ -115,8 +112,8 @@ class CComboBoxUI(private val icons: ProSimIcons, private val fontType: FontType
                 cellHasFocus: Boolean
             ): Component {
                 val c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-                c.background = if (isSelected) ThemeManager.curr.globalLaF.bgPrimary else ThemeManager.curr.globalLaF.bgSecondary
-                c.foreground = ThemeManager.curr.textLaF.base
+                c.background = if (isSelected) States.theme.get().globalLaF.bgPrimary else States.theme.get().globalLaF.bgSecondary
+                c.foreground = States.theme.get().textLaF.base
                 (c as? JComponent)?.border = BorderFactory.createEmptyBorder()
                 return c
             }
@@ -141,9 +138,9 @@ class CComboBoxUI(private val icons: ProSimIcons, private val fontType: FontType
     class CComboBoxRenderer() : DefaultListCellRenderer() {
         override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            background = if(isSelected) ThemeManager.curr.globalLaF.bgSecondary else ThemeManager.curr.globalLaF.bgPrimary
-            foreground = ThemeManager.curr.textLaF.base
-            this.border = ScaleManager.curr.controlScale.getNormalInsetBorder()
+            background = if(isSelected) States.theme.get().globalLaF.bgSecondary else States.theme.get().globalLaF.bgPrimary
+            foreground = States.theme.get().textLaF.base
+            this.border = States.scale.get().controlScale.getNormalInsetBorder()
             horizontalAlignment = SwingConstants.CENTER
             return this
         }
