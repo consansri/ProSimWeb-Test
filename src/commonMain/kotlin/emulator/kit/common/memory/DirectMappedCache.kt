@@ -37,7 +37,7 @@ class DirectMappedCache(
         if (result.second.hit) return result.second to result.first.data[offset].value
 
         // Write Back if Dirty
-        if (result.second.dirty) result.first.writeBack(binRow.toRawString())
+        if (result.second.dirty) result.first.writeBack(rowIndex.toString(2))
 
         val rowAddress = Variable.Value.Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
         return result.second to fetchRow(rowAddress).data[offset].value
