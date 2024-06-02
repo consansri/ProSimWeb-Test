@@ -1,10 +1,11 @@
 package me.c3.ui
 
 import Constants
+import java.io.File
 
 data object Keys {
 
-    val IDE_DIR = ".ide"
+    val CONFIG_DIR = ".ide"
 
     val CONFIG_NAME = "setup.${Constants.NAME.lowercase()}"
 
@@ -16,4 +17,11 @@ data object Keys {
     val ARCH_FEATURE = "feature"
     val ARCH_SETTING = "setting"
 
+    fun getConfigFile(root: File): File {
+        val configDir = File(root, CONFIG_DIR)
+        if (!configDir.exists()) configDir.mkdir()
+        val configFile = File(configDir, CONFIG_NAME)
+        if (!configFile.exists()) configFile.createNewFile()
+        return configFile
+    }
 }

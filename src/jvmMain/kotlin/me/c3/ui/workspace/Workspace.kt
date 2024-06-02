@@ -48,9 +48,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
     val tree: CTree
 
     init {
-        val configFile = File("$path\\${Keys.CONFIG_NAME}")
-
-        config = WSConfig(configFile){
+        config = WSConfig(Keys.getConfigFile(rootDir)){
             editor?.updateFile(it)
         }
 
