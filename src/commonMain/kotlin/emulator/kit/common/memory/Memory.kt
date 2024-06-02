@@ -1,6 +1,5 @@
 package emulator.kit.common.memory
 
-import emulator.kit.MicroSetup
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Tools.toValue
 
@@ -10,7 +9,7 @@ sealed class Memory: Throwable() {
     abstract val instanceSize: Variable.Size
     abstract val initBin: String
 
-    abstract fun getEndianess(): Endianess
+    abstract fun globalEndianess(): Endianess
 
     abstract fun load(address: Variable.Value): Variable.Value
     abstract fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false)
@@ -39,7 +38,7 @@ sealed class Memory: Throwable() {
             instanceAddress = (instanceAddress + Variable.Value.Hex("01", Variable.Size.Bit8())).toHex()
         }
 
-        if (getEndianess() == Endianess.LittleEndian) {
+        if (globalEndianess() == Endianess.LittleEndian) {
             instances.reverse()
         }
 

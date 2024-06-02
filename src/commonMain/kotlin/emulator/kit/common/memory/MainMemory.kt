@@ -6,7 +6,6 @@ import emulator.kit.types.Variable
 
 class MainMemory(override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess): Memory() {
     override val initBin: String = "0"
-    override fun getEndianess(): Endianess = endianess
 
     var endianess: Endianess = Endianess.BigEndian
     var memList: MutableList<MemInstance> = mutableListOf()
@@ -26,6 +25,8 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
     init {
         this.endianess = endianess
     }
+
+    override fun globalEndianess(): Endianess = endianess
 
     override fun load(address: Variable.Value): Variable.Value {
         val value = memList.firstOrNull { it.address.getRawHexStr() == address.toHex().getUResized(addressSize).getRawHexStr() }?.variable?.value

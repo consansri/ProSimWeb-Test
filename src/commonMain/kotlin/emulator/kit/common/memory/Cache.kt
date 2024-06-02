@@ -1,7 +1,6 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Value.*
 
@@ -10,7 +9,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
     override val instanceSize: Variable.Size = backingMemory.instanceSize
     override val addressSize: Variable.Size = backingMemory.addressSize
 
-    override fun getEndianess(): Endianess = backingMemory.getEndianess()
+    override fun globalEndianess(): Endianess = backingMemory.globalEndianess()
 
     protected abstract fun accessCache(address: Hex): Pair<AccessResult, Variable.Value>
     protected abstract fun updateCache(address: Hex, bytes: List<Variable.Value>, mark: InstanceType): AccessResult
@@ -27,7 +26,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
         val hexValue = value.toHex()
         val hexAddress: Variable.Value = address.toHex().getUResized(addressSize)
 
-        val bytes = if (getEndianess() == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
+        val bytes = if (globalEndianess() == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
 
         val result = updateCache(hexAddress.toHex(), bytes, mark)
 
