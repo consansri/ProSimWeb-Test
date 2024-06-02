@@ -48,7 +48,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
     val tree: CTree
 
     init {
-        config = WSConfig(Keys.getConfigFile(rootDir)){
+        config = WSConfig(Keys.getConfigFile(rootDir)) {
             editor?.updateFile(it)
         }
 
@@ -60,9 +60,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
 
         // Add mouse listener for handling user interactions with the file tree.
         tree.addMouseListener(object : MouseAdapter() {
-            override fun mousePressed(e: MouseEvent) {
-
-            }
+            override fun mousePressed(e: MouseEvent) {}
 
             override fun mouseClicked(e: MouseEvent) {
                 val nodes = tree.selectionPaths?.mapNotNull { it.lastPathComponent as? DefaultMutableTreeNode } ?: return
@@ -70,7 +68,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
                 val uobj = selectedNode.userObject
                 if (uobj !is TreeFile) return
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    showContextMenu( e.x, e.y, nodes)
+                    showContextMenu(e.x, e.y, nodes)
                 }
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (uobj.file.isFile) {
@@ -144,23 +142,23 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
          */
 
         // Only Directory
-        val createFileItem = if (containsDirs) CMenuItem( "New File") else null
-        val createDirItem = if (containsDirs) CMenuItem( "New Directory") else null
-        val reloadFromDisk = if (containsDirs) CMenuItem( "Reload") else null
+        val createFileItem = if (containsDirs) CMenuItem("New File") else null
+        val createDirItem = if (containsDirs) CMenuItem("New Directory") else null
+        val reloadFromDisk = if (containsDirs) CMenuItem("Reload") else null
 
         // Only File
-        val openItem = if (containsFiles) CMenuItem( "Open") else null
+        val openItem = if (containsFiles) CMenuItem("Open") else null
 
         // Only Assembly File
-        val buildFile = if (containsAsmFiles) CMenuItem( "Build") else null
-        val exportMIF = if (containsAsmFiles) CMenuItem( "Generate MIF") else null
-        val exportHexDump = if (containsAsmFiles) CMenuItem( "Generate HexDump") else null
-        val exportVHDL = if (containsAsmFiles) CMenuItem( "Generate VHDL") else null
-        val exportTS = if (containsAsmFiles) CMenuItem( "Generate Transcript") else null
+        val buildFile = if (containsAsmFiles) CMenuItem("Build") else null
+        val exportMIF = if (containsAsmFiles) CMenuItem("Generate MIF") else null
+        val exportHexDump = if (containsAsmFiles) CMenuItem("Generate HexDump") else null
+        val exportVHDL = if (containsAsmFiles) CMenuItem("Generate VHDL") else null
+        val exportTS = if (containsAsmFiles) CMenuItem("Generate Transcript") else null
 
         // General
-        val renameItem = CMenuItem( "Rename")
-        val deleteItem = CMenuItem( "Delete")
+        val renameItem = CMenuItem("Rename")
+        val deleteItem = CMenuItem("Delete")
 
         /**
          * Implement Menu Actions
@@ -170,7 +168,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
 
         createDirItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newDirName = COptionPane.showInputDialog( tree, "Enter directory name:").await()
+                val newDirName = COptionPane.showInputDialog(tree, "Enter directory name:").await()
                 if (newDirName.isNotBlank()) {
                     dirs.forEach {
                         val newDir = File(it.file, newDirName)
@@ -187,7 +185,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
 
         createFileItem?.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog( tree, "Enter file name:").await()
+                val newFileName = COptionPane.showInputDialog(tree, "Enter file name:").await()
                 if (newFileName.isNotBlank()) {
                     dirs.forEach {
                         val newFile = File(it.file, newFileName)
@@ -206,7 +204,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
             CoroutineScope(Dispatchers.IO).launch {
                 rootNode.removeAllChildren()
                 buildFileTree(rootDir, rootNode)
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     treeModel.reload()
                     tree.revalidate()
                     tree.repaint()
@@ -343,7 +341,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
 
         renameItem.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val newFileName = COptionPane.showInputDialog( tree, "Enter new file name:").await()
+                val newFileName = COptionPane.showInputDialog(tree, "Enter new file name:").await()
                 if (newFileName.isNotBlank()) {
                     treeFiles.forEach {
                         val newFile = File(it.file.parentFile, newFileName)
@@ -365,7 +363,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
                 val fileInfoString = when {
                     dirs.isNotEmpty() && files.isNotEmpty() -> "${dirs.size} directories (with $filesInDirs files) and ${files.size} files"
                     dirs.isNotEmpty() -> "${dirs.size} directories (with $filesInDirs files)"
-                    files.isNotEmpty() ->"${files.size} files"
+                    files.isNotEmpty() -> "${files.size} files"
                     else -> "nothing"
                 }
 
