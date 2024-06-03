@@ -313,11 +313,15 @@ object BinaryTools {
 
         val a = aBin.trim().removePrefix(Settings.PRESTRING_BINARY)
 
-        val stringBuilder = StringBuilder()
+        var result = ""
+
         for (i in a.indices.reversed()) {
-            stringBuilder.append(if (a[i] == '1') '0' else '1')
+            result = if (a[i] == '1') {
+                "0$result"
+            } else {
+                "1$result"
+            }
         }
-        val result = stringBuilder.toString()
 
         if (DebugTools.KIT_showValBinaryToolsCalculations) {
             nativeInfo("BinaryTools: inv($aBin) -> $result")
