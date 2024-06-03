@@ -11,7 +11,8 @@ class DirectMappedCache(
     console: IConsole,
     val tagBits: Int,
     val rowBits: Int,
-    val offsetBits: Int
+    val offsetBits: Int,
+    override val name: String = "Cache (DM)"
 ) : Cache(backingMemory, console) {
 
     val offsets = 2.toDouble().pow(offsetBits).roundToInt()

@@ -1,10 +1,12 @@
 package emulator.kit.common.memory
 
 import debug.DebugTools
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
+import kotlin.time.measureTime
 
-class MainMemory(override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess): Memory() {
+class MainMemory( override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess, override val name: String = "Memory") : Memory() {
     override val initBin: String = "0"
 
     var endianess: Endianess = Endianess.BigEndian
@@ -29,7 +31,10 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
     override fun globalEndianess(): Endianess = endianess
 
     override fun load(address: Variable.Value): Variable.Value {
-        val value = memList.firstOrNull { it.address.getRawHexStr() == address.toHex().getUResized(addressSize).getRawHexStr() }?.variable?.value
+        val addr: String = address.toHex().getUResized(addressSize).getRawHexStr()
+        val value = memList.firstOrNull {
+            it.address.getRawHexStr() == addr
+        }?.variable?.value
         return (value ?: getInitialBinary().get())
     }
 
@@ -37,7 +42,7 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
         val hexValue = value.toHex()
         var hexAddress = address.toHex().getUResized(addressSize)
 
-        val bytes = if(endianess == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
+        val bytes = if (endianess == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
 
         if (DebugTools.KIT_showMemoryInfo) {
             println("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")

@@ -33,7 +33,7 @@ class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
                 is DirectMappedCache -> DMCacheView( it)
                 is MainMemory -> MainMemView( it)
             }
-            addTab(CLabel( it::class.simpleName.toString(), FontType.BASIC), content)
+            addTab(CLabel( it.name, FontType.BASIC), content)
         }
     }
 }

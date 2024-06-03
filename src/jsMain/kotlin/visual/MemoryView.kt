@@ -267,7 +267,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             textDecoration = TextDecoration.underline
                         }
                     }
-                    +mem::class.simpleName.toString()
+                    +mem.name
 
                     onClick = {
                         setCurrMem(mem)

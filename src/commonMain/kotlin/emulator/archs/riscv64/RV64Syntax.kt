@@ -7,6 +7,8 @@ import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.GASNodeType
+import emulator.kit.nativeLog
+import kotlin.time.measureTime
 
 
 class RV64Syntax {
@@ -1841,6 +1843,14 @@ class RV64Syntax {
         open fun execute(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
             arch.console.log("> $id {...}")
         }
+
+        fun executeMeasured(arch: ArchRV64, paramMap: Map<MaskLabel, Variable.Value.Bin>) {
+            val time = measureTime {
+                execute(arch, paramMap)
+            }
+            nativeLog("Executed: ${this.id} in ${time.inWholeMicroseconds}μs")
+        }
+
     }
 
 

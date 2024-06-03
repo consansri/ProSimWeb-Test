@@ -5,6 +5,7 @@ import emulator.kit.types.Variable.Tools.toValue
 
 sealed class Memory: Throwable() {
 
+    abstract val name: String
     abstract val addressSize: Variable.Size
     abstract val instanceSize: Variable.Size
     abstract val initBin: String

@@ -19,7 +19,7 @@ object MicroSetup {
     override fun toString(): String {
         return """
             MicroSetup:
-                mems: ${memory.joinToString { it::class.simpleName.toString() }}
+                mems: ${memory.joinToString { it.name }}
                             
         """.trimIndent()
     }

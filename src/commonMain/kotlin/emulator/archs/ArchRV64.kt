@@ -7,6 +7,7 @@ import emulator.archs.riscv64.RV64Syntax.InstrType.*
 import emulator.kit.MicroSetup
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.Memory
+import kotlin.time.measureTime
 
 class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
 
