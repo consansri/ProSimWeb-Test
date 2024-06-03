@@ -2,12 +2,12 @@ package emulator.archs
 
 import emulator.archs.riscv64.RV64
 import emulator.archs.riscv64.RV64BinMapper
-import emulator.kit.optional.BasicArchImpl
-import emulator.archs.riscv64.RV64Syntax.InstrType.*
+import emulator.archs.riscv64.RV64Syntax.InstrType.JAL
+import emulator.archs.riscv64.RV64Syntax.InstrType.JALR
 import emulator.kit.MicroSetup
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.Memory
-import kotlin.time.measureTime
+import emulator.kit.optional.BasicArchImpl
 
 class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
 

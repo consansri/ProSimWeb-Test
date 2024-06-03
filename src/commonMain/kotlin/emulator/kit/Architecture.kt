@@ -1,17 +1,16 @@
 package emulator.kit
 
+import debug.DebugTools
+import emulator.kit.assembler.*
 import emulator.kit.common.*
+import emulator.kit.common.memory.MainMemory
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
+import emulator.kit.optional.Feature
+import emulator.kit.optional.SetupSetting
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
-import debug.DebugTools
-import emulator.kit.assembler.*
-import emulator.kit.assembler.DefinedAssembly
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.optional.SetupSetting
-import emulator.kit.optional.Feature
 
 /**
  *  Architecture Blueprint
@@ -155,9 +154,8 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun resetMicroArch() {
         MicroSetup.clear()
         setupMicroArch()
-        console.exeInfo("Loaded (${description.fullName}) Micro Architecture Setup: ${MicroSetup}")
         nativeInfo("Loaded (${description.fullName}) Micro Architecture Setup: ${MicroSetup}")
-        //nativeLog(MicroSetup.toString())
+        console.exeInfo("reset arch layout")
     }
 
     /**

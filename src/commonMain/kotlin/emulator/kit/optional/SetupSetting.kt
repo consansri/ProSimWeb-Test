@@ -1,6 +1,7 @@
 package emulator.kit.optional
 
 import emulator.kit.Architecture
+import emulator.kit.nativeLog
 
 sealed class SetupSetting<T>(val name: String, val init: T, private val parseValueFromString: (String) -> T, val onChange: (Architecture, SetupSetting<T>) -> Unit) {
 

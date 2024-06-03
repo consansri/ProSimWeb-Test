@@ -1,8 +1,12 @@
 package emulator
 
-import emulator.archs.*
+import emulator.archs.ArchIKRMini
+import emulator.archs.ArchRV32
+import emulator.archs.ArchRV64
+import emulator.archs.ArchT6502
 import emulator.kit.Architecture
 import emulator.kit.configs.Config
+import emulator.kit.nativeLog
 import kotlin.reflect.KClass
 
 /**
@@ -16,6 +20,7 @@ enum class Link(private val arch: Architecture) {
     IKRMINI(ArchIKRMini());
 
     fun load(): Architecture{
+        nativeLog("Loading Arch")
         arch.resetMicroArch()
         return arch
     }
