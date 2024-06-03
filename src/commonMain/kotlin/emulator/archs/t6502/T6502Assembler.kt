@@ -1,11 +1,11 @@
 package emulator.archs.t6502
 
 import emulator.archs.ikrmini.IKRMini
+import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.gas.GASNode
-import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
@@ -14,9 +14,11 @@ import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.Bit16
+import emulator.kit.types.Variable.Size.Bit8
 import emulator.kit.types.Variable.Value.*
 
-class T6502Assembler() : DefinedAssembly {
+class T6502Assembler : DefinedAssembly {
     override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
     override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
     override val detectRegistersByName: Boolean = false
@@ -55,9 +57,9 @@ class T6502Assembler() : DefinedAssembly {
             }
 
             val immSize = if (amode.byteAmount == 2) {
-                Variable.Size.Bit8()
+                Bit8()
             } else {
-                Variable.Size.Bit16()
+                Bit16()
             }
 
             val resized = when (immediate) {
@@ -125,7 +127,7 @@ class T6502Assembler() : DefinedAssembly {
             return codeWithExt
         }
 
-        override fun getContentString(): String = "$type ${amode.getString(immediate ?: Hex("0", Variable.Size.Bit8()))}"
+        override fun getContentString(): String = "$type ${amode.getString(immediate ?: Hex("0", Bit8()))}"
     }
 
     data class Flags(

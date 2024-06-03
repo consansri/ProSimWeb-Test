@@ -5,6 +5,8 @@ import emulator.kit.assembler.AsmFile
 import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.pow

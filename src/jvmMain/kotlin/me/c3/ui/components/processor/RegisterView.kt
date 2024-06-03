@@ -3,6 +3,8 @@ package me.c3.ui.components.processor
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.RegTableModel

@@ -8,6 +8,8 @@ import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.Feature
 import emulator.kit.types.*
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
 import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.common.RegContainer.Register
@@ -30,13 +32,13 @@ object RV32 {
 
     private const val MEM_INIT: String = "0"
     private const val REG_INIT: String = "0"
-    val XLEN = Variable.Size.Bit32()
-    val WORD_WIDTH = Variable.Size.Bit32()
+    val XLEN = Bit32()
+    val WORD_WIDTH = Bit32()
 
     private val REG_VALUE_SIZE = XLEN
-    private val REG_ADDRESS_SIZE = Variable.Size.Bit5()
-    private val CSR_REG_ADDRESS_SIZE = Variable.Size.Bit12()
-    private val MEM_VALUE_WIDTH = Variable.Size.Bit8()
+    private val REG_ADDRESS_SIZE = Bit5()
+    private val CSR_REG_ADDRESS_SIZE = Bit12()
+    private val MEM_VALUE_WIDTH = Bit8()
     val MEM_ADDRESS_WIDTH = XLEN
 
     private const val MAIN_REGFILE_NAME = "common"
@@ -408,7 +410,7 @@ object RV32 {
         fileEnding = "s",
         RegContainer(
             listOf(standardRegFile, csrRegFile),
-            pcSize = Variable.Size.Bit32(),
+            pcSize = Bit32(),
             standardRegFileName = MAIN_REGFILE_NAME
         ),
         MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)

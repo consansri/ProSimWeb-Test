@@ -1,9 +1,9 @@
 package visual
 
 import Keys
+import Settings
 import StyleAttr
 import emotion.react.css
-import Settings
 import emulator.kit.MicroSetup
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
@@ -25,7 +25,9 @@ import react.dom.html.ReactHTML.table
 import visual.memory.DMCacheView
 import visual.memory.MainMemoryView
 import web.cssom.*
-import web.html.*
+import web.html.ButtonType
+import web.html.HTMLInputElement
+import web.html.InputType
 
 external interface MemViewProps : Props {
     var name: String
@@ -38,9 +40,7 @@ external interface MemViewProps : Props {
 
 val MemoryView = FC<MemViewProps> { props ->
 
-    val tbody = useRef<HTMLTableSectionElement>()
     val inputLengthRef = useRef<HTMLInputElement>()
-    val asciiRef = useRef<HTMLElement>()
     val editRef = useRef<HTMLInputElement>()
 
     val (memEndianess, setEndianess) = useState<Memory.Endianess>()
@@ -298,159 +298,6 @@ val MemoryView = FC<MemViewProps> { props ->
 
             null -> {}
         }
-
-        /*div {
-            css {
-                display = Display.block
-                overflowY = Overflow.scroll
-                flexGrow = number(1.0)
-                borderRadius = StyleAttr.borderRadius
-                paddingLeft = 12.px // center with scrollbar on the right
-            }
-            tabIndex = 0
-
-            table {
-                css {
-                    minHeight = 100.pct
-                }
-                thead {
-                    tr {
-                        css {
-                            th {
-                                background = important(StyleAttr.Main.Processor.TableBgColor.get())
-                            }
-                        }
-                        th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            scope = "col"
-                            +"Address"
-                        }
-
-                        for (columnID in 0..<props.archState.component1().memory.entrysInRow) {
-                            th {
-                                *//* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*//*
-                                css {
-                                    textAlign = TextAlign.center
-                                    width = 4.ch
-                                }
-                                scope = "col"
-                                +"$columnID"
-                            }
-                        }
-                        th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            scope = "col"
-                            +"ASCII"
-                        }
-
-                    }
-                }
-
-                tbody {
-                    ref = tbody
-
-
-                    var previousAddress: Hex? = null
-                    val tempMemRows = memList.sortedBy { it.address.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
-                    val tempRevMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
-                    if (DebugTools.REACT_showUpdateInfo) {
-                        console.log("REACT: Memory Map Updated!")
-                    }
-                    for (memRow in if (lowFirst) tempMemRows else tempRevMemRows) {
-                        val rowsBetween = if (previousAddress != null) {
-                            if (lowFirst) {
-                                Hex(memRow.key) - previousAddress > Hex(props.archState.component1().memory.entrysInRow.toString(16), props.archState.component1().memory.addressSize)
-                            } else {
-                                previousAddress - Hex(memRow.key) > Hex(props.archState.component1().memory.entrysInRow.toString(16), props.archState.component1().memory.addressSize)
-                            }
-                        } else false
-
-                        if (rowsBetween) {
-                            tr {
-                                th {
-                                    css {
-                                        color = important(Memory.InstanceType.NOTUSED.get(StyleAttr.mode))
-                                    }
-                                    colSpan = 2 + props.archState.component1().memory.entrysInRow
-                                    scope = "row"
-                                    title = "only zeros in addresses between"
-                                    +"..."
-                                }
-                            }
-                        }
-                        previousAddress = Hex(memRow.key, props.archState.component1().memory.addressSize)
-                        tr {
-                            th {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                scope = "row"
-                                +memRow.key
-                            }
-
-                            for (id in 0..<props.archState.component1().memory.entrysInRow) {
-                                val memInstance = memRow.value.firstOrNull { it.offset == id }
-                                if (memInstance == null) {
-                                    td {
-                                        css {
-                                            color = important(Memory.InstanceType.NOTUSED.get(StyleAttr.mode))
-                                            fontWeight = important(FontWeight.lighter)
-                                        }
-                                        title = "unused"
-                                        +props.archState.component1().memory.getInitialBinary().get().toHex().getRawHexStr()
-                                    }
-                                } else {
-                                    td {
-                                        css {
-                                            textAlign = TextAlign.center
-                                            if (memInstance.address.getRawHexStr() == currExeAddr) {
-                                                color = important(StyleAttr.Main.Table.FgPC)
-                                                fontWeight = important(FontWeight.bold)
-                                            } else {
-                                                color = important(memInstance.mark.get(StyleAttr.mode))
-                                            }
-                                        }
-
-                                        //id = "mem${memInstance.address.getRawHexStr()}"
-                                        title = "addr = ${memInstance.address.getRawHexStr()}\nvalue = ${memInstance.variable.get().toDec()} or ${memInstance.variable.get().toUDec()}\ntag = [${memInstance.mark.name}]"
-
-                                        +memInstance.variable.get().toHex().getRawHexStr()
-
-                                        if (memInstance is MainMemory.MemInstance.EditableValue) {
-                                            onClick = {
-                                                setEditVar(memInstance)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-
-                            td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
-                                ref = asciiRef
-                                var asciiString = ""
-                                val emptyAscii = props.archState.component1().memory.getInitialBinary().get().toASCII()
-                                for (column in 0..<props.archState.component1().memory.entrysInRow) {
-                                    val memInstance = memRow.value.firstOrNull { it.offset == column }
-                                    asciiString += memInstance?.variable?.get()?.toASCII() ?: emptyAscii
-                                }
-
-                                +asciiString
-                            }
-                        }
-                    }
-                    tr {
-                        td {
-                            colSpan = props.archState.component1().memory.entrysInRow + 2
-                            css {
-                                paddingTop = 15.rem
-                                paddingBottom = 15.rem
-                            }
-                            +"Memory"
-                        }
-                    }
-                }
-            }
-        }*/
     }
 
     if (editVar != null) {

@@ -2,6 +2,8 @@ package emulator.archs.riscv64
 
 import emulator.kit.common.RegContainer
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 
 class CSRegister(
     address: Variable.Value,

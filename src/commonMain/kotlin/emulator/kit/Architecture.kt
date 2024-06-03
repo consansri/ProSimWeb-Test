@@ -4,7 +4,8 @@ import emulator.kit.common.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
-
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import debug.DebugTools
 import emulator.kit.assembler.*
 import emulator.kit.assembler.DefinedAssembly
@@ -131,7 +132,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      * Execution Event: until address
      * should be implemented by specific archs
      */
-    open fun exeUntilAddress(address: Variable.Value.Hex) {
+    open fun exeUntilAddress(address: Hex) {
         console.clear()
     }
 

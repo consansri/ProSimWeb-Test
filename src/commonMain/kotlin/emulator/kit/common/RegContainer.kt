@@ -2,6 +2,8 @@ package emulator.kit.common
 
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 
 /**
  * The [RegContainer] is making all [RegisterFile]s besides the [PC] accessible.

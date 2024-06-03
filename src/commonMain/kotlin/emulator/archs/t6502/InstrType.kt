@@ -2,6 +2,8 @@ package emulator.archs.t6502
 
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.AModes.*
 
 enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val description: String): InstrTypeInterface {

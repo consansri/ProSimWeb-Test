@@ -1,21 +1,23 @@
 package emulator.archs.riscv32
 
 import debug.DebugTools
+import emulator.archs.riscv32.RV32Syntax.ParamType.*
+import emulator.archs.riscv64.GASRVDirType
+import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.DefinedAssembly
-import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.GASNode
-import emulator.archs.riscv64.GASRVDirType
-import emulator.kit.assembler.parser.Parser
-import emulator.kit.common.RegContainer
-import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
-import emulator.archs.riscv32.RV32Syntax.ParamType.*
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.assembler.parser.Parser
+import emulator.kit.common.RegContainer
 import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
+import emulator.kit.optional.Feature
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 
 class RV32Assembler : DefinedAssembly {
     override val memAddrSize: Variable.Size = RV32.MEM_ADDRESS_WIDTH
@@ -70,53 +72,53 @@ class RV32Assembler : DefinedAssembly {
         throw Parser.ParserError(rawInstr.instrName, "Invalid Arguments for ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${rawInstr.remainingTokens.joinToString("") { it.toString() }}")
     }
 
-    class RV32Instr(val rawInstr: GASNode.RawInstr, val type: RV32Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Variable.Value.Dec("0", Variable.Size.Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
+    class RV32Instr(val rawInstr: GASNode.RawInstr, val type: RV32Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
         override val bytesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
-        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {
+        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             label?.assignLabels(labels)
             val labelAddr = label?.evaluate(true)?.toHex()
 
-            return RV32BinMapper.getBinaryFromInstrDef(this, yourAddr.toHex(), labelAddr ?: Variable.Value.Hex("0", yourAddr.size), immediate)
+            return RV32BinMapper.getBinaryFromInstrDef(this, yourAddr.toHex(), labelAddr ?: Hex("0", yourAddr.size), immediate)
         }
 
         override fun getContentString(): String = "${type.id} ${type.paramType.getContentString(this)}"
     }
 
-    private fun GASNode.NumericExpr.checkInstrType(type: RV32Syntax.InstrType): Variable.Value.Dec {
+    private fun GASNode.NumericExpr.checkInstrType(type: RV32Syntax.InstrType): Dec {
         when (type.paramType) {
             RD_I20 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Variable.Size.Bit20())
+                val check = immediate.check(Bit20())
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 20 Bits!")
 
-                return immediate.getResized(Variable.Size.Bit20())
+                return immediate.getResized(Bit20())
             }
 
             RD_OFF12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Variable.Size.Bit12())
+                val check = immediate.check(Bit12())
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Variable.Size.Bit12())
+                return immediate.getResized(Bit12())
             }
 
             RS2_OFF12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Variable.Size.Bit12())
+                val check = immediate.check(Bit12())
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Variable.Size.Bit12())
+                return immediate.getResized(Bit12())
             }
 
             RD_RS1_SHAMT5 -> {
                 val immediate = this.evaluate(false).toBin()
-                val check = immediate.checkSizeUnsigned(Variable.Size.Bit5())
+                val check = immediate.checkSizeUnsigned(Bit5())
                 if (check != null) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
 
-                return immediate.getUResized(Variable.Size.Bit5()).toDec()
+                return immediate.getUResized(Bit5()).toDec()
             }
 
             RD_RS1_RS2 -> {
@@ -125,18 +127,18 @@ class RV32Assembler : DefinedAssembly {
 
             RD_RS1_I12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Variable.Size.Bit12())
+                val check = immediate.check(Bit12())
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Variable.Size.Bit12())
+                return immediate.getResized(Bit12())
             }
 
             RS1_RS2_I12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Variable.Size.Bit12())
+                val check = immediate.check(Bit12())
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Variable.Size.Bit12())
+                return immediate.getResized(Bit12())
             }
 
             CSR_RD_OFF12_RS1 -> {
@@ -145,10 +147,10 @@ class RV32Assembler : DefinedAssembly {
 
             CSR_RD_OFF12_UIMM5 -> {
                 val immediate = this.evaluate(false).toBin()
-                val check = immediate.checkSizeSigned(Variable.Size.Bit5())
+                val check = immediate.checkSizeSigned(Bit5())
                 if (check != null) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
 
-                return immediate.getUResized(Variable.Size.Bit5()).toDec()
+                return immediate.getUResized(Bit5()).toDec()
             }
 
             PS_RD_I32 -> {
@@ -173,24 +175,24 @@ class RV32Assembler : DefinedAssembly {
             RV32Syntax.InstrType.Li -> {
                 val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.tokens().first(), "Numeric Expression is Missing!")
 
-                var result = imm.check(Variable.Size.Bit12())
+                var result = imm.check(Bit12())
                 if (result.valid) {
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 12 Bit Signed")
-                    return listOf(RV32Instr(rawInstr, RV32Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), imm.getResized(Variable.Size.Bit12())))
+                    return listOf(RV32Instr(rawInstr, RV32Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), imm.getResized(Bit12())))
                 }
 
-                result = imm.check(Variable.Size.Bit32())
-                val unsignedResult = imm.toBin().checkSizeUnsigned(Variable.Size.Bit32()) == null
+                result = imm.check(Bit32())
+                val unsignedResult = imm.toBin().checkSizeUnsigned(Bit32()) == null
                 if (result.valid || unsignedResult) {
-                    val resized = imm.toBin().getUResized(Variable.Size.Bit32()).toBin()
+                    val resized = imm.toBin().getUResized(Bit32()).toBin()
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 32 Bit Signed")
                     // resized = upper + lower
                     // upper = resized - lower
-                    val lower = resized.getResized(Variable.Size.Bit12()).getResized(Variable.Size.Bit32())
+                    val lower = resized.getResized(Bit12()).getResized(Bit32())
                     val upper = (resized - lower).toBin()
 
-                    val imm20 = Variable.Value.Bin(upper.getRawBinStr().substring(0, 20), Variable.Size.Bit20()).toHex()
-                    val imm12 = Variable.Value.Bin(lower.getRawBinStr().substring(20), Variable.Size.Bit12()).toHex().toDec()
+                    val imm20 = Bin(upper.getRawBinStr().substring(0, 20), Bit20()).toHex()
+                    val imm12 = Bin(lower.getRawBinStr().substring(20), Bit12()).toHex().toDec()
 
                     return listOf(
                         RV32Instr(rawInstr, RV32Syntax.InstrType.LUI, arrayOf(regs[0]), imm20),
@@ -203,7 +205,7 @@ class RV32Assembler : DefinedAssembly {
 
             else -> {
                 val imm = immediate?.checkInstrType(type)
-                listOf(RV32Instr(rawInstr, type, regs, imm ?: Variable.Value.Dec("0", Variable.Size.Bit32()), label = label))
+                listOf(RV32Instr(rawInstr, type, regs, imm ?: Dec("0", Bit32()), label = label))
             }
         }
     }

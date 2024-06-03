@@ -2,8 +2,24 @@ package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 
+/**
+ * Represents a cache that extends the functionality of a provided backing memory and utilizes an instance of [IConsole] for logging messages.
+ *
+ * This abstract class defines the basic structure and operations of a cache, such as loading and storing data, accessing cache blocks, and managing cache rows.
+ *
+ * Subclasses of Cache must implement the abstract methods accessCache, updateCache, and writeBackAll to define the specific behavior of the cache.
+ *
+ * The Cache class provides methods for loading data from the cache, storing data into the cache, and retrieving all cache blocks.
+ *
+ * Cache also includes nested classes CacheBlock and CacheRow, which represent blocks and rows within the cache, respectively.
+ *
+ * Each CacheRow contains multiple CacheInstances, which hold the actual data values along with metadata such as validity and dirtiness.
+ *
+ * The Cache class defines CacheRowState enum to represent the state of a cache row, and AccessResult data class to encapsulate the result of cache access.
+ */
 sealed class Cache(protected val backingMemory: Memory, val console: IConsole) : Memory() {
     override val initBin: String = "0"
     override val instanceSize: Variable.Size = backingMemory.instanceSize

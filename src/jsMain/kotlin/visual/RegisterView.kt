@@ -1,10 +1,10 @@
 package visual
 
+import Settings
 import StyleAttr
 import debug.DebugTools
 import emotion.react.css
-import Settings
-import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Value.Types
 import emulator.kit.types.Variable.Value.Types.*
 import react.*
 import react.dom.html.ReactHTML.a
@@ -45,7 +45,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
     val (allRegFiles, setAllRegFiles) = useState(arch.getAllRegFiles())
     val (currRegFileIndex, setCurrRegFileIndex) = useState(0)
-    val (currRegType, setCurrRegTypeIndex) = useState(Variable.Value.Types.Hex)
+    val (currRegType, setCurrRegTypeIndex) = useState(Hex)
 
     /* DOM */
 
@@ -200,10 +200,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
 
                                 onClick = { event ->
                                     setTimeout({
-                                        if (currRegType.ordinal < Variable.Value.Types.entries.size - 1) {
-                                            setCurrRegTypeIndex(Variable.Value.Types.entries[currRegType.ordinal + 1])
+                                        if (currRegType.ordinal < Types.entries.size - 1) {
+                                            setCurrRegTypeIndex(Types.entries[currRegType.ordinal + 1])
                                         } else {
-                                            setCurrRegTypeIndex(Variable.Value.Types.entries[0])
+                                            setCurrRegTypeIndex(Types.entries[0])
                                         }
                                     }, 0)
                                 }

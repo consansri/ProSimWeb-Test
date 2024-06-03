@@ -5,6 +5,8 @@ import debug.DebugTools
 import emotion.react.css
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div

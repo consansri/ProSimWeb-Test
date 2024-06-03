@@ -6,10 +6,10 @@ import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import emulator.kit.common.RegContainer.Register
 import emulator.kit.common.RegContainer.RegisterFile
 import emulator.kit.common.RegContainer.CallingConvention
-import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.CSRegister.Privilege
 import emulator.kit.optional.Feature
 import emulator.kit.common.Docs.DocComponent.*

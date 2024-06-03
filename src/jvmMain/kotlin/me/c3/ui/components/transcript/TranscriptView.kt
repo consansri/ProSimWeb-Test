@@ -4,6 +4,8 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import me.c3.ui.Components
 import me.c3.ui.Events
 import me.c3.ui.States

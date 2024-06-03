@@ -5,6 +5,8 @@ import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 
 /**
  * Addressing Modes

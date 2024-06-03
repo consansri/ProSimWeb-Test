@@ -4,6 +4,8 @@ import Performance
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import kotlin.time.measureTime
 
 abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {

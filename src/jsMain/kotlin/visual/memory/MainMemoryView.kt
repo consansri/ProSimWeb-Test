@@ -6,6 +6,8 @@ import emulator.kit.Architecture
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import react.*
 import react.dom.html.ReactHTML
 import visual.StyleExt.get

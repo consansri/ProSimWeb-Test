@@ -3,6 +3,8 @@ package emulator.archs.riscv32
 import debug.DebugTools
 import Settings
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv32.RV32Syntax.InstrType.*
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeWarn

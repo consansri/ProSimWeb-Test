@@ -2,7 +2,6 @@ package emulator.kit.common
 
 import Constants
 import emulator.kit.assembler.gas.GASDirType
-
 import emulator.kit.common.Docs.DocComponent.*
 
 /**

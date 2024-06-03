@@ -1,11 +1,32 @@
 package emulator.kit.common.memory
 
 import debug.DebugTools
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
-import kotlin.time.measureTime
+import emulator.kit.types.Variable.Size.Bit8
+import emulator.kit.types.Variable.Value.Hex
 
+/**
+ * Represents the main memory of a system.
+ *
+ * @property addressSize The size of the memory addresses.
+ * @property instanceSize The size of each memory instance.
+ * @property endianess The endianess of the memory.
+ * @property name The name of the memory.
+ * @property initBin The initial binary value for the memory.
+ * @property endianess The endianess of the memory.
+ * @property memList The list of memory instances.
+ * @property editableValues The list of editable memory values.
+ * @property ioBounds The input/output bounds of the memory.
+ * @property entrysInRow The number of entries in each row of memory.
+ *
+ * @constructor Creates a MainMemory instance with the specified parameters.
+ *
+ * @param addressSize The size of the memory addresses.
+ * @param instanceSize The size of each memory instance.
+ * @param endianess The endianess of the memory.
+ * @param name The name of the memory.
+ */
 class MainMemory( override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess, override val name: String = "Memory") : Memory() {
     override val initBin: String = "0"
 
@@ -65,7 +86,7 @@ class MainMemory( override val addressSize: Variable.Size, override val instance
                 val newInstance = MemInstance(hexAddress, variable, mark, readonly, entrysInRow)
                 memList.add(newInstance)
             }
-            hexAddress = (hexAddress + Variable.Value.Hex("01", Variable.Size.Bit8())).toHex()
+            hexAddress = (hexAddress + Hex("01", Bit8())).toHex()
         }
     }
 
@@ -82,8 +103,8 @@ class MainMemory( override val addressSize: Variable.Size, override val instance
         ioBounds?.let {
             var addr = it.lowerAddr
             for (i in 0..<it.amount) {
-                editableValues.add(MemInstance.EditableValue(addr.toHex().getUResized(addressSize), Variable.Value.Hex("0", instanceSize), entrysInRow))
-                addr += Variable.Value.Hex("1", addressSize)
+                editableValues.add(MemInstance.EditableValue(addr.toHex().getUResized(addressSize), Hex("0", instanceSize), entrysInRow))
+                addr += Hex("1", addressSize)
             }
         }
         for (value in editableValues) {
@@ -92,7 +113,7 @@ class MainMemory( override val addressSize: Variable.Size, override val instance
         }
     }
 
-    open class MemInstance(val address: Variable.Value.Hex, var variable: Variable, var mark: InstanceType = InstanceType.ELSE, val readonly: Boolean = false, entrysInRow: Int) {
+    open class MemInstance(val address: Hex, var variable: Variable, var mark: InstanceType = InstanceType.ELSE, val readonly: Boolean = false, entrysInRow: Int) {
         private var entrysInRow = entrysInRow
             set(value) {
                 field = value
@@ -103,17 +124,17 @@ class MainMemory( override val addressSize: Variable.Size, override val instance
             set(value) {
                 field = value
                 offset = addrRelevantForOffset % entrysInRow
-                row = (address - Variable.Value.Hex(offset.toString(16), Variable.Size.Bit8())).toHex()
+                row = (address - Hex(offset.toString(16), Bit8())).toHex()
             }
 
         var offset: Int = addrRelevantForOffset % entrysInRow
-        var row: Variable.Value.Hex = (address - Variable.Value.Hex(offset.toString(16), Variable.Size.Bit8())).toHex()
+        var row: Hex = (address - Hex(offset.toString(16), Bit8())).toHex()
 
         fun reMap(entrysInRow: Int) {
             this.entrysInRow = entrysInRow
         }
 
-        class EditableValue(address: Variable.Value.Hex, value: Variable.Value.Hex, entrysInRow: Int) : MemInstance(address, Variable(value), InstanceType.EDITABLE, entrysInRow = entrysInRow)
+        class EditableValue(address: Hex, value: Hex, entrysInRow: Int) : MemInstance(address, Variable(value), InstanceType.EDITABLE, entrysInRow = entrysInRow)
 
         override fun toString(): String {
             return variable.get().toHex().getRawHexStr()

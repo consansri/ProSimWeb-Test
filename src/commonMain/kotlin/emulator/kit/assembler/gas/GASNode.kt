@@ -10,6 +10,8 @@ import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
 import emulator.kit.nativeLog

@@ -2,6 +2,8 @@ package emulator.archs.riscv64
 
 import emulator.archs.ArchRV64
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule

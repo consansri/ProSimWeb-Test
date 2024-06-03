@@ -5,6 +5,8 @@ import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 
 /**
  * Interface representing a defined assembly configuration.

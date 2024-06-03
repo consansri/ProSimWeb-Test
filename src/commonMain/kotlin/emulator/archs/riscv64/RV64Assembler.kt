@@ -14,8 +14,8 @@ import emulator.kit.common.RegContainer
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Value.*
 import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.*
 
 class RV64Assembler : DefinedAssembly {
     override val memAddrSize: Variable.Size = RV64.XLEN
