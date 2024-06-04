@@ -23,6 +23,7 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                     UnlinkedList(
                         Text("KIT: Platform independent Performance balancing for infinite loop execution."),
                         Text("KIT: Better Multi File Project Experience."),
+                        Text("KIT: Introducing Caches as the first part of micro architectural components."),
                         Text("JVM: Better Workspace Experience."),
                         Text("JVM: Find and Replace functionality."),
                     )
