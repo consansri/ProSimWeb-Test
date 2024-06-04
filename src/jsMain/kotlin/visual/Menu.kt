@@ -1,6 +1,7 @@
 package visual
 
 import Constants
+import Keys
 import StyleAttr
 import emotion.react.css
 import emulator.Link
@@ -330,7 +331,7 @@ val Menu = FC<MenuProps> { props ->
                         }
 
                         downloadAsyncRef.current = setTimeout({
-                            val blob = Blob(arch.getFormattedFile(selFormat, props.fileState.component1().getCurrent().toCompilerFile(), FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW)).toTypedArray())
+                            val blob = Blob(arch.getFormattedFile(selFormat, props.fileState.component1().getCurrent().toCompilerFile(), props.fileState.component1().getOthers(), FileBuilder.Setting.DataWidth(selDataW), FileBuilder.Setting.AddressWidth(selAddrW)).toTypedArray())
                             val anchor = document.createElement("a") as HTMLAnchorElement
                             anchor.href = URL.createObjectURL(blob)
                             anchor.style.display = "none"
