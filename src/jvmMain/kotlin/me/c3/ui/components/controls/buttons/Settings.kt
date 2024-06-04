@@ -7,12 +7,9 @@ import me.c3.ui.States
 import me.c3.ui.States.save
 import me.c3.ui.styled.*
 import me.c3.ui.styled.params.FontType
-import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.Toolkit
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.SwingUtilities
@@ -33,55 +30,23 @@ class Settings : CIconButton(States.icon.get().settings) {
 
     private fun showSettings() {
         SwingUtilities.invokeLater {
-            val dialog = CDialog(this)
-            val ws = States.ws.get()
             val arch = States.arch.get()
 
-            // Add Components
-            val title = CPanel(primary = true).apply {
-                val name = CLabel("${arch.description.name} - Settings", FontType.BASIC)
-                val filler = CPanel(primary = true)
-                val closeButton = CIconButton(States.icon.get().close).apply {
-                    addActionListener {
-                        dialog.dispose()
-                        lastDialog = null
-                    }
-                }
-
-                layout = GridBagLayout()
-                val gbc = GridBagConstraints()
-                add(name, gbc)
-                gbc.gridx = 2
-                add(closeButton, gbc)
-                gbc.gridx = 1
-                gbc.weightx = 1.0
-                gbc.fill = GridBagConstraints.HORIZONTAL
-                add(filler, gbc)
+            val (dialog, content ) = CDialog.createWithTitle("${arch.description.name} - Settings", this) {
+                lastDialog = null
             }
 
-            val settingPane = CPanel(primary = true)
             val gbc = GridBagConstraints()
             gbc.weightx = 1.0
             gbc.fill = GridBagConstraints.HORIZONTAL
-            settingPane.layout = GridBagLayout()
+            content.layout = GridBagLayout()
             arch.settings.forEach {
                 gbc.gridy++
-                it.toSwing(arch, settingPane, gbc)
+                it.toSwing(arch, content, gbc)
             }
 
-            val contentPane = CPanel(isOverlay = true)
-            contentPane.layout = BorderLayout()
-            contentPane.add(title, BorderLayout.NORTH)
-            contentPane.add(CScrollPane(true, settingPane), BorderLayout.CENTER)
-
-            // Add Content Panel to Dialog Frame
-            dialog.layout = BorderLayout()
-            dialog.add(contentPane, BorderLayout.CENTER)
-            dialog.size = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16 * 4, Toolkit.getDefaultToolkit().screenSize.height / 9 * 4)
-            dialog.setLocationRelativeTo(null)
-            dialog.isVisible = true
-
             lastDialog = dialog
+            dialog.isVisible = true
         }
     }
 

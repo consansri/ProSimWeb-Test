@@ -1,12 +1,15 @@
 package emulator.kit.common
 
+import Constants
 import emulator.kit.Architecture
 import emulator.kit.assembler.AsmFile
+import emulator.kit.common.FileBuilder.ExportFormat
+import emulator.kit.common.FileBuilder.Setting
+import emulator.kit.common.FileBuilder.buildFileContentLines
 import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.pow
@@ -18,12 +21,12 @@ import kotlin.math.roundToLong
  *
  */
 object FileBuilder {
-    fun buildFileContentLines(architecture: Architecture, format: ExportFormat, currentFile: AsmFile, vararg settings: Setting): List<String> {
+    fun buildFileContentLines(architecture: Architecture, format: ExportFormat, currentFile: AsmFile, others: List<AsmFile>, vararg settings: Setting): List<String> {
         when (format) {
             ExportFormat.VHDL, ExportFormat.MIF, ExportFormat.HEXDUMP -> {
                 val content = mutableListOf("Empty...")
 
-                val now = kotlinx.datetime.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 
                 var addrWidth = 32
                 var dataWidth = 256
@@ -202,6 +205,11 @@ object FileBuilder {
             ExportFormat.CURRENT_FILE -> {
                 return currentFile.content.split("\n")
             }
+
+            ExportFormat.TRANSCRIPT -> {
+                val result = architecture.compile(currentFile, others, build = false)
+                return result.generateTS().split("\n")
+            }
         }
     }
 
@@ -218,6 +226,7 @@ object FileBuilder {
         VHDL("VHDL", "_pkg.vhd"),
         MIF("MIF (Memory Initialization File)", ".mif"),
         HEXDUMP("HEXDUMP", ".txt"),
+        TRANSCRIPT("TRANSCRIPT", ".transcript"),
         CURRENT_FILE("current file", "")
     }
 

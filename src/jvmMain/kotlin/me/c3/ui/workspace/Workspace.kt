@@ -2,25 +2,24 @@ package me.c3.ui.workspace
 
 import emulator.kit.assembler.AsmFile
 import emulator.kit.common.FileBuilder
+import emulator.kit.common.FileBuilder.ExportFormat
 import emulator.kit.toAsmFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.c3.ui.Components
 import me.c3.ui.Events
-import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.Keys
 import me.c3.ui.States
 import me.c3.ui.States.setFromPath
-import me.c3.ui.styled.CTree
-import me.c3.ui.styled.CMenuItem
-import me.c3.ui.styled.COptionPane
-import me.c3.ui.styled.CPopupMenu
+import me.c3.ui.styled.*
 import me.c3.ui.styled.params.FontType
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import javax.swing.SpinnerNumberModel
 import javax.swing.SwingUtilities
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -232,109 +231,19 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
         }
 
         exportMIF?.addActionListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                files.forEach {
-                    val result = States.arch.get().compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
-                    Events.compile.triggerEvent(result)
-                    if (!result.success) {
-                        return@launch
-                    }
-                    val fileContent = States.arch.get().getFormattedFile(FileBuilder.ExportFormat.MIF, it.file.toAsmFile(it.file, rootDir))
-                    val generatedDir = File(it.file.parentFile, ".generated")
-                    if (!generatedDir.exists()) {
-                        generatedDir.mkdir()
-                    }
-                    val newFile = File(generatedDir, it.file.name.removeSuffix(".s") + ".mif")
-                    if (newFile.createNewFile()) {
-                        newFile.writeText(fileContent.joinToString("\n") { it })
-                        // File build successfully
-                        States.ws.setFromPath(path, editor, logger)
-                    } else {
-                        logger?.error("Failed to save generated file ${newFile.name}!")
-                    }
-                }
-            }
+            showExportOverlay(ExportFormat.MIF, files)
         }
 
         exportVHDL?.addActionListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                files.forEach { tfile ->
-                    val result = States.arch.get().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
-                    Events.compile.triggerEvent(result)
-                    if (!result.success) {
-                        return@launch
-                    }
-                    val fileContent = States.arch.get().getFormattedFile(FileBuilder.ExportFormat.VHDL, tfile.file.toAsmFile(tfile.file, rootDir))
-                    val generatedDir = File(tfile.file.parentFile, ".generated")
-                    if (!generatedDir.exists()) {
-                        generatedDir.mkdir()
-                    }
-
-                    val newFile = File(generatedDir, tfile.file.name.removeSuffix(".s") + ".vhd")
-                    if (newFile.createNewFile()) {
-                        newFile.writeText(fileContent.joinToString("\n") { it })
-                        // File build successfully
-                        States.ws.setFromPath(path, editor, logger)
-                    } else {
-                        logger?.error("Failed to save generated file ${newFile.name}!")
-                    }
-                }
-            }
+            showExportOverlay(ExportFormat.VHDL, files)
         }
 
         exportHexDump?.addActionListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                files.forEach { tfile ->
-                    val result = States.arch.get().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
-                    Events.compile.triggerEvent(result)
-                    if (!result.success) {
-                        return@launch
-                    }
-                    val fileContent = States.arch.get().getFormattedFile(FileBuilder.ExportFormat.HEXDUMP, tfile.file.toAsmFile(tfile.file, rootDir))
-                    val generatedDir = File(tfile.file.parentFile, ".generated")
-                    if (!generatedDir.exists()) {
-                        generatedDir.mkdir()
-                    }
-
-                    Events.compile.triggerEvent(result)
-
-                    val newFile = File(generatedDir, tfile.file.name.removeSuffix(".s") + ".hexdump")
-                    if (newFile.createNewFile()) {
-                        newFile.writeText(fileContent.joinToString("\n") { it })
-                        // File build successfully
-                        States.ws.setFromPath(path, editor, logger)
-                    } else {
-                        logger?.error("Failed to save generated file ${newFile.name}!")
-                    }
-                }
-
-            }
+            showExportOverlay(ExportFormat.HEXDUMP, files)
         }
 
         exportTS?.addActionListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                files.forEach { tfile ->
-                    val result = States.arch.get().compile(tfile.file.toAsmFile(tfile.file, rootDir), getImportableFiles(tfile.file), true)
-                    Events.compile.triggerEvent(result)
-                    if (!result.success) {
-                        return@launch
-                    }
-                    val fileContent = result.generateTS()
-                    val generatedDir = File(tfile.file.parentFile, ".generated")
-                    if (!generatedDir.exists()) {
-                        generatedDir.mkdir()
-                    }
-
-                    val newFile = File(generatedDir, tfile.file.name.removeSuffix(".s") + ".transcript")
-                    if (newFile.createNewFile()) {
-                        newFile.writeText(fileContent)
-                        // File build successfully
-                        States.ws.setFromPath(path, editor, logger)
-                    } else {
-                        logger?.error("Failed to save generated file ${newFile.name}!")
-                    }
-                }
-            }
+            showExportOverlay(ExportFormat.TRANSCRIPT, files)
         }
 
         // General
@@ -417,6 +326,99 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
         popupMenu.add(deleteItem)
 
         popupMenu.show(tree, x, y)
+    }
+
+    private suspend fun exportFile(type: ExportFormat, file: File, vararg settings: FileBuilder.Setting) {
+        val result = States.arch.get().compile(file.toAsmFile(file, rootDir), getImportableFiles(file), true)
+        Events.compile.triggerEvent(result)
+        if (!result.success) {
+            return
+        }
+        withContext(Dispatchers.IO) {
+            val fileContent = States.arch.get().getFormattedFile(type, file.toAsmFile(file, rootDir), getImportableFiles(file), *settings)
+            val generatedDir = File(file.parentFile, ".generated")
+            if (!generatedDir.exists()) {
+                generatedDir.mkdir()
+            }
+
+            Events.compile.triggerEvent(result)
+
+            val newFile = File(generatedDir, file.name.removeSuffix(".s") + type.ending)
+            if (newFile.createNewFile()) {
+                newFile.writeText(fileContent.joinToString("\n") { it })
+                // File build successfully
+                States.ws.setFromPath(path, editor, logger)
+            } else {
+                logger?.error("Failed to save generated file ${newFile.name}!")
+            }
+        }
+    }
+
+    private fun showExportOverlay(type: ExportFormat, files: List<TreeFile>) {
+        SwingUtilities.invokeLater {
+            val (dialog, content, submit) = CDialog.createWithTitle("Export - ${type.uiName}", tree) {
+                // onClose
+            }
+
+            content.layout = GridBagLayout()
+            val contentGBC = GridBagConstraints()
+            contentGBC.weightx = 1.0
+            contentGBC.insets = States.scale.get().borderScale.getInsets()
+            contentGBC.fill = GridBagConstraints.HORIZONTAL
+
+            submit.layout = GridBagLayout()
+            val submitGBC = GridBagConstraints()
+            submitGBC.weightx = 1.0
+            submitGBC.fill = GridBagConstraints.HORIZONTAL
+
+            when (type) {
+                ExportFormat.VHDL, ExportFormat.MIF, ExportFormat.HEXDUMP -> {
+                    val addrLabel = CLabel("Address Width [Bits]", FontType.BASIC)
+                    val wordLabel = CLabel("Data Width [Bits]", FontType.BASIC)
+                    val addrSpinner = CSpinner(SpinnerNumberModel(States.arch.get().memory.addressSize.bitWidth, 8, Int.MAX_VALUE, 8))
+                    val wordSpinner = CSpinner(SpinnerNumberModel(States.arch.get().memory.instanceSize.bitWidth, 8, Int.MAX_VALUE, 8))
+                    val export = CTextButton("Export", FontType.CODE).apply {
+                        addActionListener {
+                            CoroutineScope(Dispatchers.Default).launch {
+                                files.forEach {
+                                    exportFile(type, it.file, FileBuilder.Setting.AddressWidth(addrSpinner.value as Int), FileBuilder.Setting.DataWidth(wordSpinner.value as Int))
+                                }
+                            }
+                            dialog.dispose()
+                        }
+                    }
+
+                    contentGBC.gridy = 0
+                    content.add(addrLabel, contentGBC)
+                    contentGBC.gridy = 1
+                    content.add(wordLabel, contentGBC)
+
+                    contentGBC.gridx = 1
+                    contentGBC.gridy = 0
+                    content.add(addrSpinner, contentGBC)
+                    contentGBC.gridy = 1
+                    content.add(wordSpinner, contentGBC)
+
+                    submit.add(export, submitGBC)
+                }
+
+                ExportFormat.CURRENT_FILE, ExportFormat.TRANSCRIPT -> {
+                    val export = CTextButton("Export", FontType.CODE).apply {
+                        addActionListener {
+                            CoroutineScope(Dispatchers.Default).launch {
+                                files.forEach {
+                                    exportFile(type, it.file)
+                                }
+                            }
+                            dialog.dispose()
+                        }
+                    }
+                    submit.add(export, submitGBC)
+                }
+            }
+
+            dialog.isVisible = true
+        }
     }
 
     /**

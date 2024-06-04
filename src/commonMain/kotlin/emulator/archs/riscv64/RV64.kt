@@ -1,22 +1,22 @@
 package emulator.archs.riscv64
 
 import emulator.archs.ArchRV64
-import emulator.kit.common.*
-import emulator.kit.configs.AsmConfig
-import emulator.kit.configs.Config
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
-import emulator.kit.common.RegContainer.Register
-import emulator.kit.common.RegContainer.RegisterFile
-import emulator.kit.common.RegContainer.CallingConvention
 import emulator.archs.riscv64.CSRegister.Privilege
-import emulator.kit.optional.Feature
+import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.RegContainer
+import emulator.kit.common.RegContainer.*
 import emulator.kit.common.memory.DirectMappedCache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
+import emulator.kit.configs.AsmConfig
+import emulator.kit.configs.Config
+import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 
 object RV64 {
 
@@ -404,7 +404,7 @@ object RV64 {
      */
 
     val settings = listOf(
-        SetupSetting.Bool("Direct-Mapped-Cache", true) { arch, setting ->
+        SetupSetting.Bool("Cache (DM)", true) { arch, setting ->
             if (arch is ArchRV64) {
                 if (setting.get()) {
                     arch.dataMemory = DirectMappedCache(arch.memory, arch.console, 57, 3, 4)

@@ -71,7 +71,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         MicroSetup.append(memory)
     }
 
-    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AsmFile, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, *settings)
+    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AsmFile, others: List<AsmFile>, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, others, *settings)
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
     fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
     fun getAllInstrTypes(): List<InstrTypeInterface> = assembler.parser.getInstrs(features)

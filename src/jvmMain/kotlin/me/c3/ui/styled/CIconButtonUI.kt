@@ -2,7 +2,10 @@ package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.States
-import java.awt.*
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -24,7 +27,7 @@ open class CIconButtonUI() : BasicButtonUI() {
         button.isBorderPainted = false
         button.isContentAreaFilled = false
         button.isFocusPainted = false
-        button.isFocusable = false
+        button.isFocusable = true
         button.isOpaque = false
 
         States.scale.addEvent { _ ->

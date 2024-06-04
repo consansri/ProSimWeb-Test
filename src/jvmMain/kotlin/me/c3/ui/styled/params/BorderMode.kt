@@ -8,6 +8,7 @@ import javax.swing.border.Border
 enum class BorderMode {
     INSET,
     THICKNESS,
+    BASIC,
     NORTH,
     SOUTH,
     WEST,
@@ -22,6 +23,7 @@ enum class BorderMode {
         return when (this) {
             INSET -> States.scale.get().borderScale.getInsetBorder()
             THICKNESS -> States.scale.get().borderScale.getThicknessBorder()
+            BASIC -> DirectionalBorder(north = true, west = true, south = true, east = true)
             NORTH -> DirectionalBorder(north = true)
             SOUTH -> DirectionalBorder(south = true)
             WEST -> DirectionalBorder(west = true)

@@ -2,7 +2,10 @@ package me.c3.ui.styled
 
 import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import java.awt.*
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPopupMenuUI
@@ -69,8 +72,6 @@ class CPopupMenuUI( private val fontType: FontType) : BasicPopupMenuUI() {
         super.paint(g2d, pane)
 
         g2d.dispose()
-
-
     }
 
 }

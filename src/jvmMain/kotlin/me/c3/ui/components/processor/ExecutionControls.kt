@@ -2,10 +2,9 @@ package me.c3.ui.components.processor
 
 import me.c3.ui.Events
 import me.c3.ui.States
-import me.c3.ui.state.*
 import me.c3.ui.styled.CIconButton
-import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CIconInput
+import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.GridLayout
@@ -13,20 +12,20 @@ import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
-class ExecutionControls() : CPanel( primary = false, BorderMode.SOUTH) {
-    val continuous = CIconButton( States.icon.get().continuousExe).apply {
+class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
+    val continuous = CIconButton(States.icon.get().continuousExe).apply {
         addActionListener {
             States.arch.get().exeContinuous()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val singleStep = CIconButton( States.icon.get().singleExe).apply {
+    val singleStep = CIconButton(States.icon.get().singleExe).apply {
         addActionListener {
             States.arch.get().exeSingleStep()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val mStep = CIconInput( States.icon.get().stepMultiple, FontType.BASIC).apply {
+    val mStep = CIconInput(States.icon.get().stepMultiple, FontType.BASIC).apply {
         val inputRegex = Regex("\\d+")
         input.text = 10.toString()
         button.addActionListener {
@@ -53,19 +52,19 @@ class ExecutionControls() : CPanel( primary = false, BorderMode.SOUTH) {
         }
     }
 
-    val skipSubroutine = CIconButton( States.icon.get().stepOver).apply {
+    val skipSubroutine = CIconButton(States.icon.get().stepOver).apply {
         addActionListener {
             States.arch.get().exeSkipSubroutine()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val returnSubroutine = CIconButton( States.icon.get().returnSubroutine).apply {
+    val returnSubroutine = CIconButton(States.icon.get().returnSubroutine).apply {
         addActionListener {
             States.arch.get().exeReturnFromSubroutine()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val reset = CIconButton( States.icon.get().recompile).apply {
+    val reset = CIconButton(States.icon.get().recompile).apply {
         addActionListener {
             States.arch.get().exeReset()
             Events.exe.triggerEvent(States.arch.get())
