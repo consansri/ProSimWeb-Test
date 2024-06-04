@@ -1,7 +1,10 @@
+import debug.DebugTools
 import emotion.react.css
+import emulator.Link
+import emulator.kit.optional.FileHandler
+import emulator.kit.optional.SetupSetting
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
-import web.html.*
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
@@ -9,13 +12,12 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
-import debug.DebugTools
-import emulator.Link
-import emulator.kit.optional.FileHandler
-import emulator.kit.optional.SetupSetting
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
 import visual.*
-import visual.ProcessorView
 import web.cssom.*
+import web.html.HTMLElement
+import web.html.InputType
 
 val App = FC<Props> {
 
@@ -332,11 +334,11 @@ val App = FC<Props> {
                         htmlFor = "setting${setting.name}"
                         +setting.name
                     }
-                    input {
-                        id = "setting${setting.name}"
 
-                        when (setting) {
-                            is SetupSetting.Bool -> {
+                    when (setting) {
+                        is SetupSetting.Bool -> {
+                            input {
+                                id = "setting${setting.name}"
                                 type = InputType.checkbox
                                 defaultChecked = setting.get()
                                 onChange = {
@@ -344,8 +346,31 @@ val App = FC<Props> {
                                     localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}", setting.get().toString())
                                 }
                             }
+                        }
 
-                            is SetupSetting.Any -> {
+                        is SetupSetting.Enumeration<*> -> {
+                            select {
+                                id = "setting${setting.name}"
+                                defaultValue = setting.get().toString()
+
+                                onChange = {
+                                    val selectedValue = it.currentTarget.value
+                                    setting.loadFromString(archState.component1(), selectedValue)
+                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}", setting.valueToString())
+                                }
+
+                                setting.enumValues.forEach { enumValue ->
+                                    option {
+                                        value = enumValue.toString()
+                                        +enumValue.name
+                                    }
+                                }
+                            }
+                        }
+
+                        is SetupSetting.Any -> {
+                            input {
+                                id = "setting${setting.name}"
                                 type = InputType.text
                                 placeholder = "value"
                                 defaultValue = setting.valueToString()

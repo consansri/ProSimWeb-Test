@@ -31,7 +31,7 @@ class FACache(
     override val name: String = "Cache (FA)"
 ) : Cache(backingMemory, console) {
 
-    val decider = getDecider()
+    val decider = algoDecider()
     val offsets = 2.toDouble().pow(offsetBits).roundToInt()
     val blocks = Array<FABlock>(blockSize) {
         FABlock()
@@ -69,6 +69,7 @@ class FACache(
         // Load Row from backingMemory
         val rowAddress = Variable.Value.Bin(tagBinStr + "0".repeat(offsetBits), addressSize).toHex()
         val data = backingMemory.loadArray(rowAddress, offsets)
+        blocks[indexToReplace].set(FARow(rowAddress, data))
         decider.read(indexToReplace)
         return AccessResult(false, needWB) to data[offsetIndex]
     }
@@ -82,7 +83,7 @@ class FACache(
 
         // Vadility Check
         if (offsetBinStr.length != offsetBits) throw MemoryException("Offset $offsetBinStr has not the length of $offsetBits. May be caused through invalid address size: ${address.size}.")
-        if (offsetIndex + bytes.size >= offsets) throw MemoryException("${this::class.simpleName.toString()} isn't supporting unaligned access.")
+        if (offsetIndex + bytes.size - 1 >= offsets) throw MemoryException("${this::class.simpleName.toString()} isn't supporting unaligned access. Accessing offset ${offsetIndex + bytes.size - 1} for maximum offsets $offsets.")
 
         // Search Valid Block
         val block = fetchBlockIndex(tagBinStr)
@@ -109,6 +110,7 @@ class FACache(
         // Load Row from backingMemory
         val rowAddress = Variable.Value.Bin(tagBinStr + "0".repeat(offsetBits), addressSize).toHex()
         val data = backingMemory.loadArray(rowAddress, offsets)
+        blocks[indexToReplace].set(FARow(rowAddress, data))
         decider.write(indexToReplace)
         for (i in bytes.indices) {
             blockToReplace.get().update(CacheInstance(bytes[i], InstanceType.DATA, (address + i.toValue(addressSize)).toHex()), i)
@@ -130,13 +132,14 @@ class FACache(
         blocks.forEach {
             it.clear()
         }
+        decider.reset()
     }
 
     private fun fetchBlockIndex(tagBinStr: String): FABlock? {
         return blocks.firstOrNull { it.get().tag?.toRawString() == tagBinStr }
     }
 
-    private fun getDecider(): Decider = when (replAlgo) {
+    private fun algoDecider(): Decider = when (replAlgo) {
         ReplaceAlgo.FIFO -> Decider.FIFO(blockSize)
         ReplaceAlgo.LRU -> Decider.LRU(blockSize)
         ReplaceAlgo.RANDOM -> Decider.RANDOM(blockSize)
@@ -194,6 +197,7 @@ class FACache(
         abstract fun indexToReplace(): Int
         abstract fun read(index: Int)
         abstract fun write(index: Int)
+        abstract fun reset()
 
         class FIFO(size: Int) : Decider(size) {
             private var currentIndex = 0
@@ -205,6 +209,10 @@ class FACache(
 
             override fun write(index: Int) {
                 currentIndex = (index + 1) % size
+            }
+
+            override fun reset() {
+                currentIndex = 0
             }
         }
 
@@ -222,6 +230,10 @@ class FACache(
             override fun write(index: Int) {
                 read(index)
             }
+
+            override fun reset() {
+                accessOrder.sort()
+            }
         }
 
         class RANDOM(size: Int) : Decider(size) {
@@ -230,6 +242,7 @@ class FACache(
             override fun read(index: Int) {}
 
             override fun write(index: Int) {}
+            override fun reset() {}
         }
     }
 

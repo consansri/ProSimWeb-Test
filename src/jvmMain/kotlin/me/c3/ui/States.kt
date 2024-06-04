@@ -9,11 +9,11 @@ import kotlinx.coroutines.launch
 import me.c3.ui.Res.icons
 import me.c3.ui.Res.scalings
 import me.c3.ui.Res.themes
-import me.c3.ui.state.Manager
 import me.c3.ui.resources.icons.BenIcons
 import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.scale.core.Scaling
 import me.c3.ui.scale.scalings.StandardScaling
+import me.c3.ui.state.Manager
 import me.c3.ui.theme.core.Theme
 import me.c3.ui.theme.themes.LightTheme
 import me.c3.ui.workspace.WSConfig
@@ -124,13 +124,13 @@ object States {
     }
 
     fun SetupSetting<*>.save(arch: Architecture) {
-        ws.get()?.config?.set(arch::class.simpleName.toString(), this.name, this.valueToString())
+        ws.get()?.config?.set(arch::class.simpleName.toString(), this.trimmedName, this.valueToString())
     }
 
     fun Architecture.loadArchSettings() {
         ws.get()?.config?.let { ws ->
             this.settings.forEach {
-                val result = ws.get(arch::class.simpleName.toString(), it.name)
+                val result = ws.get(arch::class.simpleName.toString(), it.trimmedName)
                 if (result != null) it.loadFromString(this, result)
             }
         }

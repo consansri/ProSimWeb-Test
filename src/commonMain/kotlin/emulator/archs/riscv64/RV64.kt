@@ -405,21 +405,12 @@ object RV64 {
      */
 
     val settings = listOf(
-        SetupSetting.Bool("Cache (DM)", true) { arch, setting ->
+        SetupSetting.Enumeration("Cache", CacheMode.entries, CacheMode.NONE) { arch, setting ->
             if (arch is ArchRV64) {
-                if (setting.get()) {
-                    arch.dataMemory = DMCache(arch.memory, arch.console, 57, 3, 4)
-                } else {
-                    arch.dataMemory = arch.memory
-                }
-            }
-        },
-        SetupSetting.Bool("Cache (FA)", true) { arch, setting ->
-            if (arch is ArchRV64) {
-                if (setting.get()) {
-                    arch.dataMemory = FACache(arch.memory, arch.console, 60, 4, 16, FACache.ReplaceAlgo.LRU)
-                } else {
-                    arch.dataMemory = arch.memory
+                arch.dataMemory = when (setting.get()) {
+                    CacheMode.NONE -> arch.memory
+                    CacheMode.DirectedMapped -> DMCache(arch.memory, arch.console, 57, 3, 4)
+                    CacheMode.FullAssociative -> FACache(arch.memory, arch.console, 60, 4, 16, FACache.ReplaceAlgo.LRU)
                 }
             }
         }
@@ -436,5 +427,14 @@ object RV64 {
         MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
         settings
     )
+
+    /**
+     * Only for settings
+     */
+    enum class CacheMode {
+        NONE,
+        DirectedMapped,
+        FullAssociative,
+    }
 
 }

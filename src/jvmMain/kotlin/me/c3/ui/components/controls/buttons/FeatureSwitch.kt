@@ -12,7 +12,7 @@ import javax.swing.SwingUtilities
 /**
  * This class represents a button used for enabling/disabling functionalities within the application based on a Feature object.
  */
-class FeatureSwitch(private val feature: Feature) : CToggleButton( feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC) {
+class FeatureSwitch(private val feature: Feature) : CToggleButton(feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC) {
 
     private var switchingFeatures = false
 

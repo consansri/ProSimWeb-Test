@@ -31,7 +31,7 @@ class DMCache(
     val rowBits: Int,
     val offsetBits: Int,
     override val name: String = "Cache (DM)"
-) : Cache(backingMemory, console) {
+) : Cache( backingMemory, console) {
 
     val offsets = 2.toDouble().pow(offsetBits).roundToInt()
     val rows = 2.toDouble().pow(rowBits).roundToInt()

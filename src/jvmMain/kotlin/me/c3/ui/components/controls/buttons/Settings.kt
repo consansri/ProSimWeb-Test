@@ -32,7 +32,7 @@ class Settings : CIconButton(States.icon.get().settings) {
         SwingUtilities.invokeLater {
             val arch = States.arch.get()
 
-            val (dialog, content ) = CDialog.createWithTitle("${arch.description.name} - Settings", this) {
+            val (dialog, content) = CDialog.createWithTitle("${arch.description.name} - Settings", this) {
                 lastDialog = null
             }
 
@@ -63,6 +63,16 @@ class Settings : CIconButton(States.icon.get().settings) {
                     this@toSwing.set(arch, it)
                     this@toSwing.save(arch)
                     Events.archSettingChange.triggerEvent(arch)
+                }
+            }
+
+            is SetupSetting.Enumeration<*> -> {
+                CComboBox(this.enumValues.toTypedArray(), FontType.BASIC).apply {
+                    addItemListener {
+                        this@toSwing.loadFromString(arch, it.item.toString())
+                        this@toSwing.save(arch)
+                        Events.archSettingChange.triggerEvent(arch)
+                    }
                 }
             }
 

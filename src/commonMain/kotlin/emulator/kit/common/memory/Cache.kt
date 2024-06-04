@@ -66,7 +66,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
     open class CacheRow(offsets: Int, instanceSize: Variable.Size, var valid: Boolean) {
         var dirty: Boolean = false
         val data: Array<CacheInstance> = Array(offsets) {
-             CacheInstance(Bin("0", instanceSize))
+            CacheInstance(Bin("0", instanceSize))
         }
 
         fun update(instance: CacheInstance, index: Int) {
@@ -74,9 +74,9 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
             dirty = true
         }
 
-        fun getRowState(): CacheRowState{
-            if(!valid) return CacheRowState.INVALID
-            if(!dirty) return CacheRowState.VALID_CLEAN
+        fun getRowState(): CacheRowState {
+            if (!valid) return CacheRowState.INVALID
+            if (!dirty) return CacheRowState.VALID_CLEAN
             return CacheRowState.VALID_DIRTY
         }
 
@@ -88,7 +88,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
         }
     }
 
-    data class CacheInstance(val value: Variable.Value, val mark: InstanceType = InstanceType.NOTUSED,val address: Hex? = null){
+    data class CacheInstance(val value: Variable.Value, val mark: InstanceType = InstanceType.NOTUSED, val address: Hex? = null) {
         override fun toString(): String {
             return value.toHex().toRawString()
         }
