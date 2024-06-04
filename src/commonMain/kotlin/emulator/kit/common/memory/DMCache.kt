@@ -1,10 +1,10 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Size.Bit32
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -24,7 +24,7 @@ import kotlin.math.roundToInt
  *
  * @see Cache
  */
-class DirectMappedCache(
+class DMCache(
     backingMemory: Memory,
     console: IConsole,
     val tagBits: Int,
@@ -56,7 +56,7 @@ class DirectMappedCache(
         if (result.second.hit) return result.second to result.first.data[offset].value
 
         // Write Back if Dirty
-        if (result.second.dirty) result.first.writeBack(rowIndex.toString(2))
+        if (result.second.writeBack) result.first.writeBack(rowIndex.toString(2))
 
         val rowAddress = Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
         return result.second to fetchRow(rowAddress).data[offset].value
@@ -82,7 +82,7 @@ class DirectMappedCache(
         }
 
         // Write Back if Dirty
-        if (result.second.dirty) result.first.writeBack(rowIndex.toString(2))
+        if (result.second.writeBack) result.first.writeBack(rowIndex.toString(2))
 
         // Load and Update Row
         val rowAddress = Bin(binStr.substring(0, tagBits + rowBits) + "0".repeat(offsetBits), addressSize).toHex()
@@ -158,8 +158,8 @@ class DirectMappedCache(
 
         fun check(otherTag: Bin): AccessResult {
             return when (tag?.getRawBinStr()) {
-                otherTag.getRawBinStr() -> AccessResult(true, valid, dirty)
-                else -> AccessResult(false, valid, dirty)
+                otherTag.getRawBinStr() -> AccessResult(true, false)
+                else -> AccessResult(false, dirty)
             }
         }
 

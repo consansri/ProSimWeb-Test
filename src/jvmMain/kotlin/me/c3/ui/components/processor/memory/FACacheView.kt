@@ -1,7 +1,7 @@
 package me.c3.ui.components.processor.memory
 
 import emulator.kit.assembler.CodeStyle
-import emulator.kit.common.memory.DMCache
+import emulator.kit.common.memory.FACache
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.CacheTableModel
@@ -11,7 +11,7 @@ import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities
 
-class DMCacheView(val cache: DMCache) : CPanel( primary = false) {
+class FACacheView(val cache: FACache): CPanel( primary = false) {
 
     val tableModel = CacheTableModel()
     val table = CTable( tableModel, false)
@@ -58,8 +58,8 @@ class DMCacheView(val cache: DMCache) : CPanel( primary = false) {
 
             table.resetCellHighlighting()
 
-            for (index in 0..<cache.rows) {
-                val row = cache.block.data[index] as? DMCache.DMRow ?: continue
+            for (index in cache.blocks.indices) {
+                val row = cache.blocks[index].get() as? FACache.FARow ?: continue
 
                 val ascii = row.data.joinToString("") {
                     it.value.toASCII()
@@ -82,7 +82,7 @@ class DMCacheView(val cache: DMCache) : CPanel( primary = false) {
     private fun updateColumnWidths(offsets: Int) {
         val wordSize = cache.instanceSize
 
-        val rowIndexScale = cache.rows.toString(16).length + 1
+        val rowIndexScale = cache.blockSize.toString(16).length + 1
         val oneBitScale = 2
         val tagScale = cache.tagBits / 4 + 1
         val asciiScale = offsets * wordSize.getByteCount()
@@ -114,4 +114,5 @@ class DMCacheView(val cache: DMCache) : CPanel( primary = false) {
             }
         }
     }
+
 }

@@ -6,7 +6,8 @@ import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.*
-import emulator.kit.common.memory.DirectMappedCache
+import emulator.kit.common.memory.DMCache
+import emulator.kit.common.memory.FACache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
 import emulator.kit.configs.AsmConfig
@@ -407,7 +408,16 @@ object RV64 {
         SetupSetting.Bool("Cache (DM)", true) { arch, setting ->
             if (arch is ArchRV64) {
                 if (setting.get()) {
-                    arch.dataMemory = DirectMappedCache(arch.memory, arch.console, 57, 3, 4)
+                    arch.dataMemory = DMCache(arch.memory, arch.console, 57, 3, 4)
+                } else {
+                    arch.dataMemory = arch.memory
+                }
+            }
+        },
+        SetupSetting.Bool("Cache (FA)", true) { arch, setting ->
+            if (arch is ArchRV64) {
+                if (setting.get()) {
+                    arch.dataMemory = FACache(arch.memory, arch.console, 60, 4, 16, FACache.ReplaceAlgo.LRU)
                 } else {
                     arch.dataMemory = arch.memory
                 }

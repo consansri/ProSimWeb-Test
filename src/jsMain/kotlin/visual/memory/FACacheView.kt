@@ -4,7 +4,7 @@ import StyleAttr
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Architecture
-import emulator.kit.common.memory.DMCache
+import emulator.kit.common.memory.FACache
 import react.*
 import react.dom.html.ReactHTML
 import visual.StyleExt.get
@@ -12,18 +12,18 @@ import web.cssom.*
 import web.html.HTMLElement
 import web.html.HTMLTableSectionElement
 
-external interface DMCacheViewProps : Props {
+external interface FACacheViewProps : Props {
     var exeEventState: StateInstance<Boolean>
     var archState: StateInstance<Architecture>
-    var cache: DMCache
+    var cache: FACache
 }
 
-val DMCacheView = FC<DMCacheViewProps>() { props ->
+val FACacheView = FC<FACacheViewProps>() { props ->
 
     val tbody = useRef<HTMLTableSectionElement>()
     val asciiRef = useRef<HTMLElement>()
 
-    val (rowList, setRowList) = useState(props.cache.block.data)
+    val (rowList, setRowList) = useState(props.cache.blocks.map { it.get() })
     val (currExeAddr, setCurrExeAddr) = useState<String>()
 
     ReactHTML.div {
@@ -100,7 +100,7 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
                 }
 
                 for (rowID in rowList.indices) {
-                    val row = rowList[rowID] as? DMCache.DMRow ?: continue
+                    val row = rowList[rowID] as? FACache.FARow ?: continue
                     val state = row.getRowState()
                     ReactHTML.tr {
                         css{
@@ -161,7 +161,7 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
         }
     }
 
-    useEffect(props.cache.block.data) {
+    useEffect(props.cache.blocks) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Cache Data Changed!")
         }
@@ -172,7 +172,7 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
             console.log("REACT: Exe Event!")
         }
         setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().getRawHexStr())
-        setRowList(props.cache.block.data)
+        setRowList(props.cache.blocks.map { it.get() })
     }
 
 }

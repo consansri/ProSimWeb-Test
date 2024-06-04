@@ -5,13 +5,13 @@ import emulator.archs.riscv64.RV64BinMapper
 import emulator.archs.riscv64.RV64Syntax.InstrType.JAL
 import emulator.archs.riscv64.RV64Syntax.InstrType.JALR
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.DirectMappedCache
+import emulator.kit.common.memory.DMCache
 import emulator.kit.common.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
 class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
 
-    var dataMemory: Memory = DirectMappedCache(memory, console, 57, 3, 4)
+    var dataMemory: Memory = DMCache(memory, console, 57, 3, 4)
         set(value) {
             field = value
             resetMicroArch()

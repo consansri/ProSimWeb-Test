@@ -100,9 +100,9 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole) :
         VALID_DIRTY(0xA0A040)
     }
 
-    data class AccessResult(val hit: Boolean, val valid: Boolean, val dirty: Boolean) {
+    data class AccessResult(val hit: Boolean, val writeBack: Boolean) {
         override fun toString(): String {
-            return "Cache ${if (hit) "HIT" else "MISS"} (valid: $valid, dirty: $dirty)"
+            return "Cache ${if (hit) "HIT" else "MISS"} (needed write back: $writeBack)"
         }
     }
 }
