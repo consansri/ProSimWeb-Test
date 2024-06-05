@@ -2,10 +2,11 @@ package emulator.kit.assembler.lexer
 
 import Settings
 import emulator.kit.assembler.AsmFile
-import emulator.kit.common.RegContainer
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.assembler.lexer.Token.LineLoc
+import emulator.kit.common.RegContainer
 
 /**
  * [Token]s will be created by the [Lexer] and further be used by the Parser to create Nodes out of it.
@@ -234,8 +235,8 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         DIRECTIVE(style = CodeStyle.keyWordDir),
         REGISTER(style = CodeStyle.keyWordReg),
         INSTRNAME(style = CodeStyle.keyWordInstr),
-        L_LABEL_REF(Regex("^[0-9]+[bf]")),
         SYMBOL(Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")),
+        L_LABEL_REF(Regex("^[0-9]+[bf](?![0-9a-f])", RegexOption.IGNORE_CASE)),
         INT_BIN(Regex("^${Regex.escape(Settings.PRESTRING_BINARY)}([01]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
         INT_HEX(Regex("^${Regex.escape(Settings.PRESTRING_HEX)}([0-9a-f]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
         INT_OCT(Regex("^${Regex.escape(Settings.PRESTRING_OCT)}([0-7]+)", RegexOption.IGNORE_CASE), CodeStyle.altInt, isNumberLiteral = true),
