@@ -1,10 +1,16 @@
 package visual
 
+import Settings
 import StyleAttr
+import debug.DebugTools
 import emotion.react.css
+import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.gas.GASParser
+import emulator.kit.assembler.lexer.Severity
+import emulator.kit.assembler.lexer.Token
+import emulator.kit.common.ArchState
 import emulator.kit.optional.FileHandler
 import kotlinx.browser.window
-import web.html.*
 import react.*
 import react.dom.aria.ariaHidden
 import react.dom.html.AutoComplete
@@ -17,17 +23,13 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
-import debug.DebugTools
-import emulator.kit.common.ArchState
-import emulator.kit.assembler.CodeStyle
-import emulator.kit.assembler.gas.GASParser
-import emulator.kit.assembler.lexer.Severity
-import emulator.kit.assembler.lexer.Token
 import visual.StyleExt.get
 import visual.StyleExt.getVCRows
-import web.cssom.ClassName
-import web.timers.*
 import web.cssom.*
+import web.html.*
+import web.timers.Timeout
+import web.timers.clearTimeout
+import web.timers.setTimeout
 import kotlin.time.measureTime
 
 external interface CodeEditorProps : Props {
@@ -100,7 +102,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
             setExeFile(null)
         }
     }
-
 
     /* ----------------- UPDATE VISUAL COMPONENTS ----------------- */
 
@@ -959,18 +960,6 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     useEffect(props.compileEventState) {
         setFiles(props.fileState.component1().getAllFiles())
-    }
-
-    useEffect(state.currentState) {
-        when (state.currentState) {
-            ArchState.State.EXECUTABLE -> {
-                btnSwitchRef.current?.classList?.remove(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
-            }
-
-            else -> {
-                btnSwitchRef.current?.classList?.add(StyleAttr.Main.CLASS_ANIM_DEACTIVATED)
-            }
-        }
     }
 
     useEffect(props.exeEventState) {
