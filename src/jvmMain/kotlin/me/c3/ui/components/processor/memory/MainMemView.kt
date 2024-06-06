@@ -4,12 +4,9 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.MemTableModel
-import me.c3.ui.state.*
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
@@ -91,7 +88,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
             }
             rowAddresses.sort()
 
-            val columnIdentifiers: Array<String> = arrayOf(addrTitle, *Array(entrysInRow) { it.toString() }, asciiTitle)
+            val columnIdentifiers: Array<String> = arrayOf(addrTitle, *Array(entrysInRow) { it.toString(16) }, asciiTitle)
             tableModel.setColumnIdentifiers(columnIdentifiers)
 
             table.resetCellHighlighting()

@@ -53,7 +53,7 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
 
             val offsets = cache.model.offsetCount
 
-            val columnIdentifiers: Array<String> = arrayOf("i", "m", "v", "d", "tag", *Array(offsets) { it.toString() }, asciiTitle)
+            val columnIdentifiers: Array<String> = arrayOf("i", "m", "v", "d", "tag", *Array(offsets) { it.toString(16) }, asciiTitle)
             tableModel.setColumnIdentifiers(columnIdentifiers)
 
             table.resetCellHighlighting()

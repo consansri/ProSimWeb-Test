@@ -87,7 +87,7 @@ val CacheView = FC<CacheViewProps>() { props ->
                                 width = 4.ch
                             }
                             scope = "col"
-                            +"$columnID"
+                            +columnID.toString(16)
                         }
                     }
 
