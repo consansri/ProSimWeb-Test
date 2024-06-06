@@ -13,7 +13,7 @@ import emulator.kit.types.Variable.Value.Hex
  * @property instanceSize The size of each memory instance.
  * @property endianess The endianess of the memory.
  * @property name The name of the memory.
- * @property initBin The initial binary value for the memory.
+ * @property initHex The initial binary value for the memory.
  * @property endianess The endianess of the memory.
  * @property memList The list of memory instances.
  * @property editableValues The list of editable memory values.
@@ -27,9 +27,10 @@ import emulator.kit.types.Variable.Value.Hex
  * @param endianess The endianess of the memory.
  * @param name The name of the memory.
  */
-class MainMemory( override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess, override val name: String = "Memory") : Memory() {
-    override val initBin: String = "0"
+class MainMemory(override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess, override val name: String = "Memory") : Memory() {
+    override val initHex: String = "0"
 
+    val addrIncByOne = Hex("1", addressSize)
     var endianess: Endianess = Endianess.BigEndian
     var memList: MutableList<MemInstance> = mutableListOf()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
@@ -51,25 +52,37 @@ class MainMemory( override val addressSize: Variable.Size, override val instance
 
     override fun globalEndianess(): Endianess = endianess
 
-    override fun load(address: Variable.Value): Variable.Value {
-        val addr: String = address.toHex().getUResized(addressSize).getRawHexStr()
-        val value = memList.firstOrNull {
-            it.address.getRawHexStr() == addr
-        }?.variable?.value
-        return (value ?: getInitialBinary().get())
-    }
-
-    override fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType, readonly: Boolean) {
-        val hexValue = value.toHex()
-        var hexAddress = address.toHex().getUResized(addressSize)
-
-        val bytes = if (endianess == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
-
-        if (DebugTools.KIT_showMemoryInfo) {
-            println("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $bytes to ${hexAddress.getRawHexStr()}")
+    override fun load(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
+        val hexValues = mutableListOf<String>()
+        var currAddr: Variable.Value = address
+        repeat(amount) {
+            val addr: String = currAddr.toHex().getUResized(addressSize).getRawHexStr()
+            val value = memList.firstOrNull {
+                it.address.getRawHexStr() == addr
+            }?.variable?.value ?: getInitialBinary().get()
+            currAddr += Hex("1", addressSize)
+            hexValues += value.toHex().toRawString()
         }
 
-        for (word in bytes) {
+        when (endianess) {
+            Endianess.LittleEndian -> hexValues.reverse()
+            Endianess.BigEndian -> {}
+        }
+
+        return Hex(hexValues.joinToString("") { it })
+    }
+
+    override fun store(address: Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
+        val hexValue = value.toHex()
+        var hexAddress = address.getUResized(addressSize)
+
+        val words = if (endianess == Endianess.LittleEndian) hexValue.splitToArray(instanceSize).reversed() else hexValue.splitToArray(instanceSize).toList()
+
+        if (DebugTools.KIT_showMemoryInfo) {
+            println("saving... ${endianess.name} ${hexValue.getRawHexStr()}, $words to ${hexAddress.getRawHexStr()}")
+        }
+
+        for (word in words) {
             val instance = memList.firstOrNull { it.address.getRawHexStr() == hexAddress.getRawHexStr() }
             if (instance != null) {
                 if (!instance.readonly) {
@@ -81,12 +94,12 @@ class MainMemory( override val addressSize: Variable.Size, override val instance
                     nativeWarn("Memory: Denied writing data (address: ${hexAddress.getHexStr()}, value: ${hexValue.getHexStr()}) in readonly Memory!")
                 }
             } else {
-                val variable = Variable(initBin, instanceSize)
+                val variable = Variable(initHex, instanceSize)
                 variable.setHex(word.toString())
                 val newInstance = MemInstance(hexAddress, variable, mark, readonly, entrysInRow)
                 memList.add(newInstance)
             }
-            hexAddress = (hexAddress + Hex("01", Bit8())).toHex()
+            hexAddress = (hexAddress + addrIncByOne).toHex()
         }
     }
 

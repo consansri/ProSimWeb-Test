@@ -2,8 +2,11 @@ package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Tools.toValue
 import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 /**
  * Represents a cache that extends the functionality of a provided backing memory and utilizes an instance of [IConsole] for logging messages.
@@ -20,81 +23,397 @@ import emulator.kit.types.Variable.Value.Hex
  *
  * The Cache class defines CacheRowState enum to represent the state of a cache row, and AccessResult data class to encapsulate the result of cache access.
  */
-sealed class Cache(protected val backingMemory: Memory, val console: IConsole) : Memory() {
-    override val initBin: String = "0"
-    override val instanceSize: Variable.Size = backingMemory.instanceSize
-    override val addressSize: Variable.Size = backingMemory.addressSize
+sealed class Cache(protected val backingMemory: Memory, val console: IConsole, indexBits: Int, blockCount: Int, offsetBits: Int, replaceAlgo: Model.ReplaceAlgo, final override val initHex: String = "0") : Memory() {
+    final override val instanceSize: Variable.Size = backingMemory.instanceSize
+    final override val addressSize: Variable.Size = backingMemory.addressSize
+
+    val model = Model(backingMemory, console, instanceSize, addressSize, indexBits, offsetBits, blockCount, replaceAlgo, initHex)
 
     override fun globalEndianess(): Endianess = backingMemory.globalEndianess()
-
-    protected abstract fun accessCache(address: Hex): Pair<AccessResult, Variable.Value>
-    protected abstract fun updateCache(address: Hex, bytes: List<Variable.Value>, mark: InstanceType): AccessResult
-
-    protected abstract fun writeBackAll()
-
-    override fun load(address: Variable.Value): Variable.Value {
-        val result = accessCache(address.toHex().getUResized(addressSize))
-        console.log("${result.first} for load($address)")
-        return result.second
+    override fun clear() {
+        model.clear()
     }
 
-    override fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType, readonly: Boolean) {
-        val hexValue = value.toHex()
-        val hexAddress: Variable.Value = address.toHex().getUResized(addressSize)
-
-        val bytes = if (globalEndianess() == Endianess.LittleEndian) hexValue.splitToByteArray().reversed() else hexValue.splitToByteArray().toList()
-
-        val result = updateCache(hexAddress.toHex(), bytes, mark)
-
-        console.log("$result for store($address)")
+    fun writeBackAll() {
+        model.wbAll()
     }
 
-    abstract fun getAllBlocks(): Array<CacheBlock>
+    override fun load(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
+        val offsetIndex = address.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
 
-    open class CacheBlock(rows: Int, val initialRow: CacheRow) {
-        val data: Array<CacheRow> = Array(rows) {
-            initialRow
+        if (offsetIndex + amount > model.offsetCount) {
+            console.warn("Unaligned Cache Access!")
+            return loadUnaligned(address, amount, tracker, endianess)
+        }
+
+        val searchResult = model.search(address.getUResized(addressSize))
+
+        if (searchResult != null) {
+            // HIT
+            tracker.hits++
+
+            val rowData = searchResult.first.read(searchResult.second)
+            if (offsetIndex + amount - 1 >= model.offsetCount) console.warn("Unsupported Exceeding Cache Access!")
+            val hexValues = mutableListOf<String>()
+
+            repeat(amount) {
+                hexValues += rowData[offsetIndex + it].toHex().toRawString()
+            }
+
+            when (endianess) {
+                Endianess.LittleEndian -> hexValues.reverse()
+                Endianess.BigEndian -> {}
+            }
+
+            return Hex(hexValues.joinToString("") { it })
+        }
+
+        val fetchedResult = model.fetch(address)
+
+        // MISS
+        tracker.misses++
+        if (fetchedResult.third) tracker.writeBacks++
+
+        val rowData = fetchedResult.first.read(fetchedResult.second)
+
+        val hexValues = mutableListOf<String>()
+
+        repeat(amount) {
+            hexValues += rowData[offsetIndex + it].toHex().toRawString()
+        }
+
+        when (globalEndianess()) {
+            Endianess.LittleEndian -> hexValues.reverse()
+            Endianess.BigEndian -> {}
+        }
+
+        return Hex(hexValues.joinToString("") { it })
+    }
+
+    override fun store(address: Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
+        val offsetIndex = address.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
+        val values = value.toHex().splitToArray(instanceSize)
+
+        if (offsetIndex + values.size > model.offsetCount) {
+            console.warn("Unaligned Cache Access!")
+            return storeUnaligned(address, value, mark, readonly, tracker, endianess)
+        }
+
+        when (endianess) {
+            Endianess.LittleEndian -> values.reverse()
+            Endianess.BigEndian -> {}
+        }
+
+        val searchResult = model.search(address.getUResized(addressSize))
+
+        if (searchResult != null) {
+            // HIT
+            tracker.hits++
+
+            searchResult.first.write(searchResult.second, offsetIndex, *values.toCacheInstances(address))
+
+            return
+        }
+
+        val fetchedResult = model.fetch(address)
+
+        // MISS
+        tracker.misses++
+        if (fetchedResult.third) tracker.writeBacks++
+
+        fetchedResult.first.write(fetchedResult.second, fetchedResult.second, *values.toCacheInstances(address))
+    }
+
+    private fun loadUnaligned(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
+        val ranges = mutableListOf<Pair<Hex, Int>>()
+        var remaining = amount
+        var currAddress: Variable.Value = address
+
+        while (remaining > 0) {
+            val offsetIndex = currAddress.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
+            val lastIndex = (remaining - 1) + offsetIndex
+            val currAmount = if (lastIndex >= model.offsetCount) {
+                model.offsetCount - offsetIndex
+            } else {
+                lastIndex - offsetIndex
+            }
+            ranges += currAddress.toHex() to currAmount
+            remaining -= currAmount
+            currAddress += currAmount.toValue(addressSize)
+        }
+
+        val values = mutableListOf<Hex>()
+
+        ranges.forEach {
+            values.addAll(load(it.first, it.second, tracker, Endianess.BigEndian).splitToArray(instanceSize))
+        }
+
+        when (endianess) {
+            Endianess.LittleEndian -> values.reverse()
+            Endianess.BigEndian -> {}
+        }
+        return Hex(values.joinToString("") { it.toRawString() })
+    }
+
+    private fun storeUnaligned(address: Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
+        val ranges = mutableListOf<Pair<Hex, Array<Hex>>>()
+
+        val remaining = value.toHex().splitToArray(instanceSize).toMutableList()
+
+        when (endianess) {
+            Endianess.LittleEndian -> remaining.reverse()
+            Endianess.BigEndian -> {}
+        }
+
+        var currAddress: Variable.Value = address
+
+        while (remaining.isNotEmpty()) {
+            val offsetIndex = currAddress.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
+            val lastIndex = (remaining.size - 1) + offsetIndex
+            val currAmount = if (lastIndex >= model.offsetCount) {
+                model.offsetCount - offsetIndex
+            } else {
+                lastIndex - offsetIndex
+            }
+            val currValues = remaining.subList(0, currAmount)
+            ranges += currAddress.toHex() to currValues.toTypedArray()
+            remaining -= currValues
+            currAddress += currAmount.toValue(addressSize)
+        }
+
+        ranges.forEach {
+            val joinedValue = Hex(it.second.joinToString("") { it.toRawString() })
+            store(it.first, joinedValue, mark, readonly, tracker, Endianess.BigEndian)
+        }
+    }
+
+    companion object {
+        private fun Array<Hex>.toCacheInstances(address: Hex): Array<CacheInstance> {
+            return this.mapIndexed { index, hex -> CacheInstance(hex, (address + index.toValue(address.size)).toHex()) }.toTypedArray()
+        }
+    }
+
+    class Model(val backingMemory: Memory, val console: IConsole, val instanceSize: Variable.Size, val addrSize: Variable.Size, val indexBits: Int, val offsetBits: Int, val blockCount: Int, val replaceAlgo: ReplaceAlgo, val initHex: String = "0") {
+
+        val tagBits = addrSize.bitWidth - indexBits - offsetBits
+
+        val indexCount = 2.0.pow(indexBits).roundToInt()
+        val offsetCount = 2.0.pow(offsetBits).roundToInt()
+
+        val rows = Array<CacheRow>(indexCount) {
+            CacheRow(if (indexBits > 0) it.toString(2).padStart(indexBits, '0') else "")
         }
 
         fun clear() {
-            for (i in 0..<data.size) {
-                data[i] = initialRow
+            rows.forEach {
+                it.clear()
             }
         }
-    }
 
-    open class CacheRow(offsets: Int, instanceSize: Variable.Size, var valid: Boolean) {
-        var dirty: Boolean = false
-        val data: Array<CacheInstance> = Array(offsets) {
-            CacheInstance(Bin("0", instanceSize))
+        fun search(address: Hex): Pair<CacheRow, Int>? {
+            val addrBinStr = address.toBin().toRawString()
+            val tagBinStr = addrBinStr.take(tagBits)
+            val indexBinStr = addrBinStr.substring(tagBits, tagBits + indexBits)
+            rows.forEach {
+                val index = it.compare(tagBinStr, indexBinStr)
+                if (index != null) return it to index
+            }
+            return null
         }
 
-        fun update(instance: CacheInstance, index: Int) {
-            data[index] = instance
-            dirty = true
+        /**
+         * @return [CacheRow], [blockIndex], [neededWriteBack] (if block was valid and dirty)
+         */
+        fun fetch(address: Hex): Triple<CacheRow, Int, Boolean> {
+            val addrBinStr = address.toBin().toRawString()
+            val tagBinStr = addrBinStr.take(tagBits)
+            val indexBinStr = addrBinStr.substring(tagBits, tagBits + indexBits)
+            val row = rows.firstOrNull {
+                it.rowIndexBinStr == indexBinStr
+            } ?: throw MemoryException("Invalid row index: ${indexBinStr.toIntOrNull(2)}.")
+            val (blockIndex, wroteBack) = row.fetchBlock(tagBinStr)
+            return Triple(row, blockIndex, wroteBack)
         }
 
-        fun getRowState(): CacheRowState {
-            if (!valid) return CacheRowState.INVALID
-            if (!dirty) return CacheRowState.VALID_CLEAN
-            return CacheRowState.VALID_DIRTY
+        fun wbAll() {
+            rows.forEach { row ->
+                row.blocks.forEach {
+                    it.writeBackIfDirty(row.rowIndexBinStr)
+                }
+            }
         }
 
-        fun writeBack(rowAddress: Hex, backingMemory: Memory) {
-            if (valid) {
-                backingMemory.storeArray(rowAddress, *data.map { it.value }.toTypedArray(), mark = InstanceType.DATA)
+        inner class CacheRow(val rowIndexBinStr: String) {
+
+            val decider = when (replaceAlgo) {
+                ReplaceAlgo.FIFO -> Decider.FIFO(blockCount)
+                ReplaceAlgo.LRU -> Decider.LRU(blockCount)
+                ReplaceAlgo.RANDOM -> Decider.RANDOM(blockCount)
+            }
+
+            val blocks: Array<CacheBlock> = Array(blockCount) {
+                CacheBlock(Array(offsetCount) {
+                    CacheInstance(Hex(initHex, instanceSize), null)
+                })
+            }
+
+            /**
+             * @return block index on (Hit) and null on (Miss)
+             */
+            fun compare(tagBinStr: String, rowIndexBinStr: String): Int? {
+                if (this.rowIndexBinStr != rowIndexBinStr) return null
+                blocks.forEachIndexed { blockIndex, cacheBlock ->
+                    if (cacheBlock.compare(tagBinStr)) return blockIndex
+                }
+                return null
+            }
+
+            fun read(blockIndex: Int): Array<Variable.Value> {
+                decider.read(blockIndex)
+                return blocks[blockIndex].read()
+            }
+
+            fun write(blockIndex: Int, offsetIndex: Int, vararg values: CacheInstance) {
+                decider.write(blockIndex)
+                values.forEachIndexed { i, value ->
+                    if (offsetIndex + i < offsetCount) {
+                        blocks[blockIndex].write(offsetIndex + i, value)
+                    } else {
+                        console.warn("Invalid offset for cache write! (offset: ${offsetIndex + i})")
+                    }
+                }
+            }
+
+            /**
+             * @return Pair of [blockIndex] and [neededWriteBack] -> true (wrote back old block) or false (write back not needed)
+             */
+            fun fetchBlock(tagBinStr: String): Pair<Int, Boolean> {
+                val blockIndex = decider.indexToReplace()
+                val addr = Bin((tagBinStr + rowIndexBinStr).padEnd(addrSize.bitWidth, '0'), addrSize).toHex()
+                val neededWriteBack = blocks[blockIndex].writeBackIfDirty(rowIndexBinStr)
+                val values = backingMemory.loadArray(addr, offsetCount).toCacheInstances(addr)
+                blocks[blockIndex] = CacheBlock(values, Bin(tagBinStr))
+                return blockIndex to neededWriteBack
+            }
+
+            fun clear() {
+                for (i in blocks.indices) {
+                    blocks[i] = CacheBlock(Array(offsetCount) {
+                        CacheInstance(Hex(initHex, instanceSize), null)
+                    })
+                }
+                decider.reset()
+            }
+        }
+
+        inner class CacheBlock(
+            val data: Array<CacheInstance>,
+            var tag: Bin? = null
+        ) {
+            var dirty: Boolean = false
+            val valid: Boolean
+                get() {
+                    return tag != null
+                }
+
+            fun compare(tagBinStr: String): Boolean {
+                return tag?.toRawString() == tagBinStr
+            }
+
+            fun read(): Array<Variable.Value> = data.map { it.value }.toTypedArray()
+
+            fun write(offsetIndex: Int, value: CacheInstance) {
+                data[offsetIndex] = value
+                dirty = true
+            }
+
+            /**
+             * @return returns true if the block needed a write back!
+             */
+            fun writeBackIfDirty(rowIndexBinStr: String): Boolean {
+                val tag = tag
+                if (!dirty || tag == null) return false
+                val rowAddr = Bin((tag.toRawString() + rowIndexBinStr).padEnd(addrSize.bitWidth, '0'), addrSize).toHex()
+                backingMemory.storeArray(rowAddr, *data.map { it.value }.toTypedArray(), mark = InstanceType.DATA)
                 dirty = false
+                return true
+            }
+
+            fun getState(): CacheBlockState {
+                if (tag == null) return CacheBlockState.INVALID
+                return if (dirty) CacheBlockState.VALID_DIRTY else CacheBlockState.VALID_CLEAN
             }
         }
-    }
 
-    data class CacheInstance(val value: Variable.Value, val mark: InstanceType = InstanceType.NOTUSED, val address: Hex? = null) {
-        override fun toString(): String {
-            return value.toHex().toRawString()
+        sealed class Decider(val size: Int) {
+            val range = 0..<size
+
+            abstract fun indexToReplace(): Int
+            abstract fun read(index: Int)
+            abstract fun write(index: Int)
+            abstract fun reset()
+
+            class FIFO(size: Int) : Decider(size) {
+                private var currentIndex = 0
+                override fun indexToReplace(): Int {
+                    return currentIndex
+                }
+
+                override fun read(index: Int) {}
+
+                override fun write(index: Int) {
+                    currentIndex = (index + 1) % size
+                }
+
+                override fun reset() {
+                    currentIndex = 0
+                }
+            }
+
+            class LRU(size: Int) : Decider(size) {
+                private val accessOrder: MutableList<Int> = MutableList<Int>(size) { it }
+                override fun indexToReplace(): Int {
+                    return accessOrder.first()
+                }
+
+                override fun read(index: Int) {
+                    accessOrder.remove(index)
+                    accessOrder.add(index)
+                }
+
+                override fun write(index: Int) {
+                    read(index)
+                }
+
+                override fun reset() {
+                    accessOrder.sort()
+                }
+            }
+
+            class RANDOM(size: Int) : Decider(size) {
+                override fun indexToReplace(): Int = range.random()
+
+                override fun read(index: Int) {}
+
+                override fun write(index: Int) {}
+                override fun reset() {}
+            }
+        }
+
+        enum class ReplaceAlgo {
+            FIFO,
+            LRU,
+            RANDOM
         }
     }
 
-    enum class CacheRowState(val light: Int, val dark: Int? = null) {
+    data class CacheInstance(val value: Hex, val address: Hex?) {
+        override fun toString(): String {
+            return value.toRawString()
+        }
+    }
+
+    enum class CacheBlockState(val light: Int, val dark: Int? = null) {
         INVALID(0x777777),
         VALID_CLEAN(0x222222, 0xA0A0A0),
         VALID_DIRTY(0xA0A040)

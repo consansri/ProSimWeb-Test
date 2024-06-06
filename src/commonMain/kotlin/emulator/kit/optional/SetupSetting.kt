@@ -1,7 +1,6 @@
 package emulator.kit.optional
 
 import emulator.kit.Architecture
-import emulator.kit.nativeLog
 import kotlin.enums.EnumEntries
 
 sealed class SetupSetting<T>(val name: String, val init: T, private val parseValueFromString: (String) -> T, val onChange: (Architecture, SetupSetting<T>) -> Unit) {
@@ -19,8 +18,6 @@ sealed class SetupSetting<T>(val name: String, val init: T, private val parseVal
     fun valueToString(): String = value.toString()
 
     fun loadFromString(arch: Architecture, string: String) {
-        val parsed = parseValueFromString(string)
-        nativeLog("SetupSetting: Parsed $parsed.")
         set(arch, parseValueFromString(string))
     }
 

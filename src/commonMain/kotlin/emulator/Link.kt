@@ -20,7 +20,7 @@ enum class Link(private val arch: Architecture) {
     IKRMINI(ArchIKRMini());
 
     fun load(): Architecture{
-        nativeLog("Loading Arch")
+        nativeLog("KIT: Loading $name ...")
         arch.resetMicroArch()
         return arch
     }

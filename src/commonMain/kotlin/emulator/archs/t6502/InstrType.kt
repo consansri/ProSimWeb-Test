@@ -1,137 +1,138 @@
 package emulator.archs.t6502
 
-import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
 import emulator.archs.t6502.AModes.*
+import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.types.Variable.Size.Bit1
+import emulator.kit.types.Variable.Size.Bit9
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 
-enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val description: String): InstrTypeInterface {
+enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): InstrTypeInterface {
     // load, store, interregister transfer
-    LDA(mapOf(ABS to Variable.Value.Hex("AD", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("BD", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("B9", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("A9", T6502.BYTE_SIZE), ZP to Variable.Value.Hex(
+    LDA(mapOf(ABS to Hex("AD", T6502.BYTE_SIZE), ABS_X to Hex("BD", T6502.BYTE_SIZE), ABS_Y to Hex("B9", T6502.BYTE_SIZE), IMM to Hex("A9", T6502.BYTE_SIZE), ZP to Hex(
         "A5",
         T6502.BYTE_SIZE
-    ), ZP_X_IND to Variable.Value.Hex("A1", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("B5", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("B1", T6502.BYTE_SIZE)
+    ), ZP_X_IND to Hex("A1", T6502.BYTE_SIZE), ZP_X to Hex("B5", T6502.BYTE_SIZE), ZPIND_Y to Hex("B1", T6502.BYTE_SIZE)
     ), "load accumulator"),
-    LDX(mapOf(ABS to Variable.Value.Hex("AE", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("BE", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("A2", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("A6", T6502.BYTE_SIZE), ZP_Y to Variable.Value.Hex("B6", T6502.BYTE_SIZE)), "load X"),
-    LDY(mapOf(ABS to Variable.Value.Hex("AC", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("BC", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("A0", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("A4", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("B4", T6502.BYTE_SIZE)), "load Y"),
-    STA(mapOf(ABS to Variable.Value.Hex("8D", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("9D", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("99", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("85", T6502.BYTE_SIZE), ZP_X_IND to Variable.Value.Hex(
+    LDX(mapOf(ABS to Hex("AE", T6502.BYTE_SIZE), ABS_Y to Hex("BE", T6502.BYTE_SIZE), IMM to Hex("A2", T6502.BYTE_SIZE), ZP to Hex("A6", T6502.BYTE_SIZE), ZP_Y to Hex("B6", T6502.BYTE_SIZE)), "load X"),
+    LDY(mapOf(ABS to Hex("AC", T6502.BYTE_SIZE), ABS_X to Hex("BC", T6502.BYTE_SIZE), IMM to Hex("A0", T6502.BYTE_SIZE), ZP to Hex("A4", T6502.BYTE_SIZE), ZP_X to Hex("B4", T6502.BYTE_SIZE)), "load Y"),
+    STA(mapOf(ABS to Hex("8D", T6502.BYTE_SIZE), ABS_X to Hex("9D", T6502.BYTE_SIZE), ABS_Y to Hex("99", T6502.BYTE_SIZE), ZP to Hex("85", T6502.BYTE_SIZE), ZP_X_IND to Hex(
         "81",
         T6502.BYTE_SIZE
-    ), ZP_X to Variable.Value.Hex("95", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("91", T6502.BYTE_SIZE)
+    ), ZP_X to Hex("95", T6502.BYTE_SIZE), ZPIND_Y to Hex("91", T6502.BYTE_SIZE)
     ), "store accumulator"),
-    STX(mapOf(ABS to Variable.Value.Hex("8E", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("86", T6502.BYTE_SIZE), ZP_Y to Variable.Value.Hex("96", T6502.BYTE_SIZE)), "store X"),
-    STY(mapOf(ABS to Variable.Value.Hex("8C", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("84", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("94", T6502.BYTE_SIZE)), "store Y"),
-    TAX(mapOf(IMPLIED to Variable.Value.Hex("AA", T6502.BYTE_SIZE)), "transfer accumulator to X"),
-    TAY(mapOf(IMPLIED to Variable.Value.Hex("A8", T6502.BYTE_SIZE)), "transfer accumulator to Y"),
-    TSX(mapOf(IMPLIED to Variable.Value.Hex("BA", T6502.BYTE_SIZE)), "transfer stack pointer to X"),
-    TXA(mapOf(IMPLIED to Variable.Value.Hex("8A", T6502.BYTE_SIZE)), "transfer X to accumulator"),
-    TXS(mapOf(IMPLIED to Variable.Value.Hex("9A", T6502.BYTE_SIZE)), "transfer X to stack pointer"),
-    TYA(mapOf(IMPLIED to Variable.Value.Hex("98", T6502.BYTE_SIZE)), "transfer Y to accumulator"),
+    STX(mapOf(ABS to Hex("8E", T6502.BYTE_SIZE), ZP to Hex("86", T6502.BYTE_SIZE), ZP_Y to Hex("96", T6502.BYTE_SIZE)), "store X"),
+    STY(mapOf(ABS to Hex("8C", T6502.BYTE_SIZE), ZP to Hex("84", T6502.BYTE_SIZE), ZP_X to Hex("94", T6502.BYTE_SIZE)), "store Y"),
+    TAX(mapOf(IMPLIED to Hex("AA", T6502.BYTE_SIZE)), "transfer accumulator to X"),
+    TAY(mapOf(IMPLIED to Hex("A8", T6502.BYTE_SIZE)), "transfer accumulator to Y"),
+    TSX(mapOf(IMPLIED to Hex("BA", T6502.BYTE_SIZE)), "transfer stack pointer to X"),
+    TXA(mapOf(IMPLIED to Hex("8A", T6502.BYTE_SIZE)), "transfer X to accumulator"),
+    TXS(mapOf(IMPLIED to Hex("9A", T6502.BYTE_SIZE)), "transfer X to stack pointer"),
+    TYA(mapOf(IMPLIED to Hex("98", T6502.BYTE_SIZE)), "transfer Y to accumulator"),
 
     // stack
-    PHA(mapOf(IMPLIED to Variable.Value.Hex("48", T6502.BYTE_SIZE)), "push accumulator"),
-    PHP(mapOf(IMPLIED to Variable.Value.Hex("08", T6502.BYTE_SIZE)), "push processor status (SR)"),
-    PLA(mapOf(IMPLIED to Variable.Value.Hex("68", T6502.BYTE_SIZE)), "pull accumulator"),
-    PLP(mapOf(IMPLIED to Variable.Value.Hex("28", T6502.BYTE_SIZE)), "pull processor status (SR)"),
+    PHA(mapOf(IMPLIED to Hex("48", T6502.BYTE_SIZE)), "push accumulator"),
+    PHP(mapOf(IMPLIED to Hex("08", T6502.BYTE_SIZE)), "push processor status (SR)"),
+    PLA(mapOf(IMPLIED to Hex("68", T6502.BYTE_SIZE)), "pull accumulator"),
+    PLP(mapOf(IMPLIED to Hex("28", T6502.BYTE_SIZE)), "pull processor status (SR)"),
 
     // decrements, increments
-    DEC(mapOf(ABS to Variable.Value.Hex("CE", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("DE", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("C6", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("D6", T6502.BYTE_SIZE)), "decrement"),
-    DEX(mapOf(IMPLIED to Variable.Value.Hex("CA", T6502.BYTE_SIZE)), "decrement X"),
-    DEY(mapOf(IMPLIED to Variable.Value.Hex("88", T6502.BYTE_SIZE)), "decrement Y"),
-    INC(mapOf(ABS to Variable.Value.Hex("EE", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("FE", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("E6", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("F6", T6502.BYTE_SIZE)), "increment"),
-    INX(mapOf(IMPLIED to Variable.Value.Hex("E8", T6502.BYTE_SIZE)), "increment X"),
-    INY(mapOf(IMPLIED to Variable.Value.Hex("C8", T6502.BYTE_SIZE)), "increment Y"),
+    DEC(mapOf(ABS to Hex("CE", T6502.BYTE_SIZE), ABS_X to Hex("DE", T6502.BYTE_SIZE), ZP to Hex("C6", T6502.BYTE_SIZE), ZP_X to Hex("D6", T6502.BYTE_SIZE)), "decrement"),
+    DEX(mapOf(IMPLIED to Hex("CA", T6502.BYTE_SIZE)), "decrement X"),
+    DEY(mapOf(IMPLIED to Hex("88", T6502.BYTE_SIZE)), "decrement Y"),
+    INC(mapOf(ABS to Hex("EE", T6502.BYTE_SIZE), ABS_X to Hex("FE", T6502.BYTE_SIZE), ZP to Hex("E6", T6502.BYTE_SIZE), ZP_X to Hex("F6", T6502.BYTE_SIZE)), "increment"),
+    INX(mapOf(IMPLIED to Hex("E8", T6502.BYTE_SIZE)), "increment X"),
+    INY(mapOf(IMPLIED to Hex("C8", T6502.BYTE_SIZE)), "increment Y"),
 
     // arithmetic operations
     /**
      *
      */
-    ADC(mapOf(ABS to Variable.Value.Hex("6D", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("7D", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("79", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("69", T6502.BYTE_SIZE), ZP to Variable.Value.Hex(
+    ADC(mapOf(ABS to Hex("6D", T6502.BYTE_SIZE), ABS_X to Hex("7D", T6502.BYTE_SIZE), ABS_Y to Hex("79", T6502.BYTE_SIZE), IMM to Hex("69", T6502.BYTE_SIZE), ZP to Hex(
         "65",
         T6502.BYTE_SIZE
-    ), ZP_X_IND to Variable.Value.Hex("61", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("75", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("71", T6502.BYTE_SIZE)
+    ), ZP_X_IND to Hex("61", T6502.BYTE_SIZE), ZP_X to Hex("75", T6502.BYTE_SIZE), ZPIND_Y to Hex("71", T6502.BYTE_SIZE)
     ), "add with carry"),
 
     /**
      *
      */
-    SBC(mapOf(ABS to Variable.Value.Hex("ED", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("FD", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("F9", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("E9", T6502.BYTE_SIZE), ZP to Variable.Value.Hex(
+    SBC(mapOf(ABS to Hex("ED", T6502.BYTE_SIZE), ABS_X to Hex("FD", T6502.BYTE_SIZE), ABS_Y to Hex("F9", T6502.BYTE_SIZE), IMM to Hex("E9", T6502.BYTE_SIZE), ZP to Hex(
         "E5",
         T6502.BYTE_SIZE
-    ), ZP_X_IND to Variable.Value.Hex("E1", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("F5", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("F1", T6502.BYTE_SIZE)
+    ), ZP_X_IND to Hex("E1", T6502.BYTE_SIZE), ZP_X to Hex("F5", T6502.BYTE_SIZE), ZPIND_Y to Hex("F1", T6502.BYTE_SIZE)
     ), "subtract with carry"),
 
     // logical operations
-    AND(mapOf(ABS to Variable.Value.Hex("2D", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("3D", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("39", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("29", T6502.BYTE_SIZE), ZP to Variable.Value.Hex(
+    AND(mapOf(ABS to Hex("2D", T6502.BYTE_SIZE), ABS_X to Hex("3D", T6502.BYTE_SIZE), ABS_Y to Hex("39", T6502.BYTE_SIZE), IMM to Hex("29", T6502.BYTE_SIZE), ZP to Hex(
         "25",
         T6502.BYTE_SIZE
-    ), ZP_X_IND to Variable.Value.Hex("21", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("35", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("31", T6502.BYTE_SIZE)
+    ), ZP_X_IND to Hex("21", T6502.BYTE_SIZE), ZP_X to Hex("35", T6502.BYTE_SIZE), ZPIND_Y to Hex("31", T6502.BYTE_SIZE)
     ), "and (with accumulator)"),
-    EOR(mapOf(ABS to Variable.Value.Hex("0D", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("1D", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("19", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("09", T6502.BYTE_SIZE), ZP to Variable.Value.Hex(
+    EOR(mapOf(ABS to Hex("0D", T6502.BYTE_SIZE), ABS_X to Hex("1D", T6502.BYTE_SIZE), ABS_Y to Hex("19", T6502.BYTE_SIZE), IMM to Hex("09", T6502.BYTE_SIZE), ZP to Hex(
         "05",
         T6502.BYTE_SIZE
-    ), ZP_X_IND to Variable.Value.Hex("01", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("15", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("11", T6502.BYTE_SIZE)
+    ), ZP_X_IND to Hex("01", T6502.BYTE_SIZE), ZP_X to Hex("15", T6502.BYTE_SIZE), ZPIND_Y to Hex("11", T6502.BYTE_SIZE)
     ), "exclusive or (with accumulator)"),
-    ORA(mapOf(ABS to Variable.Value.Hex("4D", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("5D", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("59", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("49", T6502.BYTE_SIZE), ZP to Variable.Value.Hex(
+    ORA(mapOf(ABS to Hex("4D", T6502.BYTE_SIZE), ABS_X to Hex("5D", T6502.BYTE_SIZE), ABS_Y to Hex("59", T6502.BYTE_SIZE), IMM to Hex("49", T6502.BYTE_SIZE), ZP to Hex(
         "45",
         T6502.BYTE_SIZE
-    ), ZP_X_IND to Variable.Value.Hex("41", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("55", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("51", T6502.BYTE_SIZE)
+    ), ZP_X_IND to Hex("41", T6502.BYTE_SIZE), ZP_X to Hex("55", T6502.BYTE_SIZE), ZPIND_Y to Hex("51", T6502.BYTE_SIZE)
     ), "or (with accumulator)"),
 
     // shift & rotate
-    ASL(mapOf(ABS to Variable.Value.Hex("0E", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("1E", T6502.BYTE_SIZE), ACCUMULATOR to Variable.Value.Hex("0A", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("06", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("16", T6502.BYTE_SIZE)), "arithmetic shift left"),
-    LSR(mapOf(ABS to Variable.Value.Hex("4E", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("5E", T6502.BYTE_SIZE), ACCUMULATOR to Variable.Value.Hex("4A", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("46", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("56", T6502.BYTE_SIZE)), "logical shift right"),
-    ROL(mapOf(ABS to Variable.Value.Hex("2E", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("3E", T6502.BYTE_SIZE), ACCUMULATOR to Variable.Value.Hex("2A", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("26", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("36", T6502.BYTE_SIZE)), "rotate left"),
-    ROR(mapOf(ABS to Variable.Value.Hex("6E", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("7E", T6502.BYTE_SIZE), ACCUMULATOR to Variable.Value.Hex("6A", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("66", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("76", T6502.BYTE_SIZE)), "rotate right"),
+    ASL(mapOf(ABS to Hex("0E", T6502.BYTE_SIZE), ABS_X to Hex("1E", T6502.BYTE_SIZE), ACCUMULATOR to Hex("0A", T6502.BYTE_SIZE), ZP to Hex("06", T6502.BYTE_SIZE), ZP_X to Hex("16", T6502.BYTE_SIZE)), "arithmetic shift left"),
+    LSR(mapOf(ABS to Hex("4E", T6502.BYTE_SIZE), ABS_X to Hex("5E", T6502.BYTE_SIZE), ACCUMULATOR to Hex("4A", T6502.BYTE_SIZE), ZP to Hex("46", T6502.BYTE_SIZE), ZP_X to Hex("56", T6502.BYTE_SIZE)), "logical shift right"),
+    ROL(mapOf(ABS to Hex("2E", T6502.BYTE_SIZE), ABS_X to Hex("3E", T6502.BYTE_SIZE), ACCUMULATOR to Hex("2A", T6502.BYTE_SIZE), ZP to Hex("26", T6502.BYTE_SIZE), ZP_X to Hex("36", T6502.BYTE_SIZE)), "rotate left"),
+    ROR(mapOf(ABS to Hex("6E", T6502.BYTE_SIZE), ABS_X to Hex("7E", T6502.BYTE_SIZE), ACCUMULATOR to Hex("6A", T6502.BYTE_SIZE), ZP to Hex("66", T6502.BYTE_SIZE), ZP_X to Hex("76", T6502.BYTE_SIZE)), "rotate right"),
 
     // flag
-    CLC(mapOf(IMPLIED to Variable.Value.Hex("18", T6502.BYTE_SIZE)), "clear carry"),
-    CLD(mapOf(IMPLIED to Variable.Value.Hex("D8", T6502.BYTE_SIZE)), "clear decimal"),
-    CLI(mapOf(IMPLIED to Variable.Value.Hex("58", T6502.BYTE_SIZE)), "clear interrupt disable"),
-    CLV(mapOf(IMPLIED to Variable.Value.Hex("B8", T6502.BYTE_SIZE)), "clear overflow"),
-    SEC(mapOf(IMPLIED to Variable.Value.Hex("38", T6502.BYTE_SIZE)), "set carry"),
-    SED(mapOf(IMPLIED to Variable.Value.Hex("F8", T6502.BYTE_SIZE)), "set decimal"),
-    SEI(mapOf(IMPLIED to Variable.Value.Hex("78", T6502.BYTE_SIZE)), "set interrupt disable"),
+    CLC(mapOf(IMPLIED to Hex("18", T6502.BYTE_SIZE)), "clear carry"),
+    CLD(mapOf(IMPLIED to Hex("D8", T6502.BYTE_SIZE)), "clear decimal"),
+    CLI(mapOf(IMPLIED to Hex("58", T6502.BYTE_SIZE)), "clear interrupt disable"),
+    CLV(mapOf(IMPLIED to Hex("B8", T6502.BYTE_SIZE)), "clear overflow"),
+    SEC(mapOf(IMPLIED to Hex("38", T6502.BYTE_SIZE)), "set carry"),
+    SED(mapOf(IMPLIED to Hex("F8", T6502.BYTE_SIZE)), "set decimal"),
+    SEI(mapOf(IMPLIED to Hex("78", T6502.BYTE_SIZE)), "set interrupt disable"),
 
     // comparison
-    CMP(mapOf(ABS to Variable.Value.Hex("CD", T6502.BYTE_SIZE), ABS_X to Variable.Value.Hex("DD", T6502.BYTE_SIZE), ABS_Y to Variable.Value.Hex("D9", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("C9", T6502.BYTE_SIZE), ZP to Variable.Value.Hex(
+    CMP(mapOf(ABS to Hex("CD", T6502.BYTE_SIZE), ABS_X to Hex("DD", T6502.BYTE_SIZE), ABS_Y to Hex("D9", T6502.BYTE_SIZE), IMM to Hex("C9", T6502.BYTE_SIZE), ZP to Hex(
         "C5",
         T6502.BYTE_SIZE
-    ), ZP_X_IND to Variable.Value.Hex("C1", T6502.BYTE_SIZE), ZP_X to Variable.Value.Hex("D5", T6502.BYTE_SIZE), ZPIND_Y to Variable.Value.Hex("D1", T6502.BYTE_SIZE)
+    ), ZP_X_IND to Hex("C1", T6502.BYTE_SIZE), ZP_X to Hex("D5", T6502.BYTE_SIZE), ZPIND_Y to Hex("D1", T6502.BYTE_SIZE)
     ), "compare (with accumulator)"),
-    CPX(mapOf(ABS to Variable.Value.Hex("EC", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("E0", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("E4", T6502.BYTE_SIZE)), "compare with X"),
-    CPY(mapOf(ABS to Variable.Value.Hex("CC", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("C0", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("C4", T6502.BYTE_SIZE)), "compare with Y"),
+    CPX(mapOf(ABS to Hex("EC", T6502.BYTE_SIZE), IMM to Hex("E0", T6502.BYTE_SIZE), ZP to Hex("E4", T6502.BYTE_SIZE)), "compare with X"),
+    CPY(mapOf(ABS to Hex("CC", T6502.BYTE_SIZE), IMM to Hex("C0", T6502.BYTE_SIZE), ZP to Hex("C4", T6502.BYTE_SIZE)), "compare with Y"),
 
     // conditional branches
-    BCC(mapOf(REL to Variable.Value.Hex("90", T6502.BYTE_SIZE)), "branch on carry clear"),
-    BCS(mapOf(REL to Variable.Value.Hex("B0", T6502.BYTE_SIZE)), "branch on carry set"),
-    BEQ(mapOf(REL to Variable.Value.Hex("F0", T6502.BYTE_SIZE)), "branch on equal (zero set)"),
-    BMI(mapOf(REL to Variable.Value.Hex("30", T6502.BYTE_SIZE)), "branch on minus (negative set)"),
-    BNE(mapOf(REL to Variable.Value.Hex("D0", T6502.BYTE_SIZE)), "branch on not equal (zero clear)"),
-    BPL(mapOf(REL to Variable.Value.Hex("10", T6502.BYTE_SIZE)), "branch on plus (negative clear)"),
-    BVC(mapOf(REL to Variable.Value.Hex("50", T6502.BYTE_SIZE)), "branch on overflow clear"),
-    BVS(mapOf(REL to Variable.Value.Hex("70", T6502.BYTE_SIZE)), "branch on overflow set"),
+    BCC(mapOf(REL to Hex("90", T6502.BYTE_SIZE)), "branch on carry clear"),
+    BCS(mapOf(REL to Hex("B0", T6502.BYTE_SIZE)), "branch on carry set"),
+    BEQ(mapOf(REL to Hex("F0", T6502.BYTE_SIZE)), "branch on equal (zero set)"),
+    BMI(mapOf(REL to Hex("30", T6502.BYTE_SIZE)), "branch on minus (negative set)"),
+    BNE(mapOf(REL to Hex("D0", T6502.BYTE_SIZE)), "branch on not equal (zero clear)"),
+    BPL(mapOf(REL to Hex("10", T6502.BYTE_SIZE)), "branch on plus (negative clear)"),
+    BVC(mapOf(REL to Hex("50", T6502.BYTE_SIZE)), "branch on overflow clear"),
+    BVS(mapOf(REL to Hex("70", T6502.BYTE_SIZE)), "branch on overflow set"),
 
     // jumps, subroutines
-    JMP(mapOf(ABS to Variable.Value.Hex("4C", T6502.BYTE_SIZE), IND to Variable.Value.Hex("6C", T6502.BYTE_SIZE)), "jump"),
-    JSR(mapOf(ABS to Variable.Value.Hex("20", T6502.BYTE_SIZE)), "jump subroutine"),
-    RTS(mapOf(IMPLIED to Variable.Value.Hex("60", T6502.BYTE_SIZE)), "return from subroutine"),
+    JMP(mapOf(ABS to Hex("4C", T6502.BYTE_SIZE), IND to Hex("6C", T6502.BYTE_SIZE)), "jump"),
+    JSR(mapOf(ABS to Hex("20", T6502.BYTE_SIZE)), "jump subroutine"),
+    RTS(mapOf(IMPLIED to Hex("60", T6502.BYTE_SIZE)), "return from subroutine"),
 
     // interrupts
-    BRK(mapOf(IMPLIED to Variable.Value.Hex("00", T6502.BYTE_SIZE)), "break / interrupt"),
-    RTI(mapOf(IMPLIED to Variable.Value.Hex("40", T6502.BYTE_SIZE)), "return from interrupt"),
+    BRK(mapOf(IMPLIED to Hex("00", T6502.BYTE_SIZE)), "break / interrupt"),
+    RTI(mapOf(IMPLIED to Hex("40", T6502.BYTE_SIZE)), "return from interrupt"),
 
     // other
-    BIT(mapOf(ABS to Variable.Value.Hex("2C", T6502.BYTE_SIZE), IMM to Variable.Value.Hex("89", T6502.BYTE_SIZE), ZP to Variable.Value.Hex("24", T6502.BYTE_SIZE)), "bit test"),
-    NOP(mapOf(IMPLIED to Variable.Value.Hex("EA", T6502.BYTE_SIZE)), "no operation");
+    BIT(mapOf(ABS to Hex("2C", T6502.BYTE_SIZE), IMM to Hex("89", T6502.BYTE_SIZE), ZP to Hex("24", T6502.BYTE_SIZE)), "bit test"),
+    NOP(mapOf(IMPLIED to Hex("EA", T6502.BYTE_SIZE)), "no operation");
 
     override fun getDetectionName(): String = this.name
 
-    fun execute(arch: emulator.kit.Architecture, amode: AModes, threeBytes: Array<Variable.Value.Bin>) {
+    fun execute(arch: emulator.kit.Architecture, amode: AModes, threeBytes: Array<Bin>) {
 
         val smallVal = threeBytes.drop(1).first().toHex()
-        val bigVal = Variable.Value.Hex(threeBytes.drop(1).joinToString("") { it.toHex().getRawHexStr() }, T6502.WORD_SIZE)
+        val bigVal = Hex(threeBytes.drop(1).joinToString("") { it.toHex().getRawHexStr() }, T6502.WORD_SIZE)
 
         val flags = this.getFlags(arch)
         val pc = arch.regContainer.pc
@@ -216,31 +217,31 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             PHA -> {
-                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE), ac.get())
-                sp.set(sp.get().toBin() - Variable.Value.Bin("1", T6502.BYTE_SIZE))
+                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE).toHex(), ac.get())
+                sp.set(sp.get().toBin() - Bin("1", T6502.BYTE_SIZE))
             }
 
             PHP -> {
-                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE), sr.get())
-                sp.set(sp.get().toBin() - Variable.Value.Bin("1", T6502.BYTE_SIZE))
+                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE).toHex(), sr.get())
+                sp.set(sp.get().toBin() - Bin("1", T6502.BYTE_SIZE))
             }
 
             PLA -> {
-                sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
+                sp.set(sp.get().toBin() + Bin("1", T6502.BYTE_SIZE))
                 val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
                 ac.set(loaded)
                 setFlags(arch, n = loaded.getBit(0), checkZero = loaded)
             }
 
             PLP -> {
-                sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
+                sp.set(sp.get().toBin() + Bin("1", T6502.BYTE_SIZE))
                 val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
                 setFlags(arch, n = loaded.getBit(0), v = loaded.getBit(1), d = loaded.getBit(4), i = loaded.getBit(5), z = loaded.getBit(6), c = loaded.getBit(7))
             }
 
             DEC -> {
                 address?.let {
-                    val dec = arch.memory.load(it) - Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                    val dec = arch.memory.load(it) - Bin("1", T6502.BYTE_SIZE)
                     arch.memory.store(it, dec)
                     setFlags(arch, n = dec.toBin().getBit(0), checkZero = dec.toBin())
                 } ?: {
@@ -249,20 +250,20 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             DEX -> {
-                val dec = x.get() - Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                val dec = x.get() - Bin("1", T6502.BYTE_SIZE)
                 x.set(dec)
                 setFlags(arch, n = dec.toBin().getBit(0), checkZero = dec.toBin())
             }
 
             DEY -> {
-                val dec = y.get() - Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                val dec = y.get() - Bin("1", T6502.BYTE_SIZE)
                 y.set(dec)
                 setFlags(arch, n = dec.toBin().getBit(0), checkZero = dec.toBin())
             }
 
             INC -> {
                 address?.let {
-                    val inc = arch.memory.load(it) + Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                    val inc = arch.memory.load(it) + Bin("1", T6502.BYTE_SIZE)
                     arch.memory.store(it, inc)
                     setFlags(arch, n = inc.toBin().getBit(0), checkZero = inc.toBin())
                 } ?: {
@@ -271,13 +272,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             INX -> {
-                val inc = x.get() + Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                val inc = x.get() + Bin("1", T6502.BYTE_SIZE)
                 x.set(inc)
                 setFlags(arch, n = inc.toBin().getBit(0), checkZero = inc.toBin())
             }
 
             INY -> {
-                val inc = y.get() + Variable.Value.Bin("1", T6502.BYTE_SIZE)
+                val inc = y.get() + Bin("1", T6502.BYTE_SIZE)
                 y.set(inc)
                 setFlags(arch, n = inc.toBin().getBit(0), checkZero = inc.toBin())
             }
@@ -289,12 +290,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 }
 
                 // Binary Add
-                val binSumBit9 = ac.get().toBin().getUResized(Variable.Size.Bit9()) + operand + flags.c
-                val sum = Variable.Value.Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
-                val acBit0 = ac.get().toBin().getBit(0) ?: Variable.Value.Bin("0", Variable.Size.Bit1())
+                val binSumBit9 = ac.get().toBin().getUResized(Bit9()) + operand + flags.c
+                val sum = Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
+                val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1())
                 val operandBit0 = operand.toBin().getBit(0)
-                val sumBit0 = sum.getBit(0) ?: Variable.Value.Bin("0", Variable.Size.Bit1())
-                val v = if (acBit0 == operandBit0) sumBit0 xor acBit0 else Variable.Value.Bin("0", Variable.Size.Bit1())
+                val sumBit0 = sum.getBit(0) ?: Bin("0", Bit1())
+                val v = if (acBit0 == operandBit0) sumBit0 xor acBit0 else Bin("0", Bit1())
                 val c = binSumBit9.toBin().getBit(0)
                 setFlags(arch, v = v, c = c)
 
@@ -312,11 +313,11 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 val opInv = operand.toBin().inv()
 
                 val binSumBit9 = ac.get().toBin() + opInv + flags.c
-                val subBit8 = Variable.Value.Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
-                val acBit0 = ac.get().toBin().getBit(0) ?: Variable.Value.Bin("0", Variable.Size.Bit1())
+                val subBit8 = Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
+                val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1())
                 val opInvBit0 = opInv.toBin().getBit(0)
-                val subBit0 = subBit8.getBit(0) ?: Variable.Value.Bin("0", Variable.Size.Bit1())
-                val v = if (acBit0 == opInvBit0) subBit0 xor acBit0 else Variable.Value.Bin("0", Variable.Size.Bit1())
+                val subBit0 = subBit8.getBit(0) ?: Bin("0", Bit1())
+                val v = if (acBit0 == opInvBit0) subBit0 xor acBit0 else Bin("0", Bit1())
                 val c = binSumBit9.toBin().getBit(0)
                 setFlags(arch, v = v, c = c)
 
@@ -381,7 +382,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 when (amode) {
                     ACCUMULATOR -> {
                         val shifted = ac.get().toBin().ushr(1)
-                        setFlags(arch, n = Variable.Value.Bin("0", Variable.Size.Bit1()), checkZero = shifted, c = ac.get().toBin().getBit(7))
+                        setFlags(arch, n = Bin("0", Bit1()), checkZero = shifted, c = ac.get().toBin().getBit(7))
                         ac.set(shifted)
                     }
 
@@ -389,7 +390,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                         address?.let {
                             val loaded = arch.memory.load(it).toBin()
                             val shifted = loaded ushr 1
-                            setFlags(arch, n = Variable.Value.Bin("0", Variable.Size.Bit1()), checkZero = shifted, c = loaded.getBit(7))
+                            setFlags(arch, n = Bin("0", Bit1()), checkZero = shifted, c = loaded.getBit(7))
                             arch.memory.store(it, shifted)
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
@@ -420,7 +421,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 when (amode) {
                     ACCUMULATOR -> {
                         val acBin = ac.get().toBin()
-                        val rotated = acBin.ushr(1) and Variable.Value.Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
+                        val rotated = acBin.ushr(1) and Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
                         setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = acBin.getBit(7))
                         ac.set(rotated)
                     }
@@ -428,7 +429,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     else -> {
                         address?.let {
                             val loaded = arch.memory.load(it).toBin()
-                            val rotated = loaded.ushr(1) and Variable.Value.Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
+                            val rotated = loaded.ushr(1) and Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(7))
                             arch.memory.store(it, rotated)
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
@@ -436,14 +437,14 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 }
             }
 
-            CLC -> setFlags(arch, c = Variable.Value.Bin("0", Variable.Size.Bit1()))
-            CLD -> setFlags(arch, d = Variable.Value.Bin("0", Variable.Size.Bit1()))
-            CLI -> setFlags(arch, i = Variable.Value.Bin("0", Variable.Size.Bit1()))
-            CLV -> setFlags(arch, v = Variable.Value.Bin("0", Variable.Size.Bit1()))
+            CLC -> setFlags(arch, c = Bin("0", Bit1()))
+            CLD -> setFlags(arch, d = Bin("0", Bit1()))
+            CLI -> setFlags(arch, i = Bin("0", Bit1()))
+            CLV -> setFlags(arch, v = Bin("0", Bit1()))
 
-            SEC -> setFlags(arch, c = Variable.Value.Bin("1", Variable.Size.Bit1()))
-            SED -> setFlags(arch, d = Variable.Value.Bin("1", Variable.Size.Bit1()))
-            SEI -> setFlags(arch, i = Variable.Value.Bin("1", Variable.Size.Bit1()))
+            SEC -> setFlags(arch, c = Bin("1", Bit1()))
+            SED -> setFlags(arch, d = Bin("1", Bit1()))
+            SEI -> setFlags(arch, i = Bin("1", Bit1()))
 
             CMP -> {
                 if (operand == null) {
@@ -452,7 +453,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 }
 
                 val cmpResult = (ac.get().toBin() - operand).toBin()
-                val c = if (operand.toDec() <= ac.get().toDec()) Variable.Value.Bin("1", Variable.Size.Bit1()) else Variable.Value.Bin("0", Variable.Size.Bit1())
+                val c = if (operand.toDec() <= ac.get().toDec()) Bin("1", Bit1()) else Bin("0", Bit1())
                 setFlags(arch, checkZero = cmpResult, n = cmpResult.getBit(0), c = c)
             }
 
@@ -463,7 +464,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 }
 
                 val cmpResult = (x.get().toBin() - operand).toBin()
-                val c = if (operand.toDec() <= x.get().toDec()) Variable.Value.Bin("1", Variable.Size.Bit1()) else Variable.Value.Bin("0", Variable.Size.Bit1())
+                val c = if (operand.toDec() <= x.get().toDec()) Bin("1", Bit1()) else Bin("0", Bit1())
                 setFlags(arch, checkZero = cmpResult, n = cmpResult.getBit(0), c = c)
             }
 
@@ -474,7 +475,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                 }
 
                 val cmpResult = (y.get().toBin() - operand).toBin()
-                val c = if (operand.toDec() <= y.get().toDec()) Variable.Value.Bin("1", Variable.Size.Bit1()) else Variable.Value.Bin("0", Variable.Size.Bit1())
+                val c = if (operand.toDec() <= y.get().toDec()) Bin("1", Bit1()) else Bin("0", Bit1())
                 setFlags(arch, checkZero = cmpResult, n = cmpResult.getBit(0), c = c)
             }
 
@@ -483,12 +484,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.c == Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                if (flags.c == Bin("0", Bit1())) {
                     // Carry Clear
                     pc.set(operand)
                 } else {
                     // Carry not clear
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -498,12 +499,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.c == Variable.Value.Bin("1", Variable.Size.Bit1())) {
+                if (flags.c == Bin("1", Bit1())) {
                     // Carry Set
                     pc.set(operand)
                 } else {
                     // Carry not set
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -513,12 +514,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.z == Variable.Value.Bin("1", Variable.Size.Bit1())) {
+                if (flags.z == Bin("1", Bit1())) {
                     // Zero
                     pc.set(operand)
                 } else {
                     // not zero
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -528,12 +529,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.n == Variable.Value.Bin("1", Variable.Size.Bit1())) {
+                if (flags.n == Bin("1", Bit1())) {
                     // negative
                     pc.set(operand)
                 } else {
                     // not negative
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -543,12 +544,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.z == Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                if (flags.z == Bin("0", Bit1())) {
                     // Not Zero
                     pc.set(operand)
                 } else {
                     // zero
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -558,12 +559,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.n == Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                if (flags.n == Bin("0", Bit1())) {
                     // positive
                     pc.set(operand)
                 } else {
                     // not positive
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -573,12 +574,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.v == Variable.Value.Bin("0", Variable.Size.Bit1())) {
+                if (flags.v == Bin("0", Bit1())) {
                     // overflow clear
                     pc.set(operand)
                 } else {
                     // overflow set
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -588,12 +589,12 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.v == Variable.Value.Bin("1", Variable.Size.Bit1())) {
+                if (flags.v == Bin("1", Bit1())) {
                     // overflow set
                     pc.set(operand)
                 } else {
                     // overflow clear
-                    val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                    val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                     arch.regContainer.pc.set(nextPC)
                 }
             }
@@ -605,7 +606,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
                     }
 
                     IND -> {
-                        pc.set(Variable.Value.Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.memory.load(bigVal).toBin().getRawBinStr(), T6502.WORD_SIZE))
+                        pc.set(Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.memory.load(bigVal).toBin().getRawBinStr(), T6502.WORD_SIZE))
                     }
 
                     else -> {}
@@ -613,45 +614,45 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             JSR -> {
-                val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE) - Variable.Value.Bin("1", T6502.WORD_SIZE), nextPC)
-                sp.set(sp.get().toBin() - Variable.Value.Bin("10", T6502.BYTE_SIZE))
+                val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                arch.memory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE) - Bin("1", T6502.WORD_SIZE)).toHex(), nextPC)
+                sp.set(sp.get().toBin() - Bin("10", T6502.BYTE_SIZE))
                 pc.set(bigVal)
             }
 
             RTS -> {
-                val loadedPC = arch.memory.load((sp.get().toBin().getUResized(T6502.WORD_SIZE) + Variable.Value.Bin("1", T6502.WORD_SIZE)).toHex(), 2)
-                sp.set(sp.get().toBin() + Variable.Value.Bin("10", T6502.BYTE_SIZE))
+                val loadedPC = arch.memory.load((sp.get().toBin().getUResized(T6502.WORD_SIZE) + Bin("1", T6502.WORD_SIZE)).toHex(), 2)
+                sp.set(sp.get().toBin() + Bin("10", T6502.BYTE_SIZE))
                 pc.set(loadedPC)
             }
 
             BRK -> {
                 // Store Return Address
-                val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE) - Variable.Value.Bin("1", T6502.WORD_SIZE), nextPC)
-                sp.set(sp.get().toBin() - Variable.Value.Bin("10", T6502.BYTE_SIZE))
+                val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                arch.memory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE) - Bin("1", T6502.WORD_SIZE)).toHex(), nextPC)
+                sp.set(sp.get().toBin() - Bin("10", T6502.BYTE_SIZE))
 
                 // Store Status Register
-                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE), sr.get())
-                sp.set(sp.get().toBin() - Variable.Value.Bin("1", T6502.BYTE_SIZE))
+                arch.memory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE)).toHex(), sr.get())
+                sp.set(sp.get().toBin() - Bin("1", T6502.BYTE_SIZE))
 
                 // Load Interrupt Vendor
-                val lsb = arch.memory.load(Variable.Value.Hex("FFFE", T6502.WORD_SIZE)).toHex()
-                val msb = arch.memory.load(Variable.Value.Hex("FFFF", T6502.WORD_SIZE)).toHex()
+                val lsb = arch.memory.load(Hex("FFFE", T6502.WORD_SIZE)).toHex()
+                val msb = arch.memory.load(Hex("FFFF", T6502.WORD_SIZE)).toHex()
 
                 // Jump to Interrupt Handler Address
-                pc.set(Variable.Value.Hex(msb.getRawHexStr() + lsb.getRawHexStr(), T6502.WORD_SIZE))
+                pc.set(Hex(msb.getRawHexStr() + lsb.getRawHexStr(), T6502.WORD_SIZE))
             }
 
             RTI -> {
                 // Load Status Register
-                sp.set(sp.get().toBin() + Variable.Value.Bin("1", T6502.BYTE_SIZE))
+                sp.set(sp.get().toBin() + Bin("1", T6502.BYTE_SIZE))
                 val loadedSR = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
                 setFlags(arch, n = loadedSR.getBit(0), v = loadedSR.getBit(1), d = loadedSR.getBit(4), i = loadedSR.getBit(5), z = loadedSR.getBit(6), c = loadedSR.getBit(7))
 
                 // Load Return Address
-                sp.set(sp.get().toBin() + Variable.Value.Bin("10", T6502.BYTE_SIZE))
-                val retAddr = arch.memory.load((sp.get().toHex().getUResized(T6502.WORD_SIZE) - Variable.Value.Hex("1", T6502.WORD_SIZE)).toHex(), 2)
+                sp.set(sp.get().toBin() + Bin("10", T6502.BYTE_SIZE))
+                val retAddr = arch.memory.load((sp.get().toHex().getUResized(T6502.WORD_SIZE) - Hex("1", T6502.WORD_SIZE)).toHex(), 2)
 
                 // Jump To Return Address
                 pc.set(retAddr)
@@ -676,7 +677,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         when (this) {
             LDA, LDX, LDY, STA, STX, STY, TAX, TAY, TSX, TXA, TXS, TYA, PHA, PHP, PLA, PLP, DEC, DEX, DEY, INC, INX, INY, ADC, SBC, AND, EOR, ORA, ASL, LSR, ROL, ROR, CLC, CLD, CLI, CLV, SEC, SED, SEI, CMP, CPX, CPY, BIT, NOP -> {
                 // Standard PC Increment
-                val nextPC = pc.get() + Variable.Value.Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
+                val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
                 arch.regContainer.pc.set(nextPC)
             }
 
@@ -687,7 +688,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
 
     }
 
-    private fun getOperand(arch: emulator.kit.Architecture, amode: AModes, smallVal: Variable.Value.Hex, bigVal: Variable.Value.Hex): Variable.Value.Hex? {
+    private fun getOperand(arch: emulator.kit.Architecture, amode: AModes, smallVal: Hex, bigVal: Hex): Hex? {
         val pc = arch.regContainer.pc
         val ac = arch.getRegByName("AC")
         val x = arch.getRegByName("X")
@@ -703,16 +704,16 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             ZP -> {
-                arch.memory.load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)).toHex()
+                arch.memory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)).toHex()
             }
 
             ZP_X -> {
-                val addr = Variable.Value.Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+                val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
                 arch.memory.load(addr.toHex()).toHex()
             }
 
             ZP_Y -> {
-                val addr = Variable.Value.Hex("00${(smallVal + y.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+                val addr = Hex("00${(smallVal + y.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
                 arch.memory.load(addr.toHex()).toHex()
             }
 
@@ -736,13 +737,13 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
             }
 
             ZP_X_IND -> {
-                val addr = Variable.Value.Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+                val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
                 val loadedAddr = arch.memory.load(addr.toHex()).toHex()
                 arch.memory.load(loadedAddr).toHex()
             }
 
             ZPIND_Y -> {
-                val loadedAddr = arch.memory.load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE))
+                val loadedAddr = arch.memory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE))
                 val incAddr = loadedAddr + y.get()
                 arch.memory.load(incAddr.toHex()).toHex()
             }
@@ -759,16 +760,16 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         }
     }
 
-    private fun getAddress(arch: emulator.kit.Architecture, amode: AModes, smallVal: Variable.Value.Hex, bigVal: Variable.Value.Hex, x: Variable.Value.Hex, y: Variable.Value.Hex): Variable.Value.Hex? {
+    private fun getAddress(arch: emulator.kit.Architecture, amode: AModes, smallVal: Hex, bigVal: Hex, x: Hex, y: Hex): Hex? {
         return when (amode) {
             ABS -> bigVal
             ABS_X -> (bigVal + x.toBin().getResized(T6502.WORD_SIZE)).toHex()
             ABS_Y -> (bigVal + y.toBin().getResized(T6502.WORD_SIZE)).toHex()
-            ZP -> Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_X -> Variable.Value.Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_Y -> Variable.Value.Hex("00${(smallVal + y).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_X_IND -> arch.memory.load(Variable.Value.Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE), 2).toHex()
-            ZPIND_Y -> (arch.memory.load(Variable.Value.Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE), 2) + y).toHex()
+            ZP -> Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)
+            ZP_X -> Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+            ZP_Y -> Hex("00${(smallVal + y).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+            ZP_X_IND -> arch.memory.load(Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE), 2).toHex()
+            ZPIND_Y -> (arch.memory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE), 2) + y).toHex()
             else -> null
         }
     }
@@ -785,7 +786,7 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         return T6502Assembler.Flags(nflag, vflag, zflag, cflag, dflag, bflag, iflag)
     }
 
-    private fun setFlags(arch: emulator.kit.Architecture, n: Variable.Value.Bin? = null, v: Variable.Value.Bin? = null, b: Variable.Value.Bin? = null, d: Variable.Value.Bin? = null, i: Variable.Value.Bin? = null, z: Variable.Value.Bin? = null, c: Variable.Value.Bin? = null, checkZero: Variable.Value.Bin? = null, seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {
+    private fun setFlags(arch: emulator.kit.Architecture, n: Bin? = null, v: Bin? = null, b: Bin? = null, d: Bin? = null, i: Bin? = null, z: Bin? = null, c: Bin? = null, checkZero: Bin? = null, seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {
         val sr = arch.getRegByName("SR") ?: return
 
         var nflag = sr.get().toBin().getBit(0) ?: return
@@ -805,23 +806,23 @@ enum class InstrType(val opCode: Map<AModes, Variable.Value.Hex>, val descriptio
         if (c != null) cflag = c
 
         if (checkZero != null) {
-            zflag = if (checkZero == Variable.Value.Bin("0", T6502.BYTE_SIZE)) {
-                Variable.Value.Bin("1", Variable.Size.Bit1())
+            zflag = if (checkZero == Bin("0", T6502.BYTE_SIZE)) {
+                Bin("1", Bit1())
             } else {
-                Variable.Value.Bin("0", Variable.Size.Bit1())
+                Bin("0", Bit1())
             }
         }
         if (seti != null) {
-            iflag = if (seti) Variable.Value.Bin("1", Variable.Size.Bit1()) else Variable.Value.Bin("0", Variable.Size.Bit1())
+            iflag = if (seti) Bin("1", Bit1()) else Bin("0", Bit1())
         }
         if (setd != null) {
-            dflag = if (setd) Variable.Value.Bin("1", Variable.Size.Bit1()) else Variable.Value.Bin("0", Variable.Size.Bit1())
+            dflag = if (setd) Bin("1", Bit1()) else Bin("0", Bit1())
         }
         if (setb != null) {
-            bflag = if (setb) Variable.Value.Bin("1", Variable.Size.Bit1()) else Variable.Value.Bin("0", Variable.Size.Bit1())
+            bflag = if (setb) Bin("1", Bit1()) else Bin("0", Bit1())
         }
 
 
-        sr.set(Variable.Value.Bin("${nflag.getRawBinStr()}${vflag.getRawBinStr()}1${bflag.getRawBinStr()}${dflag.getRawBinStr()}${iflag.getRawBinStr()}${zflag.getRawBinStr()}${cflag.getRawBinStr()}", T6502.BYTE_SIZE))
+        sr.set(Bin("${nflag.getRawBinStr()}${vflag.getRawBinStr()}1${bflag.getRawBinStr()}${dflag.getRawBinStr()}${iflag.getRawBinStr()}${zflag.getRawBinStr()}${cflag.getRawBinStr()}", T6502.BYTE_SIZE))
     }
 }

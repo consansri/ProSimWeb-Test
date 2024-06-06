@@ -1,18 +1,18 @@
 package me.c3.ui.styled
 
-import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
 import me.c3.ui.States
 import me.c3.ui.styled.borders.DirectionalBorder
 import me.c3.ui.styled.params.FontType
-import java.awt.*
+import java.awt.Color
+import java.awt.Component
 import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellEditor
 
-class CTableUI( private val primary: Boolean) : BasicTableUI() {
+class CTableUI(private val primary: Boolean) : BasicTableUI() {
 
     var highlightColor: Color? = null
     var highlightRow: Int? = null
@@ -57,14 +57,12 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
                 } else {
                     when (value) {
                         is MainMemory.MemInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
-                        is Cache.CacheInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
                         else -> fg
                     }
                 }
             } else {
                 when (value) {
                     is MainMemory.MemInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
-                    is Cache.CacheInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
                     else -> fg
                 }
             }
@@ -84,16 +82,17 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
             val cTable = table as? CTable ?: return component
 
             return if (column in cTable.clickableHeaderIds) {
-                CTextButton( "[$value]", FontType.CODE)
+                CTextButton("[$value]", FontType.CODE)
             } else {
-                CLabel( value.toString(), FontType.BASIC).apply {
+                CLabel(value.toString(), FontType.BASIC).apply {
+                    border = BorderFactory.createEmptyBorder()
                     horizontalAlignment = SwingConstants.CENTER
                 }
             }
         }
     }
 
-    inner class CCellEditor : DefaultCellEditor(CTextField( FontType.CODE)), TableCellEditor {
+    inner class CCellEditor : DefaultCellEditor(CTextField(FontType.CODE)), TableCellEditor {
         init {
             (editorComponent as? CTextField)?.horizontalAlignment = JTextField.CENTER
         }
@@ -109,7 +108,7 @@ class CTableUI( private val primary: Boolean) : BasicTableUI() {
         table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
         table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
         table.setDefaultEditor(Any::class.java, CCellEditor())
-        table.tableHeader.border = DirectionalBorder( south = true)
+        table.tableHeader.border = DirectionalBorder(south = true)
         table.isOpaque = true
         table.setShowGrid(false)
         table.showVerticalLines = false

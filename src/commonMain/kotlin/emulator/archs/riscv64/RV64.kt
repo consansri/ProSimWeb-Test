@@ -6,10 +6,7 @@ import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.*
-import emulator.kit.common.memory.DMCache
-import emulator.kit.common.memory.FACache
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.common.memory.Memory
+import emulator.kit.common.memory.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.Feature
@@ -409,8 +406,9 @@ object RV64 {
             if (arch is ArchRV64) {
                 arch.dataMemory = when (setting.get()) {
                     CacheMode.NONE -> arch.memory
-                    CacheMode.DirectedMapped -> DMCache(arch.memory, arch.console, 57, 3, 4)
-                    CacheMode.FullAssociative -> FACache(arch.memory, arch.console, 60, 4, 16, FACache.ReplaceAlgo.LRU)
+                    CacheMode.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
+                    CacheMode.FullAssociative -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
+                    CacheMode.SetAssociative -> SACache(arch.memory, arch.console,3,4,4, Cache.Model.ReplaceAlgo.LRU)
                 }
             }
         }
@@ -435,6 +433,7 @@ object RV64 {
         NONE,
         DirectedMapped,
         FullAssociative,
+        SetAssociative
     }
 
 }

@@ -25,7 +25,7 @@ object StyleExt {
         }
     }
 
-    fun Cache.CacheRowState.get(mode: StyleAttr.Mode ): Color{
+    fun Cache.CacheBlockState.get(mode: StyleAttr.Mode ): Color{
         return when (mode) {
             StyleAttr.Mode.LIGHT -> Color("#${this.light.toString(16)}")
             StyleAttr.Mode.DARK -> Color("#${this.dark?.toString(16) ?: this.light.toString(16)}")

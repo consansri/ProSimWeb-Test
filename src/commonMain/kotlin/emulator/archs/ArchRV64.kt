@@ -11,7 +11,7 @@ import emulator.kit.optional.BasicArchImpl
 
 class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
 
-    var dataMemory: Memory = DMCache(memory, console, 57, 3, 4)
+    var dataMemory: Memory = DMCache(memory, console,  4, 4)
         set(value) {
             field = value
             resetMicroArch()
@@ -19,7 +19,7 @@ class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
 
     override fun executeNext(): ExecutionResult {
         val currentPc = regContainer.pc.get().toHex()
-        val instrBin = memory.load(currentPc, RV64.WORD_WIDTH.getByteCount())
+        val instrBin = memory.load(currentPc, RV64.WORD_WIDTH.getByteCount()).toBin()
         val result = RV64BinMapper.getInstrFromBinary(instrBin) ?: return ExecutionResult(valid = false, typeIsReturnFromSubroutine = false, typeIsBranchToSubroutine = false)
         result.type.execute(arch = this, result.binMap)
         val isReturnFromSubroutine = when (result.type) {
@@ -35,7 +35,7 @@ class ArchRV64 : BasicArchImpl(RV64.config, RV64.asmConfig) {
     }
 
     override fun setupMicroArch() {
-        if (dataMemory != memory) MicroSetup.append(dataMemory)
         MicroSetup.append(memory)
+        if (dataMemory != memory) MicroSetup.append(dataMemory)
     }
 }

@@ -4,8 +4,9 @@ import Settings
 import debug.DebugTools
 import emulator.kit.nativeError
 import emulator.kit.nativeInfo
-import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
+import emulator.kit.types.Variable.Value
+import emulator.kit.types.Variable.Value.*
 import kotlin.math.roundToInt
 
 
@@ -484,6 +485,13 @@ class Variable {
                 return paddedString.chunked(2).map { Hex(it, Size.Bit8()) }.toTypedArray()
             }
 
+            fun splitToArray(size: Size): Array<Hex> {
+                val sizeHexChars = size.hexChars
+                val paddingSize = this.getRawHexStr().length % sizeHexChars
+                val paddedString = "0".repeat(paddingSize) + this.toRawString()
+                return paddedString.chunked(sizeHexChars).map { Hex(it, size) }.toTypedArray()
+            }
+
             override fun check(string: String, size: Size): CheckResult {
                 var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.hexChars, '0').uppercase()
                 val message: String
@@ -629,11 +637,13 @@ class Variable {
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(result, biggerSize)
             }
+
             override fun div(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
                 return Bin(divResult.result, biggerSize)
             }
+
             override fun rem(operand: Value): Value {
                 val divResult = BinaryTools.divide(this.toBin().getRawBinStr(), operand.toBin().getRawBinStr())
                 val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size

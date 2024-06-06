@@ -5,8 +5,7 @@ import Settings
 import StyleAttr
 import emotion.react.css
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.DMCache
-import emulator.kit.common.memory.FACache
+import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
 import emulator.kit.types.Variable.Value.Hex
@@ -23,8 +22,7 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.table
-import visual.memory.DMCacheView
-import visual.memory.FACacheView
+import visual.memory.CacheView
 import visual.memory.MainMemoryView
 import web.cssom.*
 import web.html.ButtonType
@@ -279,8 +277,8 @@ val MemoryView = FC<MemViewProps> { props ->
         }
 
         when (currMem) {
-            is DMCache -> {
-                DMCacheView {
+            is Cache -> {
+                CacheView {
                     this.key = "${currMem::class.simpleName}"
                     this.cache = currMem
                     this.exeEventState = props.exeEventState
@@ -295,14 +293,6 @@ val MemoryView = FC<MemViewProps> { props ->
                     this.archState = props.archState
                     this.exeEventState = props.exeEventState
                     this.lowFirst = lowFirst
-                }
-            }
-            is FACache -> {
-                FACacheView {
-                    this.key = "${currMem::class.simpleName}"
-                    this.cache = currMem
-                    this.exeEventState = props.exeEventState
-                    this.archState = props.archState
                 }
             }
 
@@ -425,14 +415,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
             }
         }
-
     }
-
-    /*useEffect(memList) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: Refresh Memory Table!")
-        }
-    }*/
 
     useEffect(useBounds, startAddr, amount) {
         if (useBounds) {
@@ -450,13 +433,9 @@ val MemoryView = FC<MemViewProps> { props ->
         localStorage.setItem("${Keys.MIO_AMOUNT}-${props.archState.component1().description.name}", amount.toString())
     }
 
-    /*useEffect(props.exeEventState.component1()) {
-        if (DebugTools.REACT_showUpdateInfo) {
-            console.log("REACT: Exe Event!")
-        }
-        setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().getRawHexStr())
-        setMemList(props.archState.component1().memory.memList)
-    }*/
+    useEffect(props.archState) {
+        setCurrMem(MicroSetup.getMemoryInstances().firstOrNull())
+    }
 
     useEffect(editVar) {
         if (editVar != null) {

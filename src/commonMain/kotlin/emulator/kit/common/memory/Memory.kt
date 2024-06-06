@@ -3,7 +3,6 @@ package emulator.kit.common.memory
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.Bit8
 import emulator.kit.types.Variable.Tools.toValue
-import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
 
 /**
@@ -13,7 +12,7 @@ import emulator.kit.types.Variable.Value.Hex
  * @property name: String, the name of the memory
  * @property addressSize: Variable.Size, the size of the memory address
  * @property instanceSize: Variable.Size, the size of each memory instance
- * @property initBin: String, the initial binary value of the memory
+ * @property initHex: String, the initial binary value of the memory
  *
  * Methods:
  * - globalEndianess(): Endianess, returns the global endianess of the memory
@@ -41,52 +40,29 @@ sealed class Memory {
     abstract val name: String
     abstract val addressSize: Variable.Size
     abstract val instanceSize: Variable.Size
-    abstract val initBin: String
+    abstract val initHex: String
 
     abstract fun globalEndianess(): Endianess
 
-    abstract fun load(address: Variable.Value): Variable.Value
-    abstract fun store(address: Variable.Value, value: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false)
+    abstract fun load(address: Hex, amount: Int = 1, tracker: AccessTracker = AccessTracker(), endianess: Endianess = globalEndianess()): Hex
+    abstract fun store(address: Hex, value: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false, tracker: AccessTracker = AccessTracker(), endianess: Endianess = globalEndianess())
     abstract fun clear()
 
-    fun store(address: Variable.Value, variable: Variable, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false) {
-        return store(address, variable.get(), mark, readonly)
-    }
-
-    fun storeArray(address: Variable.Value, vararg values: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false) {
+    fun storeArray(address: Hex, vararg values: Variable.Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false, tracker: AccessTracker = AccessTracker()) {
         var curraddr: Variable.Value = address
         for (value in values) {
-            store(curraddr.toHex(), value, mark, readonly)
+            store(curraddr.toHex(), value, mark, readonly,tracker)
             curraddr += value.size.getByteCount().toValue(addressSize)
         }
     }
 
-    fun load(address: Variable.Value, amount: Int): Bin {
-        val instances = mutableListOf<String>()
+    fun loadArray(address: Hex, amount: Int, tracker: AccessTracker = AccessTracker()): Array<Hex> {
+        val instances = mutableListOf<Hex>()
 
         var instanceAddress = address.toHex().getUResized(addressSize)
         for (i in 0..<amount) {
-            val value = load(instanceAddress)
-
-            instances.add(value.toBin().toRawString())
-            instanceAddress = (instanceAddress +Hex("01", Bit8())).toHex()
-        }
-
-        when(globalEndianess()){
-            Endianess.LittleEndian -> instances.reverse()
-            Endianess.BigEndian -> {}
-        }
-
-        return Bin(instances.joinToString("") { it })
-    }
-
-    fun loadArray(address: Variable.Value, amount: Int): Array<Bin> {
-        val instances = mutableListOf<Bin>()
-
-        var instanceAddress = address.toHex().getUResized(addressSize)
-        for (i in 0..<amount) {
-            val value = load(instanceAddress)
-            instances.add(value.toBin())
+            val value = load(instanceAddress, 1, tracker)
+            instances.add(value.toHex())
             instanceAddress = (instanceAddress + Hex("01", Bit8())).toHex()
         }
 
@@ -94,10 +70,16 @@ sealed class Memory {
     }
 
     fun getInitialBinary(): Variable {
-        return Variable(initBin, instanceSize)
+        return Variable(initHex, instanceSize)
     }
 
     class MemoryException(override val message: String) : Exception()
+
+    data class AccessTracker(
+        var hits: Int = 0,
+        var misses: Int = 0,
+        var writeBacks: Int = 0
+    )
 
     enum class Endianess(val uiName: String) {
         LittleEndian("Little Endian"), BigEndian("Big Endian")

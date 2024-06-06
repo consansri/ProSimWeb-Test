@@ -1,7 +1,8 @@
+
+import debug.DebugTools
 import react.create
 import react.dom.client.createRoot
-import web.dom.*
-import debug.DebugTools
+import web.dom.document
 
 fun main() {
     if (DebugTools.REACT_showUpdateInfo) {
@@ -12,10 +13,6 @@ fun main() {
     val app = App.create()
 
     document.title = "${Constants.NAME} ${Constants.VERSION}"
-
-    /*application(root = root) {
-        DoodleApp(instance(), instance())
-    }*/
 
     createRoot(root).render(app)
 }

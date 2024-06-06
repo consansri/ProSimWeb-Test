@@ -1,3 +1,4 @@
+
 import debug.DebugTools
 import emotion.react.css
 import emulator.Link
@@ -42,7 +43,7 @@ val App = FC<Props> {
     AppStyle {}
 
     if (DebugTools.REACT_showUpdateInfo) {
-        console.log("REACT: render App")
+        console.log("REACT: render App: $archState")
     }
 
     if (showMenu) {
@@ -410,6 +411,7 @@ val App = FC<Props> {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Switch to " + archState.component1().description.fullName)
         }
+
         for (feature in archState.component1().features) {
             localStorage.getItem("${archState.component1().description.name}-${Keys.ARCH_FEATURE}-${feature.id}")?.toBooleanStrictOrNull()?.let {
                 if (it) feature.activate() else feature.deactivate()
@@ -422,5 +424,4 @@ val App = FC<Props> {
             }
         }
     }
-
 }

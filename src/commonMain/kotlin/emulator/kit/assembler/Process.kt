@@ -33,10 +33,6 @@ data class Process(
         }
     var currentStateStart: Instant = Clock.System.now()
 
-    init {
-        nativeLog("Process initiated for ${file.mainRelativeName} with others: ${otherFiles.joinToString { it.mainRelativeName }}")
-    }
-
     /**
      * Launches the process with the given lexer, parser, memory, and features.
      *
@@ -89,7 +85,7 @@ data class Process(
         sections.forEach { sec ->
             val secAddr = sec.getSectionAddr()
             sec.getContent().forEach {
-                val addr = secAddr + it.offset
+                val addr = (secAddr + it.offset).toHex()
                 lineAddressMap[addr.toHex().getRawHexStr()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
                 memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
             }

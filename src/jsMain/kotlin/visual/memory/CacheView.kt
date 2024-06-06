@@ -4,26 +4,27 @@ import StyleAttr
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Architecture
-import emulator.kit.common.memory.DMCache
+import emulator.kit.common.memory.Cache
 import react.*
 import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.th
 import visual.StyleExt.get
 import web.cssom.*
 import web.html.HTMLElement
 import web.html.HTMLTableSectionElement
 
-external interface DMCacheViewProps : Props {
+external interface CacheViewProps : Props {
     var exeEventState: StateInstance<Boolean>
     var archState: StateInstance<Architecture>
-    var cache: DMCache
+    var cache: Cache
 }
 
-val DMCacheView = FC<DMCacheViewProps>() { props ->
+val CacheView = FC<CacheViewProps>() { props ->
 
     val tbody = useRef<HTMLTableSectionElement>()
     val asciiRef = useRef<HTMLElement>()
 
-    val (rowList, setRowList) = useState(props.cache.block.data)
+    val (rowList, setRowList) = useState(props.cache.model.rows)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
 
     ReactHTML.div {
@@ -57,6 +58,12 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
                     ReactHTML.th {
                         className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                         scope = "col"
+                        +"m"
+                    }
+
+                    ReactHTML.th {
+                        className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                        scope = "col"
                         +"v"
                     }
 
@@ -72,7 +79,7 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
                         +"tag"
                     }
 
-                    for (columnID in 0..<props.cache.offsets) {
+                    for (columnID in 0..<props.cache.model.offsetCount) {
                         ReactHTML.th {
                             /* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*/
                             css {
@@ -99,61 +106,65 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
                     console.log("REACT: Memory Map Updated!")
                 }
 
-                for (rowID in rowList.indices) {
-                    val row = rowList[rowID] as? DMCache.DMRow ?: continue
-                    val state = row.getRowState()
-                    ReactHTML.tr {
-                        css{
-                            color = row.getRowState().get(StyleAttr.mode)
-                        }
-                        ReactHTML.th {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            scope = "row"
-                            +rowID.toString(16)
-                        }
+                rowList.forEachIndexed { rowID, row ->
 
-                        ReactHTML.td {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            scope = "row"
-                            +if(row.valid) "1" else "0"
-                        }
-
-                        ReactHTML.td {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            scope = "row"
-                            +if(row.dirty) "1" else "0"
-                        }
-
-                        ReactHTML.td {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                            scope = "row"
-                            +(row.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid")
-                        }
-
-                        row.data.forEach {
-                            ReactHTML.td {
-                                css {
-                                    textAlign = TextAlign.center
-                                    if (it.address?.getRawHexStr() == currExeAddr) {
-                                        color = important(StyleAttr.Main.Table.FgPC)
-                                        fontWeight = important(FontWeight.bold)
-                                    } else {
-                                        color = important(it.mark.get(StyleAttr.mode))
-                                    }
-                                }
-
-                                //id = "mem${memInstance.address.getRawHexStr()}"
-                                title = "value = ${it.value.toDec()} or ${it.value.toUDec()}"
-
-                                +it.value.toHex().toRawZeroTrimmedString()
+                    row.blocks.forEachIndexed { blockID, block ->
+                        ReactHTML.tr {
+                            css {
+                                color = block.getState().get(StyleAttr.mode)
                             }
-                        }
+                            th {
+                                if(blockID == 0) {
+                                    +rowID.toString(16)
+                                }
+                            }
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "row"
+                                +blockID.toString(16)
+                            }
 
-                        ReactHTML.td {
-                            className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
-                            ref = asciiRef
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "row"
+                                +if (block.valid) "1" else "0"
+                            }
 
-                            +row.data.joinToString("") { it.value.toASCII() }
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "row"
+                                +if (block.dirty) "1" else "0"
+                            }
+
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "row"
+                                +(block.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid")
+                            }
+
+                            block.data.forEach {
+                                ReactHTML.td {
+                                    css {
+                                        textAlign = TextAlign.center
+                                        if (it.address?.getRawHexStr() == currExeAddr) {
+                                            color = important(StyleAttr.Main.Table.FgPC)
+                                            fontWeight = important(FontWeight.bold)
+                                        }
+                                    }
+
+                                    //id = "mem${memInstance.address.getRawHexStr()}"
+                                    title = "value = ${it.value.toDec()} or ${it.value.toUDec()}"
+
+                                    +it.value.toHex().toRawZeroTrimmedString()
+                                }
+                            }
+
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
+                                ref = asciiRef
+
+                                +block.data.joinToString("") { it.value.toASCII() }
+                            }
                         }
                     }
                 }
@@ -161,7 +172,7 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
         }
     }
 
-    useEffect(props.cache.block.data) {
+    useEffect(props.cache.model.rows) {
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Cache Data Changed!")
         }
@@ -172,7 +183,7 @@ val DMCacheView = FC<DMCacheViewProps>() { props ->
             console.log("REACT: Exe Event!")
         }
         setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().getRawHexStr())
-        setRowList(props.cache.block.data)
+        setRowList(props.cache.model.rows)
     }
 
 }
