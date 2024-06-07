@@ -2,12 +2,13 @@ package emulator.archs
 
 import emulator.archs.ikrmini.IKRMini
 import emulator.archs.ikrmini.IKRMiniSyntax
+import emulator.kit.common.memory.Memory
 import emulator.kit.optional.BasicArchImpl
-import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Value.Hex
 
 class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
 
-    override fun executeNext(): ExecutionResult {
+    override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
 
         val pc = regContainer.pc.get().toHex()
         val opCode = memory.load(pc, 2).toHex()

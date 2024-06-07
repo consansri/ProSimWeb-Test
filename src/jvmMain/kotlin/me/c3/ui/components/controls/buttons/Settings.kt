@@ -68,8 +68,9 @@ class Settings : CIconButton(States.icon.get().settings) {
 
             is SetupSetting.Enumeration<*> -> {
                 CComboBox(this.enumValues.toTypedArray(), FontType.BASIC).apply {
-                    addItemListener {
-                        this@toSwing.loadFromString(arch, it.item.toString())
+                    this.selectedItem = this@toSwing.get()
+                    addItemListener {e ->
+                        this@toSwing.loadFromString(arch, (e.item as Enum<*>).name)
                         this@toSwing.save(arch)
                         Events.archSettingChange.triggerEvent(arch)
                     }

@@ -84,8 +84,9 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
             return if (column in cTable.clickableHeaderIds) {
                 CTextButton("[$value]", FontType.CODE)
             } else {
-                CLabel(value.toString(), FontType.BASIC).apply {
-                    border = BorderFactory.createEmptyBorder()
+                CLabel(value.toString(), FontType.CODE).apply {
+                    val inset = States.scale.get().borderScale.insets
+                    border = BorderFactory.createEmptyBorder(inset, inset, 0, 0)
                     horizontalAlignment = SwingConstants.CENTER
                 }
             }

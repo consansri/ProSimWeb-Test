@@ -31,7 +31,6 @@ open class CConsole(maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPan
             textArea.caret.moveCaretTo(textArea.getStyledText().size)
         }
 
-
     private val titleLabel = CLabel(title, FontType.TITLE)
     private val scrollDown = CIconToggle(States.icon.get().autoscroll, scrollToBottom, CIconButton.Mode.SECONDARY_SMALL) {
         scrollToBottom = it

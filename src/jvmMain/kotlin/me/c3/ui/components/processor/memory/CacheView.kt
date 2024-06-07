@@ -6,7 +6,6 @@ import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.CacheTableModel
 import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities
@@ -15,13 +14,12 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
 
     val tableModel = CacheTableModel()
     val table = CTable(tableModel, false)
-    val scrollPane = CScrollPane(primary = false, table)
     val asciiTitle = "ASCII"
-    var currentlyUpdating = false
 
     init {
         layout = BorderLayout()
-        add(scrollPane, BorderLayout.CENTER)
+        add(table.tableHeader, BorderLayout.NORTH)
+        add(table, BorderLayout.CENTER)
         this.maximumSize = table.maximumSize
         updateContent()
         addContentChangeListener()
@@ -48,7 +46,6 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
 
     private fun updateContent() {
         SwingUtilities.invokeLater {
-            currentlyUpdating = true
             tableModel.rowCount = 0
 
             val offsets = cache.model.offsetCount
@@ -58,26 +55,22 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
 
             table.resetCellHighlighting()
 
-            for (index in cache.model.rows.indices) {
-                val row = cache.model.rows[index]
-
-                for (blockIndex in row.blocks.indices) {
-                    val block = row.blocks[blockIndex]
-
+            cache.model.rows.forEachIndexed { rowID, row ->
+                row.blocks.forEachIndexed { blockID, block ->
                     val ascii = block.data.joinToString("") {
                         it.value.toASCII()
                     }
 
                     block.data.forEachIndexed { i, value ->
                         if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
-                            table.setCellHighlighting(index, i + 5, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
+                            table.setCellHighlighting(rowID, i + 5, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
                         }
                     }
 
                     tableModel.addRow(
                         arrayOf(
-                            index.toString(16),
-                            if (row.decider.indexToReplace() == blockIndex) "> ${blockIndex.toString(16)}" else blockIndex.toString(16),
+                            if (blockID == 0) rowID.toString(16) else "",
+                            if (row.decider.indexToReplace() == blockID) "> ${blockID.toString(16)}" else blockID.toString(16),
                             if (block.valid) "1" else "0",
                             if (block.dirty) "1" else "0",
                             block.tag?.toHex()?.toRawString() ?: "invalid",
@@ -89,7 +82,6 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
             }
 
             updateColumnWidths(offsets)
-            currentlyUpdating = false
         }
     }
 

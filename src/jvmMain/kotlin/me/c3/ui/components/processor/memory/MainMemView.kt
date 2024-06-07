@@ -8,7 +8,6 @@ import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.MemTableModel
 import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.CScrollPane
 import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities
@@ -18,14 +17,14 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
 
     val tableModel = MemTableModel()
     val table = CTable(tableModel, false)
-    val scrollPane = CScrollPane(primary = false, table)
     val addrTitle = "ADDR"
     val asciiTitle = "ASCII"
     var currentlyUpdating = false
 
     init {
         layout = BorderLayout()
-        add(scrollPane, BorderLayout.CENTER)
+        add(table.tableHeader, BorderLayout.NORTH)
+        add(table, BorderLayout.CENTER)
         this.maximumSize = table.maximumSize
         updateContent()
         addContentChangeListener()

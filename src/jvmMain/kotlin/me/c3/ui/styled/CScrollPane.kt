@@ -5,17 +5,19 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JScrollPane
 
-open class CScrollPane( val primary: Boolean, c: Component?) : JScrollPane(c) {
+open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
 
-    constructor( primary: Boolean) : this( primary, null)
+    constructor(primary: Boolean) : this(primary, null)
 
-    constructor( primary: Boolean, component: Component, vsb: Int, hsb: Int) : this( primary, component) {
+    constructor(primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(primary, component) {
         this.verticalScrollBarPolicy = vsb
         this.horizontalScrollBarPolicy = hsb
     }
 
     init {
         this.setUI(CScrollPaneUI())
+        verticalScrollBar.unitIncrement = 16
+        horizontalScrollBar.unitIncrement = 16
     }
 
     override fun paint(g: Graphics?) {

@@ -79,7 +79,11 @@ sealed class Memory {
         var hits: Int = 0,
         var misses: Int = 0,
         var writeBacks: Int = 0
-    )
+    ){
+        override fun toString(): String {
+            return "$hits HITS and $misses MISSES (with $writeBacks write backs)"
+        }
+    }
 
     enum class Endianess(val uiName: String) {
         LittleEndian("Little Endian"), BigEndian("Big Endian")

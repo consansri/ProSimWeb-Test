@@ -59,6 +59,7 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButt
     fun setDefaults() {
         activeBG = States.theme.get().iconLaF.iconBgActive
         inactiveBG = States.theme.get().iconLaF.iconBg
+        mode.applyFilter(svgIcon, States.theme.get())
         border = States.scale.get().borderScale.getInsetBorder()
         updateIcon()
         revalidate()

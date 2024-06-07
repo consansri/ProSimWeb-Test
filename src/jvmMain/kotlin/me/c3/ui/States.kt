@@ -130,8 +130,10 @@ object States {
     fun Architecture.loadArchSettings() {
         ws.get()?.config?.let { ws ->
             this.settings.forEach {
-                val result = ws.get(arch::class.simpleName.toString(), it.trimmedName)
-                if (result != null) it.loadFromString(this, result)
+                val result = ws.get(arch.get()::class.simpleName.toString(), it.trimmedName)
+                if (result != null) {
+                    it.loadFromString(this, result)
+                }
             }
         }
     }

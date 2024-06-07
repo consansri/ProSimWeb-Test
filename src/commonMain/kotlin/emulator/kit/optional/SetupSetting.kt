@@ -1,9 +1,10 @@
 package emulator.kit.optional
 
 import emulator.kit.Architecture
+import emulator.kit.nativeLog
 import kotlin.enums.EnumEntries
 
-sealed class SetupSetting<T>(val name: String, val init: T, private val parseValueFromString: (String) -> T, val onChange: (Architecture, SetupSetting<T>) -> Unit) {
+sealed class SetupSetting<T>(val name: String, val init: T, private val valueToString: (T) -> String, private val parseValueFromString: (String) -> T, val onChange: (Architecture, SetupSetting<T>) -> Unit) {
 
     val trimmedName = name.trim(' ', '\n', '=', '\t')
     private var value: T = init
@@ -15,15 +16,19 @@ sealed class SetupSetting<T>(val name: String, val init: T, private val parseVal
 
     fun get(): T = value
 
-    fun valueToString(): String = value.toString()
+    fun valueToString(): String {
+        nativeLog("ToString: ${valueToString(value)}")
+        return valueToString(value)
+    }
 
     fun loadFromString(arch: Architecture, string: String) {
+        nativeLog("Parsed: ${parseValueFromString(string)}")
         set(arch, parseValueFromString(string))
     }
 
-    class Bool(name: String, init: Boolean, onChange: (Architecture, SetupSetting<Boolean>) -> Unit) : SetupSetting<Boolean>(name, init, { it.toBoolean() }, onChange)
-    class Enumeration<T : Enum<T>>(name: String, val enumValues: EnumEntries<T>, init: T, onChange: (Architecture, SetupSetting<T>) -> Unit) : SetupSetting<T>(name, init, { value -> enumValues.firstOrNull { it.toString() == value } ?: init }, onChange)
+    class Bool(name: String, init: Boolean, onChange: (Architecture, SetupSetting<Boolean>) -> Unit) : SetupSetting<Boolean>(name, init, { it.toString() }, { it.toBoolean() }, onChange)
+    class Enumeration<T : Enum<T>>(name: String, val enumValues: EnumEntries<T>, init: T, onChange: (Architecture, SetupSetting<T>) -> Unit) : SetupSetting<T>(name, init, { it.name }, { value -> enumValues.firstOrNull { it.name == value } ?: init }, onChange)
 
-    class Any<T>(name: String, init: T, parseValueFromString: (String) -> T, onChange: (Architecture, SetupSetting<T>) -> Unit) : SetupSetting<T>(name, init, parseValueFromString, onChange)
+    class Any<T>(name: String, init: T, valueToString: (T) -> String, parseValueFromString: (String) -> T, onChange: (Architecture, SetupSetting<T>) -> Unit) : SetupSetting<T>(name, init, valueToString, parseValueFromString, onChange)
 
 }

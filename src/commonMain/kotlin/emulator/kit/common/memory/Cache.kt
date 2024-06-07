@@ -391,12 +391,19 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             }
 
             class RANDOM(size: Int) : Decider(size) {
-                override fun indexToReplace(): Int = range.random()
+                private var currIndexToReplace = range.random()
+                override fun indexToReplace(): Int = currIndexToReplace
 
-                override fun read(index: Int) {}
+                override fun read(index: Int) {
+                    currIndexToReplace = range.random()
+                }
 
-                override fun write(index: Int) {}
-                override fun reset() {}
+                override fun write(index: Int) {
+                    currIndexToReplace = range.random()
+                }
+                override fun reset() {
+                    currIndexToReplace = range.random()
+                }
             }
         }
 

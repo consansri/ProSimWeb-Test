@@ -1,16 +1,16 @@
 package emulator.kit.optional
 
 import Performance
+import emulator.kit.common.memory.Memory
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
 import kotlin.time.measureTime
 
 abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
     override fun exeContinuous() {
         var instrCount = 0L
+        val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeContinuous()
 
@@ -18,28 +18,30 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
             while (result?.valid != false && instrCount <= Performance.MAX_INSTR_EXE_AMOUNT) {
                 instrCount++
-                result = executeNext()
+                result = executeNext(tracker)
             }
         }
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        console.exeInfo("continuous \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("continuous \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
     override fun exeSingleStep() {
+        val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeSingleStep() // clears console
-            executeNext()
+            executeNext(tracker)
         }
 
         Performance.updateExePerformance(1, measuredTime)
 
-        console.exeInfo("single step \ntook ${measuredTime.inWholeMicroseconds} μs")
+        console.exeInfo("single step \ntook ${measuredTime.inWholeMicroseconds} μs\n$tracker")
     }
 
     override fun exeMultiStep(steps: Long) {
         var instrCount = 0L
+        val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeMultiStep(steps)
 
@@ -47,27 +49,28 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
             while (result?.valid != false && instrCount < steps) {
                 instrCount++
-                result = executeNext()
+                result = executeNext(tracker)
             }
         }
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        console.exeInfo("$steps steps \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("$steps steps \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
     override fun exeSkipSubroutine() {
         var instrCount = 0L
+        val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeSkipSubroutine()
 
-            var result = executeNext()
+            var result = executeNext(tracker)
             instrCount++
 
             if (result.valid && result.typeIsBranchToSubroutine) {
                 while (result.valid && instrCount <= 1000) {
                     instrCount++
-                    result = executeNext()
+                    result = executeNext(tracker)
                     if (result.typeIsReturnFromSubroutine) {
                         break
                     }
@@ -77,11 +80,12 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        console.exeInfo("skip subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("skip subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
     override fun exeReturnFromSubroutine() {
         var instrCount = 0L
+        val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeReturnFromSubroutine()
 
@@ -89,7 +93,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
-                result = executeNext()
+                result = executeNext(tracker)
                 if (result.typeIsReturnFromSubroutine) {
                     break
                 }
@@ -98,11 +102,12 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        console.exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
     override fun exeUntilAddress(address: Variable.Value.Hex) {
         var instrCount = 0L
+        val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeUntilAddress(address)
 
@@ -110,7 +115,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
-                result = executeNext()
+                result = executeNext(tracker)
                 if (regContainer.pc.get().toHex().getRawHexStr().uppercase() == address.getRawHexStr().uppercase()) {
                     break
                 }
@@ -119,11 +124,12 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        console.exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
     override fun exeUntilLine(lineID: Int, wsRelativeFileName: String) {
         var instrCount = 0L
+        val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeUntilLine(lineID, wsRelativeFileName)
 
@@ -148,7 +154,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
-                result = executeNext()
+                result = executeNext(tracker)
                 if (regContainer.pc.get().toHex().getRawHexStr().uppercase() == destAddrString.uppercase()) {
                     break
                 }
@@ -157,11 +163,11 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
         Performance.updateExePerformance(instrCount, measuredTime)
 
-        console.exeInfo("until line ${lineID + 1} \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]")
+        console.exeInfo("until line ${lineID + 1} \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
 
-    abstract fun executeNext(): ExecutionResult
+    abstract fun executeNext(tracker: Memory.AccessTracker): ExecutionResult
 
 
     data class ExecutionResult(val valid: Boolean, val typeIsReturnFromSubroutine: Boolean, val typeIsBranchToSubroutine: Boolean)
