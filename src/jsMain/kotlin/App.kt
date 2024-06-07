@@ -344,7 +344,7 @@ val App = FC<Props> {
                                 defaultChecked = setting.get()
                                 onChange = {
                                     setting.set(archState.component1(), it.currentTarget.checked)
-                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}", setting.get().toString())
+                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.trimmedName}", setting.get().toString())
                                 }
                             }
                         }
@@ -357,7 +357,7 @@ val App = FC<Props> {
                                 onChange = {
                                     val selectedValue = it.currentTarget.value
                                     setting.loadFromString(archState.component1(), selectedValue)
-                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}", setting.valueToString())
+                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.trimmedName}", setting.valueToString())
                                 }
 
                                 setting.enumValues.forEach { enumValue ->
@@ -378,7 +378,7 @@ val App = FC<Props> {
 
                                 onChange = {
                                     setting.loadFromString(archState.component1(), it.currentTarget.value)
-                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}", setting.valueToString())
+                                    localStorage.setItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.trimmedName}", setting.valueToString())
                                     it.currentTarget.value = setting.valueToString()
                                 }
                             }
@@ -419,7 +419,7 @@ val App = FC<Props> {
         }
         setVisibleFeatures(archState.component1().features.filter { !it.invisible })
         for (setting in archState.component1().settings) {
-            localStorage.getItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.name}")?.let {
+            localStorage.getItem("${archState.component1().description.name}-${Keys.ARCH_SETTING}-${setting.trimmedName}")?.let {
                 setting.loadFromString(archState.component1(), it)
             }
         }
