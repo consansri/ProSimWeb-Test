@@ -61,7 +61,7 @@ sealed class Memory {
 
         var instanceAddress = address.toHex().getUResized(addressSize)
         for (i in 0..<amount) {
-            val value = load(instanceAddress, 1, tracker)
+            val value = load(instanceAddress, 1, tracker).getUResized(instanceSize)
             instances.add(value.toHex())
             instanceAddress = (instanceAddress + Hex("01", Bit8())).toHex()
         }

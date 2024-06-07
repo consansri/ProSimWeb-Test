@@ -7,6 +7,8 @@ import me.c3.ui.States
 import me.c3.ui.components.processor.models.CacheTableModel
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CTable
+import me.c3.ui.styled.CTextButton
+import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 import javax.swing.SwingUtilities
 
@@ -14,12 +16,19 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
 
     val tableModel = CacheTableModel()
     val table = CTable(tableModel, false)
+    val wbAll = CTextButton("write back all", FontType.CODE).apply {
+        this.addActionListener {
+            cache.writeBackAll()
+        }
+    }
     val asciiTitle = "ASCII"
+
 
     init {
         layout = BorderLayout()
         add(table.tableHeader, BorderLayout.NORTH)
         add(table, BorderLayout.CENTER)
+        add(wbAll, BorderLayout.SOUTH)
         this.maximumSize = table.maximumSize
         updateContent()
         addContentChangeListener()

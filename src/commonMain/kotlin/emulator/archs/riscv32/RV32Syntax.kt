@@ -1,15 +1,15 @@
 package emulator.archs.riscv32
 
 
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
-import emulator.kit.assembler.gas.GASNodeType
-import emulator.archs.riscv32.RV32BinMapper.OpCode
+import emulator.archs.ArchRV32
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
+import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
+import emulator.kit.assembler.gas.GASNodeType
+import emulator.kit.common.memory.Memory
+import emulator.kit.types.Variable
 
 class RV32Syntax {
 
@@ -218,8 +218,8 @@ class RV32Syntax {
 
     enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null, val needFeatures: List<Int> = emptyList()) : InstrTypeInterface {
         LUI("LUI", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 0110111", arrayOf(IMM20, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap) // only for console information
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker) // only for console information
                 // get relevant parameters from binary map
                 val rdAddr = paramMap[RD]
                 val imm20 = paramMap[IMM20]
@@ -238,8 +238,8 @@ class RV32Syntax {
             }
         },
         AUIPC("AUIPC", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 0010111", arrayOf(IMM20, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 if (rdAddr != null) {
                     val rd = arch.getRegByAddr(rdAddr)
@@ -255,8 +255,8 @@ class RV32Syntax {
             }
         },
         JAL("JAL", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 1101111", arrayOf(IMM20, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 if (rdAddr != null) {
                     val rd = arch.getRegByAddr(rdAddr)
@@ -280,8 +280,8 @@ class RV32Syntax {
             }
         },
         JALR("JALR", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 000 00000 1100111", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -303,8 +303,8 @@ class RV32Syntax {
             "BEQ", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 if (rs2Addr != null && rs1Addr != null) {
@@ -332,8 +332,8 @@ class RV32Syntax {
             "BNE", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 if (rs2Addr != null && rs1Addr != null) {
@@ -360,8 +360,8 @@ class RV32Syntax {
             "BLT", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 if (rs2Addr != null && rs1Addr != null) {
@@ -388,8 +388,8 @@ class RV32Syntax {
             "BGE", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 if (rs2Addr != null && rs1Addr != null) {
@@ -416,8 +416,8 @@ class RV32Syntax {
             "BLTU", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 if (rs2Addr != null && rs1Addr != null) {
@@ -444,8 +444,8 @@ class RV32Syntax {
             "BGEU", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 if (rs2Addr != null && rs1Addr != null) {
@@ -469,8 +469,8 @@ class RV32Syntax {
             }
         },
         LB("LB", false, ParamType.RD_OFF12, OpCode("000000000000 00000 000 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val imm12 = paramMap[IMM12]
@@ -480,7 +480,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
-                        val loadedByte = arch.memory.load(memAddr.toHex()).toBin().getResized(RV32.XLEN)
+                        val loadedByte = arch.dataMemory.load(memAddr.toHex(), tracker = tracker).toBin().getResized(RV32.XLEN)
                         rd.set(loadedByte)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -488,8 +488,8 @@ class RV32Syntax {
             }
         },
         LH("LH", false, ParamType.RD_OFF12, OpCode("000000000000 00000 001 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val imm12 = paramMap[IMM12]
@@ -499,7 +499,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
-                        val loadedHalfWord = arch.memory.load(memAddr.toHex(), 2).toBin().getResized(RV32.XLEN)
+                        val loadedHalfWord = arch.dataMemory.load(memAddr.toHex(), 2, tracker = tracker).toBin().getResized(RV32.XLEN)
                         rd.set(loadedHalfWord)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -507,8 +507,8 @@ class RV32Syntax {
             }
         },
         LW("LW", false, ParamType.RD_OFF12, OpCode("000000000000 00000 010 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val imm12 = paramMap[IMM12]
@@ -518,7 +518,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
-                        val loadedWord = arch.memory.load(memAddr.toHex(), 4).toBin().getResized(RV32.XLEN)
+                        val loadedWord = arch.dataMemory.load(memAddr.toHex(), 4, tracker = tracker).toBin().getResized(RV32.XLEN)
                         rd.set(loadedWord)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -526,8 +526,8 @@ class RV32Syntax {
             }
         },
         LBU("LBU", false, ParamType.RD_OFF12, OpCode("000000000000 00000 100 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val imm12 = paramMap[IMM12]
@@ -537,7 +537,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
-                        val loadedByte = arch.memory.load(memAddr.toHex())
+                        val loadedByte = arch.dataMemory.load(memAddr.toHex(), tracker = tracker)
                         rd.set(loadedByte.toBin().getUResized(RV32.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -545,8 +545,8 @@ class RV32Syntax {
             }
         },
         LHU("LHU", false, ParamType.RD_OFF12, OpCode("000000000000 00000 101 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val imm12 = paramMap[IMM12]
@@ -556,7 +556,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null) {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
-                        val loadedByte = arch.memory.load(memAddr.toHex(), 2)
+                        val loadedByte = arch.dataMemory.load(memAddr.toHex(), 2, tracker = tracker)
                         rd.set(loadedByte.toBin().getUResized(RV32.XLEN))
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
@@ -567,8 +567,8 @@ class RV32Syntax {
             "SB", false, ParamType.RS2_OFF12,
             OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 val imm5 = paramMap[IMM5]
@@ -580,7 +580,7 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit8()))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit8()), tracker = tracker)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
@@ -590,8 +590,8 @@ class RV32Syntax {
             "SH", false, ParamType.RS2_OFF12,
             OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 val imm5 = paramMap[IMM5]
@@ -603,7 +603,7 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit16()))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit16()), tracker = tracker)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
@@ -613,8 +613,8 @@ class RV32Syntax {
             "SW", false, ParamType.RS2_OFF12,
             OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
                 val imm5 = paramMap[IMM5]
@@ -626,15 +626,15 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.variable.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.memory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit32()))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit32()), tracker = tracker)
                         pc.set(pc.get() + Variable.Value.Hex("4"))
                     }
                 }
             }
         },
         ADDI("ADDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 000 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -652,8 +652,8 @@ class RV32Syntax {
             }
         },
         SLTI("SLTI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 010 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -670,8 +670,8 @@ class RV32Syntax {
             }
         },
         SLTIU("SLTIU", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 011 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -688,8 +688,8 @@ class RV32Syntax {
             }
         },
         XORI("XORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 100 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -706,8 +706,8 @@ class RV32Syntax {
             }
         },
         ORI("ORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 110 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -724,8 +724,8 @@ class RV32Syntax {
             }
         },
         ANDI("ANDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 111 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -745,8 +745,8 @@ class RV32Syntax {
             "SLLI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -765,8 +765,8 @@ class RV32Syntax {
             "SRLI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -785,8 +785,8 @@ class RV32Syntax {
             "SRAI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 if (rdAddr != null && rs1Addr != null) {
@@ -805,8 +805,8 @@ class RV32Syntax {
             "ADD", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -826,8 +826,8 @@ class RV32Syntax {
             "SUB", false, ParamType.RD_RS1_RS2,
             OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -847,8 +847,8 @@ class RV32Syntax {
             "SLL", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -868,8 +868,8 @@ class RV32Syntax {
             "SLT", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -889,8 +889,8 @@ class RV32Syntax {
             "SLTU", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -910,8 +910,8 @@ class RV32Syntax {
             "XOR", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -931,8 +931,8 @@ class RV32Syntax {
             "SRL", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -952,8 +952,8 @@ class RV32Syntax {
             "SRA", false, ParamType.RD_RS1_RS2,
             OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -973,8 +973,8 @@ class RV32Syntax {
             "OR", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -994,8 +994,8 @@ class RV32Syntax {
             "AND", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1017,8 +1017,8 @@ class RV32Syntax {
             "CSRRW", false, ParamType.CSR_RD_OFF12_RS1,
             OpCode("000000000000 00000 001 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val csrAddr = paramMap[CSR]
@@ -1044,8 +1044,8 @@ class RV32Syntax {
             "CSRRS", false, ParamType.CSR_RD_OFF12_RS1,
             OpCode("000000000000 00000 010 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val csrAddr = paramMap[CSR]
@@ -1071,8 +1071,8 @@ class RV32Syntax {
             "CSRRC", false, ParamType.CSR_RD_OFF12_RS1,
             OpCode("000000000000 00000 011 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val csrAddr = paramMap[CSR]
@@ -1098,8 +1098,8 @@ class RV32Syntax {
             "CSRRWI", false, ParamType.CSR_RD_OFF12_UIMM5,
             OpCode("000000000000 00000 101 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val uimm5 = paramMap[UIMM5]
                 val csrAddr = paramMap[CSR]
@@ -1124,8 +1124,8 @@ class RV32Syntax {
             "CSRRSI", false, ParamType.CSR_RD_OFF12_UIMM5,
             OpCode("000000000000 00000 110 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val uimm5 = paramMap[UIMM5]
                 val csrAddr = paramMap[CSR]
@@ -1150,8 +1150,8 @@ class RV32Syntax {
             "CSRRCI", false, ParamType.CSR_RD_OFF12_UIMM5,
             OpCode("000000000000 00000 111 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val uimm5 = paramMap[UIMM5]
                 val csrAddr = paramMap[CSR]
@@ -1184,8 +1184,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1212,8 +1212,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1240,8 +1240,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1268,8 +1268,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1296,8 +1296,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1324,8 +1324,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1352,8 +1352,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1380,8 +1380,8 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
-                super.execute(arch, paramMap)
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+                super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -1433,7 +1433,7 @@ class RV32Syntax {
 
         override fun getDetectionName(): String = this.id
 
-        open fun execute(arch: emulator.kit.Architecture, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>) {
+        open fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
             arch.console.log("> $id {...}")
         }
     }

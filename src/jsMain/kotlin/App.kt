@@ -352,7 +352,7 @@ val App = FC<Props> {
                         is SetupSetting.Enumeration<*> -> {
                             select {
                                 id = "setting${setting.name}"
-                                defaultValue = setting.get().toString()
+                                defaultValue = setting.get().name
 
                                 onChange = {
                                     val selectedValue = it.currentTarget.value
@@ -362,8 +362,8 @@ val App = FC<Props> {
 
                                 setting.enumValues.forEach { enumValue ->
                                     option {
-                                        value = enumValue.toString()
-                                        +enumValue.name
+                                        value = enumValue.name
+                                        +enumValue.toString()
                                     }
                                 }
                             }

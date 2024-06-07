@@ -92,6 +92,4 @@ class Settings : CIconButton(States.icon.get().settings) {
         gbc.gridx = 1
         panel.add(component, gbc)
     }
-
-
 }

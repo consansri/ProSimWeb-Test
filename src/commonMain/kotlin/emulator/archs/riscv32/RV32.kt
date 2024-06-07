@@ -1,22 +1,27 @@
 package emulator.archs.riscv32
 
 
-import emulator.kit.configs.Config.*
+import emulator.archs.ArchRV32
+import emulator.archs.riscv32.RV32.asmConfig
+import emulator.archs.riscv32.RV32.config
+import emulator.archs.riscv32.RV32.riscVDocs
 import emulator.archs.riscv64.CSRegister
-import emulator.kit.common.*
-import emulator.kit.configs.AsmConfig
-import emulator.kit.configs.Config
-import emulator.kit.optional.Feature
-import emulator.kit.types.*
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.archs.riscv64.CSRegister.Privilege
+import emulator.kit.common.Docs
+import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.common.RegContainer.Register
-import emulator.archs.riscv64.CSRegister.Privilege
-import emulator.kit.common.Docs.DocComponent.*
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.common.memory.Memory
+import emulator.kit.common.memory.*
+import emulator.kit.configs.AsmConfig
+import emulator.kit.configs.Config
+import emulator.kit.configs.Config.Description
+import emulator.kit.optional.Feature
+import emulator.kit.optional.SetupSetting
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 
 
 /**
@@ -405,6 +410,28 @@ object RV32 {
 
     private val csrRegFile = RegContainer.RegisterFile(CSR_REGFILE_NAME, arrayOf(*csrUnprivileged, *csrDebug, *csrMachine, *csrSupervisor), hasPrivileges = true)
 
+
+    /**
+     * Configuration
+     */
+
+    val settings = listOf(
+        SetupSetting.Enumeration("Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+            if (arch is ArchRV32) {
+                arch.dataMemory = when (setting.get()) {
+                    Cache.Setting.NONE -> arch.memory
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.FIFO)
+                }
+            }
+        }
+    )
+
     val config = Config(
         Description("RV32I", "RISC-V 32Bit", riscVDocs),
         fileEnding = "s",
@@ -413,7 +440,8 @@ object RV32 {
             pcSize = Bit32(),
             standardRegFileName = MAIN_REGFILE_NAME
         ),
-        MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian)
+        MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
+        settings
     )
 
 

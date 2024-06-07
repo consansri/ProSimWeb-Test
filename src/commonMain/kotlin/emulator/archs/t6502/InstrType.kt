@@ -1,7 +1,9 @@
 package emulator.archs.t6502
 
+import emulator.archs.ArchT6502
 import emulator.archs.t6502.AModes.*
 import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.common.memory.Memory
 import emulator.kit.types.Variable.Size.Bit1
 import emulator.kit.types.Variable.Size.Bit9
 import emulator.kit.types.Variable.Value.Bin
@@ -129,8 +131,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
     override fun getDetectionName(): String = this.name
 
-    fun execute(arch: emulator.kit.Architecture, amode: AModes, threeBytes: Array<Bin>) {
-
+    fun execute(arch: ArchT6502, amode: AModes, threeBytes: Array<Bin>, tracker: Memory.AccessTracker) {
         val smallVal = threeBytes.drop(1).first().toHex()
         val bigVal = Hex(threeBytes.drop(1).joinToString("") { it.toHex().getRawHexStr() }, T6502.WORD_SIZE)
 
@@ -178,15 +179,15 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 setFlags(arch, n = y.get().toBin().getBit(0), checkZero = y.get().toBin())
             }
 
-            STA -> address?.let { arch.memory.store(it, ac.get()) } ?: {
+            STA -> address?.let { arch.cachedMemory.store(it, ac.get(), tracker = tracker) } ?: {
                 arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
             }
 
-            STX -> address?.let { arch.memory.store(it, x.get()) } ?: {
+            STX -> address?.let { arch.cachedMemory.store(it, x.get(), tracker = tracker) } ?: {
                 arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
             }
 
-            STY -> address?.let { arch.memory.store(it, y.get()) } ?: {
+            STY -> address?.let { arch.cachedMemory.store(it, y.get(), tracker = tracker) } ?: {
                 arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
             }
 
@@ -217,32 +218,32 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             }
 
             PHA -> {
-                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE).toHex(), ac.get())
+                arch.cachedMemory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE).toHex(), ac.get(), tracker = tracker)
                 sp.set(sp.get().toBin() - Bin("1", T6502.BYTE_SIZE))
             }
 
             PHP -> {
-                arch.memory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE).toHex(), sr.get())
+                arch.cachedMemory.store(sp.get().toBin().getUResized(T6502.WORD_SIZE).toHex(), sr.get(), tracker = tracker)
                 sp.set(sp.get().toBin() - Bin("1", T6502.BYTE_SIZE))
             }
 
             PLA -> {
                 sp.set(sp.get().toBin() + Bin("1", T6502.BYTE_SIZE))
-                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
+                val loaded = arch.cachedMemory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE), tracker = tracker).toBin()
                 ac.set(loaded)
                 setFlags(arch, n = loaded.getBit(0), checkZero = loaded)
             }
 
             PLP -> {
                 sp.set(sp.get().toBin() + Bin("1", T6502.BYTE_SIZE))
-                val loaded = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
+                val loaded = arch.cachedMemory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE), tracker = tracker).toBin()
                 setFlags(arch, n = loaded.getBit(0), v = loaded.getBit(1), d = loaded.getBit(4), i = loaded.getBit(5), z = loaded.getBit(6), c = loaded.getBit(7))
             }
 
             DEC -> {
                 address?.let {
-                    val dec = arch.memory.load(it) - Bin("1", T6502.BYTE_SIZE)
-                    arch.memory.store(it, dec)
+                    val dec = arch.cachedMemory.load(it, tracker = tracker) - Bin("1", T6502.BYTE_SIZE)
+                    arch.cachedMemory.store(it, dec, tracker = tracker)
                     setFlags(arch, n = dec.toBin().getBit(0), checkZero = dec.toBin())
                 } ?: {
                     arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
@@ -263,8 +264,8 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
             INC -> {
                 address?.let {
-                    val inc = arch.memory.load(it) + Bin("1", T6502.BYTE_SIZE)
-                    arch.memory.store(it, inc)
+                    val inc = arch.cachedMemory.load(it, tracker = tracker) + Bin("1", T6502.BYTE_SIZE)
+                    arch.cachedMemory.store(it, inc, tracker = tracker)
                     setFlags(arch, n = inc.toBin().getBit(0), checkZero = inc.toBin())
                 } ?: {
                     arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
@@ -369,9 +370,9 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
                     else -> {
                         address?.let {
-                            val memBin = arch.memory.load(it).toBin()
+                            val memBin = arch.cachedMemory.load(it, tracker = tracker).toBin()
                             val shiftRes = memBin shl 1
-                            arch.memory.store(it, shiftRes)
+                            arch.cachedMemory.store(it, shiftRes, tracker = tracker)
                             setFlags(arch, c = memBin.getBit(0), checkZero = shiftRes, n = shiftRes.getBit(0))
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
@@ -388,10 +389,10 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
                     else -> {
                         address?.let {
-                            val loaded = arch.memory.load(it).toBin()
+                            val loaded = arch.cachedMemory.load(it, tracker = tracker).toBin()
                             val shifted = loaded ushr 1
                             setFlags(arch, n = Bin("0", Bit1()), checkZero = shifted, c = loaded.getBit(7))
-                            arch.memory.store(it, shifted)
+                            arch.cachedMemory.store(it, shifted, tracker = tracker)
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
                 }
@@ -408,10 +409,10 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
                     else -> {
                         address?.let {
-                            val loaded = arch.memory.load(it).toBin()
+                            val loaded = arch.cachedMemory.load(it, tracker = tracker).toBin()
                             val rotated = loaded.ushl(1) and flags.c.getUResized(T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(0))
-                            arch.memory.store(it, rotated)
+                            arch.cachedMemory.store(it, rotated, tracker = tracker)
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
                 }
@@ -428,10 +429,10 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
                     else -> {
                         address?.let {
-                            val loaded = arch.memory.load(it).toBin()
+                            val loaded = arch.cachedMemory.load(it, tracker = tracker).toBin()
                             val rotated = loaded.ushr(1) and Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(7))
-                            arch.memory.store(it, rotated)
+                            arch.cachedMemory.store(it, rotated, tracker = tracker)
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
                 }
@@ -606,7 +607,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     }
 
                     IND -> {
-                        pc.set(Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.memory.load(bigVal).toBin().getRawBinStr(), T6502.WORD_SIZE))
+                        pc.set(Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.cachedMemory.load(bigVal, tracker = tracker).toBin().getRawBinStr(), T6502.WORD_SIZE))
                     }
 
                     else -> {}
@@ -615,13 +616,13 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
             JSR -> {
                 val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                arch.memory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE) - Bin("1", T6502.WORD_SIZE)).toHex(), nextPC)
+                arch.cachedMemory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE) - Bin("1", T6502.WORD_SIZE)).toHex(), nextPC, tracker = tracker)
                 sp.set(sp.get().toBin() - Bin("10", T6502.BYTE_SIZE))
                 pc.set(bigVal)
             }
 
             RTS -> {
-                val loadedPC = arch.memory.load((sp.get().toBin().getUResized(T6502.WORD_SIZE) + Bin("1", T6502.WORD_SIZE)).toHex(), 2)
+                val loadedPC = arch.cachedMemory.load((sp.get().toBin().getUResized(T6502.WORD_SIZE) + Bin("1", T6502.WORD_SIZE)).toHex(), 2, tracker = tracker)
                 sp.set(sp.get().toBin() + Bin("10", T6502.BYTE_SIZE))
                 pc.set(loadedPC)
             }
@@ -629,16 +630,16 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             BRK -> {
                 // Store Return Address
                 val nextPC = pc.get() + Hex(amode.byteAmount.toString(16), T6502.WORD_SIZE)
-                arch.memory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE) - Bin("1", T6502.WORD_SIZE)).toHex(), nextPC)
+                arch.cachedMemory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE) - Bin("1", T6502.WORD_SIZE)).toHex(), nextPC, tracker = tracker)
                 sp.set(sp.get().toBin() - Bin("10", T6502.BYTE_SIZE))
 
                 // Store Status Register
-                arch.memory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE)).toHex(), sr.get())
+                arch.cachedMemory.store((sp.get().toBin().getUResized(T6502.WORD_SIZE)).toHex(), sr.get(), tracker = tracker)
                 sp.set(sp.get().toBin() - Bin("1", T6502.BYTE_SIZE))
 
                 // Load Interrupt Vendor
-                val lsb = arch.memory.load(Hex("FFFE", T6502.WORD_SIZE)).toHex()
-                val msb = arch.memory.load(Hex("FFFF", T6502.WORD_SIZE)).toHex()
+                val lsb = arch.cachedMemory.load(Hex("FFFE", T6502.WORD_SIZE), tracker = tracker).toHex()
+                val msb = arch.cachedMemory.load(Hex("FFFF", T6502.WORD_SIZE), tracker = tracker).toHex()
 
                 // Jump to Interrupt Handler Address
                 pc.set(Hex(msb.getRawHexStr() + lsb.getRawHexStr(), T6502.WORD_SIZE))
@@ -647,12 +648,12 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             RTI -> {
                 // Load Status Register
                 sp.set(sp.get().toBin() + Bin("1", T6502.BYTE_SIZE))
-                val loadedSR = arch.memory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE)).toBin()
+                val loadedSR = arch.cachedMemory.load(sp.get().toHex().getUResized(T6502.WORD_SIZE), tracker = tracker).toBin()
                 setFlags(arch, n = loadedSR.getBit(0), v = loadedSR.getBit(1), d = loadedSR.getBit(4), i = loadedSR.getBit(5), z = loadedSR.getBit(6), c = loadedSR.getBit(7))
 
                 // Load Return Address
                 sp.set(sp.get().toBin() + Bin("10", T6502.BYTE_SIZE))
-                val retAddr = arch.memory.load((sp.get().toHex().getUResized(T6502.WORD_SIZE) - Hex("1", T6502.WORD_SIZE)).toHex(), 2)
+                val retAddr = arch.cachedMemory.load((sp.get().toHex().getUResized(T6502.WORD_SIZE) - Hex("1", T6502.WORD_SIZE)).toHex(), 2, tracker = tracker)
 
                 // Jump To Return Address
                 pc.set(retAddr)
@@ -688,7 +689,9 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
     }
 
-    private fun getOperand(arch: emulator.kit.Architecture, amode: AModes, smallVal: Hex, bigVal: Hex): Hex? {
+    private fun getOperand(arch: emulator.kit.Architecture, amode: AModes, smallVal: Hex, bigVal: Hex): Hex? {      
+        if(arch !is ArchT6502) return null
+        
         val pc = arch.regContainer.pc
         val ac = arch.getRegByName("AC")
         val x = arch.getRegByName("X")
@@ -704,48 +707,48 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             }
 
             ZP -> {
-                arch.memory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)).toHex()
+                arch.cachedMemory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)).toHex()
             }
 
             ZP_X -> {
                 val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-                arch.memory.load(addr.toHex()).toHex()
+                arch.cachedMemory.load(addr.toHex()).toHex()
             }
 
             ZP_Y -> {
                 val addr = Hex("00${(smallVal + y.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-                arch.memory.load(addr.toHex()).toHex()
+                arch.cachedMemory.load(addr.toHex()).toHex()
             }
 
             ABS -> {
-                arch.memory.load(bigVal).toHex()
+                arch.cachedMemory.load(bigVal).toHex()
             }
 
             ABS_X -> {
                 val addr = bigVal + x.get().toHex()
-                arch.memory.load(addr.toHex()).toHex()
+                arch.cachedMemory.load(addr.toHex()).toHex()
             }
 
             ABS_Y -> {
                 val addr = bigVal + y.get().toHex()
-                arch.memory.load(addr.toHex()).toHex()
+                arch.cachedMemory.load(addr.toHex()).toHex()
             }
 
             IND -> {
-                val loadedAddr = arch.memory.load(bigVal).toHex()
-                arch.memory.load(loadedAddr).toHex()
+                val loadedAddr = arch.cachedMemory.load(bigVal).toHex()
+                arch.cachedMemory.load(loadedAddr).toHex()
             }
 
             ZP_X_IND -> {
                 val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-                val loadedAddr = arch.memory.load(addr.toHex()).toHex()
-                arch.memory.load(loadedAddr).toHex()
+                val loadedAddr = arch.cachedMemory.load(addr.toHex()).toHex()
+                arch.cachedMemory.load(loadedAddr).toHex()
             }
 
             ZPIND_Y -> {
-                val loadedAddr = arch.memory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE))
+                val loadedAddr = arch.cachedMemory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE))
                 val incAddr = loadedAddr + y.get()
-                arch.memory.load(incAddr.toHex()).toHex()
+                arch.cachedMemory.load(incAddr.toHex()).toHex()
             }
 
             ACCUMULATOR -> {
@@ -760,7 +763,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
         }
     }
 
-    private fun getAddress(arch: emulator.kit.Architecture, amode: AModes, smallVal: Hex, bigVal: Hex, x: Hex, y: Hex): Hex? {
+    private fun getAddress(arch: ArchT6502, amode: AModes, smallVal: Hex, bigVal: Hex, x: Hex, y: Hex): Hex? {
         return when (amode) {
             ABS -> bigVal
             ABS_X -> (bigVal + x.toBin().getResized(T6502.WORD_SIZE)).toHex()
@@ -768,13 +771,13 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             ZP -> Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)
             ZP_X -> Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE)
             ZP_Y -> Hex("00${(smallVal + y).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_X_IND -> arch.memory.load(Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE), 2).toHex()
-            ZPIND_Y -> (arch.memory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE), 2) + y).toHex()
+            ZP_X_IND -> arch.cachedMemory.load(Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE), 2).toHex()
+            ZPIND_Y -> (arch.cachedMemory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE), 2) + y).toHex()
             else -> null
         }
     }
 
-    private fun getFlags(arch: emulator.kit.Architecture): T6502Assembler.Flags? {
+    private fun getFlags(arch: ArchT6502): T6502Assembler.Flags? {
         val sr = arch.getRegByName("SR") ?: return null
         val nflag = sr.get().toBin().getBit(0) ?: return null
         val vflag = sr.get().toBin().getBit(1) ?: return null
@@ -786,7 +789,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
         return T6502Assembler.Flags(nflag, vflag, zflag, cflag, dflag, bflag, iflag)
     }
 
-    private fun setFlags(arch: emulator.kit.Architecture, n: Bin? = null, v: Bin? = null, b: Bin? = null, d: Bin? = null, i: Bin? = null, z: Bin? = null, c: Bin? = null, checkZero: Bin? = null, seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {
+    private fun setFlags(arch: ArchT6502, n: Bin? = null, v: Bin? = null, b: Bin? = null, d: Bin? = null, i: Bin? = null, z: Bin? = null, c: Bin? = null, checkZero: Bin? = null, seti: Boolean? = null, setd: Boolean? = null, setb: Boolean? = null) {
         val sr = arch.getRegByName("SR") ?: return
 
         var nflag = sr.get().toBin().getBit(0) ?: return

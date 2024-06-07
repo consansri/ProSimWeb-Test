@@ -1,15 +1,15 @@
 package emulator.archs.ikrmini
 
-import emulator.kit.Architecture
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.archs.ArchIKRMini
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.Rule
 import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.common.memory.Memory
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 
 class IKRMiniSyntax {
     enum class ParamType(val tokenSeq: Rule?, val wordAmount: Int, val exampleString: String) {
@@ -77,7 +77,7 @@ class IKRMiniSyntax {
 
         override fun getDetectionName(): String = this.name
 
-        fun execute(arch: Architecture, paramtype: ParamType, ext: List<Hex>) {
+        fun execute(arch: ArchIKRMini, paramtype: ParamType, ext: List<Hex>, tracker: Memory.AccessTracker) {
             val pc = arch.regContainer.pc
             val ac = arch.getRegByName("AC")
 
@@ -87,20 +87,20 @@ class IKRMiniSyntax {
             }
 
             val operand: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.memory.load(arch.memory.load(ext[0], 2).toHex(), 2).toHex()
-                ParamType.DIRECT -> arch.memory.load(ext[0], 2).toHex()
+                ParamType.INDIRECT -> arch.cachedMemory.load(arch.cachedMemory.load(ext[0], 2).toHex(), 2, tracker = tracker).toHex()
+                ParamType.DIRECT -> arch.cachedMemory.load(ext[0], 2, tracker = tracker).toHex()
                 ParamType.IMMEDIATE -> ext[0]
                 ParamType.DESTINATION -> (pc.get() + ext[0]).toHex()
                 ParamType.IMPLIED -> ac.get().toHex()
                 ParamType.INDIRECT_WITH_OFFSET -> {
                     val offset = ext[0]
                     val address = ext[1]
-                    arch.memory.load((arch.memory.load(address, 2) + offset).toHex(), 2).toHex()
+                    arch.cachedMemory.load((arch.cachedMemory.load(address, 2, tracker = tracker) + offset).toHex(), 2).toHex()
                 }
             }
 
             val address: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.memory.load(ext[0], 2).toHex()
+                ParamType.INDIRECT -> arch.cachedMemory.load(ext[0], 2, tracker = tracker).toHex()
                 ParamType.DIRECT -> ext[0]
                 ParamType.IMMEDIATE -> ext[0]
                 ParamType.DESTINATION -> (pc.get().toHex() + ext[0]).toHex()
@@ -108,7 +108,7 @@ class IKRMiniSyntax {
                 ParamType.INDIRECT_WITH_OFFSET -> {
                     val offset = ext[0]
                     val address = ext[1]
-                    (arch.memory.load(address, 2) + offset).toHex()
+                    (arch.cachedMemory.load(address, 2, tracker = tracker) + offset).toHex()
                 }
             }
 
@@ -118,8 +118,8 @@ class IKRMiniSyntax {
 
             when (this) {
                 LOAD -> ac.set(operand)
-                LOADI -> ac.set(arch.memory.load(operand, 2))
-                STORE -> arch.memory.store(address, ac.get(), Memory.InstanceType.DATA)
+                LOADI -> ac.set(arch.cachedMemory.load(operand, 2, tracker = tracker))
+                STORE -> arch.cachedMemory.store(address, ac.get(), Memory.InstanceType.DATA, tracker = tracker)
                 AND -> {
                     val result = ac.get().toBin() and operand.toBin()
                     val n = result.getBit(0)?.getRawBinStr() == "1"
@@ -465,7 +465,7 @@ class IKRMiniSyntax {
             pc.set(pc.get() + Hex((paramtype.wordAmount * WORDSIZE.getByteCount()).toString(16), WORDSIZE))
         }
 
-        fun getFlags(arch: Architecture): Flags {
+        fun getFlags(arch: ArchIKRMini): Flags {
             val flags = arch.getRegByName("NZVC")
             if (flags == null) {
                 arch.console.error("Flag register not found!")
@@ -479,7 +479,7 @@ class IKRMiniSyntax {
             return Flags(n, z, v, c)
         }
 
-        fun setFlags(arch: Architecture, n: Boolean? = null, z: Boolean? = null, v: Boolean? = null, c: Boolean? = null) {
+        fun setFlags(arch: ArchIKRMini, n: Boolean? = null, z: Boolean? = null, v: Boolean? = null, c: Boolean? = null) {
             val flags = arch.getRegByName("NZVC")
             if (flags == null) {
                 arch.console.error("Flag register not found!")

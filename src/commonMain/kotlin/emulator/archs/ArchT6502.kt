@@ -3,6 +3,7 @@ package emulator.archs
 import emulator.archs.t6502.AModes
 import emulator.archs.t6502.InstrType
 import emulator.archs.t6502.T6502
+import emulator.kit.MicroSetup
 import emulator.kit.common.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
@@ -10,6 +11,13 @@ import emulator.kit.optional.BasicArchImpl
  * MOS Technology 6502 Architecture
  */
 class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
+
+    var cachedMemory: Memory = memory
+        set(value) {
+            field = value
+            resetMicroArch()
+        }
+
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
         val currentPC = regContainer.pc.get().toHex()
         val threeBytes = memory.loadArray(currentPC, 3).map { it.toBin() }.toTypedArray()
@@ -23,7 +31,12 @@ class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
         } ?: return ExecutionResult(false, false, false)
         val actualParamType = paramType ?: return ExecutionResult(false, false, false)
 
-        instrType.execute(this, actualParamType, threeBytes)
+        instrType.execute(this, actualParamType, threeBytes, tracker)
         return ExecutionResult(valid = true, typeIsReturnFromSubroutine = instrType == InstrType.RTS, typeIsBranchToSubroutine = instrType == InstrType.JSR)
+    }
+
+    override fun setupMicroArch() {
+        MicroSetup.append(memory)
+        if (cachedMemory != memory) MicroSetup.append(cachedMemory)
     }
 }

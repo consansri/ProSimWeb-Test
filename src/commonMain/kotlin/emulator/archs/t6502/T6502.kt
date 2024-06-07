@@ -1,15 +1,18 @@
 package emulator.archs.t6502
 
 
-import emulator.kit.common.*
+import emulator.archs.ArchT6502
+import emulator.kit.common.Docs
+import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.RegContainer
+import emulator.kit.common.memory.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
+import emulator.kit.optional.SetupSetting
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
-import emulator.kit.common.Docs.DocComponent.*
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.common.memory.Memory
+import emulator.kit.types.Variable.Size.Bit16
+import emulator.kit.types.Variable.Size.Bit8
+import emulator.kit.types.Variable.Value.Hex
 
 
 /**
@@ -87,11 +90,29 @@ object T6502 {
         )
     )
 
+    val settings = listOf(
+        SetupSetting.Enumeration("Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+            if (arch is ArchT6502) {
+                arch.cachedMemory = when (setting.get()) {
+                    Cache.Setting.NONE -> arch.memory
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.FIFO)
+                }
+            }
+        }
+    )
+
     val config = Config(
         description,
         fileEnding = "s",
         RegContainer(listOf(commonRegFile), WORD_SIZE, "common"),
-        MainMemory(MEM_ADDR_SIZE, BYTE_SIZE, Memory.Endianess.LittleEndian)
+        MainMemory(MEM_ADDR_SIZE, BYTE_SIZE, Memory.Endianess.LittleEndian),
+        settings
     )
 
     val asmConfig = AsmConfig(

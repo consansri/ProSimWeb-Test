@@ -15,6 +15,7 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
+import emulator.kit.common.memory.Cache.Setting
 
 object RV64 {
 
@@ -401,17 +402,17 @@ object RV64 {
      * Configuration
      */
     val settings = listOf(
-        SetupSetting.Enumeration("Cache", CacheMode.entries, CacheMode.NONE) { arch, setting ->
+        SetupSetting.Enumeration("Cache", Setting.entries, Setting.NONE) { arch, setting ->
             if (arch is ArchRV64) {
                 arch.dataMemory = when (setting.get()) {
-                    CacheMode.NONE -> arch.memory
-                    CacheMode.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
-                    CacheMode.FullAssociativeRandom -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.RANDOM)
-                    CacheMode.FullAssociativeLRU -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
-                    CacheMode.FullAssociativeFIFO -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.FIFO)
-                    CacheMode.SetAssociativeRandom -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.RANDOM)
-                    CacheMode.SetAssociativeLRU -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.LRU)
-                    CacheMode.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.FIFO)
+                    Setting.NONE -> arch.memory
+                    Setting.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
+                    Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.RANDOM)
+                    Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
+                    Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.FIFO)
+                    Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.RANDOM)
+                    Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.LRU)
+                    Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.FIFO)
                 }
             }
         }
@@ -429,22 +430,6 @@ object RV64 {
         settings
     )
 
-    /**
-     * Only for settings
-     */
-    enum class CacheMode(val uiName: String) {
-        NONE("NONE"),
-        DirectedMapped("Direct Mapped"),
-        FullAssociativeRandom("Fully Associative Random"),
-        FullAssociativeLRU("Fully Associative LRU"),
-        FullAssociativeFIFO("Fully Associative FIFO"),
-        SetAssociativeRandom("Set Associative Random"),
-        SetAssociativeLRU("Set Associative LRU"),
-        SetAssociativeFIFO("Set Associative FIFO");
 
-        override fun toString(): String {
-            return uiName
-        }
-    }
 
 }

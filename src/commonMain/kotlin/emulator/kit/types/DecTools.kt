@@ -2,6 +2,7 @@ package emulator.kit.types
 
 import Settings
 import debug.DebugTools
+import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
 
@@ -174,8 +175,8 @@ object DecTools {
             bTrimmed = bTrimmed.padStart(maxLength, '0')
 
             for (i in aTrimmed.indices) {
-                val aDigit = aTrimmed[i].digitToInt()
-                val bDigit = bTrimmed[i].digitToInt()
+                val aDigit = aTrimmed[i].digitToIntOrNull() ?: nativeError("Expected a digit but received ${aTrimmed.getOrNull(i)}")
+                val bDigit = bTrimmed[i].digitToIntOrNull() ?: nativeError("Expected a digit but received ${bTrimmed.getOrNull(i)}")
 
                 if (aDigit != bDigit) {
                     return false

@@ -1380,7 +1380,7 @@ class Variable {
      */
     object Tools {
 
-        fun Int.toValue(size: Size): Value.Dec = Value.Dec(this.toString(), size)
+        fun Int.toValue(size: Size): Dec = Dec(this.toString(), size)
 
         fun getNearestSize(bitWidth: Int): Size {
 

@@ -1,15 +1,17 @@
 package emulator.archs.ikrrisc2
 
-import emulator.kit.common.*
-import emulator.kit.configs.AsmConfig
-import emulator.kit.configs.Config
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.archs.ArchIKRRisc2
+import emulator.kit.common.Docs
+import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.Register
 import emulator.kit.common.RegContainer.RegisterFile
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.common.memory.Memory
+import emulator.kit.common.memory.*
+import emulator.kit.configs.AsmConfig
+import emulator.kit.configs.Config
+import emulator.kit.optional.SetupSetting
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.Bin
 
 object IKRRisc2 {
 
@@ -56,6 +58,23 @@ object IKRRisc2 {
         )
     )
 
+    val settings = listOf(
+        SetupSetting.Enumeration("Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+            if (arch is ArchIKRRisc2) {
+                arch.dataMemory = when (setting.get()) {
+                    Cache.Setting.NONE -> arch.memory
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.FIFO)
+                }
+            }
+        }
+    )
+
 
     val config = Config(
         Config.Description("IKR RISC-II", "IKR RISC-II", Docs(usingProSimAS = true)),
@@ -65,7 +84,8 @@ object IKRRisc2 {
             pcSize = WORD_WIDTH,
             standardRegFileName
         ),
-        MainMemory(WORD_WIDTH, BYTE_WIDTH, endianess = Memory.Endianess.BigEndian)
+        MainMemory(WORD_WIDTH, BYTE_WIDTH, endianess = Memory.Endianess.BigEndian),
+        settings
     )
 
     val asmConfig = AsmConfig(IKRRisc2Assembler())

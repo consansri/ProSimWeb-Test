@@ -1,6 +1,7 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Tools.toValue
 import emulator.kit.types.Variable.Value.Bin
@@ -45,6 +46,8 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             console.warn("Unaligned Cache Access!")
             return loadUnaligned(address, amount, tracker, endianess)
         }
+
+        nativeLog("Cache Load: $address, $amount, $endianess")
 
         val searchResult = model.search(address.getUResized(addressSize))
 
@@ -99,6 +102,8 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             return storeUnaligned(address, value, mark, readonly, tracker, endianess)
         }
 
+        nativeLog("Cache Store: $address, ${value.toHex()}, $endianess")
+
         when (endianess) {
             Endianess.LittleEndian -> values.reverse()
             Endianess.BigEndian -> {}
@@ -121,7 +126,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         tracker.misses++
         if (fetchedResult.third) tracker.writeBacks++
 
-        fetchedResult.first.write(fetchedResult.second, fetchedResult.second, *values.toCacheInstances(address))
+        fetchedResult.first.write(fetchedResult.second, offsetIndex, *values.toCacheInstances(address))
     }
 
     private fun loadUnaligned(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
@@ -293,6 +298,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                 val neededWriteBack = blocks[blockIndex].writeBackIfDirty(rowIndexBinStr)
                 val values = backingMemory.loadArray(addr, offsetCount).toCacheInstances(addr)
                 blocks[blockIndex] = CacheBlock(values, Bin(tagBinStr))
+                decider.fetch(blockIndex)
                 return blockIndex to neededWriteBack
             }
 
@@ -351,42 +357,63 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             abstract fun indexToReplace(): Int
             abstract fun read(index: Int)
             abstract fun write(index: Int)
+            abstract fun fetch(index: Int)
             abstract fun reset()
 
+            fun Array<Int>.moveToLast(index: Int) {
+                val list = this.toMutableList()
+                list.remove(index)
+                list.add(index)
+                list.forEachIndexed { i, value ->
+                    this[i] = value
+                }
+            }
+
             class FIFO(size: Int) : Decider(size) {
-                private var currentIndex = 0
+                val order = Array(size) {
+                    it
+                }
+
                 override fun indexToReplace(): Int {
-                    return currentIndex
+                    return order.first()
                 }
 
                 override fun read(index: Int) {}
 
-                override fun write(index: Int) {
-                    currentIndex = (index + 1) % size
+                override fun write(index: Int) {}
+
+                override fun fetch(index: Int) {
+                    order.moveToLast(index)
                 }
 
                 override fun reset() {
-                    currentIndex = 0
+                    order.sort()
                 }
+
+
             }
 
             class LRU(size: Int) : Decider(size) {
-                private val accessOrder: MutableList<Int> = MutableList<Int>(size) { it }
+                private val order = Array(size) {
+                    it
+                }
+
                 override fun indexToReplace(): Int {
-                    return accessOrder.first()
+                    return order.first()
                 }
 
                 override fun read(index: Int) {
-                    accessOrder.remove(index)
-                    accessOrder.add(index)
+                    order.moveToLast(index)
                 }
 
                 override fun write(index: Int) {
                     read(index)
                 }
 
+                override fun fetch(index: Int) {}
+
                 override fun reset() {
-                    accessOrder.sort()
+                    order.sort()
                 }
             }
 
@@ -401,6 +428,9 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                 override fun write(index: Int) {
                     currIndexToReplace = range.random()
                 }
+
+                override fun fetch(index: Int) {}
+
                 override fun reset() {
                     currIndexToReplace = range.random()
                 }
@@ -429,6 +459,24 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
     data class AccessResult(val hit: Boolean, val writeBack: Boolean) {
         override fun toString(): String {
             return "Cache ${if (hit) "HIT" else "MISS"} (needed write back: $writeBack)"
+        }
+    }
+
+    /**
+     * Only for settings
+     */
+    enum class Setting(val uiName: String) {
+        NONE("NONE"),
+        DirectedMapped("Direct Mapped"),
+        FullAssociativeRandom("Fully Associative Random"),
+        FullAssociativeLRU("Fully Associative LRU"),
+        FullAssociativeFIFO("Fully Associative FIFO"),
+        SetAssociativeRandom("Set Associative Random"),
+        SetAssociativeLRU("Set Associative LRU"),
+        SetAssociativeFIFO("Set Associative FIFO");
+
+        override fun toString(): String {
+            return uiName
         }
     }
 }
