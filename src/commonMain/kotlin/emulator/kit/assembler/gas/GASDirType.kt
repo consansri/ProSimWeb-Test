@@ -11,7 +11,8 @@ import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Value.Dec
+import emulator.kit.types.Variable.Value.Hex
 
 enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -1342,7 +1343,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
             WORD -> {
                 val ref = stmnt.dir.tokens().first()
-                val bytes = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
+                val words = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
                     val truncated = value.getUResized(Bit32()).toHex()
                     if (value.checkSizeUnsigned(Bit32()) != null) {
@@ -1350,8 +1351,23 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     }
                     truncated
                 }
-                bytes.forEach {
+                words.forEach {
                     cont.currSection.addContent(GASParser.Data(ref, it, GASParser.Data.DataType.WORD))
+                }
+            }
+
+            HWORD -> {
+                val ref = stmnt.dir.tokens().first()
+                val shorts = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
+                    val value = it.evaluate(false).toBin()
+                    val truncated = value.getUResized(Bit16()).toHex()
+                    if (value.checkSizeUnsigned(Bit16()) != null) {
+                        it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
+                    }
+                    truncated
+                }
+                shorts.forEach {
+                    cont.currSection.addContent(GASParser.Data(ref, it, GASParser.Data.DataType.SHORT))
                 }
             }
 
@@ -1569,8 +1585,6 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             RODATA -> {
                 cont.switchToOrAppendSec("rodata")
             }
-
-
 
             SECTION -> {
                 val dirs = stmnt.dir.allTokens.filter { it.type == Token.Type.DIRECTIVE }

@@ -12,9 +12,10 @@ import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.Bit16
 import emulator.kit.types.Variable.Value
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 
 /**
  * The GASParser class is responsible for parsing GAS (GNU Assembler) syntax.
@@ -608,7 +609,8 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
         enum class DataType {
             BYTE,
             SHORT,
-            WORD
+            WORD,
+            DWORD
         }
     }
 

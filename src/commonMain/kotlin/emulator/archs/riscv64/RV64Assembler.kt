@@ -46,7 +46,7 @@ class RV64Assembler : DefinedAssembly {
         return instrList
     }
 
-    override fun getAdditionalDirectives(): List<DirTypeInterface> = GASRVDirType.entries
+    override fun getAdditionalDirectives(): List<DirTypeInterface> =  RVDirType.entries
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val types = RV64Syntax.InstrType.entries.filter { it.getDetectionName() == rawInstr.instrName.instr?.getDetectionName() }

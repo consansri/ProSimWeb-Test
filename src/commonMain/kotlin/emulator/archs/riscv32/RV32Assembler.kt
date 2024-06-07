@@ -2,7 +2,7 @@ package emulator.archs.riscv32
 
 import debug.DebugTools
 import emulator.archs.riscv32.RV32Syntax.ParamType.*
-import emulator.archs.riscv64.GASRVDirType
+import emulator.archs.riscv64.RVDirType
 import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
@@ -48,7 +48,7 @@ class RV32Assembler : DefinedAssembly {
         return instrList
     }
 
-    override fun getAdditionalDirectives(): List<DirTypeInterface> = GASRVDirType.entries
+    override fun getAdditionalDirectives(): List<DirTypeInterface> = RVDirType.entries
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val types = RV32Syntax.InstrType.entries.filter { it.getDetectionName() == rawInstr.instrName.instr?.getDetectionName() }
@@ -62,8 +62,8 @@ class RV32Assembler : DefinedAssembly {
             if (!result.matches) continue
 
             val expr = result.matchingNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull()
-            val immExpr = if(expr != null && expr.isDefined()) expr else null
-            val labelExpr = if(expr !=null && !expr.isDefined()) expr else null
+            val immExpr = if (expr != null && expr.isDefined()) expr else null
+            val labelExpr = if (expr != null && !expr.isDefined()) expr else null
             val regs = result.matchingTokens.mapNotNull { it.reg }
 
             return getNonPseudoInstructions(rawInstr, type, regs.toTypedArray(), immExpr, labelExpr)
