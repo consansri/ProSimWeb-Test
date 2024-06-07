@@ -19,7 +19,7 @@ object Settings {
     /**
      * [UNDO_DELAY_MILLIS] define the time of no edit which is needed to define a new undo state.
      */
-    const val UNDO_DELAY_MILLIS = 1000L
+    const val UNDO_DELAY_MILLIS = 500L
 
     /**
      * [EDITOR_MAX_ANALYSIS_MILLIS] defines the time which will be waited after the last edit before the syntax will be checked.

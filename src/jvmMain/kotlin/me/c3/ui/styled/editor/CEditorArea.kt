@@ -4,7 +4,6 @@ import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import me.c3.ui.States
-import me.c3.ui.resources.icons.ProSimIcons
 import me.c3.ui.styled.CScrollPane
 import java.awt.Color
 import java.awt.Cursor
@@ -12,14 +11,8 @@ import java.awt.Dimension
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionAdapter
-import java.util.ConcurrentModificationException
-import java.util.Stack
+import java.awt.event.*
+import java.util.*
 import javax.swing.JComponent
 
 class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
@@ -116,7 +109,6 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
 
     init {
         setUI(CEditorAreaUI())
-        textStateHistory.push(styledText.toList())
         addKeyListener(EditorKeyListener())
         addMouseListener(EditorMouseListener())
         addMouseMotionListener(EditorMouseDragListener())
@@ -136,7 +128,9 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
             if (caret.getIndex() > previousState.size) {
                 caret.moveCaretTo(previousState.size)
             }
+            contentChanged()
             resetSelection()
+            debounceHighlighting()
             revalidate()
             repaint()
         }
@@ -152,7 +146,9 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
             if (caret.getIndex() > nextState.size) {
                 caret.moveCaretTo(nextState.size)
             }
+            contentChanged()
             resetSelection()
+            debounceHighlighting()
             revalidate()
             repaint()
         }
