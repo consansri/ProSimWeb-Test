@@ -29,12 +29,6 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                     )
                 ),
                 Section(
-                    "Changed",
-                    UnlinkedList(
-
-                    )
-                ),
-                Section(
                     "Fixed",
                     UnlinkedList(
                         Text("KIT: Fixed regex for L_LABEL_REF in Token to prevent false matches of binary literals with local labels.")
