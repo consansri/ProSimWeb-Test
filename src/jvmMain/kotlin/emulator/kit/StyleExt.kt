@@ -1,7 +1,7 @@
 package emulator.kit
 
-import emulator.kit.common.IConsole
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.common.IConsole
 import me.c3.ui.styled.editor.CEditorArea
 import me.c3.ui.theme.core.style.CodeLaF
 import java.awt.Font
@@ -17,10 +17,15 @@ fun List<Token>.toStyledText(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
 
 fun Token.toStyledCharSequence(codeLaF: CodeLaF): List<CEditorArea.StyledChar> {
     val severity = this.getMajorSeverity()
+    val sevColor = if (severity?.type?.codeStyle != null) {
+        codeLaF.getColor(severity.type.codeStyle)
+    } else {
+        null
+    }
 
-    return this.getHL().flatMap {styled ->
+    return this.getHL().flatMap { styled ->
         styled.first.map {
-            CEditorArea.StyledChar(it, CEditorArea.Style(codeLaF.getColor(severity?.type?.codeStyle ?: styled.second)))
+            CEditorArea.StyledChar(it, CEditorArea.Style(codeLaF.getColor(styled.second), null, underline = sevColor))
         }
     }
 }

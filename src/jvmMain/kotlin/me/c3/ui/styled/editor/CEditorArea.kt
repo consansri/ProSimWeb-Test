@@ -692,9 +692,37 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     fun getLineBreakIDs() = ArrayList(lineBreakIDs)
     fun getText(): String = getStyledText().joinToString("") { it.content.toString() }
 
+
+
     /**
-     * Data Classes
+     * IO
      */
+
+    private fun String.toStyledContent(): List<StyledChar> = this.map { StyledChar(it) }
+
+    private fun copyToClipboard(text: String) {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(StringSelection(text), null)
+    }
+
+    private fun getClipboardContent(): String? {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        val clipboardData = clipboard.getContents(null)
+        return if (clipboardData != null && clipboardData.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            clipboardData.getTransferData(DataFlavor.stringFlavor) as String
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Classes
+     */
+
+    enum class Location {
+        ANYWHERE,
+        IN_SCROLLPANE
+    }
 
     data class StyledChar(val content: Char, val style: Style? = null) {
         override fun toString(): String {
@@ -719,34 +747,15 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
         fun getHighPosition(): InfoLogger.CodePosition = InfoLogger.CodePosition(highIndex, highLine, highColumn)
     }
 
-    data class Style(val fgColor: Color? = null, val bgColor: Color? = null)
+    data class Style(val fgColor: Color? = null, val bgColor: Color? = null, val underline: Color? = null)
 
-    /**
-     * IO
-     */
+    data class LineInfo(val lineNumber: Int, val columnID: Int)
 
-    private fun String.toStyledContent(): List<StyledChar> = this.map { StyledChar(it) }
-
-    private fun copyToClipboard(text: String) {
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        clipboard.setContents(StringSelection(text), null)
+    enum class CaretMoveMode {
+        INDEXMODE,
+        LINEMODE,
+        BOTHVALID
     }
-
-    private fun getClipboardContent(): String? {
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        val clipboardData = clipboard.getContents(null)
-        return if (clipboardData != null && clipboardData.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            clipboardData.getTransferData(DataFlavor.stringFlavor) as String
-        } else {
-            null
-        }
-    }
-
-    enum class Location {
-        ANYWHERE,
-        IN_SCROLLPANE
-    }
-
     inner class Caret {
         var mode: CaretMoveMode = CaretMoveMode.BOTHVALID
             set(value) {
@@ -948,14 +957,6 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
             mode = CaretMoveMode.BOTHVALID
             return caretPos
         }
-    }
-
-    data class LineInfo(val lineNumber: Int, val columnID: Int)
-
-    enum class CaretMoveMode {
-        INDEXMODE,
-        LINEMODE,
-        BOTHVALID
     }
 
     inner class EditorKeyListener : KeyListener {

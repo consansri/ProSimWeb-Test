@@ -223,7 +223,7 @@ class CEditorAreaUI(
             val charWidth = fm.charWidth(char.content)
 
             // Draw SearchResultBackground
-            val inResult =  searchResults.firstOrNull { it.range.contains(index) }
+            val inResult = searchResults.firstOrNull { it.range.contains(index) }
             if (inResult != null) {
                 g2d.color = defaultSearchResultColor
                 if (char.content == '\n') {
@@ -262,6 +262,11 @@ class CEditorAreaUI(
 
                 else -> {
                     g2d.drawString(char.content.toString(), x, y)
+                    if (char.style?.underline != null) {
+                        g2d.color = char.style.underline
+                        val underlineY = y + 2
+                        g2d.drawLine(x, underlineY, x + charWidth, underlineY)
+                    }
                     x += charWidth
                 }
             }
