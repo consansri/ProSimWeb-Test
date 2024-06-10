@@ -13,6 +13,7 @@ import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.Bit16
+import emulator.kit.types.Variable.Tools.mergeToChunks
 import emulator.kit.types.Variable.Value
 import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
@@ -21,7 +22,7 @@ import emulator.kit.types.Variable.Value.Hex
  * The GASParser class is responsible for parsing GAS (GNU Assembler) syntax.
  * It extends the Parser class and overrides methods to handle directives and instructions specific to GAS.
  */
-class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssembly) : Parser(assembler) {
+class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser(assembler) {
 
     /**
      * Retrieves the list of directive types supported by the parser.
@@ -29,7 +30,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @param features The list of features that may modify the supported directives.
      * @return A list of DirTypeInterface instances representing the supported directives.
      */
-    override fun getDirs(features: List<Feature>): List<DirTypeInterface> = definedAssembly.getAdditionalDirectives() + GASDirType.entries
+    override fun getDirs(features: List<Feature>): List<DirTypeInterface> = asmHeader.additionalDirectives() + GASDirType.entries
 
     /**
      * Retrieves the list of instruction types supported by the parser.
@@ -37,7 +38,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @param features The list of features that may modify the supported instructions.
      * @return A list of InstrTypeInterface instances representing the supported instructions.
      */
-    override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = definedAssembly.getInstrs(features)
+    override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = asmHeader.instrTypes(features)
 
     /**
      * Parses the source tokens into a syntax tree.
@@ -57,7 +58,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
 
         // Build the tree
         val root = try {
-            GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), definedAssembly)
+            GASNode.buildNode(GASNodeType.ROOT, filteredSource, getDirs(features), asmHeader)
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
             null
@@ -105,7 +106,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          * - Resolve Statements
          */
 
-        val tempContainer = TempContainer(definedAssembly, assembler, others, features, root)
+        val tempContainer = TempContainer(asmHeader, assembler, others, features, root)
 
         try {
             while (root.getAllStatements().isNotEmpty()) {
@@ -123,7 +124,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
                     }
 
                     is Statement.Instr -> {
-                        definedAssembly.parseInstrParams(firstStatement.rawInstr, tempContainer).forEach {
+                        asmHeader.parseInstrParams(firstStatement.rawInstr, tempContainer).forEach {
                             tempContainer.currSection.addContent(it)
                         }
                     }
@@ -145,11 +146,10 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
         /**
          * Define Section Start Addresses
          */
-        var currentAddress: Value = Hex("0", definedAssembly.memAddrSize)
-        val sectionAddressMap = mutableMapOf<Section, Hex>()
+        var currentAddress: Value = Hex("0", asmHeader.memAddrSize)
         sections.forEach {
-            sectionAddressMap[it] = currentAddress.toHex()
-            currentAddress += it.getLastAddress()
+            it.setSectionStart(currentAddress.toHex())
+            currentAddress = it.getLastAddrOffset()
         }
 
         try {
@@ -158,10 +158,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
              */
             val allLinkedLabels = mutableListOf<Pair<Label, Hex>>()
             sections.forEach { sec ->
-                val addr = sectionAddressMap[sec]
-                addr?.let {
-                    allLinkedLabels.addAll(sec.linkLabels(it))
-                }
+                allLinkedLabels.addAll(sec.linkLabels())
             }
 
             /**
@@ -174,10 +171,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
              * Generate Bytes
              */
             sections.forEach { sec ->
-                val addr = sectionAddressMap[sec]
-                addr?.let {
-                    sec.generateBytes(it, allLinkedLabels)
-                }
+                sec.generateBytes(allLinkedLabels)
             }
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
@@ -248,7 +242,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
     /**
      * Temporary container class used during the parsing and semantic analysis processes.
      *
-     * @property definedAssembly The defined assembly.
+     * @property asmHeader The defined assembly.
      * @property assembler The compiler instance.
      * @property others Additional files to consider.
      * @property features The list of features that may influence the process.
@@ -259,13 +253,13 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @property currSection The current section being processed.
      */
     data class TempContainer(
-        val definedAssembly: DefinedAssembly,
+        val asmHeader: AsmHeader,
         val assembler: Assembler,
         val others: List<AsmFile>,
         val features: List<Feature>,
         val root: Root,
         val symbols: MutableList<Symbol> = mutableListOf(),
-        val sections: MutableList<Section> = mutableListOf(Section("text", definedAssembly.memAddrSize), Section("data", definedAssembly.memAddrSize), Section("bss", definedAssembly.memAddrSize)),
+        val sections: MutableList<Section> = mutableListOf(Section("text", asmHeader), Section("data", asmHeader), Section("bss", asmHeader)),
         val macros: MutableList<Macro> = mutableListOf(),
         var currSection: Section = sections.first(),
     ) {
@@ -303,7 +297,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
                 if (flags.isNotEmpty()) sec.flags = flags
                 return
             }
-            val newSec = Section(name, definedAssembly.memAddrSize, flags)
+            val newSec = Section(name, asmHeader, flags)
             sections.add(newSec)
             currSection = newSec
         }
@@ -438,11 +432,10 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @property addressSize The size of the address space.
      * @property flags The flags for the section.
      */
-    data class Section(val name: String, val addressSize: Variable.Size, var flags: String = "") {
+    data class Section(val name: String, val asmHeader: AsmHeader, var flags: String = "") {
         private val content: MutableList<MappedContent<*>> = mutableListOf()
-        private var lastOffset: Value = Hex("0", addressSize)
-
-        private var sectionStart: Hex = Hex("0", addressSize)
+        private var lastOffset: Value = Hex("0", asmHeader.memAddrSize)
+        private var sectionStart: Hex = Hex("0", asmHeader.memAddrSize)
 
         /**
          * Adds content to the section.
@@ -451,7 +444,11 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          */
         fun addContent(sectionContent: SecContent) {
             content.add(MappedContent(lastOffset.toHex(), sectionContent))
-            lastOffset += Hex(sectionContent.instancesNeeded.toString(16), addressSize)
+            lastOffset += Hex(sectionContent.bytesNeeded.toString(16), asmHeader.memAddrSize)
+        }
+
+        fun setSectionStart(sectionStartAddress: Hex) {
+            sectionStart = sectionStartAddress
         }
 
         /**
@@ -459,8 +456,8 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          *
          * @return The last address as a Value.
          */
-        fun getLastAddress(): Value {
-            return lastOffset
+        fun getLastAddrOffset(): Value {
+            return lastOffset.toBin().ushr(asmHeader.addrShift).toHex()
         }
 
         /**
@@ -469,10 +466,9 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          * @param sectionStartAddress The starting address of the section.
          * @return A list of label-address pairs.
          */
-        fun linkLabels(sectionStartAddress: Hex): List<Pair<Label, Hex>> {
-            sectionStart = sectionStartAddress
+        fun linkLabels(): List<Pair<Label, Hex>> {
             return content.filter { it.content is Label }.filterIsInstance<MappedContent<Label>>().map {
-                it.content to (sectionStartAddress + it.offset).toHex()
+                it.content to (sectionStart + it.addrOffset()).toHex()
             }
         }
 
@@ -482,10 +478,9 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          * @param sectionStartAddress The starting address of the section.
          * @param labels The list of label-address pairs.
          */
-        fun generateBytes(sectionStartAddress: Hex, labels: List<Pair<Label, Hex>>) {
-            sectionStart = sectionStartAddress
+        fun generateBytes(labels: List<Pair<Label, Hex>>) {
             content.forEach {
-                it.bytes = it.content.getBinaryArray(sectionStartAddress + it.offset, labels)
+                it.bytes = it.content.getBinaryArray(sectionStart + it.addrOffset(), labels)
             }
         }
 
@@ -512,21 +507,60 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
             val labels = content.filter { it.content is Label }
 
             return content.filter { it.content !is Label }.map { mapped ->
-                BundledContent((sectionStart + mapped.offset).toHex(), mapped.bytes, mapped.content.getContentString(), labels.filter { lbl -> lbl.offset == mapped.offset }.map { it.content }.filterIsInstance<Label>())
+                BundledContent((sectionStart + mapped.addrOffset()).toHex(), mapped.bytes, mapped.content.getContentString(), labels.filter { lbl -> lbl.addrOffset() == mapped.addrOffset() }.map { it.content }.filterIsInstance<Label>())
             }.toTypedArray()
         }
 
         override fun toString(): String = "$name: ${content.joinToString("") { "\n\t$it" }}"
 
+        fun store(memory: Memory): Map<String, List<Token.LineLoc>> {
+            val lineAddressMap = mutableMapOf<String, List<Token.LineLoc>>()
+            if (asmHeader.addrShift == 0) {
+                val secAddr = getSectionAddr()
+                getContent().forEach {
+                    val addr = (secAddr + it.addrOffset()).toHex()
+                    lineAddressMap[addr.toHex().getRawHexStr()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
+                    memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
+                }
+            } else {
+                val groups = content.groupBy {
+                    it.addrOffset()
+                }
+
+                nativeLog("Groups: ${groups.toList().joinToString("\n") { "${it.first} to ${it.second.joinToString { it.toString() }}" }}")
+
+                groups.forEach { group ->
+                    val mark = group.value.firstOrNull()?.content?.getMark()
+                    val addr = sectionStart + group.key
+                    lineAddressMap[addr.toHex().toRawString()] = group.value.flatMap { it.content.allTokensIncludingPseudo().map { token -> token.lineLoc } }
+
+                    val bytes = group.value.flatMap { content ->
+                        content.bytes.flatMap {
+                            when (memory.globalEndianess()) {
+                                Memory.Endianess.LittleEndian -> it.splitToByteArray().reversed().toList()
+                                Memory.Endianess.BigEndian -> it.splitToByteArray().toList()
+                            }
+                        }
+                    }.toTypedArray()
+                    val words = bytes.mergeToChunks(Variable.Size.Bit8(), memory.instanceSize)
+
+                    memory.storeArray(addr.toHex(), *words, mark = mark ?: Memory.InstanceType.DATA)
+                }
+            }
+
+            return lineAddressMap
+        }
+
         /**
          * Data class mapping content to an offset.
          *
-         * @property offset The offset of the content.
+         * @property byteOffset The offset of the content.
          * @property content The content.
          */
-        data class MappedContent<T : SecContent>(val offset: Hex, val content: T) {
+        inner class MappedContent<T : SecContent>(private val byteOffset: Hex, val content: T) {
             var bytes: Array<Bin> = arrayOf()
-            override fun toString(): String = "${if (content.instancesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().getRawHexStr() } + "\t" else ""}${content.getContentString()}"
+            fun addrOffset(): Hex = byteOffset.toBin().ushr(asmHeader.addrShift).toHex()
+            override fun toString(): String = "${if (content.bytesNeeded != 0) addrOffset().toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().getRawHexStr() } + "\t" else ""}${content.getContentString()}"
         }
 
         /**
@@ -565,7 +599,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * Interface for section content.
      */
     interface SecContent {
-        val instancesNeeded: Int
+        val bytesNeeded: Int
         fun getFirstToken(): Token
         fun allTokensIncludingPseudo(): List<Token>
         fun getMark(): Memory.InstanceType
@@ -592,7 +626,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @property type The data type.
      */
     class Data(private val referenceToken: Token, val bin: Hex, val type: DataType) : SecContent {
-        override val instancesNeeded: Int = bin.size.getByteCount()
+        override val bytesNeeded: Int = bin.size.getByteCount()
 
         override fun getFirstToken(): Token = referenceToken
         override fun allTokensIncludingPseudo(): List<Token> = listOfNotNull(referenceToken, referenceToken.isPseudoOf)
@@ -622,7 +656,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
     data class Label(val label: GASNode.Label) : SecContent {
         fun getID(): String = label.identifier
 
-        override val instancesNeeded: Int = 0
+        override val bytesNeeded: Int = 0
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getFirstToken(): Token = label.tokens().first()
         override fun allTokensIncludingPseudo(): List<Token> = label.tokensIncludingReferences().toList()

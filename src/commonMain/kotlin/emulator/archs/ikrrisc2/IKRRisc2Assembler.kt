@@ -1,6 +1,6 @@
 package emulator.archs.ikrrisc2
 
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.GASNode
@@ -13,10 +13,11 @@ import emulator.kit.common.memory.Memory
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 
-class IKRRisc2Assembler : DefinedAssembly {
+class IKRRisc2Assembler : AsmHeader {
     override val memAddrSize: Variable.Size = IKRRisc2.WORD_WIDTH
     override val wordSize: Variable.Size = IKRRisc2.WORD_WIDTH
     override val detectRegistersByName: Boolean = true
+    override val addrShift: Int = 2
 
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "0x"
@@ -27,9 +28,9 @@ class IKRRisc2Assembler : DefinedAssembly {
         override val symbol: Regex = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
 
-    override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
+    override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
 
-    override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
+    override fun additionalDirectives(): List<DirTypeInterface> = listOf()
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val types = InstrType.entries.filter { it.getDetectionName() == rawInstr.instrName.instr?.getDetectionName() }
@@ -50,7 +51,7 @@ class IKRRisc2Assembler : DefinedAssembly {
     }
 
     class IKRRisc2Instr(val rawInstr: GASNode.RawInstr, val type: InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Variable.Value.Dec("0", Variable.Size.Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
-        override val instancesNeeded: Int = 1
+        override val bytesNeeded: Int = 1
         override fun getFirstToken(): Token = rawInstr.instrName
 
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()

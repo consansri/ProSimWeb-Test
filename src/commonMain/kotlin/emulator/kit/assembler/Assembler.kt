@@ -10,17 +10,17 @@ import emulator.kit.assembler.parser.Parser
  * The [Assembler] handles all [Process].
  * Processes can be initiated and Process Results will be delivered.
  *
- * @param definedAssembly delivers the arch dependent assembler implementation for the [Parser].
+ * @param asmHeader delivers the arch dependent assembler implementation for the [Parser].
  * @property parser holds the Parser Implementation this Compiler will always use the [GASParser] for this.
  * @property lexer holds the Lexer Implementation this Compiler will always use the [Lexer] for this.
  */
 class Assembler(
     private val architecture: Architecture,
-    private val definedAssembly: DefinedAssembly
+    private val asmHeader: AsmHeader
 ) {
 
-    val parser: Parser = GASParser(this, definedAssembly)
-    val lexer = Lexer(architecture, definedAssembly.detectRegistersByName, definedAssembly.prefices)
+    val parser: Parser = GASParser(this, asmHeader)
+    val lexer = Lexer(architecture, asmHeader.detectRegistersByName, asmHeader.prefices)
 
     val processes: MutableList<Process> = mutableListOf()
     private var lastLineAddrMap: Map<String, List<Token.LineLoc>> = mapOf()

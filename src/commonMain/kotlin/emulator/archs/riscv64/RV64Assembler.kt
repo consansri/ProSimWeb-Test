@@ -1,26 +1,27 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.DefinedAssembly
-import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.GASNode
+import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
-import emulator.kit.common.memory.Memory
 import emulator.kit.common.RegContainer
+import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
 
-class RV64Assembler : DefinedAssembly {
+class RV64Assembler() : AsmHeader {
     override val memAddrSize: Variable.Size = RV64.XLEN
     override val wordSize: Variable.Size = RV64.WORD_WIDTH
     override val detectRegistersByName: Boolean = true
+    override val addrShift: Int = 0
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "0x"
         override val bin: String = "0b"
@@ -30,7 +31,7 @@ class RV64Assembler : DefinedAssembly {
         override val symbol: Regex = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
 
-    override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> {
+    override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> {
         val instrList = RV64Syntax.InstrType.entries.toMutableList()
 
         for (type in ArrayList(instrList)) {
@@ -46,7 +47,7 @@ class RV64Assembler : DefinedAssembly {
         return instrList
     }
 
-    override fun getAdditionalDirectives(): List<DirTypeInterface> =  RVDirType.entries
+    override fun additionalDirectives(): List<DirTypeInterface> =  RVDirType.entries
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val types = RV64Syntax.InstrType.entries.filter { it.getDetectionName() == rawInstr.instrName.instr?.getDetectionName() }
@@ -71,7 +72,7 @@ class RV64Assembler : DefinedAssembly {
     }
 
     class RV64Instr(val rawInstr: GASNode.RawInstr, val type: RV64Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
-        override val instancesNeeded: Int = type.memWords * 4
+        override val bytesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM

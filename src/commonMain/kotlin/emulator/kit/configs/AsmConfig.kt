@@ -1,13 +1,13 @@
 package emulator.kit.configs
 
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.optional.Feature
 
 
 /**
- * [AsmConfig] is the configuration Class which holds specific implementations of [DefinedAssembly] for each specific Architecture.
+ * [AsmConfig] is the configuration Class which holds specific implementations of [AsmHeader] for each specific Architecture.
  */
 data class AsmConfig(
-    val definedAssembly: DefinedAssembly,
+    val asmHeader: AsmHeader,
     val features: List<Feature> = listOf()
 )

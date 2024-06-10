@@ -1,7 +1,7 @@
 package emulator.kit.assembler.gas
 
 import emulator.kit.assembler.CodeStyle
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
@@ -1030,8 +1030,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
     override fun getDetectionString(): String = if (!this.contentStartsDirectly) this.name.removePrefix("_") else ""
 
-    override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive? {
-        val result = this.rule?.matchStart(tokens, allDirs, definedAssembly, listOf()) ?: return null
+    override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, asmHeader: AsmHeader): GASNode.Directive? {
+        val result = this.rule?.matchStart(tokens, allDirs, asmHeader, listOf()) ?: return null
         if (result.matches) {
             return GASNode.Directive(this, result.matchingTokens + result.ignoredSpaces, result.matchingNodes)
         }
@@ -1105,7 +1105,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     exprs[2].evaluate(true)
                 } else null
 
-                val lastOffset = cont.currSection.getLastAddress()
+                val lastOffset = cont.currSection.getLastAddrOffset()
 
                 val padding = (alignment - (lastOffset % alignment)).toDec().toIntOrNull() ?: throw Parser.ParserError(exprs[0].tokens().first(), "Couldn't convert Numeric Expr to Int!")
                 if (padding == alignment.toIntOrNull()) return

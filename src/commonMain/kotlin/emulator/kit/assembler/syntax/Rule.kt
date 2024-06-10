@@ -1,6 +1,6 @@
 package emulator.kit.assembler.syntax
 
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Token
@@ -32,12 +32,12 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
      *
      * @param source The list of tokens to match against.
      * @param allDirs The list of directive types available.
-     * @param definedAssembly The defined assembly context.
+     * @param asmHeader The defined assembly context.
      * @param assignedSymbols The list of assigned symbols in the current context.
      * @return A [MatchResult] indicating whether the match was successful and the details of the match.
      */
-    fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol>): MatchResult {
-        val result = comp.matchStart(source, allDirs, definedAssembly, assignedSymbols)
+    fun matchStart(source: List<Token>, allDirs: List<DirTypeInterface>, asmHeader: AsmHeader, assignedSymbols: List<GASParser.Symbol>): MatchResult {
+        val result = comp.matchStart(source, allDirs, asmHeader, assignedSymbols)
         return result
     }
 

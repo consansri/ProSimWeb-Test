@@ -1,15 +1,15 @@
 package emulator.archs.t6502
 
 import emulator.archs.ikrmini.IKRMini
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
@@ -18,10 +18,11 @@ import emulator.kit.types.Variable.Size.Bit16
 import emulator.kit.types.Variable.Size.Bit8
 import emulator.kit.types.Variable.Value.*
 
-class T6502Assembler : DefinedAssembly {
-    override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
-    override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
+class T6502Assembler : AsmHeader {
+    override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
+    override fun additionalDirectives(): List<DirTypeInterface> = listOf()
     override val detectRegistersByName: Boolean = false
+    override val addrShift: Int = 0
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "$"
         override val bin: String = "%"
@@ -85,7 +86,7 @@ class T6502Assembler : DefinedAssembly {
     }
 
     class T6502Instr(val type: InstrType, val amode: AModes, val rawInstr: GASNode.RawInstr, val expr: GASNode.NumericExpr? = null, var immediate: Hex? = null) : GASParser.SecContent {
-        override val instancesNeeded: Int = amode.byteAmount
+        override val bytesNeeded: Int = amode.byteAmount
 
         init {
             nativeLog("Found 6502Instr: $type $amode expr:$expr imm:$immediate")

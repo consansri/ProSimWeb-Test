@@ -6,7 +6,7 @@ import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
@@ -57,13 +57,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         /**
          * Severities will be set by the Lowest Node which is actually checking the token.
          */
-        fun buildNode(gasNodeType: GASNodeType, source: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly, assignedSymbols: List<GASParser.Symbol> = emptyList()): GASNode? {
+        fun buildNode(gasNodeType: GASNodeType, source: List<Token>, allDirs: List<DirTypeInterface>, asmHeader: AsmHeader, assignedSymbols: List<GASParser.Symbol> = emptyList()): GASNode? {
             val remainingTokens = source.toMutableList()
             when (gasNodeType) {
                 GASNodeType.ROOT -> {
                     val statements = mutableListOf<Statement>()
                     while (remainingTokens.isNotEmpty() && remainingTokens.firstOrNull { it.type == Token.Type.LINEBREAK } != null) {
-                        val node = buildNode(GASNodeType.STATEMENT, remainingTokens, allDirs, definedAssembly)
+                        val node = buildNode(GASNodeType.STATEMENT, remainingTokens, allDirs, asmHeader)
 
                         if (node == null) {
                             val lineContent = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
@@ -89,13 +89,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     val spaces = mutableListOf<Token>()
                     spaces.addAll(remainingTokens.dropSpaces())
 
-                    val label = buildNode(GASNodeType.LABEL, remainingTokens, allDirs, definedAssembly) as? Label
+                    val label = buildNode(GASNodeType.LABEL, remainingTokens, allDirs, asmHeader) as? Label
                     if (label != null) {
                         remainingTokens.removeAll(label.tokens().toSet())
                     }
                     spaces.addAll(remainingTokens.dropSpaces())
 
-                    val directive = buildNode(GASNodeType.DIRECTIVE, remainingTokens, allDirs, definedAssembly)
+                    val directive = buildNode(GASNodeType.DIRECTIVE, remainingTokens, allDirs, asmHeader)
                     if (directive != null && directive is Directive) {
                         remainingTokens.removeAll(directive.tokens().toSet())
                         spaces.addAll(remainingTokens.dropSpaces())
@@ -105,7 +105,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         return node
                     }
 
-                    val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, allDirs, definedAssembly)
+                    val instruction = buildNode(GASNodeType.INSTRUCTION, remainingTokens, allDirs, asmHeader)
                     if (instruction != null && instruction is RawInstr) {
                         remainingTokens.removeAll(instruction.tokens().toSet())
                         spaces.addAll(remainingTokens.dropSpaces())
@@ -133,7 +133,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
                 GASNodeType.DIRECTIVE -> {
                     allDirs.forEach {
-                        val node = it.buildDirectiveContent(remainingTokens, allDirs, definedAssembly)
+                        val node = it.buildDirectiveContent(remainingTokens, allDirs, asmHeader)
                         if (node != null) {
                             return node
                         }
@@ -194,7 +194,7 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                     remainingTokens.removeFirst()
                     spaces.addAll(remainingTokens.dropSpaces())
 
-                    val third = buildNode(GASNodeType.ANY_EXPR, remainingTokens, allDirs, definedAssembly)
+                    val third = buildNode(GASNodeType.ANY_EXPR, remainingTokens, allDirs, asmHeader)
                     if (third != null) {
                         return Argument.DefaultValue(first, second, third, spaces)
                     }
@@ -204,12 +204,12 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                 }
 
                 GASNodeType.ARG_DEF -> {
-                    val named = ArgDef.Named.rule.matchStart(remainingTokens, allDirs, definedAssembly, assignedSymbols)
+                    val named = ArgDef.Named.rule.matchStart(remainingTokens, allDirs, asmHeader, assignedSymbols)
                     if (named.matches) {
                         return ArgDef.Named(named.matchingTokens[0], named.matchingTokens[1], named.matchingTokens.drop(2), named.ignoredSpaces)
                     }
 
-                    val pos = ArgDef.Positional.rule.matchStart(remainingTokens, allDirs, definedAssembly, assignedSymbols)
+                    val pos = ArgDef.Positional.rule.matchStart(remainingTokens, allDirs, asmHeader, assignedSymbols)
                     if (pos.matches) {
                         return ArgDef.Positional(pos.matchingTokens, pos.ignoredSpaces)
                     }

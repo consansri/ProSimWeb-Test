@@ -3,7 +3,7 @@ package emulator.archs.riscv32
 import debug.DebugTools
 import emulator.archs.riscv32.RV32Syntax.ParamType.*
 import emulator.archs.riscv64.RVDirType
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.GASNode
@@ -19,10 +19,11 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
 
-class RV32Assembler : DefinedAssembly {
+class RV32Assembler : AsmHeader {
     override val memAddrSize: Variable.Size = RV32.MEM_ADDRESS_WIDTH
     override val wordSize: Variable.Size = RV32.WORD_WIDTH
     override val detectRegistersByName: Boolean = true
+    override val addrShift: Int = 0
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "0x"
         override val bin: String = "0b"
@@ -32,7 +33,7 @@ class RV32Assembler : DefinedAssembly {
         override val symbol: Regex = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
 
-    override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> {
+    override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> {
         val instrList = RV32Syntax.InstrType.entries.toMutableList()
 
         for (type in ArrayList(instrList)) {
@@ -48,7 +49,7 @@ class RV32Assembler : DefinedAssembly {
         return instrList
     }
 
-    override fun getAdditionalDirectives(): List<DirTypeInterface> = RVDirType.entries
+    override fun additionalDirectives(): List<DirTypeInterface> = RVDirType.entries
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val types = RV32Syntax.InstrType.entries.filter { it.getDetectionName() == rawInstr.instrName.instr?.getDetectionName() }
@@ -73,7 +74,7 @@ class RV32Assembler : DefinedAssembly {
     }
 
     class RV32Instr(val rawInstr: GASNode.RawInstr, val type: RV32Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
-        override val instancesNeeded: Int = type.memWords * 4
+        override val bytesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM

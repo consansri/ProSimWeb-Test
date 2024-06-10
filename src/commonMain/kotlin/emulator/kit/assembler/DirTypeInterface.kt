@@ -13,7 +13,7 @@ interface DirTypeInterface {
     fun getDetectionString(): String
     val isSection: Boolean
     val rule: Rule?
-    fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive?
+    fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, asmHeader: AsmHeader): GASNode.Directive?
 
     /**
      * Execute the usage of a macro!

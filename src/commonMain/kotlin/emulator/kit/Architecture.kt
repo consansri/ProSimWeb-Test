@@ -49,7 +49,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     val features: List<Feature>
     val settings: List<SetupSetting<*>>
     private var lastFile: AsmFile? = null
-    private val definedAssembly: DefinedAssembly
+    private val asmHeader: AsmHeader
 
     init {
         // Build Arch from Config
@@ -60,10 +60,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         this.console = IConsole("${config.description.name} Console")
         this.settings = config.settings
         this.features = asmConfig.features
-        this.definedAssembly = asmConfig.definedAssembly
+        this.asmHeader = asmConfig.asmHeader
         this.assembler = Assembler(
             this,
-            asmConfig.definedAssembly
+            asmConfig.asmHeader
         )
 
         // Starting with non micro setup

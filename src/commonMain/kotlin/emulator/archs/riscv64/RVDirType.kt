@@ -1,6 +1,6 @@
 package emulator.archs.riscv64
 
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
@@ -98,8 +98,8 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
 
     override fun getDetectionString(): String = this.name
 
-    override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, definedAssembly: DefinedAssembly): GASNode.Directive? {
-        val result = this.rule?.matchStart(tokens, allDirs, definedAssembly, listOf()) ?: return null
+    override fun buildDirectiveContent(tokens: List<Token>, allDirs: List<DirTypeInterface>, asmHeader: AsmHeader): GASNode.Directive? {
+        val result = this.rule?.matchStart(tokens, allDirs, asmHeader, listOf()) ?: return null
         if (result.matches) {
             return GASNode.Directive(this, result.matchingTokens + result.ignoredSpaces, result.matchingNodes)
         }
@@ -115,9 +115,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
                     return
                 }
 
-                val alignment = 2.0.pow(exprs[0].evaluate(true).toIntOrNull() ?: 0).roundToInt().toValue(cont.definedAssembly.memAddrSize)
+                val alignment = 2.0.pow(exprs[0].evaluate(true).toIntOrNull() ?: 0).roundToInt().toValue(cont.asmHeader.memAddrSize)
 
-                val lastOffset = cont.currSection.getLastAddress()
+                val lastOffset = cont.currSection.getLastAddrOffset()
 
                 val padding = (alignment - (lastOffset % alignment)).toDec().toIntOrNull() ?: throw Parser.ParserError(exprs[0].tokens().first(), "Couldn't convert Numeric Expr to Int!")
                 if (padding == alignment.toIntOrNull()) return

@@ -83,12 +83,14 @@ data class Process(
     private fun storeToMemory(sections: Array<GASParser.Section>, memory: Memory): Map<String, List<Token.LineLoc>> {
         val lineAddressMap = mutableMapOf<String, List<Token.LineLoc>>()
         sections.forEach { sec ->
-            val secAddr = sec.getSectionAddr()
+            lineAddressMap += sec.store(memory)
+
+            /*val secAddr = sec.getSectionAddr()
             sec.getContent().forEach {
-                val addr = (secAddr + it.offset).toHex()
+                val addr = (secAddr + it.addrOffset()).toHex()
                 lineAddressMap[addr.toHex().getRawHexStr()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
                 memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
-            }
+            }*/
         }
         return lineAddressMap
     }

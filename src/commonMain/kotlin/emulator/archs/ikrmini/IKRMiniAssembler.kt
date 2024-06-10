@@ -1,14 +1,14 @@
 package emulator.archs.ikrmini
 
-import emulator.kit.assembler.DefinedAssembly
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.common.memory.Memory
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
@@ -16,10 +16,11 @@ import emulator.kit.types.Variable.Size.Bit16
 import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
 
-class IKRMiniAssembler : DefinedAssembly {
+class IKRMiniAssembler : AsmHeader {
     override val memAddrSize: Variable.Size = IKRMini.MEM_ADDRESS_WIDTH
     override val wordSize: Variable.Size = IKRMini.WORDSIZE
     override val detectRegistersByName: Boolean = false
+    override val addrShift: Int = 0
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
         override val hex: String = "$"
         override val bin: String = "%"
@@ -29,9 +30,9 @@ class IKRMiniAssembler : DefinedAssembly {
         override val symbol: Regex = Regex("""^[a-zA-Z._][a-zA-Z0-9._]*""")
     }
 
-    override fun getInstrs(features: List<Feature>): List<InstrTypeInterface> = IKRMiniSyntax.InstrType.entries
+    override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> = IKRMiniSyntax.InstrType.entries
 
-    override fun getAdditionalDirectives(): List<DirTypeInterface> = listOf()
+    override fun additionalDirectives(): List<DirTypeInterface> = listOf()
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { rawInstr.instrName.content.uppercase() == it.getDetectionName().uppercase() } ?: throw Parser.ParserError(rawInstr.instrName, "Is not a IKRMini Instruction!")
@@ -55,7 +56,7 @@ class IKRMiniAssembler : DefinedAssembly {
     }
 
     class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, val expr: List<GASNode.NumericExpr>) : GASParser.SecContent {
-        override val instancesNeeded: Int = aMode.wordAmount * 2
+        override val bytesNeeded: Int = aMode.wordAmount * 2
         val calculatedImm: MutableList<Variable.Value> = mutableListOf()
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
