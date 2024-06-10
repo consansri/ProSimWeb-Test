@@ -23,7 +23,7 @@ object IKRRisc2 {
     const val standardRegFileName = "main"
     val standardRegFile = RegisterFile(
         standardRegFileName, arrayOf(
-            Register(Bin("00000", REG_SIZE), listOf("r0"), listOf(), Variable(REG_INIT, WORD_WIDTH), "", hardwire = true),
+            Register(Bin("00000", REG_SIZE), listOf("r0"), listOf(), Variable(REG_INIT, WORD_WIDTH), "hardwired zero", hardwire = true),
             Register(Bin("00001", REG_SIZE), listOf("r1"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
             Register(Bin("00010", REG_SIZE), listOf("r2"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
             Register(Bin("00011", REG_SIZE), listOf("r3"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
@@ -84,7 +84,7 @@ object IKRRisc2 {
             pcSize = WORD_WIDTH,
             standardRegFileName
         ),
-        MainMemory(WORD_WIDTH, WORD_WIDTH, endianess = Memory.Endianess.BigEndian),
+        MainMemory(WORD_WIDTH, WORD_WIDTH, endianess = Memory.Endianess.BigEndian, entrysInRow = 4),
         settings
     )
 

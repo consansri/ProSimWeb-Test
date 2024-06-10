@@ -27,7 +27,7 @@ import emulator.kit.types.Variable.Value.Hex
  * @param endianess The endianess of the memory.
  * @param name The name of the memory.
  */
-class MainMemory(override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess, override val name: String = "Memory") : Memory() {
+class MainMemory(override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess, override val name: String = "Memory", entrysInRow: Int = 16) : Memory() {
     override val initHex: String = "0"
 
     val addrIncByOne = Hex("1", addressSize)
@@ -40,7 +40,7 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
             resetEditSection()
         }
 
-    var entrysInRow: Int = 16
+    var entrysInRow: Int = entrysInRow
         set(value) {
             field = value
             getAllInstances().forEach { it.reMap(value) }
