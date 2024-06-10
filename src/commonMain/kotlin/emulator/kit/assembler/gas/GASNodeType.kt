@@ -1,6 +1,6 @@
 package emulator.kit.assembler.gas
 
-import emulator.kit.assembler.Rule
+import emulator.kit.assembler.syntax.Rule
 
 enum class GASNodeType(val rule: Rule? = null) {
     INT_EXPR,

@@ -3,8 +3,8 @@ package emulator.archs.ikrmini
 import emulator.archs.ArchIKRMini
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.Rule
-import emulator.kit.assembler.Rule.Component.*
+import emulator.kit.assembler.syntax.Rule
+import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.common.memory.Memory
 import emulator.kit.types.Variable

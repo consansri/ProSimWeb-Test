@@ -5,8 +5,8 @@ import emulator.archs.ArchRV32
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
 import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.Rule
-import emulator.kit.assembler.Rule.Component.*
+import emulator.kit.assembler.syntax.Rule
+import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.common.memory.Memory
 import emulator.kit.types.Variable
@@ -17,7 +17,7 @@ class RV32Syntax {
      * Syntax Types Holding the Instruction and Directive Definitions
      */
 
-    enum class ParamType(val pseudo: Boolean, val exampleString: String, val tokenSeq: Rule?) {
+    enum class ParamType(val pseudo: Boolean, val exampleString: String, val rule: Rule?) {
         // NORMAL INSTRUCTIONS
         RD_I20(
             false, "rd, imm20",

@@ -4,7 +4,7 @@ import emulator.archs.ikrmini.IKRMini
 import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.Rule
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer

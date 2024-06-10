@@ -4,14 +4,13 @@ import debug.DebugTools
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.Rule
+import emulator.kit.assembler.syntax.Rule
+import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
@@ -331,9 +330,9 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
         class Positional(content: List<Token>, spaces: List<Token>) : ArgDef(content, spaces) {
             companion object {
                 val rule = Rule {
-                    Rule.Component.Seq(
-                        Rule.Component.Repeatable {
-                            Rule.Component.Except(Rule.Component.XOR(Rule.Component.Specific(","), Rule.Component.InSpecific(Token.Type.LINEBREAK)))
+                    Seq(
+                        Repeatable {
+                            Except(XOR(Specific(","), InSpecific(Token.Type.LINEBREAK)))
                         }
                     )
                 }
@@ -348,11 +347,11 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
 
             companion object {
                 val rule = Rule {
-                    Rule.Component.Seq(
-                        Rule.Component.InSpecific(Token.Type.SYMBOL),
-                        Rule.Component.Specific("="),
-                        Rule.Component.Repeatable {
-                            Rule.Component.Except(Rule.Component.XOR(Rule.Component.Specific(","), Rule.Component.InSpecific(Token.Type.LINEBREAK)))
+                    Seq(
+                        InSpecific(Token.Type.SYMBOL),
+                        Specific("="),
+                        Repeatable {
+                            Except(XOR(Specific(","), InSpecific(Token.Type.LINEBREAK)))
                         }
                     )
                 }

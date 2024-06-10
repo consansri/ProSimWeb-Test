@@ -3,9 +3,9 @@ package emulator.archs.riscv64
 import emulator.archs.ArchRV64
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.Rule
-import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.GASNodeType
+import emulator.kit.assembler.syntax.Component.*
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.types.Variable

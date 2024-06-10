@@ -1,12 +1,9 @@
 package emulator.archs.t6502
 
-import emulator.kit.assembler.Rule
-import emulator.kit.assembler.Rule.Component.*
 import emulator.kit.assembler.gas.GASNodeType
-
+import emulator.kit.assembler.syntax.Component.*
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
 
 /**
  * Addressing Modes

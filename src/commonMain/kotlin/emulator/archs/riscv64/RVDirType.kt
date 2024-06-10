@@ -2,10 +2,11 @@ package emulator.archs.riscv64
 
 import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.DirTypeInterface
-import emulator.kit.assembler.Rule
-import emulator.kit.assembler.Rule.Component.*
+import emulator.kit.assembler.syntax.Rule
+import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASDirType
 import emulator.kit.assembler.gas.GASNode
+import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
@@ -19,16 +20,16 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
     ATTRIBUTE(rule = Rule {
         Seq(
             Specific(".attribute", ignoreCase = true),
-            InSpecific(emulator.kit.assembler.lexer.Token.Type.SYMBOL),
+            InSpecific(Token.Type.SYMBOL),
             Except(Specific(",")),
             Specific(","),
-            SpecNode(emulator.kit.assembler.gas.GASNodeType.ANY_EXPR)
+            SpecNode(GASNodeType.ANY_EXPR)
         )
     }),
     ALIGN(rule = Rule {
         Seq(
             Specific(".align", ignoreCase = true),
-            SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR),
+            SpecNode(GASNodeType.INT_EXPR),
         )
     }),
     DTPRELWORD(rule = Rule {
@@ -36,9 +37,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Specific(".dtprelword", ignoreCase = true),
             Optional {
                 Seq(
-                    SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Repeatable {
-                        Seq(Specific(","), SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR))
+                        Seq(Specific(","), SpecNode(GASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -49,9 +50,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Specific(".dtpreldword", ignoreCase = true),
             Optional {
                 Seq(
-                    SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Repeatable {
-                        Seq(Specific(","), SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR))
+                        Seq(Specific(","), SpecNode(GASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -62,9 +63,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Specific(".dword", ignoreCase = true),
             Optional {
                 Seq(
-                    SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Repeatable {
-                        Seq(Specific(","), SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR))
+                        Seq(Specific(","), SpecNode(GASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -75,9 +76,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Specific(".half", ignoreCase = true),
             Optional {
                 Seq(
-                    SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR),
+                    SpecNode(GASNodeType.INT_EXPR),
                     Repeatable {
-                        Seq(Specific(","), SpecNode(emulator.kit.assembler.gas.GASNodeType.INT_EXPR))
+                        Seq(Specific(","), SpecNode(GASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -87,7 +88,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
         rule = Rule {
             Seq(
                 Specific(".option", ignoreCase = true),
-                InSpecific(emulator.kit.assembler.lexer.Token.Type.SYMBOL)
+                InSpecific(Token.Type.SYMBOL)
             )
         }
     ),

@@ -3,6 +3,7 @@ package emulator.kit.assembler
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.assembler.syntax.Rule
 
 interface DirTypeInterface {
 

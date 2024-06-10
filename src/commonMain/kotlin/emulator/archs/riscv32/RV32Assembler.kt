@@ -55,7 +55,7 @@ class RV32Assembler : DefinedAssembly {
 
         for (type in types) {
             val paramType = type.paramType
-            val result = paramType.tokenSeq?.matchStart(rawInstr.remainingTokens, listOf(), this, tempContainer.symbols)
+            val result = paramType.rule?.matchStart(rawInstr.remainingTokens, listOf(), this, tempContainer.symbols)
             if (result == null) {
                 return getNonPseudoInstructions(rawInstr, type, arrayOf(), null, null)
             }

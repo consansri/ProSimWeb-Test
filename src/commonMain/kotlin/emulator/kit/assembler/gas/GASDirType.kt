@@ -3,8 +3,8 @@ package emulator.kit.assembler.gas
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DefinedAssembly
 import emulator.kit.assembler.DirTypeInterface
-import emulator.kit.assembler.Rule
-import emulator.kit.assembler.Rule.Component.*
+import emulator.kit.assembler.syntax.Rule
+import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
@@ -510,7 +510,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             Specific(".irpc", ignoreCase = true),
             InSpecific(Token.Type.SYMBOL),
             Specific(","),
-            Optional { Except(XOR(Dir("ENDR"), InSpecific(emulator.kit.assembler.lexer.Token.Type.LINEBREAK))) },
+            Optional { Except(XOR(Dir("ENDR"), InSpecific(Token.Type.LINEBREAK))) },
             Repeatable {
                 Except(Dir("ENDR"))
             }, Dir("ENDR")
@@ -712,7 +712,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         Seq(
             Specific(".rodata", ignoreCase = true),
             Optional {
-                InSpecific(emulator.kit.assembler.lexer.Token.Type.SYMBOL)
+                InSpecific(Token.Type.SYMBOL)
             }
         )
     }),

@@ -6,7 +6,6 @@ import emulator.kit.common.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
 class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config, IKRRisc2.asmConfig) {
-
     var dataMemory: Memory = memory
         set(value) {
             field = value
