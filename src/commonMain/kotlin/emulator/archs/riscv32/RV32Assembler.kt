@@ -73,7 +73,7 @@ class RV32Assembler : DefinedAssembly {
     }
 
     class RV32Instr(val rawInstr: GASNode.RawInstr, val type: RV32Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
-        override val bytesNeeded: Int = type.memWords * 4
+        override val instancesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM

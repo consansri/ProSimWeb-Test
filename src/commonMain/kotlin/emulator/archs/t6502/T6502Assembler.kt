@@ -85,7 +85,7 @@ class T6502Assembler : DefinedAssembly {
     }
 
     class T6502Instr(val type: InstrType, val amode: AModes, val rawInstr: GASNode.RawInstr, val expr: GASNode.NumericExpr? = null, var immediate: Hex? = null) : GASParser.SecContent {
-        override val bytesNeeded: Int = amode.byteAmount
+        override val instancesNeeded: Int = amode.byteAmount
 
         init {
             nativeLog("Found 6502Instr: $type $amode expr:$expr imm:$immediate")

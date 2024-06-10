@@ -5,7 +5,7 @@ import emulator.kit.assembler.lexer.Token.Type
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.syntax.Rule
 
-enum class ParamType(rule: Rule, exampleString: String) {
+enum class ParamType(val rule: Rule, val exampleString: String) {
     I_TYPE(Rule {
         Seq(
             InSpecific(Type.REGISTER),
@@ -95,5 +95,20 @@ enum class ParamType(rule: Rule, exampleString: String) {
     }, "disp26"),
     J_RB(Rule {
         InSpecific(Type.REGISTER)
-    }, "rb")
+    }, "rb");
+
+    fun getContentString(instr: IKRRisc2Assembler.IKRRisc2Instr): String {
+        return when(this){
+            I_TYPE -> "${instr.regs[0]} := ${instr.regs[1]},#${instr.immediate}"
+            R_TYPE -> "${instr.regs[0]} := ${instr.regs[1]},${instr.regs[2]}"
+            R_TYPE_1S -> "${instr.regs[0]} := ${instr.regs[1]}"
+            L_TYPE_OFF -> "${instr.regs[0]} := (${instr.regs[1]},${instr.immediate})"
+            L_TYPE_INDEX -> "${instr.regs[0]} := (${instr.regs[1]},${instr.regs[2]})"
+            S_TYPE_OFF -> "(${instr.regs[0]},${instr.immediate}) := ${instr.regs[1]}"
+            S_TYPE_INDEX -> "(${instr.regs[0]},${instr.regs[1]}) := ${instr.regs[2]}"
+            BRANCH_DISP18 -> "${instr.regs[0]},${instr.label?.evaluate(false)}"
+            J_DISP26 -> "${instr.label?.evaluate(false)}"
+            J_RB -> "${instr.regs[0]}"
+        }
+    }
 }

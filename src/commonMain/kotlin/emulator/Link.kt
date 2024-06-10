@@ -1,9 +1,6 @@
 package emulator
 
-import emulator.archs.ArchIKRMini
-import emulator.archs.ArchRV32
-import emulator.archs.ArchRV64
-import emulator.archs.ArchT6502
+import emulator.archs.*
 import emulator.kit.Architecture
 import emulator.kit.configs.Config
 import emulator.kit.nativeLog
@@ -17,7 +14,8 @@ enum class Link(private val arch: Architecture) {
     RV32I(ArchRV32()),
     RV64I(ArchRV64()),
     T6502(ArchT6502()),
-    IKRMINI(ArchIKRMini());
+    IKRMINI(ArchIKRMini()),
+    IKRRISC2(ArchIKRRisc2());
 
     fun load(): Architecture{
         nativeLog("KIT: Loading $name ...")

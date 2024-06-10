@@ -55,7 +55,7 @@ class IKRMiniAssembler : DefinedAssembly {
     }
 
     class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, val expr: List<GASNode.NumericExpr>) : GASParser.SecContent {
-        override val bytesNeeded: Int = aMode.wordAmount * 2
+        override val instancesNeeded: Int = aMode.wordAmount * 2
         val calculatedImm: MutableList<Variable.Value> = mutableListOf()
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()

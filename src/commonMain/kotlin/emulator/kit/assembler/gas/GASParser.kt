@@ -451,7 +451,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          */
         fun addContent(sectionContent: SecContent) {
             content.add(MappedContent(lastOffset.toHex(), sectionContent))
-            lastOffset += Hex(sectionContent.bytesNeeded.toString(16), addressSize)
+            lastOffset += Hex(sectionContent.instancesNeeded.toString(16), addressSize)
         }
 
         /**
@@ -526,7 +526,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
          */
         data class MappedContent<T : SecContent>(val offset: Hex, val content: T) {
             var bytes: Array<Bin> = arrayOf()
-            override fun toString(): String = "${if (content.bytesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().getRawHexStr() } + "\t" else ""}${content.getContentString()}"
+            override fun toString(): String = "${if (content.instancesNeeded != 0) offset.toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().getRawHexStr() } + "\t" else ""}${content.getContentString()}"
         }
 
         /**
@@ -565,7 +565,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * Interface for section content.
      */
     interface SecContent {
-        val bytesNeeded: Int
+        val instancesNeeded: Int
         fun getFirstToken(): Token
         fun allTokensIncludingPseudo(): List<Token>
         fun getMark(): Memory.InstanceType
@@ -592,7 +592,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
      * @property type The data type.
      */
     class Data(private val referenceToken: Token, val bin: Hex, val type: DataType) : SecContent {
-        override val bytesNeeded: Int = bin.size.getByteCount()
+        override val instancesNeeded: Int = bin.size.getByteCount()
 
         override fun getFirstToken(): Token = referenceToken
         override fun allTokensIncludingPseudo(): List<Token> = listOfNotNull(referenceToken, referenceToken.isPseudoOf)
@@ -622,7 +622,7 @@ class GASParser(assembler: Assembler, private val definedAssembly: DefinedAssemb
     data class Label(val label: GASNode.Label) : SecContent {
         fun getID(): String = label.identifier
 
-        override val bytesNeeded: Int = 0
+        override val instancesNeeded: Int = 0
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getFirstToken(): Token = label.tokens().first()
         override fun allTokensIncludingPseudo(): List<Token> = label.tokensIncludingReferences().toList()
