@@ -166,13 +166,13 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
              */
             allLinkedLabels.checkLabelSemantic()
 
-
             /**
              * Generate Bytes
              */
             sections.forEach { sec ->
                 sec.generateBytes(allLinkedLabels)
             }
+
         } catch (e: ParserError) {
             e.token.addSeverity(Severity.Type.ERROR, e.message)
         }

@@ -2,8 +2,6 @@ package emulator.archs.riscv64
 
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
-import emulator.kit.assembler.syntax.Rule
-import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASDirType
 import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.gas.GASNodeType
@@ -11,6 +9,8 @@ import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
+import emulator.kit.assembler.syntax.Component.*
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Tools.toValue
 import kotlin.math.pow
@@ -115,7 +115,11 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
                     return
                 }
 
-                val alignment = 2.0.pow(exprs[0].evaluate(true).toIntOrNull() ?: 0).roundToInt().toValue(cont.asmHeader.memAddrSize)
+                val power = exprs[0].evaluate(true).toIntOrNull() ?: 0
+                if (power >= 32) {
+                    throw Parser.ParserError(exprs[0].tokens().first(), "RISC-V Directive alignment power exceeds 31")
+                }
+                val alignment = 2.0.pow(power).roundToInt().toValue(cont.asmHeader.memAddrSize)
 
                 val lastOffset = cont.currSection.getLastAddrOffset()
 
