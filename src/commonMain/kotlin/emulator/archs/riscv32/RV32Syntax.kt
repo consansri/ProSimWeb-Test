@@ -1426,7 +1426,6 @@ class RV32Syntax {
         JAL1("JAL", true, ParamType.PS_JLBL, relative = JAL),
         Jr("JR", true, ParamType.PS_RS1),
         JALR1("JALR", true, ParamType.PS_RS1, relative = JALR),
-        JALR2("JALR", true, ParamType.RD_OFF12, relative = JALR),
         Ret("RET", true, ParamType.PS_NONE),
         Call("CALL", true, ParamType.PS_JLBL, memWords = 2),
         Tail("TAIL", true, ParamType.PS_JLBL, memWords = 2);

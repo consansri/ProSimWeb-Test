@@ -1,13 +1,14 @@
 package emulator.archs.riscv64
 
-import debug.DebugTools
 import Settings
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import debug.DebugTools
 import emulator.archs.riscv64.RV64Syntax.InstrType
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeWarn
+import emulator.kit.types.Variable
+import emulator.kit.types.Variable.Size.*
+import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Hex
 
 object RV64BinMapper {
 
@@ -638,9 +639,9 @@ object RV64BinMapper {
 
             InstrType.Jr -> {
                 val x0 = Bin("0", Bit5())
-                val zero = Bin("0", Bit12())
+                val imm12 = Bin("0", Bit12())
 
-                val jalrOpCode = InstrType.JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x0, MaskLabel.RS1 to regs[0], MaskLabel.IMM12 to zero))
+                val jalrOpCode = InstrType.JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x0, MaskLabel.RS1 to regs[0], MaskLabel.IMM12 to imm12))
 
                 if (jalrOpCode != null) {
                     binArray.add(jalrOpCode)
@@ -649,20 +650,12 @@ object RV64BinMapper {
 
             InstrType.JALR1 -> {
                 val x1 = Bin("1", Bit5())
-                val zero = Bin("0", Bit5())
+                val imm12 = Bin("0", Bit12())
 
-                val jalrOpCode = InstrType.JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.RS1 to regs[0], MaskLabel.IMM12 to zero))
+                val jalrOpCode = InstrType.JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to x1, MaskLabel.RS1 to regs[0], MaskLabel.IMM12 to imm12))
 
                 if (jalrOpCode != null) {
                     binArray.add(jalrOpCode)
-                }
-            }
-
-            InstrType.JALR2 -> {
-                val imm12 =immediate.toBin().getUResized(Bit12())
-                val opCode = InstrType.JALR.opCode?.getOpCode(mapOf(MaskLabel.RD to regs[0], MaskLabel.IMM12 to imm12, MaskLabel.RS1 to regs[1]))
-                opCode?.let {
-                    binArray.add(opCode)
                 }
             }
 
