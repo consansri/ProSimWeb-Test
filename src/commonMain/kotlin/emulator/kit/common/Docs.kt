@@ -24,6 +24,13 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                         Text("JVM: (Highlighting) severity underlining."),
                     )
                 ),
+                Section(
+                    "Fixed",
+                    UnlinkedList(
+                        Text("KIT: RISC-V -> removed inconvenient jalr pseudo parameter type."),
+                        Text("KIT: RISC-V -> li myriad sequence not using zero register as rs1 for starting addi.")
+                    )
+                )
             ),
             Chapter(
                 "Version - 0.2.3",

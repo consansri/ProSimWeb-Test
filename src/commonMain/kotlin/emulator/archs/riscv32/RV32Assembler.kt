@@ -179,7 +179,8 @@ class RV32Assembler : AsmHeader {
                 var result = imm.check(Bit12())
                 if (result.valid) {
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 12 Bit Signed")
-                    return listOf(RV32Instr(rawInstr, RV32Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), imm.getResized(Bit12())))
+                    val zeroReg = RV32.standardRegFile.unsortedRegisters.first { it.names.contains("x0") }
+                    return listOf(RV32Instr(rawInstr, RV32Syntax.InstrType.ADDI, arrayOf(regs[0], zeroReg), imm.getResized(Bit12())))
                 }
 
                 result = imm.check(Bit32())
