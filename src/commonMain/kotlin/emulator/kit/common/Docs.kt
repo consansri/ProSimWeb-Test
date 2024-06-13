@@ -21,6 +21,7 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "New",
                     UnlinkedList(
+                        Text("KIT: IKR RISC-II (Architecture)"),
                         Text("JVM: (Highlighting) severity underlining."),
                     )
                 ),

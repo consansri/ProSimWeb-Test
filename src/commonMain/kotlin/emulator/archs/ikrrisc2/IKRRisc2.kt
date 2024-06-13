@@ -80,9 +80,34 @@ object IKRRisc2 {
         }
     )
 
+    val implementationDoc = Docs.DocFile.DefinedFile(
+        "IKR RISC-II Implemented",
+        Docs.DocComponent.Chapter(
+            "Instructions",
+            Docs.DocComponent.Table(
+                listOf("instruction", "params", "opcode"),
+                contentRows = InstrType.entries.map { instr ->
+                    listOf(Docs.DocComponent.Text(instr.id), Docs.DocComponent.Text(instr.paramType.exampleString),
+                        Docs.DocComponent.Table(
+                            header = instr.opCode.maskLabels.map { it.name },
+                            contentRows = arrayOf(instr.opCode.opMaskList.map { Docs.DocComponent.Text(it) } )))
+                }.toTypedArray()
+            )
+        ),
+        Docs.DocComponent.Chapter(
+            "Registers",
+            Docs.DocComponent.Text("address-width: $REG_SIZE"),
+            Docs.DocComponent.Text("value-width: $WORD_WIDTH")
+        ),
+        Docs.DocComponent.Chapter(
+            "Memory",
+            Docs.DocComponent.Text("address-width: $WORD_WIDTH"),
+            Docs.DocComponent.Text("value-width: $WORD_WIDTH")
+        )
+    )
 
     val config = Config(
-        Config.Description("IKR RISC-II", "IKR RISC-II", Docs(usingProSimAS = true)),
+        Config.Description("IKR RISC-II", "IKR RISC-II", Docs(true, implementationDoc)),
         fileEnding = "s",
         RegContainer(
             listOf(standardRegFile),
@@ -94,6 +119,4 @@ object IKRRisc2 {
     )
 
     val asmConfig = AsmConfig(IKRRisc2Assembler)
-
-
 }
