@@ -527,8 +527,6 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
                     it.addrOffset()
                 }
 
-                nativeLog("Groups: ${groups.toList().joinToString("\n") { "${it.first} to ${it.second.joinToString { it.toString() }}" }}")
-
                 groups.forEach { group ->
                     val mark = group.value.firstOrNull()?.content?.getMark()
                     val addr = sectionStart + group.key

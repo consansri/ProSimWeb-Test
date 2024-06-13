@@ -17,7 +17,7 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
 
-class RV64Assembler() : AsmHeader {
+object RV64Assembler : AsmHeader {
     override val memAddrSize: Variable.Size = RV64.XLEN
     override val wordSize: Variable.Size = RV64.WORD_WIDTH
     override val detectRegistersByName: Boolean = true

@@ -119,7 +119,7 @@ object RV32 {
     )
 
     val asmConfig = AsmConfig(
-        RV32Assembler(),
+        RV32Assembler,
         features = RV32.EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
     )
 

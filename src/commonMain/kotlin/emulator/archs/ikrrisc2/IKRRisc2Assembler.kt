@@ -13,7 +13,7 @@ import emulator.kit.common.memory.Memory
 import emulator.kit.optional.Feature
 import emulator.kit.types.Variable
 
-class IKRRisc2Assembler : AsmHeader {
+object IKRRisc2Assembler : AsmHeader {
     override val memAddrSize: Variable.Size = IKRRisc2.WORD_WIDTH
     override val wordSize: Variable.Size = IKRRisc2.WORD_WIDTH
     override val detectRegistersByName: Boolean = true
@@ -47,11 +47,15 @@ class IKRRisc2Assembler : AsmHeader {
             return getNonPseudoInstructions(rawInstr, type, regs.toTypedArray(), expr)
         }
 
-        throw Parser.ParserError(rawInstr.instrName, "Invalid Arguments for ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${rawInstr.remainingTokens.joinToString("") { it.toString() }} expected ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${types.firstOrNull()?.paramType?.exampleString}" )
+        throw Parser.ParserError(
+            rawInstr.instrName,
+            "Invalid Arguments for ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${rawInstr.remainingTokens.joinToString("") { it.toString() }} expected ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${types.firstOrNull()?.paramType?.exampleString}"
+        )
     }
 
     class IKRRisc2Instr(val rawInstr: GASNode.RawInstr, val type: InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Variable.Value.Dec("0", Variable.Size.Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
-        override val bytesNeeded: Int = 1
+        var displacement: Variable.Value.Dec? = null
+        override val bytesNeeded: Int = 4
         override fun getFirstToken(): Token = rawInstr.instrName
 
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
@@ -61,10 +65,13 @@ class IKRRisc2Assembler : AsmHeader {
         override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {
             label?.assignLabels(labels)
 
+            displacement = if (label != null) {
+                (label.evaluate(true).toHex().getUResized(IKRRisc2.WORD_WIDTH) - yourAddr.toHex()).toDec()
+            } else null
 
-            // TODO
+            val bin = IKRRisc2BinMapper.generateBinary(this, displacement)
 
-            return arrayOf()
+            return arrayOf(bin)
         }
 
         override fun getContentString(): String = "${type.id} ${type.paramType.getContentString(this)}"
@@ -90,9 +97,9 @@ class IKRRisc2Assembler : AsmHeader {
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }
 
-            ParamType.R_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
-            ParamType.R_TYPE_1S -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
-            ParamType.L_TYPE_OFF -> {
+            ParamType.R2_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            ParamType.R1_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            ParamType.L_OFF_TYPE -> {
                 val immediate = this.evaluate(true)
                 val check = immediate.check(IKRRisc2.WORD_WIDTH)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${IKRRisc2.WORD_WIDTH}!")
@@ -100,8 +107,8 @@ class IKRRisc2Assembler : AsmHeader {
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }
 
-            ParamType.L_TYPE_INDEX -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
-            ParamType.S_TYPE_OFF -> {
+            ParamType.L_INDEX_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            ParamType.S_OFF_TYPE -> {
                 val immediate = this.evaluate(true)
                 val check = immediate.check(IKRRisc2.WORD_WIDTH)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${IKRRisc2.WORD_WIDTH}!")
@@ -109,10 +116,10 @@ class IKRRisc2Assembler : AsmHeader {
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }
 
-            ParamType.S_TYPE_INDEX -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
-            ParamType.BRANCH_DISP18 -> return null
-            ParamType.J_DISP26 -> return null
-            ParamType.J_RB -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            ParamType.S_INDEX_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
+            ParamType.B_DISP18_TYPE -> return null
+            ParamType.B_DISP26_TYPE -> return null
+            ParamType.B_REG_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
         }
     }
 

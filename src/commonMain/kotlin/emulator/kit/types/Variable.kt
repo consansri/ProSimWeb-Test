@@ -1165,6 +1165,7 @@ class Variable {
 
         class Original(bitWidth: Int) : Size("original", bitWidth)
         class Bit1 : Size("1 Bit", 1)
+        class Bit2 : Size("2 Bit", 2)
         class Bit3 : Size("3 Bit", 3)
         class Bit4 : Size("4 Bit", 4)
         class Bit5 : Size("5 Bit", 5)
@@ -1174,8 +1175,10 @@ class Variable {
         class Bit9 : Size("9 Bit", 9)
         class Bit12 : Size("12 Bit", 12)
         class Bit16 : Size("16 Bit", 16)
+        class Bit18 : Size("18 Bit", 18)
         class Bit20 : Size("20 Bit", 20)
         class Bit24 : Size("24 Bit", 24)
+        class Bit26 : Size("26 Bit", 26)
         class Bit28 : Size("28 Bit", 28)
         class Bit32 : Size("32 Bit", 32)
         class Bit40 : Size("40 Bit", 40)
@@ -1242,6 +1245,13 @@ class Variable {
                     this.umax = "340282366920938463463374607431768211455"
                 }
 
+                is Size.Bit2 -> {
+                    this.min = "-2"
+                    this.max = "1"
+                    this.umin = "0"
+                    this.umax = "3"
+                }
+
                 is Size.Bit3 -> {
                     this.min = "-4"
                     this.max = "3"
@@ -1291,6 +1301,13 @@ class Variable {
                     this.umax = "4095"
                 }
 
+                is Size.Bit18 -> {
+                    this.min = "-131072"
+                    this.max = "131071"
+                    this.umin = "0"
+                    this.umax = "262143"
+                }
+
                 is Size.Bit20 -> {
                     this.min = "-524288"
                     this.max = "524287"
@@ -1303,6 +1320,13 @@ class Variable {
                     this.max = "8388607"
                     this.umin = "0"
                     this.umax = "16777215"
+                }
+
+                is Size.Bit26 -> {
+                    this.min = "-33554432"
+                    this.max = "33554431"
+                    this.umin = "0"
+                    this.umax = "67108864"
                 }
 
                 is Size.Bit28 -> {

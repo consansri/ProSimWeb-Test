@@ -18,7 +18,7 @@ import emulator.kit.types.Variable.Size.Bit16
 import emulator.kit.types.Variable.Size.Bit8
 import emulator.kit.types.Variable.Value.*
 
-class T6502Assembler : AsmHeader {
+object T6502Assembler : AsmHeader {
     override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
     override fun additionalDirectives(): List<DirTypeInterface> = listOf()
     override val detectRegistersByName: Boolean = false

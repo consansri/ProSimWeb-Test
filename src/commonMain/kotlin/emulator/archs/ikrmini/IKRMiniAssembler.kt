@@ -16,7 +16,7 @@ import emulator.kit.types.Variable.Size.Bit16
 import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
 
-class IKRMiniAssembler : AsmHeader {
+object IKRMiniAssembler : AsmHeader {
     override val memAddrSize: Variable.Size = IKRMini.MEM_ADDRESS_WIDTH
     override val wordSize: Variable.Size = IKRMini.WORDSIZE
     override val detectRegistersByName: Boolean = false

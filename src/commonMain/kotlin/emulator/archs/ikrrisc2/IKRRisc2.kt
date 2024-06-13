@@ -13,11 +13,16 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.Bit32
 import emulator.kit.types.Variable.Size.Bit5
 import emulator.kit.types.Variable.Value.Bin
+import emulator.kit.types.Variable.Value.Dec
 
 object IKRRisc2 {
 
     val WORD_WIDTH = Bit32()
     val REG_SIZE = Bit5()
+    val WORD_WIDTH_ONE = Bin("1", WORD_WIDTH)
+    val WORD_WIDTH_NEGATIVE_ONE =Dec("-1", WORD_WIDTH).toBin()
+    val WORD_WIDTH_ZERO = Bin("0", WORD_WIDTH)
+    val R31_ADDR = Bin("11111", REG_SIZE)
     const val REG_INIT = "0"
 
     const val standardRegFileName = "main"
@@ -54,7 +59,7 @@ object IKRRisc2 {
             Register(Bin("11100", REG_SIZE), listOf("r28"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
             Register(Bin("11101", REG_SIZE), listOf("r29"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
             Register(Bin("11110", REG_SIZE), listOf("r30"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11111", REG_SIZE), listOf("r31"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(R31_ADDR, listOf("r31"), listOf(), Variable(REG_INIT, WORD_WIDTH), "return address"),
         )
     )
 
@@ -88,7 +93,7 @@ object IKRRisc2 {
         settings
     )
 
-    val asmConfig = AsmConfig(IKRRisc2Assembler())
+    val asmConfig = AsmConfig(IKRRisc2Assembler)
 
 
 }

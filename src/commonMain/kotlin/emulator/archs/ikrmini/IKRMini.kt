@@ -84,7 +84,7 @@ data object IKRMini {
         settings
     )
 
-    val asmConfig = AsmConfig(IKRMiniAssembler())
+    val asmConfig = AsmConfig(IKRMiniAssembler)
 
 
 }

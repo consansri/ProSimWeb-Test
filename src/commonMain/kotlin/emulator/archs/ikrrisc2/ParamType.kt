@@ -17,7 +17,7 @@ enum class ParamType(val rule: Rule, val exampleString: String) {
             SpecNode(GASNodeType.INT_EXPR)
         )
     }, "rc := rb,#imm16"),
-    R_TYPE(Rule {
+    R2_TYPE(Rule {
         Seq(
             InSpecific(Type.REGISTER),
             Specific(":"),
@@ -27,7 +27,7 @@ enum class ParamType(val rule: Rule, val exampleString: String) {
             InSpecific(Type.REGISTER),
         )
     }, "rc := rb,ra"),
-    R_TYPE_1S(Rule {
+    R1_TYPE(Rule {
         Seq(
             InSpecific(Type.REGISTER),
             Specific(":"),
@@ -35,7 +35,7 @@ enum class ParamType(val rule: Rule, val exampleString: String) {
             InSpecific(Type.REGISTER)
         )
     }, "rc := rb"),
-    L_TYPE_OFF(Rule {
+    L_OFF_TYPE(Rule {
         Seq(
             InSpecific(Type.REGISTER),
             Specific(":"),
@@ -47,7 +47,7 @@ enum class ParamType(val rule: Rule, val exampleString: String) {
             Specific(")")
         )
     }, "rc := (rb,disp16)"),
-    L_TYPE_INDEX(Rule {
+    L_INDEX_TYPE(Rule {
         Seq(
             InSpecific(Type.REGISTER),
             Specific(":"),
@@ -59,7 +59,7 @@ enum class ParamType(val rule: Rule, val exampleString: String) {
             Specific(")")
         )
     }, "rc := (rb,ra)"),
-    S_TYPE_OFF(Rule {
+    S_OFF_TYPE(Rule {
         Seq(
             Specific("("),
             InSpecific(Type.REGISTER),
@@ -71,7 +71,7 @@ enum class ParamType(val rule: Rule, val exampleString: String) {
             InSpecific(Type.REGISTER)
         )
     }, "(rb,disp16) := rc"),
-    S_TYPE_INDEX(Rule {
+    S_INDEX_TYPE(Rule {
         Seq(
             Specific("("),
             InSpecific(Type.REGISTER),
@@ -83,32 +83,36 @@ enum class ParamType(val rule: Rule, val exampleString: String) {
             InSpecific(Type.REGISTER)
         )
     }, "(rb,ra) := rc"),
-    BRANCH_DISP18(Rule {
+    B_DISP18_TYPE(Rule {
         Seq(
             InSpecific(Type.REGISTER),
             Specific(","),
             SpecNode(GASNodeType.INT_EXPR)
         )
     }, "rc,disp18"),
-    J_DISP26(Rule {
-        SpecNode(GASNodeType.INT_EXPR)
+    B_DISP26_TYPE(Rule {
+        Seq(
+            SpecNode(GASNodeType.INT_EXPR)
+        )
     }, "disp26"),
-    J_RB(Rule {
-        InSpecific(Type.REGISTER)
+    B_REG_TYPE(Rule {
+        Seq(
+            InSpecific(Type.REGISTER)
+        )
     }, "rb");
 
     fun getContentString(instr: IKRRisc2Assembler.IKRRisc2Instr): String {
         return when(this){
             I_TYPE -> "${instr.regs[0]} := ${instr.regs[1]},#${instr.immediate}"
-            R_TYPE -> "${instr.regs[0]} := ${instr.regs[1]},${instr.regs[2]}"
-            R_TYPE_1S -> "${instr.regs[0]} := ${instr.regs[1]}"
-            L_TYPE_OFF -> "${instr.regs[0]} := (${instr.regs[1]},${instr.immediate})"
-            L_TYPE_INDEX -> "${instr.regs[0]} := (${instr.regs[1]},${instr.regs[2]})"
-            S_TYPE_OFF -> "(${instr.regs[0]},${instr.immediate}) := ${instr.regs[1]}"
-            S_TYPE_INDEX -> "(${instr.regs[0]},${instr.regs[1]}) := ${instr.regs[2]}"
-            BRANCH_DISP18 -> "${instr.regs[0]},${instr.label?.evaluate(false)}"
-            J_DISP26 -> "${instr.label?.evaluate(false)}"
-            J_RB -> "${instr.regs[0]}"
+            R2_TYPE -> "${instr.regs[0]} := ${instr.regs[1]},${instr.regs[2]}"
+            R1_TYPE -> "${instr.regs[0]} := ${instr.regs[1]}"
+            L_OFF_TYPE -> "${instr.regs[0]} := (${instr.regs[1]},${instr.immediate})"
+            L_INDEX_TYPE -> "${instr.regs[0]} := (${instr.regs[1]},${instr.regs[2]})"
+            S_OFF_TYPE -> "(${instr.regs[0]},${instr.immediate}) := ${instr.regs[1]}"
+            S_INDEX_TYPE -> "(${instr.regs[0]},${instr.regs[1]}) := ${instr.regs[2]}"
+            B_DISP18_TYPE -> "${instr.regs[0]},${instr.displacement}"
+            B_DISP26_TYPE -> "${instr.displacement}"
+            B_REG_TYPE -> "${instr.regs[0]}"
         }
     }
 }
