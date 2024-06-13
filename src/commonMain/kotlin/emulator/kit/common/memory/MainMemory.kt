@@ -137,11 +137,11 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
             set(value) {
                 field = value
                 offset = addrRelevantForOffset % entrysInRow
-                row = (address - Hex(offset.toString(16), Bit8())).toHex()
+                row = (address - Hex(offset.toString(16), Bit8)).toHex()
             }
 
         var offset: Int = addrRelevantForOffset % entrysInRow
-        var row: Hex = (address - Hex(offset.toString(16), Bit8())).toHex()
+        var row: Hex = (address - Hex(offset.toString(16), Bit8)).toHex()
 
         fun reMap(entrysInRow: Int) {
             this.entrysInRow = entrysInRow

@@ -156,8 +156,8 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
                 val ref = stmnt.dir.tokens().first()
                 val shorts = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
-                    val truncated = value.getUResized(Variable.Size.Bit64()).toHex()
-                    if (value.checkSizeUnsigned(Variable.Size.Bit64()) != null) {
+                    val truncated = value.getUResized(Variable.Size.Bit64).toHex()
+                    if (value.checkSizeUnsigned(Variable.Size.Bit64) != null) {
                         it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated

@@ -251,7 +251,7 @@ class Variable {
 
             fun splitToByteArray(): Array<Bin> {
                 val paddedString = if (this.getRawBinStr().length % 8 == 0) this.getRawBinStr() else this.getRawBinStr().padStart(this.getRawBinStr().length + (8 - this.getRawBinStr().length % 8), '0')
-                return paddedString.chunked(8).map { Bin(it, Size.Bit8()) }.toTypedArray()
+                return paddedString.chunked(8).map { Bin(it, Size.Bit8) }.toTypedArray()
             }
 
             /**
@@ -455,7 +455,7 @@ class Variable {
 
             fun getBit(index: Int): Bin? {
                 val bit = getRawBinStr().getOrNull(index) ?: return null
-                return Bin(bit.toString(), Size.Bit1())
+                return Bin(bit.toString(), Size.Bit1)
             }
 
             data class NoMatch(val size: Size, val expectedSize: Size, val needsSignExtension: Boolean = false)
@@ -482,7 +482,7 @@ class Variable {
 
             fun splitToByteArray(): Array<Hex> {
                 val paddedString = if (this.getRawHexStr().length % 2 == 0) this.getRawHexStr() else this.getRawHexStr().padStart(this.getRawHexStr().length + 1, '0')
-                return paddedString.chunked(2).map { Hex(it, Size.Bit8()) }.toTypedArray()
+                return paddedString.chunked(2).map { Hex(it, Size.Bit8) }.toTypedArray()
             }
 
             fun splitToArray(size: Size): Array<Hex> {
@@ -877,21 +877,21 @@ class Variable {
             fun getType(string: String): Value {
                 var removedPrefString = string.trim().removePrefix(Settings.PRESTRING_BINARY)
                 if (removedPrefString.length < string.trim().length - 1) {
-                    return Bin("0", Size.Bit8())
+                    return Bin("0", Size.Bit8)
                 }
                 removedPrefString = string.trim().removePrefix(Settings.PRESTRING_HEX)
                 if (removedPrefString.length < string.trim().length - 1) {
-                    return Hex("0", Size.Bit8())
+                    return Hex("0", Size.Bit8)
                 }
                 removedPrefString = string.trim().removePrefix(Settings.PRESTRING_OCT)
                 if (removedPrefString.length < string.trim().length - 1) {
-                    return Oct("0", Size.Bit8())
+                    return Oct("0", Size.Bit8)
                 }
                 removedPrefString = string.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
                 if (removedPrefString.length < string.trim().length - 1) {
-                    return UDec("u0", Size.Bit8())
+                    return UDec("u0", Size.Bit8)
                 }
-                return Dec("0", Size.Bit8())
+                return Dec("0", Size.Bit8)
             }
 
             fun getHex(bin: Bin): Hex {
@@ -1164,31 +1164,31 @@ class Variable {
         }
 
         class Original(bitWidth: Int) : Size("original", bitWidth)
-        class Bit1 : Size("1 Bit", 1)
-        class Bit2 : Size("2 Bit", 2)
-        class Bit3 : Size("3 Bit", 3)
-        class Bit4 : Size("4 Bit", 4)
-        class Bit5 : Size("5 Bit", 5)
-        class Bit6 : Size("6 Bit", 6)
-        class Bit7 : Size("7 Bit", 7)
-        class Bit8 : Size("8 Bit", 8)
-        class Bit9 : Size("9 Bit", 9)
-        class Bit12 : Size("12 Bit", 12)
-        class Bit16 : Size("16 Bit", 16)
-        class Bit18 : Size("18 Bit", 18)
-        class Bit20 : Size("20 Bit", 20)
-        class Bit24 : Size("24 Bit", 24)
-        class Bit26 : Size("26 Bit", 26)
-        class Bit28 : Size("28 Bit", 28)
-        class Bit32 : Size("32 Bit", 32)
-        class Bit40 : Size("40 Bit", 40)
-        class Bit44 : Size("44 Bit", 44)
-        class Bit48 : Size("48 Bit", 48)
-        class Bit52 : Size("52 Bit", 52)
-        class Bit56 : Size("56 Bit", 56)
-        class Bit60 : Size("60 Bit", 60)
-        class Bit64 : Size("64 Bit", 64)
-        class Bit128 : Size("128 Bit", 128)
+        object Bit1 : Size("1 Bit", 1)
+        object Bit2 : Size("2 Bit", 2)
+        object Bit3 : Size("3 Bit", 3)
+        object Bit4 : Size("4 Bit", 4)
+        object Bit5 : Size("5 Bit", 5)
+        object Bit6 : Size("6 Bit", 6)
+        object Bit7 : Size("7 Bit", 7)
+        object Bit8 : Size("8 Bit", 8)
+        object Bit9 : Size("9 Bit", 9)
+        object Bit12 : Size("12 Bit", 12)
+        object Bit16 : Size("16 Bit", 16)
+        object Bit18 : Size("18 Bit", 18)
+        object Bit20 : Size("20 Bit", 20)
+        object Bit24 : Size("24 Bit", 24)
+        object Bit26 : Size("26 Bit", 26)
+        object Bit28 : Size("28 Bit", 28)
+        object Bit32 : Size("32 Bit", 32)
+        object Bit40 : Size("40 Bit", 40)
+        object Bit44 : Size("44 Bit", 44)
+        object Bit48 : Size("48 Bit", 48)
+        object Bit52 : Size("52 Bit", 52)
+        object Bit56 : Size("56 Bit", 56)
+        object Bit60 : Size("60 Bit", 60)
+        object Bit64 : Size("64 Bit", 64)
+        object Bit128 : Size("128 Bit", 128)
     }
 
     /**
@@ -1438,28 +1438,28 @@ class Variable {
 
             when {
                 bitWidth <= 8 -> {
-                    return Size.Bit8()
+                    return Size.Bit8
                 }
 
                 bitWidth <= 16 -> {
-                    return Size.Bit16()
+                    return Size.Bit16
                 }
 
                 bitWidth <= 32 -> {
-                    return Size.Bit32()
+                    return Size.Bit32
                 }
 
                 bitWidth <= 64 -> {
-                    return Size.Bit64()
+                    return Size.Bit64
                 }
 
                 bitWidth <= 128 -> {
-                    return Size.Bit128()
+                    return Size.Bit128
                 }
 
                 else -> {
-                    nativeWarn("Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128()")
-                    return Size.Bit128()
+                    nativeWarn("Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128")
+                    return Size.Bit128
                 }
             }
         }
@@ -1467,29 +1467,29 @@ class Variable {
         fun getNearestDecSize(decString: String): Size {
             val string = decString.trim().removePrefix(Settings.PRESTRING_DECIMAL)
             when {
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit8()).min) -> {
-                    return Size.Bit8()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit8).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit8).min) -> {
+                    return Size.Bit8
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit16()).min) -> {
-                    return Size.Bit16()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit16).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit16).min) -> {
+                    return Size.Bit16
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit32()).min) -> {
-                    return Size.Bit32()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit32).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit32).min) -> {
+                    return Size.Bit32
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit64()).min) -> {
-                    return Size.Bit64()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit64).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit64).min) -> {
+                    return Size.Bit64
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit128()).min) -> {
-                    return Size.Bit128()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit128).max, string) && DecTools.isGreaterEqualThan(string, Bounds(Size.Bit128).min) -> {
+                    return Size.Bit128
                 }
 
                 else -> {
-                    nativeWarn("Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).max}, min: ${Bounds(Size.Bit128()).min}] -> returning Size.Bit128()")
-                    return Size.Bit128()
+                    nativeWarn("Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128 [max: ${Bounds(Size.Bit128).max}, min: ${Bounds(Size.Bit128).min}] -> returning Size.Bit128")
+                    return Size.Bit128
                 }
             }
         }
@@ -1497,29 +1497,29 @@ class Variable {
         fun getNearestUDecSize(udecString: String): Size {
             val string = udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
             when {
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit8()).umax, string) -> {
-                    return Size.Bit8()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit8).umax, string) -> {
+                    return Size.Bit8
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit16()).umax, string) -> {
-                    return Size.Bit16()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit16).umax, string) -> {
+                    return Size.Bit16
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit32()).umax, string) -> {
-                    return Size.Bit32()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit32).umax, string) -> {
+                    return Size.Bit32
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit64()).umax, string) -> {
-                    return Size.Bit64()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit64).umax, string) -> {
+                    return Size.Bit64
                 }
 
-                DecTools.isGreaterEqualThan(Bounds(Size.Bit128()).umax, string) -> {
-                    return Size.Bit128()
+                DecTools.isGreaterEqualThan(Bounds(Size.Bit128).umax, string) -> {
+                    return Size.Bit128
                 }
 
                 else -> {
-                    nativeWarn("Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128() [max: ${Bounds(Size.Bit128()).umax}, min: ${Bounds(Size.Bit128()).umin}] -> returning Size.Bit128()")
-                    return Size.Bit128()
+                    nativeWarn("Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128 [max: ${Bounds(Size.Bit128).umax}, min: ${Bounds(Size.Bit128).umin}] -> returning Size.Bit128")
+                    return Size.Bit128
                 }
             }
         }

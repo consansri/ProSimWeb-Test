@@ -17,8 +17,8 @@ import emulator.kit.types.Variable.Value.Dec
 
 object IKRRisc2 {
 
-    val WORD_WIDTH = Bit32()
-    val REG_SIZE = Bit5()
+    val WORD_WIDTH = Bit32
+    val REG_SIZE = Bit5
     val WORD_WIDTH_ONE = Bin("1", WORD_WIDTH)
     val WORD_WIDTH_NEGATIVE_ONE =Dec("-1", WORD_WIDTH).toBin()
     val WORD_WIDTH_ZERO = Bin("0", WORD_WIDTH)

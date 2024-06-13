@@ -58,9 +58,9 @@ object T6502Assembler : AsmHeader {
             }
 
             val immSize = if (amode.byteAmount == 2) {
-                Bit8()
+                Bit8
             } else {
-                Bit16()
+                Bit16
             }
 
             val resized = when (immediate) {
@@ -128,7 +128,7 @@ object T6502Assembler : AsmHeader {
             return codeWithExt
         }
 
-        override fun getContentString(): String = "$type ${amode.getString(immediate ?: Hex("0", Bit8()))}"
+        override fun getContentString(): String = "$type ${amode.getString(immediate ?: Hex("0", Bit8))}"
     }
 
     data class Flags(

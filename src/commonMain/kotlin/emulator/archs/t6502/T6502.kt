@@ -29,8 +29,8 @@ import emulator.kit.types.Variable.Value.Hex
  */
 object T6502 {
 
-    val WORD_SIZE = Bit16()
-    val BYTE_SIZE = Bit8()
+    val WORD_SIZE = Bit16
+    val BYTE_SIZE = Bit8
 
     val MEM_ADDR_SIZE = WORD_SIZE
 

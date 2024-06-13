@@ -14,8 +14,8 @@ import emulator.kit.types.Variable.Value.Hex
 
 data object IKRMini {
 
-    val BYTESIZE = Bit8()
-    val WORDSIZE = Bit16()
+    val BYTESIZE = Bit8
+    val WORDSIZE = Bit16
     val MEM_ADDRESS_WIDTH = WORDSIZE
 
     val descr = Config.Description(
@@ -72,8 +72,8 @@ data object IKRMini {
             listOf(
                 RegContainer.RegisterFile(
                     "common", arrayOf(
-                        RegContainer.Register(Hex("0", Bit1()), listOf("AC"), listOf(), Variable("0", WORDSIZE), description = "Accumulator"),
-                        RegContainer.Register(Hex("1", Bit1()), listOf("NZVC"), listOf(), Variable("0", Bit4()), description = "NZVC ALU flags", containsFlags = true)
+                        RegContainer.Register(Hex("0", Bit1), listOf("AC"), listOf(), Variable("0", WORDSIZE), description = "Accumulator"),
+                        RegContainer.Register(Hex("1", Bit1), listOf("NZVC"), listOf(), Variable("0", Bit4), description = "NZVC ALU flags", containsFlags = true)
                     )
                 )
             ),

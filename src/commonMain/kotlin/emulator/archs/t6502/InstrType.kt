@@ -291,12 +291,12 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 }
 
                 // Binary Add
-                val binSumBit9 = ac.get().toBin().getUResized(Bit9()) + operand + flags.c
+                val binSumBit9 = ac.get().toBin().getUResized(Bit9) + operand + flags.c
                 val sum = Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
-                val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1())
+                val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1)
                 val operandBit0 = operand.toBin().getBit(0)
-                val sumBit0 = sum.getBit(0) ?: Bin("0", Bit1())
-                val v = if (acBit0 == operandBit0) sumBit0 xor acBit0 else Bin("0", Bit1())
+                val sumBit0 = sum.getBit(0) ?: Bin("0", Bit1)
+                val v = if (acBit0 == operandBit0) sumBit0 xor acBit0 else Bin("0", Bit1)
                 val c = binSumBit9.toBin().getBit(0)
                 setFlags(arch, v = v, c = c)
 
@@ -315,10 +315,10 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
                 val binSumBit9 = ac.get().toBin() + opInv + flags.c
                 val subBit8 = Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
-                val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1())
+                val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1)
                 val opInvBit0 = opInv.toBin().getBit(0)
-                val subBit0 = subBit8.getBit(0) ?: Bin("0", Bit1())
-                val v = if (acBit0 == opInvBit0) subBit0 xor acBit0 else Bin("0", Bit1())
+                val subBit0 = subBit8.getBit(0) ?: Bin("0", Bit1)
+                val v = if (acBit0 == opInvBit0) subBit0 xor acBit0 else Bin("0", Bit1)
                 val c = binSumBit9.toBin().getBit(0)
                 setFlags(arch, v = v, c = c)
 
@@ -383,7 +383,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 when (amode) {
                     ACCUMULATOR -> {
                         val shifted = ac.get().toBin().ushr(1)
-                        setFlags(arch, n = Bin("0", Bit1()), checkZero = shifted, c = ac.get().toBin().getBit(7))
+                        setFlags(arch, n = Bin("0", Bit1), checkZero = shifted, c = ac.get().toBin().getBit(7))
                         ac.set(shifted)
                     }
 
@@ -391,7 +391,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                         address?.let {
                             val loaded = arch.cachedMemory.load(it, tracker = tracker).toBin()
                             val shifted = loaded ushr 1
-                            setFlags(arch, n = Bin("0", Bit1()), checkZero = shifted, c = loaded.getBit(7))
+                            setFlags(arch, n = Bin("0", Bit1), checkZero = shifted, c = loaded.getBit(7))
                             arch.cachedMemory.store(it, shifted, tracker = tracker)
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
                     }
@@ -438,14 +438,14 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 }
             }
 
-            CLC -> setFlags(arch, c = Bin("0", Bit1()))
-            CLD -> setFlags(arch, d = Bin("0", Bit1()))
-            CLI -> setFlags(arch, i = Bin("0", Bit1()))
-            CLV -> setFlags(arch, v = Bin("0", Bit1()))
+            CLC -> setFlags(arch, c = Bin("0", Bit1))
+            CLD -> setFlags(arch, d = Bin("0", Bit1))
+            CLI -> setFlags(arch, i = Bin("0", Bit1))
+            CLV -> setFlags(arch, v = Bin("0", Bit1))
 
-            SEC -> setFlags(arch, c = Bin("1", Bit1()))
-            SED -> setFlags(arch, d = Bin("1", Bit1()))
-            SEI -> setFlags(arch, i = Bin("1", Bit1()))
+            SEC -> setFlags(arch, c = Bin("1", Bit1))
+            SED -> setFlags(arch, d = Bin("1", Bit1))
+            SEI -> setFlags(arch, i = Bin("1", Bit1))
 
             CMP -> {
                 if (operand == null) {
@@ -454,7 +454,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 }
 
                 val cmpResult = (ac.get().toBin() - operand).toBin()
-                val c = if (operand.toDec() <= ac.get().toDec()) Bin("1", Bit1()) else Bin("0", Bit1())
+                val c = if (operand.toDec() <= ac.get().toDec()) Bin("1", Bit1) else Bin("0", Bit1)
                 setFlags(arch, checkZero = cmpResult, n = cmpResult.getBit(0), c = c)
             }
 
@@ -465,7 +465,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 }
 
                 val cmpResult = (x.get().toBin() - operand).toBin()
-                val c = if (operand.toDec() <= x.get().toDec()) Bin("1", Bit1()) else Bin("0", Bit1())
+                val c = if (operand.toDec() <= x.get().toDec()) Bin("1", Bit1) else Bin("0", Bit1)
                 setFlags(arch, checkZero = cmpResult, n = cmpResult.getBit(0), c = c)
             }
 
@@ -476,7 +476,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 }
 
                 val cmpResult = (y.get().toBin() - operand).toBin()
-                val c = if (operand.toDec() <= y.get().toDec()) Bin("1", Bit1()) else Bin("0", Bit1())
+                val c = if (operand.toDec() <= y.get().toDec()) Bin("1", Bit1) else Bin("0", Bit1)
                 setFlags(arch, checkZero = cmpResult, n = cmpResult.getBit(0), c = c)
             }
 
@@ -485,7 +485,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.c == Bin("0", Bit1())) {
+                if (flags.c == Bin("0", Bit1)) {
                     // Carry Clear
                     pc.set(operand)
                 } else {
@@ -500,7 +500,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.c == Bin("1", Bit1())) {
+                if (flags.c == Bin("1", Bit1)) {
                     // Carry Set
                     pc.set(operand)
                 } else {
@@ -515,7 +515,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.z == Bin("1", Bit1())) {
+                if (flags.z == Bin("1", Bit1)) {
                     // Zero
                     pc.set(operand)
                 } else {
@@ -530,7 +530,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.n == Bin("1", Bit1())) {
+                if (flags.n == Bin("1", Bit1)) {
                     // negative
                     pc.set(operand)
                 } else {
@@ -545,7 +545,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.z == Bin("0", Bit1())) {
+                if (flags.z == Bin("0", Bit1)) {
                     // Not Zero
                     pc.set(operand)
                 } else {
@@ -560,7 +560,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.n == Bin("0", Bit1())) {
+                if (flags.n == Bin("0", Bit1)) {
                     // positive
                     pc.set(operand)
                 } else {
@@ -575,7 +575,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.v == Bin("0", Bit1())) {
+                if (flags.v == Bin("0", Bit1)) {
                     // overflow clear
                     pc.set(operand)
                 } else {
@@ -590,7 +590,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     arch.console.error("Couldn't load operand for ${this.name} ${amode.name}!")
                     return
                 }
-                if (flags.v == Bin("1", Bit1())) {
+                if (flags.v == Bin("1", Bit1)) {
                     // overflow set
                     pc.set(operand)
                 } else {
@@ -810,19 +810,19 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
         if (checkZero != null) {
             zflag = if (checkZero == Bin("0", T6502.BYTE_SIZE)) {
-                Bin("1", Bit1())
+                Bin("1", Bit1)
             } else {
-                Bin("0", Bit1())
+                Bin("0", Bit1)
             }
         }
         if (seti != null) {
-            iflag = if (seti) Bin("1", Bit1()) else Bin("0", Bit1())
+            iflag = if (seti) Bin("1", Bit1) else Bin("0", Bit1)
         }
         if (setd != null) {
-            dflag = if (setd) Bin("1", Bit1()) else Bin("0", Bit1())
+            dflag = if (setd) Bin("1", Bit1) else Bin("0", Bit1)
         }
         if (setb != null) {
-            bflag = if (setb) Bin("1", Bit1()) else Bin("0", Bit1())
+            bflag = if (setb) Bin("1", Bit1) else Bin("0", Bit1)
         }
 
 

@@ -417,7 +417,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
      * @property name The name of the symbol.
      */
     sealed class Symbol(val name: String) {
-        var descriptor: Hex = Hex("0", Bit16())
+        var descriptor: Hex = Hex("0", Bit16)
 
         class Undefined(name: String) : Symbol(name)
         class StringExpr(name: String, val expr: GASNode.StringExpr) : Symbol(name)
@@ -540,7 +540,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
                             }
                         }
                     }.toTypedArray()
-                    val words = bytes.mergeToChunks(Variable.Size.Bit8(), memory.instanceSize)
+                    val words = bytes.mergeToChunks(Variable.Size.Bit8, memory.instanceSize)
 
                     memory.storeArray(addr.toHex(), *words, mark = mark ?: Memory.InstanceType.DATA)
                 }

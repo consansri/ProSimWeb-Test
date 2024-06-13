@@ -63,7 +63,7 @@ sealed class Memory {
         for (i in 0..<amount) {
             val value = load(instanceAddress, 1, tracker).getUResized(instanceSize)
             instances.add(value.toHex())
-            instanceAddress = (instanceAddress + Hex("01", Bit8())).toHex()
+            instanceAddress = (instanceAddress + Hex("01", Bit8)).toHex()
         }
 
         return instances.toTypedArray()

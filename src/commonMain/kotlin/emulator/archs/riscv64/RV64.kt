@@ -21,12 +21,12 @@ object RV64 {
 
     private const val REG_INIT: String = "0"
 
-    val XLEN: Variable.Size = Bit64()
-    val WORD_WIDTH: Variable.Size = Bit32()
+    val XLEN: Variable.Size = Bit64
+    val WORD_WIDTH: Variable.Size = Bit32
     private val REG_VALUE_SIZE = XLEN
-    private val REG_ADDRESS_SIZE = Bit5()
-    private val CSR_REG_ADDRESS_SIZE = Bit12()
-    private val MEM_VALUE_WIDTH = Bit8()
+    private val REG_ADDRESS_SIZE = Bit5
+    private val CSR_REG_ADDRESS_SIZE = Bit12
+    private val MEM_VALUE_WIDTH = Bit8
     val MEM_ADDRESS_WIDTH = XLEN
 
     const val CSR_REGFILE_NAME = "csr"

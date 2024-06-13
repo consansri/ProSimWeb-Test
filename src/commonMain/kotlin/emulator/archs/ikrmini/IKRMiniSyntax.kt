@@ -487,7 +487,7 @@ class IKRMiniSyntax {
             }
 
             val oldFlags = getFlags(arch)
-            flags.set(Bin("${if (n ?: oldFlags.n) "1" else "0"}${if (z ?: oldFlags.z) "1" else "0"}${if (v ?: oldFlags.v) "1" else "0"}${if (c ?: oldFlags.c) "1" else "0"}", Variable.Size.Bit4()))
+            flags.set(Bin("${if (n ?: oldFlags.n) "1" else "0"}${if (z ?: oldFlags.z) "1" else "0"}${if (v ?: oldFlags.v) "1" else "0"}${if (c ?: oldFlags.c) "1" else "0"}", Variable.Size.Bit4))
         }
 
     }

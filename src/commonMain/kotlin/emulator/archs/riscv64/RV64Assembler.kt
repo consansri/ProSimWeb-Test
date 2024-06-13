@@ -71,7 +71,7 @@ object RV64Assembler : AsmHeader {
         throw Parser.ParserError(rawInstr.instrName, "Invalid Arguments for ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${rawInstr.remainingTokens.joinToString("") { it.toString() }}")
     }
 
-    class RV64Instr(val rawInstr: GASNode.RawInstr, val type: RV64Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32()), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
+    class RV64Instr(val rawInstr: GASNode.RawInstr, val type: RV64Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
         override val bytesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
@@ -89,26 +89,26 @@ object RV64Assembler : AsmHeader {
         when (type.paramType) {
             RV64Syntax.ParamType.RD_I20 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit20())
+                val check = immediate.check(Bit20)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 20 Bits!")
 
-                return immediate.getResized(Bit20())
+                return immediate.getResized(Bit20)
             }
 
             RV64Syntax.ParamType.RD_Off12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12())
+                val check = immediate.check(Bit12)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Bit12())
+                return immediate.getResized(Bit12)
             }
 
             RV64Syntax.ParamType.RS2_Off12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12())
+                val check = immediate.check(Bit12)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Bit12())
+                return immediate.getResized(Bit12)
             }
 
             RV64Syntax.ParamType.RD_RS1_RS2 -> {
@@ -117,34 +117,34 @@ object RV64Assembler : AsmHeader {
 
             RV64Syntax.ParamType.RD_RS1_I12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12())
+                val check = immediate.check(Bit12)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Bit12())
+                return immediate.getResized(Bit12)
             }
 
             RV64Syntax.ParamType.RD_RS1_SHAMT6 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit6())
+                val check = immediate.check(Bit6)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 6 Bits!")
 
-                return immediate.toBin().getResized(Bit6()).toDec()
+                return immediate.toBin().getResized(Bit6).toDec()
             }
 
             RV64Syntax.ParamType.RS1_RS2_I12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12())
+                val check = immediate.check(Bit12)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
-                return immediate.getResized(Bit12())
+                return immediate.getResized(Bit12)
             }
 
             RV64Syntax.ParamType.RS1_RS2_LBL -> {
                 val immediate = this.evaluate(false).toBin()
-                val check = immediate.check(Bit64())
+                val check = immediate.check(Bit64)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Label Expression exceeds 64 Bits!")
 
-                return immediate.toBin().getUResized(Bit64()).toDec()
+                return immediate.toBin().getUResized(Bit64).toDec()
             }
 
             RV64Syntax.ParamType.CSR_RD_OFF12_RS1 -> {
@@ -153,10 +153,10 @@ object RV64Assembler : AsmHeader {
 
             RV64Syntax.ParamType.CSR_RD_OFF12_UIMM5 -> {
                 val immediate = this.evaluate(false).toBin()
-                val check = immediate.check(Bit5())
+                val check = immediate.check(Bit5)
                 if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
 
-                return immediate.toBin().getUResized(Bit5()).toDec()
+                return immediate.toBin().getUResized(Bit5).toDec()
             }
 
             RV64Syntax.ParamType.PS_RD_LI_I64 -> {
@@ -206,24 +206,24 @@ object RV64Assembler : AsmHeader {
             RV64Syntax.InstrType.Li64 -> {
                 val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.tokens().first(), "Numeric Expression is Missing!")
 
-                var result = imm.check(Bit12())
+                var result = imm.check(Bit12)
                 if (result.valid) {
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 12 Bit Signed")
                     val zeroReg = RV64.standardRegFile.unsortedRegisters.first { it.names.contains("x0") }
-                    return listOf(RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], zeroReg), imm.getResized(Bit12())))
+                    return listOf(RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], zeroReg), imm.getResized(Bit12)))
                 }
 
-                result = imm.check(Bit32())
+                result = imm.check(Bit32)
                 if (result.valid) {
-                    val resized = imm.getResized(Bit32()).toBin()
+                    val resized = imm.getResized(Bit32).toBin()
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 32 Bit Signed")
                     // resized = upper + lower
                     // upper = resized - lower
-                    val lower = resized.getResized(Bit12()).getResized(Bit32())
+                    val lower = resized.getResized(Bit12).getResized(Bit32)
                     val upper = (resized - lower).toBin()
 
-                    val imm20 = Bin(upper.getRawBinStr().substring(0, 20), Bit20()).toHex()
-                    val imm12 = Bin(lower.getRawBinStr().substring(20), Bit12()).toHex()
+                    val imm20 = Bin(upper.getRawBinStr().substring(0, 20), Bit20).toHex()
+                    val imm12 = Bin(lower.getRawBinStr().substring(20), Bit12).toHex()
 
                     return listOf(
                         RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), imm20),
@@ -231,9 +231,9 @@ object RV64Assembler : AsmHeader {
                     )
                 }
 
-                result = imm.check(Bit44())
+                result = imm.check(Bit44)
                 if (result.valid) {
-                    val resized = imm.toBin().getResized(Bit44())
+                    val resized = imm.toBin().getResized(Bit44)
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 44 Bit Signed for ${resized.toHex()}")
                     /**
                      *  val64 = lui + addiw + addi3 + addi2 + addi1
@@ -243,21 +243,21 @@ object RV64Assembler : AsmHeader {
                      *  SLLI 12
                      *  ADDI
                      */
-                    val l1 = resized.getResized(Bit12()).getResized(Bit44())
-                    val l2 = resized.shr(12).getResized(Bit12()).getResized(Bit44()) + (l1.toBin().getBit(0) ?: Bin("0", Bit1()))
-                    val l3 = resized.shr(12 + 12).getResized(Bit20()).getResized(Bit44()) + (l2.toBin().getBit(0) ?: Bin("0", Bit1()))
+                    val l1 = resized.getResized(Bit12).getResized(Bit44)
+                    val l2 = resized.shr(12).getResized(Bit12).getResized(Bit44) + (l1.toBin().getBit(0) ?: Bin("0", Bit1))
+                    val l3 = resized.shr(12 + 12).getResized(Bit20).getResized(Bit44) + (l2.toBin().getBit(0) ?: Bin("0", Bit1))
 
                     return listOf(
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), l3.toBin().getUResized(Bit20()).toHex()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDIW, arrayOf(regs[0], regs[0]), l2.toBin().getUResized(Bit12()).toDec()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6())),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l1.toBin().getUResized(Bit12()).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), l3.toBin().getUResized(Bit20).toHex()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDIW, arrayOf(regs[0], regs[0]), l2.toBin().getUResized(Bit12).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6)),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l1.toBin().getUResized(Bit12).toDec()),
                     )
                 }
 
-                result = imm.check(Bit56())
+                result = imm.check(Bit56)
                 if (result.valid) {
-                    val resized = imm.toBin().getResized(Bit56())
+                    val resized = imm.toBin().getResized(Bit56)
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 56 Bit Signed for ${resized.toHex()}")
                     /**
                      *  val64 = lui + addiw + addi3 + addi2 + addi1
@@ -269,25 +269,25 @@ object RV64Assembler : AsmHeader {
                      *  SLLI 12
                      *  ADDI
                      */
-                    val l1 = resized.getResized(Bit12()).getResized(Bit56())
-                    val l2 = resized.shr(12).getResized(Bit12()).getResized(Bit56()) + (l1.toBin().getBit(0) ?: Bin("0", Bit1()))
-                    val l3 = resized.shr(12 + 12).getResized(Bit12()).getResized(Bit56()) + (l2.toBin().getBit(0) ?: Bin("0", Bit1()))
-                    val l4 = resized.shr(12 + 12 + 12).getResized(Bit20()).getResized(Bit56()) + (l3.toBin().getBit(0) ?: Bin("0", Bit1()))
+                    val l1 = resized.getResized(Bit12).getResized(Bit56)
+                    val l2 = resized.shr(12).getResized(Bit12).getResized(Bit56) + (l1.toBin().getBit(0) ?: Bin("0", Bit1))
+                    val l3 = resized.shr(12 + 12).getResized(Bit12).getResized(Bit56) + (l2.toBin().getBit(0) ?: Bin("0", Bit1))
+                    val l4 = resized.shr(12 + 12 + 12).getResized(Bit20).getResized(Bit56) + (l3.toBin().getBit(0) ?: Bin("0", Bit1))
 
                     return listOf(
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), l4.toBin().getUResized(Bit20()).toHex()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDIW, arrayOf(regs[0], regs[0]), l3.toBin().getUResized(Bit12()).toDec()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6())),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l2.toBin().getUResized(Bit12()).toDec()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6())),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l1.toBin().getUResized(Bit12()).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), l4.toBin().getUResized(Bit20).toHex()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDIW, arrayOf(regs[0], regs[0]), l3.toBin().getUResized(Bit12).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6)),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l2.toBin().getUResized(Bit12).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6)),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l1.toBin().getUResized(Bit12).toDec()),
                     )
                 }
 
-                result = imm.check(Bit64())
-                val unsignedResult = imm.toBin().checkSizeUnsigned(Bit64()) == null
+                result = imm.check(Bit64)
+                val unsignedResult = imm.toBin().checkSizeUnsigned(Bit64) == null
                 if (result.valid || unsignedResult) {
-                    val resized = imm.toBin().getUResized(Bit64())
+                    val resized = imm.toBin().getUResized(Bit64)
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 64 Bit Signed")
                     /**
                      *  val64 = lui + addiw + addi3 + addi2 + addi1
@@ -302,21 +302,21 @@ object RV64Assembler : AsmHeader {
                      *  ADDI
                      */
 
-                    val l1 = resized.getResized(Bit12()).getResized(Bit64())
-                    val l2 = resized.shr(12).getResized(Bit12()).getResized(Bit64()) + (l1.toBin().getBit(0) ?: Bin("0", Bit1()))
-                    val l3 = resized.shr(12 + 13).getResized(Bit12()).getResized(Bit64()) + (l2.toBin().getBit(0) ?: Bin("0", Bit1()))
-                    val l4 = resized.shr(12 + 13 + 12).getResized(Bit12()).getResized(Bit64()) + (l3.toBin().getBit(0) ?: Bin("0", Bit1()))
-                    val l5 = resized.shr(12 + 13 + 12 + 12) + (l4.toBin().getBit(0) ?: Bin("0", Bit1()))
+                    val l1 = resized.getResized(Bit12).getResized(Bit64)
+                    val l2 = resized.shr(12).getResized(Bit12).getResized(Bit64) + (l1.toBin().getBit(0) ?: Bin("0", Bit1))
+                    val l3 = resized.shr(12 + 13).getResized(Bit12).getResized(Bit64) + (l2.toBin().getBit(0) ?: Bin("0", Bit1))
+                    val l4 = resized.shr(12 + 13 + 12).getResized(Bit12).getResized(Bit64) + (l3.toBin().getBit(0) ?: Bin("0", Bit1))
+                    val l5 = resized.shr(12 + 13 + 12 + 12) + (l4.toBin().getBit(0) ?: Bin("0", Bit1))
 
                     return listOf(
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), l5.toBin().getUResized(Bit20()).toHex()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDIW, arrayOf(regs[0], regs[0]), l4.toBin().getUResized(Bit12()).toDec()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6())),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l3.toBin().getUResized(Bit12()).toDec()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("D", Bit6())),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l2.toBin().getUResized(Bit12()).toDec()),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6())),
-                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l1.getUResized(Bit12()).toDec())
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), l5.toBin().getUResized(Bit20).toHex()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDIW, arrayOf(regs[0], regs[0]), l4.toBin().getUResized(Bit12).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6)),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l3.toBin().getUResized(Bit12).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("D", Bit6)),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l2.toBin().getUResized(Bit12).toDec()),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.SLLI, arrayOf(regs[0], regs[0]), Hex("C", Bit6)),
+                        RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], regs[0]), l1.getUResized(Bit12).toDec())
                     )
                 }
 
@@ -325,7 +325,7 @@ object RV64Assembler : AsmHeader {
 
             else -> {
                 val imm = immediate?.checkInstrType(type)
-                listOf(RV64Instr(rawInstr, type, regs, imm ?: Dec("0", Bit32()), label = label))
+                listOf(RV64Instr(rawInstr, type, regs, imm ?: Dec("0", Bit32), label = label))
             }
         }
     }

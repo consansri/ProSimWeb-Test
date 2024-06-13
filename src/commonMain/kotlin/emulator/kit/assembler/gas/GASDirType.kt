@@ -1097,9 +1097,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 val byte = if (exprs.size > 1) {
                     val dec32 = exprs[1].evaluate(true).toUDec()
-                    if (!dec32.check(Bit8()).valid) throw Parser.ParserError(exprs[1].tokens().first(), "Numeric Expression exceeds 8 Bits!")
-                    dec32.toBin().getUResized(Bit8()).toHex()
-                } else Hex("0", Bit8())
+                    if (!dec32.check(Bit8).valid) throw Parser.ParserError(exprs[1].tokens().first(), "Numeric Expression exceeds 8 Bits!")
+                    dec32.toBin().getUResized(Bit8).toHex()
+                } else Hex("0", Bit8)
 
                 val max = if (exprs.size > 2) {
                     exprs[2].evaluate(true)
@@ -1111,8 +1111,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 if (padding == alignment.toIntOrNull()) return
 
                 val refToken = stmnt.dir.tokens().first()
-                val word = Hex(byte.getRawHexStr().repeat(4), Bit32())
-                val short = Hex(byte.getRawHexStr().repeat(2), Bit16())
+                val word = Hex(byte.getRawHexStr().repeat(4), Bit32)
+                val short = Hex(byte.getRawHexStr().repeat(2), Bit16)
                 var index = 0
                 while (index < padding) {
                     if (index + 3 < padding) {
@@ -1144,20 +1144,20 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 chunks.forEach { hexStr ->
                     when (hexStr.length) {
                         8 -> {
-                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32), GASParser.Data.DataType.WORD))
                         }
 
                         6 -> {
-                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16()), GASParser.Data.DataType.SHORT))
-                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8()), GASParser.Data.DataType.BYTE))
+                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16), GASParser.Data.DataType.SHORT))
+                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8), GASParser.Data.DataType.BYTE))
                         }
 
                         4 -> {
-                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16), GASParser.Data.DataType.SHORT))
                         }
 
                         2 -> {
-                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8()), GASParser.Data.DataType.BYTE))
+                            cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8), GASParser.Data.DataType.BYTE))
                         }
                     }
                 }
@@ -1176,24 +1176,24 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
                             8 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32), GASParser.Data.DataType.WORD))
                             }
 
                             6 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16()), GASParser.Data.DataType.SHORT))
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8()), GASParser.Data.DataType.BYTE))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8), GASParser.Data.DataType.BYTE))
                             }
 
                             4 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16), GASParser.Data.DataType.SHORT))
                             }
 
                             2 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8()), GASParser.Data.DataType.BYTE))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8), GASParser.Data.DataType.BYTE))
                             }
                         }
                     }
-                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8()), GASParser.Data.DataType.BYTE))
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8), GASParser.Data.DataType.BYTE))
                 }
             }
 
@@ -1201,8 +1201,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val ref = stmnt.dir.tokens().first()
                 val bytes = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
-                    val truncated = value.getUResized(Bit8()).toHex()
-                    if (value.checkSizeUnsigned(Bit8()) != null) {
+                    val truncated = value.getUResized(Bit8).toHex()
+                    if (value.checkSizeUnsigned(Bit8) != null) {
                         it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated
@@ -1216,8 +1216,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val ref = stmnt.dir.tokens().first()
                 val bytes = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
-                    val truncated = value.getUResized(Bit16()).toHex()
-                    if (value.checkSizeUnsigned(Bit16()) != null) {
+                    val truncated = value.getUResized(Bit16).toHex()
+                    if (value.checkSizeUnsigned(Bit16) != null) {
                         it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated
@@ -1240,24 +1240,24 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
                             8 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32), GASParser.Data.DataType.WORD))
                             }
 
                             6 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16()), GASParser.Data.DataType.SHORT))
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8()), GASParser.Data.DataType.BYTE))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8), GASParser.Data.DataType.BYTE))
                             }
 
                             4 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16), GASParser.Data.DataType.SHORT))
                             }
 
                             2 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8()), GASParser.Data.DataType.BYTE))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8), GASParser.Data.DataType.BYTE))
                             }
                         }
                     }
-                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8()), GASParser.Data.DataType.BYTE))
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8), GASParser.Data.DataType.BYTE))
                 }
             }
 
@@ -1274,24 +1274,24 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
                             8 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32), GASParser.Data.DataType.WORD))
                             }
 
                             6 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16()), GASParser.Data.DataType.SHORT))
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8()), GASParser.Data.DataType.BYTE))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(2), Bit16), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr.substring(0, 2), Bit8), GASParser.Data.DataType.BYTE))
                             }
 
                             4 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16), GASParser.Data.DataType.SHORT))
                             }
 
                             2 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8()), GASParser.Data.DataType.BYTE))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit8), GASParser.Data.DataType.BYTE))
                             }
                         }
                     }
-                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8()), GASParser.Data.DataType.BYTE))
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit8), GASParser.Data.DataType.BYTE))
                 }
             }
 
@@ -1308,15 +1308,15 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
                             4 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32), GASParser.Data.DataType.WORD))
                             }
 
                             2 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16()), GASParser.Data.DataType.SHORT))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit16), GASParser.Data.DataType.SHORT))
                             }
                         }
                     }
-                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit16()), GASParser.Data.DataType.SHORT))
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit16), GASParser.Data.DataType.SHORT))
                 }
             }
 
@@ -1333,11 +1333,11 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
                             2 -> {
-                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32()), GASParser.Data.DataType.WORD))
+                                cont.currSection.addContent(GASParser.Data(ref, Hex(hexStr, Bit32), GASParser.Data.DataType.WORD))
                             }
                         }
                     }
-                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit32()), GASParser.Data.DataType.WORD))
+                    cont.currSection.addContent(GASParser.Data(ref, Hex("0", Bit32), GASParser.Data.DataType.WORD))
                 }
             }
 
@@ -1345,8 +1345,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val ref = stmnt.dir.tokens().first()
                 val words = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
-                    val truncated = value.getUResized(Bit32()).toHex()
-                    if (value.checkSizeUnsigned(Bit32()) != null) {
+                    val truncated = value.getUResized(Bit32).toHex()
+                    if (value.checkSizeUnsigned(Bit32) != null) {
                         it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated
@@ -1360,8 +1360,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val ref = stmnt.dir.tokens().first()
                 val shorts = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
-                    val truncated = value.getUResized(Bit16()).toHex()
-                    if (value.checkSizeUnsigned(Bit16()) != null) {
+                    val truncated = value.getUResized(Bit16).toHex()
+                    if (value.checkSizeUnsigned(Bit16) != null) {
                         it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated
@@ -1478,7 +1478,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val token = stmnt.dir.allTokens.first()
                 val numericExpr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull() ?: throw Parser.ParserError(token, "Expected Numeric expression!")
                 val value = numericExpr.evaluate(true)
-                if (value >= Dec("500", Bit32())) {
+                if (value >= Dec("500", Bit32)) {
                     token.addSeverity(Severity.Type.WARNING, "Value is $value.")
                 } else {
                     throw Parser.ParserError(token, "Value is $value!")
@@ -1565,8 +1565,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 val symbol = stmnt.dir.allTokens.firstOrNull { it.type == Token.Type.SYMBOL } ?: return
                 val expr = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().firstOrNull() ?: return
                 val desc = expr.evaluate(true)
-                if (desc.toBin().checkSizeUnsigned(Bit16()) != null) throw Parser.ParserError(expr.tokens().first(), "Expression exceeds unsigned 16 Bits!")
-                cont.setOrReplaceDescriptor(symbol.content, desc.toBin().getUResized(Bit16()).toHex())
+                if (desc.toBin().checkSizeUnsigned(Bit16) != null) throw Parser.ParserError(expr.tokens().first(), "Expression exceeds unsigned 16 Bits!")
+                cont.setOrReplaceDescriptor(symbol.content, desc.toBin().getUResized(Bit16).toHex())
             }
 
             // Sections
@@ -1611,8 +1611,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     }
 
     companion object {
-        val zeroByte = Hex("0", Bit8())
-        val zeroShort = Hex("0", Bit16())
-        val zeroWord = Hex("0", Bit32())
+        val zeroByte = Hex("0", Bit8)
+        val zeroShort = Hex("0", Bit16)
+        val zeroWord = Hex("0", Bit32)
     }
 }

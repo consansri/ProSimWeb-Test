@@ -209,13 +209,13 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     //
     EXTB("extb", ParamType.R1_TYPE, OpCode("111111 00000 00000 110000 00000 00000", FUNCT6, RC, RB, OPCODE, NONE5, FUNCT5), "erweitere niederwertigstes Byte (Byte 0) vorzeichenrichtig") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Variable.Size.Bit8()).getResized(IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Variable.Size.Bit8).getResized(IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },
     EXTH("exth", ParamType.R1_TYPE, OpCode("111111 00000 00000 110001 00000 00000", FUNCT6, RC, RB, OPCODE, NONE5, FUNCT5), "erweitere niederwertiges Halbwort (Byte 1, Byte 0) vorzeichenrichtig") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Variable.Size.Bit16()).getResized(IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Variable.Size.Bit16).getResized(IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },

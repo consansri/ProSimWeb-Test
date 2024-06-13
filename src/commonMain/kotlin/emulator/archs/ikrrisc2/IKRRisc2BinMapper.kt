@@ -22,10 +22,10 @@ object IKRRisc2BinMapper {
             val rc = arch.getRegByAddr(Bin(binStr.substring(6, 11), IKRRisc2.REG_SIZE)) ?: throw Error("Couldn't find valid register for ${binStr.substring(7, 12)}.")
             val rb = arch.getRegByAddr(Bin(binStr.substring(11, 16), IKRRisc2.REG_SIZE)) ?: throw Error("Couldn't find valid register for ${binStr.substring(12, 17)}.")
             val ra = arch.getRegByAddr(Bin(binStr.substring(27, 32), IKRRisc2.REG_SIZE)) ?: throw Error("Couldn't find valid register for ${binStr.substring(27, 32)}.")
-            val imm16 = Bin(binStr.substring(16, 32), Bit16())
+            val imm16 = Bin(binStr.substring(16, 32), Bit16)
             val disp16 = imm16
-            val disp18 = Bin(binStr.substring(14, 32), Bit18())
-            val disp26 = Bin(binStr.substring(6, 32), Bit26())
+            val disp18 = Bin(binStr.substring(14, 32), Bit18)
+            val disp26 = Bin(binStr.substring(6, 32), Bit26)
 
             return DecodeResult(
                 type,
@@ -50,7 +50,7 @@ object IKRRisc2BinMapper {
             ParamType.I_TYPE -> {
                 val rc = regs.getOrNull(0)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
                 val rb = regs.getOrNull(1)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
-                val imm16 = instr.immediate.toBin().getUResized(Bit16())
+                val imm16 = instr.immediate.toBin().getUResized(Bit16)
 
                 return type.opCode.getOpCode(mapOf(RC to rc, RB to rb, IMM16 to imm16)) ?: throw Parser.ParserError(instr.getFirstToken(), "Couldn't resolve OpCode for type $type.")
             }
@@ -73,7 +73,7 @@ object IKRRisc2BinMapper {
             ParamType.L_OFF_TYPE -> {
                 val rc = regs.getOrNull(0)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
                 val rb = regs.getOrNull(1)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
-                val disp16 = instr.immediate.toBin().getUResized(Bit16())
+                val disp16 = instr.immediate.toBin().getUResized(Bit16)
 
                 return type.opCode.getOpCode(mapOf(RC to rc, RB to rb, DISP16 to disp16)) ?: throw Parser.ParserError(instr.getFirstToken(), "Couldn't resolve OpCode for type $type.")
             }
@@ -89,7 +89,7 @@ object IKRRisc2BinMapper {
             ParamType.S_OFF_TYPE -> {
                 val rb = regs.getOrNull(0)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
                 val rc = regs.getOrNull(1)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
-                val disp16 = instr.immediate.toBin().getUResized(Bit16())
+                val disp16 = instr.immediate.toBin().getUResized(Bit16)
 
                 return type.opCode.getOpCode(mapOf(RC to rc, RB to rb, DISP16 to disp16)) ?: throw Parser.ParserError(instr.getFirstToken(), "Couldn't resolve OpCode for type $type.")
             }
@@ -105,20 +105,20 @@ object IKRRisc2BinMapper {
             ParamType.B_DISP18_TYPE -> {
                 val rc = regs.getOrNull(0)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
                 val displ = lblDisplacement ?: throw Parser.ParserError(instr.getFirstToken(), "Label displacement is missing for type $type.")
-                if (!displ.check(Bit18()).valid) {
+                if (!displ.check(Bit18).valid) {
                     throw Parser.ParserError(instr.getFirstToken(), "Label displacement ($displ) exceeds 18 Bits.")
                 }
-                val displ18 = displ.getResized(Bit18()).toBin()
+                val displ18 = displ.getResized(Bit18).toBin()
 
                 return type.opCode.getOpCode(mapOf(RC to rc, DISP18 to displ18)) ?: throw Parser.ParserError(instr.getFirstToken(), "Couldn't resolve OpCode for type $type.")
             }
 
             ParamType.B_DISP26_TYPE -> {
                 val displ = lblDisplacement ?: throw Parser.ParserError(instr.getFirstToken(), "Label displacement is missing for type $type.")
-                if (!displ.check(Bit26()).valid) {
+                if (!displ.check(Bit26).valid) {
                     throw Parser.ParserError(instr.getFirstToken(), "Label displacement ($displ) exceeds 26 Bits.")
                 }
-                val displ26 = displ.getResized(Bit26()).toBin()
+                val displ26 = displ.getResized(Bit26).toBin()
 
                 return type.opCode.getOpCode(mapOf(DISP26 to displ26)) ?: throw Parser.ParserError(instr.getFirstToken(), "Couldn't resolve OpCode for type $type.")
             }
@@ -215,7 +215,7 @@ object IKRRisc2BinMapper {
                 }
             }
 
-            return Bin(opCode.joinToString("") { it }, Bit32())
+            return Bin(opCode.joinToString("") { it }, Bit32)
         }
 
         private fun getSubString(binary: String, maskLabel: MaskLabel): String {
@@ -244,18 +244,18 @@ object IKRRisc2BinMapper {
     }
 
     enum class MaskLabel(val static: Boolean, val maxSize: Variable.Size? = null) {
-        OPCODE(true, Bit6()),
-        FUNCT6(true, Bit6()),
-        FUNCT5(true, Bit5()),
-        RA(false, Bit5()),
-        RB(false, Bit5()),
-        RC(false, Bit5()),
-        IMM16(false, Bit16()),
-        DISP16(false, Bit16()),
-        DISP18(false, Bit18()),
-        DISP26(false, Bit26()),
-        FUNCT3(true, Bit2()),
-        NONE5(true, Bit5()),
+        OPCODE(true, Bit6),
+        FUNCT6(true, Bit6),
+        FUNCT5(true, Bit5),
+        RA(false, Bit5),
+        RB(false, Bit5),
+        RC(false, Bit5),
+        IMM16(false, Bit16),
+        DISP16(false, Bit16),
+        DISP18(false, Bit18),
+        DISP26(false, Bit26),
+        FUNCT3(true, Bit2),
+        NONE5(true, Bit5),
         NONE(true)
     }
 
