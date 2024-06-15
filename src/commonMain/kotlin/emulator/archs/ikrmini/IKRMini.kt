@@ -49,17 +49,31 @@ data object IKRMini {
     )
 
     val settings = listOf(
-        SetupSetting.Enumeration("Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+        SetupSetting.Enumeration("Instruction Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
             if (arch is ArchIKRMini) {
-                arch.cachedMemory = when (setting.get()) {
+                arch.instrMemory = when (setting.get()) {
                     Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.RANDOM)
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.FIFO)
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.RANDOM)
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.LRU)
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32)
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                }
+            }
+        },
+        SetupSetting.Enumeration("Data Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+            if (arch is ArchIKRMini) {
+                arch.dataMemory = when (setting.get()) {
+                    Cache.Setting.NONE -> arch.memory
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32)
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
                 }
             }
         }

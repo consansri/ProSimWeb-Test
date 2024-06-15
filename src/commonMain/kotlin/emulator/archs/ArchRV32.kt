@@ -9,14 +9,21 @@ import emulator.kit.optional.BasicArchImpl
 
 class ArchRV32 : BasicArchImpl(RV32.config, RV32.asmConfig) {
 
+    var instrMemory: Memory = memory
+        set(value) {
+            field = value
+            resetMicroArch()
+        }
+
     var dataMemory: Memory = memory
         set(value) {
             field = value
             resetMicroArch()
         }
+
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
         val currentPc = regContainer.pc.get().toHex()
-        val instrBin = memory.load(currentPc, RV32.WORD_WIDTH.getByteCount()).toBin()
+        val instrBin = instrMemory.load(currentPc, RV32.WORD_WIDTH.getByteCount(), tracker).toBin()
         val result = RV32BinMapper.getInstrFromBinary(instrBin) ?: return ExecutionResult(valid = false, typeIsReturnFromSubroutine = false, typeIsBranchToSubroutine = false)
         result.type.execute(arch = this, result.binMap, tracker)
         val isReturnFromSubroutine = when (result.type) {
@@ -33,6 +40,7 @@ class ArchRV32 : BasicArchImpl(RV32.config, RV32.asmConfig) {
 
     override fun setupMicroArch() {
         MicroSetup.append(memory)
+        if (instrMemory != memory) MicroSetup.append(instrMemory)
         if (dataMemory != memory) MicroSetup.append(dataMemory)
     }
 

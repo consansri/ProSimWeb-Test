@@ -45,7 +45,7 @@ object DebugTools {
      * VISUAL
      */
 
-    const val REACT_showUpdateInfo = false
+    const val REACT_showUpdateInfo = true
 
 
 }

@@ -8,6 +8,7 @@ import emulator.kit.MicroSetup
 import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
+import emulator.kit.nativeLog
 import emulator.kit.types.Variable.Value.Hex
 import kotlinx.browser.localStorage
 import react.*
@@ -47,7 +48,7 @@ val MemoryView = FC<MemViewProps> { props ->
     val (lowFirst, setLowFirst) = useState(true)
 
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
-    val (currMem, setCurrMem) = useState(MicroSetup.getMemoryInstances().firstOrNull())
+    val (currMem, setCurrMem) = useState<Int?>(localStorage.getItem(Keys.MEM_SELECTED)?.toIntOrNull())
 
     val (useBounds, setUseBounds) = useState(localStorage.getItem("${Keys.MIO_ACTIVE}-${props.archState.component1().description.name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().memory.ioBounds != null))
     val (startAddr, setStartAddr) = useState(localStorage.getItem("${Keys.MIO_START}-${props.archState.component1().description.name}")?.let { Hex(it, props.archState.component1().memory.addressSize) } ?: props.archState.component1().memory
@@ -151,18 +152,6 @@ val MemoryView = FC<MemViewProps> { props ->
                 }
             }
 
-            /*button {
-                type = ButtonType.button
-
-                onClick = {
-                    setMemList(props.archState.component1().memory.getMemList())
-                }
-
-                img {
-                    src = StyleAttr.Icons.refresh
-                }
-            }*/
-
             button {
                 type = ButtonType.button
                 onClick = {
@@ -261,7 +250,7 @@ val MemoryView = FC<MemViewProps> { props ->
                             borderTopRightRadius = StyleAttr.borderRadius
                             borderBottomRightRadius = StyleAttr.borderRadius
                         }
-                        if (mem == currMem) textDecoration = TextDecoration.underline
+                        if (i == currMem) textDecoration = TextDecoration.underline
 
                         hover {
                             textDecoration = TextDecoration.underline
@@ -270,17 +259,18 @@ val MemoryView = FC<MemViewProps> { props ->
                     +mem.name
 
                     onClick = {
-                        setCurrMem(mem)
+                        setCurrMem(MicroSetup.getMemoryInstances().indexOf(mem))
                     }
                 }
             }
         }
 
-        when (currMem) {
+        val selected = MicroSetup.getMemoryInstances().getOrNull(currMem ?: -1)
+        when (selected) {
             is Cache -> {
                 CacheView {
-                    this.key = "${currMem::class.simpleName}"
-                    this.cache = currMem
+                    this.key = "${selected::class.simpleName}"
+                    this.cache = selected
                     this.exeEventState = props.exeEventState
                     this.archState = props.archState
                 }
@@ -288,12 +278,13 @@ val MemoryView = FC<MemViewProps> { props ->
 
             is MainMemory -> {
                 MainMemoryView {
-                    this.key = "${currMem::class.simpleName}"
-                    this.memory = currMem
+                    this.key = "${selected::class.simpleName}"
+                    this.memory = selected
                     this.archState = props.archState
                     this.exeEventState = props.exeEventState
                     this.lowFirst = lowFirst
                 }
+                nativeLog("Repainting all Memories!")
             }
 
             null -> {}
@@ -433,8 +424,8 @@ val MemoryView = FC<MemViewProps> { props ->
         localStorage.setItem("${Keys.MIO_AMOUNT}-${props.archState.component1().description.name}", amount.toString())
     }
 
-    useEffect(props.archState) {
-        setCurrMem(MicroSetup.getMemoryInstances().firstOrNull())
+    useEffect(currMem){
+        localStorage.setItem(Keys.MEM_SELECTED, currMem.toString())
     }
 
     useEffect(editVar) {

@@ -8,8 +8,12 @@ import emulator.kit.optional.BasicArchImpl
 import emulator.kit.types.Variable.Value.Hex
 
 class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
-
-    var cachedMemory: Memory = memory
+    var instrMemory: Memory = memory
+        set(value) {
+            field = value
+            resetMicroArch()
+        }
+    var dataMemory: Memory = memory
         set(value) {
             field = value
             resetMicroArch()
@@ -17,7 +21,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
 
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
         val pc = regContainer.pc.get().toHex()
-        val opCode = memory.load(pc, 2).toHex()
+        val opCode = instrMemory.load(pc, 2, tracker).toHex()
 
         var paramType: IKRMiniSyntax.ParamType? = null
         val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { type ->
@@ -29,7 +33,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
         if (currParamType == null) return ExecutionResult(false, typeIsBranchToSubroutine = false, typeIsReturnFromSubroutine = false)
 
         val extensions = (1..<currParamType.wordAmount).map {
-            memory.load((pc + Hex((it * 2).toString(16), IKRMini.MEM_ADDRESS_WIDTH)).toHex(), 2).toHex()
+            instrMemory.load((pc + Hex((it * 2).toString(16), IKRMini.MEM_ADDRESS_WIDTH)).toHex(), 2, tracker).toHex()
         }
 
         if (instrType != null) {
@@ -42,6 +46,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
 
     override fun setupMicroArch() {
         MicroSetup.append(memory)
-        if (cachedMemory != memory) MicroSetup.append(cachedMemory)
+        if (instrMemory != memory) MicroSetup.append(instrMemory)
+        if (dataMemory != memory) MicroSetup.append(dataMemory)
     }
 }

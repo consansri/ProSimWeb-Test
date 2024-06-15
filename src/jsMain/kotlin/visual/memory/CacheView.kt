@@ -10,6 +10,7 @@ import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.th
 import visual.StyleExt.get
 import web.cssom.*
+import web.html.HTMLDivElement
 import web.html.HTMLElement
 import web.html.HTMLTableSectionElement
 
@@ -21,6 +22,7 @@ external interface CacheViewProps : Props {
 
 val CacheView = FC<CacheViewProps>() { props ->
 
+    val containerRef = useRef<HTMLDivElement>()
     val tbody = useRef<HTMLTableSectionElement>()
     val asciiRef = useRef<HTMLElement>()
 
@@ -124,44 +126,44 @@ val CacheView = FC<CacheViewProps>() { props ->
                                 +blockID.toString(16)
                             }
 
-                            ReactHTML.td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                scope = "row"
-                                +if (block.valid) "1" else "0"
-                            }
-
-                            ReactHTML.td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                scope = "row"
-                                +if (block.dirty) "1" else "0"
-                            }
-
-                            ReactHTML.td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                scope = "row"
-                                +(block.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid")
-                            }
-
-                            block.data.forEach {
                                 ReactHTML.td {
-                                    css {
-                                        textAlign = TextAlign.center
-                                        if (it.address?.getRawHexStr() == currExeAddr) {
-                                            color = important(StyleAttr.Main.Table.FgPC)
-                                            fontWeight = important(FontWeight.bold)
-                                        }
-                                    }
-
-                                    //id = "mem${memInstance.address.getRawHexStr()}"
-                                    title = "value = ${it.value.toDec()} or ${it.value.toUDec()}"
-
-                                    +it.value.toHex().toRawZeroTrimmedString()
+                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                    scope = "row"
+                                    +if (block.valid) "1" else "0"
                                 }
-                            }
 
-                            ReactHTML.td {
-                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
-                                ref = asciiRef
+                                ReactHTML.td {
+                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                    scope = "row"
+                                    +if (block.dirty) "1" else "0"
+                                }
+
+                                ReactHTML.td {
+                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                    scope = "row"
+                                    +(block.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid")
+                                }
+
+                                block.data.forEach {
+                                    ReactHTML.td {
+                                        css {
+                                            textAlign = TextAlign.center
+                                            if (it.address?.getRawHexStr() == currExeAddr) {
+                                                color = important(StyleAttr.Main.Table.FgPC)
+                                                fontWeight = important(FontWeight.bold)
+                                            }
+                                        }
+
+                                        //id = "mem${memInstance.address.getRawHexStr()}"
+                                        title = "value = ${it.value.toDec()} or ${it.value.toUDec()}"
+
+                                        +it.value.toHex().toRawZeroTrimmedString()
+                                    }
+                                }
+
+                                ReactHTML.td {
+                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
+                                    ref = asciiRef
 
                                 +block.data.joinToString("") { it.value.toASCII() }
                             }
@@ -183,7 +185,5 @@ val CacheView = FC<CacheViewProps>() { props ->
             console.log("REACT: Exe Event!")
         }
         setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().getRawHexStr())
-        setRowList(props.cache.model.rows)
     }
-
 }

@@ -87,20 +87,20 @@ class IKRMiniSyntax {
             }
 
             val operand: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.cachedMemory.load(arch.cachedMemory.load(ext[0], 2).toHex(), 2, tracker = tracker).toHex()
-                ParamType.DIRECT -> arch.cachedMemory.load(ext[0], 2, tracker = tracker).toHex()
+                ParamType.INDIRECT -> arch.dataMemory.load(arch.dataMemory.load(ext[0], 2).toHex(), 2, tracker = tracker).toHex()
+                ParamType.DIRECT -> arch.dataMemory.load(ext[0], 2, tracker = tracker).toHex()
                 ParamType.IMMEDIATE -> ext[0]
                 ParamType.DESTINATION -> (pc.get() + ext[0]).toHex()
                 ParamType.IMPLIED -> ac.get().toHex()
                 ParamType.INDIRECT_WITH_OFFSET -> {
                     val offset = ext[0]
                     val address = ext[1]
-                    arch.cachedMemory.load((arch.cachedMemory.load(address, 2, tracker = tracker) + offset).toHex(), 2).toHex()
+                    arch.dataMemory.load((arch.dataMemory.load(address, 2, tracker = tracker) + offset).toHex(), 2).toHex()
                 }
             }
 
             val address: Hex = when (paramtype) {
-                ParamType.INDIRECT -> arch.cachedMemory.load(ext[0], 2, tracker = tracker).toHex()
+                ParamType.INDIRECT -> arch.dataMemory.load(ext[0], 2, tracker = tracker).toHex()
                 ParamType.DIRECT -> ext[0]
                 ParamType.IMMEDIATE -> ext[0]
                 ParamType.DESTINATION -> (pc.get().toHex() + ext[0]).toHex()
@@ -108,7 +108,7 @@ class IKRMiniSyntax {
                 ParamType.INDIRECT_WITH_OFFSET -> {
                     val offset = ext[0]
                     val address = ext[1]
-                    (arch.cachedMemory.load(address, 2, tracker = tracker) + offset).toHex()
+                    (arch.dataMemory.load(address, 2, tracker = tracker) + offset).toHex()
                 }
             }
 
@@ -118,8 +118,8 @@ class IKRMiniSyntax {
 
             when (this) {
                 LOAD -> ac.set(operand)
-                LOADI -> ac.set(arch.cachedMemory.load(operand, 2, tracker = tracker))
-                STORE -> arch.cachedMemory.store(address, ac.get(), Memory.InstanceType.DATA, tracker = tracker)
+                LOADI -> ac.set(arch.dataMemory.load(operand, 2, tracker = tracker))
+                STORE -> arch.dataMemory.store(address, ac.get(), Memory.InstanceType.DATA, tracker = tracker)
                 AND -> {
                     val result = ac.get().toBin() and operand.toBin()
                     val n = result.getBit(0)?.getRawBinStr() == "1"

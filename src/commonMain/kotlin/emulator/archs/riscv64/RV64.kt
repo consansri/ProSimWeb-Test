@@ -7,6 +7,7 @@ import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.*
 import emulator.kit.common.memory.*
+import emulator.kit.common.memory.Cache.Setting
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.Feature
@@ -15,7 +16,6 @@ import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
-import emulator.kit.common.memory.Cache.Setting
 
 data object RV64 {
 
@@ -402,17 +402,31 @@ data object RV64 {
      * Configuration
      */
     val settings = listOf(
-        SetupSetting.Enumeration("Cache", Setting.entries, Setting.NONE) { arch, setting ->
+        SetupSetting.Enumeration("Instruction Cache", Setting.entries, Setting.NONE) { arch, setting ->
+            if (arch is ArchRV64) {
+                arch.instrMemory = when (setting.get()) {
+                    Setting.NONE -> arch.memory
+                    Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32)
+                    Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                    Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                }
+            }
+        },
+        SetupSetting.Enumeration("Data Cache", Setting.entries, Setting.NONE) { arch, setting ->
             if (arch is ArchRV64) {
                 arch.dataMemory = when (setting.get()) {
                     Setting.NONE -> arch.memory
-                    Setting.DirectedMapped -> DMCache(arch.memory, arch.console, 4, 4)
-                    Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.RANDOM)
-                    Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.LRU)
-                    Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, 4, 16, Cache.Model.ReplaceAlgo.FIFO)
-                    Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.RANDOM)
-                    Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.LRU)
-                    Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 3, 4, 4, Cache.Model.ReplaceAlgo.FIFO)
+                    Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32)
+                    Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                    Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
+                    Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
+                    Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
                 }
             }
         }

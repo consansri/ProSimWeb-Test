@@ -1,6 +1,8 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
+import kotlin.math.log
+import kotlin.math.roundToInt
 
 /**
  * Represents a fully associative cache implementation that extends the Cache class.
@@ -31,4 +33,13 @@ class FACache(
     blockCount = blockCount,
     replaceAlgo = replaceAlgo,
     indexBits = 0,
-)
+){
+    constructor(backingMemory: Memory, console: IConsole, cacheSize: CacheSize, replaceAlgo: Model.ReplaceAlgo,name: String = "$cacheSize Cache (FA ${replaceAlgo})"): this(
+        backingMemory,
+        console,
+        blockCount = log((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble(), 2.0).roundToInt(),
+        offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.getByteCount()).toDouble(),2.0).roundToInt(),
+        replaceAlgo = replaceAlgo,
+        name = name
+    )
+}

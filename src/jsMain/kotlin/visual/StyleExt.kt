@@ -3,12 +3,12 @@ package visual
 import StyleAttr
 import emotion.react.css
 import emulator.kit.Architecture
-import emulator.kit.common.Docs
-import emulator.kit.optional.FileHandler
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.lexer.Token
+import emulator.kit.common.Docs
 import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.Memory
+import emulator.kit.optional.FileHandler
 import react.FC
 import react.Props
 import react.StateInstance
@@ -99,7 +99,7 @@ object StyleExt {
                             onClick = { event ->
                                 if (fileHandler.getAllFiles().none { it.getName() == "example" }) {
                                     fileHandler.import(FileHandler.File("example", component.content))
-                                    window.scrollTo(0, 0)
+                                    window.scrollTo(0.0, 0.0)
                                     arch.console.info("Successfully imported 'example'!")
                                     fileChangeEvent.component2().invoke(!fileChangeEvent.component1())
                                 } else {

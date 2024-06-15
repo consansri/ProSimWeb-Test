@@ -7,7 +7,7 @@ import emotion.react.css
 import emulator.Link
 import emulator.kit.common.FileBuilder
 import emulator.kit.optional.FileHandler
-import js.core.asList
+import js.array.asList
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -20,15 +20,16 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import web.buffer.Blob
+import web.blob.Blob
 import web.cssom.*
 import web.dom.document
+import web.events.EventHandler
 import web.file.FileReader
 import web.html.*
 import web.location.location
 import web.storage.localStorage
 import web.timers.Timeout
-import web.timers.clearInterval
+import web.timers.clearTimeout
 import web.timers.setTimeout
 import web.url.URL
 
@@ -84,7 +85,7 @@ val Menu = FC<MenuProps> { props ->
         val reader = FileReader()
         reader.readAsText(file as Blob, "UTF-8")
 
-        reader.onloadend = {
+        reader.onloadend = EventHandler {
             console.log("read ${reader.result}")
             props.fileState.component1().import(FileHandler.File(file.name as String, reader.result as String))
             props.fileChangeEvent.component2().invoke(!props.fileChangeEvent.component1())
@@ -327,7 +328,7 @@ val Menu = FC<MenuProps> { props ->
 
                     onClick = {
                         downloadAsyncRef.current?.let {
-                            clearInterval(it)
+                            clearTimeout(it)
                         }
 
                         downloadAsyncRef.current = setTimeout({
@@ -346,7 +347,7 @@ val Menu = FC<MenuProps> { props ->
 
                         setTimeout({
                             downloadAsyncRef.current?.let {
-                                clearInterval(it)
+                                clearTimeout(it)
                                 console.warn("Download File Generation took to long!")
                             }
                         }, 3000)

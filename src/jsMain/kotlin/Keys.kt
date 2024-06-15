@@ -17,6 +17,7 @@ object Keys {
     const val FILE_REDO = "file-redo"
 
     // memory
+    const val MEM_SELECTED = "mem-selected"
     const val MEM_LENGTH = "mem-length"
     const val MSTEP_VALUE = "m-step-value"
     const val MIO_ACTIVE = "mem-io-active"

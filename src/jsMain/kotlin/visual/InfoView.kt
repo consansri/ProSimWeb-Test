@@ -1,22 +1,26 @@
 package visual
 
-import emotion.react.css
-import web.html.*
-import react.*
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.div
-import web.cssom.*
+import StyleAttr
 import StyleAttr.Main.InfoView
+import emotion.react.css
 import emulator.kit.common.Docs
 import emulator.kit.optional.FileHandler
-import js.core.asList
-import js.promise.await
-import kotlinx.coroutines.*
+import js.array.asList
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import react.*
 import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import visual.StyleExt.render
+import web.cssom.*
 import web.events.EventType
+import web.events.addEventListener
+import web.html.HTMLDivElement
+import web.html.HTMLElement
 import web.http.fetch
 import web.window.window
 
@@ -90,7 +94,7 @@ val InfoView = FC<InfoViewProps> { props ->
                 padding = StyleAttr.paddingSize
                 overflowX = Overflow.scroll
 
-                media(StyleAttr.responsiveQuery) {
+                media(MediaQuery(StyleAttr.responsiveQuery)) {
                     alignItems = AlignItems.start
                 }
             }
@@ -219,14 +223,14 @@ val InfoView = FC<InfoViewProps> { props ->
                 GlobalScope.launch {
                     val snippet = fetch(file.src).text()
                     docDiv.current?.let { input ->
-                        input.innerHTML = snippet.await()
+                        input.innerHTML = snippet
                         val codeChilds = input.getElementsByTagName("code").asList()
                         for (child in codeChilds) {
                             child.addEventListener(EventType("click"), { event ->
                                 child.textContent?.let { text ->
                                     if (props.fileState.component1().getAllFiles().none { it.getName() == "example" }) {
                                         props.fileState.component1().import(FileHandler.File("example", text))
-                                        window.scrollTo(0, 0)
+                                        window.scrollTo(0.0, 0.0)
                                         arch.console.info("Successfully imported 'example'!")
                                         props.fileChangeEvent.component2().invoke(!props.fileChangeEvent.component1())
                                     } else {

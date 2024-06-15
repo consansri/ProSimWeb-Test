@@ -3,6 +3,7 @@ package visual
 import Keys
 import StyleAttr
 import emotion.react.css
+import emulator.kit.nativeLog
 import kotlinx.browser.localStorage
 import react.*
 import react.dom.html.ReactHTML.button
@@ -28,6 +29,8 @@ external interface ProcessorViewProps : Props {
 
 
 val ProcessorView = FC<ProcessorViewProps> { props ->
+    nativeLog("Repainting whole ProcessorView")
+
     val mStepInputRef = useRef<HTMLInputElement>()
     val executionQueue = useRef<Timeout>(null)
 
@@ -268,6 +271,7 @@ val ProcessorView = FC<ProcessorViewProps> { props ->
             this.exeEventState = props.exeEventState
             this.hideRegDescr = hideRegDescr
         }
+        nativeLog("Reínitiating whole Memory View!")
     }
 
     useEffect(mStepAmount) {

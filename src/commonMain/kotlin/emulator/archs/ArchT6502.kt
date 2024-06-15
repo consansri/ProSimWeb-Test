@@ -11,8 +11,12 @@ import emulator.kit.optional.BasicArchImpl
  * MOS Technology 6502 Architecture
  */
 class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
-
-    var cachedMemory: Memory = memory
+    var instrMemory: Memory = memory
+        set(value) {
+            field = value
+            resetMicroArch()
+        }
+    var dataMemory: Memory = memory
         set(value) {
             field = value
             resetMicroArch()
@@ -20,7 +24,7 @@ class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
 
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
         val currentPC = regContainer.pc.get().toHex()
-        val threeBytes = memory.loadArray(currentPC, 3).map { it.toBin() }.toTypedArray()
+        val threeBytes = instrMemory.loadArray(currentPC, 3, tracker).map { it.toBin() }.toTypedArray()
 
         var paramType: AModes? = null
         val instrType = InstrType.entries.firstOrNull { type ->
@@ -37,6 +41,7 @@ class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
 
     override fun setupMicroArch() {
         MicroSetup.append(memory)
-        if (cachedMemory != memory) MicroSetup.append(cachedMemory)
+        if (instrMemory != memory) MicroSetup.append(instrMemory)
+        if (dataMemory != memory) MicroSetup.append(dataMemory)
     }
 }

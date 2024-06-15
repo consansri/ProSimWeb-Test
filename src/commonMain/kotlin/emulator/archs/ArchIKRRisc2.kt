@@ -7,6 +7,11 @@ import emulator.kit.common.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
 class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config, IKRRisc2.asmConfig) {
+    var instrMemory: Memory = memory
+        set(value) {
+            field = value
+            resetMicroArch()
+        }
     var dataMemory: Memory = memory
         set(value) {
             field = value
@@ -14,7 +19,7 @@ class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config, IKRRisc2.asmConfig) {
         }
 
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
-        val loaded = memory.load(regContainer.pc.get().toHex())
+        val loaded = memory.load(regContainer.pc.get().toHex(), tracker = tracker)
         val decodeResult = IKRRisc2BinMapper.decodeBinary(this, loaded.toBin())
         if (decodeResult != null) {
             decodeResult.type.execute(this, regContainer.pc, decodeResult, tracker)
@@ -26,6 +31,7 @@ class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config, IKRRisc2.asmConfig) {
 
     override fun setupMicroArch() {
         MicroSetup.append(memory)
+        if (instrMemory != memory) MicroSetup.append(instrMemory)
         if (dataMemory != memory) MicroSetup.append(dataMemory)
     }
 

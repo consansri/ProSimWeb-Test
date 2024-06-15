@@ -31,7 +31,7 @@ val IConsoleView = FC<IConsoleViewProps> { props ->
     val scrollRef = useRef<HTMLDivElement>()
     val footerRef = props.footerRef
 
-    val scrollIVRef = useRef<Timeout>(null)
+    val scrollIVRef = useRef<Interval>(null)
 
     val (messages, setMessages) = useState(props.archState.component1().console.getMessages())
 

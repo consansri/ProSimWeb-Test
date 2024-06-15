@@ -1,6 +1,8 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
+import kotlin.math.log
+import kotlin.math.roundToInt
 
 /**
  * Represents a direct-mapped cache implementation that extends the Cache class.
@@ -31,4 +33,12 @@ class DMCache(
     offsetBits = offsetBits,
     blockCount = 1,
     replaceAlgo = Model.ReplaceAlgo.RANDOM
-)
+){
+    constructor(backingMemory: Memory, console: IConsole, cacheSize: CacheSize, name: String = "$cacheSize Cache (DM)"): this(
+        backingMemory,
+        console,
+        log((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble(), 2.0).roundToInt(),
+        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.getByteCount()).toDouble(),2.0).roundToInt(),
+        name
+    )
+}
