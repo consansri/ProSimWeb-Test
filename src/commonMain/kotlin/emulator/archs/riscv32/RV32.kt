@@ -33,7 +33,7 @@ import emulator.kit.types.Variable.Value.Hex
  * [RV32Syntax] and [RV32Assembler] are linked through the [asmConfig], while every other architecture configuration is defined in [config] such as the name, [Description], [RegContainer] and [Memory].
  *
  */
-object RV32 {
+data object RV32 {
 
     private const val MEM_INIT: String = "0"
     private const val REG_INIT: String = "0"

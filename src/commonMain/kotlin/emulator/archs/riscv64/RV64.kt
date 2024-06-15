@@ -17,7 +17,7 @@ import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Hex
 import emulator.kit.common.memory.Cache.Setting
 
-object RV64 {
+data object RV64 {
 
     private const val REG_INIT: String = "0"
 

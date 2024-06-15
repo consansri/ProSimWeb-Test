@@ -1,6 +1,6 @@
 package emulator.archs.ikrobjrisc
 
-object IKRObjRisc {
+data object IKRObjRisc {
 
 
 

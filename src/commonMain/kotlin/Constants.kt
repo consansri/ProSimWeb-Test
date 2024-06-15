@@ -6,7 +6,4 @@ data object Constants {
     const val YEAR = "2023"
     const val ORG = "Universität Stuttgart IKR"
     const val DEV = "Constantin Birkert"
-
-
-
 }

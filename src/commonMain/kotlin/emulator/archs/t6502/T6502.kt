@@ -27,7 +27,7 @@ import emulator.kit.types.Variable.Value.Hex
  * Comparison:
  * - https://www.masswerk.at/6502/assembler.html
  */
-object T6502 {
+data object T6502 {
 
     val WORD_SIZE = Bit16
     val BYTE_SIZE = Bit8

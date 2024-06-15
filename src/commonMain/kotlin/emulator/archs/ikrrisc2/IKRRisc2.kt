@@ -15,7 +15,7 @@ import emulator.kit.types.Variable.Size.Bit5
 import emulator.kit.types.Variable.Value.Bin
 import emulator.kit.types.Variable.Value.Dec
 
-object IKRRisc2 {
+data object IKRRisc2 {
 
     val WORD_WIDTH = Bit32
     val REG_SIZE = Bit5
