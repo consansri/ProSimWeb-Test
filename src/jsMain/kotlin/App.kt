@@ -2,7 +2,6 @@
 import debug.DebugTools
 import emotion.react.css
 import emulator.Link
-import emulator.kit.nativeLog
 import emulator.kit.optional.FileHandler
 import emulator.kit.optional.SetupSetting
 import kotlinx.browser.localStorage
@@ -22,8 +21,6 @@ import web.html.HTMLElement
 import web.html.InputType
 
 val App = FC<Props> {
-    nativeLog("Repainting App!")
-
     val mainRef = useRef<HTMLElement>()
     val footerRef = useRef<HTMLElement>()
 

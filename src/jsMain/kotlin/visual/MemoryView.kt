@@ -8,7 +8,6 @@ import emulator.kit.MicroSetup
 import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable.Value.Hex
 import kotlinx.browser.localStorage
 import react.*
@@ -284,7 +283,6 @@ val MemoryView = FC<MemViewProps> { props ->
                     this.exeEventState = props.exeEventState
                     this.lowFirst = lowFirst
                 }
-                nativeLog("Repainting all Memories!")
             }
 
             null -> {}
