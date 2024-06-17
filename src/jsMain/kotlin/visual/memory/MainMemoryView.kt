@@ -43,6 +43,10 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
             flexGrow = number(1.0)
             borderRadius = StyleAttr.borderRadius
             marginRight = (-12).px // center with scrollbar on the right
+
+            StyleAttr.layoutSwitchMediaQuery {
+                marginRight = 0.px
+            }
         }
         tabIndex = 0
 

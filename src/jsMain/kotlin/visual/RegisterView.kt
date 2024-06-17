@@ -56,6 +56,8 @@ val RegisterView = FC<RegisterViewProps> { props ->
             flexDirection = FlexDirection.column
             position = Position.relative
             flex = number(1.0)
+
+            width = 100.pct
             /*overflowY = Overflow.scroll*/
 
             table {
@@ -75,11 +77,10 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 display = Display.flex
                 flexDirection = FlexDirection.row
                 alignItems = AlignItems.end
+                flexWrap = FlexWrap.wrap
 
                 alignContent = AlignContent.center
                 backgroundColor = StyleAttr.Main.Processor.BgColor.get()
-                paddingLeft = 12.px
-                paddingRight = 12.px
 
                 button {
                     paddingTop = 0.5.rem
@@ -91,7 +92,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     css {
                         color = StyleAttr.Main.Processor.FgColor.get()
                         backgroundColor = StyleAttr.transparent
-                        paddingRight = 12.px
+                        paddingRight = StyleAttr.scrollBarSize
                         border = Border(0.px, LineStyle.hidden)
                         paddingTop = 0.5.rem
                     }
@@ -139,7 +140,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                     css {
                         color = StyleAttr.Main.Processor.FgColor.get()
                         backgroundColor = StyleAttr.transparent
-                        paddingLeft = 12.px
+                        paddingLeft = StyleAttr.scrollBarSize
                         float = Float.right
                         border = Border(0.px, LineStyle.hidden)
                         paddingTop = 0.5.rem
@@ -162,7 +163,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 overflowY = Overflow.scroll
                 maxHeight = StyleAttr.Main.Processor.MaxHeightReg
                 borderRadius = StyleAttr.borderRadius
-                paddingLeft = 12.px // center with scrollbar on the right
+                marginRight =  -StyleAttr.scrollBarSize // center with scrollbar on the right
+
+                StyleAttr.layoutSwitchMediaQuery {
+                    marginRight =  0.px
+                }
             }
             tabIndex = 0
 

@@ -137,6 +137,7 @@ object StyleAttr {
             val TableBgColor = ModeColor("#EEEEEE", "#222222")
             val TabBgColor = ModeColor("#00000031", "#00000031")
             val TabFgColor = ModeColor("#EEEEEE", "#999999")
+            val ScrollBarColor =ModeColor("#EEEEEE77", "#99999977")
 
             val BgColorTransparent = ModeColor("#77777731", "#11111151")
 
@@ -228,6 +229,7 @@ object StyleAttr {
             val BgPC = Color("#008b1966")
             val FgPC = Color("#008b19")
 
+
             val BorderColor = Color("#E3E3E2FF")
             val StripeColor = Color("#FFFFFF19")
 
@@ -284,8 +286,10 @@ object StyleAttr {
     // ...
 
     // NUMBERS
+    val scrollBarSize = 12.px
     val paddingSize = 0.4.rem
     val borderRadius = 0.3.rem
+    val insideBorderRadius = 0.15.rem
 
     val iconSizeNav = 1.8.rem
     val iconFilter = invert(1).also { sepia(0.2) }.also { saturate(1.278) }.also { hueRotate(202.deg) }.also { brightness(1.20) }.also { contrast(0.87) }

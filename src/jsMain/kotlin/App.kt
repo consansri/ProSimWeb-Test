@@ -75,7 +75,6 @@ val App = FC<Props> {
                 borderBottom = Border(1.px, LineStyle.solid, StyleAttr.Main.LineColor.get())
                 StyleAttr.layoutSwitchMediaQuery {
                     flexDirection = FlexDirection.column
-                    height = 2 * StyleAttr.Main.TContainerSize
                 }
             }
 
@@ -90,7 +89,7 @@ val App = FC<Props> {
                     StyleAttr.layoutSwitchMediaQuery {
                         flex = 100.pct
                         display = Display.block
-                        height = StyleAttr.Main.TContainerSize / 2
+                        minHeight = 80.vh
                     }
                 }
                 if (lPercentage != 0) {

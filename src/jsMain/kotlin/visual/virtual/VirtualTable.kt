@@ -2,6 +2,8 @@ package visual.virtual
 
 import StyleAttr
 import emotion.react.css
+import kotlinx.browser.document
+import org.w3c.dom.events.Event
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
@@ -9,6 +11,7 @@ import react.useRef
 import react.useState
 import web.cssom.*
 import web.html.HTMLDivElement
+import web.timers.Timeout
 
 external interface VirtualTableProps : Props {
     var headers: Array<String>
@@ -22,20 +25,28 @@ val VirtualTable = FC<VirtualTableProps> { props ->
 
     val containerRef = useRef<HTMLDivElement>()
     val (startIndex, setStartIndex) = useState<Int>(0)
+    val wheelTimeout = useRef<Timeout>()
+
+    val scrollRange: IntRange = IntRange(0, (props.rowCount / props.visibleRows) - 1)
 
     val handleScroll = { deltaY: Double ->
         if (deltaY > 0) {
             // Scroll Dow
-            if (startIndex < props.rowCount - props.visibleRows - 1) {
-                setStartIndex(startIndex + 1)
+            if (startIndex + props.visibleRows < props.rowCount - props.visibleRows) {
+                setStartIndex(startIndex + props.visibleRows)
             }
         } else {
             // Scroll Up
-            if (startIndex > 0) {
-                setStartIndex(startIndex - 1)
+            if (startIndex - props.visibleRows >= 0) {
+                setStartIndex(startIndex - props.visibleRows)
             }
         }
     }
+
+    val preventWheel = { e: Event ->
+        e.preventDefault()
+    }
+
 
     div {
         css {
@@ -47,6 +58,11 @@ val VirtualTable = FC<VirtualTableProps> { props ->
             flexDirection = FlexDirection.row
             justifyContent = JustifyContent.stretch
             alignItems = AlignItems.stretch
+            padding = StyleAttr.paddingSize
+
+            overflow = Overflow.hidden
+            background = StyleAttr.Main.Processor.TableBgColor.get()
+            borderRadius = StyleAttr.borderRadius
         }
 
         div {
@@ -58,6 +74,7 @@ val VirtualTable = FC<VirtualTableProps> { props ->
                 overflowX = Overflow.scroll
                 overflowY = Overflow.hidden
                 display = Display.grid
+
                 gridTemplateColumns = repeat(props.colCount, 1.fr)
                 gridTemplateRows = repeat(props.visibleRows + 1, 1.fr)
 
@@ -71,6 +88,14 @@ val VirtualTable = FC<VirtualTableProps> { props ->
                 it.preventDefault()
             }
 
+            onMouseEnter = {
+                document.body?.addEventListener("onscroll", preventWheel)
+            }
+
+            onMouseLeave = {
+                document.body?.removeEventListener("onscroll", preventWheel)
+            }
+
             onWheelCapture = {
                 //it.preventDefault()
                 val delta = it.deltaY
@@ -81,7 +106,7 @@ val VirtualTable = FC<VirtualTableProps> { props ->
             repeat(props.colCount) { colID ->
                 // Content Cell
                 div {
-                    css{
+                    css {
                         fontWeight = FontWeight.bold
                     }
                     key = "header-${colID}"
@@ -103,17 +128,10 @@ val VirtualTable = FC<VirtualTableProps> { props ->
         }
 
         Scrollbar {
-            this.startIndex = startIndex
-            this.visibleRows = props.visibleRows
-            this.rowCount = props.rowCount
+            this.value = startIndex / props.visibleRows
+            this.range = scrollRange
             this.onScroll = {
-                if (it >= props.rowCount - props.visibleRows) {
-                    setStartIndex(props.rowCount - props.visibleRows)
-                } else if (it < 0) {
-                    setStartIndex(0)
-                } else {
-                    setStartIndex(it)
-                }
+                setStartIndex(it * props.visibleRows)
             }
         }
     }

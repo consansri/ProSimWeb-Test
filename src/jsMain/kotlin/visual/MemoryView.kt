@@ -25,6 +25,7 @@ import react.dom.html.ReactHTML.table
 import visual.memory.CacheView
 import visual.memory.MainMemoryView
 import web.cssom.*
+import web.cssom.Auto.Companion.auto
 import web.html.ButtonType
 import web.html.HTMLInputElement
 import web.html.InputType
@@ -65,8 +66,8 @@ val MemoryView = FC<MemViewProps> { props ->
             position = Position.relative
             gap = StyleAttr.paddingSize
             height = 100.pct
-            paddingLeft = 12.px
-            paddingRight = 12.px
+            paddingLeft = StyleAttr.scrollBarSize
+            paddingRight = StyleAttr.scrollBarSize
             paddingBottom = StyleAttr.paddingSize
 
             table {
@@ -101,6 +102,7 @@ val MemoryView = FC<MemViewProps> { props ->
                     height = StyleAttr.iconSize + 2 * StyleAttr.iconPadding
                     flexGrow = number(1.0)
                     float = Float.left
+                    width = auto
                     verticalAlign = VerticalAlign.middle
                     borderRadius = 0.px
                     background = StyleAttr.Main.Processor.TableBgColor.get()

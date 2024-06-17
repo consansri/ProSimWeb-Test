@@ -1,3 +1,4 @@
+
 import emotion.react.Global
 import emotion.react.styles
 import react.FC
@@ -5,6 +6,7 @@ import react.Props
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.body
 import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.header
@@ -12,7 +14,6 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.nav
-import react.dom.html.ReactHTML.caption
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
@@ -286,8 +287,6 @@ val AppStyle = FC<Props> {
                                 width = StyleAttr.iconSize
                                 height = StyleAttr.iconSize
                             }
-
-
                         }
                     }
 
@@ -297,11 +296,14 @@ val AppStyle = FC<Props> {
                         flexDirection = FlexDirection.row
                         justifyContent = JustifyContent.stretch
                         alignItems = AlignItems.end
+                        overflowX = Overflow.scroll
+                        gap = StyleAttr.paddingSize
+                        paddingLeft = StyleAttr.scrollBarSize
+                        paddingRight = StyleAttr.scrollBarSize
 
                         position = Position.relative
                         borderRadius = StyleAttr.borderRadius
                         background = StyleAttr.transparent
-                        overflowX = Overflow.clip
                     }
 
                     ".${StyleAttr.Main.Processor.CLASS_MEM}" {

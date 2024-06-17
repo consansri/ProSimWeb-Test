@@ -53,7 +53,7 @@ val CacheView = FC<CacheViewProps>() { props ->
             overflowY = Overflow.scroll
             flexGrow = number(1.0)
             borderRadius = StyleAttr.borderRadius
-            paddingLeft = 12.px // center with scrollbar on the right
+            paddingLeft = StyleAttr.scrollBarSize // center with scrollbar on the right
         }
         tabIndex = 0
 
