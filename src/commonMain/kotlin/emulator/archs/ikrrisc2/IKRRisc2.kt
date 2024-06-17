@@ -1,7 +1,6 @@
 package emulator.archs.ikrrisc2
 
 import emulator.archs.ArchIKRRisc2
-import emulator.archs.ArchRV32
 import emulator.kit.common.Docs
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.Register
@@ -69,13 +68,13 @@ data object IKRRisc2 {
             if (arch is ArchIKRRisc2) {
                 arch.instrMemory = when (setting.get()) {
                     Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32)
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Instruction")
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
                 }
             }
         },
@@ -83,13 +82,13 @@ data object IKRRisc2 {
             if (arch is ArchIKRRisc2) {
                 arch.dataMemory = when (setting.get()) {
                     Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32)
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM)
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU)
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO)
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Data")
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
                 }
             }
         }

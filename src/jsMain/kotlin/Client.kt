@@ -15,6 +15,8 @@ fun main() {
     document.title = "${Constants.NAME} ${Constants.VERSION}"
 
     createRoot(root).render(app)
+
+    // JSTools.setupEventLogging() // for Debugging
 }
 
 

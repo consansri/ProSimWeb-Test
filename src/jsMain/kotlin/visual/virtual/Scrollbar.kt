@@ -84,12 +84,6 @@ val Scrollbar = FC<ScrollbarProps> { props ->
             }
 
             title = "top: ${(props.value - props.range.first) * stepInPCT}"
-
-            /*onDrag = {
-                // Drag logic
-                it.preventDefault()
-                handleScrollbarDrag(it.movementY)
-            }*/
         }
     }
 

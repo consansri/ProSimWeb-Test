@@ -1,7 +1,6 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
-import emulator.kit.nativeLog
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Tools.toValue
 import emulator.kit.types.Variable.Value.Bin
@@ -46,8 +45,6 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             console.warn("Unaligned Cache Access!")
             return loadUnaligned(address, amount, tracker, endianess)
         }
-
-        nativeLog("Cache Load: $address, $amount, $endianess")
 
         val searchResult = model.search(address.getUResized(addressSize))
 
@@ -101,8 +98,6 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             console.warn("Unaligned Cache Access!")
             return storeUnaligned(address, value, mark, readonly, tracker, endianess)
         }
-
-        nativeLog("Cache Store: $address, ${value.toHex()}, $endianess")
 
         when (endianess) {
             Endianess.LittleEndian -> values.reverse()

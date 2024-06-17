@@ -1,15 +1,13 @@
 package visual.virtual
 
+import JSTools
 import StyleAttr
 import emotion.react.css
-import kotlinx.browser.document
-import org.w3c.dom.events.Event
-import react.FC
-import react.Props
+import emulator.kit.nativeLog
+import react.*
 import react.dom.html.ReactHTML.div
-import react.useRef
-import react.useState
 import web.cssom.*
+import web.dom.document
 import web.html.HTMLDivElement
 import web.timers.Timeout
 
@@ -18,7 +16,7 @@ external interface VirtualTableProps : Props {
     var visibleRows: Int
     var rowCount: Int
     var colCount: Int
-    var cellContent: (rowIndex: Int) -> Array<String>
+    var rowContent: (rowIndex: Int) -> Array<Pair<String, Color?>>
 }
 
 val VirtualTable = FC<VirtualTableProps> { props ->
@@ -32,7 +30,7 @@ val VirtualTable = FC<VirtualTableProps> { props ->
     val handleScroll = { deltaY: Double ->
         if (deltaY > 0) {
             // Scroll Dow
-            if (startIndex + props.visibleRows < props.rowCount - props.visibleRows) {
+            if (startIndex + props.visibleRows < props.rowCount) {
                 setStartIndex(startIndex + props.visibleRows)
             }
         } else {
@@ -42,11 +40,6 @@ val VirtualTable = FC<VirtualTableProps> { props ->
             }
         }
     }
-
-    val preventWheel = { e: Event ->
-        e.preventDefault()
-    }
-
 
     div {
         css {
@@ -64,6 +57,9 @@ val VirtualTable = FC<VirtualTableProps> { props ->
             background = StyleAttr.Main.Processor.TableBgColor.get()
             borderRadius = StyleAttr.borderRadius
         }
+
+
+        autoFocus = true
 
         div {
             ref = containerRef
@@ -84,22 +80,26 @@ val VirtualTable = FC<VirtualTableProps> { props ->
                 }
             }
 
-            onScrollCapture = {
-                it.preventDefault()
-            }
-
             onMouseEnter = {
-                document.body?.addEventListener("onscroll", preventWheel)
+                val root = document.getElementById("root")
+                root?.let {
+                    JSTools.pauseScroll(it)
+                }
             }
 
             onMouseLeave = {
-                document.body?.removeEventListener("onscroll", preventWheel)
+                val root = document.getElementById("root")
+                root?.let {
+                    JSTools.unpauseScroll(it)
+                }
             }
 
-            onWheelCapture = {
-                //it.preventDefault()
+            onWheel = {
+                it.preventDefault()
+                it.stopPropagation()
                 val delta = it.deltaY
                 handleScroll(delta)
+                nativeLog("$it, ${it.currentTarget}")
             }
 
             // Header
@@ -118,10 +118,15 @@ val VirtualTable = FC<VirtualTableProps> { props ->
             repeat(props.visibleRows) { rowID ->
                 // Content Row
 
-                props.cellContent(startIndex + rowID).forEachIndexed { i, value ->
+                props.rowContent(startIndex + rowID).forEachIndexed { i, value ->
                     div {
+                        value.second?.let {
+                            css {
+                                color = important(it)
+                            }
+                        }
                         key = "col-${rowID}-${i}"
-                        +value
+                        +value.first
                     }
                 }
             }
@@ -134,6 +139,12 @@ val VirtualTable = FC<VirtualTableProps> { props ->
                 setStartIndex(it * props.visibleRows)
             }
         }
+    }
+
+    useEffect {
+
+
+
     }
 }
 
