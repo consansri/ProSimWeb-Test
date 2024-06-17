@@ -39,9 +39,10 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
         css {
             display = Display.block
             overflowY = Overflow.scroll
+            maxHeight = 30.vh
             flexGrow = number(1.0)
             borderRadius = StyleAttr.borderRadius
-            paddingLeft = 12.px // center with scrollbar on the right
+            marginRight = (-12).px // center with scrollbar on the right
         }
         tabIndex = 0
 
@@ -59,7 +60,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                     ReactHTML.th {
                         className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                         scope = "col"
-                        +"Address"
+                        +"addr"
                     }
 
                     for (columnID in 0..<props.memory.entrysInRow) {
@@ -76,7 +77,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                     ReactHTML.th {
                         className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
                         scope = "col"
-                        +"ASCII"
+                        +"ascii"
                     }
 
                 }
@@ -177,8 +178,8 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                     ReactHTML.td {
                         colSpan = props.memory.entrysInRow + 2
                         css {
-                            paddingTop = 15.rem
-                            paddingBottom = 15.rem
+                            paddingTop = 5.rem
+                            paddingBottom = 5.rem
                         }
                         +"Memory"
                     }

@@ -1,15 +1,10 @@
 package visual.memory
 
-import StyleAttr
 import debug.DebugTools
-import emotion.react.css
 import emulator.kit.Architecture
 import emulator.kit.common.memory.Cache
 import react.*
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.th
-import visual.StyleExt.get
-import web.cssom.*
+import visual.virtual.VirtualTable
 import web.html.HTMLDivElement
 import web.html.HTMLElement
 import web.html.HTMLTableSectionElement
@@ -28,6 +23,29 @@ val CacheView = FC<CacheViewProps>() { props ->
 
     val (rowList, setRowList) = useState(props.cache.model.rows)
     val (currExeAddr, setCurrExeAddr) = useState<String>()
+
+    VirtualTable {
+        this.headers = arrayOf("i", "m", "v", "d", "tag", *Array(props.cache.model.offsetCount) { it.toString(16) }, "ascii")
+        this.colCount = props.cache.model.offsetCount + 6
+        this.rowCount = props.cache.model.rows.size * props.cache.model.blockCount
+        this.visibleRows = 8
+        this.cellContent = { rowID ->
+            val rowIndex = rowID / props.cache.model.blockCount
+            val blockIndex = rowID % props.cache.model.blockCount
+            val block = props.cache.model.rows.getOrNull(rowIndex)?.blocks?.getOrNull(blockIndex)
+
+            arrayOf(
+                rowIndex.toString(16),
+                blockIndex.toString(16),
+                if (block?.valid == true) "1" else "0",
+                if (block?.dirty == true) "1" else "0",
+                block?.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid",
+                *block?.data?.map { it.value.toHex().toRawZeroTrimmedString() }?.toTypedArray() ?: arrayOf(),
+                block?.data?.joinToString("") { it.value.toASCII() } ?: ""
+            )
+        }
+    }
+/*
 
     ReactHTML.div {
         css {
@@ -83,7 +101,9 @@ val CacheView = FC<CacheViewProps>() { props ->
 
                     for (columnID in 0..<props.cache.model.offsetCount) {
                         ReactHTML.th {
-                            /* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*/
+                            */
+/* className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)*//*
+
                             css {
                                 textAlign = TextAlign.center
                                 width = 4.ch
@@ -116,7 +136,7 @@ val CacheView = FC<CacheViewProps>() { props ->
                                 color = block.getState().get(StyleAttr.mode)
                             }
                             th {
-                                if(blockID == 0) {
+                                if (blockID == 0) {
                                     +rowID.toString(16)
                                 }
                             }
@@ -126,44 +146,44 @@ val CacheView = FC<CacheViewProps>() { props ->
                                 +blockID.toString(16)
                             }
 
-                                ReactHTML.td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                    scope = "row"
-                                    +if (block.valid) "1" else "0"
-                                }
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "row"
+                                +if (block.valid) "1" else "0"
+                            }
 
-                                ReactHTML.td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                    scope = "row"
-                                    +if (block.dirty) "1" else "0"
-                                }
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "row"
+                                +if (block.dirty) "1" else "0"
+                            }
 
-                                ReactHTML.td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
-                                    scope = "row"
-                                    +(block.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid")
-                                }
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
+                                scope = "row"
+                                +(block.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid")
+                            }
 
-                                block.data.forEach {
-                                    ReactHTML.td {
-                                        css {
-                                            textAlign = TextAlign.center
-                                            if (it.address?.getRawHexStr() == currExeAddr) {
-                                                color = important(StyleAttr.Main.Table.FgPC)
-                                                fontWeight = important(FontWeight.bold)
-                                            }
+                            block.data.forEach {
+                                ReactHTML.td {
+                                    css {
+                                        textAlign = TextAlign.center
+                                        if (it.address?.getRawHexStr() == currExeAddr) {
+                                            color = important(StyleAttr.Main.Table.FgPC)
+                                            fontWeight = important(FontWeight.bold)
                                         }
-
-                                        //id = "mem${memInstance.address.getRawHexStr()}"
-                                        title = "value = ${it.value.toDec()} or ${it.value.toUDec()}"
-
-                                        +it.value.toHex().toRawZeroTrimmedString()
                                     }
-                                }
 
-                                ReactHTML.td {
-                                    className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
-                                    ref = asciiRef
+                                    //id = "mem${memInstance.address.getRawHexStr()}"
+                                    title = "value = ${it.value.toDec()} or ${it.value.toUDec()}"
+
+                                    +it.value.toHex().toRawZeroTrimmedString()
+                                }
+                            }
+
+                            ReactHTML.td {
+                                className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER + " " + StyleAttr.Main.Table.CLASS_MONOSPACE)
+                                ref = asciiRef
 
                                 +block.data.joinToString("") { it.value.toASCII() }
                             }
@@ -173,6 +193,7 @@ val CacheView = FC<CacheViewProps>() { props ->
             }
         }
     }
+*/
 
     useEffect(props.cache.model.rows) {
         if (DebugTools.REACT_showUpdateInfo) {

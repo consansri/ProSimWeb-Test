@@ -65,7 +65,6 @@ val App = FC<Props> {
             css {
                 display = Display.flex
                 position = Position.relative
-                height = StyleAttr.Main.TContainerSize
                 //gap = StyleAttr.paddingSize
                 flexWrap = FlexWrap.nowrap
                 // padding = StyleAttr.paddingSize

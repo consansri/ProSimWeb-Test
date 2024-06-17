@@ -65,6 +65,9 @@ val MemoryView = FC<MemViewProps> { props ->
             position = Position.relative
             gap = StyleAttr.paddingSize
             height = 100.pct
+            paddingLeft = 12.px
+            paddingRight = 12.px
+            paddingBottom = StyleAttr.paddingSize
 
             table {
                 backgroundColor = StyleAttr.Main.Processor.TableBgColor.get()
@@ -89,8 +92,7 @@ val MemoryView = FC<MemViewProps> { props ->
                 justifyContent = JustifyContent.flexEnd
                 alignItems = AlignItems.center
                 gap = 1.px
-                paddingLeft = 12.px
-                paddingRight = 12.px
+
                 flexGrow = number(0.0)
 
                 "input[type=number]" {
@@ -225,14 +227,12 @@ val MemoryView = FC<MemViewProps> { props ->
                 background = StyleAttr.Main.Processor.TableBgColor.get()
                 borderRadius = StyleAttr.borderRadius
                 display = Display.flex
-                width = 100.pct - 24.px
+                width = 100.pct
                 flexDirection = FlexDirection.row
                 flexWrap = FlexWrap.wrap
                 justifyContent = JustifyContent.flexStart
                 alignItems = AlignItems.center
                 gap = 1.px
-                marginLeft = 12.px
-                marginRight = 12.px
                 flexGrow = number(0.0)
             }
 
