@@ -97,7 +97,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
                 copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
                     if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
-                        table.setCellHighlighting(index, it.offset + 1, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
+                        table.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, it.offset + 1)
                     }
                 }
                 val ascii = contentArray.joinToString("") {

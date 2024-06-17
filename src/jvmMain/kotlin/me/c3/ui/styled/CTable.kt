@@ -36,16 +36,15 @@ open class CTable( tableModel: AbstractTableModel, private val primary: Boolean,
     /**
      * set color to null to remove any cell highlighting
      */
-    fun setCellHighlighting(row: Int?, column: Int?, color: Color?) {
+    fun addCellHighlighting(color: Color,rowID: Int? = null, colID: Int? = null) {
         val tableUI = (ui as? CTableUI) ?: return
-        tableUI.highlightColor = color
-        tableUI.highlightRow = row
-        tableUI.highlightColumn = column
+        tableUI.cellHighlighting.add(CTableUI.CellHL(color, rowID, colID))
         repaint()
     }
 
     fun resetCellHighlighting() {
-        setCellHighlighting(null, null, null)
+        val tableUI = (ui as? CTableUI) ?: return
+        tableUI.cellHighlighting.clear()
     }
 
 }

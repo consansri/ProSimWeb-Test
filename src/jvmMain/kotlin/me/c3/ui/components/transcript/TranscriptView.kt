@@ -6,7 +6,6 @@ import emulator.kit.assembler.gas.GASParser
 import emulator.kit.types.Variable
 import emulator.kit.types.Variable.Size.*
 import emulator.kit.types.Variable.Value.*
-import me.c3.ui.Components
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.state.*
@@ -210,7 +209,7 @@ class TranscriptView() : CPanel(primary = false) {
         val currPC = States.arch.get().regContainer.pc
 
         val index = content.indexOfFirst { it.address.getRawHexStr() == currPC.get().toHex().getRawHexStr() }
-        modelView.setCellHighlighting(index, null, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
+        modelView.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, null)
     }
 
     override fun getMinimumSize(): Dimension {

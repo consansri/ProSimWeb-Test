@@ -14,9 +14,7 @@ import javax.swing.table.TableCellEditor
 
 class CTableUI(private val primary: Boolean) : BasicTableUI() {
 
-    var highlightColor: Color? = null
-    var highlightRow: Int? = null
-    var highlightColumn: Int? = null
+    val cellHighlighting = mutableListOf<CellHL>()
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -51,20 +49,11 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
                 }
             }
 
-            foreground = if (highlightColor != null && (highlightRow != null || highlightColumn != null)) {
-                if ((highlightRow == null || highlightRow == row) && (highlightColumn == null || highlightColumn == column)) {
-                    highlightColor
-                } else {
-                    when (value) {
-                        is MainMemory.MemInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
-                        else -> fg
-                    }
-                }
-            } else {
-                when (value) {
-                    is MainMemory.MemInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
-                    else -> fg
-                }
+            val hl = cellHighlighting.firstOrNull { (it.rowID == null || it.rowID == row) && (it.colID == column || it.colID == null) }
+
+            foreground = hl?.color ?: when (value) {
+                is MainMemory.MemInstance -> States.theme.get().dataLaF.getMemInstanceColor(value.mark)
+                else -> fg
             }
 
             border = BorderFactory.createEmptyBorder()
@@ -140,5 +129,7 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
             component.dispatchEvent(translatedEvent)
         }
     }
+
+    data class CellHL(val color: Color, val rowID: Int?, val colID: Int?)
 
 }

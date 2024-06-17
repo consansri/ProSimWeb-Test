@@ -70,9 +70,17 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
                         it.value.toASCII()
                     }
 
+                    if (!block.valid) {
+                        table.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.error), rowID, 2)
+                    }
+
+                    if (block.dirty) {
+                        table.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.YELLOW), rowID, 3)
+                    }
+
                     block.data.forEachIndexed { i, value ->
                         if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
-                            table.setCellHighlighting(rowID, i + 5, States.theme.get().codeLaF.getColor(CodeStyle.GREENPC))
+                            table.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.GREENPC), rowID, i + 5)
                         }
                     }
 
