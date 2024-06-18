@@ -14,22 +14,8 @@ class DirectionalBorder(
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    var lineBorder = LineBorder(States.theme.get().globalLaF.borderColor, States.scale.get().borderScale.thickness)
-    var thickness = States.scale.get().borderScale.thickness
-
-    init {
-        States.scale.addEvent { scale ->
-            val color = States.theme.get().globalLaF.borderColor
-            this.lineBorder = LineBorder(color, scale.borderScale.thickness)
-            this.thickness = scale.borderScale.thickness
-        }
-
-        States.theme.addEvent { scale ->
-            val thickness = States.scale.get().borderScale.thickness
-            this.lineBorder = LineBorder(scale.globalLaF.borderColor, thickness)
-            this.thickness = thickness
-        }
-    }
+    val lineBorder = LineBorder(States.theme.get().globalLaF.borderColor, States.scale.get().borderScale.thickness)
+    val thickness = States.scale.get().borderScale.thickness
 
     override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
         if (north) lineBorder.paintBorder(c, g, x, y, width, thickness)

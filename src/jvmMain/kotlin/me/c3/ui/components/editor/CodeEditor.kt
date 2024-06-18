@@ -1,14 +1,13 @@
 package me.c3.ui.components.editor
 
 import kotlinx.coroutines.*
-import me.c3.ui.Components
 import me.c3.ui.States
 import me.c3.ui.components.controls.BottomBar
-
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.params.FontType
 import java.io.File
+import java.lang.ref.WeakReference
 import javax.swing.*
 
 /**
@@ -106,7 +105,7 @@ class CodeEditor(val bBar: BottomBar) : CAdvancedTabPane(true, true, emptyMessag
      * Attaches a workspace change listener to remove tabs for files that are no longer in the workspace.
      */
     private fun attachWorkspaceListener() {
-        States.ws.addEvent { ws ->
+        States.ws.addEvent(WeakReference(this)) { ws ->
             SwingUtilities.invokeLater {
                 if (ws == null) {
                     removeAllTabs()

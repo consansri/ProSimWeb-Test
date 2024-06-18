@@ -5,16 +5,17 @@ import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import me.c3.ui.States
 import me.c3.ui.styled.CIconButton.Mode
 import java.awt.Color
+import java.lang.ref.WeakReference
 import javax.swing.JLabel
 
 class CIcon(val svgIcon: FlatSVGIcon, val mode: Mode = Mode.PRIMARY_NORMAL) : JLabel() {
 
     init {
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(this)) { _ ->
             setDefaults()
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(this)) { _ ->
             setDefaults()
         }
 

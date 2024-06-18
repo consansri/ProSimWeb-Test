@@ -4,6 +4,7 @@ import com.formdev.flatlaf.ui.FlatTextPaneUI
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.install
 import me.c3.ui.States
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 
@@ -15,11 +16,11 @@ class CTextPaneUI() : FlatTextPaneUI() {
 
         pane.font = States.theme.get().codeLaF.getFont().deriveFont(States.scale.get().fontScale.codeSize)
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 

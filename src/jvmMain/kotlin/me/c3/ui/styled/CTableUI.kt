@@ -7,6 +7,7 @@ import me.c3.ui.styled.params.FontType
 import java.awt.Color
 import java.awt.Component
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.*
 import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
@@ -21,11 +22,11 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
 
         val table = c as? CTable ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(table)) { _ ->
             setDefaults(table)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(table)) { _ ->
             setDefaults(table)
         }
 

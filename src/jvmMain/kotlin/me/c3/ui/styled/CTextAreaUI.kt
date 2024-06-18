@@ -3,6 +3,7 @@ package me.c3.ui.styled
 import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
 import java.awt.Color
+import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTextAreaUI
 
@@ -13,11 +14,11 @@ class CTextAreaUI(private val fontType: FontType) : BasicTextAreaUI() {
 
         val area = (c as? CTextArea) ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(area)) { _ ->
             setDefaults(area)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(area)) { _ ->
             setDefaults(area)
         }
 

@@ -5,6 +5,7 @@ import me.c3.ui.States
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.lang.ref.WeakReference
 import javax.swing.JButton
 
 class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButton.Mode = CIconButton.Mode.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
@@ -35,11 +36,11 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButt
         isFocusable = false
         isOpaque = false
 
-        States.theme.addEvent {
+        States.theme.addEvent(WeakReference(this)) {
             setDefaults()
         }
 
-        States.scale.addEvent {
+        States.scale.addEvent(WeakReference(this)) {
             setDefaults()
         }
 

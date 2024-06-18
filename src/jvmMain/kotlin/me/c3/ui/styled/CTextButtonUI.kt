@@ -5,6 +5,7 @@ import me.c3.ui.styled.params.FontType
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.AbstractButton
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicButtonUI
@@ -35,11 +36,11 @@ class CTextButtonUI( private val fontType: FontType): BasicButtonUI() {
             }
         })
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
         setDefaults(button)

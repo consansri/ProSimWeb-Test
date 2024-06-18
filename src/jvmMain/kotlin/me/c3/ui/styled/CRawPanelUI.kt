@@ -2,6 +2,7 @@ package me.c3.ui.styled
 
 import me.c3.ui.States
 import me.c3.ui.styled.editor.CEditorAnalyzer
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.border.AbstractBorder
@@ -14,11 +15,11 @@ class CRawPanelUI( private val border: AbstractBorder? = null) : PanelUI() {
 
         val panel = c as? CEditorAnalyzer ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(panel)) { _ ->
             setDefaults(panel)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(panel)) { _ ->
             setDefaults(panel)
         }
 

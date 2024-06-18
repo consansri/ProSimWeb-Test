@@ -2,17 +2,18 @@ package me.c3.ui.components.controls
 
 import me.c3.ui.Events
 import me.c3.ui.States
+import me.c3.ui.components.ProSimFrame
+import me.c3.ui.components.controls.buttons.FeatureSwitch
+import me.c3.ui.components.controls.buttons.Settings
 import me.c3.ui.components.controls.buttons.ThemeSwitch
 import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
-import me.c3.ui.components.ProSimFrame
-import me.c3.ui.components.controls.buttons.Settings
-import me.c3.ui.components.controls.buttons.FeatureSwitch
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Insets
+import java.lang.ref.WeakReference
 
 /**
  * This class represents the application control panel within the ProSimFrame window.
@@ -78,11 +79,11 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.weighty = 0.0
 
-        Events.archFeatureChange.addListener {
+        Events.archFeatureChange.addListener(WeakReference(this)) {
             updateFeatureButtons()
         }
 
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             attachFeatureButtons()
         }
         attachFeatureButtons()

@@ -19,6 +19,7 @@ import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.lang.ref.WeakReference
 import javax.swing.SpinnerNumberModel
 import javax.swing.SwingUtilities
 import javax.swing.tree.DefaultMutableTreeNode
@@ -445,7 +446,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
      * @param tm The theme manager instance.
      */
     private fun setTreeLook() {
-        States.theme.addEvent { theme ->
+        States.theme.addEvent(WeakReference(this)) { theme ->
             tree.background = theme.globalLaF.bgSecondary
         }
         tree.background = States.theme.get().globalLaF.bgSecondary

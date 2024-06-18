@@ -1,7 +1,11 @@
 package me.c3.ui.styled
 
 import me.c3.ui.States
-import java.awt.*
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Rectangle
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -33,11 +37,11 @@ class CScrollPaneUI() : BasicScrollPaneUI() {
         pane.horizontalScrollBar.setUI(CScrollBarUI())
         pane.isOpaque = false
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 

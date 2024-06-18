@@ -10,6 +10,7 @@ import me.c3.ui.components.processor.models.MemTableModel
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.CTable
 import java.awt.BorderLayout
+import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 
@@ -60,15 +61,15 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
     }
 
     private fun addContentChangeListener() {
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             updateContent()
         }
 
-        Events.exe.addListener {
+        Events.exe.addListener(WeakReference(this)) {
             updateContent()
         }
 
-        Events.compile.addListener {
+        Events.compile.addListener(WeakReference(this)) {
             updateContent()
         }
     }

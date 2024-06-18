@@ -5,11 +5,12 @@ import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
 import me.c3.ui.Events
 import me.c3.ui.States
-import me.c3.ui.components.processor.memory.CacheView
 import me.c3.ui.components.processor.memory.MainMemView
+import me.c3.ui.components.processor.memory.NewCacheView
 import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.params.FontType
+import java.lang.ref.WeakReference
 
 class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
 
@@ -18,10 +19,10 @@ class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
     }
 
     private fun addContentChangeListener() {
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             updateContent()
         }
-        Events.archSettingChange.addListener {
+        Events.archSettingChange.addListener(WeakReference(this)) {
             updateContent()
         }
         updateContent()
@@ -31,7 +32,7 @@ class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
         removeAllTabs()
         MicroSetup.getMemoryInstances().forEach {
             val content = when (it) {
-                is Cache -> CacheView(it)
+                is Cache -> NewCacheView(it)
                 is MainMemory -> MainMemView( it)
             }
             addTab(CLabel( it.name, FontType.BASIC), content)

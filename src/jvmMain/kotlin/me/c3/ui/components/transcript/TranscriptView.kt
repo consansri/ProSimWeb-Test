@@ -20,6 +20,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
@@ -64,19 +65,19 @@ class TranscriptView() : CPanel(primary = false) {
     private var showCompiled: Boolean = true
 
     init {
-        Events.compile.addListener {
+        Events.compile.addListener(WeakReference(this)) {
             SwingUtilities.invokeLater {
                 updateResult(it)
             }
         }
 
-        States.ws.addEvent {
+        States.ws.addEvent(WeakReference(this)) {
             SwingUtilities.invokeLater {
                 updateResult()
             }
         }
 
-        Events.exe.addListener {
+        Events.exe.addListener(WeakReference(this)) {
             highlightPCRow()
         }
 

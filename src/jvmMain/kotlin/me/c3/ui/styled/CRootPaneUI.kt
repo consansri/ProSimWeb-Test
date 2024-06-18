@@ -2,6 +2,7 @@ package me.c3.ui.styled
 
 import me.c3.ui.States
 import java.awt.*
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JRootPane
@@ -17,11 +18,11 @@ class CRootPaneUI() : BasicRootPaneUI() {
 
         val cRootPane = c as? CRootPane ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(cRootPane)) { _ ->
             setDefaults(cRootPane)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(cRootPane)) { _ ->
             setDefaults(cRootPane)
         }
 

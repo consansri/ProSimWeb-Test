@@ -60,9 +60,11 @@ class Settings : CIconButton(States.icon.get().settings) {
         val component: Component = when (this) {
             is SetupSetting.Bool -> {
                 CSwitch(this.get(), Mode.PRIMARY_NORMAL) {
-                    this@toSwing.set(arch, it)
-                    this@toSwing.save(arch)
-                    Events.archSettingChange.triggerEvent(arch)
+                    SwingUtilities.invokeLater {
+                        this@toSwing.set(arch, it)
+                        this@toSwing.save(arch)
+                        Events.archSettingChange.triggerEvent(arch)
+                    }
                 }
             }
 
@@ -70,9 +72,11 @@ class Settings : CIconButton(States.icon.get().settings) {
                 CComboBox(this.enumValues.toTypedArray(), FontType.BASIC).apply {
                     this.selectedItem = this@toSwing.get()
                     addItemListener {e ->
-                        this@toSwing.loadFromString(arch, (e.item as Enum<*>).name)
-                        this@toSwing.save(arch)
-                        Events.archSettingChange.triggerEvent(arch)
+                        SwingUtilities.invokeLater {
+                            this@toSwing.loadFromString(arch, (e.item as Enum<*>).name)
+                            this@toSwing.save(arch)
+                            Events.archSettingChange.triggerEvent(arch)
+                        }
                     }
                 }
             }
@@ -81,9 +85,11 @@ class Settings : CIconButton(States.icon.get().settings) {
                 CTextField(this.valueToString(), FontType.CODE).apply {
                     addFocusListener(object : FocusAdapter() {
                         override fun focusLost(e: FocusEvent?) {
-                            this@toSwing.loadFromString(arch, this@apply.text)
-                            this@toSwing.save(arch)
-                            Events.archSettingChange.triggerEvent(arch)
+                            SwingUtilities.invokeLater {
+                                this@toSwing.loadFromString(arch, this@apply.text)
+                                this@toSwing.save(arch)
+                                Events.archSettingChange.triggerEvent(arch)
+                            }
                         }
                     })
                 }

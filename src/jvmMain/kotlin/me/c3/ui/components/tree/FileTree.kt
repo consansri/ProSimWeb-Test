@@ -18,6 +18,7 @@ import java.awt.Cursor
 import java.awt.FlowLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.SwingUtilities
 
@@ -37,7 +38,7 @@ class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true) {
     init {
         attachMouseListener()
 
-        States.ws.addEvent {
+        States.ws.addEvent(WeakReference(this)) {
             refreshWSTree()
         }
 

@@ -12,6 +12,7 @@ import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.lang.ref.WeakReference
 
 /**
  * Represents a panel for displaying information at the bottom.
@@ -106,7 +107,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * Observes architecture change and resets compiler process printer.
      */
     private fun observeArchitectureChange() {
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             resetCompilerProcessPrinter()
         }
     }
@@ -115,7 +116,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * Observes compilation and updates the display accordingly.
      */
     private fun observeCompilation() {
-        Events.compile.addListener { result ->
+        Events.compile.addListener(WeakReference(this)) { result ->
             if (result.success) {
                 setInfo(result.shortInfoStr())
             } else {

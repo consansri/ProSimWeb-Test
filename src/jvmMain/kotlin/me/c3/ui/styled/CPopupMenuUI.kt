@@ -6,6 +6,7 @@ import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPopupMenuUI
@@ -21,11 +22,11 @@ class CPopupMenuUI( private val fontType: FontType) : BasicPopupMenuUI() {
 
         val optionPane = c as? CPopupMenu ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(optionPane)) { _ ->
             setDefaults(optionPane)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(optionPane)) { _ ->
             setDefaults(optionPane)
         }
 

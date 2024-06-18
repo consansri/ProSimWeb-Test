@@ -9,6 +9,7 @@ import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 class ProcessorSettings(processorView: ProcessorView) : CPanel( primary = false) {
@@ -22,13 +23,13 @@ class ProcessorSettings(processorView: ProcessorView) : CPanel( primary = false)
         attachListeners( processorView)
         attachComponents()
 
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             updatePC(States.arch.get())
         }
-        Events.compile.addListener {
+        Events.compile.addListener(WeakReference(this)) {
             updatePC(States.arch.get())
         }
-        Events.exe.addListener {
+        Events.exe.addListener(WeakReference(this)) {
             updatePC(States.arch.get())
         }
         updatePC(States.arch.get())

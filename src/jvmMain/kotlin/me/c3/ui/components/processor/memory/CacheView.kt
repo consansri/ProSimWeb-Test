@@ -10,6 +10,7 @@ import me.c3.ui.styled.CTable
 import me.c3.ui.styled.CTextButton
 import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
+import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 class CacheView(val cache: Cache) : CPanel(primary = false) {
@@ -40,15 +41,15 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
     }
 
     private fun addContentChangeListener() {
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             updateContent()
         }
 
-        Events.exe.addListener {
+        Events.exe.addListener(WeakReference(this)) {
             updateContent()
         }
 
-        Events.compile.addListener {
+        Events.compile.addListener(WeakReference(this)) {
             updateContent()
         }
     }

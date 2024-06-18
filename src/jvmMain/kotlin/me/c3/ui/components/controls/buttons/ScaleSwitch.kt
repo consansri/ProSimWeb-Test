@@ -8,6 +8,7 @@ import me.c3.ui.styled.CComboBox
 import me.c3.ui.styled.params.FontType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.lang.ref.WeakReference
 
 /**
  * This class represents a combo box used for selecting and switching between different scaling options within the application.
@@ -17,7 +18,7 @@ class ScaleSwitch() : CComboBox<Scaling>(Res.scalings.toTypedArray(), FontType.T
 
     init {
         this.addActionListener(ScaleSelectorListener())
-        States.scale.addEvent {
+        States.scale.addEvent(WeakReference(this)) {
             selectedItem = it
         }
     }

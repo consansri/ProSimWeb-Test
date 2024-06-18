@@ -2,7 +2,10 @@ package me.c3.ui.styled
 
 import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
-import java.awt.*
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.plaf.basic.BasicButtonUI
@@ -15,11 +18,11 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
         val button = c as? CToggleButton ?: return
         button.horizontalAlignment = SwingConstants.CENTER
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(button)) { _ ->
             setDefaults( button)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(button)) { _ ->
             setDefaults( button)
         }
 

@@ -1,7 +1,11 @@
 package me.c3.ui.styled
 
 import me.c3.ui.States
-import java.awt.*
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
+import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPanelUI
 
@@ -13,10 +17,10 @@ class CPanelUI() : BasicPanelUI() {
         c?.isOpaque = false
         val cPanel = c as? CPanel ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(cPanel)) { _ ->
             setDefaults(cPanel)
         }
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(cPanel)) { _ ->
             setDefaults(cPanel)
         }
         setDefaults(cPanel)
@@ -34,7 +38,6 @@ class CPanelUI() : BasicPanelUI() {
     }
 
     override fun paint(g: Graphics, c: JComponent?) {
-
         val g2d = g.create() as? Graphics2D
         if (g2d == null) {
             super.paint(g, c)

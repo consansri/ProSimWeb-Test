@@ -5,13 +5,14 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.nativeLog
 import emulator.kit.toAsmFile
-import kotlinx.coroutines.*
 import emulator.kit.toStyledText
+import kotlinx.coroutines.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.controls.BottomBar
 import me.c3.ui.state.*
 import me.c3.ui.styled.editor.*
+import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 /**
@@ -27,16 +28,16 @@ class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(ma
         infoLogger = this
         shortCuts = this
 
-        Events.exe.addListener {
+        Events.exe.addListener(WeakReference(this)) {
             markPC()
         }
-        Events.compile.addListener {
+        Events.compile.addListener(WeakReference(this)) {
             markPC()
         }
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             invokeHL()
         }
-        Events.archFeatureChange.addListener {
+        Events.archFeatureChange.addListener(WeakReference(this)) {
             invokeHL()
         }
 

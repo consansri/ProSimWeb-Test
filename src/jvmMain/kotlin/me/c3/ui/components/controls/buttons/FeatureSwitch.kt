@@ -7,6 +7,7 @@ import me.c3.ui.States
 import me.c3.ui.styled.CToggleButton
 import me.c3.ui.styled.CToggleButtonUI
 import me.c3.ui.styled.params.FontType
+import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 /**
@@ -17,7 +18,7 @@ class FeatureSwitch(private val feature: Feature) : CToggleButton(feature.name, 
     private var switchingFeatures = false
 
     init {
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             if (!switchingFeatures) {
                 isActive = feature.isActive()
             }

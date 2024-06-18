@@ -6,6 +6,7 @@ import java.awt.*
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxUI
 
@@ -34,11 +35,11 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
             }
         })
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(comboBox)) { _ ->
             setDefaults(comboBox)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(comboBox)) { _ ->
             setDefaults(comboBox)
         }
 
@@ -138,7 +139,7 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
     class CComboBoxRenderer() : DefaultListCellRenderer() {
         override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            background = if(isSelected) States.theme.get().globalLaF.bgSecondary else States.theme.get().globalLaF.bgPrimary
+            background = if (isSelected) States.theme.get().globalLaF.bgSecondary else States.theme.get().globalLaF.bgPrimary
             foreground = States.theme.get().textLaF.base
             this.border = States.scale.get().controlScale.getNormalInsetBorder()
             horizontalAlignment = SwingConstants.CENTER

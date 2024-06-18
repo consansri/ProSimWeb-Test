@@ -8,6 +8,7 @@ import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.GridLayout
+import java.lang.ref.WeakReference
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
@@ -82,11 +83,11 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
         reset.alignmentY = CENTER_ALIGNMENT
 
         // Listeners
-        States.scale.addEvent {
+        States.scale.addEvent(WeakReference(this)) {
             layout = GridLayout(1, 0, it.borderScale.insets, 0)
         }
 
-        States.theme.addEvent {
+        States.theme.addEvent(WeakReference(this)) {
             val exeStyle = it.exeStyle
             continuous.customColor = exeStyle.continuous
             singleStep.customColor = exeStyle.single

@@ -4,6 +4,7 @@ import me.c3.ui.States
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JSplitPane
@@ -25,11 +26,11 @@ class CSplitPaneUI() : BasicSplitPaneUI() {
         pane.border = BorderFactory.createEmptyBorder()
         divider.border = BorderFactory.createEmptyBorder()
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 

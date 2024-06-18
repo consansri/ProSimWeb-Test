@@ -4,6 +4,7 @@ import emulator.kit.toStyledContent
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.styled.editor.CConsole
+import java.lang.ref.WeakReference
 
 /**
  * This class represents the console view within the application.
@@ -11,10 +12,10 @@ import me.c3.ui.styled.editor.CConsole
  */
 class ConsoleView : CConsole(){
     init {
-        Events.exe.addListener {
+        Events.exe.addListener(WeakReference(this)) {
             updateContent(States.arch.get().console.getMessages().toStyledContent(States.theme.get().codeLaF))
         }
-        Events.compile.addListener {
+        Events.compile.addListener(WeakReference(this)) {
             updateContent(States.arch.get().console.getMessages().toStyledContent(States.theme.get().codeLaF))
         }
         isEditable = false

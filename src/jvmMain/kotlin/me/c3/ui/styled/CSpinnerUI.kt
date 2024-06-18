@@ -5,6 +5,7 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicSpinnerUI
@@ -36,11 +37,11 @@ class CSpinnerUI : BasicSpinnerUI() {
         gbc.gridx = 2
         spinner.maybeAdd(createNextButton(), gbc)
 
-        States.theme.addEvent {
+        States.theme.addEvent(WeakReference(spinner)) {
             setDefaults(spinner)
         }
 
-        States.scale.addEvent {
+        States.scale.addEvent(WeakReference(spinner)) {
             setDefaults(spinner)
         }
     }

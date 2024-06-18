@@ -4,15 +4,11 @@ import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.States
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
-import me.c3.ui.resources.icons.ProSimIcons
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.BorderFactory
-import javax.swing.BoxLayout
-import javax.swing.JFrame
-import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
+import java.lang.ref.WeakReference
+import javax.swing.*
 import kotlin.system.exitProcess
 
 open class CFrame() : JFrame() {
@@ -57,11 +53,11 @@ open class CFrame() : JFrame() {
 
     private fun setupUI() {
         SwingUtilities.invokeLater {
-            States.scale.addEvent { _ ->
+            States.scale.addEvent(WeakReference(this)) { _ ->
                 setDefaults()
             }
 
-            States.theme.addEvent { _ ->
+            States.theme.addEvent(WeakReference(this)) { _ ->
                 setDefaults()
             }
 
@@ -194,10 +190,10 @@ open class CFrame() : JFrame() {
             titleLabel.horizontalAlignment = SwingConstants.LEFT
             logoButton.isDeactivated = true
 
-            States.theme.addEvent { _ ->
+            States.theme.addEvent(WeakReference(this)) { _ ->
                 applyThemeDefaults()
             }
-            States.scale.addEvent { _ ->
+            States.scale.addEvent(WeakReference(this)) { _ ->
                 applyThemeDefaults()
             }
 

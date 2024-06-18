@@ -3,6 +3,7 @@ package me.c3.ui.styled.editor
 import emulator.kit.assembler.CodeStyle
 import me.c3.ui.States
 import java.awt.*
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.Timer
@@ -34,16 +35,16 @@ class CEditorAreaUI(
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
-        val CEditorArea = c as? CEditorArea ?: return
+        val area = c as? CEditorArea ?: return
 
-        States.theme.addEvent { _ ->
-            setDefaults(CEditorArea)
+        States.theme.addEvent(WeakReference(area)) { _ ->
+            setDefaults(area)
         }
-        States.scale.addEvent { _ ->
-            setDefaults(CEditorArea)
+        States.scale.addEvent(WeakReference(area)) { _ ->
+            setDefaults(area)
         }
 
-        setDefaults(CEditorArea)
+        setDefaults(area)
     }
 
     private fun setDefaults(editor: CEditorArea) {

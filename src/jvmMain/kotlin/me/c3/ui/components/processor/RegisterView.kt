@@ -19,6 +19,7 @@ import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
 import kotlin.math.abs
@@ -50,15 +51,15 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
         gbc.weighty = 1.0
         gbc.fill = GridBagConstraints.BOTH
 
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             resetRegViews()
         }
 
-        Events.archFeatureChange.addListener {
+        Events.archFeatureChange.addListener(WeakReference(this)) {
             resetRegViews()
         }
 
-        Events.archSettingChange.addListener {
+        Events.archSettingChange.addListener(WeakReference(this)) {
             resetRegViews()
         }
 
@@ -168,11 +169,11 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
 
         init {
             this.setClickableHeaders(0, 1)
-            Events.exe.addListener {
+            Events.exe.addListener(WeakReference(this)) {
                 updateRegValues()
             }
 
-            Events.compile.addListener {
+            Events.compile.addListener(WeakReference(this)) {
                 updateRegValues()
             }
 

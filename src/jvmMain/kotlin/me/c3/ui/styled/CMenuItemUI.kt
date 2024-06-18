@@ -5,6 +5,7 @@ import me.c3.ui.styled.params.FontType
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.lang.ref.WeakReference
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicMenuItemUI
@@ -19,11 +20,11 @@ class CMenuItemUI(private val fontType: FontType) : BasicMenuItemUI() {
 
         val optionPane = c as? CMenuItem ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(optionPane)) { _ ->
             setDefaults(optionPane)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(optionPane)) { _ ->
             setDefaults(optionPane)
         }
 

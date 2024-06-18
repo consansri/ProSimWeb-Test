@@ -3,6 +3,7 @@ package me.c3.ui.styled
 import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
 import java.awt.*
+import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicLabelUI
 
@@ -18,11 +19,11 @@ class CVerticalLabelUI( private val primary: Boolean, private val fontType: Font
 
         val cLabel = c as? CVerticalLabel ?: return
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(cLabel)) { _ ->
             setDefaults(cLabel)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(cLabel)) { _ ->
             setDefaults(cLabel)
         }
 

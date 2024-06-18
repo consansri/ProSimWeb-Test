@@ -2,9 +2,10 @@ package me.c3.ui.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.States
-import me.c3.ui.workspace.Workspace
 import me.c3.ui.styled.params.FontType
+import me.c3.ui.workspace.Workspace
 import java.awt.*
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JTree
@@ -36,11 +37,11 @@ class CTreeUI(
         ) // Set empty border when not focused
         cTree.cellRenderer = CTreeCellRenderer()
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(cTree)) { _ ->
             setDefaults(cTree)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(cTree)) { _ ->
             setDefaults(cTree)
         }
 

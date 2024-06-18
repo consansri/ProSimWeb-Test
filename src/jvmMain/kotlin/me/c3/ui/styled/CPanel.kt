@@ -8,17 +8,20 @@ open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode
     var roundedCorners: Boolean = roundCorners
         set(value) {
             field = value
+            revalidate()
             repaint()
         }
     var primary: Boolean = primary
         set(value) {
             field = value
+            revalidate()
             repaint()
         }
 
     var borderMode: BorderMode = borderMode
         set(value) {
             field = value
+            revalidate()
             repaint()
         }
 

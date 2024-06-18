@@ -8,6 +8,7 @@ import me.c3.ui.styled.CComboBox
 import me.c3.ui.styled.params.FontType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.lang.ref.WeakReference
 
 /**
  * This class represents a combo box used for selecting and switching between different architectures within the application.
@@ -18,7 +19,7 @@ class ArchSwitch() : CComboBox<Link>(Link.entries.toTypedArray(), FontType.TITLE
     init {
         this.addActionListener(ArchSelectorListener())
 
-        States.arch.addEvent {arch ->
+        States.arch.addEvent(WeakReference(this)) { arch ->
             selectedItem = Link.entries.firstOrNull {
                 it.classType() == arch::class
             }

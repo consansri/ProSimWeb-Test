@@ -5,6 +5,7 @@ import me.c3.ui.styled.params.FontType
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTabbedPaneUI
@@ -19,11 +20,11 @@ class CTabbedPaneUI( private val primary: Boolean, private val fontType: FontTyp
         val pane = c as? CTabbedPane ?: return
         pane.border = BorderFactory.createEmptyBorder()
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
         setDefaults(pane)

@@ -1,12 +1,12 @@
 package me.c3.ui.components.editor
 
-import me.c3.ui.Components
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.state.*
 import me.c3.ui.styled.CIconButton
 import me.c3.ui.styled.CPanel
 import me.c3.ui.styled.params.BorderMode
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 
@@ -41,11 +41,11 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         add(infoButton)
 
         // Listeners
-        States.scale.addEvent {
+        States.scale.addEvent(WeakReference(this)) {
             val insets = it.borderScale.insets
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
-        States.theme.addEvent {
+        States.theme.addEvent(WeakReference(this)) {
             background = it.globalLaF.bgSecondary
         }
 
@@ -67,12 +67,12 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
      * @param mainManager The main manager instance.
      */
     private fun installStatusButton() {
-        Events.fileEdit.addListener {
+        Events.fileEdit.addListener(WeakReference(this)) {
             statusIcon.svgIcon = States.icon.get().statusLoading
             statusIcon.rotating = true
         }
 
-        Events.compile.addListener { result ->
+        Events.compile.addListener(WeakReference(this)) { result ->
             if (result.success) {
                 statusIcon.svgIcon = States.icon.get().statusFine
                 statusIcon.rotating = false

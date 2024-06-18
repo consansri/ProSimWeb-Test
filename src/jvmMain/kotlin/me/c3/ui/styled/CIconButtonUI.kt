@@ -8,6 +8,7 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
@@ -30,11 +31,11 @@ open class CIconButtonUI() : BasicButtonUI() {
         button.isFocusable = true
         button.isOpaque = false
 
-        States.scale.addEvent { _ ->
+        States.scale.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
 
-        States.theme.addEvent { _ ->
+        States.theme.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
 

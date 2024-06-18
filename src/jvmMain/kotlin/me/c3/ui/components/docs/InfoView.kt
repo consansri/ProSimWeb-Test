@@ -1,18 +1,18 @@
 package me.c3.ui.components.docs
 
+
 import emulator.kit.common.Docs
 import me.c3.ui.States
-
-
+import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.CAdvancedTabPane
 import me.c3.ui.styled.CTextArea
 import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 
@@ -49,7 +49,7 @@ class InfoView() : CPanel(primary = false) {
      * @param mainManager The main manager instance.
      */
     private fun attachListeners() {
-        States.arch.addEvent {
+        States.arch.addEvent(WeakReference(this)) {
             updateDocs()
         }
 
