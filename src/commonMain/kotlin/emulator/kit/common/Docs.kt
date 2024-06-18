@@ -21,9 +21,10 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
                 Section(
                     "New",
                     UnlinkedList(
-                        Text("KIT: Bigger Caches"),
+                        Text("KIT: Bigger Caches."),
                         Text("JS: Virtualized Cache View."),
-                        Text("JVM: Virtualized Cache View.")
+                        Text("JVM: Virtualized Cache View."),
+                        Text("JVM: Memory Usage.")
                     )
                 ),
                 Section(

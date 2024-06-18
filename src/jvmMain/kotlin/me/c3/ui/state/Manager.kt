@@ -1,7 +1,6 @@
 package me.c3.ui.state
 
 import emulator.kit.nativeLog
-import java.awt.Component
 import java.lang.ref.WeakReference
 
 abstract class Manager<T>(init: T) : WSConfigLoader<T> {
@@ -27,20 +26,28 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
         var removed = 0
         try {
             listeners.removeIf {
-                removed++
-                nativeLog("Removed: ${it.first::class.simpleName}")
-                val component = it.first.get()
-                (component == null) || (component is Component && component.parent == null)
+                val ref = it.first.get()
+                val shouldBeRemoved = ref == null
+                if (shouldBeRemoved) removed++
+                shouldBeRemoved
             }
         } catch (_: ConcurrentModificationException) {
         }
 
         onChange(curr)
         ArrayList(listeners).forEach {
-            it.second(curr)
+            val event = it.second(curr)
         }
-        curr?.let {
-            nativeLog("${this::class.simpleName}: Switched ${it::class.simpleName} to ${it::class.simpleName} (${listeners.size} listeners, removed $removed)")
+        curr?.let { curr ->
+            nativeLog(
+                "Listeners: ${
+                    listeners.joinToString("\n\t,") {
+                        val caller = it.first.get()
+                        if (caller != null) caller::class.simpleName.toString() else "null"
+                    }
+                }"
+            )
+            nativeLog("${this::class.simpleName}: Switched ${curr::class.simpleName} to ${curr::class.simpleName} (${listeners.size} listeners, removed $removed)")
         }
     }
 

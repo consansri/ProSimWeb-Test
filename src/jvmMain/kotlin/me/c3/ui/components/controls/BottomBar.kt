@@ -12,6 +12,7 @@ import me.c3.ui.styled.params.BorderMode
 import me.c3.ui.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.lang.management.ManagementFactory
 import java.lang.ref.WeakReference
 
 /**
@@ -25,6 +26,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
     val editorInfo = CLabel( "", FontType.BASIC)
     val compilerInfo = CLabel( "", FontType.BASIC)
     val generalPurpose = CLabel( "", FontType.BASIC)
+    val memoryUsage = CLabel("", FontType.BASIC)
 
     // Coroutine variables for observing compiler processes
     private var compilerObservingProcess: Job? = null
@@ -34,7 +36,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
         attachComponents()
         observeArchitectureChange()
         observeCompilation()
-        resetCompilerProcessPrinter()
+        resetPrinterInterval()
     }
 
     /**
@@ -101,6 +103,9 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
         gbc.gridx = 3
 
         add(editorInfo, gbc)
+
+        gbc.gridx = 4
+        add(memoryUsage, gbc)
     }
 
     /**
@@ -108,7 +113,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      */
     private fun observeArchitectureChange() {
         States.arch.addEvent(WeakReference(this)) {
-            resetCompilerProcessPrinter()
+            resetPrinterInterval()
         }
     }
 
@@ -128,18 +133,34 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
     /**
      * Resets the compiler process printer coroutine.
      */
-    private fun resetCompilerProcessPrinter() {
+    private fun resetPrinterInterval() {
         compilerObservingProcess?.cancel()
 
         compilerObservingProcess = compilerObserverScope.launch {
             while (this.isActive) {
-                val processes = ArrayList(States.arch.get().assembler.runningProcesses())
-                val stateString = processes.joinToString(" -> ") {
-                    it.toString()
-                }
-                compilerInfo.text = stateString
+                printAktiveProcesses()
+                printMemoryUsage()
                 delay(1000)
             }
         }
     }
+
+    private fun printAktiveProcesses(){
+        val processes = ArrayList(States.arch.get().assembler.runningProcesses())
+        val stateString = processes.joinToString(" -> ") {
+            it.toString()
+        }
+        compilerInfo.text = stateString
+    }
+
+    private fun printMemoryUsage(){
+        val memoryMXBean = ManagementFactory.getMemoryMXBean()
+        val usedHeap = memoryMXBean.heapMemoryUsage.used / (1024 * 1024)
+        val usedNonHeap = memoryMXBean.nonHeapMemoryUsage.used / (1024 * 1024)
+        val maxHeap = memoryMXBean.heapMemoryUsage.max / (1024 * 1024)
+        val maxNonHeap = memoryMXBean.nonHeapMemoryUsage.max / (1024 * 1024)
+
+        memoryUsage.text = "${usedHeap + usedNonHeap} MB / ${maxHeap + maxNonHeap} MB ${if(usedNonHeap != 0L) "($usedHeap MB Heap)" else ""}"
+    }
+
 }

@@ -2,7 +2,6 @@ package me.c3.ui.components.processor.memory
 
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.memory.Cache
-import emulator.kit.nativeLog
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.styled.params.FontType
@@ -16,7 +15,7 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
     FontType.BASIC,
     cache.model.rows.size * cache.model.blockCount,
     cache.model.offsetCount + 6,
-    8,
+    16,
     cache.model.offsetCount + 6,
     arrayOf("i", "m", "v", "d", "tag", *Array(cache.model.offsetCount) { it.toString(16) }, "ascii"),
     null,
@@ -41,7 +40,7 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
         val block = cache.model.rows.getOrNull(rowIndex)?.blocks?.getOrNull(blockIndex) ?: return "?"
 
         return when (contentColID) {
-            0 -> rowIndex.toString(16)
+            0 -> if (blockIndex == 0) rowIndex.toString(16) else ""
             1 -> blockIndex.toString(16)
             2 -> if (block.valid) "1" else "0"
             3 -> if (block.dirty) "1" else "0"
@@ -80,7 +79,6 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
             val instance = block.data.getOrNull(contentColID - 5) ?: return null
             val instAddr = instance.address?.toHex() ?: return null
             val pcAddr = States.arch.get().regContainer.pc.get().toHex()
-            nativeLog("Comparing: $instAddr == $pcAddr")
             if (instAddr.toRawString() == pcAddr.toRawString()) {
                 return States.theme.get().codeLaF.getColor(CodeStyle.GREENPC)
             }

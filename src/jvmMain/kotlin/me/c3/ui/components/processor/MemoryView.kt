@@ -12,7 +12,7 @@ import me.c3.ui.styled.CLabel
 import me.c3.ui.styled.params.FontType
 import java.lang.ref.WeakReference
 
-class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
+class MemoryView : CAdvancedTabPane(tabsAreCloseable = false) {
 
     init {
         addContentChangeListener()
@@ -33,9 +33,9 @@ class MemoryView : CAdvancedTabPane( tabsAreCloseable = false) {
         MicroSetup.getMemoryInstances().forEach {
             val content = when (it) {
                 is Cache -> NewCacheView(it)
-                is MainMemory -> MainMemView( it)
+                is MainMemory -> MainMemView(it)
             }
-            addTab(CLabel( it.name, FontType.BASIC), content)
+            addTab(CLabel(it.name, FontType.BASIC), content)
         }
     }
 }
