@@ -39,14 +39,6 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
             val event = it.second(curr)
         }
         curr?.let { curr ->
-            nativeLog(
-                "Listeners: ${
-                    listeners.joinToString("\n\t,") {
-                        val caller = it.first.get()
-                        if (caller != null) caller::class.simpleName.toString() else "null"
-                    }
-                }"
-            )
             nativeLog("${this::class.simpleName}: Switched ${curr::class.simpleName} to ${curr::class.simpleName} (${listeners.size} listeners, removed $removed)")
         }
     }

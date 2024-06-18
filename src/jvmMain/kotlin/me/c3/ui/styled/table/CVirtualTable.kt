@@ -1,6 +1,5 @@
 package me.c3.ui.styled.table
 
-import emulator.kit.nativeLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,14 +33,12 @@ abstract class CVirtualTable(
     var vScrollOffset: Int = 0
         set(value) {
             field = value
-            nativeLog("VScrollOffset: $value")
             updateCellContent()
         }
 
     var hScrollOffset: Int = 0
         set(value) {
             field = value
-            nativeLog("HScrollOffset: $value")
             updateCellContent()
         }
 

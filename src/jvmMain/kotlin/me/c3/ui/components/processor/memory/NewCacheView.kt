@@ -105,7 +105,7 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
         val rowIndex = contentRowID / cache.model.blockCount
         val blockIndex = contentRowID % cache.model.blockCount
         val block = cache.model.rows.getOrNull(rowIndex)?.blocks?.getOrNull(blockIndex) ?: return null
-        return if (block.dirty) States.theme.get().codeLaF.getColor(CodeStyle.BASE7) else null
+        return if (block.dirty) States.theme.get().codeLaF.getColor(CodeStyle.BASE6) else if(block.valid) States.theme.get().codeLaF.getColor(CodeStyle.BASE7) else null
     }
 
     override fun onCellClick(cell: CVirtualTableUI.CCellRenderer, contentRowID: Int, contentColID: Int) {
