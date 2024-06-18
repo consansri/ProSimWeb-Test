@@ -37,7 +37,7 @@ object JSTools {
         val eventListener = EventListener { event: org.w3c.dom.events.Event ->
             val target = event.target as? org.w3c.dom.Element
             val targetDescription = if (target != null) {
-                "Element: <${target.tagName.toLowerCase()} id='${target.id}' class='${target.className}'>"
+                "Element: <${target.tagName.lowercase()} id='${target.id}' class='${target.className}'>"
             } else {
                 "Unknown Element"
             }
