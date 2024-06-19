@@ -1,5 +1,6 @@
 package me.c3.ui.workspace
 
+import debug.DebugTools
 import emulator.kit.nativeLog
 import java.io.File
 
@@ -32,7 +33,7 @@ data class WSConfig(val file: File, val onChange: (File) -> Unit) {
                 parseln(it)
             })
         }
-        nativeLog("LoadConfig: {\n${settings.toContentString()}\n}")
+        if (DebugTools.JVM_showWSConfigInfo) nativeLog("LoadConfig: {\n${settings.toContentString()}\n}")
     }
 
     private fun store() {
@@ -40,7 +41,7 @@ data class WSConfig(val file: File, val onChange: (File) -> Unit) {
             file.createNewFile()
         }
         val content = settings.toContentString()
-        nativeLog("StoreConfig: {\n$content\n}")
+        if (DebugTools.JVM_showWSConfigInfo) nativeLog("StoreConfig: {\n$content\n}")
         file.writeText(content)
         onChange(file)
     }
@@ -50,7 +51,7 @@ data class WSConfig(val file: File, val onChange: (File) -> Unit) {
 
         val (all, typeStr, id, value) = result.groupValues
 
-        nativeLog("Parsing: $line -> type: $typeStr, id: $id, val: $value")
+        if (DebugTools.JVM_showWSConfigInfo) nativeLog("Parsing: $line -> type: $typeStr, id: $id, val: $value")
 
         return Setable(typeStr, id, value)
     }

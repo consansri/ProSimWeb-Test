@@ -1,5 +1,6 @@
 package me.c3.ui.state
 
+import debug.DebugTools
 import emulator.kit.nativeLog
 import java.lang.ref.WeakReference
 
@@ -38,8 +39,10 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
         ArrayList(listeners).forEach {
             val event = it.second(curr)
         }
-        curr?.let { curr ->
-            nativeLog("${this::class.simpleName}: Switched ${curr::class.simpleName} to ${curr::class.simpleName} (${listeners.size} listeners, removed $removed)")
+        if (DebugTools.JVM_showStateManagerInfo) {
+            curr?.let { curr ->
+                nativeLog("[Manager] Changed State to ${curr::class.simpleName} (${listeners.size} listeners, removed $removed)")
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import emulator.kit.common.FileBuilder.ExportFormat
 import emulator.kit.common.FileBuilder.Setting
 import emulator.kit.common.FileBuilder.buildFileContentLines
 import emulator.kit.nativeError
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import emulator.kit.types.Variable
 import kotlinx.datetime.Clock
@@ -46,6 +47,8 @@ object FileBuilder {
                 }
                 val depth = 2.0.pow(addrWidth) * dataWidth
                 val memInstances = architecture.memory.memList.sortedBy { it.address.getRawHexStr() }.toMutableList()
+
+                nativeLog("FileBuilder: AddrWidth: $addrWidth, DataWidth: $dataWidth from ${settings.joinToString(",") { it.toString() }}")
 
                 val vhdlItems = mutableListOf<VHDLItem>()
                 var itemsPerRow = Variable.Value.Dec((dataWidth / 8).toString()).getRawDecStr().toLongOrNull()
@@ -231,8 +234,16 @@ object FileBuilder {
     }
 
     sealed class Setting(val name: String) {
-        class AddressWidth(val bits: Int) : Setting("Address Width")
-        class DataWidth(val bits: Int) : Setting("Data Width")
+        class AddressWidth(val bits: Int) : Setting("Address Width"){
+            override fun toString(): String {
+                return "$name:$bits"
+            }
+        }
+        class DataWidth(val bits: Int) : Setting("Data Width"){
+            override fun toString(): String {
+                return "$name:$bits"
+            }
+        }
     }
 
     data class VHDLItem(val rowID: Long, val id: Int, val hexContent: String)

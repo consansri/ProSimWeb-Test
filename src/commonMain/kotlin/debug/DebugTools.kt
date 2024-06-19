@@ -42,10 +42,16 @@ object DebugTools {
     const val KIT_showValDecToolsCalculationDetails = false
 
     /*
-     * VISUAL
+     * JS
      */
 
     const val REACT_showUpdateInfo = false
 
+    /**
+     * JVM
+     */
+
+    const val JVM_showWSConfigInfo = false
+    const val JVM_showStateManagerInfo = false
 
 }
