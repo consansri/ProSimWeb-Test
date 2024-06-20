@@ -59,4 +59,8 @@ class CVirtualTableUI : CComponentUI<CVirtualTable>() {
             return table.getCellContent(realRowID, realColID)
         }
     }
+
+    override fun onInstall(c: CVirtualTable) {
+        // nothing needs to be installed
+    }
 }

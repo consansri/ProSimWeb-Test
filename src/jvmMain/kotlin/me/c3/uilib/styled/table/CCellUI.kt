@@ -29,6 +29,10 @@ class CCellUI(private val fontType: FontType) : CComponentUI<CCell>() {
         updateTextColors(c)
     }
 
+    override fun onInstall(c: CCell) {
+        // nothing needs to be installed
+    }
+
     override fun paint(g: Graphics?, c: JComponent?) {
         val g2d = g?.create() as? Graphics2D ?: return super.paint(g, c)
         val cell = c as? CCell ?: return super.paint(g, c)
@@ -55,5 +59,6 @@ class CCellUI(private val fontType: FontType) : CComponentUI<CCell>() {
 
         g2d.dispose()
     }
+
 
 }

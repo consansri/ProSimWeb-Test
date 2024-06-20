@@ -23,6 +23,7 @@ abstract class CComponentUI<T : JComponent> : ComponentUI() {
 
         this.component?.let {
             applyDefaults()
+            onInstall(it)
         }
     }
 
@@ -38,13 +39,15 @@ abstract class CComponentUI<T : JComponent> : ComponentUI() {
         applyDefaults()
     }
 
-    private fun applyDefaults() {
+    fun applyDefaults() {
         component?.let {
             setDefaults(it, UIStates.theme.get(), UIStates.scale.get(), UIStates.icon.get())
             it.revalidate()
             it.repaint()
         }
     }
+
+    abstract fun onInstall(c: T)
 
     abstract fun setDefaults(c: T, theme: Theme, scaling: Scaling, icons: Icons)
 

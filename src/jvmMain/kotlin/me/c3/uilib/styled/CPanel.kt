@@ -1,9 +1,9 @@
 package me.c3.uilib.styled
 
 import me.c3.uilib.styled.params.BorderMode
-import javax.swing.JPanel
+import javax.swing.JComponent
 
-open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JPanel() {
+open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JComponent() {
 
     var roundedCorners: Boolean = roundCorners
         set(value) {
@@ -28,6 +28,4 @@ open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode
     init {
         this.setUI(CPanelUI())
     }
-
-
 }

@@ -53,15 +53,8 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
         pane.repaint()
     }
 
-    override fun createArrowButton(): JButton {
-        return CIconButton(UIStates.icon.get().folderOpen, CIconButton.Mode.SECONDARY_SMALL).apply {
-            iconBg = Color(0, 0, 0, 0)
-            addMouseListener(object : MouseAdapter() {
-                override fun mouseClicked(e: MouseEvent) {
-                    comboBox.isPopupVisible = !comboBox.isPopupVisible
-                }
-            })
-        }
+    override fun createArrowButton(): JButton? {
+        return null
     }
 
     override fun getMaximumSize(c: JComponent?): Dimension {

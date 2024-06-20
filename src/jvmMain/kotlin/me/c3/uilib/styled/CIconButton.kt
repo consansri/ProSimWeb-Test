@@ -7,11 +7,14 @@ import me.c3.uilib.theme.core.Theme
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
-import javax.swing.JButton
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 
-open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORMAL, var hasHoverEffect: Boolean = true) : JButton(icon) {
+open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val hasHoverEffect: Boolean = true) : JComponent() {
 
     private var timer: Timer? = null
     private var rotationAngle: Double = 0.0
@@ -19,7 +22,7 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
     var customColor: Color? = null
         set(value) {
             field = value
-            (ui as? CIconButtonUI)?.setDefaults(this)
+            repaint()
         }
 
     var rotating = false
@@ -31,29 +34,97 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
     var iconBg = UIStates.theme.get().iconLaF.iconBg
         set(value) {
             field = value
-            (ui as? CIconButtonUI)?.setDefaults(this)
+            repaint()
+        }
+
+    var iconBgHover = UIStates.theme.get().iconLaF.iconBgHover
+        set(value) {
+            field = value
+            repaint()
+        }
+
+    var isHovered: Boolean = false
+        set(value) {
+            field = value
+            repaint()
         }
 
     var mode: Mode = mode
         set(value) {
             field = value
-            (ui as? CIconButtonUI)?.setDefaults(this)
+            revalidate()
+            repaint()
         }
 
     var isDeactivated = false
         set(value) {
             field = value
-            (ui as? CIconButtonUI)?.setDefaults(this)
+            repaint()
         }
 
     var svgIcon = icon
         set(value) {
             field = value
-            (ui as? CIconButtonUI)?.setDefaults(this)
+            revalidate()
+            repaint()
         }
 
     init {
         this.setUI(CIconButtonUI())
+        if(hasHoverEffect){
+            installHoverEffect()
+        }
+    }
+
+    fun addActionListener(event: () -> Unit) {
+        this.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent?) {
+                event()
+            }
+        })
+    }
+
+    fun getIcon(): Icon {
+        val size = mode.size(UIStates.scale.get())
+        val icon = svgIcon
+        val customColor = customColor
+
+        if (customColor != null) {
+            icon.colorFilter = FlatSVGIcon.ColorFilter {
+                customColor
+            }
+        } else {
+            mode.applyFilter(icon, UIStates.theme.get())
+        }
+
+        if (isDeactivated) {
+            icon.colorFilter = FlatSVGIcon.ColorFilter{
+                UIStates.theme.get().iconLaF.iconFgInactive
+            }
+        }
+
+        return icon.derive(size, size)
+    }
+
+    override fun paint(g: Graphics?) {
+        val g2d = g?.create() as Graphics2D?
+        g2d?.let {
+            g2d.rotate(rotationAngle, width / 2.0, height / 2.0)
+            super.paint(g2d)
+            g2d.dispose()
+        }
+    }
+
+    private fun installHoverEffect(){
+        this.addMouseListener(object : MouseAdapter(){
+            override fun mouseEntered(e: MouseEvent?) {
+                isHovered = true
+            }
+
+            override fun mouseExited(e: MouseEvent?) {
+                isHovered = false
+            }
+        })
     }
 
     private fun updateAnim() {
@@ -70,15 +141,6 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
                 timer = null
                 rotationAngle = 0.0
             }
-        }
-    }
-
-    override fun paint(g: Graphics?) {
-        val g2d = g?.create() as Graphics2D?
-        g2d?.let {
-            g2d.rotate(rotationAngle, width / 2.0, height / 2.0)
-            super.paint(g2d)
-            g2d.dispose()
         }
     }
 
@@ -112,5 +174,4 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
         }
 
     }
-
 }

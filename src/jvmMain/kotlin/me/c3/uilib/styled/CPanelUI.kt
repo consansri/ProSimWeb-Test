@@ -1,40 +1,29 @@
 package me.c3.uilib.styled
 
 import me.c3.uilib.UIStates
+import me.c3.uilib.resource.Icons
+import me.c3.uilib.scale.core.Scaling
+import me.c3.uilib.theme.core.Theme
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
-import java.lang.ref.WeakReference
 import javax.swing.JComponent
-import javax.swing.plaf.basic.BasicPanelUI
 
-class CPanelUI() : BasicPanelUI() {
+class CPanelUI() : CComponentUI<CPanel>() {
 
-    override fun installUI(c: JComponent?) {
-        super.installUI(c)
+    override fun setDefaults(c: CPanel, theme: Theme, scaling: Scaling, icons: Icons) {
+        c.isOpaque = false
+        c.background = Color(0, 0, 0, 0)
+        c.border = c.borderMode.getBorder()
 
-        c?.isOpaque = false
-        val cPanel = c as? CPanel ?: return
-
-        UIStates.theme.addEvent(WeakReference(cPanel)) { _ ->
-            setDefaults(cPanel)
+        if (c.isOverlay) {
+            c.border = UIStates.scale.get().borderScale.getInsetBorder()
         }
-        UIStates.scale.addEvent(WeakReference(cPanel)) { _ ->
-            setDefaults(cPanel)
-        }
-        setDefaults(cPanel)
     }
 
-    private fun setDefaults(cPanel: CPanel) {
-        cPanel.background = Color(0, 0, 0, 0)
-        cPanel.border = cPanel.borderMode.getBorder()
-
-        if (cPanel.isOverlay) {
-            cPanel.border = UIStates.scale.get().borderScale.getInsetBorder()
-        }
-
-        cPanel.repaint()
+    override fun onInstall(c: CPanel) {
+        // nothing needs to be installed
     }
 
     override fun paint(g: Graphics, c: JComponent?) {
@@ -64,7 +53,7 @@ class CPanelUI() : BasicPanelUI() {
             g2d.drawRoundRect(0, 0, c.width - 1, c.height - 1, UIStates.scale.get().borderScale.cornerRadius, UIStates.scale.get().borderScale.cornerRadius)
         }
 
-        super.paint(g2d, c)
+        c.paintComponents(g2d)
 
         g2d.dispose()
     }

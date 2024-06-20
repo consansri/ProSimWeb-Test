@@ -5,7 +5,6 @@ import java.awt.Color
 import javax.swing.JLabel
 
 open class CLabel( content: String, fontType: FontType) : JLabel(content) {
-
     init {
         this.setUI(CLabelUI( fontType))
     }

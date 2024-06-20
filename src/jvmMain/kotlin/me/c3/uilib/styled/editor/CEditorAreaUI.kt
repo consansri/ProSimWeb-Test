@@ -72,6 +72,10 @@ class CEditorAreaUI(
         caretTimer?.start()
     }
 
+    override fun onInstall(c: CEditorArea) {
+        // nothing needs to be installed
+    }
+
     override fun paint(g: Graphics?, c: JComponent?) {
         val g2d = g?.create() as? Graphics2D ?: return
         val editor = c as? CEditorArea ?: return
