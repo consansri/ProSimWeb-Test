@@ -12,8 +12,11 @@ import me.c3.ui.Events
 import me.c3.ui.Keys
 import me.c3.ui.States
 import me.c3.ui.States.setFromPath
-import me.c3.ui.styled.*
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.state.WSConfig
+import me.c3.uilib.state.WSEditor
+import me.c3.uilib.state.WSLogger
+import me.c3.uilib.styled.*
+import me.c3.uilib.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter

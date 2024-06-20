@@ -1,7 +1,12 @@
 package emulator.kit
 
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 
+/**
+ * [MicroSetup] Always holds the Architecture Components to expose them to the UI.
+ *
+ * This Object will be setup by each arch through [Architecture.setupMicroArch].
+ */
 object MicroSetup {
     private val memory = mutableListOf<Memory>()
 

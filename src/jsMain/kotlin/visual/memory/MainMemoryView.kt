@@ -5,8 +5,8 @@ import StyleAttr
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Architecture
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.MainMemory
+import emulator.kit.memory.Memory
 import emulator.core.*
 import react.*
 import react.dom.html.ReactHTML

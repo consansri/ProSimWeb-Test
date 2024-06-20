@@ -6,10 +6,10 @@ import me.c3.ui.Events
 import me.c3.ui.States
 
 
-import me.c3.ui.styled.CLabel
-import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.params.BorderMode
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.CLabel
+import me.c3.uilib.styled.CPanel
+import me.c3.uilib.styled.params.BorderMode
+import me.c3.uilib.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.lang.management.ManagementFactory

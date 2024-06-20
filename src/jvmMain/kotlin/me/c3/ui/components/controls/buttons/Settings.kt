@@ -5,8 +5,8 @@ import emulator.kit.optional.SetupSetting
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.States.save
-import me.c3.ui.styled.*
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.*
+import me.c3.uilib.styled.params.FontType
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout

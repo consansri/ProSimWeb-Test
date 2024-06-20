@@ -4,7 +4,7 @@ import emulator.archs.t6502.AModes
 import emulator.archs.t6502.InstrType
 import emulator.archs.t6502.T6502
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
 /**

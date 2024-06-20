@@ -4,9 +4,9 @@ import emulator.kit.optional.Feature
 import me.c3.ui.Events
 import me.c3.ui.States
 
-import me.c3.ui.styled.CToggleButton
-import me.c3.ui.styled.CToggleButtonUI
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.CToggleButton
+import me.c3.uilib.styled.CToggleButtonUI
+import me.c3.uilib.styled.params.FontType
 import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 

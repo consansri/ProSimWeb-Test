@@ -4,8 +4,8 @@ import emulator.Link
 import me.c3.ui.States
 
 
-import me.c3.ui.styled.CComboBox
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.CComboBox
+import me.c3.uilib.styled.params.FontType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.lang.ref.WeakReference

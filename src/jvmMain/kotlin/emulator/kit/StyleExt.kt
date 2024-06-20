@@ -2,8 +2,8 @@ package emulator.kit
 
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.common.IConsole
-import me.c3.ui.styled.editor.CEditorArea
-import me.c3.ui.theme.core.style.CodeLaF
+import me.c3.uilib.styled.editor.CEditorArea
+import me.c3.uilib.theme.core.style.CodeLaF
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import javax.swing.JTextPane

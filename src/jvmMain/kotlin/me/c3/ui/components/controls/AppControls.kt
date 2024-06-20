@@ -6,9 +6,9 @@ import me.c3.ui.components.ProSimFrame
 import me.c3.ui.components.controls.buttons.FeatureSwitch
 import me.c3.ui.components.controls.buttons.Settings
 import me.c3.ui.components.controls.buttons.ThemeSwitch
-import me.c3.ui.styled.CIconButton
-import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.params.BorderMode
+import me.c3.uilib.styled.CIconButton
+import me.c3.uilib.styled.CPanel
+import me.c3.uilib.styled.params.BorderMode
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout

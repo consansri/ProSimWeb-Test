@@ -3,7 +3,7 @@ package emulator.archs.t6502
 import emulator.archs.ArchT6502
 import emulator.archs.t6502.AModes.*
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 import emulator.core.Size.Bit1
 import emulator.core.Size.Bit9
 import emulator.core.Value.Bin

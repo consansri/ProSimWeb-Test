@@ -1,8 +1,8 @@
 package me.c3.ui.components.controls
 
 import me.c3.ui.components.controls.buttons.*
-import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.params.BorderMode
+import me.c3.uilib.styled.CPanel
+import me.c3.uilib.styled.params.BorderMode
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout

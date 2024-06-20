@@ -6,10 +6,10 @@ import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.*
-import emulator.kit.common.memory.*
-import emulator.kit.common.memory.Cache.Setting
-import emulator.kit.configs.AsmConfig
-import emulator.kit.configs.Config
+import emulator.kit.memory.*
+import emulator.kit.memory.Cache.Setting
+import emulator.kit.config.AsmConfig
+import emulator.kit.config.Config
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
 import emulator.core.*

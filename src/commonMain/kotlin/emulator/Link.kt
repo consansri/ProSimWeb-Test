@@ -2,7 +2,7 @@ package emulator
 
 import emulator.archs.*
 import emulator.kit.Architecture
-import emulator.kit.configs.Config
+import emulator.kit.config.Config
 import emulator.kit.nativeLog
 import kotlin.reflect.KClass
 

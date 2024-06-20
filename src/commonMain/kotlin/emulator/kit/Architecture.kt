@@ -1,16 +1,16 @@
 package emulator.kit
 
 import debug.DebugTools
-import emulator.kit.assembler.*
-import emulator.kit.common.*
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.configs.AsmConfig
-import emulator.kit.configs.Config
-import emulator.kit.optional.Feature
-import emulator.kit.optional.SetupSetting
 import emulator.core.*
 import emulator.core.Size.*
 import emulator.core.Value.*
+import emulator.kit.assembler.*
+import emulator.kit.common.*
+import emulator.kit.config.AsmConfig
+import emulator.kit.config.Config
+import emulator.kit.memory.MainMemory
+import emulator.kit.optional.Feature
+import emulator.kit.optional.SetupSetting
 
 /**
  *  Architecture Blueprint

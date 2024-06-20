@@ -1,15 +1,15 @@
 package me.c3.ui.components.processor
 
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.Cache
-import emulator.kit.common.memory.MainMemory
+import emulator.kit.memory.Cache
+import emulator.kit.memory.MainMemory
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.memory.MainMemView
 import me.c3.ui.components.processor.memory.NewCacheView
-import me.c3.ui.styled.CAdvancedTabPane
-import me.c3.ui.styled.CLabel
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.CAdvancedTabPane
+import me.c3.uilib.styled.CLabel
+import me.c3.uilib.styled.params.FontType
 import java.lang.ref.WeakReference
 
 class MemoryView : CAdvancedTabPane(tabsAreCloseable = false) {

@@ -3,7 +3,7 @@ package emulator.archs
 import emulator.archs.ikrmini.IKRMini
 import emulator.archs.ikrmini.IKRMiniSyntax
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 import emulator.core.Value.Hex
 

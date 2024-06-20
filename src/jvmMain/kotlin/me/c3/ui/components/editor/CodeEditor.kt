@@ -3,9 +3,9 @@ package me.c3.ui.components.editor
 import kotlinx.coroutines.*
 import me.c3.ui.States
 import me.c3.ui.components.controls.BottomBar
-import me.c3.ui.styled.CAdvancedTabPane
-import me.c3.ui.styled.CLabel
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.CAdvancedTabPane
+import me.c3.uilib.styled.CLabel
+import me.c3.uilib.styled.params.FontType
 import java.io.File
 import java.lang.ref.WeakReference
 import javax.swing.*

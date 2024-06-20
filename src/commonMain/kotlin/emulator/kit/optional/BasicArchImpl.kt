@@ -1,9 +1,9 @@
 package emulator.kit.optional
 
 import Performance
-import emulator.kit.common.memory.Memory
-import emulator.kit.configs.AsmConfig
-import emulator.kit.configs.Config
+import emulator.kit.memory.Memory
+import emulator.kit.config.AsmConfig
+import emulator.kit.config.Config
 import emulator.core.Value
 import kotlin.time.measureTime
 

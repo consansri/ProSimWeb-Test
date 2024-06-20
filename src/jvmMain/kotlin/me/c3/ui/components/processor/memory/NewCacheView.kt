@@ -1,12 +1,12 @@
 package me.c3.ui.components.processor.memory
 
 import emulator.kit.assembler.CodeStyle
-import emulator.kit.common.memory.Cache
+import emulator.kit.memory.Cache
 import me.c3.ui.Events
 import me.c3.ui.States
-import me.c3.ui.styled.params.FontType
-import me.c3.ui.styled.table.CVirtualTable
-import me.c3.ui.styled.table.CVirtualTableUI
+import me.c3.uilib.styled.params.FontType
+import me.c3.uilib.styled.table.CVirtualTable
+import me.c3.uilib.styled.table.CVirtualTableUI
 import java.awt.Color
 import java.lang.ref.WeakReference
 

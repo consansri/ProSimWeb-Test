@@ -8,7 +8,7 @@ import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 import emulator.core.*
 
 class RV32Syntax {

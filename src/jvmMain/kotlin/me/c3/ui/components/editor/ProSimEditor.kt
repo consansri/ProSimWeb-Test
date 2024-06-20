@@ -10,8 +10,8 @@ import kotlinx.coroutines.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.controls.BottomBar
-import me.c3.ui.state.*
-import me.c3.ui.styled.editor.*
+import me.c3.uilib.state.*
+import me.c3.uilib.styled.editor.*
 import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 

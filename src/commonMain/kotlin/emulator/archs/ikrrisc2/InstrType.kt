@@ -5,7 +5,7 @@ import emulator.archs.ikrrisc2.IKRRisc2BinMapper.MaskLabel.*
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.OpCode
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.common.RegContainer
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 import emulator.core.*
 
 

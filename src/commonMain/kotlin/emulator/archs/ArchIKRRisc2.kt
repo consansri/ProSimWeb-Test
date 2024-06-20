@@ -3,7 +3,7 @@ package emulator.archs
 import emulator.archs.ikrrisc2.IKRRisc2
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
 class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config, IKRRisc2.asmConfig) {

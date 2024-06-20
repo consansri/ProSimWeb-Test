@@ -3,7 +3,7 @@ package visual.memory
 import StyleAttr
 import debug.DebugTools
 import emulator.kit.Architecture
-import emulator.kit.common.memory.Cache
+import emulator.kit.memory.Cache
 import react.*
 import visual.virtual.VirtualTable
 

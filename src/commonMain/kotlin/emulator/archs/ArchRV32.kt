@@ -4,7 +4,7 @@ import emulator.archs.riscv32.RV32
 import emulator.archs.riscv32.RV32BinMapper
 import emulator.archs.riscv32.RV32Syntax
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
 class ArchRV32 : BasicArchImpl(RV32.config, RV32.asmConfig) {

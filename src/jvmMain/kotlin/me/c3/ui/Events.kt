@@ -3,7 +3,7 @@ package me.c3.ui
 import emulator.kit.Architecture
 import emulator.kit.assembler.Process
 import me.c3.ui.components.editor.EditorFile
-import me.c3.ui.state.Event
+import me.c3.uilib.state.Event
 
 object Events {
 

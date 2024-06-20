@@ -5,9 +5,9 @@ import Settings
 import StyleAttr
 import emotion.react.css
 import emulator.kit.MicroSetup
-import emulator.kit.common.memory.Cache
-import emulator.kit.common.memory.MainMemory
-import emulator.kit.common.memory.Memory
+import emulator.kit.memory.Cache
+import emulator.kit.memory.MainMemory
+import emulator.kit.memory.Memory
 import emulator.core.Value.Hex
 import kotlinx.browser.localStorage
 import react.*

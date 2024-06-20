@@ -9,16 +9,16 @@ import kotlinx.coroutines.launch
 import me.c3.ui.Res.icons
 import me.c3.ui.Res.scalings
 import me.c3.ui.Res.themes
-import me.c3.ui.resources.icons.BenIcons
-import me.c3.ui.resources.icons.ProSimIcons
-import me.c3.ui.scale.core.Scaling
-import me.c3.ui.scale.scalings.StandardScaling
-import me.c3.ui.state.Manager
-import me.c3.ui.theme.core.Theme
-import me.c3.ui.theme.themes.LightTheme
-import me.c3.ui.workspace.WSConfig
-import me.c3.ui.workspace.WSEditor
-import me.c3.ui.workspace.WSLogger
+import me.c3.uilib.resource.BenIcons
+import me.c3.uilib.resource.Icons
+import me.c3.uilib.scale.core.Scaling
+import me.c3.uilib.scale.scalings.StandardScaling
+import me.c3.uilib.state.Manager
+import me.c3.uilib.theme.core.Theme
+import me.c3.uilib.theme.themes.LightTheme
+import me.c3.uilib.state.WSConfig
+import me.c3.uilib.state.WSEditor
+import me.c3.uilib.state.WSLogger
 import me.c3.ui.workspace.Workspace
 
 object States {
@@ -59,7 +59,7 @@ object States {
         }
     }
 
-    val icon = object : Manager<ProSimIcons>(BenIcons()) {
+    val icon = object : Manager<Icons>(BenIcons()) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_ICONS)?.let { value ->
                 icons.firstOrNull { it.name == value }?.let {
@@ -68,7 +68,7 @@ object States {
             }
         }
 
-        override fun updateConfig(value: ProSimIcons) {
+        override fun updateConfig(value: Icons) {
             ws.get()?.config?.set(Keys.IDE, Keys.IDE_ICONS, value.name)
         }
     }

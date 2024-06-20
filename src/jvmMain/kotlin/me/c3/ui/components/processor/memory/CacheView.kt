@@ -1,14 +1,14 @@
 package me.c3.ui.components.processor.memory
 
 import emulator.kit.assembler.CodeStyle
-import emulator.kit.common.memory.Cache
+import emulator.kit.memory.Cache
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.CacheTableModel
-import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.CTable
-import me.c3.ui.styled.CTextButton
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.CPanel
+import me.c3.uilib.styled.CTable
+import me.c3.uilib.styled.CTextButton
+import me.c3.uilib.styled.params.FontType
 import java.awt.BorderLayout
 import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities

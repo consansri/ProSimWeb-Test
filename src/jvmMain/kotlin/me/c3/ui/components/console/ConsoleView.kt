@@ -3,7 +3,7 @@ package me.c3.ui.components.console
 import emulator.kit.toStyledContent
 import me.c3.ui.Events
 import me.c3.ui.States
-import me.c3.ui.styled.editor.CConsole
+import me.c3.uilib.styled.editor.CConsole
 import java.lang.ref.WeakReference
 
 /**

@@ -3,12 +3,12 @@ package me.c3.ui.components.docs
 
 import emulator.kit.common.Docs
 import me.c3.ui.States
-import me.c3.ui.styled.CAdvancedTabPane
-import me.c3.ui.styled.CLabel
-import me.c3.ui.styled.CPanel
-import me.c3.ui.styled.CTextArea
-import me.c3.ui.styled.params.BorderMode
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.styled.CAdvancedTabPane
+import me.c3.uilib.styled.CLabel
+import me.c3.uilib.styled.CPanel
+import me.c3.uilib.styled.CTextArea
+import me.c3.uilib.styled.params.BorderMode
+import me.c3.uilib.styled.params.FontType
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout

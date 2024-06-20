@@ -7,13 +7,13 @@ import me.c3.ui.components.controls.TopControls
 import me.c3.ui.components.editor.CodeEditor
 import me.c3.ui.components.editor.EditorControls
 import me.c3.ui.components.processor.ProcessorView
-import me.c3.ui.styled.CSplitPane
+import me.c3.uilib.styled.CSplitPane
 import me.c3.ui.components.transcript.TranscriptView
 import me.c3.ui.components.tree.FileTree
-import me.c3.ui.styled.CAdvancedTabPane
+import me.c3.uilib.styled.CAdvancedTabPane
 import me.c3.ui.components.docs.InfoView
-import me.c3.ui.workspace.WSEditor
-import me.c3.ui.workspace.WSLogger
+import me.c3.uilib.state.WSEditor
+import me.c3.uilib.state.WSLogger
 
 /**
  * Interface representing the main frame of the ProSim application.

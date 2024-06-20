@@ -3,9 +3,9 @@ package me.c3.ui.components.controls.buttons
 
 import me.c3.ui.Res
 import me.c3.ui.States
-import me.c3.ui.scale.core.Scaling
-import me.c3.ui.styled.CComboBox
-import me.c3.ui.styled.params.FontType
+import me.c3.uilib.scale.core.Scaling
+import me.c3.uilib.styled.CComboBox
+import me.c3.uilib.styled.params.FontType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.lang.ref.WeakReference

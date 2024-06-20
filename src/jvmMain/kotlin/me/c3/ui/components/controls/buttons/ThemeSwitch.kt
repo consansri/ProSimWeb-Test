@@ -2,7 +2,7 @@ package me.c3.ui.components.controls.buttons
 
 import me.c3.ui.Res
 import me.c3.ui.States
-import me.c3.ui.styled.CIconButton
+import me.c3.uilib.styled.CIconButton
 import java.lang.ref.WeakReference
 
 /**
