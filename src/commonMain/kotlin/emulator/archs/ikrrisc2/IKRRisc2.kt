@@ -9,11 +9,11 @@ import emulator.kit.common.memory.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.SetupSetting
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.Bit32
-import emulator.kit.types.Variable.Size.Bit5
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Dec
+import emulator.core.*
+import emulator.core.Size.Bit32
+import emulator.core.Size.Bit5
+import emulator.core.Value.Bin
+import emulator.core.Value.Dec
 
 data object IKRRisc2 {
 

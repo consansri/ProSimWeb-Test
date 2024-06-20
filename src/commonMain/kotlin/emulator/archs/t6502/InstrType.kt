@@ -4,10 +4,10 @@ import emulator.archs.ArchT6502
 import emulator.archs.t6502.AModes.*
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.common.memory.Memory
-import emulator.kit.types.Variable.Size.Bit1
-import emulator.kit.types.Variable.Size.Bit9
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.Size.Bit1
+import emulator.core.Size.Bit9
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 
 enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): InstrTypeInterface {
     // load, store, interregister transfer

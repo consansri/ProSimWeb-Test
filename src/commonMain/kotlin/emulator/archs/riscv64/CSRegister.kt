@@ -1,12 +1,10 @@
 package emulator.archs.riscv64
 
 import emulator.kit.common.RegContainer
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.core.*
 
 class CSRegister(
-    address: Variable.Value,
+    address: Value,
     val privilege: Privilege,
     names: List<String>,
     aliases: List<String>,

@@ -12,17 +12,17 @@ import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 
 data object RV64 {
 
     private const val REG_INIT: String = "0"
 
-    val XLEN: Variable.Size = Bit64
-    val WORD_WIDTH: Variable.Size = Bit32
+    val XLEN: Size = Bit64
+    val WORD_WIDTH: Size = Bit32
     private val REG_VALUE_SIZE = XLEN
     private val REG_ADDRESS_SIZE = Bit5
     private val CSR_REG_ADDRESS_SIZE = Bit12

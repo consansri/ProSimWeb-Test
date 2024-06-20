@@ -8,7 +8,7 @@ import emulator.kit.MicroSetup
 import emulator.kit.common.memory.Cache
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.Value.Hex
 import kotlinx.browser.localStorage
 import react.*
 import react.dom.html.ReactHTML

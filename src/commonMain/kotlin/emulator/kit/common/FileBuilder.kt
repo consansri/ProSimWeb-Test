@@ -9,7 +9,7 @@ import emulator.kit.common.FileBuilder.buildFileContentLines
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
-import emulator.kit.types.Variable
+import emulator.core.Value
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -51,14 +51,14 @@ object FileBuilder {
                 nativeLog("FileBuilder: AddrWidth: $addrWidth, DataWidth: $dataWidth from ${settings.joinToString(",") { it.toString() }}")
 
                 val vhdlItems = mutableListOf<VHDLItem>()
-                var itemsPerRow = Variable.Value.Dec((dataWidth / 8).toString()).getRawDecStr().toLongOrNull()
+                var itemsPerRow = Value.Dec((dataWidth / 8).toString()).getRawDecStr().toLongOrNull()
                 if (itemsPerRow == null) {
                     itemsPerRow = 1
                 }
 
                 for (instance in memInstances) {
                     val rowAddr = instance.address.getRawHexStr().toLong(16) / itemsPerRow
-                    val id = (instance.address % Variable.Value.Dec((dataWidth / 8).toString())).toHex().getRawHexStr().toIntOrNull(16)
+                    val id = (instance.address % Value.Dec((dataWidth / 8).toString())).toHex().getRawHexStr().toIntOrNull(16)
                     if (id != null) {
                         vhdlItems.add(VHDLItem(rowAddr, id, instance.variable.get().toHex().getRawHexStr()))
                     } else {

@@ -11,11 +11,11 @@ import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.RegContainer
 import emulator.kit.common.memory.Memory
 import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
+import emulator.core.*
 
 object IKRRisc2Assembler : AsmHeader {
-    override val memAddrSize: Variable.Size = IKRRisc2.WORD_WIDTH
-    override val wordSize: Variable.Size = IKRRisc2.WORD_WIDTH
+    override val memAddrSize: Size = IKRRisc2.WORD_WIDTH
+    override val wordSize: Size = IKRRisc2.WORD_WIDTH
     override val detectRegistersByName: Boolean = true
     override val addrShift: Int = 2
 
@@ -53,8 +53,8 @@ object IKRRisc2Assembler : AsmHeader {
         )
     }
 
-    class IKRRisc2Instr(val rawInstr: GASNode.RawInstr, val type: InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Variable.Value.Dec("0", Variable.Size.Bit32), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
-        var displacement: Variable.Value.Dec? = null
+    class IKRRisc2Instr(val rawInstr: GASNode.RawInstr, val type: InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Value = Value.Dec("0", Size.Bit32), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
+        var displacement: Value.Dec? = null
         override val bytesNeeded: Int = 4
         override fun getFirstToken(): Token = rawInstr.instrName
 
@@ -62,7 +62,7 @@ object IKRRisc2Assembler : AsmHeader {
 
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
 
-        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Variable.Value.Hex>>): Array<Variable.Value.Bin> {
+        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<GASParser.Label, Value.Hex>>): Array<Value.Bin> {
             label?.assignLabels(labels)
 
             displacement = if (label != null) {
@@ -82,17 +82,17 @@ object IKRRisc2Assembler : AsmHeader {
 
             else -> {
                 val imm = expr?.checkInstrType(type)
-                listOf(IKRRisc2Instr(rawInstr, type, regs, imm ?: Variable.Value.Dec("0", Variable.Size.Bit32), if (imm == null) expr else null))
+                listOf(IKRRisc2Instr(rawInstr, type, regs, imm ?: Value.Dec("0", Size.Bit32), if (imm == null) expr else null))
             }
         }
     }
 
-    private fun GASNode.NumericExpr.checkInstrType(type: InstrType): Variable.Value.Dec? {
+    private fun GASNode.NumericExpr.checkInstrType(type: InstrType): Value.Dec? {
         when (type.paramType) {
             ParamType.I_TYPE -> {
                 val immediate = this.evaluate(true)
-                val check = immediate.check(Variable.Size.Bit16)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Variable.Size.Bit16}!")
+                val check = immediate.check(Size.Bit16)
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
 
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }
@@ -101,8 +101,8 @@ object IKRRisc2Assembler : AsmHeader {
             ParamType.R1_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             ParamType.L_OFF_TYPE -> {
                 val immediate = this.evaluate(true)
-                val check = immediate.check(Variable.Size.Bit16)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Variable.Size.Bit16}!")
+                val check = immediate.check(Size.Bit16)
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
 
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }
@@ -110,8 +110,8 @@ object IKRRisc2Assembler : AsmHeader {
             ParamType.L_INDEX_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             ParamType.S_OFF_TYPE -> {
                 val immediate = this.evaluate(true)
-                val check = immediate.check(Variable.Size.Bit16)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Variable.Size.Bit16}!")
+                val check = immediate.check(Size.Bit16)
+                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
 
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }

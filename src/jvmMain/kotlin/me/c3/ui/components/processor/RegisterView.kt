@@ -2,9 +2,7 @@ package me.c3.ui.components.processor
 
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.core.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.RegTableModel
@@ -161,7 +159,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
                 field = value
                 updateContent()
             }
-        private var numericType: Variable.Value.Types = Variable.Value.Types.Hex
+        private var numericType: Value.Types = Value.Types.Hex
             set(value) {
                 field = value
                 updateContent()
@@ -229,10 +227,10 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
                             return@addTableModelListener
                         }
                         val newValue = when (numericType) {
-                            Variable.Value.Types.Bin -> Variable.Value.Bin(newStringValue.toString(), reg.get().size)
-                            Variable.Value.Types.Hex -> Variable.Value.Hex(newStringValue.toString(), reg.get().size)
-                            Variable.Value.Types.Dec -> Variable.Value.Dec(newStringValue.toString(), reg.get().size)
-                            Variable.Value.Types.UDec -> Variable.Value.UDec(newStringValue.toString(), reg.get().size)
+                            Value.Types.Bin -> Value.Bin(newStringValue.toString(), reg.get().size)
+                            Value.Types.Hex -> Value.Hex(newStringValue.toString(), reg.get().size)
+                            Value.Types.Dec -> Value.Dec(newStringValue.toString(), reg.get().size)
+                            Value.Types.UDec -> Value.UDec(newStringValue.toString(), reg.get().size)
                         }
                         if (newValue.checkResult.valid) {
                             reg.set(newValue)
@@ -260,10 +258,10 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
 
                             1 -> {
                                 numericType = when (numericType) {
-                                    Variable.Value.Types.Bin -> Variable.Value.Types.Hex
-                                    Variable.Value.Types.Hex -> Variable.Value.Types.Dec
-                                    Variable.Value.Types.Dec -> Variable.Value.Types.UDec
-                                    Variable.Value.Types.UDec -> Variable.Value.Types.Bin
+                                    Value.Types.Bin -> Value.Types.Hex
+                                    Value.Types.Hex -> Value.Types.Dec
+                                    Value.Types.Dec -> Value.Types.UDec
+                                    Value.Types.UDec -> Value.Types.Bin
                                 }
                             }
                         }

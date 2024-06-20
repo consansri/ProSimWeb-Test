@@ -8,9 +8,9 @@ import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.*
 
 /**
  *  Architecture Blueprint
@@ -77,7 +77,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     fun getAllInstrTypes(): List<InstrTypeInterface> = assembler.parser.getInstrs(features)
     fun getAllDirTypes(): List<DirTypeInterface> = assembler.parser.getDirs(features)
     fun getRegByName(name: String, regFile: String? = null): RegContainer.Register? = regContainer.getReg(name, features, regFile)
-    fun getRegByAddr(addr: Variable.Value, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
+    fun getRegByAddr(addr: Value, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
 
     /**
      * Execution Event: continuous

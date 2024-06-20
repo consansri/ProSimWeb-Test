@@ -2,9 +2,9 @@ package emulator.kit.common.memory
 
 import debug.DebugTools
 import emulator.kit.nativeWarn
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.Bit8
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Size.Bit8
+import emulator.core.Value.Hex
 
 /**
  * Represents the main memory of a system.
@@ -27,7 +27,7 @@ import emulator.kit.types.Variable.Value.Hex
  * @param endianess The endianess of the memory.
  * @param name The name of the memory.
  */
-class MainMemory(override val addressSize: Variable.Size, override val instanceSize: Variable.Size, endianess: Endianess, override val name: String = "Memory", entrysInRow: Int = 16) : Memory() {
+class MainMemory(override val addressSize: Size, override val instanceSize: Size, endianess: Endianess, override val name: String = "Memory", entrysInRow: Int = 16) : Memory() {
     override val initHex: String = "0"
 
     val addrIncByOne = Hex("1", addressSize)
@@ -54,7 +54,7 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
 
     override fun load(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
         val hexValues = mutableListOf<String>()
-        var currAddr: Variable.Value = address
+        var currAddr: Value = address
         repeat(amount) {
             val addr: String = currAddr.toHex().getUResized(addressSize).getRawHexStr()
             val value = memList.firstOrNull {
@@ -72,7 +72,7 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
         return Hex(hexValues.joinToString("") { it })
     }
 
-    override fun store(address: Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
+    override fun store(address: Hex, value: Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
         val hexValue = value.toHex()
         var hexAddress = address.getUResized(addressSize)
 
@@ -154,5 +154,5 @@ class MainMemory(override val addressSize: Variable.Size, override val instanceS
         }
     }
 
-    data class IOBounds(val lowerAddr: Variable.Value, val amount: Long)
+    data class IOBounds(val lowerAddr: Value, val amount: Long)
 }

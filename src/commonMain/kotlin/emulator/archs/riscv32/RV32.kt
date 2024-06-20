@@ -2,7 +2,6 @@ package emulator.archs.riscv32
 
 
 import emulator.archs.ArchRV32
-import emulator.archs.ArchRV64
 import emulator.archs.riscv32.RV32.asmConfig
 import emulator.archs.riscv32.RV32.config
 import emulator.archs.riscv32.RV32.riscVDocs
@@ -19,10 +18,10 @@ import emulator.kit.configs.Config
 import emulator.kit.configs.Config.Description
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 
 
 /**

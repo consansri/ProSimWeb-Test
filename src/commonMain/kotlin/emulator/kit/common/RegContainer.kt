@@ -1,23 +1,23 @@
 package emulator.kit.common
 
 import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.core.Size
+import emulator.core.*
+import emulator.core.Value
 
 /**
  * The [RegContainer] is making all [RegisterFile]s besides the [PC] accessible.
  * It contains searching functions to find a register by name or alias ([getReg]).
  */
-class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize: Variable.Size, private val standardRegFileName: String) {
+class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize: Size, private val standardRegFileName: String) {
 
-    val pc = PC(Variable("0", pcSize), Variable.Value.Bin("0", pcSize))
+    val pc = PC(Variable("0", pcSize), Value.Bin("0", pcSize))
 
     fun clear() {
         for (registerFile in registerFileList) {
             registerFile.clearAll()
         }
-        pc.set(Variable.Value.Bin("0", pcSize))
+        pc.set(Value.Bin("0", pcSize))
     }
 
     fun getReg(name: String, features: List<Feature>, regFile: String? = null): Register? {
@@ -36,7 +36,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         return null
     }
 
-    fun getReg(address: Variable.Value, features: List<Feature>, regFile: String? = null): Register? {
+    fun getReg(address: Value, features: List<Feature>, regFile: String? = null): Register? {
         for (registerFile in registerFileList) {
             if ((regFile == null && registerFile.name == standardRegFileName) xor (registerFile.name == regFile)) {
                 for (reg in registerFile.getRegisters(features)) {
@@ -65,7 +65,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
      * To identify registers more easily a [description] is needed in the constructor.
      */
     open class Register(
-        val address: Variable.Value,
+        val address: Value,
         val names: List<String>,
         val aliases: List<String>,
         val variable: Variable,
@@ -86,11 +86,11 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
             regexList = mutableRegexList
         }
 
-        fun get(): Variable.Value {
+        fun get(): Value {
             return variable.get()
         }
 
-        open fun set(value: Variable.Value) {
+        open fun set(value: Value) {
             if (!hardwire) {
                 variable.set(value)
             }
@@ -113,13 +113,13 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         override fun toString(): String = aliases.firstOrNull() ?: names.firstOrNull() ?: address.toString()
     }
 
-    data class PC(val variable: Variable, val initial: Variable.Value) {
+    data class PC(val variable: Variable, val initial: Value) {
         val name = "program counter"
         val shortName = "pc"
 
-        fun get(): Variable.Value = variable.get()
+        fun get(): Value = variable.get()
 
-        fun set(value: Variable.Value) {
+        fun set(value: Value) {
             variable.set(value)
         }
 

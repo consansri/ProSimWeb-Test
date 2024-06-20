@@ -1,10 +1,11 @@
 package emulator.kit.common.memory
 
 import emulator.kit.common.IConsole
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Tools.toValue
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.Value
+import emulator.core.*
+import emulator.core.Value.Tools.toValue
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -24,8 +25,8 @@ import kotlin.math.roundToInt
  * The Cache class defines CacheRowState enum to represent the state of a cache row, and AccessResult data class to encapsulate the result of cache access.
  */
 sealed class Cache(protected val backingMemory: Memory, val console: IConsole, indexBits: Int, blockCount: Int, offsetBits: Int, replaceAlgo: Model.ReplaceAlgo, final override val initHex: String = "0") : Memory() {
-    final override val instanceSize: Variable.Size = backingMemory.instanceSize
-    final override val addressSize: Variable.Size = backingMemory.addressSize
+    final override val instanceSize: Size = backingMemory.instanceSize
+    final override val addressSize: Size = backingMemory.addressSize
 
     val model = Model(backingMemory, console, instanceSize, addressSize, indexBits, offsetBits, blockCount, replaceAlgo, initHex)
 
@@ -90,7 +91,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         return Hex(hexValues.joinToString("") { it })
     }
 
-    override fun store(address: Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
+    override fun store(address: Hex, value: Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
         val offsetIndex = address.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
         val values = value.toHex().splitToArray(instanceSize)
 
@@ -127,7 +128,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
     private fun loadUnaligned(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
         val ranges = mutableListOf<Pair<Hex, Int>>()
         var remaining = amount
-        var currAddress: Variable.Value = address
+        var currAddress: Value = address
 
         while (remaining > 0) {
             val offsetIndex = currAddress.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
@@ -155,7 +156,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         return Hex(values.joinToString("") { it.toRawString() })
     }
 
-    private fun storeUnaligned(address: Hex, value: Variable.Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
+    private fun storeUnaligned(address: Hex, value: Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
         val ranges = mutableListOf<Pair<Hex, Array<Hex>>>()
 
         val remaining = value.toHex().splitToArray(instanceSize).toMutableList()
@@ -165,7 +166,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             Endianess.BigEndian -> {}
         }
 
-        var currAddress: Variable.Value = address
+        var currAddress: Value = address
 
         while (remaining.isNotEmpty()) {
             val offsetIndex = currAddress.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
@@ -193,7 +194,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         }
     }
 
-    class Model(val backingMemory: Memory, val console: IConsole, val instanceSize: Variable.Size, val addrSize: Variable.Size, val indexBits: Int, val offsetBits: Int, val blockCount: Int, val replaceAlgo: ReplaceAlgo, val initHex: String = "0") {
+    class Model(val backingMemory: Memory, val console: IConsole, val instanceSize: Size, val addrSize: Size, val indexBits: Int, val offsetBits: Int, val blockCount: Int, val replaceAlgo: ReplaceAlgo, val initHex: String = "0") {
 
         val tagBits = addrSize.bitWidth - indexBits - offsetBits
 
@@ -268,7 +269,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                 return null
             }
 
-            fun read(blockIndex: Int): Array<Variable.Value> {
+            fun read(blockIndex: Int): Array<Value> {
                 decider.read(blockIndex)
                 return blocks[blockIndex].read()
             }
@@ -321,7 +322,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                 return tag?.toRawString() == tagBinStr
             }
 
-            fun read(): Array<Variable.Value> = data.map { it.value }.toTypedArray()
+            fun read(): Array<Value> = data.map { it.value }.toTypedArray()
 
             fun write(offsetIndex: Int, value: CacheInstance) {
                 data[offsetIndex] = value
@@ -339,14 +340,9 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                 dirty = false
                 return true
             }
-
-            fun getState(): CacheBlockState {
-                if (tag == null) return CacheBlockState.INVALID
-                return if (dirty) CacheBlockState.VALID_DIRTY else CacheBlockState.VALID_CLEAN
-            }
         }
 
-        sealed class Decider(val size: Int) {
+        sealed class Decider(size: Int) {
             val range = 0..<size
 
             abstract fun indexToReplace(): Int
@@ -365,7 +361,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             }
 
             class FIFO(size: Int) : Decider(size) {
-                val order = Array(size) {
+                private val order = Array(size) {
                     it
                 }
 
@@ -384,8 +380,6 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                 override fun reset() {
                     order.sort()
                 }
-
-
             }
 
             class LRU(size: Int) : Decider(size) {

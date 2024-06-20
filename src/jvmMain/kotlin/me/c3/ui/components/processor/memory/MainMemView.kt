@@ -3,7 +3,7 @@ package me.c3.ui.components.processor.memory
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.nativeWarn
-import emulator.kit.types.Variable
+import emulator.core.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.MemTableModel
@@ -45,7 +45,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
                         it.row.getRawHexStr() == rowAddr.toString() && it.offset == offset
                     }
                     memInstance?.let { memInst ->
-                        val hex = Variable.Value.Hex(newValue.toString(), memory.instanceSize)
+                        val hex = Value.Hex(newValue.toString(), memory.instanceSize)
                         if (hex.checkResult.valid) {
                             memInst.variable.set(hex)
                         }

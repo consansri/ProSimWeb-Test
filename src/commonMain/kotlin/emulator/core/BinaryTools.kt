@@ -1,4 +1,4 @@
-package emulator.kit.types
+package emulator.core
 
 import Settings
 import debug.DebugTools

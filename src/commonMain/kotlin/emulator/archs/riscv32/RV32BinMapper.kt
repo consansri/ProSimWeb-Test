@@ -5,13 +5,13 @@ import debug.DebugTools
 import emulator.archs.riscv32.RV32Syntax.InstrType.*
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeWarn
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 
 object RV32BinMapper {
-    fun getBinaryFromInstrDef(instr: RV32Assembler.RV32Instr, addr: Hex, labelAddr: Hex, immediate: Variable.Value): Array<Bin> {
+    fun getBinaryFromInstrDef(instr: RV32Assembler.RV32Instr, addr: Hex, labelAddr: Hex, immediate: Value): Array<Bin> {
         val binArray = mutableListOf<Bin>()
         val regs = instr.regs.map { it.address.toBin() }
 
@@ -88,13 +88,13 @@ object RV32BinMapper {
 
             /*   BEQ1, BNE1, BLT1, BGE1, BLTU1, BGEU1 -> {
                    val offset = (labelAddr - addr).toBin()
-                   offset.checkSizeSigned(Variable.Size.Bit12)?.let {
+                   offset.checkSizeSigned(Size.Bit12)?.let {
                        throw Parser.ParserError( instr.rawInstr.instrName,"Calculated offset exceeds ${it.expectedSize} with ${offset}!")
                    }
 
-                   val imm12 = offset.shr(1).getResized(Variable.Size.Bit12).getRawBinStr()
-                   val imm5 = Variable.Value.Bin(imm12.substring(8) + imm12[1], Variable.Size.Bit5)
-                   val imm7 = Variable.Value.Bin(imm12[0] + imm12.substring(2, 8), Variable.Size.Bit7)
+                   val imm12 = offset.shr(1).getResized(Size.Bit12).getRawBinStr()
+                   val imm5 = Value.Bin(imm12.substring(8) + imm12[1], Size.Bit5)
+                   val imm7 = Value.Bin(imm12[0] + imm12.substring(2, 8), Size.Bit7)
 
                    val opCode = instr.type.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to regs[0], MaskLabel.RS2 to regs[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                    opCode?.let {
@@ -848,7 +848,7 @@ object RV32BinMapper {
         data class CheckResult(val matches: Boolean, val binMap: Map<MaskLabel, Bin> = mapOf())
     }
 
-    enum class MaskLabel(val static: Boolean, val maxSize: Variable.Size? = null) {
+    enum class MaskLabel(val static: Boolean, val maxSize: Size? = null) {
         OPCODE(true, Bit7),
         RD(false, Bit5),
         FUNCT3(true, Bit3),

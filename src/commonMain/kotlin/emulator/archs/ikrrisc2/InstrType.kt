@@ -6,7 +6,7 @@ import emulator.archs.ikrrisc2.IKRRisc2BinMapper.OpCode
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.common.RegContainer
 import emulator.kit.common.memory.Memory
-import emulator.kit.types.Variable
+import emulator.core.*
 
 
 enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCode, val descr: String = "") : InstrTypeInterface {
@@ -134,7 +134,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     },
     AND1i("and1i", ParamType.I_TYPE, OpCode("000101 00000 00000 0000000000000000", OPCODE, RC, RB, IMM16), "verknüpfe logisch Und mit Konstante (höherwertiges Halbwort 11...1)") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            val imm = Variable.Value.Bin("1".repeat(IKRRisc2.WORD_WIDTH.bitWidth / 2) + decodeResult.imm16.getRawBinStr(), IKRRisc2.WORD_WIDTH)
+            val imm = Value.Bin("1".repeat(IKRRisc2.WORD_WIDTH.bitWidth / 2) + decodeResult.imm16.getRawBinStr(), IKRRisc2.WORD_WIDTH)
             decodeResult.rc.set(decodeResult.rb.get().toBin() and imm)
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
@@ -209,13 +209,13 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     //
     EXTB("extb", ParamType.R1_TYPE, OpCode("111111 00000 00000 110000 00000 00000", FUNCT6, RC, RB, OPCODE, NONE5, FUNCT5), "erweitere niederwertigstes Byte (Byte 0) vorzeichenrichtig") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Variable.Size.Bit8).getResized(IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Size.Bit8).getResized(IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },
     EXTH("exth", ParamType.R1_TYPE, OpCode("111111 00000 00000 110001 00000 00000", FUNCT6, RC, RB, OPCODE, NONE5, FUNCT5), "erweitere niederwertiges Halbwort (Byte 1, Byte 0) vorzeichenrichtig") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Variable.Size.Bit16).getResized(IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(decodeResult.rb.get().toBin().getUResized(Size.Bit16).getResized(IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },
@@ -225,7 +225,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
             val binStr = decodeResult.rb.get().toBin().toRawString()
             val swappedStr = binStr.substring(8, 16) + binStr.substring(0, 8) + binStr.substring(24, 32) + binStr.substring(16, 24)
-            decodeResult.rc.set(Variable.Value.Bin(swappedStr, IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(Value.Bin(swappedStr, IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },
@@ -233,7 +233,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
             val binStr = decodeResult.rb.get().toBin().toRawString()
             val swappedStr = binStr.substring(16, 32) + binStr.substring(0, 16)
-            decodeResult.rc.set(Variable.Value.Bin(swappedStr, IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(Value.Bin(swappedStr, IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },

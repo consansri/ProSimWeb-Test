@@ -1,4 +1,4 @@
-package emulator.kit.types
+package emulator.core
 
 /**
  * This Object contains HTML encoding functions which replace certain characters with HTML symbols.

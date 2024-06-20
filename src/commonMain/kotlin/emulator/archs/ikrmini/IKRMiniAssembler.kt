@@ -11,14 +11,14 @@ import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.syntax.Rule
 import emulator.kit.common.memory.Memory
 import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.Bit16
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Size.Bit16
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 
 object IKRMiniAssembler : AsmHeader {
-    override val memAddrSize: Variable.Size = IKRMini.MEM_ADDRESS_WIDTH
-    override val wordSize: Variable.Size = IKRMini.WORDSIZE
+    override val memAddrSize: Size = IKRMini.MEM_ADDRESS_WIDTH
+    override val wordSize: Size = IKRMini.WORDSIZE
     override val detectRegistersByName: Boolean = false
     override val addrShift: Int = 0
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
@@ -57,12 +57,12 @@ object IKRMiniAssembler : AsmHeader {
 
     class IKRMiniInstr(val type: IKRMiniSyntax.InstrType, val aMode: IKRMiniSyntax.ParamType, val rawInstr: GASNode.RawInstr, val expr: List<GASNode.NumericExpr>) : GASParser.SecContent {
         override val bytesNeeded: Int = aMode.wordAmount * 2
-        val calculatedImm: MutableList<Variable.Value> = mutableListOf()
+        val calculatedImm: MutableList<Value> = mutableListOf()
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
 
-        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
+        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             val currentAMode = aMode
 
             val opCode = type.paramMap[currentAMode]

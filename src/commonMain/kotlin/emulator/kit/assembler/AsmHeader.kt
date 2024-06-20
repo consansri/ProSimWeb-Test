@@ -4,7 +4,7 @@ import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
+import emulator.core.*
 
 /**
  * Interface representing a defined assembly configuration.
@@ -12,10 +12,10 @@ import emulator.kit.types.Variable
 interface AsmHeader {
 
     /** The size of memory addresses. */
-    val memAddrSize: Variable.Size
+    val memAddrSize: Size
 
     /** The size of words. */
-    val wordSize: Variable.Size
+    val wordSize: Size
 
     /**
      * USHR Amount for calculating the true memory address. (0 is byte aligned memory addresses)

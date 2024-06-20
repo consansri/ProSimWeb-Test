@@ -9,10 +9,10 @@ import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeLog
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.Dec
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.Dec
+import emulator.core.Value.Hex
 
 enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -1139,7 +1139,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                     it.evaluate(false)
                 }.joinToString("") { it }
                 val chunks = string.chunked(4).map {
-                    Variable.Tools.asciiToHex(it.reversed())
+                    Value.Tools.asciiToHex(it.reversed())
                 }
                 chunks.forEach { hexStr ->
                     when (hexStr.length) {
@@ -1171,7 +1171,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 strings.forEach { string ->
                     val chunks = string.chunked(4).map {
-                        Variable.Tools.asciiToHex(it.reversed())
+                        Value.Tools.asciiToHex(it.reversed())
                     }
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
@@ -1235,7 +1235,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 strings.forEach { string ->
                     val chunks = string.chunked(4).map {
-                        Variable.Tools.asciiToHex(it.reversed())
+                        Value.Tools.asciiToHex(it.reversed())
                     }
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
@@ -1269,7 +1269,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 strings.forEach { string ->
                     val chunks = string.chunked(4).map {
-                        Variable.Tools.asciiToHex(it.reversed())
+                        Value.Tools.asciiToHex(it.reversed())
                     }
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
@@ -1303,7 +1303,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 strings.forEach { string ->
                     val chunks = string.chunked(2).map {
-                        Variable.Tools.asciiToHex(it.reversed())
+                        Value.Tools.asciiToHex(it.reversed())
                     }
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {
@@ -1328,7 +1328,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 strings.forEach { string ->
                     val chunks = string.map {
-                        Variable.Tools.asciiToHex(it.toString())
+                        Value.Tools.asciiToHex(it.toString())
                     }
                     chunks.forEach { hexStr ->
                         when (hexStr.length) {

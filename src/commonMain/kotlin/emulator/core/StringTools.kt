@@ -1,4 +1,4 @@
-package emulator.kit.types
+package emulator.core
 
 /**
  *  This Object contains some often needed [String] helping functions.

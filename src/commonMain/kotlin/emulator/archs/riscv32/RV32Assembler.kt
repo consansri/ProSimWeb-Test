@@ -15,13 +15,13 @@ import emulator.kit.common.RegContainer
 import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.*
 
 object RV32Assembler : AsmHeader {
-    override val memAddrSize: Variable.Size = RV32.MEM_ADDRESS_WIDTH
-    override val wordSize: Variable.Size = RV32.WORD_WIDTH
+    override val memAddrSize: Size = RV32.MEM_ADDRESS_WIDTH
+    override val wordSize: Size = RV32.WORD_WIDTH
     override val detectRegistersByName: Boolean = true
     override val addrShift: Int = 0
     override val prefices: Lexer.Prefices = object : Lexer.Prefices {
@@ -73,12 +73,12 @@ object RV32Assembler : AsmHeader {
         throw Parser.ParserError(rawInstr.instrName, "Invalid Arguments for ${rawInstr.instrName.instr?.getDetectionName() ?: rawInstr.instrName} ${rawInstr.remainingTokens.joinToString("") { it.toString() }}")
     }
 
-    class RV32Instr(val rawInstr: GASNode.RawInstr, val type: RV32Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Variable.Value = Dec("0", Bit32), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
+    class RV32Instr(val rawInstr: GASNode.RawInstr, val type: RV32Syntax.InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Value = Dec("0", Bit32), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
         override val bytesNeeded: Int = type.memWords * 4
         override fun getFirstToken(): Token = rawInstr.instrName
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
-        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
+        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             label?.assignLabels(labels)
             val labelAddr = label?.evaluate(true)?.toHex()
 

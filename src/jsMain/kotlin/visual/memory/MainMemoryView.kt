@@ -7,7 +7,7 @@ import emotion.react.css
 import emulator.kit.Architecture
 import emulator.kit.common.memory.MainMemory
 import emulator.kit.common.memory.Memory
-import emulator.kit.types.Variable
+import emulator.core.*
 import react.*
 import react.dom.html.ReactHTML
 import visual.StyleExt.get
@@ -90,7 +90,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
             ReactHTML.tbody {
                 ref = tbody
 
-                var previousAddress: Variable.Value.Hex? = null
+                var previousAddress: Value.Hex? = null
                 val tempMemRows = memList.sortedBy { it.address.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
                 val tempRevMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
                 if (DebugTools.REACT_showUpdateInfo) {
@@ -99,9 +99,9 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                 for (memRow in if (props.lowFirst) tempMemRows else tempRevMemRows) {
                     val rowsBetween = if (previousAddress != null) {
                         if (props.lowFirst) {
-                            Variable.Value.Hex(memRow.key) - previousAddress > Variable.Value.Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
+                            Value.Hex(memRow.key) - previousAddress > Value.Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
                         } else {
-                            previousAddress - Variable.Value.Hex(memRow.key) > Variable.Value.Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
+                            previousAddress - Value.Hex(memRow.key) > Value.Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
                         }
                     } else false
 
@@ -118,7 +118,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                             }
                         }
                     }
-                    previousAddress = Variable.Value.Hex(memRow.key, props.memory.addressSize)
+                    previousAddress = Value.Hex(memRow.key, props.memory.addressSize)
                     ReactHTML.tr {
                         ReactHTML.th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
@@ -218,7 +218,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                     defaultValue = editVar.variable.get().toHex().getRawHexStr()
 
                     onChange = {
-                        val hex = Variable.Value.Hex(it.currentTarget.value, props.archState.component1().memory.instanceSize)
+                        val hex = Value.Hex(it.currentTarget.value, props.archState.component1().memory.instanceSize)
                         if (hex.checkResult.valid) {
                             editVar.variable.set(hex)
                         } else {

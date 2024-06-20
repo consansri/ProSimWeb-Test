@@ -4,7 +4,7 @@ import Performance
 import emulator.kit.common.memory.Memory
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
-import emulator.kit.types.Variable
+import emulator.core.Value
 import kotlin.time.measureTime
 
 abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
@@ -105,7 +105,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
         console.exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
-    override fun exeUntilAddress(address: Variable.Value.Hex) {
+    override fun exeUntilAddress(address: Value.Hex) {
         var instrCount = 0L
         val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {

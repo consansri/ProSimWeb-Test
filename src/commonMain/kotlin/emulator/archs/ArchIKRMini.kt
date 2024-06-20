@@ -5,7 +5,7 @@ import emulator.archs.ikrmini.IKRMiniSyntax
 import emulator.kit.MicroSetup
 import emulator.kit.common.memory.Memory
 import emulator.kit.optional.BasicArchImpl
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.Value.Hex
 
 class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
     var instrMemory: Memory = memory

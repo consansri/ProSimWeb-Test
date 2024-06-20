@@ -3,9 +3,9 @@ package me.c3.ui.components.transcript
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.*
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.state.*
@@ -107,7 +107,7 @@ class TranscriptView() : CPanel(primary = false) {
      * Executes the code until the specified address.
      * @param address The address to execute until.
      */
-    private fun executeUntilAddress(address: Variable.Value.Hex) {
+    private fun executeUntilAddress(address: Value.Hex) {
         States.arch.get().exeUntilAddress(address)
         Events.exe.triggerEvent(States.arch.get())
     }

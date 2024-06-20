@@ -9,10 +9,10 @@ import emulator.kit.common.memory.*
 import emulator.kit.configs.AsmConfig
 import emulator.kit.configs.Config
 import emulator.kit.optional.SetupSetting
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.Bit16
-import emulator.kit.types.Variable.Size.Bit8
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.Size.Bit16
+import emulator.core.Size.Bit8
+import emulator.core.Value.Hex
+import emulator.core.*
 
 
 /**

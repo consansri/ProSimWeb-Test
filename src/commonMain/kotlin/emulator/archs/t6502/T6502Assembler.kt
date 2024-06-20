@@ -13,10 +13,10 @@ import emulator.kit.assembler.syntax.Rule
 import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.Bit16
-import emulator.kit.types.Variable.Size.Bit8
-import emulator.kit.types.Variable.Value.*
+import emulator.core.*
+import emulator.core.Size.Bit16
+import emulator.core.Size.Bit8
+import emulator.core.Value.*
 
 object T6502Assembler : AsmHeader {
     override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
@@ -31,8 +31,8 @@ object T6502Assembler : AsmHeader {
         override val oct: String = "0"
         override val symbol: Regex = Regex("""^[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
-    override val memAddrSize: Variable.Size = T6502.MEM_ADDR_SIZE
-    override val wordSize: Variable.Size = T6502.WORD_SIZE
+    override val memAddrSize: Size = T6502.MEM_ADDR_SIZE
+    override val wordSize: Size = T6502.WORD_SIZE
 
     override fun parseInstrParams(rawInstr: GASNode.RawInstr, tempContainer: GASParser.TempContainer): List<GASParser.SecContent> {
         val instrType = InstrType.entries.firstOrNull { rawInstr.instrName.instr?.getDetectionName() == it.name } ?: throw Parser.ParserError(rawInstr.instrName, "Is not a T6502 Instruction!")
@@ -96,7 +96,7 @@ object T6502Assembler : AsmHeader {
         override fun allTokensIncludingPseudo(): List<Token> = rawInstr.tokensIncludingReferences()
 
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
-        override fun getBinaryArray(yourAddr: Variable.Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
+        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             val opCode = type.opCode[amode]
             if (opCode == null) {
                 throw Parser.ParserError(rawInstr.instrName, "Couldn't resolve opcode for the following combination: ${type.name} and ${amode.name}")

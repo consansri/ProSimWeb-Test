@@ -11,12 +11,11 @@ import emulator.kit.assembler.parser.TreeResult
 import emulator.kit.common.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.Bit16
-import emulator.kit.types.Variable.Tools.mergeToChunks
-import emulator.kit.types.Variable.Value
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Size.Bit16
+import emulator.core.Value.Tools.mergeToChunks
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 
 /**
  * The GASParser class is responsible for parsing GAS (GNU Assembler) syntax.
@@ -540,7 +539,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
                             }
                         }
                     }.toTypedArray()
-                    val words = bytes.mergeToChunks(Variable.Size.Bit8, memory.instanceSize)
+                    val words = bytes.mergeToChunks(Size.Bit8, memory.instanceSize)
 
                     memory.storeArray(addr.toHex(), *words, mark = mark ?: Memory.InstanceType.DATA)
                 }

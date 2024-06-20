@@ -7,9 +7,9 @@ import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.common.memory.Memory
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Hex
+import emulator.core.*
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
 
 class IKRMiniSyntax {
     enum class ParamType(val tokenSeq: Rule?, val wordAmount: Int, val exampleString: String) {
@@ -487,7 +487,7 @@ class IKRMiniSyntax {
             }
 
             val oldFlags = getFlags(arch)
-            flags.set(Bin("${if (n ?: oldFlags.n) "1" else "0"}${if (z ?: oldFlags.z) "1" else "0"}${if (v ?: oldFlags.v) "1" else "0"}${if (c ?: oldFlags.c) "1" else "0"}", Variable.Size.Bit4))
+            flags.set(Bin("${if (n ?: oldFlags.n) "1" else "0"}${if (z ?: oldFlags.z) "1" else "0"}${if (v ?: oldFlags.v) "1" else "0"}${if (c ?: oldFlags.c) "1" else "0"}", Size.Bit4))
         }
 
     }

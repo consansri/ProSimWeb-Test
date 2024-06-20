@@ -9,7 +9,7 @@ import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.common.memory.Memory
-import emulator.kit.types.Variable
+import emulator.core.*
 
 class RV32Syntax {
 
@@ -218,7 +218,7 @@ class RV32Syntax {
 
     enum class InstrType(val id: String, val pseudo: Boolean, val paramType: ParamType, val opCode: OpCode? = null, val memWords: Int = 1, val relative: InstrType? = null, val needFeatures: List<Int> = emptyList()) : InstrTypeInterface {
         LUI("LUI", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 0110111", arrayOf(IMM20, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker) // only for console information
                 // get relevant parameters from binary map
                 val rdAddr = paramMap[RD]
@@ -234,11 +234,11 @@ class RV32Syntax {
                 val shiftedIMM = imm20.getResized(RV32.XLEN) shl 12 // from imm20 to imm32
                 // change states
                 rd.set(shiftedIMM)    // set register to imm32 value
-                pc.set(pc.get() + Variable.Value.Hex("4"))
+                pc.set(pc.get() + Value.Hex("4"))
             }
         },
         AUIPC("AUIPC", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 0010111", arrayOf(IMM20, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 if (rdAddr != null) {
@@ -249,13 +249,13 @@ class RV32Syntax {
                         val shiftedIMM = imm20.getUResized(RV32.XLEN) shl 12
                         val sum = pc.get() + shiftedIMM
                         rd.set(sum)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         JAL("JAL", false, ParamType.RD_I20, OpCode("00000000000000000000 00000 1101111", arrayOf(IMM20, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 if (rdAddr != null) {
@@ -271,16 +271,16 @@ class RV32Syntax {
                          *        Location       20 [      10 : 1               ] 11 [ 19 : 12             ]
                          */
 
-                        val shiftedImm = Variable.Value.Bin(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), Variable.Size.Bit20).getResized(RV32.XLEN) shl 1
+                        val shiftedImm = Value.Bin(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), Size.Bit20).getResized(RV32.XLEN) shl 1
 
-                        rd.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(pc.get() + Value.Hex("4"))
                         pc.set(pc.get() + shiftedImm)
                     }
                 }
             }
         },
         JALR("JALR", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 000 00000 1100111", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -291,7 +291,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && imm12 != null && rs1 != null) {
                         val jumpAddr = rs1.get() + imm12.getResized(RV32.XLEN)
-                        rd.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(pc.get() + Value.Hex("4"))
                         pc.set(jumpAddr)
                     }
                 }
@@ -303,7 +303,7 @@ class RV32Syntax {
             "BEQ", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 000 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -314,15 +314,15 @@ class RV32Syntax {
                     val imm5 = paramMap[IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Variable.Size.Bit7).getRawBinStr()
-                        val imm5str = imm5.getResized(Variable.Size.Bit5).getRawBinStr()
-                        val imm12 = Variable.Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12)
+                        val imm7str = imm7.getResized(Size.Bit7).getRawBinStr()
+                        val imm5str = imm5.getResized(Size.Bit5).getRawBinStr()
+                        val imm12 = Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
 
                         val offset = imm12.toBin().getResized(RV32.XLEN) shl 1
                         if (rs1.get().toBin() == rs2.get().toBin()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Variable.Value.Hex("4"))
+                            pc.set(pc.get() + Value.Hex("4"))
                         }
                     }
                 }
@@ -332,7 +332,7 @@ class RV32Syntax {
             "BNE", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 001 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -343,14 +343,14 @@ class RV32Syntax {
                     val imm5 = paramMap[IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Variable.Size.Bit7).getRawBinStr()
-                        val imm5str = imm5.getResized(Variable.Size.Bit5).getRawBinStr()
-                        val imm12 = Variable.Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12)
+                        val imm7str = imm7.getResized(Size.Bit7).getRawBinStr()
+                        val imm5str = imm5.getResized(Size.Bit5).getRawBinStr()
+                        val imm12 = Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV32.XLEN) shl 1
                         if (rs1.get().toBin() != rs2.get().toBin()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Variable.Value.Hex("4"))
+                            pc.set(pc.get() + Value.Hex("4"))
                         }
                     }
                 }
@@ -360,7 +360,7 @@ class RV32Syntax {
             "BLT", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 100 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -371,14 +371,14 @@ class RV32Syntax {
                     val imm5 = paramMap[IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Variable.Size.Bit7).getRawBinStr()
-                        val imm5str = imm5.getResized(Variable.Size.Bit5).getRawBinStr()
-                        val imm12 = Variable.Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12)
+                        val imm7str = imm7.getResized(Size.Bit7).getRawBinStr()
+                        val imm5str = imm5.getResized(Size.Bit5).getRawBinStr()
+                        val imm12 = Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV32.XLEN) shl 1
                         if (rs1.get().toDec() < rs2.get().toDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Variable.Value.Hex("4"))
+                            pc.set(pc.get() + Value.Hex("4"))
                         }
                     }
                 }
@@ -388,7 +388,7 @@ class RV32Syntax {
             "BGE", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 101 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -399,14 +399,14 @@ class RV32Syntax {
                     val imm5 = paramMap[IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Variable.Size.Bit7).getRawBinStr()
-                        val imm5str = imm5.getResized(Variable.Size.Bit5).getRawBinStr()
-                        val imm12 = Variable.Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12)
+                        val imm7str = imm7.getResized(Size.Bit7).getRawBinStr()
+                        val imm5str = imm5.getResized(Size.Bit5).getRawBinStr()
+                        val imm12 = Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV32.XLEN) shl 1
                         if (rs1.get().toDec() >= rs2.get().toDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Variable.Value.Hex("4"))
+                            pc.set(pc.get() + Value.Hex("4"))
                         }
                     }
                 }
@@ -416,7 +416,7 @@ class RV32Syntax {
             "BLTU", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 110 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -427,14 +427,14 @@ class RV32Syntax {
                     val imm5 = paramMap[IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Variable.Size.Bit7).getRawBinStr()
-                        val imm5str = imm5.getResized(Variable.Size.Bit5).getRawBinStr()
-                        val imm12 = Variable.Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12)
+                        val imm7str = imm7.getResized(Size.Bit7).getRawBinStr()
+                        val imm5str = imm5.getResized(Size.Bit5).getRawBinStr()
+                        val imm12 = Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV32.XLEN) shl 1
                         if (rs1.get().toUDec() < rs2.get().toUDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Variable.Value.Hex("4"))
+                            pc.set(pc.get() + Value.Hex("4"))
                         }
                     }
                 }
@@ -444,7 +444,7 @@ class RV32Syntax {
             "BGEU", false, ParamType.RS1_RS2_LBL,
             OpCode("0000000 00000 00000 111 00000 1100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -455,21 +455,21 @@ class RV32Syntax {
                     val imm5 = paramMap[IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Variable.Size.Bit7).getRawBinStr()
-                        val imm5str = imm5.getResized(Variable.Size.Bit5).getRawBinStr()
-                        val imm12 = Variable.Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Variable.Size.Bit12)
+                        val imm7str = imm7.getResized(Size.Bit7).getRawBinStr()
+                        val imm5str = imm5.getResized(Size.Bit5).getRawBinStr()
+                        val imm12 = Value.Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV32.XLEN) shl 1
                         if (rs1.get().toUDec() >= rs2.get().toUDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Variable.Value.Hex("4"))
+                            pc.set(pc.get() + Value.Hex("4"))
                         }
                     }
                 }
             }
         },
         LB("LB", false, ParamType.RD_OFF12, OpCode("000000000000 00000 000 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -482,13 +482,13 @@ class RV32Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedByte = arch.dataMemory.load(memAddr.toHex(), tracker = tracker).toBin().getResized(RV32.XLEN)
                         rd.set(loadedByte)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         LH("LH", false, ParamType.RD_OFF12, OpCode("000000000000 00000 001 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -501,13 +501,13 @@ class RV32Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedHalfWord = arch.dataMemory.load(memAddr.toHex(), 2, tracker = tracker).toBin().getResized(RV32.XLEN)
                         rd.set(loadedHalfWord)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         LW("LW", false, ParamType.RD_OFF12, OpCode("000000000000 00000 010 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -520,13 +520,13 @@ class RV32Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedWord = arch.dataMemory.load(memAddr.toHex(), 4, tracker = tracker).toBin().getResized(RV32.XLEN)
                         rd.set(loadedWord)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         LBU("LBU", false, ParamType.RD_OFF12, OpCode("000000000000 00000 100 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -539,13 +539,13 @@ class RV32Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedByte = arch.dataMemory.load(memAddr.toHex(), tracker = tracker)
                         rd.set(loadedByte.toBin().getUResized(RV32.XLEN))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         LHU("LHU", false, ParamType.RD_OFF12, OpCode("000000000000 00000 101 00000 0000011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -558,7 +558,7 @@ class RV32Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV32.XLEN)
                         val loadedByte = arch.dataMemory.load(memAddr.toHex(), 2, tracker = tracker)
                         rd.set(loadedByte.toBin().getUResized(RV32.XLEN))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -567,7 +567,7 @@ class RV32Syntax {
             "SB", false, ParamType.RS2_OFF12,
             OpCode("0000000 00000 00000 000 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -580,8 +580,8 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit8), tracker = tracker)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Size.Bit8), tracker = tracker)
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -590,7 +590,7 @@ class RV32Syntax {
             "SH", false, ParamType.RS2_OFF12,
             OpCode("0000000 00000 00000 001 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -603,8 +603,8 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit16), tracker = tracker)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Size.Bit16), tracker = tracker)
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -613,7 +613,7 @@ class RV32Syntax {
             "SW", false, ParamType.RS2_OFF12,
             OpCode("0000000 00000 00000 010 00000 0100011", arrayOf(IMM7, RS2, RS1, FUNCT3, IMM5, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rs1Addr = paramMap[RS1]
                 val rs2Addr = paramMap[RS2]
@@ -626,14 +626,14 @@ class RV32Syntax {
                     if (rs1 != null && rs2 != null) {
                         val off64 = (imm7.getResized(RV32.XLEN) shl 5) + imm5
                         val memAddr = rs1.variable.get().toBin().getResized(RV32.XLEN) + off64
-                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Variable.Size.Bit32), tracker = tracker)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Size.Bit32), tracker = tracker)
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         ADDI("ADDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 000 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -646,13 +646,13 @@ class RV32Syntax {
                         val paddedImm64 = imm12.getResized(RV32.XLEN)
                         val sum = rs1.get().toBin() + paddedImm64
                         rd.set(sum)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         SLTI("SLTI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 010 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -663,14 +663,14 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV32.XLEN)
-                        rd.set(if (rs1.get().toDec() < paddedImm64.toDec()) Variable.Value.Bin("1", RV32.XLEN) else Variable.Value.Bin("0", RV32.XLEN))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(if (rs1.get().toDec() < paddedImm64.toDec()) Value.Bin("1", RV32.XLEN) else Value.Bin("0", RV32.XLEN))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         SLTIU("SLTIU", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 011 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -681,14 +681,14 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getUResized(RV32.XLEN)
-                        rd.set(if (rs1.get().toBin() < paddedImm64) Variable.Value.Bin("1", RV32.XLEN) else Variable.Value.Bin("0", RV32.XLEN))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(if (rs1.get().toBin() < paddedImm64) Value.Bin("1", RV32.XLEN) else Value.Bin("0", RV32.XLEN))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         XORI("XORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 100 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -700,13 +700,13 @@ class RV32Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV32.XLEN)
                         rd.set(rs1.get().toBin() xor paddedImm64)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         ORI("ORI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 110 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -718,13 +718,13 @@ class RV32Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV32.XLEN)
                         rd.set(rs1.get().toBin() or paddedImm64)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
         },
         ANDI("ANDI", false, ParamType.RD_RS1_I12, OpCode("000000000000 00000 111 00000 0010011", arrayOf(IMM12, RS1, FUNCT3, RD, OPCODE))) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -736,7 +736,7 @@ class RV32Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV32.XLEN)
                         rd.set(rs1.get().toBin() and paddedImm64)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -745,7 +745,7 @@ class RV32Syntax {
             "SLLI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0000000 00000 00000 001 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -756,7 +756,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt5 != null && rs1 != null) {
                         rd.set(rs1.get().toBin() ushl shamt5.getRawBinStr().toInt(2))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -765,7 +765,7 @@ class RV32Syntax {
             "SRLI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0000000 00000 00000 101 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -776,7 +776,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt5 != null && rs1 != null) {
                         rd.set(rs1.get().toBin() ushr shamt5.getRawBinStr().toInt(2))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -785,7 +785,7 @@ class RV32Syntax {
             "SRAI", false, ParamType.RD_RS1_SHAMT5,
             OpCode("0100000 00000 00000 101 00000 0010011", arrayOf(FUNCT7, SHAMT, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -796,7 +796,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt5 != null && rs1 != null) {
                         rd.set(rs1.get().toBin() shr shamt5.getRawBinStr().toInt(2))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -805,7 +805,7 @@ class RV32Syntax {
             "ADD", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -817,7 +817,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() + rs2.get().toBin())
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -826,7 +826,7 @@ class RV32Syntax {
             "SUB", false, ParamType.RD_RS1_RS2,
             OpCode("0100000 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -838,7 +838,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() - rs2.get().toBin())
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -847,7 +847,7 @@ class RV32Syntax {
             "SLL", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -858,8 +858,8 @@ class RV32Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin() ushl rs2.get().toBin().getUResized(Variable.Size.Bit6).getRawBinStr().toInt(2))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(rs1.get().toBin() ushl rs2.get().toBin().getUResized(Size.Bit6).getRawBinStr().toInt(2))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -868,7 +868,7 @@ class RV32Syntax {
             "SLT", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -879,8 +879,8 @@ class RV32Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(if (rs1.get().toDec() < rs2.get().toDec()) Variable.Value.Bin("1", Variable.Size.Bit32) else Variable.Value.Bin("0", Variable.Size.Bit32))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(if (rs1.get().toDec() < rs2.get().toDec()) Value.Bin("1", Size.Bit32) else Value.Bin("0", Size.Bit32))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -889,7 +889,7 @@ class RV32Syntax {
             "SLTU", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -900,8 +900,8 @@ class RV32Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(if (rs1.get().toBin() < rs2.get().toBin()) Variable.Value.Bin("1", Variable.Size.Bit32) else Variable.Value.Bin("0", Variable.Size.Bit32))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(if (rs1.get().toBin() < rs2.get().toBin()) Value.Bin("1", Size.Bit32) else Value.Bin("0", Size.Bit32))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -910,7 +910,7 @@ class RV32Syntax {
             "XOR", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -922,7 +922,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() xor rs2.get().toBin())
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -931,7 +931,7 @@ class RV32Syntax {
             "SRL", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -942,8 +942,8 @@ class RV32Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin() ushr rs2.get().toBin().getUResized(Variable.Size.Bit6).getRawBinStr().toInt(2))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(rs1.get().toBin() ushr rs2.get().toBin().getUResized(Size.Bit6).getRawBinStr().toInt(2))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -952,7 +952,7 @@ class RV32Syntax {
             "SRA", false, ParamType.RD_RS1_RS2,
             OpCode("0100000 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -963,8 +963,8 @@ class RV32Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin() shr rs2.get().toBin().getUResized(Variable.Size.Bit6).getRawBinStr().toInt(2))
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        rd.set(rs1.get().toBin() shr rs2.get().toBin().getUResized(Size.Bit6).getRawBinStr().toInt(2))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -973,7 +973,7 @@ class RV32Syntax {
             "OR", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -985,7 +985,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() or rs2.get().toBin())
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -994,7 +994,7 @@ class RV32Syntax {
             "AND", false, ParamType.RD_RS1_RS2,
             OpCode("0000000 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE))
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1006,7 +1006,7 @@ class RV32Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() and rs2.get().toBin())
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1017,7 +1017,7 @@ class RV32Syntax {
             "CSRRW", false, ParamType.CSR_RD_OFF12_RS1,
             OpCode("000000000000 00000 001 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1035,7 +1035,7 @@ class RV32Syntax {
 
                         csr.set(rs1.get())
 
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1044,7 +1044,7 @@ class RV32Syntax {
             "CSRRS", false, ParamType.CSR_RD_OFF12_RS1,
             OpCode("000000000000 00000 010 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1062,7 +1062,7 @@ class RV32Syntax {
 
                         csr.set(rs1.get().toBin() or csr.get().toBin())
 
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1071,7 +1071,7 @@ class RV32Syntax {
             "CSRRC", false, ParamType.CSR_RD_OFF12_RS1,
             OpCode("000000000000 00000 011 00000 1110011", arrayOf(CSR, RS1, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1089,7 +1089,7 @@ class RV32Syntax {
 
                         csr.set(csr.get().toBin() and rs1.get().toBin().inv())
 
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1098,7 +1098,7 @@ class RV32Syntax {
             "CSRRWI", false, ParamType.CSR_RD_OFF12_UIMM5,
             OpCode("000000000000 00000 101 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val uimm5 = paramMap[UIMM5]
@@ -1115,7 +1115,7 @@ class RV32Syntax {
 
                         csr.set(uimm5.getUResized(RV32.XLEN))
 
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1124,7 +1124,7 @@ class RV32Syntax {
             "CSRRSI", false, ParamType.CSR_RD_OFF12_UIMM5,
             OpCode("000000000000 00000 110 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val uimm5 = paramMap[UIMM5]
@@ -1141,7 +1141,7 @@ class RV32Syntax {
 
                         csr.set(csr.get().toBin() or uimm5.getUResized(RV32.XLEN))
 
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1150,7 +1150,7 @@ class RV32Syntax {
             "CSRRCI", false, ParamType.CSR_RD_OFF12_UIMM5,
             OpCode("000000000000 00000 111 00000 1110011", arrayOf(CSR, UIMM5, FUNCT3, RD, OPCODE)), needFeatures = listOf(RV32.EXTENSION.CSR.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val uimm5 = paramMap[UIMM5]
@@ -1167,7 +1167,7 @@ class RV32Syntax {
 
                         csr.set(csr.get().toBin() and uimm5.getUResized(RV32.XLEN).inv())
 
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1184,7 +1184,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 000 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1200,7 +1200,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexTimesSigned(factor2)
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1212,7 +1212,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 001 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1228,7 +1228,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexTimesSigned(factor2, false).shr(RV32.XLEN.bitWidth).getResized(RV32.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1240,7 +1240,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 010 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1256,7 +1256,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexTimesSigned(factor2, resizeToLargestParamSize = false, true).ushr(RV32.XLEN.bitWidth).getResized(RV32.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1268,7 +1268,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 011 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1284,7 +1284,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = (factor1 * factor2).toBin().ushr(RV32.XLEN.bitWidth).getUResized(RV32.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1296,7 +1296,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 100 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1312,7 +1312,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexDivSigned(factor2, dividendIsUnsigned = true)
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1324,7 +1324,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 101 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1340,7 +1340,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1 / factor2
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1352,7 +1352,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 110 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1368,7 +1368,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexRemSigned(factor2)
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1380,7 +1380,7 @@ class RV32Syntax {
             OpCode("0000001 00000 00000 111 00000 0110011", arrayOf(FUNCT7, RS2, RS1, FUNCT3, RD, OPCODE)),
             needFeatures = listOf(RV32.EXTENSION.M.ordinal)
         ) {
-            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+            override fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
                 super.execute(arch, paramMap, tracker)
                 val rdAddr = paramMap[RD]
                 val rs1Addr = paramMap[RS1]
@@ -1396,7 +1396,7 @@ class RV32Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1 % factor2
                         rd.set(result)
-                        pc.set(pc.get() + Variable.Value.Hex("4"))
+                        pc.set(pc.get() + Value.Hex("4"))
                     }
                 }
             }
@@ -1432,7 +1432,7 @@ class RV32Syntax {
 
         override fun getDetectionName(): String = this.id
 
-        open fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Variable.Value.Bin>, tracker: Memory.AccessTracker) {
+        open fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Value.Bin>, tracker: Memory.AccessTracker) {
             arch.console.log("> $id {...}")
         }
     }

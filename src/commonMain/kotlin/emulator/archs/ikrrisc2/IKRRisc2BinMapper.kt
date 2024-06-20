@@ -6,10 +6,10 @@ import emulator.kit.Architecture
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
-import emulator.kit.types.Variable
-import emulator.kit.types.Variable.Size.*
-import emulator.kit.types.Variable.Value.Bin
-import emulator.kit.types.Variable.Value.Dec
+import emulator.core.*
+import emulator.core.Size.*
+import emulator.core.Value.Bin
+import emulator.core.Value.Dec
 
 object IKRRisc2BinMapper {
 
@@ -243,7 +243,7 @@ object IKRRisc2BinMapper {
         data class CheckResult(val matches: Boolean, val binMap: Map<MaskLabel, Bin> = mapOf())
     }
 
-    enum class MaskLabel(val static: Boolean, val maxSize: Variable.Size? = null) {
+    enum class MaskLabel(val static: Boolean, val maxSize: Size? = null) {
         OPCODE(true, Bit6),
         FUNCT6(true, Bit6),
         FUNCT5(true, Bit5),
