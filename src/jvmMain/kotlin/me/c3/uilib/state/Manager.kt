@@ -48,6 +48,12 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
 
     open fun onChange(value: T) {}
 
+    /**
+     * Adds an EventListener which executes the event on state change.
+     *
+     * If the WeakReference of the event function is null it will automatically get removed by the Manager.
+     */
+    @Deprecated("Switch to WeakReference the event functions. (Lambda Functions as Events aren't allowed anymore)")
     fun addEvent(ref: WeakReference<*>, event: (T) -> Unit) {
         listeners.add(ref to event)
     }
