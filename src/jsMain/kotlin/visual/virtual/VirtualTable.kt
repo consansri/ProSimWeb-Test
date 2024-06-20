@@ -3,7 +3,6 @@ package visual.virtual
 import JSTools
 import StyleAttr
 import emotion.react.css
-import emulator.kit.nativeLog
 import react.*
 import react.dom.html.ReactHTML.div
 import web.cssom.*
@@ -95,11 +94,8 @@ val VirtualTable = FC<VirtualTableProps> { props ->
             }
 
             onWheel = {
-                it.preventDefault()
-                it.stopPropagation()
                 val delta = it.deltaY
                 handleScroll(delta)
-                nativeLog("$it, ${it.currentTarget}")
             }
 
             // Header

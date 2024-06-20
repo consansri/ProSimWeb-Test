@@ -2,10 +2,7 @@
 import org.w3c.dom.events.EventListener
 import org.w3c.dom.get
 import web.dom.document
-import web.events.Event
-import web.events.EventType
-import web.events.addEventListener
-import web.events.removeEventListener
+import web.events.*
 import web.html.HTMLAnchorElement
 import web.html.HTMLElement
 
@@ -19,7 +16,7 @@ object JSTools {
 
     fun pauseScroll(element: HTMLElement) {
         element.addEventListener(EventType("scroll"), cancelWheel)
-        element.addEventListener(EventType("wheel"), cancelWheel)
+        element.addEventListener(EventType("wheel"), cancelWheel, AddEventListenerOptions.invoke(passive = false))
     }
 
     fun unpauseScroll(element: HTMLElement) {
