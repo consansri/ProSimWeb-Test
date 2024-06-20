@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
@@ -37,11 +37,11 @@ class CSpinnerUI : BasicSpinnerUI() {
         gbc.gridx = 2
         spinner.maybeAdd(createNextButton(), gbc)
 
-        UIManager.theme.addEvent(WeakReference(spinner)) {
+        UIStates.theme.addEvent(WeakReference(spinner)) {
             setDefaults(spinner)
         }
 
-        UIManager.scale.addEvent(WeakReference(spinner)) {
+        UIStates.scale.addEvent(WeakReference(spinner)) {
             setDefaults(spinner)
         }
     }
@@ -49,7 +49,7 @@ class CSpinnerUI : BasicSpinnerUI() {
     fun setDefaults(spinner: CSpinner) {
         spinner.isOpaque = false
         spinner.background = Color(0, 0, 0, 0)
-        spinner.foreground = UIManager.theme.get().textLaF.base
+        spinner.foreground = UIStates.theme.get().textLaF.base
         spinner.border = spinner.borderMode.getBorder()
         spinner.editor.border = BorderFactory.createEmptyBorder()
         spinner.font = spinner.fontType.getFont()
@@ -58,13 +58,13 @@ class CSpinnerUI : BasicSpinnerUI() {
     }
 
     override fun createNextButton(): Component {
-        val button = CIconButton(UIManager.icon.get().increase, CIconButton.Mode.PRIMARY_SMALL, hasHoverEffect = false)
+        val button = CIconButton(UIStates.icon.get().increase, CIconButton.Mode.PRIMARY_SMALL, hasHoverEffect = false)
         installNextButtonListeners(button)
         return button
     }
 
     override fun createPreviousButton(): Component {
-        val button = CIconButton(UIManager.icon.get().decrease, CIconButton.Mode.PRIMARY_SMALL, hasHoverEffect = false)
+        val button = CIconButton(UIStates.icon.get().decrease, CIconButton.Mode.PRIMARY_SMALL, hasHoverEffect = false)
         installPreviousButtonListeners(button)
         return button
     }

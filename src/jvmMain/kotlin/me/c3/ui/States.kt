@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.c3.ui.workspace.Workspace
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.state.Manager
 import me.c3.uilib.state.WSConfig
 import me.c3.uilib.state.WSEditor
@@ -70,9 +70,9 @@ object States {
 
     fun loadConfig(wsConfig: WSConfig) {
         arch.loadFromConfig(wsConfig)
-        UIManager.icon.loadFromConfig(wsConfig)
-        UIManager.theme.loadFromConfig(wsConfig)
-        UIManager.scale.loadFromConfig(wsConfig)
+        UIStates.icon.loadFromConfig(wsConfig)
+        UIStates.theme.loadFromConfig(wsConfig)
+        UIStates.scale.loadFromConfig(wsConfig)
     }
 
     fun SetupSetting<*>.save(arch: Architecture) {

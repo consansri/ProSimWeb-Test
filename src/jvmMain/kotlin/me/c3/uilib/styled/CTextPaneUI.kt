@@ -3,7 +3,7 @@ package me.c3.uilib.styled
 import com.formdev.flatlaf.ui.FlatTextPaneUI
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.install
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -14,13 +14,13 @@ class CTextPaneUI() : FlatTextPaneUI() {
         super.installUI(c)
         val pane = c as? CTextPane ?: return
 
-        pane.font = UIManager.theme.get().codeLaF.getFont().deriveFont(UIManager.scale.get().fontScale.codeSize)
+        pane.font = UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
 
-        UIManager.theme.addEvent(WeakReference(pane)) { _ ->
+        UIStates.theme.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
-        UIManager.scale.addEvent(WeakReference(pane)) { _ ->
+        UIStates.scale.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
@@ -29,11 +29,11 @@ class CTextPaneUI() : FlatTextPaneUI() {
     }
 
     private fun setDefaults(tp: CTextPane){
-        tp.border = BorderFactory.createEmptyBorder(0, UIManager.scale.get().borderScale.insets, 0, UIManager.scale.get().borderScale.insets)
-        tp.background = UIManager.theme.get().globalLaF.bgPrimary
-        tp.caretColor = UIManager.theme.get().codeLaF.getColor(CodeStyle.BASE0)
-        tp.foreground = UIManager.theme.get().codeLaF.getColor(CodeStyle.BASE0)
-        UIManager.theme.get().codeLaF.getFont().install(tp, UIManager.scale.get().fontScale.codeSize)
+        tp.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+        tp.background = UIStates.theme.get().globalLaF.bgPrimary
+        tp.caretColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        tp.foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        UIStates.theme.get().codeLaF.getFont().install(tp, UIStates.scale.get().fontScale.codeSize)
     }
 
 }

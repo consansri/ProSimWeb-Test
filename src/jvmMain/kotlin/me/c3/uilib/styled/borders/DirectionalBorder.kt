@@ -1,6 +1,6 @@
 package me.c3.uilib.styled.borders
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Insets
@@ -14,8 +14,8 @@ class DirectionalBorder(
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    val lineBorder = LineBorder(UIManager.theme.get().globalLaF.borderColor, UIManager.scale.get().borderScale.thickness)
-    val thickness = UIManager.scale.get().borderScale.thickness
+    val lineBorder = LineBorder(UIStates.theme.get().globalLaF.borderColor, UIStates.scale.get().borderScale.thickness)
+    val thickness = UIStates.scale.get().borderScale.thickness
 
     override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
         if (north) lineBorder.paintBorder(c, g, x, y, width, thickness)
@@ -25,11 +25,11 @@ class DirectionalBorder(
     }
 
     override fun getBorderInsets(c: Component): Insets {
-        return UIManager.scale.get().borderScale.getInsets()
+        return UIStates.scale.get().borderScale.getInsets()
     }
 
     override fun getBorderInsets(c: Component, insets: Insets): Insets {
-        val themeInsets = UIManager.scale.get().borderScale.getInsets()
+        val themeInsets = UIStates.scale.get().borderScale.getInsets()
         insets.set(themeInsets.top, themeInsets.left, themeInsets.bottom, themeInsets.right)
         return insets
     }

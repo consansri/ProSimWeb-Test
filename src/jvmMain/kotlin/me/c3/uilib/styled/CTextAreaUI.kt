@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.params.FontType
 import java.awt.Color
 import java.lang.ref.WeakReference
@@ -14,11 +14,11 @@ class CTextAreaUI(private val fontType: FontType) : BasicTextAreaUI() {
 
         val area = (c as? CTextArea) ?: return
 
-        UIManager.theme.addEvent(WeakReference(area)) { _ ->
+        UIStates.theme.addEvent(WeakReference(area)) { _ ->
             setDefaults(area)
         }
 
-        UIManager.scale.addEvent(WeakReference(area)) { _ ->
+        UIStates.scale.addEvent(WeakReference(area)) { _ ->
             setDefaults(area)
         }
 
@@ -31,8 +31,8 @@ class CTextAreaUI(private val fontType: FontType) : BasicTextAreaUI() {
         c.font = fontType.getFont()
         c.background = Color(0,0,0,0)
         c.border = c.borderMode.getBorder()
-        c.foreground = if(c.primary) UIManager.theme.get().textLaF.base else UIManager.theme.get().textLaF.baseSecondary
-        c.caretColor = UIManager.theme.get().textLaF.base
+        c.foreground = if(c.primary) UIStates.theme.get().textLaF.base else UIStates.theme.get().textLaF.baseSecondary
+        c.caretColor = UIStates.theme.get().textLaF.base
     }
 
 }

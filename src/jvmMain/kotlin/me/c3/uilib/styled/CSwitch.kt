@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import javax.swing.JButton
 
 class CSwitch(active: Boolean, mode: CIconButton.Mode = CIconButton.Mode.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
@@ -30,9 +30,9 @@ class CSwitch(active: Boolean, mode: CIconButton.Mode = CIconButton.Mode.PRIMARY
     }
 
     fun updateIcon() {
-        val onIcon = UIManager.icon.get().switchOn
-        val offIcon = UIManager.icon.get().switchOff
-        val size = mode.size(UIManager.scale.get())
+        val onIcon = UIStates.icon.get().switchOn
+        val offIcon = UIStates.icon.get().switchOff
+        val size = mode.size(UIStates.scale.get())
         icon = (if (active) onIcon else offIcon).derive(size, size)
     }
 

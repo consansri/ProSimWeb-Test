@@ -11,7 +11,7 @@ import me.c3.uilib.state.WSConfig
 import me.c3.uilib.theme.core.Theme
 import me.c3.uilib.theme.themes.LightTheme
 
-object UIManager {
+object UIStates {
     val icon = object : Manager<Icons>(BenIcons()) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_ICONS)?.let { value ->

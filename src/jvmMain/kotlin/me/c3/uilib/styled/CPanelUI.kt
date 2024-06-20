@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -17,10 +17,10 @@ class CPanelUI() : BasicPanelUI() {
         c?.isOpaque = false
         val cPanel = c as? CPanel ?: return
 
-        UIManager.theme.addEvent(WeakReference(cPanel)) { _ ->
+        UIStates.theme.addEvent(WeakReference(cPanel)) { _ ->
             setDefaults(cPanel)
         }
-        UIManager.scale.addEvent(WeakReference(cPanel)) { _ ->
+        UIStates.scale.addEvent(WeakReference(cPanel)) { _ ->
             setDefaults(cPanel)
         }
         setDefaults(cPanel)
@@ -31,7 +31,7 @@ class CPanelUI() : BasicPanelUI() {
         cPanel.border = cPanel.borderMode.getBorder()
 
         if (cPanel.isOverlay) {
-            cPanel.border = UIManager.scale.get().borderScale.getInsetBorder()
+            cPanel.border = UIStates.scale.get().borderScale.getInsetBorder()
         }
 
         cPanel.repaint()
@@ -52,16 +52,16 @@ class CPanelUI() : BasicPanelUI() {
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        g2d.color = if (cPanel.isOverlay) UIManager.theme.get().globalLaF.bgOverlay else if (cPanel.primary) UIManager.theme.get().globalLaF.bgPrimary else UIManager.theme.get().globalLaF.bgSecondary
+        g2d.color = if (cPanel.isOverlay) UIStates.theme.get().globalLaF.bgOverlay else if (cPanel.primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
         if (cPanel.roundedCorners) {
-            g2d.fillRoundRect(0, 0, c.width, c.height, UIManager.scale.get().borderScale.cornerRadius, UIManager.scale.get().borderScale.cornerRadius)
+            g2d.fillRoundRect(0, 0, c.width, c.height, UIStates.scale.get().borderScale.cornerRadius, UIStates.scale.get().borderScale.cornerRadius)
         } else {
             g2d.fillRect(0, 0, c.width, c.height)
         }
 
         if (cPanel.isOverlay) {
-            g2d.color = UIManager.theme.get().globalLaF.borderColor
-            g2d.drawRoundRect(0, 0, c.width - 1, c.height - 1, UIManager.scale.get().borderScale.cornerRadius, UIManager.scale.get().borderScale.cornerRadius)
+            g2d.color = UIStates.theme.get().globalLaF.borderColor
+            g2d.drawRoundRect(0, 0, c.width - 1, c.height - 1, UIStates.scale.get().borderScale.cornerRadius, UIStates.scale.get().borderScale.cornerRadius)
         }
 
         super.paint(g2d, c)

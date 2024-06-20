@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.controls.BottomBar
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.state.*
 import me.c3.uilib.styled.editor.*
 import java.lang.ref.WeakReference
@@ -55,7 +55,7 @@ class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(ma
             val result = compile(build)
             if (editorFile.file.name.endsWith(".s") || editorFile.file.name.endsWith(".S")) {
                 withContext(Dispatchers.Main) {
-                    this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(UIManager.theme.get().codeLaF))
+                    this@ProSimEditor.setStyledContent(result.tree.source.toStyledText(UIStates.theme.get().codeLaF))
                 }
             }
         }
@@ -105,7 +105,7 @@ class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(ma
             return
         }
 
-        val content = CEditorLineNumbers.LineContent.Text(lineLoc.lineID + 1, UIManager.theme.get().codeLaF.getColor(CodeStyle.GREENPC), ">")
+        val content = CEditorLineNumbers.LineContent.Text(lineLoc.lineID + 1, UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), ">")
         mark(content)
     }
 
@@ -125,7 +125,7 @@ class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(ma
      */
     override suspend fun highlight(text: String): List<CEditorArea.StyledChar> {
         val result = compile(false)
-        return result.tokens.toStyledText(UIManager.theme.get().codeLaF)
+        return result.tokens.toStyledText(UIStates.theme.get().codeLaF)
     }
 
     /**

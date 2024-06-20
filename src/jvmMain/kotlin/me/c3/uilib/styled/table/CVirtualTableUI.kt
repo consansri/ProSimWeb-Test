@@ -1,6 +1,6 @@
 package me.c3.uilib.styled.table
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.CLabel
 import me.c3.uilib.styled.params.FontType
 import java.awt.event.MouseAdapter
@@ -18,11 +18,11 @@ class CVirtualTableUI : ComponentUI() {
 
         val table = c as? CVirtualTable ?: return
 
-        UIManager.theme.addEvent(WeakReference(table)) { _ ->
+        UIStates.theme.addEvent(WeakReference(table)) { _ ->
             setDefaults(table)
         }
 
-        UIManager.scale.addEvent(WeakReference(table)) { _ ->
+        UIStates.scale.addEvent(WeakReference(table)) { _ ->
             setDefaults(table)
         }
 

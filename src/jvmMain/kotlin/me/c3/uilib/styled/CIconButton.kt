@@ -1,7 +1,7 @@
 package me.c3.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.scale.core.Scaling
 import me.c3.uilib.theme.core.Theme
 import java.awt.Color
@@ -28,7 +28,7 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
             updateAnim()
         }
 
-    var iconBg = UIManager.theme.get().iconLaF.iconBg
+    var iconBg = UIStates.theme.get().iconLaF.iconBg
         set(value) {
             field = value
             (ui as? CIconButtonUI)?.setDefaults(this)
@@ -105,10 +105,10 @@ open class CIconButton(icon: FlatSVGIcon? = null, mode: Mode = Mode.PRIMARY_NORM
 
 
         fun getInset(): Int = when (this) {
-            PRIMARY_NORMAL, GRADIENT_NORMAL -> UIManager.scale.get().controlScale.normalInset
-            SECONDARY_NORMAL -> UIManager.scale.get().controlScale.normalInset
-            PRIMARY_SMALL, GRADIENT_SMALL -> UIManager.scale.get().controlScale.smallInset
-            SECONDARY_SMALL -> UIManager.scale.get().controlScale.smallInset
+            PRIMARY_NORMAL, GRADIENT_NORMAL -> UIStates.scale.get().controlScale.normalInset
+            SECONDARY_NORMAL -> UIStates.scale.get().controlScale.normalInset
+            PRIMARY_SMALL, GRADIENT_SMALL -> UIStates.scale.get().controlScale.smallInset
+            SECONDARY_SMALL -> UIStates.scale.get().controlScale.smallInset
         }
 
     }

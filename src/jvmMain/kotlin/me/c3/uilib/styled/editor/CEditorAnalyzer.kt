@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.*
 import me.c3.uilib.styled.params.BorderMode
 import me.c3.uilib.styled.params.FontType
@@ -159,7 +159,7 @@ class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, 
     }
 
     inner class ModeField : CPanel(primary = true) {
-        val modeButton = CIconButton(UIManager.icon.get().folderClosed, mode = CIconButton.Mode.PRIMARY_SMALL)
+        val modeButton = CIconButton(UIStates.icon.get().folderClosed, mode = CIconButton.Mode.PRIMARY_SMALL)
 
         init {
             modeButton.addActionListener {
@@ -170,8 +170,8 @@ class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, 
 
         fun updateIcon() {
             when (mode) {
-                Mode.FIND -> modeButton.svgIcon = UIManager.icon.get().folderClosed
-                Mode.REPLACE -> modeButton.svgIcon = UIManager.icon.get().folderOpen
+                Mode.FIND -> modeButton.svgIcon = UIStates.icon.get().folderClosed
+                Mode.REPLACE -> modeButton.svgIcon = UIStates.icon.get().folderOpen
             }
         }
 
@@ -295,7 +295,7 @@ class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, 
     inner class ResultControls() : CPanel(borderMode = BorderMode.THICKNESS, primary = true) {
 
         val results = CLabel("0", FontType.BASIC)
-        val next = CIconButton(UIManager.icon.get().forwards, CIconButton.Mode.PRIMARY_SMALL).apply {
+        val next = CIconButton(UIStates.icon.get().forwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
                 val nextIndex = searchResults.indexOfFirst { editor.caret.getIndex() < it.range.first }
                 if (nextIndex != -1) {
@@ -303,7 +303,7 @@ class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, 
                 }
             }
         }
-        val previous = CIconButton(UIManager.icon.get().backwards, CIconButton.Mode.PRIMARY_SMALL).apply {
+        val previous = CIconButton(UIStates.icon.get().backwards, CIconButton.Mode.PRIMARY_SMALL).apply {
             addActionListener {
                 val prevIndex = searchResults.indexOfLast { editor.caret.getIndex() > it.range.last + 1 }
                 if (prevIndex != -1) {
@@ -370,7 +370,7 @@ class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, 
     }
 
     inner class CloseField() : CPanel(primary = true, BorderMode.WEST) {
-        private val closeBtn = CIconButton(UIManager.icon.get().close, mode = CIconButton.Mode.PRIMARY_SMALL)
+        private val closeBtn = CIconButton(UIStates.icon.get().close, mode = CIconButton.Mode.PRIMARY_SMALL)
 
         init {
             closeBtn.addActionListener {

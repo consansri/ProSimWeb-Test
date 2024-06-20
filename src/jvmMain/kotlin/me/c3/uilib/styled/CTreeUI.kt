@@ -2,7 +2,7 @@ package me.c3.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import me.c3.ui.workspace.Workspace
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.params.FontType
 import java.awt.*
 import java.lang.ref.WeakReference
@@ -17,7 +17,7 @@ import javax.swing.tree.TreePath
 class CTreeUI(
     private val fontType: FontType
 ) : BasicTreeUI() {
-    var selectedColor: Color = UIManager.theme.get().globalLaF.bgPrimary
+    var selectedColor: Color = UIStates.theme.get().globalLaF.bgPrimary
         set(value) {
             field = value
             tree.repaint()
@@ -30,18 +30,18 @@ class CTreeUI(
 
         val cTree = c as? CTree ?: return
         cTree.border = BorderFactory.createEmptyBorder(
-            UIManager.scale.get().borderScale.insets,
-            UIManager.scale.get().borderScale.insets,
-            UIManager.scale.get().borderScale.insets,
-            UIManager.scale.get().borderScale.insets
+            UIStates.scale.get().borderScale.insets,
+            UIStates.scale.get().borderScale.insets,
+            UIStates.scale.get().borderScale.insets,
+            UIStates.scale.get().borderScale.insets
         ) // Set empty border when not focused
         cTree.cellRenderer = CTreeCellRenderer()
 
-        UIManager.theme.addEvent(WeakReference(cTree)) { _ ->
+        UIStates.theme.addEvent(WeakReference(cTree)) { _ ->
             setDefaults(cTree)
         }
 
-        UIManager.scale.addEvent(WeakReference(cTree)) { _ ->
+        UIStates.scale.addEvent(WeakReference(cTree)) { _ ->
             setDefaults(cTree)
         }
 
@@ -49,14 +49,14 @@ class CTreeUI(
     }
 
     private fun setDefaults(tree: CTree) {
-        selectedColor = UIManager.theme.get().globalLaF.borderColor
+        selectedColor = UIStates.theme.get().globalLaF.borderColor
         colorFilter = FlatSVGIcon.ColorFilter {
-            UIManager.theme.get().iconLaF.iconFgPrimary
+            UIStates.theme.get().iconLaF.iconFgPrimary
         }
-        tree.background = UIManager.theme.get().globalLaF.bgSecondary
-        tree.foreground = UIManager.theme.get().textLaF.base
+        tree.background = UIStates.theme.get().globalLaF.bgSecondary
+        tree.foreground = UIStates.theme.get().textLaF.base
         tree.font = fontType.getFont()
-        tree.border = UIManager.scale.get().borderScale.getInsetBorder()
+        tree.border = UIStates.scale.get().borderScale.getInsetBorder()
         tree.revalidate()
         tree.repaint()
     }
@@ -101,9 +101,9 @@ class CTreeUI(
     ) {
         val g2d = g.create() as? Graphics2D ?: return
         if (!isLeaf) {
-            val loadedIcon = (if (isExpanded) UIManager.icon.get().folderOpen else UIManager.icon.get().folderClosed).derive(
-                UIManager.scale.get().controlScale.smallSize,
-                UIManager.scale.get().controlScale.smallSize
+            val loadedIcon = (if (isExpanded) UIStates.icon.get().folderOpen else UIStates.icon.get().folderClosed).derive(
+                UIStates.scale.get().controlScale.smallSize,
+                UIStates.scale.get().controlScale.smallSize
             )
             loadedIcon.colorFilter = colorFilter
             val iconX = bounds.x + insets.left - loadedIcon.iconWidth - getRightChildIndent() / 2
@@ -118,9 +118,9 @@ class CTreeUI(
         init {
             this.isOpaque = true
             this.font = tree.font
-            this.textNonSelectionColor = UIManager.theme.get().textLaF.base
-            this.textSelectionColor = UIManager.theme.get().textLaF.selected
-            this.border = UIManager.scale.get().controlScale.getNormalInsetBorder()
+            this.textNonSelectionColor = UIStates.theme.get().textLaF.base
+            this.textSelectionColor = UIStates.theme.get().textLaF.selected
+            this.border = UIStates.scale.get().controlScale.getNormalInsetBorder()
         }
 
         override fun getTreeCellRendererComponent(
@@ -139,39 +139,39 @@ class CTreeUI(
             val loadedIcon = if (leaf) {
                 if (uobj != null && uobj.file.isFile) {
                     if (uobj.file.extension == "s") {
-                        UIManager.icon.get().asmFile.derive(
-                            UIManager.scale.get().controlScale.smallSize,
-                            UIManager.scale.get().controlScale.smallSize
+                        UIStates.icon.get().asmFile.derive(
+                            UIStates.scale.get().controlScale.smallSize,
+                            UIStates.scale.get().controlScale.smallSize
                         )
                     } else {
-                        UIManager.icon.get().file.derive(
-                            UIManager.scale.get().controlScale.smallSize,
-                            UIManager.scale.get().controlScale.smallSize
+                        UIStates.icon.get().file.derive(
+                            UIStates.scale.get().controlScale.smallSize,
+                            UIStates.scale.get().controlScale.smallSize
                         )
                     }
                 } else {
-                    UIManager.icon.get().folder.derive(
-                        UIManager.scale.get().controlScale.smallSize,
-                        UIManager.scale.get().controlScale.smallSize
+                    UIStates.icon.get().folder.derive(
+                        UIStates.scale.get().controlScale.smallSize,
+                        UIStates.scale.get().controlScale.smallSize
                     )
                 }
 
             } else {
                 if (expanded) {
-                    UIManager.icon.get().folder.derive(
-                        UIManager.scale.get().controlScale.smallSize,
-                        UIManager.scale.get().controlScale.smallSize
+                    UIStates.icon.get().folder.derive(
+                        UIStates.scale.get().controlScale.smallSize,
+                        UIStates.scale.get().controlScale.smallSize
                     )
                 } else {
-                    UIManager.icon.get().folder.derive(
-                        UIManager.scale.get().controlScale.smallSize,
-                        UIManager.scale.get().controlScale.smallSize
+                    UIStates.icon.get().folder.derive(
+                        UIStates.scale.get().controlScale.smallSize,
+                        UIStates.scale.get().controlScale.smallSize
                     )
                 }
             }
-            this.background = if (sel) UIManager.theme.get().textLaF.selected else UIManager.theme.get().globalLaF.bgSecondary
+            this.background = if (sel) UIStates.theme.get().textLaF.selected else UIStates.theme.get().globalLaF.bgSecondary
             loadedIcon.colorFilter = colorFilter
-            this.foreground = UIManager.theme.get().textLaF.base
+            this.foreground = UIStates.theme.get().textLaF.base
             this.icon = loadedIcon
             return this
         }

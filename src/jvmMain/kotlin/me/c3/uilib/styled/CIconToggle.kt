@@ -1,7 +1,7 @@
 package me.c3.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -16,13 +16,13 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButt
             updateIcon()
         }
 
-    var activeBG: Color = UIManager.theme.get().iconLaF.iconBgActive
+    var activeBG: Color = UIStates.theme.get().iconLaF.iconBgActive
         set(value) {
             field = value
             updateIcon()
         }
 
-    var inactiveBG: Color = UIManager.theme.get().iconLaF.iconBg
+    var inactiveBG: Color = UIStates.theme.get().iconLaF.iconBg
         set(value) {
             field = value
             updateIcon()
@@ -36,11 +36,11 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButt
         isFocusable = false
         isOpaque = false
 
-        UIManager.theme.addEvent(WeakReference(this)) {
+        UIStates.theme.addEvent(WeakReference(this)) {
             setDefaults()
         }
 
-        UIManager.scale.addEvent(WeakReference(this)) {
+        UIStates.scale.addEvent(WeakReference(this)) {
             setDefaults()
         }
 
@@ -53,15 +53,15 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButt
 
     fun updateIcon() {
         background = if (active) activeBG else inactiveBG
-        val size = mode.size(UIManager.scale.get())
+        val size = mode.size(UIStates.scale.get())
         icon = svgIcon.derive(size, size)
     }
 
     fun setDefaults() {
-        activeBG = UIManager.theme.get().iconLaF.iconBgActive
-        inactiveBG = UIManager.theme.get().iconLaF.iconBg
-        mode.applyFilter(svgIcon, UIManager.theme.get())
-        border = UIManager.scale.get().borderScale.getInsetBorder()
+        activeBG = UIStates.theme.get().iconLaF.iconBgActive
+        inactiveBG = UIStates.theme.get().iconLaF.iconBg
+        mode.applyFilter(svgIcon, UIStates.theme.get())
+        border = UIStates.scale.get().borderScale.getInsetBorder()
         updateIcon()
         revalidate()
         repaint()
@@ -71,7 +71,7 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButt
         val g2d = g?.create() as? Graphics2D ?: return super.paint(g)
 
         g2d.paint = background
-        g2d.fillRoundRect(0, 0, width, height, UIManager.scale.get().borderScale.cornerRadius, UIManager.scale.get().borderScale.cornerRadius)
+        g2d.fillRoundRect(0, 0, width, height, UIStates.scale.get().borderScale.cornerRadius, UIStates.scale.get().borderScale.cornerRadius)
 
         super.paint(g2d)
         g2d.dispose()

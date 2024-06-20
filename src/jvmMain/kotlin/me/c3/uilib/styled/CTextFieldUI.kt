@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.params.FontType
 import java.awt.Color
 import java.lang.ref.WeakReference
@@ -18,11 +18,11 @@ class CTextFieldUI(private val fontType: FontType) : BasicTextFieldUI() {
         tf.horizontalAlignment = SwingConstants.CENTER
         tf.border = BorderFactory.createEmptyBorder()
 
-        UIManager.theme.addEvent(WeakReference(tf)) { _ ->
+        UIStates.theme.addEvent(WeakReference(tf)) { _ ->
             setDefaults(tf)
         }
 
-        UIManager.scale.addEvent(WeakReference(tf)) { _ ->
+        UIStates.scale.addEvent(WeakReference(tf)) { _ ->
             setDefaults(tf)
         }
 
@@ -32,7 +32,7 @@ class CTextFieldUI(private val fontType: FontType) : BasicTextFieldUI() {
     private fun setDefaults(tf: CTextField) {
         tf.isOpaque = false
         tf.font = fontType.getFont()
-        tf.caretColor = UIManager.theme.get().textLaF.base
+        tf.caretColor = UIStates.theme.get().textLaF.base
         updateTextColors(tf)
     }
 
@@ -40,7 +40,7 @@ class CTextFieldUI(private val fontType: FontType) : BasicTextFieldUI() {
         val customFG = tf.customFG
         val customBG = tf.customBG
         tf.background = customBG ?: Color(0, 0, 0, 0)
-        tf.foreground = customFG ?: UIManager.theme.get().textLaF.base
+        tf.foreground = customFG ?: UIStates.theme.get().textLaF.base
     }
 
 }

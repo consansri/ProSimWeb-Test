@@ -1,7 +1,7 @@
 package me.c3.uilib.styled
 
 import emulator.kit.memory.MainMemory
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.borders.DirectionalBorder
 import me.c3.uilib.styled.params.FontType
 import java.awt.Color
@@ -22,11 +22,11 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
 
         val table = c as? CTable ?: return
 
-        UIManager.theme.addEvent(WeakReference(table)) { _ ->
+        UIStates.theme.addEvent(WeakReference(table)) { _ ->
             setDefaults(table)
         }
 
-        UIManager.scale.addEvent(WeakReference(table)) { _ ->
+        UIStates.scale.addEvent(WeakReference(table)) { _ ->
             setDefaults(table)
         }
 
@@ -37,8 +37,8 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
-            val fg = UIManager.theme.get().textLaF.base
-            val bg = if (primary) UIManager.theme.get().globalLaF.bgPrimary else UIManager.theme.get().globalLaF.bgSecondary
+            val fg = UIStates.theme.get().textLaF.base
+            val bg = if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
 
             val cTable = table as? CTable
             cTable?.let { tab ->
@@ -53,7 +53,7 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
             val hl = cellHighlighting.firstOrNull { (it.rowID == null || it.rowID == row) && (it.colID == column || it.colID == null) }
 
             foreground = hl?.color ?: when (value) {
-                is MainMemory.MemInstance -> UIManager.theme.get().dataLaF.getMemInstanceColor(value.mark)
+                is MainMemory.MemInstance -> UIStates.theme.get().dataLaF.getMemInstanceColor(value.mark)
                 else -> fg
             }
 
@@ -75,7 +75,7 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
                 CTextButton("[$value]", FontType.CODE)
             } else {
                 CLabel(value.toString(), FontType.CODE).apply {
-                    val inset = UIManager.scale.get().borderScale.insets
+                    val inset = UIStates.scale.get().borderScale.insets
                     border = BorderFactory.createEmptyBorder(inset, inset, 0, 0)
                     horizontalAlignment = SwingConstants.CENTER
                 }
@@ -95,7 +95,7 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
     }
 
     fun setDefaults(table: CTable) {
-        table.background = UIManager.theme.get().globalLaF.bgSecondary
+        table.background = UIStates.theme.get().globalLaF.bgSecondary
         table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
         table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
         table.setDefaultEditor(Any::class.java, CCellEditor())
@@ -105,12 +105,12 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
         table.showVerticalLines = false
         table.showHorizontalLines = false
         table.gridColor = table.background
-        table.rowHeight = table.getFontMetrics(UIManager.theme.get().codeLaF.getFont().deriveFont(UIManager.scale.get().fontScale.dataSize)).height + 2 * UIManager.scale.get().borderScale.insets
+        table.rowHeight = table.getFontMetrics(UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)).height + 2 * UIStates.scale.get().borderScale.insets
 
         val header = table.tableHeader
         header.resizingAllowed = false
-        header.background = UIManager.theme.get().globalLaF.bgPrimary
-        header.foreground = UIManager.theme.get().textLaF.baseSecondary
+        header.background = UIStates.theme.get().globalLaF.bgPrimary
+        header.foreground = UIStates.theme.get().textLaF.baseSecondary
         header.font = FontType.DATA.getFont()
         header.defaultRenderer = CHeaderRenderer(!primary)
         //header.resizingAllowed = false

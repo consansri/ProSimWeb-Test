@@ -1,7 +1,7 @@
 package me.c3.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.params.BorderMode
 import me.c3.uilib.styled.params.FontType
 import java.awt.*
@@ -15,7 +15,7 @@ open class CFrame() : JFrame() {
     val titleBar = TitleBar()
     val content = CPanel( primary = false)
 
-    private var cornerRadius: Int = UIManager.scale.get().borderScale.cornerRadius
+    private var cornerRadius: Int = UIStates.scale.get().borderScale.cornerRadius
 
     private var posX = 0
     private var posY = 0
@@ -53,11 +53,11 @@ open class CFrame() : JFrame() {
 
     private fun setupUI() {
         SwingUtilities.invokeLater {
-            UIManager.scale.addEvent(WeakReference(this)) { _ ->
+            UIStates.scale.addEvent(WeakReference(this)) { _ ->
                 setDefaults()
             }
 
-            UIManager.theme.addEvent(WeakReference(this)) { _ ->
+            UIStates.theme.addEvent(WeakReference(this)) { _ ->
                 setDefaults()
             }
 
@@ -68,11 +68,11 @@ open class CFrame() : JFrame() {
     private fun setDefaults() {
         rootPane.border = BorderFactory.createEmptyBorder()
         content.border = BorderFactory.createEmptyBorder()
-        cornerRadius = UIManager.scale.get().borderScale.cornerRadius
-        background = UIManager.theme.get().globalLaF.bgSecondary
+        cornerRadius = UIStates.scale.get().borderScale.cornerRadius
+        background = UIStates.theme.get().globalLaF.bgSecondary
 
-        val icon = UIManager.icon.get().appLogo.derive(64, 64)
-        icon.colorFilter = UIManager.theme.get().icon.colorFilter
+        val icon = UIStates.icon.get().appLogo.derive(64, 64)
+        icon.colorFilter = UIStates.theme.get().icon.colorFilter
         iconImage = icon.image
     }
 
@@ -98,11 +98,11 @@ open class CFrame() : JFrame() {
 
     inner class TitleBar : CPanel( primary = false, BorderMode.SOUTH) {
 
-        val logoButton = CIconButton( UIManager.icon.get().appLogo, CIconButton.Mode.GRADIENT_NORMAL)
+        val logoButton = CIconButton( UIStates.icon.get().appLogo, CIconButton.Mode.GRADIENT_NORMAL)
         val titleLabel = CLabel( title, FontType.BASIC)
-        val minimizeButton = CIconButton( UIManager.icon.get().decrease, CIconButton.Mode.SECONDARY_SMALL)
-        val maximizeButton = CIconButton( UIManager.icon.get().increase, CIconButton.Mode.SECONDARY_SMALL)
-        val closeButton = CIconButton( UIManager.icon.get().close, CIconButton.Mode.SECONDARY_SMALL)
+        val minimizeButton = CIconButton( UIStates.icon.get().decrease, CIconButton.Mode.SECONDARY_SMALL)
+        val maximizeButton = CIconButton( UIStates.icon.get().increase, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton( UIStates.icon.get().close, CIconButton.Mode.SECONDARY_SMALL)
         val titleContent = CPanel( primary = false)
 
         init {
@@ -190,10 +190,10 @@ open class CFrame() : JFrame() {
             titleLabel.horizontalAlignment = SwingConstants.LEFT
             logoButton.isDeactivated = true
 
-            UIManager.theme.addEvent(WeakReference(this)) { _ ->
+            UIStates.theme.addEvent(WeakReference(this)) { _ ->
                 applyThemeDefaults()
             }
-            UIManager.scale.addEvent(WeakReference(this)) { _ ->
+            UIStates.scale.addEvent(WeakReference(this)) { _ ->
                 applyThemeDefaults()
             }
 
@@ -201,11 +201,11 @@ open class CFrame() : JFrame() {
         }
 
         private fun applyThemeDefaults() {
-            UIManager.icon.get().appLogo.colorFilter = FlatSVGIcon.ColorFilter {
-               UIManager.theme.get().textLaF.base
+            UIStates.icon.get().appLogo.colorFilter = FlatSVGIcon.ColorFilter {
+               UIStates.theme.get().textLaF.base
             }
 
-            logoButton.svgIcon = UIManager.icon.get().appLogo
+            logoButton.svgIcon = UIStates.icon.get().appLogo
         }
     }
 
@@ -274,9 +274,9 @@ open class CFrame() : JFrame() {
     }
 
     private fun isEdge(point: Point): ResizeMode? {
-        val left = point.x <= UIManager.scale.get().borderScale.insets
-        val right = point.x >= width - UIManager.scale.get().borderScale.insets
-        val bottom = point.y >= height - UIManager.scale.get().borderScale.insets
+        val left = point.x <= UIStates.scale.get().borderScale.insets
+        val right = point.x >= width - UIStates.scale.get().borderScale.insets
+        val bottom = point.y >= height - UIStates.scale.get().borderScale.insets
 
         return when {
             left && bottom -> ResizeMode.LEFTANDBOTTOM

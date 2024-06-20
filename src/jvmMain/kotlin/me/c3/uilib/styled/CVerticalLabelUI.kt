@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.params.FontType
 import java.awt.*
 import java.lang.ref.WeakReference
@@ -19,11 +19,11 @@ class CVerticalLabelUI( private val primary: Boolean, private val fontType: Font
 
         val cLabel = c as? CVerticalLabel ?: return
 
-        UIManager.theme.addEvent(WeakReference(cLabel)) { _ ->
+        UIStates.theme.addEvent(WeakReference(cLabel)) { _ ->
             setDefaults(cLabel)
         }
 
-        UIManager.scale.addEvent(WeakReference(cLabel)) { _ ->
+        UIStates.scale.addEvent(WeakReference(cLabel)) { _ ->
             setDefaults(cLabel)
         }
 
@@ -32,8 +32,8 @@ class CVerticalLabelUI( private val primary: Boolean, private val fontType: Font
 
     private fun setDefaults(cLabel: CVerticalLabel) {
         cLabel.font = fontType.getFont()
-        cLabel.border = UIManager.scale.get().borderScale.getInsetBorder()
-        cLabel.foreground = if(primary) UIManager.theme.get().textLaF.base else UIManager.theme.get().textLaF.baseSecondary
+        cLabel.border = UIStates.scale.get().borderScale.getInsetBorder()
+        cLabel.foreground = if(primary) UIStates.theme.get().textLaF.base else UIStates.theme.get().textLaF.baseSecondary
         cLabel.repaint()
     }
 

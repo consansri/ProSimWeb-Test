@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -26,11 +26,11 @@ class CSplitPaneUI() : BasicSplitPaneUI() {
         pane.border = BorderFactory.createEmptyBorder()
         divider.border = BorderFactory.createEmptyBorder()
 
-        UIManager.theme.addEvent(WeakReference(pane)) { _ ->
+        UIStates.theme.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
-        UIManager.scale.addEvent(WeakReference(pane)) { _ ->
+        UIStates.scale.addEvent(WeakReference(pane)) { _ ->
             setDefaults(pane)
         }
 
@@ -38,8 +38,8 @@ class CSplitPaneUI() : BasicSplitPaneUI() {
     }
 
     private fun setDefaults(cPane: CSplitPane) {
-        dividerColor = UIManager.theme.get().globalLaF.borderColor
-        cPane.setDividerSize(UIManager.scale.get().dividerScale.thickness)
+        dividerColor = UIStates.theme.get().globalLaF.borderColor
+        cPane.setDividerSize(UIStates.scale.get().dividerScale.thickness)
     }
 
     override fun createDefaultDivider(): BasicSplitPaneDivider {

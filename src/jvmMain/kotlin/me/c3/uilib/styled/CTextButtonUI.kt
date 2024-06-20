@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.params.FontType
 import java.awt.*
 import java.awt.event.MouseAdapter
@@ -20,13 +20,13 @@ class CTextButtonUI( private val fontType: FontType): BasicButtonUI() {
         button.isContentAreaFilled = false
         button.isFocusPainted = false
         button.isFocusable = false
-        button.border = UIManager.scale.get().borderScale.getInsetBorder()
+        button.border = UIStates.scale.get().borderScale.getInsetBorder()
 
         // Apply hover effect
         button.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
                 if (!button.isDeactivated) {
-                    button.background = UIManager.theme.get().iconLaF.iconBgHover
+                    button.background = UIStates.theme.get().iconLaF.iconBgHover
                     button.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
                 }
             }
@@ -36,20 +36,20 @@ class CTextButtonUI( private val fontType: FontType): BasicButtonUI() {
             }
         })
 
-        UIManager.theme.addEvent(WeakReference(button)) { _ ->
+        UIStates.theme.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
 
-        UIManager.scale.addEvent(WeakReference(button)) { _ ->
+        UIStates.scale.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
         setDefaults(button)
     }
 
     fun setDefaults(button: CTextButton) {
-        val currTheme = UIManager.theme.get()
-        val currScale = UIManager.scale.get()
-        button.border = UIManager.scale.get().borderScale.getInsetBorder()
+        val currTheme = UIStates.theme.get()
+        val currScale = UIStates.scale.get()
+        button.border = UIStates.scale.get().borderScale.getInsetBorder()
         button.font = fontType.getFont()
         button.foreground = if (button.primary) currTheme.textLaF.base else currTheme.textLaF.baseSecondary
         button.background = Color(0, 0, 0, 0)
@@ -84,7 +84,7 @@ class CTextButtonUI( private val fontType: FontType): BasicButtonUI() {
     override fun getMaximumSize(c: JComponent?): Dimension {
         return getPreferredSize(c)
     }
-    private fun getCornerRadius(): Int = UIManager.scale.get().controlScale.cornerRadius
-    private fun getInset(): Int = UIManager.scale.get().borderScale.insets
+    private fun getCornerRadius(): Int = UIStates.scale.get().controlScale.cornerRadius
+    private fun getInset(): Int = UIStates.scale.get().borderScale.insets
 
 }

@@ -6,7 +6,7 @@ import me.c3.ui.components.ProSimFrame
 import me.c3.ui.components.controls.buttons.FeatureSwitch
 import me.c3.ui.components.controls.buttons.Settings
 import me.c3.ui.components.controls.buttons.ThemeSwitch
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.CIconButton
 import me.c3.uilib.styled.CPanel
 import me.c3.uilib.styled.params.BorderMode
@@ -36,16 +36,16 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
 
     private val buttons = listOf(
         ThemeSwitch(),
-        CIconButton(UIManager.icon.get().processor).apply {
+        CIconButton(UIStates.icon.get().processor).apply {
             addActionListener {
                 processorShown = !processorShown
-                iconBg = if (processorShown) UIManager.theme.get().iconLaF.iconBgActive else UIManager.theme.get().iconLaF.iconBg
+                iconBg = if (processorShown) UIStates.theme.get().iconLaF.iconBgActive else UIStates.theme.get().iconLaF.iconBg
             }
         },
-        CIconButton(UIManager.icon.get().disassembler).apply {
+        CIconButton(UIStates.icon.get().disassembler).apply {
             addActionListener {
                 consoleAndInfoShown = !consoleAndInfoShown
-                iconBg = if (consoleAndInfoShown) UIManager.theme.get().iconLaF.iconBgActive else UIManager.theme.get().iconLaF.iconBg
+                iconBg = if (consoleAndInfoShown) UIStates.theme.get().iconLaF.iconBgActive else UIStates.theme.get().iconLaF.iconBg
             }
         },
         Settings()
@@ -57,7 +57,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
     private val gbc = GridBagConstraints().apply {
         weighty = 0.0
         weightx = 1.0
-        insets = Insets(UIManager.scale.get().controlScale.normalInset, 0, UIManager.scale.get().controlScale.normalInset, 0)
+        insets = Insets(UIStates.scale.get().controlScale.normalInset, 0, UIStates.scale.get().controlScale.normalInset, 0)
         gridx = 0
         gridy = 0
         fill = GridBagConstraints.HORIZONTAL

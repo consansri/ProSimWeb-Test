@@ -3,7 +3,7 @@ package me.c3.uilib.styled.editor
 import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.CScrollPane
 import java.awt.Color
 import java.awt.Cursor
@@ -98,7 +98,7 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     private var selEndColumn = -1
 
     // Settings
-    var tabSize = UIManager.scale.get().fontScale.tabSize
+    var tabSize = UIStates.scale.get().fontScale.tabSize
     var scrollMarginLines = 2
     var scrollMarginChars = 10
     var isEditable = true

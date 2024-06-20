@@ -1,6 +1,6 @@
 package me.c3.uilib.styled.params
 
-import me.c3.uilib.UIManager
+import me.c3.uilib.UIStates
 import java.awt.Font
 
 enum class FontType {
@@ -11,10 +11,10 @@ enum class FontType {
 
     fun getFont(): Font {
         return when (this) {
-            BASIC -> UIManager.theme.get().textLaF.getBaseFont().deriveFont(UIManager.scale.get().fontScale.textSize)
-            CODE -> UIManager.theme.get().codeLaF.getFont().deriveFont(UIManager.scale.get().fontScale.codeSize)
-            DATA -> UIManager.theme.get().codeLaF.getFont().deriveFont(UIManager.scale.get().fontScale.dataSize)
-            TITLE -> UIManager.theme.get().textLaF.getTitleFont().deriveFont(UIManager.scale.get().fontScale.titleSize)
+            BASIC -> UIStates.theme.get().textLaF.getBaseFont().deriveFont(UIStates.scale.get().fontScale.textSize)
+            CODE -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
+            DATA -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)
+            TITLE -> UIStates.theme.get().textLaF.getTitleFont().deriveFont(UIStates.scale.get().fontScale.titleSize)
         }
     }
 }
