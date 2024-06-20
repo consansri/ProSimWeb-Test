@@ -110,8 +110,8 @@ class BaseFrame() : CFrame(), ProSimFrame {
     private fun attachComponents() {
         content.layout = BorderLayout()
 
-        infoTabPane.addTab(CIcon(States.icon.get().console, CIconButton.Mode.PRIMARY_SMALL), console)
-        infoTabPane.addTab(CIcon(States.icon.get().info, CIconButton.Mode.SECONDARY_SMALL), infoView)
+        infoTabPane.addTab(CIcon(UIManager.icon.get().console, CIconButton.Mode.PRIMARY_SMALL), console)
+        infoTabPane.addTab(CIcon(UIManager.icon.get().info, CIconButton.Mode.SECONDARY_SMALL), infoView)
 
         infoTabPane.select(0)
 

@@ -1,7 +1,7 @@
 package me.c3.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -16,8 +16,8 @@ import javax.swing.plaf.basic.BasicButtonUI
 
 open class CIconButtonUI() : BasicButtonUI() {
 
-    var cornerRadius = States.scale.get().controlScale.cornerRadius
-    var hoverColor = States.theme.get().iconLaF.iconBgHover
+    var cornerRadius = UIManager.scale.get().controlScale.cornerRadius
+    var hoverColor = UIManager.theme.get().iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -31,11 +31,11 @@ open class CIconButtonUI() : BasicButtonUI() {
         button.isFocusable = true
         button.isOpaque = false
 
-        States.scale.addEvent(WeakReference(button)) { _ ->
+        UIManager.scale.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
 
-        States.theme.addEvent(WeakReference(button)) { _ ->
+        UIManager.theme.addEvent(WeakReference(button)) { _ ->
             setDefaults(button)
         }
 
@@ -60,8 +60,8 @@ open class CIconButtonUI() : BasicButtonUI() {
 
     fun setDefaults(btn: CIconButton) {
         SwingUtilities.invokeLater {
-            cornerRadius = States.scale.get().controlScale.cornerRadius
-            hoverColor = States.theme.get().iconLaF.iconBgHover
+            cornerRadius = UIManager.scale.get().controlScale.cornerRadius
+            hoverColor = UIManager.theme.get().iconLaF.iconBgHover
             val inset = btn.mode.getInset()
             btn.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
             updateIcon(btn)
@@ -70,7 +70,7 @@ open class CIconButtonUI() : BasicButtonUI() {
     }
 
     private fun updateIcon(cIconButton: CIconButton) {
-        val theme = States.theme.get()
+        val theme = UIManager.theme.get()
 
         cIconButton.svgIcon?.let {
             cIconButton.mode.applyFilter(it, theme)
@@ -82,7 +82,7 @@ open class CIconButtonUI() : BasicButtonUI() {
         }
 
         cIconButton.background = cIconButton.iconBg
-        val iconScale = cIconButton.mode.size(States.scale.get())
+        val iconScale = cIconButton.mode.size(UIManager.scale.get())
 
         cIconButton.customColor?.let { col ->
             cIconButton.svgIcon?.colorFilter = FlatSVGIcon.ColorFilter {

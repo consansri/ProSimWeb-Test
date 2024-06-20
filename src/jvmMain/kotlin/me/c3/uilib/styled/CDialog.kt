@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import me.c3.uilib.styled.params.FontType
 import java.awt.*
 import javax.swing.JDialog
@@ -31,7 +31,7 @@ class CDialog(parent: Component) : JDialog() {
             val tPane = CPanel(primary = true).apply {
                 val name = CLabel(title, FontType.BASIC)
                 val filler = CPanel(primary = true)
-                val closeButton = CIconButton(States.icon.get().close).apply {
+                val closeButton = CIconButton(UIManager.icon.get().close).apply {
                     addActionListener {
                         dialog.dispose()
                         onClose(dialog)

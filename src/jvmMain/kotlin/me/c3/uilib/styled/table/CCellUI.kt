@@ -1,6 +1,6 @@
 package me.c3.uilib.styled.table
 
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import me.c3.uilib.styled.params.FontType
 import java.awt.Color
 import java.awt.Graphics
@@ -18,11 +18,11 @@ class CCellUI(private val fontType: FontType) : ComponentUI() {
 
         val cell = c as? CCell ?: return
 
-        States.theme.addEvent(WeakReference(cell)) { _ ->
+        UIManager.theme.addEvent(WeakReference(cell)) { _ ->
             setDefaults(cell)
         }
 
-        States.scale.addEvent(WeakReference(cell)) { _ ->
+        UIManager.scale.addEvent(WeakReference(cell)) { _ ->
             setDefaults(cell)
         }
 
@@ -41,7 +41,7 @@ class CCellUI(private val fontType: FontType) : ComponentUI() {
         val customFG = cell.customFG
         val customBG = cell.customBG
         cell.background = customBG ?: Color(0, 0, 0, 0)
-        cell.foreground = customFG ?: States.theme.get().textLaF.base
+        cell.foreground = customFG ?: UIManager.theme.get().textLaF.base
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {

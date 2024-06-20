@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import me.c3.uilib.styled.params.FontType
 import java.awt.Color
 import java.awt.Graphics
@@ -12,19 +12,19 @@ import javax.swing.plaf.basic.BasicMenuItemUI
 
 class CMenuItemUI(private val fontType: FontType) : BasicMenuItemUI() {
 
-    private var cornerRadius = States.scale.get().controlScale.cornerRadius
-    private var hoverBackground = States.theme.get().iconLaF.iconBgHover
+    private var cornerRadius = UIManager.scale.get().controlScale.cornerRadius
+    private var hoverBackground = UIManager.theme.get().iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val optionPane = c as? CMenuItem ?: return
 
-        States.theme.addEvent(WeakReference(optionPane)) { _ ->
+        UIManager.theme.addEvent(WeakReference(optionPane)) { _ ->
             setDefaults(optionPane)
         }
 
-        States.scale.addEvent(WeakReference(optionPane)) { _ ->
+        UIManager.scale.addEvent(WeakReference(optionPane)) { _ ->
             setDefaults(optionPane)
         }
 
@@ -32,12 +32,12 @@ class CMenuItemUI(private val fontType: FontType) : BasicMenuItemUI() {
     }
 
     private fun setDefaults(item: CMenuItem) {
-        cornerRadius = States.scale.get().controlScale.cornerRadius
+        cornerRadius = UIManager.scale.get().controlScale.cornerRadius
         item.isOpaque = false
         item.background = Color(0, 0, 0, 0)
         item.font = fontType.getFont()
-        item.foreground = States.theme.get().textLaF.base
-        item.border = States.scale.get().controlScale.getNormalInsetBorder()
+        item.foreground = UIManager.theme.get().textLaF.base
+        item.border = UIManager.scale.get().controlScale.getNormalInsetBorder()
         selectionBackground = Color(0,0,0,0)
         selectionForeground = item.foreground
     }

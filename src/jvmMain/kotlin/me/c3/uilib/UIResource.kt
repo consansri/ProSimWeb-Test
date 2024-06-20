@@ -1,4 +1,4 @@
-package me.c3.ui
+package me.c3.uilib
 
 import me.c3.uilib.resource.BenIcons
 import me.c3.uilib.scale.core.Scaling
@@ -10,8 +10,7 @@ import me.c3.uilib.theme.core.Theme
 import me.c3.uilib.theme.themes.DarkTheme
 import me.c3.uilib.theme.themes.LightTheme
 
-object Res {
-
+object UIResource {
     val icons = listOf(
         BenIcons()
     )

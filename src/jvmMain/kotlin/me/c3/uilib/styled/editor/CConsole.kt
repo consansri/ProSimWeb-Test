@@ -1,6 +1,6 @@
 package me.c3.uilib.styled.editor
 
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import me.c3.uilib.styled.CIconButton
 import me.c3.uilib.styled.CIconToggle
 import me.c3.uilib.styled.CLabel
@@ -32,7 +32,7 @@ open class CConsole(maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPan
         }
 
     private val titleLabel = CLabel(title, FontType.TITLE)
-    private val scrollDown = CIconToggle(States.icon.get().autoscroll, scrollToBottom, CIconButton.Mode.SECONDARY_SMALL) {
+    private val scrollDown = CIconToggle(UIManager.icon.get().autoscroll, scrollToBottom, CIconButton.Mode.SECONDARY_SMALL) {
         scrollToBottom = it
     }
     private val topBar = CPanel(primary = false, BorderMode.INSET).apply {

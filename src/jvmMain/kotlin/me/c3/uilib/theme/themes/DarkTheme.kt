@@ -8,7 +8,7 @@ import java.awt.Color
 
 class DarkTheme : Theme {
     override val name: String = "dark"
-    override val icon: FlatSVGIcon = States.icon.get().getDarkMode()
+    override val icon: FlatSVGIcon = UIManager.icon.get().getDarkMode()
     override val dark: Boolean = true
 
     override val codeLaF: CodeLaF = CodeLaF(

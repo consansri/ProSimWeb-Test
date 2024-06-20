@@ -367,7 +367,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
             content.layout = GridBagLayout()
             val contentGBC = GridBagConstraints()
             contentGBC.weightx = 1.0
-            contentGBC.insets = States.scale.get().borderScale.getInsets()
+            contentGBC.insets = UIManager.scale.get().borderScale.getInsets()
             contentGBC.fill = GridBagConstraints.HORIZONTAL
 
             submit.layout = GridBagLayout()
@@ -449,10 +449,10 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
      * @param tm The theme manager instance.
      */
     private fun setTreeLook() {
-        States.theme.addEvent(WeakReference(this)) { theme ->
+        UIManager.theme.addEvent(WeakReference(this)) { theme ->
             tree.background = theme.globalLaF.bgSecondary
         }
-        tree.background = States.theme.get().globalLaF.bgSecondary
+        tree.background = UIManager.theme.get().globalLaF.bgSecondary
         tree.isFocusable = false
     }
 

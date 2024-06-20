@@ -2,6 +2,7 @@ package me.c3.ui.components.processor
 
 import me.c3.ui.Events
 import me.c3.ui.States
+import me.c3.uilib.UIManager
 import me.c3.uilib.styled.CIconButton
 import me.c3.uilib.styled.CIconInput
 import me.c3.uilib.styled.CPanel
@@ -14,19 +15,19 @@ import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
 class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
-    val continuous = CIconButton(States.icon.get().continuousExe).apply {
+    val continuous = CIconButton(UIManager.icon.get().continuousExe).apply {
         addActionListener {
             States.arch.get().exeContinuous()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val singleStep = CIconButton(States.icon.get().singleExe).apply {
+    val singleStep = CIconButton(UIManager.icon.get().singleExe).apply {
         addActionListener {
             States.arch.get().exeSingleStep()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val mStep = CIconInput(States.icon.get().stepMultiple, FontType.BASIC).apply {
+    val mStep = CIconInput(UIManager.icon.get().stepMultiple, FontType.BASIC).apply {
         val inputRegex = Regex("\\d+")
         input.text = 10.toString()
         button.addActionListener {
@@ -53,19 +54,19 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
         }
     }
 
-    val skipSubroutine = CIconButton(States.icon.get().stepOver).apply {
+    val skipSubroutine = CIconButton(UIManager.icon.get().stepOver).apply {
         addActionListener {
             States.arch.get().exeSkipSubroutine()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val returnSubroutine = CIconButton(States.icon.get().returnSubroutine).apply {
+    val returnSubroutine = CIconButton(UIManager.icon.get().returnSubroutine).apply {
         addActionListener {
             States.arch.get().exeReturnFromSubroutine()
             Events.exe.triggerEvent(States.arch.get())
         }
     }
-    val reset = CIconButton(States.icon.get().recompile).apply {
+    val reset = CIconButton(UIManager.icon.get().recompile).apply {
         addActionListener {
             States.arch.get().exeReset()
             Events.exe.triggerEvent(States.arch.get())
@@ -73,7 +74,7 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
     }
 
     init {
-        layout = GridLayout(1, 0, States.scale.get().borderScale.insets, 0)
+        layout = GridLayout(1, 0, UIManager.scale.get().borderScale.insets, 0)
 
         continuous.alignmentY = CENTER_ALIGNMENT
         singleStep.alignmentY = CENTER_ALIGNMENT
@@ -83,11 +84,11 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
         reset.alignmentY = CENTER_ALIGNMENT
 
         // Listeners
-        States.scale.addEvent(WeakReference(this)) {
+        UIManager.scale.addEvent(WeakReference(this)) {
             layout = GridLayout(1, 0, it.borderScale.insets, 0)
         }
 
-        States.theme.addEvent(WeakReference(this)) {
+        UIManager.theme.addEvent(WeakReference(this)) {
             val exeStyle = it.exeStyle
             continuous.customColor = exeStyle.continuous
             singleStep.customColor = exeStyle.single
@@ -104,7 +105,7 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
         add(returnSubroutine)
         add(reset)
 
-        val exeStyle = States.theme.get().exeStyle
+        val exeStyle = UIManager.theme.get().exeStyle
         continuous.customColor = exeStyle.continuous
         singleStep.customColor = exeStyle.single
         mStep.button.customColor = exeStyle.multi

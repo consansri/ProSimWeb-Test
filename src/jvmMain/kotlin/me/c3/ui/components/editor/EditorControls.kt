@@ -18,11 +18,11 @@ import javax.swing.BoxLayout
 class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode = BorderMode.EAST) {
 
     // Control buttons
-    private val statusIcon: CIconButton = CIconButton(States.icon.get().statusLoading)
-    private val undoButton: CIconButton = CIconButton(States.icon.get().backwards)
-    private val redoButton: CIconButton = CIconButton(States.icon.get().forwards)
-    private val buildButton: CIconButton = CIconButton(States.icon.get().build)
-    private val infoButton: CIconButton = CIconButton(States.icon.get().info)
+    private val statusIcon: CIconButton = CIconButton(UIManager.icon.get().statusLoading)
+    private val undoButton: CIconButton = CIconButton(UIManager.icon.get().backwards)
+    private val redoButton: CIconButton = CIconButton(UIManager.icon.get().forwards)
+    private val buildButton: CIconButton = CIconButton(UIManager.icon.get().build)
+    private val infoButton: CIconButton = CIconButton(UIManager.icon.get().info)
 
     init {
         // Apply layout
@@ -41,11 +41,11 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         add(infoButton)
 
         // Listeners
-        States.scale.addEvent(WeakReference(this)) {
+        UIManager.scale.addEvent(WeakReference(this)) {
             val insets = it.borderScale.insets
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
-        States.theme.addEvent(WeakReference(this)) {
+        UIManager.theme.addEvent(WeakReference(this)) {
             background = it.globalLaF.bgSecondary
         }
 
@@ -54,9 +54,9 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         installBuildButton(editor)
 
         // Set Defaults
-        val insets = States.scale.get().borderScale.insets
+        val insets = UIManager.scale.get().borderScale.insets
         border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-        background = States.theme.get().globalLaF.bgSecondary
+        background = UIManager.theme.get().globalLaF.bgSecondary
 
         statusIcon.isDeactivated = true
         statusIcon.rotating = true
@@ -68,16 +68,16 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
      */
     private fun installStatusButton() {
         Events.fileEdit.addListener(WeakReference(this)) {
-            statusIcon.svgIcon = States.icon.get().statusLoading
+            statusIcon.svgIcon = UIManager.icon.get().statusLoading
             statusIcon.rotating = true
         }
 
         Events.compile.addListener(WeakReference(this)) { result ->
             if (result.success) {
-                statusIcon.svgIcon = States.icon.get().statusFine
+                statusIcon.svgIcon = UIManager.icon.get().statusFine
                 statusIcon.rotating = false
             } else {
-                statusIcon.svgIcon = States.icon.get().statusError
+                statusIcon.svgIcon = UIManager.icon.get().statusError
                 statusIcon.rotating = false
             }
         }

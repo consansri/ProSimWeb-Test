@@ -8,7 +8,7 @@ import java.awt.Color
 
 class LightTheme : Theme {
     override val name: String = "light"
-    override val icon: FlatSVGIcon = States.icon.get().getLightMode()
+    override val icon: FlatSVGIcon = UIManager.icon.get().getLightMode()
     override val dark: Boolean = false
 
     override val codeLaF: CodeLaF = CodeLaF(

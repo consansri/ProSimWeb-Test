@@ -1,6 +1,6 @@
 package me.c3.uilib.styled.params
 
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import me.c3.uilib.styled.borders.DirectionalBorder
 import javax.swing.BorderFactory
 import javax.swing.border.Border
@@ -21,8 +21,8 @@ enum class BorderMode {
 
     fun getBorder(): Border {
         return when (this) {
-            INSET -> States.scale.get().borderScale.getInsetBorder()
-            THICKNESS -> States.scale.get().borderScale.getThicknessBorder()
+            INSET -> UIManager.scale.get().borderScale.getInsetBorder()
+            THICKNESS -> UIManager.scale.get().borderScale.getThicknessBorder()
             BASIC -> DirectionalBorder(north = true, west = true, south = true, east = true)
             NORTH -> DirectionalBorder(north = true)
             SOUTH -> DirectionalBorder(south = true)

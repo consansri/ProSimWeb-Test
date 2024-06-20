@@ -106,7 +106,7 @@ class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true) {
      * @param mainManager The main manager responsible for coordinating UI components and actions.
      */
     private fun setTreeDefaults() {
-        projectButton.foreground = States.theme.get().textLaF.base
+        projectButton.foreground = UIManager.theme.get().textLaF.base
         projectButton.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
         layout = BorderLayout()

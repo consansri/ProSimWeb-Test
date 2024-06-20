@@ -1,8 +1,7 @@
 package me.c3.ui.components.controls.buttons
 
 
-import me.c3.ui.Res
-import me.c3.ui.States
+import me.c3.uilib.UIResource
 import me.c3.uilib.scale.core.Scaling
 import me.c3.uilib.styled.CComboBox
 import me.c3.uilib.styled.params.FontType
@@ -14,11 +13,11 @@ import java.lang.ref.WeakReference
  * This class represents a combo box used for selecting and switching between different scaling options within the application.
  * It retrieves available scaling options from the provided MainManager instance.
  */
-class ScaleSwitch() : CComboBox<Scaling>(Res.scalings.toTypedArray(), FontType.TITLE) {
+class ScaleSwitch() : CComboBox<Scaling>(UIResource.scalings.toTypedArray(), FontType.TITLE) {
 
     init {
         this.addActionListener(ScaleSelectorListener())
-        States.scale.addEvent(WeakReference(this)) {
+        UIManager.scale.addEvent(WeakReference(this)) {
             selectedItem = it
         }
     }
@@ -32,7 +31,7 @@ class ScaleSwitch() : CComboBox<Scaling>(Res.scalings.toTypedArray(), FontType.T
         override fun actionPerformed(e: ActionEvent?) {
             val comboBox = e?.source as? CComboBox<*>
             val selectedMode = comboBox?.selectedItem as? Scaling ?: return
-            States.scale.set(selectedMode)
+            UIManager.scale.set(selectedMode)
         }
     }
 }

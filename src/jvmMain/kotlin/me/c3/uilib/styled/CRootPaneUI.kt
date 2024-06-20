@@ -1,6 +1,6 @@
 package me.c3.uilib.styled
 
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import java.awt.*
 import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
@@ -10,19 +10,19 @@ import javax.swing.plaf.basic.BasicRootPaneUI
 
 class CRootPaneUI() : BasicRootPaneUI() {
 
-    private var inset: Int = States.scale.get().borderScale.insets
-    var cornerRadius: Int = States.scale.get().borderScale.cornerRadius
+    private var inset: Int = UIManager.scale.get().borderScale.insets
+    var cornerRadius: Int = UIManager.scale.get().borderScale.cornerRadius
 
     override fun installDefaults(c: JRootPane?) {
         super.installDefaults(c)
 
         val cRootPane = c as? CRootPane ?: return
 
-        States.theme.addEvent(WeakReference(cRootPane)) { _ ->
+        UIManager.theme.addEvent(WeakReference(cRootPane)) { _ ->
             setDefaults(cRootPane)
         }
 
-        States.scale.addEvent(WeakReference(cRootPane)) { _ ->
+        UIManager.scale.addEvent(WeakReference(cRootPane)) { _ ->
             setDefaults(cRootPane)
         }
 
@@ -46,9 +46,9 @@ class CRootPaneUI() : BasicRootPaneUI() {
     }
 
     private fun setDefaults(cRootPane: CRootPane) {
-        inset = States.scale.get().borderScale.insets
+        inset = UIManager.scale.get().borderScale.insets
         cRootPane.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
-        cRootPane.background = States.theme.get().globalLaF.bgSecondary
+        cRootPane.background = UIManager.theme.get().globalLaF.bgSecondary
         cRootPane.repaint()
     }
 

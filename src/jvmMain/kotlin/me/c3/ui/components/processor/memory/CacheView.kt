@@ -72,16 +72,16 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
                     }
 
                     if (!block.valid) {
-                        table.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.error), rowID, 2)
+                        table.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.error), rowID, 2)
                     }
 
                     if (block.dirty) {
-                        table.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.YELLOW), rowID, 3)
+                        table.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.YELLOW), rowID, 3)
                     }
 
                     block.data.forEachIndexed { i, value ->
                         if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
-                            table.addCellHighlighting(States.theme.get().codeLaF.getColor(CodeStyle.GREENPC), rowID, i + 5)
+                            table.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.GREENPC), rowID, i + 5)
                         }
                     }
 

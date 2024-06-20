@@ -1,7 +1,7 @@
 package me.c3.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import me.c3.ui.States
+import me.c3.uilib.UIManager
 import me.c3.uilib.styled.params.BorderMode
 import me.c3.uilib.styled.params.FontType
 import java.awt.BorderLayout
@@ -27,7 +27,7 @@ open class CAdvancedTabPane(
     }
     private val tabsPane = CPanel(primary, BorderMode.SOUTH)
     val contentPane = CScrollPane(primary, CPanel())
-    private val closeIcon = States.icon.get().close
+    private val closeIcon = UIManager.icon.get().close
 
     val tabs = mutableListOf<ClosableTab>()
     private var currentTab: ClosableTab? = null

@@ -14,7 +14,7 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.SwingUtilities
 
-class Settings : CIconButton(States.icon.get().settings) {
+class Settings : CIconButton(UIManager.icon.get().settings) {
     var lastDialog: CDialog? = null
 
     init {

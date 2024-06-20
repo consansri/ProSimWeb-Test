@@ -6,20 +6,12 @@ import emulator.kit.optional.SetupSetting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.c3.ui.Res.icons
-import me.c3.ui.Res.scalings
-import me.c3.ui.Res.themes
-import me.c3.uilib.resource.BenIcons
-import me.c3.uilib.resource.Icons
-import me.c3.uilib.scale.core.Scaling
-import me.c3.uilib.scale.scalings.StandardScaling
+import me.c3.ui.workspace.Workspace
+import me.c3.uilib.UIManager
 import me.c3.uilib.state.Manager
-import me.c3.uilib.theme.core.Theme
-import me.c3.uilib.theme.themes.LightTheme
 import me.c3.uilib.state.WSConfig
 import me.c3.uilib.state.WSEditor
 import me.c3.uilib.state.WSLogger
-import me.c3.ui.workspace.Workspace
 
 object States {
     val ws = object : Manager<Workspace?>(null) {
@@ -59,47 +51,7 @@ object States {
         }
     }
 
-    val icon = object : Manager<Icons>(BenIcons()) {
-        override fun loadFromConfig(wsConfig: WSConfig) {
-            wsConfig.get(Keys.IDE, Keys.IDE_ICONS)?.let { value ->
-                icons.firstOrNull { it.name == value }?.let {
-                    setConfigNotChanged(it)
-                }
-            }
-        }
 
-        override fun updateConfig(value: Icons) {
-            ws.get()?.config?.set(Keys.IDE, Keys.IDE_ICONS, value.name)
-        }
-    }
-
-    val theme = object : Manager<Theme>(LightTheme()) {
-        override fun loadFromConfig(wsConfig: WSConfig) {
-            wsConfig.get(Keys.IDE, Keys.IDE_THEME)?.let { value ->
-                themes.firstOrNull { it.name == value }?.let {
-                    setConfigNotChanged(it)
-                }
-            }
-        }
-
-        override fun updateConfig(value: Theme) {
-            ws.get()?.config?.set(Keys.IDE, Keys.IDE_THEME, value.name)
-        }
-    }
-
-    val scale = object : Manager<Scaling>(StandardScaling()) {
-        override fun loadFromConfig(wsConfig: WSConfig) {
-            wsConfig.get(Keys.IDE, Keys.IDE_SCALE)?.let { value ->
-                scalings.firstOrNull { it.name == value }?.let {
-                    setConfigNotChanged(it)
-                }
-            }
-        }
-
-        override fun updateConfig(value: Scaling) {
-            ws.get()?.config?.set(Keys.IDE, Keys.IDE_SCALE, value.name)
-        }
-    }
 
     /**
      * Extension Functions
@@ -118,9 +70,9 @@ object States {
 
     fun loadConfig(wsConfig: WSConfig) {
         arch.loadFromConfig(wsConfig)
-        icon.loadFromConfig(wsConfig)
-        theme.loadFromConfig(wsConfig)
-        scale.loadFromConfig(wsConfig)
+        UIManager.icon.loadFromConfig(wsConfig)
+        UIManager.theme.loadFromConfig(wsConfig)
+        UIManager.scale.loadFromConfig(wsConfig)
     }
 
     fun SetupSetting<*>.save(arch: Architecture) {

@@ -44,7 +44,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setError(text: String) {
-        generalPurpose.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.RED))
+        generalPurpose.setColouredText(text, UIManager.theme.get().codeLaF.getColor(CodeStyle.RED))
     }
 
     /**
@@ -52,7 +52,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setWarning(text: String) {
-        generalPurpose.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
+        generalPurpose.setColouredText(text, UIManager.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
     }
 
     /**
@@ -60,19 +60,19 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setInfo(text: String) {
-        generalPurpose.setColouredText(text, States.theme.get().textLaF.baseSecondary)
+        generalPurpose.setColouredText(text, UIManager.theme.get().textLaF.baseSecondary)
     }
 
     fun setWSError(text: String){
-        wsInfo.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.RED))
+        wsInfo.setColouredText(text, UIManager.theme.get().codeLaF.getColor(CodeStyle.RED))
     }
 
     fun setWSWarning(text: String){
-        wsInfo.setColouredText(text, States.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
+        wsInfo.setColouredText(text, UIManager.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
     }
 
     fun setWSInfo(text: String){
-        wsInfo.setColouredText(text, States.theme.get().textLaF.baseSecondary)
+        wsInfo.setColouredText(text, UIManager.theme.get().textLaF.baseSecondary)
     }
 
     /**

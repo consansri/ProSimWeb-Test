@@ -114,8 +114,8 @@ class NativeFrame : JFrame(), ProSimFrame {
     private fun attachComponents() {
         layout = BorderLayout()
 
-        infoTabPane.addTab(CIcon(States.icon.get().console, mode = CIconButton.Mode.PRIMARY_SMALL), console)
-        infoTabPane.addTab(CIcon(States.icon.get().info, mode = CIconButton.Mode.SECONDARY_SMALL), infoView)
+        infoTabPane.addTab(CIcon(UIManager.icon.get().console, mode = CIconButton.Mode.PRIMARY_SMALL), console)
+        infoTabPane.addTab(CIcon(UIManager.icon.get().info, mode = CIconButton.Mode.SECONDARY_SMALL), infoView)
 
         infoTabPane.select(0)
 
@@ -140,7 +140,7 @@ class NativeFrame : JFrame(), ProSimFrame {
      * Styles the frame, setting its icon image.
      */
     private fun styleFrame() {
-        iconImage = States.icon.get().appLogo.derive(64, 64).image
+        iconImage = UIManager.icon.get().appLogo.derive(64, 64).image
     }
 
     /**
