@@ -20,26 +20,29 @@ abstract class CComponentUI<T : JComponent> : ComponentUI() {
         UIStates.theme.addEvent(WeakReference(c), ::updateTheme)
         UIStates.scale.addEvent(WeakReference(c), ::updateScale)
         UIStates.icon.addEvent(WeakReference(c), ::updateIcon)
+
+        this.component?.let {
+            applyDefaults()
+        }
     }
 
     private fun updateTheme(theme: Theme) {
-        val curr = component
-        curr?.let {
-            setDefaults(curr, theme, UIStates.scale.get(), UIStates.icon.get())
-        }
+        applyDefaults()
     }
 
-    private fun updateScale(scaling: Scaling){
-        val curr = component
-        curr?.let {
-            setDefaults(curr, UIStates.theme.get(), scaling, UIStates.icon.get())
-        }
+    private fun updateScale(scaling: Scaling) {
+        applyDefaults()
     }
 
-    private fun updateIcon(icons: Icons){
-        val curr = component
-        curr?.let {
-            setDefaults(curr, UIStates.theme.get(), UIStates.scale.get(), icons)
+    private fun updateIcon(icons: Icons) {
+        applyDefaults()
+    }
+
+    private fun applyDefaults() {
+        component?.let {
+            setDefaults(it, UIStates.theme.get(), UIStates.scale.get(), UIStates.icon.get())
+            it.revalidate()
+            it.repaint()
         }
     }
 

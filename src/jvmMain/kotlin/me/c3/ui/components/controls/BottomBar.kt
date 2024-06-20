@@ -20,13 +20,13 @@ import java.lang.ref.WeakReference
  * Represents a panel for displaying information at the bottom.
  * @property mainManager The main manager instance.
  */
-class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
+class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
 
     // Labels for displaying various types of information
-    private val wsInfo = CLabel( "Back to work? :D", FontType.BASIC)
-    val editorInfo = CLabel( "", FontType.BASIC)
-    val compilerInfo = CLabel( "", FontType.BASIC)
-    val generalPurpose = CLabel( "", FontType.BASIC)
+    private val wsInfo = CLabel("Back to work? :D", FontType.BASIC)
+    val editorInfo = CLabel("", FontType.BASIC)
+    val compilerInfo = CLabel("", FontType.BASIC)
+    val generalPurpose = CLabel("", FontType.BASIC)
     val memoryUsage = CLabel("", FontType.BASIC)
 
     // Coroutine variables for observing compiler processes
@@ -64,15 +64,15 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
         generalPurpose.setColouredText(text, UIStates.theme.get().textLaF.baseSecondary)
     }
 
-    fun setWSError(text: String){
+    fun setWSError(text: String) {
         wsInfo.setColouredText(text, UIStates.theme.get().codeLaF.getColor(CodeStyle.RED))
     }
 
-    fun setWSWarning(text: String){
+    fun setWSWarning(text: String) {
         wsInfo.setColouredText(text, UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
     }
 
-    fun setWSInfo(text: String){
+    fun setWSInfo(text: String) {
         wsInfo.setColouredText(text, UIStates.theme.get().textLaF.baseSecondary)
     }
 
@@ -146,7 +146,7 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
         }
     }
 
-    private fun printAktiveProcesses(){
+    private fun printAktiveProcesses() {
         val processes = ArrayList(States.arch.get().assembler.runningProcesses())
         val stateString = processes.joinToString(" -> ") {
             it.toString()
@@ -154,14 +154,14 @@ class BottomBar() : CPanel( borderMode = BorderMode.NORTH) {
         compilerInfo.text = stateString
     }
 
-    private fun printMemoryUsage(){
+    private fun printMemoryUsage() {
         val memoryMXBean = ManagementFactory.getMemoryMXBean()
         val usedHeap = memoryMXBean.heapMemoryUsage.used / (1024 * 1024)
         val usedNonHeap = memoryMXBean.nonHeapMemoryUsage.used / (1024 * 1024)
         val maxHeap = memoryMXBean.heapMemoryUsage.max / (1024 * 1024)
         val maxNonHeap = memoryMXBean.nonHeapMemoryUsage.max / (1024 * 1024)
 
-        memoryUsage.text = "${usedHeap + usedNonHeap} MB / ${maxHeap + maxNonHeap} MB ${if(usedNonHeap != 0L) "($usedHeap MB Heap)" else ""}"
+        memoryUsage.text = "$usedHeap MB / $maxHeap MB ${if (usedNonHeap != 0L) "(extern $usedNonHeap MB)" else ""}"
     }
 
 }

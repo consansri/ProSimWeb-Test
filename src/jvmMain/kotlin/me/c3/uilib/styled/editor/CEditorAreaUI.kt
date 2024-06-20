@@ -70,7 +70,6 @@ class CEditorAreaUI(
             c.repaint()
         }
         caretTimer?.start()
-        c.repaint()
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
