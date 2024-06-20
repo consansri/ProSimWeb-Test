@@ -2,6 +2,7 @@ package me.c3.ui.components.controls.buttons
 
 
 import me.c3.uilib.UIResource
+import me.c3.uilib.UIStates
 import me.c3.uilib.scale.core.Scaling
 import me.c3.uilib.styled.CComboBox
 import me.c3.uilib.styled.params.FontType
@@ -17,7 +18,7 @@ class ScaleSwitch() : CComboBox<Scaling>(UIResource.scalings.toTypedArray(), Fon
 
     init {
         this.addActionListener(ScaleSelectorListener())
-        UIManager.scale.addEvent(WeakReference(this)) {
+        UIStates.scale.addEvent(WeakReference(this)) {
             selectedItem = it
         }
     }
@@ -31,7 +32,7 @@ class ScaleSwitch() : CComboBox<Scaling>(UIResource.scalings.toTypedArray(), Fon
         override fun actionPerformed(e: ActionEvent?) {
             val comboBox = e?.source as? CComboBox<*>
             val selectedMode = comboBox?.selectedItem as? Scaling ?: return
-            UIManager.scale.set(selectedMode)
+            UIStates.scale.set(selectedMode)
         }
     }
 }

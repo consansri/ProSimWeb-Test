@@ -30,5 +30,4 @@ class CLabelUI(private val fontType: FontType) : BasicLabelUI() {
         cLabel.foreground = UIStates.theme.get().textLaF.base
         cLabel.repaint()
     }
-
 }

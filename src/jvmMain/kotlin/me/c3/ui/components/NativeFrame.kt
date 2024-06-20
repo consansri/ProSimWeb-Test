@@ -1,22 +1,20 @@
 package me.c3.ui.components
 
-import me.c3.ui.States
 import me.c3.ui.components.console.ConsoleView
 import me.c3.ui.components.controls.AppControls
 import me.c3.ui.components.controls.BottomBar
 import me.c3.ui.components.controls.TopControls
-import me.c3.ui.components.processor.ProcessorView
-import me.c3.uilib.styled.CIconButton
-import me.c3.uilib.styled.CSplitPane
-import me.c3.ui.components.transcript.TranscriptView
-import me.c3.ui.components.tree.FileTree
-import me.c3.uilib.styled.CAdvancedTabPane
 import me.c3.ui.components.docs.InfoView
 import me.c3.ui.components.editor.CodeEditor
+import me.c3.ui.components.processor.ProcessorView
+import me.c3.ui.components.transcript.TranscriptView
+import me.c3.ui.components.tree.FileTree
+import me.c3.uilib.UIStates
 import me.c3.uilib.state.*
+import me.c3.uilib.styled.CAdvancedTabPane
 import me.c3.uilib.styled.CIcon
-import me.c3.uilib.state.WSEditor
-import me.c3.uilib.state.WSLogger
+import me.c3.uilib.styled.CIconButton
+import me.c3.uilib.styled.CSplitPane
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
@@ -114,8 +112,8 @@ class NativeFrame : JFrame(), ProSimFrame {
     private fun attachComponents() {
         layout = BorderLayout()
 
-        infoTabPane.addTab(CIcon(UIManager.icon.get().console, mode = CIconButton.Mode.PRIMARY_SMALL), console)
-        infoTabPane.addTab(CIcon(UIManager.icon.get().info, mode = CIconButton.Mode.SECONDARY_SMALL), infoView)
+        infoTabPane.addTab(CIcon(UIStates.icon.get().console, mode = CIconButton.Mode.PRIMARY_SMALL), console)
+        infoTabPane.addTab(CIcon(UIStates.icon.get().info, mode = CIconButton.Mode.SECONDARY_SMALL), infoView)
 
         infoTabPane.select(0)
 
@@ -140,7 +138,7 @@ class NativeFrame : JFrame(), ProSimFrame {
      * Styles the frame, setting its icon image.
      */
     private fun styleFrame() {
-        iconImage = UIManager.icon.get().appLogo.derive(64, 64).image
+        iconImage = UIStates.icon.get().appLogo.derive(64, 64).image
     }
 
     /**

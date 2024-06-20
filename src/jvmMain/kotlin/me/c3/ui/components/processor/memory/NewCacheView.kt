@@ -4,6 +4,7 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.Cache
 import me.c3.ui.Events
 import me.c3.ui.States
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.params.FontType
 import me.c3.uilib.styled.table.CVirtualTable
 import me.c3.uilib.styled.table.CVirtualTableUI
@@ -80,7 +81,7 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
             val instAddr = instance.address?.toHex() ?: return null
             val pcAddr = States.arch.get().regContainer.pc.get().toHex()
             if (instAddr.toRawString() == pcAddr.toRawString()) {
-                return UIManager.theme.get().codeLaF.getColor(CodeStyle.GREENPC)
+                return UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC)
             }
         }
 
@@ -88,14 +89,14 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
             val rowIndex = contentRowID / cache.model.blockCount
             val blockIndex = contentRowID % cache.model.blockCount
             val block = cache.model.rows.getOrNull(rowIndex)?.blocks?.getOrNull(blockIndex) ?: return null
-            return if (!block.valid) UIManager.theme.get().codeLaF.getColor(CodeStyle.error) else null
+            return if (!block.valid) UIStates.theme.get().codeLaF.getColor(CodeStyle.error) else null
         }
 
         if (contentColID == 3) {
             val rowIndex = contentRowID / cache.model.blockCount
             val blockIndex = contentRowID % cache.model.blockCount
             val block = cache.model.rows.getOrNull(rowIndex)?.blocks?.getOrNull(blockIndex) ?: return null
-            return if (block.dirty) UIManager.theme.get().codeLaF.getColor(CodeStyle.YELLOW) else null
+            return if (block.dirty) UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW) else null
         }
 
         return null
@@ -105,7 +106,7 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
         val rowIndex = contentRowID / cache.model.blockCount
         val blockIndex = contentRowID % cache.model.blockCount
         val block = cache.model.rows.getOrNull(rowIndex)?.blocks?.getOrNull(blockIndex) ?: return null
-        return if (block.dirty) UIManager.theme.get().codeLaF.getColor(CodeStyle.BASE6) else if(block.valid) UIManager.theme.get().codeLaF.getColor(CodeStyle.BASE7) else null
+        return if (block.dirty) UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE6) else if(block.valid) UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE7) else null
     }
 
     override fun onCellClick(cell: CVirtualTableUI.CCellRenderer, contentRowID: Int, contentColID: Int) {

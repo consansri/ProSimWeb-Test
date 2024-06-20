@@ -1,7 +1,7 @@
 package me.c3.ui.components.editor
 
 import me.c3.ui.Events
-import me.c3.ui.States
+import me.c3.uilib.UIStates
 import me.c3.uilib.state.*
 import me.c3.uilib.styled.CIconButton
 import me.c3.uilib.styled.CPanel
@@ -18,11 +18,11 @@ import javax.swing.BoxLayout
 class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode = BorderMode.EAST) {
 
     // Control buttons
-    private val statusIcon: CIconButton = CIconButton(UIManager.icon.get().statusLoading)
-    private val undoButton: CIconButton = CIconButton(UIManager.icon.get().backwards)
-    private val redoButton: CIconButton = CIconButton(UIManager.icon.get().forwards)
-    private val buildButton: CIconButton = CIconButton(UIManager.icon.get().build)
-    private val infoButton: CIconButton = CIconButton(UIManager.icon.get().info)
+    private val statusIcon: CIconButton = CIconButton(UIStates.icon.get().statusLoading)
+    private val undoButton: CIconButton = CIconButton(UIStates.icon.get().backwards)
+    private val redoButton: CIconButton = CIconButton(UIStates.icon.get().forwards)
+    private val buildButton: CIconButton = CIconButton(UIStates.icon.get().build)
+    private val infoButton: CIconButton = CIconButton(UIStates.icon.get().info)
 
     init {
         // Apply layout
@@ -41,11 +41,11 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         add(infoButton)
 
         // Listeners
-        UIManager.scale.addEvent(WeakReference(this)) {
+        UIStates.scale.addEvent(WeakReference(this)) {
             val insets = it.borderScale.insets
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
-        UIManager.theme.addEvent(WeakReference(this)) {
+        UIStates.theme.addEvent(WeakReference(this)) {
             background = it.globalLaF.bgSecondary
         }
 
@@ -54,9 +54,9 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         installBuildButton(editor)
 
         // Set Defaults
-        val insets = UIManager.scale.get().borderScale.insets
+        val insets = UIStates.scale.get().borderScale.insets
         border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-        background = UIManager.theme.get().globalLaF.bgSecondary
+        background = UIStates.theme.get().globalLaF.bgSecondary
 
         statusIcon.isDeactivated = true
         statusIcon.rotating = true
@@ -68,16 +68,16 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
      */
     private fun installStatusButton() {
         Events.fileEdit.addListener(WeakReference(this)) {
-            statusIcon.svgIcon = UIManager.icon.get().statusLoading
+            statusIcon.svgIcon = UIStates.icon.get().statusLoading
             statusIcon.rotating = true
         }
 
         Events.compile.addListener(WeakReference(this)) { result ->
             if (result.success) {
-                statusIcon.svgIcon = UIManager.icon.get().statusFine
+                statusIcon.svgIcon = UIStates.icon.get().statusFine
                 statusIcon.rotating = false
             } else {
-                statusIcon.svgIcon = UIManager.icon.get().statusError
+                statusIcon.svgIcon = UIStates.icon.get().statusError
                 statusIcon.rotating = false
             }
         }

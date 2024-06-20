@@ -2,16 +2,18 @@ package me.c3.uilib.styled.editor
 
 import emulator.kit.assembler.CodeStyle
 import me.c3.uilib.UIStates
+import me.c3.uilib.resource.Icons
+import me.c3.uilib.scale.core.Scaling
+import me.c3.uilib.styled.CComponentUI
+import me.c3.uilib.theme.core.Theme
 import java.awt.*
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.Timer
-import javax.swing.plaf.ComponentUI
 
 class CEditorAreaUI(
     private val lineOverhead: Int = 3
-) : ComponentUI() {
+) :  CComponentUI<CEditorArea>() {
     private var defaultSelectionColor = Color(0, 0, 0, 0)
     private var defaultSearchResultColor = Color(0, 0, 0, 0)
     private var caretLineBG = Color(0, 0, 0, 0)
@@ -32,58 +34,43 @@ class CEditorAreaUI(
             defaultSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 127)
         }
 
-    override fun installUI(c: JComponent?) {
-        super.installUI(c)
-
-        val area = c as? CEditorArea ?: return
-
-        UIStates.theme.addEvent(WeakReference(area)) { _ ->
-            setDefaults(area)
-        }
-        UIStates.scale.addEvent(WeakReference(area)) { _ ->
-            setDefaults(area)
-        }
-
-        setDefaults(area)
-    }
-
-    private fun setDefaults(editor: CEditorArea) {
+    override fun setDefaults(c: CEditorArea, theme: Theme, scaling: Scaling, icons: Icons) {
         // Setup Base Editor Defaults
-        editor.isOpaque = false
-        editor.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
-        editor.background = UIStates.theme.get().globalLaF.bgPrimary
-        editor.foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
-        editor.font = UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
+        c.isOpaque = false
+        c.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+        c.background = UIStates.theme.get().globalLaF.bgPrimary
+        c.foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        c.font = UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
         selectionColor = UIStates.theme.get().codeLaF.selectionColor
         searchResultColor = UIStates.theme.get().codeLaF.searchResultColor
-        editor.tabSize = UIStates.scale.get().fontScale.tabSize
-        editor.focusTraversalKeysEnabled = false
+        c.tabSize = UIStates.scale.get().fontScale.tabSize
+        c.focusTraversalKeysEnabled = false
 
         // Setup Sub Components
-        editor.scrollPane.verticalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).height
-        editor.scrollPane.horizontalScrollBar.unitIncrement = editor.getFontMetrics(editor.font).charWidth(' ')
-        editor.lineNumbers.fm = editor.getFontMetrics(editor.font)
-        editor.lineNumbers.background = editor.background
-        editor.lineNumbers.font = editor.font
-        editor.lineNumbers.foreground = UIStates.theme.get().textLaF.baseSecondary
-        editor.lineNumbers.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
-        editor.lineNumbers.isOpaque = false
-        editor.lineNumbers.selBg = caretLineBG
+        c.scrollPane.verticalScrollBar.unitIncrement = c.getFontMetrics(c.font).height
+        c.scrollPane.horizontalScrollBar.unitIncrement = c.getFontMetrics(c.font).charWidth(' ')
+        c.lineNumbers.fm = c.getFontMetrics(c.font)
+        c.lineNumbers.background = c.background
+        c.lineNumbers.font = c.font
+        c.lineNumbers.foreground = UIStates.theme.get().textLaF.baseSecondary
+        c.lineNumbers.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+        c.lineNumbers.isOpaque = false
+        c.lineNumbers.selBg = caretLineBG
 
-        caretColor = editor.foreground
+        caretColor = c.foreground
         // Setup Caret Timer
         caretTimer?.stop()
         caretTimer = null
         caretTimer = Timer(500) {
-            caretColor = if (editor.caret.isMoving || caretColor == null) {
-                editor.foreground
+            caretColor = if (c.caret.isMoving || caretColor == null) {
+                c.foreground
             } else {
                 null
             }
-            editor.repaint()
+            c.repaint()
         }
         caretTimer?.start()
-        editor.repaint()
+        c.repaint()
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {

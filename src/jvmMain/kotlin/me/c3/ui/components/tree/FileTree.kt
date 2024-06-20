@@ -5,11 +5,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.c3.ui.States
 import me.c3.ui.States.setFromPath
-import me.c3.uilib.styled.*
-import me.c3.uilib.styled.params.FontType
+import me.c3.ui.workspace.Workspace
+import me.c3.uilib.UIStates
 import me.c3.uilib.state.WSEditor
 import me.c3.uilib.state.WSLogger
-import me.c3.ui.workspace.Workspace
+import me.c3.uilib.styled.*
+import me.c3.uilib.styled.params.FontType
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.FlowLayout
@@ -106,7 +107,7 @@ class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true) {
      * @param mainManager The main manager responsible for coordinating UI components and actions.
      */
     private fun setTreeDefaults() {
-        projectButton.foreground = UIManager.theme.get().textLaF.base
+        projectButton.foreground = UIStates.theme.get().textLaF.base
         projectButton.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
         layout = BorderLayout()

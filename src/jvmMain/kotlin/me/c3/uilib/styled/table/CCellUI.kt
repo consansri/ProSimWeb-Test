@@ -1,47 +1,32 @@
 package me.c3.uilib.styled.table
 
 import me.c3.uilib.UIStates
+import me.c3.uilib.resource.Icons
+import me.c3.uilib.scale.core.Scaling
+import me.c3.uilib.styled.CComponentUI
 import me.c3.uilib.styled.params.FontType
+import me.c3.uilib.theme.core.Theme
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
-import javax.swing.plaf.ComponentUI
 
-class CCellUI(private val fontType: FontType) : ComponentUI() {
-
-    override fun installUI(c: JComponent?) {
-        super.installUI(c)
-
-        val cell = c as? CCell ?: return
-
-        UIStates.theme.addEvent(WeakReference(cell)) { _ ->
-            setDefaults(cell)
-        }
-
-        UIStates.scale.addEvent(WeakReference(cell)) { _ ->
-            setDefaults(cell)
-        }
-
-        setDefaults(cell)
-    }
-
-    private fun setDefaults(cell: CCell) {
-        cell.isOpaque = false
-        cell.border = BorderFactory.createEmptyBorder()
-        cell.font = fontType.getFont()
-        cell.fontMetrics = cell.getFontMetrics(cell.font)
-        updateTextColors(cell)
-    }
-
+class CCellUI(private val fontType: FontType) : CComponentUI<CCell>() {
     fun updateTextColors(cell: CCell) {
         val customFG = cell.customFG
         val customBG = cell.customBG
         cell.background = customBG ?: Color(0, 0, 0, 0)
         cell.foreground = customFG ?: UIStates.theme.get().textLaF.base
+    }
+
+    override fun setDefaults(c: CCell, theme: Theme, scaling: Scaling, icons: Icons) {
+        c.isOpaque = false
+        c.border = BorderFactory.createEmptyBorder()
+        c.font = fontType.getFont()
+        c.fontMetrics = c.getFontMetrics(c.font)
+        updateTextColors(c)
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {

@@ -5,6 +5,7 @@ import emulator.kit.optional.SetupSetting
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.States.save
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.*
 import me.c3.uilib.styled.params.FontType
 import java.awt.Component
@@ -14,7 +15,7 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import javax.swing.SwingUtilities
 
-class Settings : CIconButton(UIManager.icon.get().settings) {
+class Settings : CIconButton(UIStates.icon.get().settings) {
     var lastDialog: CDialog? = null
 
     init {

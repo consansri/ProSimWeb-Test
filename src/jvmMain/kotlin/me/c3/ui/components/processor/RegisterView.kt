@@ -1,14 +1,15 @@
 package me.c3.ui.components.processor
 
+import emulator.core.Value
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
-import emulator.core.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.RegTableModel
+import me.c3.uilib.UIStates
+import me.c3.uilib.styled.CAdvancedTabPane
 import me.c3.uilib.styled.CLabel
 import me.c3.uilib.styled.CPanel
-import me.c3.uilib.styled.CAdvancedTabPane
 import me.c3.uilib.styled.CTable
 import me.c3.uilib.styled.params.BorderMode
 import me.c3.uilib.styled.params.FontType
@@ -85,7 +86,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
         regViews.add(regView)
         add(regView, gbc)
         gbc.gridx++
-        gbc.insets = Insets(0, UIManager.scale.get().borderScale.insets, 0, 0)
+        gbc.insets = Insets(0, UIStates.scale.get().borderScale.insets, 0, 0)
     }
 
     private fun removeBox() {

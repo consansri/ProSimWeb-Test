@@ -42,7 +42,6 @@ abstract class CVirtualTable(
             updateCellContent()
         }
 
-
     init {
         this.setUI(CVirtualTableUI())
 

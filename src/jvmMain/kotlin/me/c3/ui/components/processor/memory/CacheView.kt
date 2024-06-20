@@ -5,6 +5,7 @@ import emulator.kit.memory.Cache
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.CacheTableModel
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.CPanel
 import me.c3.uilib.styled.CTable
 import me.c3.uilib.styled.CTextButton
@@ -72,16 +73,16 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
                     }
 
                     if (!block.valid) {
-                        table.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.error), rowID, 2)
+                        table.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.error), rowID, 2)
                     }
 
                     if (block.dirty) {
-                        table.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.YELLOW), rowID, 3)
+                        table.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW), rowID, 3)
                     }
 
                     block.data.forEachIndexed { i, value ->
                         if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
-                            table.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.GREENPC), rowID, i + 5)
+                            table.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), rowID, i + 5)
                         }
                     }
 

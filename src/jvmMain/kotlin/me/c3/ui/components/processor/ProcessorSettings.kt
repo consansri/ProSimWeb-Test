@@ -3,6 +3,7 @@ package me.c3.ui.components.processor
 import emulator.kit.Architecture
 import me.c3.ui.Events
 import me.c3.ui.States
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.CIconButton
 import me.c3.uilib.styled.CLabel
 import me.c3.uilib.styled.CPanel
@@ -12,15 +13,15 @@ import java.awt.GridBagLayout
 import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
-class ProcessorSettings(processorView: ProcessorView) : CPanel( primary = false) {
+class ProcessorSettings(processorView: ProcessorView) : CPanel(primary = false) {
 
-    val increaseRegViews = CIconButton( UIManager.icon.get().increase)
-    val decreaseRegViews = CIconButton( UIManager.icon.get().decrease)
-    val filler = CLabel( "", FontType.BASIC)
-    val pcLabel = CLabel( "", FontType.CODE)
+    val increaseRegViews = CIconButton(UIStates.icon.get().increase)
+    val decreaseRegViews = CIconButton(UIStates.icon.get().decrease)
+    val filler = CLabel("", FontType.BASIC)
+    val pcLabel = CLabel("", FontType.CODE)
 
     init {
-        attachListeners( processorView)
+        attachListeners(processorView)
         attachComponents()
 
         States.arch.addEvent(WeakReference(this)) {

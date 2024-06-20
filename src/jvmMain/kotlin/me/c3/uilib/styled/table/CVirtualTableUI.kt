@@ -1,37 +1,20 @@
 package me.c3.uilib.styled.table
 
-import me.c3.uilib.UIStates
+import me.c3.uilib.resource.Icons
+import me.c3.uilib.scale.core.Scaling
+import me.c3.uilib.styled.CComponentUI
 import me.c3.uilib.styled.CLabel
 import me.c3.uilib.styled.params.FontType
+import me.c3.uilib.theme.core.Theme
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
-import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
-import javax.swing.plaf.ComponentUI
 
-class CVirtualTableUI : ComponentUI() {
+class CVirtualTableUI : CComponentUI<CVirtualTable>() {
 
-    override fun installUI(c: JComponent?) {
-        super.installUI(c)
-
-        val table = c as? CVirtualTable ?: return
-
-        UIStates.theme.addEvent(WeakReference(table)) { _ ->
-            setDefaults(table)
-        }
-
-        UIStates.scale.addEvent(WeakReference(table)) { _ ->
-            setDefaults(table)
-        }
-
-        setDefaults(table)
-    }
-
-    fun setDefaults(table: CVirtualTable) {
-        table.isOpaque = false
-
+    override fun setDefaults(c: CVirtualTable, theme: Theme, scaling: Scaling, icons: Icons) {
+        c.isOpaque = false
     }
 
     fun createHeaderRenderer(table: CVirtualTable, rowID: Int, colID: Int, text: String): CHeaderRenderer {
@@ -76,6 +59,4 @@ class CVirtualTableUI : ComponentUI() {
             return table.getCellContent(realRowID, realColID)
         }
     }
-
-
 }

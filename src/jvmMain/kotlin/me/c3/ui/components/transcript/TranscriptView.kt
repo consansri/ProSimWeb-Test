@@ -1,13 +1,14 @@
 package me.c3.ui.components.transcript
 
-import emulator.kit.assembler.CodeStyle
-import emulator.kit.assembler.Process
-import emulator.kit.assembler.gas.GASParser
 import emulator.core.*
 import emulator.core.Size.*
 import emulator.core.Value.*
+import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.Process
+import emulator.kit.assembler.gas.GASParser
 import me.c3.ui.Events
 import me.c3.ui.States
+import me.c3.uilib.UIStates
 import me.c3.uilib.state.*
 import me.c3.uilib.styled.CPanel
 import me.c3.uilib.styled.CScrollPane
@@ -185,7 +186,7 @@ class TranscriptView() : CPanel(primary = false) {
         for (row in content) {
             model.addRow(row.getAddrLblBytesTranscript())
         }
-        modelView.fitColumnWidths(UIManager.scale.get().borderScale.insets)
+        modelView.fitColumnWidths(UIStates.scale.get().borderScale.insets)
         highlightPCRow()
         modelView.revalidate()
         modelView.repaint()
@@ -210,7 +211,7 @@ class TranscriptView() : CPanel(primary = false) {
         val currPC = States.arch.get().regContainer.pc
 
         val index = content.indexOfFirst { it.address.getRawHexStr() == currPC.get().toHex().getRawHexStr() }
-        modelView.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, null)
+        modelView.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, null)
     }
 
     override fun getMinimumSize(): Dimension {

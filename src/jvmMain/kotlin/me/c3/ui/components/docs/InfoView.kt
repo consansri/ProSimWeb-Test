@@ -3,6 +3,7 @@ package me.c3.ui.components.docs
 
 import emulator.kit.common.Docs
 import me.c3.ui.States
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.CAdvancedTabPane
 import me.c3.uilib.styled.CLabel
 import me.c3.uilib.styled.CPanel
@@ -24,7 +25,7 @@ class InfoView() : CPanel(primary = false) {
 
     // Tabbed pane for displaying documentation
     private val docTabs = CAdvancedTabPane(primary = false, tabsAreCloseable = false).apply {
-        contentPane.verticalScrollBar.unitIncrement = UIManager.scale.get().controlScale.normalSize
+        contentPane.verticalScrollBar.unitIncrement = UIStates.scale.get().controlScale.normalSize
     }
 
     init {
@@ -83,7 +84,7 @@ class InfoView() : CPanel(primary = false) {
             gbc.gridy = 0
             gbc.weighty = 0.0
             gbc.weightx = 1.0
-            gbc.insets = UIManager.scale.get().borderScale.getInsets()
+            gbc.insets = UIStates.scale.get().borderScale.getInsets()
             gbc.fill = GridBagConstraints.HORIZONTAL
 
             add(titlePane, gbc)
@@ -115,7 +116,7 @@ class InfoView() : CPanel(primary = false) {
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = UIManager.scale.get().borderScale.getInsets()
+                    subGbc.insets = UIStates.scale.get().borderScale.getInsets()
                     subGbc.weightx = 0.0
                     subGbc.weighty = 1.0
                     subGbc.fill = GridBagConstraints.CENTER
@@ -148,7 +149,7 @@ class InfoView() : CPanel(primary = false) {
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = UIManager.scale.get().borderScale.getInsets()
+                    subGbc.insets = UIStates.scale.get().borderScale.getInsets()
                     subGbc.weightx = 0.0
                     subGbc.weighty = 1.0
                     subGbc.fill = GridBagConstraints.CENTER
@@ -171,7 +172,7 @@ class InfoView() : CPanel(primary = false) {
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = UIManager.scale.get().borderScale.getInsets()
+                    subGbc.insets = UIStates.scale.get().borderScale.getInsets()
                     subGbc.weightx = 1.0
                     subGbc.weighty = 1.0
                     subGbc.fill = GridBagConstraints.HORIZONTAL
@@ -213,7 +214,7 @@ class InfoView() : CPanel(primary = false) {
                     val subGbc = GridBagConstraints()
                     subGbc.gridx = 0
                     subGbc.gridy = 0
-                    subGbc.insets = UIManager.scale.get().borderScale.getInsets()
+                    subGbc.insets = UIStates.scale.get().borderScale.getInsets()
                     subGbc.fill = GridBagConstraints.HORIZONTAL
                     subGbc.weightx = 1.0
                     subGbc.anchor = GridBagConstraints.WEST // Align list items to the left

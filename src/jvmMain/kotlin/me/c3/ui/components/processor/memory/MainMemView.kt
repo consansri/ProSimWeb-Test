@@ -1,12 +1,13 @@
 package me.c3.ui.components.processor.memory
 
+import emulator.core.Value
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.MainMemory
 import emulator.kit.nativeWarn
-import emulator.core.*
 import me.c3.ui.Events
 import me.c3.ui.States
 import me.c3.ui.components.processor.models.MemTableModel
+import me.c3.uilib.UIStates
 import me.c3.uilib.styled.CPanel
 import me.c3.uilib.styled.CTable
 import java.awt.BorderLayout
@@ -98,7 +99,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
                 copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
                     if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
-                        table.addCellHighlighting(UIManager.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, it.offset + 1)
+                        table.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, it.offset + 1)
                     }
                 }
                 val ascii = contentArray.joinToString("") {
@@ -117,7 +118,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
     }
 
     private fun updateColumnWidths(entrysInRow: Int) {
-        val charWidth = getFontMetrics(UIManager.theme.get().codeLaF.getFont().deriveFont(UIManager.scale.get().fontScale.dataSize)).charWidth('0')
+        val charWidth = getFontMetrics(UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)).charWidth('0')
         val wordSize = memory.instanceSize
         val addrScale = memory.addressSize
         val asciiScale = entrysInRow * wordSize.getByteCount()
