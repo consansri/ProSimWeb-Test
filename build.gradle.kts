@@ -7,8 +7,9 @@ plugins {
     distribution
 }
 
-group = "me.c3"
+group = "prosim"
 version = "0.2.5"
+
 
 val doodleVersion: String by project
 
@@ -62,7 +63,7 @@ kotlin {
     jvm {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
-            this.mainClass.set("me.c3.ui.AppKt")
+            this.mainClass.set("prosim.ui.AppKt")
         }
     }
 
@@ -101,6 +102,7 @@ kotlin {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
 
+                implementation("org.jetbrains.skiko:skiko-jvm:0.5.5")  // replace with the latest version
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
             }
         }
@@ -128,7 +130,7 @@ tasks.withType<Jar>() {
         manifest {
             val main by kotlin.jvm().compilations.getting
             attributes(
-                "Main-Class" to "me.c3.ui.AppKt",
+                "Main-Class" to "prosim.ui.AppKt",
                 "Class-Path" to main.runtimeDependencyFiles.files.joinToString(" ") { "lib/" + it.name }
             )
         }
