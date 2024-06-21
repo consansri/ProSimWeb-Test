@@ -1,6 +1,10 @@
 package emulator.archs.t6502
 
-import emulator.archs.ikrmini.IKRMini
+import emulator.core.Size
+import emulator.core.Size.Bit16
+import emulator.core.Size.Bit8
+import emulator.core.Value
+import emulator.core.Value.*
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
@@ -13,10 +17,6 @@ import emulator.kit.assembler.syntax.Rule
 import emulator.kit.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
-import emulator.core.*
-import emulator.core.Size.Bit16
-import emulator.core.Size.Bit8
-import emulator.core.Value.*
 
 object T6502Assembler : AsmHeader {
     override fun instrTypes(features: List<Feature>): List<InstrTypeInterface> = InstrType.entries
@@ -65,8 +65,8 @@ object T6502Assembler : AsmHeader {
 
             val resized = when (immediate) {
                 is Dec -> {
-                    if (!immediate.check(immSize).valid) continue
-                    immediate.getResized(IKRMini.WORDSIZE).toHex()
+                    if (!immediate.checkSizeSignedOrUnsigned(immSize)) continue
+                    immediate.getResized(immSize).toHex()
                 }
 
                 null -> {
@@ -74,8 +74,8 @@ object T6502Assembler : AsmHeader {
                 }
 
                 else -> {
-                    if (immediate.check(immSize).valid == false) continue
-                    immediate.toBin().getUResized(IKRMini.WORDSIZE).toHex()
+                    if (!immediate.checkSizeSignedOrUnsigned(immSize)) continue
+                    immediate.toBin().getUResized(immSize).toHex()
                 }
             }
 

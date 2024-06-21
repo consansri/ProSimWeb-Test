@@ -3,7 +3,8 @@ package emulator.core
 import emulator.kit.nativeError
 
 /**
- * Bounds are used to check if a specific [Value] is in it's [Bounds]. Sizes won't need to be defined.
+ * Bounds are used to check if a specific [Value] is in it's [Bounds] which are defined through it's [Size].
+ * Bounds should be defined for each [Size].
  */
 class Bounds {
 
@@ -197,8 +198,6 @@ class Bounds {
                 this.umin = "0"
                 this.umax = "not identified"
             }
-
-
         }
     }
 

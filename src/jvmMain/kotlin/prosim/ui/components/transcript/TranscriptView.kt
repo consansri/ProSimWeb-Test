@@ -210,7 +210,7 @@ class TranscriptView() : CPanel(primary = false) {
     private fun highlightPCRow() {
         val currPC = States.arch.get().regContainer.pc
 
-        val index = content.indexOfFirst { it.address.getRawHexStr() == currPC.get().toHex().getRawHexStr() }
+        val index = content.indexOfFirst { it.address.toRawString() == currPC.get().toHex().toRawString() }
         modelView.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, null)
     }
 

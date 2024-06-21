@@ -1,6 +1,10 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
+import emulator.core.Size
+import emulator.core.Size.*
+import emulator.core.Value
+import emulator.core.Value.*
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
@@ -13,9 +17,6 @@ import emulator.kit.common.RegContainer
 import emulator.kit.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
-import emulator.core.*
-import emulator.core.Size.*
-import emulator.core.Value.*
 
 object RV64Assembler : AsmHeader {
     override val memAddrSize: Size = RV64.XLEN
@@ -89,24 +90,21 @@ object RV64Assembler : AsmHeader {
         when (type.paramType) {
             RV64Syntax.ParamType.RD_I20 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit20)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 20 Bits!")
+                if (!immediate.checkSizeSignedOrUnsigned(Bit20)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 20 Bits!")
 
                 return immediate.getResized(Bit20)
             }
 
             RV64Syntax.ParamType.RD_Off12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!immediate.checkSizeSignedOrUnsigned(Bit12)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12)
             }
 
             RV64Syntax.ParamType.RS2_Off12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!immediate.checkSizeSignedOrUnsigned(Bit12)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12)
             }
@@ -117,32 +115,28 @@ object RV64Assembler : AsmHeader {
 
             RV64Syntax.ParamType.RD_RS1_I12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!immediate.checkSizeSignedOrUnsigned(Bit12)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12)
             }
 
             RV64Syntax.ParamType.RD_RS1_SHAMT6 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit6)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 6 Bits!")
+                if (!immediate.checkSizeUnsigned(Bit6)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 6 Bits!")
 
                 return immediate.toBin().getResized(Bit6).toDec()
             }
 
             RV64Syntax.ParamType.RS1_RS2_I12 -> {
                 val immediate = this.evaluate(false)
-                val check = immediate.check(Bit12)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
+                if (!immediate.checkSizeSignedOrUnsigned(Bit12)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 12 Bits!")
 
                 return immediate.getResized(Bit12)
             }
 
             RV64Syntax.ParamType.RS1_RS2_LBL -> {
                 val immediate = this.evaluate(false).toBin()
-                val check = immediate.check(Bit64)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Label Expression exceeds 64 Bits!")
+                if (!immediate.checkSizeSignedOrUnsigned(Bit64)) throw Parser.ParserError(this.tokens().first(), "Label Expression exceeds 64 Bits!")
 
                 return immediate.toBin().getUResized(Bit64).toDec()
             }
@@ -153,8 +147,7 @@ object RV64Assembler : AsmHeader {
 
             RV64Syntax.ParamType.CSR_RD_OFF12_UIMM5 -> {
                 val immediate = this.evaluate(false).toBin()
-                val check = immediate.check(Bit5)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
+                if (!immediate.checkSizeUnsigned(Bit5)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds 5 Bits!")
 
                 return immediate.toBin().getUResized(Bit5).toDec()
             }
@@ -206,15 +199,13 @@ object RV64Assembler : AsmHeader {
             RV64Syntax.InstrType.Li64 -> {
                 val imm = immediate?.checkInstrType(type) ?: throw Parser.ParserError(rawInstr.tokens().first(), "Numeric Expression is Missing!")
 
-                var result = imm.check(Bit12)
-                if (result.valid) {
+                if (imm.checkSizeSigned(Bit12)) {
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 12 Bit Signed")
                     val zeroReg = RV64.standardRegFile.unsortedRegisters.first { it.names.contains("x0") }
                     return listOf(RV64Instr(rawInstr, RV64Syntax.InstrType.ADDI, arrayOf(regs[0], zeroReg), imm.getResized(Bit12)))
                 }
 
-                result = imm.check(Bit32)
-                if (result.valid) {
+                if (imm.checkSizeSigned(Bit32)) {
                     val resized = imm.getResized(Bit32).toBin()
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 32 Bit Signed")
                     // resized = upper + lower
@@ -222,8 +213,8 @@ object RV64Assembler : AsmHeader {
                     val lower = resized.getResized(Bit12).getResized(Bit32)
                     val upper = (resized - lower).toBin()
 
-                    val imm20 = Bin(upper.getRawBinStr().substring(0, 20), Bit20).toHex()
-                    val imm12 = Bin(lower.getRawBinStr().substring(20), Bit12).toHex()
+                    val imm20 = Bin(upper.toRawString().substring(0, 20), Bit20).toHex()
+                    val imm12 = Bin(lower.toRawString().substring(20), Bit12).toHex()
 
                     return listOf(
                         RV64Instr(rawInstr, RV64Syntax.InstrType.LUI, arrayOf(regs[0]), imm20),
@@ -231,8 +222,7 @@ object RV64Assembler : AsmHeader {
                     )
                 }
 
-                result = imm.check(Bit44)
-                if (result.valid) {
+                if (imm.checkSizeSigned(Bit44)) {
                     val resized = imm.toBin().getResized(Bit44)
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 44 Bit Signed for ${resized.toHex()}")
                     /**
@@ -255,8 +245,7 @@ object RV64Assembler : AsmHeader {
                     )
                 }
 
-                result = imm.check(Bit56)
-                if (result.valid) {
+                if (imm.checkSizeSigned(Bit56)) {
                     val resized = imm.toBin().getResized(Bit56)
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 56 Bit Signed for ${resized.toHex()}")
                     /**
@@ -284,9 +273,7 @@ object RV64Assembler : AsmHeader {
                     )
                 }
 
-                result = imm.check(Bit64)
-                val unsignedResult = imm.toBin().checkSizeUnsigned(Bit64) == null
-                if (result.valid || unsignedResult) {
+                if (imm.checkSizeSignedOrUnsigned(Bit64)) {
                     val resized = imm.toBin().getUResized(Bit64)
                     if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 64 Bit Signed")
                     /**

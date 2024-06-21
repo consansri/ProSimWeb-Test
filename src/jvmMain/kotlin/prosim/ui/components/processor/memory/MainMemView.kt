@@ -43,11 +43,11 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
                     val newValue = tableModel.getValueAt(row, col)
                     val offset = col - 1
                     val memInstance = memory.memList.firstOrNull {
-                        it.row.getRawHexStr() == rowAddr.toString() && it.offset == offset
+                        it.row.toRawString() == rowAddr.toString() && it.offset == offset
                     }
                     memInstance?.let { memInst ->
                         val hex = Value.Hex(newValue.toString(), memory.instanceSize)
-                        if (hex.checkResult.valid) {
+                        if (hex.valid) {
                             memInst.variable.set(hex)
                         }
                         currentlyUpdating = true
@@ -83,8 +83,8 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
             val entrysInRow = memory.entrysInRow
             val copyOfMemList = ArrayList(memory.memList)
             copyOfMemList.forEach {
-                if (!rowAddresses.contains(it.row.getRawHexStr())) {
-                    rowAddresses.add(it.row.getRawHexStr())
+                if (!rowAddresses.contains(it.row.toRawString())) {
+                    rowAddresses.add(it.row.toRawString())
                 }
             }
             rowAddresses.sort()
@@ -96,9 +96,9 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
 
             for (index in rowAddresses.indices) {
                 val contentArray: Array<Any> = Array(entrysInRow) { memory.getInitialBinary().get().toHex().toRawString() }
-                copyOfMemList.filter { it.row.getRawHexStr() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
+                copyOfMemList.filter { it.row.toRawString() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
-                    if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == it.address.getRawHexStr()) {
+                    if (States.arch.get().regContainer.pc.get().toHex().toRawString() == it.address.toRawString()) {
                         table.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, it.offset + 1)
                     }
                 }

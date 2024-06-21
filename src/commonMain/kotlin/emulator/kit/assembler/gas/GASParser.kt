@@ -518,7 +518,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
                 val secAddr = getSectionAddr()
                 getContent().forEach {
                     val addr = (secAddr + it.addrOffset()).toHex()
-                    lineAddressMap[addr.toHex().getRawHexStr()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
+                    lineAddressMap[addr.toHex().toRawString()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
                     memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
                 }
             } else {
@@ -557,7 +557,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
         inner class MappedContent<T : SecContent>(private val byteOffset: Hex, val content: T) {
             var bytes: Array<Bin> = arrayOf()
             fun addrOffset(): Hex = byteOffset.toBin().ushr(asmHeader.addrShift).toHex()
-            override fun toString(): String = "${if (content.bytesNeeded != 0) addrOffset().toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().getRawHexStr() } + "\t" else ""}${content.getContentString()}"
+            override fun toString(): String = "${if (content.bytesNeeded != 0) addrOffset().toRawZeroTrimmedString() else ""}${if (bytes.isNotEmpty()) "\t" + bytes.joinToString("") { it.toHex().toRawString() } + "\t" else ""}${content.getContentString()}"
         }
 
         /**
@@ -569,7 +569,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
          * @property label The list of labels associated with the content.
          */
         data class BundledContent(val address: Hex, val bytes: Array<Bin>, val content: String, val label: List<Label>) {
-            fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString(), label.joinToString("\n") { it.getContentString() }, bytes.joinToString("\n") { it.toHex().getRawHexStr() }, content)
+            fun getAddrLblBytesTranscript(): Array<String> = arrayOf(address.toRawZeroTrimmedString(), label.joinToString("\n") { it.getContentString() }, bytes.joinToString("\n") { it.toHex().toRawString() }, content)
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (other !is BundledContent) return false

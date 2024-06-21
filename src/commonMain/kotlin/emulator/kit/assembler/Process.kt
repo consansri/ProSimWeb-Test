@@ -88,7 +88,7 @@ data class Process(
             /*val secAddr = sec.getSectionAddr()
             sec.getContent().forEach {
                 val addr = (secAddr + it.addrOffset()).toHex()
-                lineAddressMap[addr.toHex().getRawHexStr()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
+                lineAddressMap[addr.toHex().toRawString()] = it.content.allTokensIncludingPseudo().map { token -> token.lineLoc }
                 memory.storeArray(addr, *it.bytes, mark = it.content.getMark())
             }*/
         }

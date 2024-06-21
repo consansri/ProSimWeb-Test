@@ -1,18 +1,18 @@
 package emulator.kit.assembler.gas
 
-import emulator.kit.assembler.CodeStyle
+import emulator.core.Size.*
+import emulator.core.Value
+import emulator.core.Value.Dec
+import emulator.core.Value.Hex
 import emulator.kit.assembler.AsmHeader
+import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
-import emulator.kit.assembler.syntax.Rule
-import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
+import emulator.kit.assembler.syntax.Component.*
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.nativeLog
-import emulator.core.*
-import emulator.core.Size.*
-import emulator.core.Value.Dec
-import emulator.core.Value.Hex
 
 enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -1097,7 +1097,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
                 val byte = if (exprs.size > 1) {
                     val dec32 = exprs[1].evaluate(true).toUDec()
-                    if (!dec32.check(Bit8).valid) throw Parser.ParserError(exprs[1].tokens().first(), "Numeric Expression exceeds 8 Bits!")
+                    if (!dec32.checkSizeSignedOrUnsigned(Bit8)) throw Parser.ParserError(exprs[1].tokens().first(), "Numeric Expression exceeds 8 Bits!")
                     dec32.toBin().getUResized(Bit8).toHex()
                 } else Hex("0", Bit8)
 
@@ -1111,8 +1111,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 if (padding == alignment.toIntOrNull()) return
 
                 val refToken = stmnt.dir.tokens().first()
-                val word = Hex(byte.getRawHexStr().repeat(4), Bit32)
-                val short = Hex(byte.getRawHexStr().repeat(2), Bit16)
+                val word = Hex(byte.toRawString().repeat(4), Bit32)
+                val short = Hex(byte.toRawString().repeat(2), Bit16)
                 var index = 0
                 while (index < padding) {
                     if (index + 3 < padding) {

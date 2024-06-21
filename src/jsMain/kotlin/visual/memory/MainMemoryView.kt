@@ -91,8 +91,8 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                 ref = tbody
 
                 var previousAddress: Value.Hex? = null
-                val tempMemRows = memList.sortedBy { it.address.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
-                val tempRevMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.getRawHexStr() }.groupBy { it.row.getRawHexStr() }
+                val tempMemRows = memList.sortedBy { it.address.toRawString() }.groupBy { it.row.toRawString() }
+                val tempRevMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.toRawString() }.groupBy { it.row.toRawString() }
                 if (DebugTools.REACT_showUpdateInfo) {
                     console.log("REACT: Memory Map Updated!")
                 }
@@ -135,13 +135,13 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                                         fontWeight = important(FontWeight.lighter)
                                     }
                                     title = "unused"
-                                    +props.memory.getInitialBinary().get().toHex().getRawHexStr()
+                                    +props.memory.getInitialBinary().get().toHex().toRawString()
                                 }
                             } else {
                                 ReactHTML.td {
                                     css {
                                         textAlign = TextAlign.center
-                                        if (memInstance.address.getRawHexStr() == currExeAddr) {
+                                        if (memInstance.address.toRawString() == currExeAddr) {
                                             color = important(StyleAttr.Main.Table.FgPC)
                                             fontWeight = important(FontWeight.bold)
                                         } else {
@@ -149,10 +149,10 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                                         }
                                     }
 
-                                    //id = "mem${memInstance.address.getRawHexStr()}"
-                                    title = "addr = ${memInstance.address.getRawHexStr()}\nvalue = ${memInstance.variable.get().toDec()} or ${memInstance.variable.get().toUDec()}\ntag = [${memInstance.mark.name}]"
+                                    //id = "mem${memInstance.address.toRawString()}"
+                                    title = "addr = ${memInstance.address.toRawString()}\nvalue = ${memInstance.variable.get().toDec()} or ${memInstance.variable.get().toUDec()}\ntag = [${memInstance.mark.name}]"
 
-                                    +memInstance.variable.get().toHex().getRawHexStr()
+                                    +memInstance.variable.get().toHex().toRawString()
 
                                     if (memInstance is MainMemory.MemInstance.EditableValue) {
                                         onClick = {
@@ -215,14 +215,14 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                     type = InputType.text
                     pattern = "[0-9a-fA-F]+"
                     placeholder = Settings.PRESTRING_HEX
-                    defaultValue = editVar.variable.get().toHex().getRawHexStr()
+                    defaultValue = editVar.variable.get().toHex().toRawString()
 
                     onChange = {
                         val hex = Value.Hex(it.currentTarget.value, props.archState.component1().memory.instanceSize)
-                        if (hex.checkResult.valid) {
+                        if (hex.valid) {
                             editVar.variable.set(hex)
                         } else {
-                            it.currentTarget.value = editVar.variable.get().toHex().getRawHexStr()
+                            it.currentTarget.value = editVar.variable.get().toHex().toRawString()
                         }
                     }
                     onKeyDown = {
@@ -257,7 +257,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Exe Event!")
         }
-        setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().getRawHexStr())
+        setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().toRawString())
         setMemList(props.memory.memList)
     }
 

@@ -1,5 +1,7 @@
 package emulator.archs.ikrrisc2
 
+import emulator.core.Size
+import emulator.core.Value
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
@@ -11,7 +13,6 @@ import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.RegContainer
 import emulator.kit.memory.Memory
 import emulator.kit.optional.Feature
-import emulator.core.*
 
 object IKRRisc2Assembler : AsmHeader {
     override val memAddrSize: Size = IKRRisc2.WORD_WIDTH
@@ -91,8 +92,8 @@ object IKRRisc2Assembler : AsmHeader {
         when (type.paramType) {
             ParamType.I_TYPE -> {
                 val immediate = this.evaluate(true)
-                val check = immediate.check(Size.Bit16)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
+                val check = immediate.checkSizeSignedOrUnsigned(Size.Bit16)
+                if (!check) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
 
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }
@@ -101,8 +102,7 @@ object IKRRisc2Assembler : AsmHeader {
             ParamType.R1_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             ParamType.L_OFF_TYPE -> {
                 val immediate = this.evaluate(true)
-                val check = immediate.check(Size.Bit16)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
+                if (!immediate.checkSizeSignedOrUnsigned(Size.Bit16)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
 
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }
@@ -110,8 +110,7 @@ object IKRRisc2Assembler : AsmHeader {
             ParamType.L_INDEX_TYPE -> throw Parser.ParserError(this.tokens().first(), "Numeric Expression wasn't expected!")
             ParamType.S_OFF_TYPE -> {
                 val immediate = this.evaluate(true)
-                val check = immediate.check(Size.Bit16)
-                if (!check.valid) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
+                if (!immediate.checkSizeSignedOrUnsigned(Size.Bit16)) throw Parser.ParserError(this.tokens().first(), "Numeric Expression exceeds ${Size.Bit16}!")
 
                 return immediate.getResized(IKRRisc2.WORD_WIDTH)
             }

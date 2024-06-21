@@ -1,17 +1,19 @@
 package emulator.kit.assembler.gas
 
 import debug.DebugTools
+import emulator.core.Size
+import emulator.core.Value
+import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.syntax.Rule
-import emulator.kit.assembler.syntax.Component.*
-import emulator.kit.assembler.AsmHeader
+import emulator.kit.assembler.gas.GASNode.*
 import emulator.kit.assembler.lexer.Severity
 import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Node
-import emulator.core.*
 import emulator.kit.assembler.parser.Parser
+import emulator.kit.assembler.syntax.Component.*
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
 
@@ -929,13 +931,13 @@ sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
                         }
                     }
 
-                    if (intVal?.checkResult?.valid == true) {
+                    if (intVal?.valid == true) {
                         value = intVal.toDec()
                         type = Type.Integer
-                    } else if (bigNum64?.checkResult?.valid == true) {
+                    } else if (bigNum64?.valid == true) {
                         value = bigNum64.toDec()
                         type = Type.BigNum64
-                    } else if (bigNum128?.checkResult?.valid == true) {
+                    } else if (bigNum128?.valid == true) {
                         value = bigNum128.toDec()
                         type = Type.BigNum128
                     } else {

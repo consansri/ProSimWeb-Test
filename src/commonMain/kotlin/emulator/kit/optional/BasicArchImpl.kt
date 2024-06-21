@@ -116,7 +116,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
                 result = executeNext(tracker)
-                if (regContainer.pc.get().toHex().getRawHexStr().uppercase() == address.getRawHexStr().uppercase()) {
+                if (regContainer.pc.get().toHex().toRawString().uppercase() == address.toRawString().uppercase()) {
                     break
                 }
             }
@@ -155,7 +155,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
                 result = executeNext(tracker)
-                if (regContainer.pc.get().toHex().getRawHexStr().uppercase() == destAddrString.uppercase()) {
+                if (regContainer.pc.get().toHex().toRawString().uppercase() == destAddrString.uppercase()) {
                     break
                 }
             }

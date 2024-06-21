@@ -17,5 +17,4 @@ object StringTools {
             Pair(inputString, "")
         }
     }
-
 }

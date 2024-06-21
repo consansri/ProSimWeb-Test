@@ -19,13 +19,13 @@ class Variable {
     constructor(value: Value) {
         this.value = value
         this.size = value.size
-        this.initialBinary = value.toBin().getBinaryStr()
+        this.initialBinary = value.toBin().toString()
     }
 
     constructor(size: Size) {
         this.value = Value.Bin("0", size)
         this.size = size
-        this.initialBinary = value.toBin().getBinaryStr()
+        this.initialBinary = value.toBin().toString()
     }
 
     /* GETTER SETTER */

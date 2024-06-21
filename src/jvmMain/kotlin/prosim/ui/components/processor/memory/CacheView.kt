@@ -81,7 +81,7 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
                     }
 
                     block.data.forEachIndexed { i, value ->
-                        if (States.arch.get().regContainer.pc.get().toHex().getRawHexStr() == value.address?.getRawHexStr()) {
+                        if (States.arch.get().regContainer.pc.get().toHex().toRawString() == value.address?.toRawString()) {
                             table.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), rowID, i + 5)
                         }
                     }

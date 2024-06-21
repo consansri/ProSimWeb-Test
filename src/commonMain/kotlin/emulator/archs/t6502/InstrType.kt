@@ -133,7 +133,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
     fun execute(arch: ArchT6502, amode: AModes, threeBytes: Array<Bin>, tracker: Memory.AccessTracker) {
         val smallVal = threeBytes.drop(1).first().toHex()
-        val bigVal = Hex(threeBytes.drop(1).joinToString("") { it.toHex().getRawHexStr() }, T6502.WORD_SIZE)
+        val bigVal = Hex(threeBytes.drop(1).joinToString("") { it.toHex().toRawString() }, T6502.WORD_SIZE)
 
         val flags = this.getFlags(arch)
         val pc = arch.regContainer.pc
@@ -292,7 +292,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
                 // Binary Add
                 val binSumBit9 = ac.get().toBin().getUResized(Bit9) + operand + flags.c
-                val sum = Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
+                val sum = Bin(binSumBit9.toBin().toRawString().substring(1), T6502.BYTE_SIZE)
                 val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1)
                 val operandBit0 = operand.toBin().getBit(0)
                 val sumBit0 = sum.getBit(0) ?: Bin("0", Bit1)
@@ -314,7 +314,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 val opInv = operand.toBin().inv()
 
                 val binSumBit9 = ac.get().toBin() + opInv + flags.c
-                val subBit8 = Bin(binSumBit9.toBin().getRawBinStr().substring(1), T6502.BYTE_SIZE)
+                val subBit8 = Bin(binSumBit9.toBin().toRawString().substring(1), T6502.BYTE_SIZE)
                 val acBit0 = ac.get().toBin().getBit(0) ?: Bin("0", Bit1)
                 val opInvBit0 = opInv.toBin().getBit(0)
                 val subBit0 = subBit8.getBit(0) ?: Bin("0", Bit1)
@@ -422,7 +422,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 when (amode) {
                     ACCUMULATOR -> {
                         val acBin = ac.get().toBin()
-                        val rotated = acBin.ushr(1) and Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
+                        val rotated = acBin.ushr(1) and Bin(flags.c.toRawString() + "0000000", T6502.BYTE_SIZE)
                         setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = acBin.getBit(7))
                         ac.set(rotated)
                     }
@@ -430,7 +430,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     else -> {
                         address?.let {
                             val loaded = arch.dataMemory.load(it, tracker = tracker).toBin()
-                            val rotated = loaded.ushr(1) and Bin(flags.c.getRawBinStr() + "0000000", T6502.BYTE_SIZE)
+                            val rotated = loaded.ushr(1) and Bin(flags.c.toRawString() + "0000000", T6502.BYTE_SIZE)
                             setFlags(arch, n = rotated.getBit(0), checkZero = rotated, c = loaded.getBit(7))
                             arch.dataMemory.store(it, rotated, tracker = tracker)
                         } ?: arch.console.error("Couldn't load address for ${this.name} ${amode.name}!")
@@ -607,7 +607,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                     }
 
                     IND -> {
-                        pc.set(Bin(pc.get().toBin().getRawBinStr().substring(0, 8) + arch.dataMemory.load(bigVal, tracker = tracker).toBin().getRawBinStr(), T6502.WORD_SIZE))
+                        pc.set(Bin(pc.get().toBin().toRawString().substring(0, 8) + arch.dataMemory.load(bigVal, tracker = tracker).toBin().toRawString(), T6502.WORD_SIZE))
                     }
 
                     else -> {}
@@ -642,7 +642,7 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
                 val msb = arch.dataMemory.load(Hex("FFFF", T6502.WORD_SIZE), tracker = tracker).toHex()
 
                 // Jump to Interrupt Handler Address
-                pc.set(Hex(msb.getRawHexStr() + lsb.getRawHexStr(), T6502.WORD_SIZE))
+                pc.set(Hex(msb.toRawString() + lsb.toRawString(), T6502.WORD_SIZE))
             }
 
             RTI -> {
@@ -707,16 +707,16 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             }
 
             ZP -> {
-                arch.dataMemory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)).toHex()
+                arch.dataMemory.load(Hex("00${smallVal.toRawString()}", T6502.WORD_SIZE)).toHex()
             }
 
             ZP_X -> {
-                val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+                val addr = Hex("00${(smallVal + x.get()).toHex().toRawString()}", T6502.WORD_SIZE)
                 arch.dataMemory.load(addr.toHex()).toHex()
             }
 
             ZP_Y -> {
-                val addr = Hex("00${(smallVal + y.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+                val addr = Hex("00${(smallVal + y.get()).toHex().toRawString()}", T6502.WORD_SIZE)
                 arch.dataMemory.load(addr.toHex()).toHex()
             }
 
@@ -740,13 +740,13 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             }
 
             ZP_X_IND -> {
-                val addr = Hex("00${(smallVal + x.get()).toHex().getRawHexStr()}", T6502.WORD_SIZE)
+                val addr = Hex("00${(smallVal + x.get()).toHex().toRawString()}", T6502.WORD_SIZE)
                 val loadedAddr = arch.dataMemory.load(addr.toHex()).toHex()
                 arch.dataMemory.load(loadedAddr).toHex()
             }
 
             ZPIND_Y -> {
-                val loadedAddr = arch.dataMemory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE))
+                val loadedAddr = arch.dataMemory.load(Hex("00${smallVal.toRawString()}", T6502.WORD_SIZE))
                 val incAddr = loadedAddr + y.get()
                 arch.dataMemory.load(incAddr.toHex()).toHex()
             }
@@ -768,11 +768,11 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
             ABS -> bigVal
             ABS_X -> (bigVal + x.toBin().getResized(T6502.WORD_SIZE)).toHex()
             ABS_Y -> (bigVal + y.toBin().getResized(T6502.WORD_SIZE)).toHex()
-            ZP -> Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_X -> Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_Y -> Hex("00${(smallVal + y).toHex().getRawHexStr()}", T6502.WORD_SIZE)
-            ZP_X_IND -> arch.dataMemory.load(Hex("00${(smallVal + x).toHex().getRawHexStr()}", T6502.WORD_SIZE), 2).toHex()
-            ZPIND_Y -> (arch.dataMemory.load(Hex("00${smallVal.getRawHexStr()}", T6502.WORD_SIZE), 2) + y).toHex()
+            ZP -> Hex("00${smallVal.toRawString()}", T6502.WORD_SIZE)
+            ZP_X -> Hex("00${(smallVal + x).toHex().toRawString()}", T6502.WORD_SIZE)
+            ZP_Y -> Hex("00${(smallVal + y).toHex().toRawString()}", T6502.WORD_SIZE)
+            ZP_X_IND -> arch.dataMemory.load(Hex("00${(smallVal + x).toHex().toRawString()}", T6502.WORD_SIZE), 2).toHex()
+            ZPIND_Y -> (arch.dataMemory.load(Hex("00${smallVal.toRawString()}", T6502.WORD_SIZE), 2) + y).toHex()
             else -> null
         }
     }
@@ -826,6 +826,6 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
         }
 
 
-        sr.set(Bin("${nflag.getRawBinStr()}${vflag.getRawBinStr()}1${bflag.getRawBinStr()}${dflag.getRawBinStr()}${iflag.getRawBinStr()}${zflag.getRawBinStr()}${cflag.getRawBinStr()}", T6502.BYTE_SIZE))
+        sr.set(Bin("${nflag.toRawString()}${vflag.toRawString()}1${bflag.toRawString()}${dflag.toRawString()}${iflag.toRawString()}${zflag.toRawString()}${cflag.toRawString()}", T6502.BYTE_SIZE))
     }
 }

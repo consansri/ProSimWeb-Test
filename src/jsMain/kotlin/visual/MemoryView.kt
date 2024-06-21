@@ -314,14 +314,14 @@ val MemoryView = FC<MemViewProps> { props ->
                     type = InputType.text
                     pattern = "[0-9a-fA-F]+"
                     placeholder = Settings.PRESTRING_HEX
-                    defaultValue = editVar.variable.get().toHex().getRawHexStr()
+                    defaultValue = editVar.variable.get().toHex().toRawString()
 
                     onChange = {
                         val hex = Hex(it.currentTarget.value, props.archState.component1().memory.instanceSize)
-                        if (hex.checkResult.valid) {
+                        if (hex.valid) {
                             editVar.variable.set(hex)
                         } else {
-                            it.currentTarget.value = editVar.variable.get().toHex().getRawHexStr()
+                            it.currentTarget.value = editVar.variable.get().toHex().toRawString()
                         }
                     }
                     onKeyDown = {
@@ -379,7 +379,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         type = InputType.text
                         pattern = "[0-9a-fA-F]+"
                         placeholder = Settings.PRESTRING_HEX
-                        defaultValue = startAddr?.getRawHexStr() ?: ""
+                        defaultValue = startAddr?.toRawString() ?: ""
 
                         onChange = {
                             setStartAddr(if (it.currentTarget.value != "") Hex(it.currentTarget.value, props.archState.component1().memory.addressSize) else null)
@@ -411,7 +411,7 @@ val MemoryView = FC<MemViewProps> { props ->
     useEffect(useBounds, startAddr, amount) {
         if (useBounds) {
             startAddr?.let {
-                if (it.checkResult.valid) props.archState.component1().memory.ioBounds = MainMemory.IOBounds(it, amount) else props.archState.component1().console.error("IO Definition: Address isn't valid!")
+                if (it.valid) props.archState.component1().memory.ioBounds = MainMemory.IOBounds(it, amount) else props.archState.component1().console.error("IO Definition: Address isn't valid!")
             } ?: props.archState.component1().console.error("IO Definition: Address isn't valid!")
 
         } else {
@@ -419,7 +419,7 @@ val MemoryView = FC<MemViewProps> { props ->
         }
         localStorage.setItem("${Keys.MIO_ACTIVE}-${props.archState.component1().description.name}", useBounds.toString())
         startAddr?.let {
-            localStorage.setItem("${Keys.MIO_START}-${props.archState.component1().description.name}", startAddr.getHexStr())
+            localStorage.setItem("${Keys.MIO_START}-${props.archState.component1().description.name}", startAddr.toString())
         }
         localStorage.setItem("${Keys.MIO_AMOUNT}-${props.archState.component1().description.name}", amount.toString())
     }

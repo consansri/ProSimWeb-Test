@@ -25,7 +25,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
 
         var paramType: IKRMiniSyntax.ParamType? = null
         val instrType = IKRMiniSyntax.InstrType.entries.firstOrNull { type ->
-            paramType = type.paramMap.entries.toList().firstOrNull { it.value.getRawHexStr().uppercase() == opCode.getRawHexStr().uppercase() }?.key
+            paramType = type.paramMap.entries.toList().firstOrNull { it.value.toRawString().uppercase() == opCode.toRawString().uppercase() }?.key
             paramType != null
         }
 

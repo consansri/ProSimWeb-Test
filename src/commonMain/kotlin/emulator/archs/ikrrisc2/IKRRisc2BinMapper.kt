@@ -2,14 +2,14 @@ package emulator.archs.ikrrisc2
 
 import Settings
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.MaskLabel.*
+import emulator.core.Size
+import emulator.core.Size.*
+import emulator.core.Value.Bin
+import emulator.core.Value.Dec
 import emulator.kit.Architecture
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
-import emulator.core.*
-import emulator.core.Size.*
-import emulator.core.Value.Bin
-import emulator.core.Value.Dec
 
 object IKRRisc2BinMapper {
 
@@ -105,7 +105,7 @@ object IKRRisc2BinMapper {
             ParamType.B_DISP18_TYPE -> {
                 val rc = regs.getOrNull(0)?.address?.toBin() ?: throw Parser.ParserError(instr.getFirstToken(), "Expected register is missing.")
                 val displ = lblDisplacement ?: throw Parser.ParserError(instr.getFirstToken(), "Label displacement is missing for type $type.")
-                if (!displ.check(Bit18).valid) {
+                if (!displ.checkSizeSignedOrUnsigned(Bit18)) {
                     throw Parser.ParserError(instr.getFirstToken(), "Label displacement ($displ) exceeds 18 Bits.")
                 }
                 val displ18 = displ.getResized(Bit18).toBin()
@@ -115,7 +115,7 @@ object IKRRisc2BinMapper {
 
             ParamType.B_DISP26_TYPE -> {
                 val displ = lblDisplacement ?: throw Parser.ParserError(instr.getFirstToken(), "Label displacement is missing for type $type.")
-                if (!displ.check(Bit26).valid) {
+                if (!displ.checkSizeSignedOrUnsigned(Bit26)) {
                     throw Parser.ParserError(instr.getFirstToken(), "Label displacement ($displ) exceeds 26 Bits.")
                 }
                 val displ26 = displ.getResized(Bit26).toBin()
@@ -150,7 +150,7 @@ object IKRRisc2BinMapper {
                 return CheckResult(false)
             }
             // Check OpCode
-            val binaryString = bin.getRawBinStr()
+            val binaryString = bin.toRawString()
 
             val binMap = mutableMapOf<MaskLabel, Bin>()
 
@@ -199,7 +199,7 @@ object IKRRisc2BinMapper {
                     if (param != null) {
                         val size = maskLabel.maxSize
                         if (size != null) {
-                            opCode[labelID] = param.getUResized(size).getRawBinStr()
+                            opCode[labelID] = param.getUResized(size).toRawString()
                         } else {
                             nativeWarn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
                             return null

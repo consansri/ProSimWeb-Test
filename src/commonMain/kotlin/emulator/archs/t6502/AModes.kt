@@ -31,8 +31,8 @@ enum class AModes(val tokenSequence: Rule?, val byteAmount: Int, val exampleStri
     IMPLIED(null, 1, exampleString = "", description = "implied"); // Implied: i
 
     fun getString(threeByte: Array<Value.Bin>): String {
-        val smallVal = threeByte.get(1).toHex().getRawHexStr()
-        val bigVal = threeByte.drop(1).joinToString("") { it.toHex().getRawHexStr() }
+        val smallVal = threeByte.get(1).toHex().toRawString()
+        val bigVal = threeByte.drop(1).joinToString("") { it.toHex().toRawString() }
         return when (this) {
             ZP_X -> "$${smallVal}, X"
             ZP_Y -> "$${smallVal}, Y"

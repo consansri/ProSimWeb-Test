@@ -233,7 +233,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
                             Value.Types.Dec -> Value.Dec(newStringValue.toString(), reg.get().size)
                             Value.Types.UDec -> Value.UDec(newStringValue.toString(), reg.get().size)
                         }
-                        if (newValue.checkResult.valid) {
+                        if (newValue.valid) {
                             reg.set(newValue)
                         }
                         onRegValueChange(reg)

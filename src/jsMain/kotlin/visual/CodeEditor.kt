@@ -92,7 +92,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun markPCLine() {
         val pcValue = props.archState.component1().regContainer.pc.variable.get()
-        val lineLocs = assemblyMap?.get(pcValue.toHex().getRawHexStr())
+        val lineLocs = assemblyMap?.get(pcValue.toHex().toRawString())
         val firstValid = lineLocs?.firstOrNull { it.file.wsRelativeName == props.fileState.component1().getCurrent().getWSRelativeName() }
 
         if (firstValid != null) {
