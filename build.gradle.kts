@@ -63,7 +63,7 @@ kotlin {
     jvm {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
-            this.mainClass.set("prosim.ui.AppKt")
+            this.mainClass.set("prosim.AppKt")
         }
     }
 
@@ -130,7 +130,7 @@ tasks.withType<Jar>() {
         manifest {
             val main by kotlin.jvm().compilations.getting
             attributes(
-                "Main-Class" to "prosim.ui.AppKt",
+                "Main-Class" to "prosim.AppKt",
                 "Class-Path" to main.runtimeDependencyFiles.files.joinToString(" ") { "lib/" + it.name }
             )
         }

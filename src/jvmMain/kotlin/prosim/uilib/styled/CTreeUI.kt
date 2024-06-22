@@ -1,7 +1,7 @@
 package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import prosim.ui.workspace.Workspace
+import prosim.uilib.workspace.Workspace
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
 import java.awt.*

@@ -1,4 +1,4 @@
-package prosim.ui.workspace
+package prosim.uilib.workspace
 
 import emulator.kit.assembler.AsmFile
 import emulator.kit.common.FileBuilder
@@ -35,7 +35,12 @@ import javax.swing.tree.DefaultTreeModel
  * @param codeEditor The code editor instance.
  * @param mainManager The main manager instance.
  */
-class Workspace(private val path: String, var editor: WSEditor? = null, var logger: WSLogger? = null) {
+class Workspace(
+    private val path: String,
+    val behavior: WSBehaviour,
+    var editor: WSEditor? = null,
+    var logger: WSLogger? = null
+) {
     // Root directory of the workspace.
     val rootDir = File(path)
 
@@ -49,7 +54,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
     private val treeModel = DefaultTreeModel(rootNode)
 
     // UI component representing the file tree.
-    val tree: prosim.uilib.styled.CTree
+    val tree: CTree
 
     init {
         config = WSConfig(Keys.getConfigFile(rootDir)) {
@@ -60,7 +65,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
         buildFileTree(rootDir, rootNode)
 
         // Initialize the file tree UI component.
-        tree = prosim.uilib.styled.CTree(treeModel, FontType.BASIC)
+        tree = CTree(treeModel, FontType.BASIC)
 
         // Add mouse listener for handling user interactions with the file tree.
         tree.addMouseListener(object : MouseAdapter() {
@@ -135,11 +140,9 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
 
         val dirs = treeFiles.filter { it.file.isDirectory }
         val files = treeFiles.filter { it.file.isFile }
-        val asmFiles = treeFiles.filter { it.file.isFile && (it.file.name.endsWith(".s") || it.file.endsWith(".S")) }
 
         val containsDirs = dirs.isNotEmpty()
         val containsFiles = files.isNotEmpty()
-        val containsAsmFiles = asmFiles.isNotEmpty()
 
         /**
          * Initialize Menu Items
@@ -152,13 +155,6 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
 
         // Only File
         val openItem = if (containsFiles) CMenuItem("Open") else null
-
-        // Only Assembly File
-        val buildFile = if (containsAsmFiles) CMenuItem("Build") else null
-        val exportMIF = if (containsAsmFiles) CMenuItem("Generate MIF") else null
-        val exportHexDump = if (containsAsmFiles) CMenuItem("Generate HexDump") else null
-        val exportVHDL = if (containsAsmFiles) CMenuItem("Generate VHDL") else null
-        val exportTS = if (containsAsmFiles) CMenuItem("Generate Transcript") else null
 
         // General
         val renameItem = CMenuItem("Rename")
@@ -226,31 +222,6 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
             }
         }
 
-        buildFile?.addActionListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                files.forEach {
-                    val result = States.arch.get().compile(it.file.toAsmFile(it.file, rootDir), getImportableFiles(it.file), true)
-                    Events.compile.triggerEvent(result)
-                }
-            }
-        }
-
-        exportMIF?.addActionListener {
-            showExportOverlay(ExportFormat.MIF, files)
-        }
-
-        exportVHDL?.addActionListener {
-            showExportOverlay(ExportFormat.VHDL, files)
-        }
-
-        exportHexDump?.addActionListener {
-            showExportOverlay(ExportFormat.HEXDUMP, files)
-        }
-
-        exportTS?.addActionListener {
-            showExportOverlay(ExportFormat.TRANSCRIPT, files)
-        }
-
         // General
 
         renameItem.addActionListener {
@@ -272,13 +243,37 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
 
         deleteItem.addActionListener {
             CoroutineScope(Dispatchers.Main).launch {
-                var filesInDirs = 0
-                dirs.forEach { filesInDirs += it.file.listFiles()?.filter { child -> !files.map { it.file }.contains(child) }?.size ?: 0 }
+                var dirsAreEmpty = true
+                for (dir in dirs) {
+                    val isEmpty = (dir.file.listFiles()?.size ?: 0) == 0
+                    if (!isEmpty) {
+                        dirsAreEmpty = false
+                        break
+                    }
+                }
+                dirs.forEach { dir ->
+
+
+                }
                 val fileInfoString = when {
-                    dirs.isNotEmpty() && files.isNotEmpty() -> "${dirs.size} directories (with $filesInDirs files) and ${files.size} files"
-                    dirs.isNotEmpty() -> "${dirs.size} directories (with $filesInDirs files)"
+                    dirs.isNotEmpty() && files.isNotEmpty() -> "${dirs.size} directories ${if (!dirsAreEmpty) "(not empty)" else ""} and ${files.size} files"
+                    dirs.isNotEmpty() -> "${dirs.size} directories ${if (!dirsAreEmpty) "(not empty)" else ""}"
                     files.isNotEmpty() -> "${files.size} files"
                     else -> "nothing"
+                }
+
+                if(files.isEmpty() && dirsAreEmpty){
+                    dirs.forEach {
+                        if (!it.file.delete()) {
+                            logger?.error("Failed to delete directory ${it.file.name}!")
+                            return@launch
+                        }
+                    }
+
+                    // Files deleted successfully
+                    States.ws.setFromPath(path, editor, logger)
+                    logger?.log("Deleted $fileInfoString")
+                    return@launch
                 }
 
                 val confirmation = COptionPane.confirm(
@@ -320,11 +315,15 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
         // File
         openItem?.let { popupMenu.add(it) }
 
-        buildFile?.let { popupMenu.add(it) }
-        exportMIF?.let { popupMenu.add(it) }
-        exportVHDL?.let { popupMenu.add(it) }
-        exportHexDump?.let { popupMenu.add(it) }
-        exportTS?.let { popupMenu.add(it) }
+        behavior.actions.filter { it.shouldAppend(treeFiles) }.forEach { action ->
+            val menuItem = CMenuItem(action.name)
+            menuItem.addActionListener {
+                CoroutineScope(Dispatchers.Main).launch {
+                    action.execute(this@Workspace, treeFiles)
+                }
+            }
+            popupMenu.add(menuItem)
+        }
 
         // General
         popupMenu.add(renameItem)
@@ -359,7 +358,7 @@ class Workspace(private val path: String, var editor: WSEditor? = null, var logg
         }
     }
 
-    private fun showExportOverlay(type: ExportFormat, files: List<TreeFile>) {
+    fun showExportOverlay(type: ExportFormat, files: List<TreeFile>) {
         SwingUtilities.invokeLater {
             val (dialog, content, submit) = CDialog.createWithTitle("Export - ${type.uiName}", tree) {
                 // onClose

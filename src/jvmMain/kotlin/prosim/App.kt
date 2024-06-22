@@ -1,4 +1,4 @@
-package prosim.ui
+package prosim
 
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ui.components.NativeFrame

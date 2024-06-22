@@ -1,7 +1,7 @@
 package prosim.uilib.styled
 
 import kotlinx.coroutines.*
-import prosim.ui.workspace.Workspace
+import prosim.uilib.workspace.Workspace
 import prosim.uilib.styled.params.FontType
 import java.awt.*
 import java.awt.event.FocusAdapter

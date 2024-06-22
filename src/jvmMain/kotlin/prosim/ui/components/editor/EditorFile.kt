@@ -4,7 +4,7 @@ import emulator.kit.*
 import emulator.kit.assembler.AsmFile
 import emulator.kit.assembler.lexer.Token
 import kotlinx.coroutines.*
-import prosim.ui.workspace.Workspace
+import prosim.uilib.workspace.Workspace
 import prosim.uilib.styled.editor.FileInterface
 import java.io.File
 import java.io.FileNotFoundException
