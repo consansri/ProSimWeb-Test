@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "prosim"
-version = "0.2.5"
+version = "0.2.6"
 
 repositories {
     google()
@@ -35,10 +35,7 @@ var hostArch = when (osArch) {
 
 val host = "${hostOs}-${hostArch}"
 
-var version = "0.0.0-SNAPSHOT"
-if (project.hasProperty("skiko.version")) {
-    version = project.properties["skiko.version"] as String
-}
+val skikoVersion = "0.8.9"
 
 val resourcesDir = "$buildDir/resources"
 val skikoWasm by configurations.creating
@@ -95,7 +92,7 @@ kotlin {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
 
-                implementation("org.jetbrains.skiko:skiko-awt-runtime-$hostOs-$hostArch:$version")  // replace with the latest version
+                implementation("org.jetbrains.skiko:skiko-awt-runtime-$hostOs-$hostArch:$skikoVersion")  // replace with the latest version
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
             }
         }
