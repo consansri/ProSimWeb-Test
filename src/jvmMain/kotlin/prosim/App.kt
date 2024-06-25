@@ -2,7 +2,8 @@ package prosim
 
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ui.components.NativeFrame
-import javax.swing.*
+import javax.swing.JDialog
+import javax.swing.JFrame
 
 /**
  * The main entry point for the ProSim application.
@@ -19,13 +20,13 @@ fun main() {
     }
 
     // Initialize and test the base application.
-    testBaseApp()
+    launchBaseApp()
 }
 
 /**
  * Initializes the base application for testing purposes.
  */
-fun testBaseApp() {
+fun launchBaseApp() {
     // Create and display the main application frame using NativeFrame.
     NativeFrame()
 
