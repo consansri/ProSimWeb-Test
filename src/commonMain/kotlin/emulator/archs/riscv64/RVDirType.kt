@@ -1,5 +1,7 @@
 package emulator.archs.riscv64
 
+import emulator.core.Size
+import emulator.core.Value.Tools.toValue
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.gas.GASDirType
@@ -11,8 +13,6 @@ import emulator.kit.assembler.lexer.Token
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.syntax.Rule
-import emulator.core.*
-import emulator.core.Value.Tools.toValue
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -157,7 +157,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
                 val shorts = stmnt.dir.additionalNodes.filterIsInstance<GASNode.NumericExpr>().map {
                     val value = it.evaluate(false).toBin()
                     val truncated = value.getUResized(Size.Bit64).toHex()
-                    if (value.checkSizeUnsigned(Size.Bit64) != null) {
+                    if (!value.checkSizeUnsigned(Size.Bit64)) {
                         it.tokens().first().addSeverity(Severity.Type.WARNING, "value ${value.toHex()} truncated to $truncated")
                     }
                     truncated

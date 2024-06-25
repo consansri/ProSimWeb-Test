@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform") version "2.0.0"
@@ -8,7 +7,7 @@ plugins {
 }
 
 group = "prosim"
-version = "0.2.6"
+version = "0.2.5"
 
 repositories {
     google()
@@ -46,16 +45,6 @@ val skikoWasm by configurations.creating
 
 val isCompositeBuild = extra.properties.getOrDefault("skiko.composite.build", "") == "1"
 
-val unzipTask = tasks.register("unzipWasm", Copy::class) {
-    destinationDir = file(resourcesDir)
-    from(skikoWasm.map { zipTree(it) })
-
-    if (isCompositeBuild) {
-        val skikoWasmJarTask = gradle.includedBuild("skiko").task(":skikoWasmJar")
-        dependsOn(skikoWasmJarTask)
-    }
-}
-
 kotlin {
     js(IR) {
         binaries.executable()
@@ -64,33 +53,6 @@ kotlin {
                 cssSupport {
                     enabled.set(true)
                 }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.executable()
-
-        // Apply binaryen to optimize output
-        if (project.gradle.startParameter.taskNames.find { it.contains("wasmJsBrowserProductionWebpack") } != null) {
-            applyBinaryen {
-                binaryenArgs = mutableListOf(
-                    "--enable-nontrapping-float-to-int",
-                    "--enable-gc",
-                    "--enable-reference-types",
-                    "--enable-exception-handling",
-                    "--enable-bulk-memory",
-                    "--inline-functions-with-loops",
-                    "--traps-never-happen",
-                    "--fast-math",
-                    "--closed-world",
-                    "--metrics",
-                    "-O3", "--gufa", "--metrics",
-                    "-O3", "--gufa", "--metrics",
-                    "-O3", "--gufa", "--metrics",
-                )
             }
         }
     }
@@ -105,7 +67,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.skiko:skiko:$version")
+                // implementation("org.jetbrains.skiko:skiko:$version") // multiplatform usage of skiko
 
                 //implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
@@ -120,7 +82,6 @@ kotlin {
         }
 
         val jsMain by getting {
-            dependsOn(commonMain)
             dependencies {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react:18.3.1-pre.757")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.3.1-pre.757")
@@ -129,14 +90,7 @@ kotlin {
             }
         }
 
-        val wasmJsMain by getting {
-            dependencies {
-
-            }
-        }
-
         val jvmMain by getting {
-            dependsOn(commonMain)
             dependencies {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
