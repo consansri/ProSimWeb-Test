@@ -57,6 +57,8 @@ open class CIconButtonUI() : CComponentUI<CIconButton>() {
         val width = button.width
         val height = button.height
 
+        g2.rotate(button.rotationAngle, width / 2.0, height / 2.0)
+
         // Paint button background
         val bgColor = if (button.isHovered && !button.isDeactivated) {
             g2.color = button.iconBgHover

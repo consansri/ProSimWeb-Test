@@ -5,8 +5,6 @@ import prosim.uilib.UIStates
 import prosim.uilib.scale.core.Scaling
 import prosim.uilib.theme.core.Theme
 import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -17,7 +15,8 @@ import javax.swing.Timer
 open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val hasHoverEffect: Boolean = true) : JComponent() {
 
     private var timer: Timer? = null
-    private var rotationAngle: Double = 0.0
+    var rotationAngle: Double = 0.0
+        private set
 
     var customColor: Color? = null
         set(value) {
@@ -104,15 +103,6 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val 
         }
 
         return icon.derive(size, size)
-    }
-
-    override fun paint(g: Graphics?) {
-        val g2d = g?.create() as Graphics2D?
-        g2d?.let {
-            g2d.rotate(rotationAngle, width / 2.0, height / 2.0)
-            super.paint(g2d)
-            g2d.dispose()
-        }
     }
 
     private fun installHoverEffect(){
