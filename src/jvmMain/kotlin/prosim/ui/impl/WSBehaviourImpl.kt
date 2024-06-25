@@ -14,7 +14,7 @@ enum class WSBehaviourImpl : WSBehaviour {
             object : WSFileAction {
                 override val name: String = "Build"
 
-                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.filter { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }.isNotEmpty()
+                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.any { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }
 
                 override suspend fun execute(ws: Workspace, files: List<Workspace.TreeFile>) {
                     files.forEach {
@@ -26,7 +26,7 @@ enum class WSBehaviourImpl : WSBehaviour {
             object : WSFileAction {
                 override val name: String = "Generate MIF"
 
-                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.filter { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }.isNotEmpty()
+                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.any { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }
 
                 override suspend fun execute(ws: Workspace, files: List<Workspace.TreeFile>) {
                     ws.showExportOverlay(FileBuilder.ExportFormat.MIF, files)
@@ -34,7 +34,7 @@ enum class WSBehaviourImpl : WSBehaviour {
             },
             object : WSFileAction {
                 override val name: String = "Generate HexDump"
-                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.filter { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }.isNotEmpty()
+                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.any { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }
                 override suspend fun execute(ws: Workspace, files: List<Workspace.TreeFile>) {
                     ws.showExportOverlay(FileBuilder.ExportFormat.HEXDUMP, files)
                 }
@@ -42,7 +42,7 @@ enum class WSBehaviourImpl : WSBehaviour {
             },
             object : WSFileAction {
                 override val name: String = "Generate VHDL"
-                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.filter { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }.isNotEmpty()
+                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.any { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }
                 override suspend fun execute(ws: Workspace, files: List<Workspace.TreeFile>) {
                     ws.showExportOverlay(FileBuilder.ExportFormat.VHDL, files)
                 }
@@ -50,7 +50,7 @@ enum class WSBehaviourImpl : WSBehaviour {
             },
             object : WSFileAction {
                 override val name: String = "Generate Transcript"
-                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.filter { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }.isNotEmpty()
+                override fun shouldAppend(selectedFiles: List<Workspace.TreeFile>): Boolean = selectedFiles.any { it.file.name.endsWith(".S") || it.file.name.endsWith(".s") }
                 override suspend fun execute(ws: Workspace, files: List<Workspace.TreeFile>) {
                     ws.showExportOverlay(FileBuilder.ExportFormat.TRANSCRIPT, files)
                 }
