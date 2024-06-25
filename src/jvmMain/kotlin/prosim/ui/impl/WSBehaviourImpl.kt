@@ -1,4 +1,4 @@
-package prosim.backend
+package prosim.ui.impl
 
 import emulator.kit.common.FileBuilder
 import emulator.kit.toAsmFile
@@ -8,7 +8,7 @@ import prosim.uilib.workspace.WSBehaviour
 import prosim.uilib.workspace.WSFileAction
 import prosim.uilib.workspace.Workspace
 
-enum class ProjectType : WSBehaviour {
+enum class WSBehaviourImpl : WSBehaviour {
     ASM() {
         override val actions: List<WSFileAction> = listOf(
             object : WSFileAction {
@@ -56,7 +56,6 @@ enum class ProjectType : WSBehaviour {
                 }
 
             },
-
         )
     },
 

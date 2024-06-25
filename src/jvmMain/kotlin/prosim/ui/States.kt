@@ -6,7 +6,7 @@ import emulator.kit.optional.SetupSetting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import prosim.backend.ProjectType
+import prosim.ui.impl.WSBehaviourImpl
 import prosim.uilib.UIStates
 import prosim.uilib.state.Manager
 import prosim.uilib.state.WSConfig
@@ -63,7 +63,7 @@ object States {
     fun Manager<Workspace?>.setFromPath(path: String, editor: WSEditor?, logger: WSLogger?) {
         logger?.log("Switching Workspace ($path)")
         CoroutineScope(Dispatchers.Default).launch {
-            set(Workspace(path, ProjectType.ASM, editor, logger))
+            set(Workspace(path, WSBehaviourImpl.ASM, editor, logger))
             logger?.log("")
         }
     }
