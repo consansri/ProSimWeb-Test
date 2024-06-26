@@ -68,7 +68,7 @@ open class CIconButtonUI() : CComponentUI<CIconButton>() {
         g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, cornerRadius, cornerRadius)
 
         // Paint button
-        val icon = button.getIcon()
+        val icon = button.svgIcon
         val iconX = (width - icon.iconWidth) / 2
         val iconY = (height - icon.iconHeight) / 2
         icon.paintIcon(button, g2, iconX, iconY)

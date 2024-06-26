@@ -39,7 +39,6 @@ class CSpinner(model: SpinnerModel, fontType: FontType = FontType.BASIC,val bord
 
     fun commitEditorValue(){
         try {
-            nativeLog("Committing Edit!")
             commitEdit()
         }catch (e: Exception){
             // parse exception handling not needed

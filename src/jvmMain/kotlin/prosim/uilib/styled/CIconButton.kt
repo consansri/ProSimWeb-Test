@@ -7,7 +7,6 @@ import prosim.uilib.theme.core.Theme
 import java.awt.Color
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.Timer
@@ -67,6 +66,27 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val 
             revalidate()
             repaint()
         }
+        get() {
+            val size = mode.size(UIStates.scale.get())
+            val icon = field
+            val customColor = customColor
+
+            if (customColor != null) {
+                icon.colorFilter = FlatSVGIcon.ColorFilter {
+                    customColor
+                }
+            } else {
+                mode.applyFilter(icon, UIStates.theme.get())
+            }
+
+            if (isDeactivated) {
+                icon.colorFilter = FlatSVGIcon.ColorFilter{
+                    UIStates.theme.get().iconLaF.iconFgInactive
+                }
+            }
+
+            return icon.derive(size, size)
+        }
 
     init {
         this.setUI(CIconButtonUI())
@@ -81,28 +101,6 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val 
                 event()
             }
         })
-    }
-
-    fun getIcon(): Icon {
-        val size = mode.size(UIStates.scale.get())
-        val icon = svgIcon
-        val customColor = customColor
-
-        if (customColor != null) {
-            icon.colorFilter = FlatSVGIcon.ColorFilter {
-                customColor
-            }
-        } else {
-            mode.applyFilter(icon, UIStates.theme.get())
-        }
-
-        if (isDeactivated) {
-            icon.colorFilter = FlatSVGIcon.ColorFilter{
-                UIStates.theme.get().iconLaF.iconFgInactive
-            }
-        }
-
-        return icon.derive(size, size)
     }
 
     private fun installHoverEffect(){

@@ -1,13 +1,13 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
-import java.awt.Color
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JSpinner.DefaultEditor
 import javax.swing.plaf.basic.BasicSpinnerUI
 
 class CSpinnerUI : BasicSpinnerUI() {
@@ -48,24 +48,47 @@ class CSpinnerUI : BasicSpinnerUI() {
 
     fun setDefaults(spinner: CSpinner) {
         spinner.isOpaque = false
-        spinner.background = Color(0, 0, 0, 0)
+        spinner.background = UIStates.theme.get().globalLaF.bgOverlay
         spinner.foreground = UIStates.theme.get().textLaF.base
         spinner.border = spinner.borderMode.getBorder()
-        spinner.editor.border = BorderFactory.createEmptyBorder()
-        spinner.font = spinner.fontType.getFont()
+
+        val editor = spinner.editor as DefaultEditor
+        editor.border = BorderFactory.createEmptyBorder()
+        editor.background = spinner.background
+        editor.foreground = spinner.foreground
+        editor.font = spinner.fontType.getFont()
+
+        editor.textField.border = BorderFactory.createEmptyBorder()
+        editor.textField.background = spinner.background
+        editor.textField.foreground = spinner.foreground
+        editor.textField.caretColor = spinner.foreground
+        editor.textField.font = spinner.fontType.getFont()
+
         spinner.revalidate()
         spinner.repaint()
     }
 
     override fun createNextButton(): Component {
         val button = CIconButton(UIStates.icon.get().increase, CIconButton.Mode.PRIMARY_SMALL, hasHoverEffect = false)
-        installNextButtonListeners(button)
+        button.addActionListener {
+            try {
+                spinner.value = spinner.nextValue
+                spinner.commitEdit()
+            } catch (_: Exception) {
+            }
+        }
         return button
     }
 
     override fun createPreviousButton(): Component {
         val button = CIconButton(UIStates.icon.get().decrease, CIconButton.Mode.PRIMARY_SMALL, hasHoverEffect = false)
-        installPreviousButtonListeners(button)
+        button.addActionListener {
+            try {
+                spinner.value = spinner.previousValue
+                spinner.commitEdit()
+            } catch (_: Exception) {
+            }
+        }
         return button
     }
 
