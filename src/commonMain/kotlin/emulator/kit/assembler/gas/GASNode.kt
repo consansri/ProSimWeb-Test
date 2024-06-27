@@ -33,7 +33,7 @@ import emulator.kit.nativeLog
  * --------------------
  *
  */
-sealed class GASNode(vararg childs: Node) : Node.HNode(*childs) {
+sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
 
     fun addSpaces(spaces: List<Token>) {
         addChilds(*spaces.map { BaseNode(it) }.toTypedArray())

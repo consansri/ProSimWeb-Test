@@ -5,8 +5,8 @@ import emulator.kit.assembler.gas.GASDirType
 import emulator.kit.common.Docs.DocComponent.*
 
 /**
- * This class contains all documents which are partly supplied by specific architectures. There are two options to define a documentation file.
- * The first is by linking a source path to a specific html source file and the second is by directly defining a file as a React component, inwhich information can be generated directly from the implemented architecture.
+ * This class contains all documents that are partly supplied by specific architectures. There are two options to define a documentation file.
+ * The first is by linking a source path to a specific html source file, and the second is by directly defining a file as a React component, which information can be generated directly from the implemented architecture.
  */
 class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
     var files: MutableList<DocFile> = (mutableListOf(

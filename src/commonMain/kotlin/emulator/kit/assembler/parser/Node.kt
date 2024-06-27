@@ -85,8 +85,8 @@ sealed class Node {
     }
 
     /** Represents a hierarchical node containing child nodes. */
-    abstract class HNode(vararg childs: Node) : Node() {
-        val children: MutableList<Node> = childs.toMutableList()
+    abstract class HNode(vararg children: Node) : Node() {
+        val children: MutableList<Node> = children.toMutableList()
 
         /** Prints the name of the node with the specified prefix. */
         fun printNodeName(prefix: String): String = "$prefix${this::class.simpleName}:"
