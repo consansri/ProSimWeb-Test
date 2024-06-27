@@ -52,7 +52,7 @@ class CTextButtonUI(private val fontType: FontType) : CComponentUI<CTextButton>(
 
     override fun getPreferredSize(c: JComponent?): Dimension {
         val button = c as? CTextButton ?: return super.getPreferredSize(c)
-        return Dimension(button.getFontMetrics(button.font).stringWidth(button.text) + getInset() * 2, button.getFontMetrics(button.font).height + getInset() * 2)
+        return Dimension(button.getFontMetrics(fontType.getFont()).stringWidth(button.text) + getInset() * 2, button.getFontMetrics(fontType.getFont()).height + getInset() * 2)
     }
 
     override fun getMinimumSize(c: JComponent?): Dimension {

@@ -1,6 +1,5 @@
 package prosim.uilib.styled
 
-import prosim.uilib.CFormattedTextFieldUI
 import prosim.uilib.styled.params.FontType
 import java.awt.Color
 import javax.swing.JFormattedTextField

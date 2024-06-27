@@ -6,6 +6,7 @@ import prosim.uilib.scale.core.Scaling
 import prosim.uilib.theme.core.Theme
 import java.lang.ref.WeakReference
 import javax.swing.JComponent
+import javax.swing.SwingUtilities
 import javax.swing.plaf.ComponentUI
 
 abstract class CComponentUI<T : JComponent> : ComponentUI() {
@@ -22,8 +23,8 @@ abstract class CComponentUI<T : JComponent> : ComponentUI() {
         UIStates.icon.addEvent(WeakReference(c), ::updateIcon)
 
         this.component?.let {
-            applyDefaults()
-            onInstall(it)
+                applyDefaults()
+                onInstall(it)
         }
     }
 
@@ -41,9 +42,11 @@ abstract class CComponentUI<T : JComponent> : ComponentUI() {
 
     fun applyDefaults() {
         component?.let {
-            setDefaults(it, UIStates.theme.get(), UIStates.scale.get(), UIStates.icon.get())
-            it.revalidate()
-            it.repaint()
+            SwingUtilities.invokeLater {
+                setDefaults(it, UIStates.theme.get(), UIStates.scale.get(), UIStates.icon.get())
+                it.revalidate()
+                it.repaint()
+            }
         }
     }
 

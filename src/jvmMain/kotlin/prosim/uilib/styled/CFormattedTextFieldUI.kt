@@ -1,6 +1,6 @@
-package prosim.uilib
+package prosim.uilib.styled
 
-import prosim.uilib.styled.CFormattedTextField
+import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
 import java.awt.Color
 import java.lang.ref.WeakReference
