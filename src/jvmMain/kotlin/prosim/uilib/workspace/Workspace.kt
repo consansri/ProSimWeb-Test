@@ -24,7 +24,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
 import java.lang.ref.WeakReference
-import javax.swing.SpinnerNumberModel
 import javax.swing.SwingUtilities
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -379,13 +378,13 @@ class Workspace(
                 ExportFormat.VHDL, ExportFormat.MIF, ExportFormat.HEXDUMP -> {
                     val addrLabel = CLabel("Address Width [Bits]", FontType.BASIC)
                     val wordLabel = CLabel("Data Width [Bits]", FontType.BASIC)
-                    val addrSpinner = CSpinner(SpinnerNumberModel(States.arch.get().memory.addressSize.bitWidth, 8, Int.MAX_VALUE, 8))
-                    val wordSpinner = CSpinner(SpinnerNumberModel(States.arch.get().memory.instanceSize.bitWidth, 8, Int.MAX_VALUE, 8))
+                    val addrSpinner = CNumberPicker(CNumberPicker.IntModel(8, Int.MAX_VALUE, 8, States.arch.get().memory.addressSize.bitWidth))
+                    val wordSpinner = CNumberPicker(CNumberPicker.IntModel(8,Int.MAX_VALUE,8, States.arch.get().memory.instanceSize.bitWidth))
                     val export = CTextButton("Export", FontType.CODE).apply {
                         addActionListener {
                             CoroutineScope(Dispatchers.Default).launch {
                                 files.forEach {
-                                    exportFile(type, it.file, FileBuilder.Setting.AddressWidth(addrSpinner.value as Int), FileBuilder.Setting.DataWidth(wordSpinner.value as Int))
+                                    exportFile(type, it.file, FileBuilder.Setting.AddressWidth(addrSpinner.value), FileBuilder.Setting.DataWidth(wordSpinner.value))
                                 }
                             }
                             dialog.dispose()
