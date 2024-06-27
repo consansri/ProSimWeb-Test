@@ -37,7 +37,7 @@ class FACache(
     constructor(backingMemory: Memory, console: IConsole, cacheSize: CacheSize, replaceAlgo: Model.ReplaceAlgo, name: String = "Cache") : this(
         backingMemory,
         console,
-        blockCount = log((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble(), 2.0).roundToInt(),
+        blockCount = (cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toInt(),
         offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.getByteCount()).toDouble(), 2.0).roundToInt(),
         replaceAlgo = replaceAlgo,
         name = "$name($cacheSize FA ${replaceAlgo})"

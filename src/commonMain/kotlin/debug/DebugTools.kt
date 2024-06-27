@@ -21,6 +21,7 @@ object DebugTools {
     const val KIT_showCheckCodeEvents = false
     const val KIT_showFileHandlerInfo = false
     const val KIT_showMemoryInfo = false
+    const val KIT_showCacheInfo = false
 
     const val KIT_showFilteredTokens = false
     const val KIT_showSections = false

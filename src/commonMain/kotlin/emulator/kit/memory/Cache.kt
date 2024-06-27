@@ -1,11 +1,12 @@
 package emulator.kit.memory
 
-import emulator.kit.common.IConsole
-import emulator.core.Value
+import debug.DebugTools
 import emulator.core.*
-import emulator.core.Value.Tools.toValue
 import emulator.core.Value.Bin
 import emulator.core.Value.Hex
+import emulator.core.Value.Tools.toValue
+import emulator.kit.common.IConsole
+import emulator.kit.nativeLog
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -29,6 +30,10 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
     final override val addressSize: Size = backingMemory.addressSize
 
     val model = Model(backingMemory, console, instanceSize, addressSize, indexBits, offsetBits, blockCount, replaceAlgo, initHex)
+
+    init {
+        if (DebugTools.KIT_showCacheInfo) nativeLog(this.toString())
+    }
 
     override fun globalEndianess(): Endianess = backingMemory.globalEndianess()
     override fun clear() {
@@ -188,6 +193,8 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         }
     }
 
+    override fun toString(): String = "${this::class.simpleName} $model"
+
     companion object {
         private fun Array<Hex>.toCacheInstances(address: Hex): Array<CacheInstance> {
             return this.mapIndexed { index, hex -> CacheInstance(hex, (address + index.toValue(address.size)).toHex()) }.toTypedArray()
@@ -242,6 +249,19 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                     it.writeBackIfDirty(row.rowIndexBinStr)
                 }
             }
+        }
+
+        override fun toString(): String {
+            return """
+                CacheModel
+                - instanceSize:   $instanceSize
+                - addrSize:       $addrSize
+                - tagBits:        $tagBits
+                - indexBits:      $indexBits
+                - offsetBits:     $offsetBits
+                - blockCount:     $blockCount
+                - replaceAlgo:    $replaceAlgo
+            """.trimIndent()
         }
 
         inner class CacheRow(val rowIndexBinStr: String) {
