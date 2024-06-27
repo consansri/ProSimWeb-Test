@@ -65,5 +65,4 @@ class CTextButtonUI(private val fontType: FontType) : CComponentUI<CTextButton>(
 
     private fun getCornerRadius(): Int = UIStates.scale.get().controlScale.cornerRadius
     private fun getInset(): Int = UIStates.scale.get().borderScale.insets
-
 }

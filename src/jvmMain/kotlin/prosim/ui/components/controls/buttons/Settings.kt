@@ -70,7 +70,7 @@ class Settings : CIconButton(UIStates.icon.get().settings) {
             }
 
             is SetupSetting.Enumeration<*> -> {
-                CChooser(CChooser.Model(this.enumValues, this@toSwing.get()), FontType.BASIC, onSelect = {
+                CChooser(CChooser.Model(this.enumValues, this@toSwing.get()), FontType.BASIC, primary = true, onSelect = {
                     SwingUtilities.invokeLater {
                         this@toSwing.loadFromString(arch, it.name)
                         this@toSwing.save(arch)

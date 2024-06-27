@@ -5,7 +5,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import prosim.uilib.styled.params.FontType
-import java.awt.BorderLayout
 
 /**
  * A generic chooser component that allows selection from a list of entries.
@@ -15,14 +14,21 @@ import java.awt.BorderLayout
  * @property fontType The font type used for displaying text.
  * @property onSelect A lambda function that is called when an entry is selected.
  */
-open class CChooser<T : Any>(val model: Model<T>, fontType: FontType, val onSelect: (T) -> Unit = {}) : CPanel() {
+open class CChooser<T : Any>(val model: Model<T>, fontType: FontType, val onSelect: (T) -> Unit = {}, primary: Boolean = true) : CTextButton(model.getUIName(model.default), fontType, primary = primary) {
 
     private var openDialog: Pair<CDialog, Deferred<T?>>? = null
 
     /**
-     * Button that displays the currently selected entry.
+     * The currently selected entry.
      */
-    val selectedView = CTextButton(model.getUIName(model.default), fontType).apply {
+    var value: T = model.default
+        set(value) {
+            field = value
+            text = model.getUIName(value)
+        }
+
+    init {
+        text = model.getUIName(value)
         addActionListener {
             val currOpenDialog = openDialog
             if (currOpenDialog != null) {
@@ -43,21 +49,6 @@ open class CChooser<T : Any>(val model: Model<T>, fontType: FontType, val onSele
                 }
             }
         }
-    }
-
-    /**
-     * The currently selected entry.
-     */
-    var value: T = model.default
-        set(value) {
-            field = value
-            selectedView.text = model.getUIName(value)
-        }
-
-    init {
-        layout = BorderLayout()
-        this.add(selectedView, BorderLayout.CENTER)
-        selectedView.text = model.getUIName(value)
     }
 
     /**
