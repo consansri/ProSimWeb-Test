@@ -1,80 +1,58 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
+import prosim.uilib.resource.Icons
+import prosim.uilib.scale.core.Scaling
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.theme.core.Theme
 import java.awt.*
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
-import javax.swing.AbstractButton
 import javax.swing.JComponent
-import javax.swing.plaf.basic.BasicButtonUI
 
-class CTextButtonUI( private val fontType: FontType): BasicButtonUI() {
+class CTextButtonUI(private val fontType: FontType) : CComponentUI<CTextButton>() {
 
-    override fun installUI(c: JComponent?) {
-        super.installUI(c)
-
-        val button = c as? CTextButton ?: return
-
-        button.isContentAreaFilled = false
-        button.isFocusPainted = false
-        button.isFocusable = false
-        button.border = UIStates.scale.get().borderScale.getInsetBorder()
-
-        // Apply hover effect
-        button.addMouseListener(object : MouseAdapter() {
-            override fun mouseEntered(e: MouseEvent?) {
-                if (!button.isDeactivated) {
-                    button.background = UIStates.theme.get().iconLaF.iconBgHover
-                    button.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                }
-            }
-
-            override fun mouseExited(e: MouseEvent?) {
-                button.background = null // Reset background to default
-            }
-        })
-
-        UIStates.theme.addEvent(WeakReference(button)) { _ ->
-            setDefaults(button)
-        }
-
-        UIStates.scale.addEvent(WeakReference(button)) { _ ->
-            setDefaults(button)
-        }
-        setDefaults(button)
+    override fun setDefaults(c: CTextButton, theme: Theme, scaling: Scaling, icons: Icons) {
+        c.isOpaque = false
+        c.border = scaling.borderScale.getInsetBorder()
+        c.font = fontType.getFont()
+        c.foreground = if (c.primary) theme.textLaF.base else theme.textLaF.baseSecondary
+        c.background = Color(0, 0, 0, 0)
     }
 
-    fun setDefaults(button: CTextButton) {
-        val currTheme = UIStates.theme.get()
-        val currScale = UIStates.scale.get()
-        button.border = UIStates.scale.get().borderScale.getInsetBorder()
-        button.font = fontType.getFont()
-        button.foreground = if (button.primary) currTheme.textLaF.base else currTheme.textLaF.baseSecondary
-        button.background = Color(0, 0, 0, 0)
-        button.repaint()
+    override fun onInstall(c: CTextButton) {
+        // Nothing needs to be done
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
-        val button = c as? AbstractButton ?: return
+        if (c !is CTextButton) return super.paint(g, c)
         val g2 = g as? Graphics2D ?: return
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
-        val width = button.width
-        val height = button.height
+        val width = c.width
+        val height = c.height
 
         // Paint button background
-        g2.color = button.background
-        g2.fillRoundRect(getInset(), getInset(), width - getInset() * 2, height - getInset() * 2, getCornerRadius(), getCornerRadius())
+        if(c.isHovered){
+            g2.color = UIStates.theme.get().iconLaF.iconBgHover
+            g2.fillRoundRect(getInset() / 2, getInset() / 2, width - getInset(), height - getInset(), getCornerRadius(), getCornerRadius())
+        }
 
-        // Paint button
-        super.paint(g, c)
+        val fm = c.getFontMetrics(c.font)
+
+        val ascent = fm.ascent
+
+        val stringWidth = fm.stringWidth(c.text)
+        val x = c.insets.left + (c.width - c.insets.left - c.insets.right - stringWidth) / 2
+        val y = c.insets.top + ascent
+
+        // Paint button text
+        g2.color = c.foreground
+        g2.font = c.font
+        g2.drawString(c.text, x, y)
     }
 
     override fun getPreferredSize(c: JComponent?): Dimension {
-        val button = c as? AbstractButton ?: return super.getPreferredSize(c)
-        val preferredSize = super.getPreferredSize(button)
-        return Dimension(preferredSize.width + getInset() * 2, preferredSize.height + getInset() * 2)
+        val button = c as? CTextButton ?: return super.getPreferredSize(c)
+        return Dimension(button.getFontMetrics(button.font).stringWidth(button.text) + getInset() * 2, button.getFontMetrics(button.font).height + getInset() * 2)
     }
 
     override fun getMinimumSize(c: JComponent?): Dimension {
@@ -82,8 +60,9 @@ class CTextButtonUI( private val fontType: FontType): BasicButtonUI() {
     }
 
     override fun getMaximumSize(c: JComponent?): Dimension {
-        return getPreferredSize(c)
+        return Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     }
+
     private fun getCornerRadius(): Int = UIStates.scale.get().controlScale.cornerRadius
     private fun getInset(): Int = UIStates.scale.get().borderScale.insets
 

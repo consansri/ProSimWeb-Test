@@ -1,8 +1,9 @@
 package prosim.uilib.styled
 
 import kotlinx.coroutines.*
-import prosim.uilib.workspace.Workspace
+import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.workspace.Workspace
 import java.awt.*
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -10,41 +11,72 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.io.File
 import javax.swing.JOptionPane
-import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeExpansionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class COptionPane() : JOptionPane() {
+class COptionPane : JOptionPane() {
 
     companion object {
+
+        fun <T> showSelector(parent: Component, title: String, entries: List<T>, fontType: FontType = FontType.BASIC): Pair<CDialog, Deferred<T?>> {
+            val resultDeferred = CompletableDeferred<T?>()
+
+            val (cDialog, contentPanel) = createClosableOptionPane(parent, title) {
+                resultDeferred.complete(null)
+            }
+
+            contentPanel.layout = GridBagLayout()
+            val gbc = GridBagConstraints()
+            gbc.gridy = 0
+            gbc.gridx = 0
+            gbc.gridwidth = 1
+            gbc.gridheight = 1
+            gbc.weightx = 1.0
+            gbc.weighty = 0.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+
+            entries.forEach { value ->
+                val button = CTextButton(value.toString(), fontType).apply {
+                    addActionListener {
+                        resultDeferred.complete(value)
+                        cDialog.dispose()
+                    }
+                }
+
+                contentPanel.add(button, gbc)
+
+                gbc.gridy += 1
+            }
+
+            show(cDialog)
+
+            return cDialog to resultDeferred
+        }
+
         fun showInputDialog(parent: Component, message: String): Deferred<String> {
             val resultDeferred = CompletableDeferred<String>()
 
-            val cDialog = CDialog(parent)
-            val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel(message, FontType.BASIC)
-            val cTextArea = CTextField(FontType.BASIC)
+            val (cDialog, cPanel) = createBasicOptionPane(parent, message)
 
-            cTextArea.addKeyListener(object : KeyAdapter() {
+            val textField = CTextField(FontType.BASIC)
+
+            textField.addKeyListener(object : KeyAdapter() {
                 override fun keyReleased(e: KeyEvent?) {
                     if (e?.keyCode == KeyEvent.VK_ENTER) {
-                        resultDeferred.complete(cTextArea.text)
+                        resultDeferred.complete(textField.text)
                         cDialog.dispose()
                     }
                 }
             })
 
-            cTextArea.addFocusListener(object : FocusAdapter() {
+            textField.addFocusListener(object : FocusAdapter() {
                 override fun focusLost(e: FocusEvent?) {
                     resultDeferred.complete("")
                     cDialog.dispose()
                 }
             })
-
-            cDialog.layout = BorderLayout()
 
             cPanel.layout = GridBagLayout()
             val gbc = GridBagConstraints()
@@ -54,145 +86,123 @@ class COptionPane() : JOptionPane() {
             gbc.weighty = 0.0
             gbc.fill = GridBagConstraints.HORIZONTAL
 
-            cPanel.add(cLabel, gbc)
-            gbc.gridy = 1
-            gbc.fill = GridBagConstraints.HORIZONTAL
+            cPanel.add(textField, gbc)
 
-            cPanel.add(cTextArea, gbc)
+            show(cDialog)
 
-            cDialog.add(cPanel, BorderLayout.CENTER)
-            cDialog.pack()
-            cDialog.setLocationRelativeTo(null)
-            cDialog.isVisible = true
-
-            cTextArea.requestFocus()
+            textField.requestFocus()
 
             return resultDeferred
         }
 
-        fun showDirectoryChooser(parent: Component, message: String): Deferred<File?> {
+        fun showDirectoryChooser(parent: Component, message: String):  Deferred<File?> {
             val resultDeferred = CompletableDeferred<File?>()
 
-            SwingUtilities.invokeLater {
-                var selectedFile: File? = null
+            var selectedFile: File? = null
 
-                // Scrollable Tree View
-                val root = DefaultMutableTreeNode("root")
-                val treeModel = DefaultTreeModel(root)
-                val tree = prosim.uilib.styled.CTree(treeModel, FontType.BASIC)
-                val cScrollPane = CScrollPane(false)
-                cScrollPane.setViewportView(tree)
-                cScrollPane.size = Dimension(300, 300)
+            val (cDialog, contentPanel) = createBasicOptionPane(parent, message)
 
-                // Title Label
-                val titleLabel = CLabel(message, FontType.TITLE)
-                titleLabel.horizontalAlignment = SwingConstants.CENTER
+            // Scrollable Tree View
+            val root = DefaultMutableTreeNode("root")
+            val treeModel = DefaultTreeModel(root)
+            val tree = CTree(treeModel, FontType.BASIC)
+            val cScrollPane = CScrollPane(false)
+            cScrollPane.setViewportView(tree)
+            cScrollPane.size = Dimension(300, 300)
 
-                // Current Path Identificator
-                val currPathTextField = CTextField(FontType.BASIC)
-                currPathTextField.isEditable = false
+            // Current Path Identificator
+            val currPathTextField = CTextField(FontType.BASIC)
+            currPathTextField.isEditable = false
 
-                // Select Button
-                val selectButton = CTextButton("select", FontType.BASIC)
+            // Select Button
+            val selectButton = CTextButton("select", FontType.BASIC)
 
-                // Content Panel
-                val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
-                cPanel.layout = GridBagLayout()
+            // Content Panel
+            // Add Components to Content Panel
+            contentPanel.layout = GridBagLayout()
+            val gbc = GridBagConstraints()
+            gbc.gridx = 0
+            gbc.gridy = 0
+            gbc.weightx = 1.0
+            gbc.weighty = 0.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            contentPanel.add(currPathTextField, gbc)
 
-                // Dialog Frame
-                val cDialog = CDialog(parent)
+            gbc.gridy = 1
+            gbc.weighty = 1.0
+            gbc.fill = GridBagConstraints.BOTH
+            contentPanel.add(cScrollPane, gbc)
 
-                // Add Components to Content Panel
-                val gbc = GridBagConstraints()
-                gbc.gridx = 0
-                gbc.gridy = 0
-                gbc.weightx = 1.0
-                gbc.weighty = 0.0
-                gbc.fill = GridBagConstraints.HORIZONTAL
-                cPanel.add(titleLabel, gbc)
+            gbc.gridy = 2
+            gbc.weighty = 0.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            contentPanel.add(selectButton, gbc)
 
-                gbc.gridx = 0
-                gbc.gridy = 1
-                cPanel.add(currPathTextField, gbc)
+            // Lazyload Tree Files
+            CoroutineScope(Dispatchers.Main).launch {
+                val rootDirectories = File.listRoots()
+                for (rootDirectory in rootDirectories) {
+                    val dirRoot = DefaultMutableTreeNode(Workspace.TreeFile(rootDirectory, displayPath = true))
+                    root.add(dirRoot)
+                    if (rootDirectory.isDirectory) {
+                        dirRoot.add(DefaultMutableTreeNode("Loading ..."))
+                    }
+                    treeModel.reload(root)
+                }
+            }
 
-                gbc.gridy = 2
-                gbc.weighty = 1.0
-                gbc.fill = GridBagConstraints.BOTH
-                cPanel.add(cScrollPane, gbc)
-
-                gbc.gridy = 3
-                gbc.weighty = 0.0
-                gbc.fill = GridBagConstraints.HORIZONTAL
-                cPanel.add(selectButton, gbc)
-
-                // Lazyload Tree Files
-                CoroutineScope(Dispatchers.Main).launch {
-                    val rootDirectories = File.listRoots()
-                    for (rootDirectory in rootDirectories) {
-                        val dirRoot = DefaultMutableTreeNode(Workspace.TreeFile(rootDirectory, displayPath = true))
-                        root.add(dirRoot)
-                        if (rootDirectory.isDirectory) {
-                            dirRoot.add(DefaultMutableTreeNode("Loading ..."))
+            tree.addTreeExpansionListener(object : TreeExpansionListener {
+                override fun treeExpanded(event: TreeExpansionEvent) {
+                    val node = event.path.lastPathComponent as? DefaultMutableTreeNode ?: return
+                    if (node.childCount == 1) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            lazyLoadDirectory(treeModel, node, showOnlyDirectories = true)
                         }
-                        treeModel.reload(root)
                     }
                 }
 
-                tree.addTreeExpansionListener(object : TreeExpansionListener {
-                    override fun treeExpanded(event: TreeExpansionEvent) {
-                        val node = event.path.lastPathComponent as? DefaultMutableTreeNode ?: return
-                        if (node.childCount == 1) {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                lazyLoadDirectory(treeModel, node, showOnlyDirectories = true)
-                            }
-                        }
+                override fun treeCollapsed(event: TreeExpansionEvent?) {}
+            })
+
+            // Attach Listeners
+            tree.addTreeSelectionListener {
+                val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
+                val treeFile = (selectedNode.userObject as? Workspace.TreeFile) ?: return@addTreeSelectionListener
+                selectedFile = treeFile.file
+                currPathTextField.text = treeFile.file.absolutePath
+            }
+
+            selectButton.addActionListener {
+                resultDeferred.complete(selectedFile)
+                cDialog.dispose()
+            }
+
+            tree.addKeyListener(object : KeyAdapter() {
+                override fun keyTyped(e: KeyEvent?) {
+                    if (e?.keyCode == KeyEvent.VK_ENTER) {
+                        resultDeferred.complete(selectedFile)
+                        cDialog.dispose()
                     }
-
-                    override fun treeCollapsed(event: TreeExpansionEvent?) {}
-                })
-
-                // Attach Listeners
-                tree.addTreeSelectionListener {
-                    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
-                    val treeFile = (selectedNode.userObject as? Workspace.TreeFile) ?: return@addTreeSelectionListener
-                    selectedFile = treeFile.file
-                    currPathTextField.text = treeFile.file.absolutePath
-                }
-
-                selectButton.addActionListener {
-                    resultDeferred.complete(selectedFile)
-                    cDialog.dispose()
-                }
-
-                tree.addKeyListener(object : KeyAdapter() {
-                    override fun keyTyped(e: KeyEvent?) {
-                        if (e?.keyCode == KeyEvent.VK_ENTER) {
-                            resultDeferred.complete(selectedFile)
-                            cDialog.dispose()
-                        }
-                        if (e?.keyCode == KeyEvent.VK_ESCAPE) {
-                            resultDeferred.complete(null)
-                            cDialog.dispose()
-                        }
-                    }
-                })
-
-                tree.addFocusListener(object : FocusAdapter() {
-                    override fun focusLost(e: FocusEvent?) {
+                    if (e?.keyCode == KeyEvent.VK_ESCAPE) {
                         resultDeferred.complete(null)
                         cDialog.dispose()
                     }
-                })
+                }
+            })
 
-                // Add Content Panel to Dialog Frame
-                cDialog.layout = BorderLayout()
-                cDialog.add(cPanel, BorderLayout.CENTER)
-                cDialog.size = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16 * 4, Toolkit.getDefaultToolkit().screenSize.height / 9 * 4)
-                cDialog.setLocationRelativeTo(null)
-                cDialog.isVisible = true
+            tree.addFocusListener(object : FocusAdapter() {
+                override fun focusLost(e: FocusEvent?) {
+                    resultDeferred.complete(null)
+                    cDialog.dispose()
+                }
+            })
 
-                tree.requestFocus()
-            }
+            // Show
+
+            val size = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16 * 4, Toolkit.getDefaultToolkit().screenSize.height / 9 * 4)
+            show(cDialog, size)
+
+            tree.requestFocus()
 
             return resultDeferred
         }
@@ -200,9 +210,8 @@ class COptionPane() : JOptionPane() {
         fun confirm(parent: Component, message: String): Deferred<Boolean> {
             val resultDeferred = CompletableDeferred<Boolean>()
 
-            val cDialog = CDialog(parent)
-            val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
-            val cLabel = CLabel(message, FontType.BASIC)
+            val (cDialog, contentPanel) = createBasicOptionPane(parent, message)
+
             val cConfirmBtn = CTextButton("confirm", FontType.BASIC).apply {
                 addActionListener {
                     resultDeferred.complete(true)
@@ -216,30 +225,23 @@ class COptionPane() : JOptionPane() {
                 }
             }
 
-            cDialog.layout = BorderLayout()
-            cPanel.layout = GridBagLayout()
+            contentPanel.layout = GridBagLayout()
 
             val gbc = GridBagConstraints()
             gbc.gridx = 0
             gbc.gridy = 0
-            gbc.gridwidth = 2
             gbc.weightx = 1.0
             gbc.weighty = 0.0
             gbc.fill = GridBagConstraints.HORIZONTAL
-            cPanel.add(cLabel, gbc)
 
-            gbc.gridwidth = 1
-            gbc.gridy = 1
             gbc.fill = GridBagConstraints.HORIZONTAL
-            cPanel.add(cConfirmBtn, gbc)
+            contentPanel.add(cConfirmBtn, gbc)
 
             gbc.gridx = 1
-            cPanel.add(cCancelBtn, gbc)
+            contentPanel.add(cCancelBtn, gbc)
 
-            cDialog.add(cPanel, BorderLayout.CENTER)
-            cDialog.pack()
-            cDialog.setLocationRelativeTo(null)
-            cDialog.isVisible = true
+            show(cDialog)
+
             cDialog.requestFocus()
 
             cDialog.addFocusListener(object : FocusAdapter() {
@@ -266,6 +268,103 @@ class COptionPane() : JOptionPane() {
                 }
             }
             treeModel.reload(parentNode)
+        }
+
+        /**
+         * Creates a Basic Dialog and returns it and the content panel.
+         */
+        private fun createBasicOptionPane(parent: Component, title: String): Pair<CDialog, CPanel> {
+            val cDialog = CDialog(parent)
+            val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
+            val cContentPanel = CPanel(primary = false, roundCorners = true)
+            val cLabel = CLabel(title, FontType.BASIC)
+
+            cPanel.layout = BorderLayout()
+            cPanel.add(cLabel, BorderLayout.NORTH)
+            cPanel.add(cContentPanel, BorderLayout.CENTER)
+
+            cDialog.layout = BorderLayout()
+            cDialog.add(cPanel, BorderLayout.CENTER)
+
+            cDialog.setLocationRelativeTo(null)
+
+            return Pair(cDialog, cContentPanel)
+        }
+
+        /**
+         *
+         */
+        private fun createClosableOptionPane(parent: Component, title: String, onClose: () -> Unit): Pair<CDialog, CPanel> {
+            val cDialog = CDialog(parent)
+            val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
+            val cContentPanel = CPanel(primary = false, roundCorners = true)
+            val cLabel = CLabel(title, FontType.BASIC)
+            val closeButton = CIconButton(UIStates.icon.get().close).apply {
+                addActionListener {
+                    onClose()
+                    cDialog.dispose()
+                }
+            }
+
+            cPanel.layout = GridBagLayout()
+            val gbc = GridBagConstraints()
+            gbc.weightx = 1.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            cPanel.add(cLabel, gbc)
+
+            gbc.gridx = 1
+            gbc.weightx = 0.0
+            gbc.fill = GridBagConstraints.NONE
+            cPanel.add(closeButton, gbc)
+
+            gbc.gridx = 0
+            gbc.gridwidth = 2
+            gbc.gridy = 1
+            gbc.weightx = 1.0
+            gbc.weighty = 1.0
+            gbc.fill = GridBagConstraints.BOTH
+            cPanel.add(cContentPanel, gbc)
+
+            cDialog.layout = BorderLayout()
+            cDialog.add(cPanel, BorderLayout.CENTER)
+
+            cDialog.setLocationRelativeTo(null)
+
+            return Pair(cDialog, cContentPanel)
+        }
+
+        /**
+         * Creates a Scrollable Dialog and returns it and the scroll panel, and it's a viewport panel.
+         */
+        private fun createScrollOptionPane(parent: Component, title: String): Triple<CDialog, CScrollPane, CPanel> {
+            val cDialog = CDialog(parent)
+            cDialog.maximumSize = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 2, Toolkit.getDefaultToolkit().screenSize.height / 2)
+            cDialog.minimumSize = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16, Toolkit.getDefaultToolkit().screenSize.height / 16)
+            val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
+            val contentPanel = CPanel(primary = false, roundCorners = true)
+            val cScrollPane = CScrollPane(false)
+            cScrollPane.setViewportView(contentPanel)
+            val cLabel = CLabel(title, FontType.BASIC)
+
+            cPanel.layout = BorderLayout()
+            cPanel.add(cLabel, BorderLayout.NORTH)
+            cPanel.add(cScrollPane, BorderLayout.CENTER)
+
+            cDialog.layout = BorderLayout()
+            cDialog.add(cPanel, BorderLayout.CENTER)
+
+            cDialog.setLocationRelativeTo(null)
+
+            return Triple(cDialog, cScrollPane, contentPanel)
+        }
+
+        private fun show(cDialog: CDialog, size: Dimension? = null) {
+            cDialog.pack()
+            if (size != null) {
+                cDialog.size = size
+            }
+            cDialog.setLocationRelativeTo(null)
+            cDialog.isVisible = true
         }
     }
 

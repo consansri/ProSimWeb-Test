@@ -8,32 +8,12 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 
 open class CIconButtonUI() : CComponentUI<CIconButton>() {
-
-    var cornerRadius = UIStates.scale.get().controlScale.cornerRadius
-    var hoverColor = UIStates.theme.get().iconLaF.iconBgHover
-
     override fun onInstall(c: CIconButton) {
-        c.addMouseListener(object : MouseAdapter() {
-            override fun mouseEntered(e: MouseEvent?) {
-                if (c.hasHoverEffect) {
-                    if (!c.isDeactivated) {
-                        c.background = hoverColor
-                    }
-                }
-            }
-
-            override fun mouseExited(e: MouseEvent?) {
-                if (c.hasHoverEffect) {
-                    c.background = c.iconBg
-                }
-            }
-        })
+        // Nothing needs to be done
     }
 
     override fun setDefaults(c: CIconButton, theme: Theme, scaling: Scaling, icons: Icons) {
@@ -41,8 +21,6 @@ open class CIconButtonUI() : CComponentUI<CIconButton>() {
         c.isFocusable = true
         c.isOpaque = false
         c.iconBg = UIStates.theme.get().iconLaF.iconBg
-        cornerRadius = UIStates.scale.get().controlScale.cornerRadius
-        hoverColor = UIStates.theme.get().iconLaF.iconBgHover
         val inset = c.mode.getInset()
         c.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
     }
@@ -61,19 +39,17 @@ open class CIconButtonUI() : CComponentUI<CIconButton>() {
 
         // Paint button background
         val bgColor = if (button.isHovered && !button.isDeactivated) {
-            g2.color = button.iconBgHover
+            g2.color = UIStates.theme.get().iconLaF.iconBgHover
         } else {
             g2.color = button.iconBg
         }
-        g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, cornerRadius, cornerRadius)
+        g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, UIStates.scale.get().controlScale.cornerRadius, UIStates.scale.get().controlScale.cornerRadius)
 
         // Paint button
         val icon = button.svgIcon
         val iconX = (width - icon.iconWidth) / 2
         val iconY = (height - icon.iconHeight) / 2
         icon.paintIcon(button, g2, iconX, iconY)
-
-        //super.paint(g, c)
 
         g2.dispose()
     }

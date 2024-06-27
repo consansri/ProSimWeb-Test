@@ -23,8 +23,8 @@ object UIResource {
 
     // List of available scaling options.
     val scalings: List<Scaling> = listOf(
-        StandardScaling(),
         SmallScaling(),
+        StandardScaling(),
         LargerScaling(),
         LargeScaling()
     )

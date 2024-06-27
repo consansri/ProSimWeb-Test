@@ -5,7 +5,7 @@ import prosim.uilib.styled.params.FontType
 import java.awt.BorderLayout
 import javax.swing.SwingConstants
 
-class CNumberPicker<T : Number>(private val model: Model<T>) : CPanel(roundCorners = true) {
+class CNumberPicker<T : Number>(private val model: Model<T>, private val onChange: (T) -> Unit = {}) : CPanel(roundCorners = true) {
 
     private val currValue = CLabel(model.default.toString(), FontType.CODE).apply {
         horizontalAlignment = SwingConstants.CENTER
@@ -29,6 +29,7 @@ class CNumberPicker<T : Number>(private val model: Model<T>) : CPanel(roundCorne
             if (model.valid(value)) {
                 field = value
                 currValue.text = value.toString()
+                onChange(value)
             }
         }
 

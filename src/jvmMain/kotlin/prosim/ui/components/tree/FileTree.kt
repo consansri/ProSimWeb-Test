@@ -5,12 +5,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import prosim.ui.States
 import prosim.ui.States.setFromPath
-import prosim.uilib.workspace.Workspace
 import prosim.uilib.UIStates
 import prosim.uilib.state.WSEditor
 import prosim.uilib.state.WSLogger
 import prosim.uilib.styled.*
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.workspace.Workspace
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.FlowLayout

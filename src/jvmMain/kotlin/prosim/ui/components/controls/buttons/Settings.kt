@@ -70,16 +70,13 @@ class Settings : CIconButton(UIStates.icon.get().settings) {
             }
 
             is SetupSetting.Enumeration<*> -> {
-                CComboBox(this.enumValues.toTypedArray(), FontType.BASIC).apply {
-                    this.selectedItem = this@toSwing.get()
-                    addItemListener {e ->
-                        SwingUtilities.invokeLater {
-                            this@toSwing.loadFromString(arch, (e.item as Enum<*>).name)
-                            this@toSwing.save(arch)
-                            Events.archSettingChange.triggerEvent(arch)
-                        }
+                CChooser(CChooser.Model(this.enumValues, this@toSwing.get()), FontType.BASIC, onSelect = {
+                    SwingUtilities.invokeLater {
+                        this@toSwing.loadFromString(arch, it.name)
+                        this@toSwing.save(arch)
+                        Events.archSettingChange.triggerEvent(arch)
                     }
-                }
+                })
             }
 
             is SetupSetting.Any -> {

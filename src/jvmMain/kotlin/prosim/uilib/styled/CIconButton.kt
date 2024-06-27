@@ -11,7 +11,7 @@ import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.Timer
 
-open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val hasHoverEffect: Boolean = true) : JComponent() {
+open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hoverEffect: Boolean = true) : JComponent() {
 
     private var timer: Timer? = null
     var rotationAngle: Double = 0.0
@@ -30,12 +30,6 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val 
         }
 
     var iconBg = UIStates.theme.get().iconLaF.iconBg
-        set(value) {
-            field = value
-            repaint()
-        }
-
-    var iconBgHover = UIStates.theme.get().iconLaF.iconBgHover
         set(value) {
             field = value
             repaint()
@@ -80,7 +74,7 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val 
             }
 
             if (isDeactivated) {
-                icon.colorFilter = FlatSVGIcon.ColorFilter{
+                icon.colorFilter = FlatSVGIcon.ColorFilter {
                     UIStates.theme.get().iconLaF.iconFgInactive
                 }
             }
@@ -90,7 +84,7 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val 
 
     init {
         this.setUI(CIconButtonUI())
-        if(hasHoverEffect){
+        if (hoverEffect) {
             installHoverEffect()
         }
     }
@@ -103,8 +97,8 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, val 
         })
     }
 
-    private fun installHoverEffect(){
-        this.addMouseListener(object : MouseAdapter(){
+    private fun installHoverEffect() {
+        this.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
                 isHovered = true
             }
