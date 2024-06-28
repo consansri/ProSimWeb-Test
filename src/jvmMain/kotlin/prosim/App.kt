@@ -2,6 +2,9 @@ package prosim
 
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ui.components.NativeFrame
+import prosim.uilib.styled.STextButton
+import prosim.uilib.styled.params.FontType
+import java.awt.Dimension
 import javax.swing.JDialog
 import javax.swing.JFrame
 
@@ -19,6 +22,8 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
+    //testSkia()
+
     // Initialize and test the base application.
     launchBaseApp()
 }
@@ -32,6 +37,15 @@ fun launchBaseApp() {
 
     // Uncomment the following line if BaseFrame with UIManager is needed.
     // BaseFrame()
+}
+
+fun testSkia() {
+    val frame = JFrame()
+    frame.contentPane = STextButton("Crazy Button", FontType.CODE)
+    frame.size = Dimension(800,600)
+    frame.setLocationRelativeTo(null)
+    frame.isVisible = true
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 }
 
 

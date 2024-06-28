@@ -23,7 +23,6 @@ abstract class CVirtualTable(
     val colWeights: Array<Double> = arrayOf(),
     val rowWeights: Array<Double> = arrayOf()
 ) : JComponent() {
-
     val content: List<CVirtualTableUI.CCellRenderer>
     val headers: List<CVirtualTableUI.CHeaderRenderer>
 

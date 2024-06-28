@@ -1,14 +1,13 @@
 package prosim.uilib.theme.core
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import org.jetbrains.skia.Data
+import org.jetbrains.skia.Typeface
 import prosim.uilib.theme.core.style.*
 import java.awt.Font
 import java.awt.FontFormatException
 import java.io.IOException
 import java.io.InputStream
-import javax.swing.JFrame
-import javax.swing.SwingUtilities
-import javax.swing.UIManager
 
 interface Theme {
     val name: String
@@ -21,21 +20,37 @@ interface Theme {
     val textLaF: TextLaF
     val exeStyle: ExeLaF
 
-    fun loadFont(url: String): Font {
-        val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream(url)
 
-        requireNotNull(inputStream) { "Font file not found: $url" }
+    companion object{
+        fun loadFont(url: String): Font {
+            val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream(url)
 
-        return try {
-            Font.createFont(Font.TRUETYPE_FONT, inputStream)
-        } catch (e: FontFormatException) {
-            throw RuntimeException("Error loading font", e)
-        } finally {
+            requireNotNull(inputStream) { "Font file not found: $url" }
+
+            return try {
+                Font.createFont(Font.TRUETYPE_FONT, inputStream)
+            } catch (e: FontFormatException) {
+                throw RuntimeException("Error loading font", e)
+            } finally {
+                try {
+                    inputStream.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        fun loadSkiaTF(url: String): Typeface? {
             try {
-                inputStream.close()
-            } catch (e: IOException) {
+                val resource = this::class.java.classLoader.getResourceAsStream(url)
+
+                if (resource != null) {
+                    return Typeface.makeFromData(Data.makeFromBytes(resource.readBytes()))
+                }
+            }catch (e: Exception){
                 e.printStackTrace()
             }
+            return null
         }
     }
 

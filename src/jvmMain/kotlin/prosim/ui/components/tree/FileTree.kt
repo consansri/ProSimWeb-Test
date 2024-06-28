@@ -25,7 +25,7 @@ import javax.swing.SwingUtilities
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  */
 class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true) {
-    private val projectButton = CTextButton(Workspace::class.simpleName.toString(), FontType.TITLE)
+    private val projectButton = STextButton(Workspace::class.simpleName.toString(), FontType.TITLE)
     private val emptyWorkspace = CTextField(FontType.CODE).apply {
         isEditable = false
         text = "No ${Workspace::class.simpleName.toString()} selected!"

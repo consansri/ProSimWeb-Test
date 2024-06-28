@@ -12,7 +12,7 @@ class LightTheme : Theme {
     override val dark: Boolean = false
 
     override val codeLaF: CodeLaF = CodeLaF(
-        font = loadFont("fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"),
+        fontPath = "fonts/JetBrainsMono/JetBrainsMono-Regular.ttf",
         pcIdenticator = ">",
         selectionColor = Color(0x4d90fe),
         searchResultColor = Color(0xE2B124)
@@ -44,8 +44,8 @@ class LightTheme : Theme {
         base = Color(0x454545),
         baseSecondary = Color(0x999999),
         selected = Color(0xE0E2E5),
-        font = loadFont("fonts/Roboto/Roboto-Regular.ttf"),
-        titleFont = loadFont("fonts/Roboto/Roboto-Light.ttf")
+        fontPath = "fonts/Roboto/Roboto-Regular.ttf",
+        titleFontPath = "fonts/Roboto/Roboto-Light.ttf"
     )
 
     override val exeStyle: ExeLaF = ExeLaF(
