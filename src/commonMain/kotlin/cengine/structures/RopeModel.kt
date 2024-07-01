@@ -5,9 +5,11 @@ package cengine.structures
  * Rope is the data structure for holding the text editor state.
  *
  */
-class RopeModel(text: String = "") : Code {
+class RopeModel(text: String = "") : CodeModel {
     private var root: Node = buildTree(text)
     override val length: Int get() = root.weight
+    override val lines: Int get() = root.lineBreaks + 1
+
 
     override fun insert(index: Int, new: String) {
         require(index in 0..length) { "Index out of bounds" }
@@ -23,7 +25,7 @@ class RopeModel(text: String = "") : Code {
 
     override fun substring(start: Int, end: Int): String {
         require(start in 0..length && end in start..length) { "Invalid range" }
-        return root.substring(start, end)
+        return root.substring(start, end).toString()
     }
 
     override fun charAt(index: Int): Char {
@@ -42,7 +44,7 @@ class RopeModel(text: String = "") : Code {
         return root.getIndexFromLineAndColumn(line, column).index
     }
 
-    override fun toString(): String = root.toString()
+    override fun toString(): String = root.substring(0, length).toString()
 
     private fun rebalance() {
         if (root.depth > MAX_DEPTH) {
@@ -79,10 +81,9 @@ class RopeModel(text: String = "") : Code {
 
         abstract fun getLineAndColumn(index: Int): LC
         abstract fun getIndexFromLineAndColumn(line: Int, column: Int): AbsIndex
-
         abstract fun insert(index: Int, newText: String): Node
         abstract fun delete(start: Int, end: Int): Node
-        abstract fun substring(start: Int, end: Int): String
+        abstract fun substring(start: Int, end: Int): StringBuilder
         abstract fun charAt(index: Int): Char
 
         companion object {
@@ -178,11 +179,9 @@ class RopeModel(text: String = "") : Code {
             return this
         }
 
-        override fun substring(start: Int, end: Int): String = text.substring(start, end)
+        override fun substring(start: Int, end: Int): StringBuilder = StringBuilder(text.substring(start, end))
 
         override fun charAt(index: Int): Char = text[index]
-
-        override fun toString(): String = text
     }
 
     private class Branch(left: Node, right: Node) : Node() {
@@ -270,12 +269,12 @@ class RopeModel(text: String = "") : Code {
             }
         }
 
-        override fun substring(start: Int, end: Int): String {
+        override fun substring(start: Int, end: Int): StringBuilder {
             val leftWeight = left.weight
             return when {
                 end <= leftWeight -> left.substring(start, end)
                 start >= leftWeight -> right.substring(start - leftWeight, end - leftWeight)
-                else -> left.substring(start, leftWeight) + right.substring(0, end - leftWeight)
+                else -> left.substring(start, leftWeight).append(right.substring(0, end - leftWeight).toString())
             }
         }
 
@@ -286,8 +285,6 @@ class RopeModel(text: String = "") : Code {
                 right.charAt(index - left.weight)
             }
         }
-
-        override fun toString(): String = left.toString() + right.toString()
     }
 
     /**

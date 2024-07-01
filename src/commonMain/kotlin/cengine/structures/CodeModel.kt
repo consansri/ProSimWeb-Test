@@ -1,8 +1,9 @@
 package cengine.structures
 
-interface Code {
+interface CodeModel {
 
     val length: Int
+    val lines: Int
 
     fun insert(index: Int, new: String)
 

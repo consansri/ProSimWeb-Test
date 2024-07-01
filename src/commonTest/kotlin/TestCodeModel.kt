@@ -1,4 +1,4 @@
-import cengine.structures.Code
+import cengine.structures.CodeModel
 import cengine.structures.RopeModel
 import cengine.structures.StringModel
 import emulator.kit.nativeLog
@@ -9,26 +9,30 @@ import kotlin.test.assertEquals
 import kotlin.time.measureTime
 
 
-class TestCode() {
+class TestCodeModel() {
 
-    val RANDOM_STRING_RANGE = 1..128
+    private val RANDOM_STRING_RANGE = 1..128
 
     @Test
     fun testRope() {
         val inital = "Hello World\nI like you!\n".repeat(10000)
         val models = StringModel(inital) to RopeModel(inital)
 
-        repeat(20){
+        repeat(20) {
             models.compareInsert()
             models.compareSubstring()
         }
         repeat(20){
+            //models.compareIndexAtLC()
+            models.compareLCatIndex()
+        }
+        repeat(20) {
             models.compareDeletes()
             models.compareCharAt()
         }
     }
 
-    private fun Pair<Code, Code>.compareInsert() {
+    private fun Pair<CodeModel, CodeModel>.compareInsert() {
         val range = 0..<this.first.length
         val index = Random.nextInt(range)
 
@@ -40,12 +44,14 @@ class TestCode() {
             second.insert(index, string)
         }
         assertEquals(first.toString(), second.toString())
-        nativeLog("CompareInserts: " +
-                "\n\t${first::class.simpleName}\t\t: ${fTime.inWholeNanoseconds}ns" +
-                "\n\t${second::class.simpleName}\t\t: ${sTime.inWholeNanoseconds}ns")
+        nativeLog(
+            "CompareInserts: " +
+                    "\n\t${first::class.simpleName}\t\t: ${fTime.inWholeNanoseconds}ns" +
+                    "\n\t${second::class.simpleName}\t\t: ${sTime.inWholeNanoseconds}ns"
+        )
     }
 
-    private fun Pair<Code, Code>.compareDeletes() {
+    private fun Pair<CodeModel, CodeModel>.compareDeletes() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -57,12 +63,14 @@ class TestCode() {
             second.delete(start, end)
         }
         assertEquals(first.toString(), second.toString())
-        nativeLog("CompareDeletes: $end in 0..$maxlength" +
-                "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
-                "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
+        nativeLog(
+            "CompareDeletes: $end in 0..$maxlength" +
+                    "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
+                    "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns"
+        )
     }
 
-    private fun Pair<Code, Code>.compareSubstring(){
+    private fun Pair<CodeModel, CodeModel>.compareSubstring() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -76,10 +84,12 @@ class TestCode() {
             sSub = second.substring(start, end)
         }
         assertEquals(fSub, sSub)
-        nativeLog("CompareSubstring: $end in 0..$maxlength \n\t${first::class.simpleName} took ${fTime.inWholeNanoseconds}ns\n\t${second::class.simpleName} took ${sTime.inWholeNanoseconds}ns")
+        nativeLog("CompareSubstring: $end in 0..$maxlength " +
+                "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
+                "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
-    private fun Pair<Code,Code>.compareCharAt(){
+    private fun Pair<CodeModel, CodeModel>.compareCharAt() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
 
@@ -92,15 +102,45 @@ class TestCode() {
             sSub = second.charAt(start)
         }
         assertEquals(fSub, sSub)
-        nativeLog("CompareCharAt: $start in 0..$maxlength \n\t${first::class.simpleName} took ${fTime.inWholeNanoseconds}ns\n\t${second::class.simpleName} took ${sTime.inWholeNanoseconds}ns")
+        nativeLog("CompareCharAt: $start in 0..$maxlength " +
+                "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
+                "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
-    private fun Pair<Code,Code>.compareIndexAtLC(){
+    private fun Pair<CodeModel, CodeModel>.compareIndexAtLC() {
+        val line = Random.nextInt(0..<this.first.lines)
+        val col = Random.nextInt(0..<256)
 
+
+        val fSub: Int
+        val fTime = measureTime {
+            fSub = first.getIndexFromLineAndColumn(line, col)
+        }
+        val sSub: Int
+        val sTime = measureTime {
+            sSub = second.getIndexFromLineAndColumn(line, col)
+        }
+        assertEquals(fSub, sSub)
+        nativeLog("CompareIndexAtLC: Index: $fSub " +
+                "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
+                "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
-    private fun Pair<Code,Code>.compareLCatIndex(){
+    private fun Pair<CodeModel, CodeModel>.compareLCatIndex() {
+        val index = Random.nextInt(0..this.first.length)
 
+        val fSub: Pair<Int, Int>
+        val fTime = measureTime {
+            fSub = first.getLineAndColumn(index)
+        }
+        val sSub: Pair<Int, Int>
+        val sTime = measureTime {
+            sSub = second.getLineAndColumn(index)
+        }
+        assertEquals(fSub, sSub)
+        nativeLog("CompareIndexAtLC: Line: ${fSub.first} Col: ${fSub.second} " +
+                "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
+                "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
     fun testLineColumnIds() {

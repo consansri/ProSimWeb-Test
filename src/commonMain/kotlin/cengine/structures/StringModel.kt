@@ -1,7 +1,8 @@
 package cengine.structures
 
-class StringModel(private var text: String) : Code {
+class StringModel(private var text: String) : CodeModel {
     override val length: Int get() = text.length
+    override val lines: Int get() = text.count { it == '\n' } + 1
 
     override fun insert(index: Int, new: String) {
         text = text.substring(0, index) + new + text.substring(index)
