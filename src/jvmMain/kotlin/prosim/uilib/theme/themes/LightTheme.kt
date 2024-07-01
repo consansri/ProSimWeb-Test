@@ -12,7 +12,8 @@ class LightTheme : Theme {
     override val dark: Boolean = false
 
     override val codeLaF: CodeLaF = CodeLaF(
-        fontPath = "fonts/JetBrainsMono/JetBrainsMono-Regular.ttf",
+        codeFontPath = "fonts/JetBrainsMono/JetBrainsMono-Regular.ttf",
+        markupFontPath =  "fonts/Roboto/Roboto-Regular.ttf",
         pcIdenticator = ">",
         selectionColor = Color(0x4d90fe),
         searchResultColor = Color(0xE2B124)

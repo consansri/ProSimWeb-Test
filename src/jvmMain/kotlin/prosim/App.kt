@@ -2,9 +2,6 @@ package prosim
 
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ui.components.NativeFrame
-import prosim.uilib.styled.STextButton
-import prosim.uilib.styled.params.FontType
-import java.awt.Dimension
 import javax.swing.JDialog
 import javax.swing.JFrame
 
@@ -17,12 +14,10 @@ fun main() {
 
     // Check if the application is running on Linux.
     if (SystemInfo.isLinux) {
-        // Set default look and feel for JFrame and JDialog on Linux.
+        // Set the default look and feel for JFrame and JDialog on Linux.
         JFrame.setDefaultLookAndFeelDecorated(true)
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
-
-    //testSkia()
 
     // Initialize and test the base application.
     launchBaseApp()
@@ -40,12 +35,12 @@ fun launchBaseApp() {
 }
 
 fun testSkia() {
-    val frame = JFrame()
-    frame.contentPane = STextButton("Crazy Button", FontType.CODE)
+    /*val frame = JFrame()
+    frame.contentPane = SEditorArea()
     frame.size = Dimension(800,600)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE*/
 }
 
 

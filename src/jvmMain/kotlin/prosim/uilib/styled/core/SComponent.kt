@@ -10,11 +10,15 @@ import prosim.uilib.theme.core.Theme
 import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
-abstract class CComponent : SkiaLayer() {
+abstract class SComponent : SkiaLayer() {
 
     init {
         installStateListeners()
         renderDelegate = RenderDelegate()
+    }
+
+    fun setup(){
+        applyDefaults(UIStates.theme.get(), UIStates.scale.get(), UIStates.icon.get())
     }
 
     abstract fun setDefaults(theme: Theme, scaling: Scaling, icons: Icons)
@@ -57,7 +61,7 @@ abstract class CComponent : SkiaLayer() {
 
     inner class RenderDelegate : SkikoRenderDelegate {
         override fun onRender(canvas: Canvas, width: Int, height: Int, nanoTime: Long) {
-            this@CComponent.onRender(canvas, width, height, nanoTime)
+            this@SComponent.onRender(canvas, width, height, nanoTime)
         }
     }
 

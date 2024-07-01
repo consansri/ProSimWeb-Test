@@ -7,7 +7,7 @@ import org.jetbrains.skia.RRect
 import prosim.uilib.UIStates
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
-import prosim.uilib.styled.core.CComponent
+import prosim.uilib.styled.core.SComponent
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.theme.core.Theme
 import java.awt.Color
@@ -15,7 +15,7 @@ import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
-class STextButton(val text: String, val fontType: FontType, installHover: Boolean = true, val locationPrimary: Boolean = false) : CComponent() {
+class STextButton(val text: String, val fontType: FontType, installHover: Boolean = true, val locationPrimary: Boolean = false) : SComponent() {
     private var skiaFont: Font = fontType.getSkiaFont()
     private var isHovered: Boolean = false
         set(value) {
@@ -26,8 +26,8 @@ class STextButton(val text: String, val fontType: FontType, installHover: Boolea
 
     init {
         transparency = true
-        setDefaults(UIStates.theme.get(), UIStates.scale.get(), UIStates.icon.get())
         if (installHover) installHoverEffect()
+        setup()
     }
 
     fun addActionListener(event: (MouseEvent) -> Unit) {

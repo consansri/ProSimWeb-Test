@@ -8,7 +8,7 @@ import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
 import prosim.uilib.theme.core.Theme
 
-class SkiaTester : CComponent() {
+class SkiaTester : SComponent() {
     override fun setDefaults(theme: Theme, scaling: Scaling, icons: Icons) {
 
     }

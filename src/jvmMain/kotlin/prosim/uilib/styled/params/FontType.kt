@@ -6,6 +6,7 @@ import java.awt.Font
 enum class FontType {
     BASIC,
     CODE,
+    CODE_INFO,
     DATA,
     TITLE;
 
@@ -15,6 +16,7 @@ enum class FontType {
             CODE -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
             DATA -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)
             TITLE -> UIStates.theme.get().textLaF.getTitleFont().deriveFont(UIStates.scale.get().fontScale.titleSize)
+            CODE_INFO -> UIStates.theme.get().codeLaF.getMarkupFont().deriveFont(UIStates.scale.get().fontScale.codeSize * 0.6f)
         }
     }
 
@@ -25,6 +27,7 @@ enum class FontType {
             CODE -> theme.codeLaF.getTF()
             DATA -> theme.codeLaF.getTF()
             TITLE -> theme.textLaF.getTitleTypeface()
+            CODE_INFO -> theme.codeLaF.getMarkupTF()
         }
 
         val fontScale = UIStates.scale.get().fontScale
@@ -33,6 +36,7 @@ enum class FontType {
             CODE -> fontScale.codeSize
             DATA -> fontScale.dataSize
             TITLE -> fontScale.titleSize
+            CODE_INFO -> fontScale.codeSize * 0.002f
         }
         return org.jetbrains.skia.Font(tf, scale * 1.7f)
     }

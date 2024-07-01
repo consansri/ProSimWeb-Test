@@ -8,20 +8,30 @@ import java.awt.Font
 import java.awt.GraphicsEnvironment
 
 class CodeLaF(
-    fontPath: String,
+    codeFontPath: String,
+    markupFontPath: String,
     val pcIdenticator: String,
     val selectionColor: Color,
     val searchResultColor: Color,
     val getColor: (CodeStyle?) -> Color
 ) {
-    private var typeface: Typeface = Theme.loadSkiaTF(fontPath) ?: Typeface.makeDefault()
-    private var font: Font = Theme.loadFont(fontPath)
+    private var codeTF: Typeface = Theme.loadSkiaTF(codeFontPath) ?: Typeface.makeDefault()
+    private var markupTF: Typeface = Theme.loadSkiaTF(markupFontPath) ?: Typeface.makeDefault()
+    private var codeFont: Font = Theme.loadFont(codeFontPath)
+        set(value) {
+            field = value
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(value)
+        }
+    private var markupFont: Font = Theme.loadFont(markupFontPath)
         set(value) {
             field = value
             GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(value)
         }
 
-    fun getFont(): Font = font
-    fun getTF(): Typeface = typeface
+
+    fun getFont(): Font = codeFont
+    fun getMarkupFont(): Font = markupFont
+    fun getTF(): Typeface = codeTF
+    fun getMarkupTF(): Typeface = markupTF
 
 }
