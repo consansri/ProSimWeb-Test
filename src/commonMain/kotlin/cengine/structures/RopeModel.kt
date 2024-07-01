@@ -5,7 +5,7 @@ package cengine.structures
  * Rope is the data structure for holding the text editor state.
  *
  */
-class RopeModel(text: String = ""): Code {
+class RopeModel(text: String = "") : Code {
     private var root: Node = buildTree(text)
     override val length: Int get() = root.weight
 
@@ -31,13 +31,13 @@ class RopeModel(text: String = ""): Code {
         return root.charAt(index)
     }
 
-    fun getLineAndColumn(index: Int): Pair<Int, Int> {
+    override fun getLineAndColumn(index: Int): Pair<Int, Int> {
         require(index in 0..length) { "Index out of bounds" }
         val result = root.getLineAndColumn(index)
         return result.line to result.col
     }
 
-    fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
+    override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
         require(line > 0 && column > 0) { "Line and column must be positive" }
         return root.getIndexFromLineAndColumn(line, column).index
     }
@@ -73,9 +73,9 @@ class RopeModel(text: String = ""): Code {
      *
      */
     private sealed class Node {
-        abstract val weight: Int
-        abstract val depth: Int
-        abstract val lineBreaks: Int
+        abstract var weight: Int
+        abstract var depth: Int
+        abstract var lineBreaks: Int
 
         abstract fun getLineAndColumn(index: Int): LC
         abstract fun getIndexFromLineAndColumn(line: Int, column: Int): AbsIndex
@@ -117,10 +117,21 @@ class RopeModel(text: String = ""): Code {
         }
     }
 
-    private class Leaf(var text: String) : Node() {
-        override val weight: Int get() = text.length
-        override val depth: Int get() = 0
-        override val lineBreaks: Int get() = text.count { it == '\n' }
+    private class Leaf(text: String) : Node() {
+        var text: String = text
+            set(value) {
+                field = value
+                updateMetrics()
+            }
+
+        override var weight: Int = text.length
+        override var depth: Int = 0
+        override var lineBreaks: Int = text.count { it == '\n' }
+
+        private fun updateMetrics() {
+            weight = text.length
+            lineBreaks = text.count { it == '\n' }
+        }
 
         override fun getLineAndColumn(index: Int): LC {
             val lc = LC()
@@ -155,7 +166,8 @@ class RopeModel(text: String = ""): Code {
         override fun insert(index: Int, newText: String): Node {
             val updatedText = text.substring(0, index) + newText + text.substring(index)
             return if (updatedText.length <= LEAF_MAX_LENGTH) {
-                Leaf(updatedText)
+                text = updatedText
+                this
             } else {
                 buildTree(updatedText)
             }
@@ -173,10 +185,28 @@ class RopeModel(text: String = ""): Code {
         override fun toString(): String = text
     }
 
-    private class Branch(var left: Node, var right: Node) : Node() {
-        override val weight: Int get() = left.weight + right.weight
-        override val depth: Int get() = maxOf(left.depth, right.depth) + 1
-        override val lineBreaks: Int get() = left.lineBreaks + right.lineBreaks
+    private class Branch(left: Node, right: Node) : Node() {
+        var left: Node = left
+            set(value) {
+                field = value
+                updateMetrics()
+            }
+
+        var right: Node = right
+            set(value) {
+                field = value
+                updateMetrics()
+            }
+
+        override var weight: Int = left.weight + right.weight
+        override var depth: Int = maxOf(left.depth, right.depth) + 1
+        override var lineBreaks: Int = left.lineBreaks + right.lineBreaks
+
+        fun updateMetrics() {
+            weight = left.weight + right.weight
+            depth = maxOf(left.depth, right.depth) + 1
+            lineBreaks = left.lineBreaks + right.lineBreaks
+        }
 
         override fun getLineAndColumn(index: Int): LC {
             return if (index < left.weight) {
@@ -205,24 +235,36 @@ class RopeModel(text: String = ""): Code {
 
         override fun insert(index: Int, newText: String): Node {
             return if (index < left.weight) {
-                Branch(left.insert(index, newText), right)
+                left = left.insert(index, newText)
+                this
             } else {
-                Branch(left, right.insert(index - left.weight, newText))
+                right = right.insert(index - left.weight, newText)
+                this
             }
         }
 
         override fun delete(start: Int, end: Int): Node {
             val leftWeight = left.weight
             return when {
-                end <= leftWeight -> Branch(left.delete(start, end), right)
-                start >= leftWeight -> Branch(left, right.delete(start - leftWeight, end - leftWeight))
+                end <= leftWeight -> {
+                    left = left.delete(start, end)
+                    this
+                }
+
+                start >= leftWeight -> {
+                    right = right.delete(start - leftWeight, end - leftWeight)
+                    this
+                }
+
                 else -> {
                     val newLeft = left.delete(start, leftWeight)
                     val newRight = right.delete(0, end - leftWeight)
                     if (newLeft is Leaf && newRight is Leaf && newLeft.weight + newRight.weight <= LEAF_MAX_LENGTH) {
                         Leaf(newLeft.text + newRight.text)
                     } else {
-                        Branch(newLeft, newRight)
+                        left = newLeft
+                        right = newRight
+                        this
                     }
                 }
             }

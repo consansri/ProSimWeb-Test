@@ -12,6 +12,12 @@ interface Code {
 
     fun charAt(index: Int): Char
 
+    fun getLineAndColumn(index: Int): Pair<Int, Int>
+
+    fun getIndexFromLineAndColumn(line: Int, column: Int): Int
+
     override fun toString(): String
+
+
 
 }

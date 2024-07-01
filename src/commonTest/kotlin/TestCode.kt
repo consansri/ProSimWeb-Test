@@ -32,8 +32,6 @@ class TestCode() {
         val range = 0..<this.first.length
         val index = Random.nextInt(range)
 
-        nativeLog("DELETE: $index in $range")
-
         val string = getRandomString()
         val fTime = measureTime {
             first.insert(index, string)
@@ -52,8 +50,6 @@ class TestCode() {
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
 
-        nativeLog("DELETE: $end in 0..$maxlength")
-
         val fTime = measureTime {
             first.delete(start, end)
         }
@@ -71,8 +67,6 @@ class TestCode() {
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
 
-        nativeLog("SUBSTRING: $end in 0..<$maxlength")
-
         val fSub: String
         val fTime = measureTime {
             fSub = first.substring(start, end)
@@ -89,8 +83,6 @@ class TestCode() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
 
-        nativeLog("CHARAT: $start in 0..<$maxlength")
-
         val fSub: Char
         val fTime = measureTime {
             fSub = first.charAt(start)
@@ -101,6 +93,14 @@ class TestCode() {
         }
         assertEquals(fSub, sSub)
         nativeLog("CompareCharAt: $start in 0..$maxlength \n\t${first::class.simpleName} took ${fTime.inWholeNanoseconds}ns\n\t${second::class.simpleName} took ${sTime.inWholeNanoseconds}ns")
+    }
+
+    private fun Pair<Code,Code>.compareIndexAtLC(){
+
+    }
+
+    private fun Pair<Code,Code>.compareLCatIndex(){
+
     }
 
     fun testLineColumnIds() {
