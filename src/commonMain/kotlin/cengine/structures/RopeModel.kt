@@ -5,28 +5,28 @@ package cengine.structures
  * Rope is the data structure for holding the text editor state.
  *
  */
-class Rope(text: String = "") {
+class RopeModel(text: String = ""): Code {
     private var root: Node = buildTree(text)
-    val length: Int get() = root.weight
+    override val length: Int get() = root.weight
 
-    fun insert(index: Int, text: String) {
+    override fun insert(index: Int, new: String) {
         require(index in 0..length) { "Index out of bounds" }
-        root = root.insert(index, text)
+        root = root.insert(index, new)
         rebalance()
     }
 
-    fun delete(start: Int, end: Int) {
+    override fun delete(start: Int, end: Int) {
         require(start in 0..length && end in start..length) { "Invalid range" }
         root = root.delete(start, end)
         rebalance()
     }
 
-    fun substring(start: Int, end: Int): String {
+    override fun substring(start: Int, end: Int): String {
         require(start in 0..length && end in start..length) { "Invalid range" }
         return root.substring(start, end)
     }
 
-    fun charAt(index: Int): Char {
+    override fun charAt(index: Int): Char {
         require(index in 0 until length) { "Index out of bounds" }
         return root.charAt(index)
     }
@@ -153,7 +153,7 @@ class Rope(text: String = "") {
         }
 
         override fun insert(index: Int, newText: String): Node {
-            val updatedText = newText.substring(0, index) + newText + text.substring(index)
+            val updatedText = text.substring(0, index) + newText + text.substring(index)
             return if (updatedText.length <= LEAF_MAX_LENGTH) {
                 Leaf(updatedText)
             } else {
