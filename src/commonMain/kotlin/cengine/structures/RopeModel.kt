@@ -36,12 +36,12 @@ class RopeModel(text: String = "") : CodeModel {
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
         require(index in 0..length) { "Index out of bounds" }
         val result = root.getLineAndColumn(index)
-        return result.line to result.col
+        return result.line to result.col + 1
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
         require(line > 0 && column > 0) { "Line and column must be positive" }
-        return root.getIndexFromLineAndColumn(line, column).index
+        return root.getIndexFromLineAndColumn(line, column).index - 1
     }
 
     override fun toString(): String = root.substring(0, length).toString()
@@ -79,7 +79,7 @@ class RopeModel(text: String = "") : CodeModel {
         abstract var depth: Int
         abstract var lineBreaks: Int
 
-        abstract fun getLineAndColumn(index: Int): LC
+        abstract fun getLineAndColumn(countUntil: Int): LC
         abstract fun getIndexFromLineAndColumn(line: Int, column: Int): AbsIndex
         abstract fun insert(index: Int, newText: String): Node
         abstract fun delete(start: Int, end: Int): Node
@@ -134,9 +134,9 @@ class RopeModel(text: String = "") : CodeModel {
             lineBreaks = text.count { it == '\n' }
         }
 
-        override fun getLineAndColumn(index: Int): LC {
+        override fun getLineAndColumn(countUntil: Int): LC {
             val lc = LC()
-            for (i in 0 until index) {
+            for (i in 0..<countUntil) {
                 if (text[i] == '\n') {
                     lc.line++
                     lc.col = 0
@@ -156,11 +156,15 @@ class RopeModel(text: String = "") : CodeModel {
                 }
                 if (text[i] == '\n') {
                     currLine++
+                    if (currLine > line) {
+                        return AbsIndex(currColumn, i)
+                    }
                     currColumn = 0
                 } else {
                     currColumn++
                 }
             }
+
             return AbsIndex(currColumn, text.lastIndex)
         }
 
@@ -207,12 +211,12 @@ class RopeModel(text: String = "") : CodeModel {
             lineBreaks = left.lineBreaks + right.lineBreaks
         }
 
-        override fun getLineAndColumn(index: Int): LC {
-            return if (index < left.weight) {
-                left.getLineAndColumn(index)
+        override fun getLineAndColumn(countUntil: Int): LC {
+            return if (countUntil < left.weight) {
+                left.getLineAndColumn(countUntil)
             } else {
                 val leftLC = left.getLineAndColumn(left.weight)
-                val rightLC = right.getLineAndColumn(index - left.weight)
+                val rightLC = right.getLineAndColumn(countUntil - left.weight)
                 leftLC + rightLC
             }
         }
@@ -221,14 +225,15 @@ class RopeModel(text: String = "") : CodeModel {
             val leftLastLine = left.lineBreaks
             return if (line < leftLastLine) {
                 left.getIndexFromLineAndColumn(line, column)
-            } else if (line == leftLastLine) {
+            } else if(line == leftLastLine) {
                 val leftIndex = left.getIndexFromLineAndColumn(line, column)
-                val rightIndex = right.getIndexFromLineAndColumn(0, column)
-                AbsIndex(leftIndex.afterLastLineBreak + rightIndex.afterLastLineBreak, leftIndex.index + rightIndex.index)
-
+                val rightIndex = right.getIndexFromLineAndColumn(0, column - leftIndex.afterLastLineBreak)
+                val index = left.weight + rightIndex.index
+                AbsIndex(index, index)
             } else {
                 val rightIndex = right.getIndexFromLineAndColumn(line - leftLastLine, column)
-                AbsIndex(rightIndex.afterLastLineBreak, left.weight + rightIndex.index)
+                val index = left.weight + rightIndex.index
+                AbsIndex(rightIndex.afterLastLineBreak, index)
             }
         }
 

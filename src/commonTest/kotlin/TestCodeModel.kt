@@ -23,8 +23,8 @@ class TestCodeModel() {
             models.compareSubstring()
         }
         repeat(20){
-            //models.compareIndexAtLC()
             models.compareLCatIndex()
+            models.compareIndexAtLC()
         }
         repeat(20) {
             models.compareDeletes()
@@ -93,15 +93,15 @@ class TestCodeModel() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
 
-        val fSub: Char
+        val fChar: Char
         val fTime = measureTime {
-            fSub = first.charAt(start)
+            fChar = first.charAt(start)
         }
-        val sSub: Char
+        val sChar: Char
         val sTime = measureTime {
-            sSub = second.charAt(start)
+            sChar = second.charAt(start)
         }
-        assertEquals(fSub, sSub)
+        assertEquals(fChar, sChar)
         nativeLog("CompareCharAt: $start in 0..$maxlength " +
                 "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
@@ -111,36 +111,36 @@ class TestCodeModel() {
         val line = Random.nextInt(0..<this.first.lines)
         val col = Random.nextInt(0..<256)
 
-
-        val fSub: Int
+        val fIndex: Int
         val fTime = measureTime {
-            fSub = first.getIndexFromLineAndColumn(line, col)
+            fIndex = first.getIndexFromLineAndColumn(line, col)
         }
-        val sSub: Int
+        val sIndex: Int
         val sTime = measureTime {
-            sSub = second.getIndexFromLineAndColumn(line, col)
+            sIndex = second.getIndexFromLineAndColumn(line, col)
         }
-        assertEquals(fSub, sSub)
-        nativeLog("CompareIndexAtLC: Index: $fSub " +
+        nativeLog("CompareIndexAtLC: Index: $fIndex pointsOn: ${first.charAt(fIndex)}" +
                 "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
+        assertEquals(fIndex, sIndex)
+
     }
 
     private fun Pair<CodeModel, CodeModel>.compareLCatIndex() {
         val index = Random.nextInt(0..this.first.length)
 
-        val fSub: Pair<Int, Int>
+        val fLC: Pair<Int, Int>
         val fTime = measureTime {
-            fSub = first.getLineAndColumn(index)
+            fLC = first.getLineAndColumn(index)
         }
-        val sSub: Pair<Int, Int>
+        val sLC: Pair<Int, Int>
         val sTime = measureTime {
-            sSub = second.getLineAndColumn(index)
+            sLC = second.getLineAndColumn(index)
         }
-        assertEquals(fSub, sSub)
-        nativeLog("CompareIndexAtLC: Line: ${fSub.first} Col: ${fSub.second} " +
+        nativeLog("CompareLCAtIndex: Line: ${fLC.first} Col: ${fLC.second} pointsOn: ${first.charAt(index)} " +
                 "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
+        assertEquals(fLC, sLC)
     }
 
     fun testLineColumnIds() {

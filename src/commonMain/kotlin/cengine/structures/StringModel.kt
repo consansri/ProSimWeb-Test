@@ -21,8 +21,9 @@ class StringModel(private var text: String) : CodeModel {
     }
 
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
-        val lastLineCountIndex = text.substring(0, index).indexOfLast { it == '\n' }
-        return text.substring(0, index).count { it == '\n' } to index - lastLineCountIndex
+        val relString = text.substring(0, index)
+        val lastLineCountIndex = relString.indexOfLast { it == '\n' }
+        return relString.count { it == '\n' } to index - lastLineCountIndex
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
