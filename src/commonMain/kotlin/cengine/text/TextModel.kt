@@ -1,6 +1,6 @@
-package cengine.structures
+package cengine.text
 
-interface CodeModel {
+interface TextModel {
 
     val length: Int
     val lines: Int
@@ -8,6 +8,8 @@ interface CodeModel {
     fun insert(index: Int, new: String)
 
     fun delete(start: Int, end: Int)
+
+    fun replaceAll(new: String)
 
     fun substring(start: Int, end: Int): String
 
@@ -18,7 +20,4 @@ interface CodeModel {
     fun getIndexFromLineAndColumn(line: Int, column: Int): Int
 
     override fun toString(): String
-
-
-
 }

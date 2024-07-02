@@ -1,6 +1,7 @@
-import cengine.structures.CodeModel
-import cengine.structures.RopeModel
-import cengine.structures.StringModel
+
+import cengine.text.RopeModel
+import cengine.text.StringModel
+import cengine.text.TextModel
 import emulator.kit.nativeLog
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -32,7 +33,7 @@ class TestCodeModel() {
         }
     }
 
-    private fun Pair<CodeModel, CodeModel>.compareInsert() {
+    private fun Pair<TextModel, TextModel>.compareInsert() {
         val range = 0..<this.first.length
         val index = Random.nextInt(range)
 
@@ -51,7 +52,7 @@ class TestCodeModel() {
         )
     }
 
-    private fun Pair<CodeModel, CodeModel>.compareDeletes() {
+    private fun Pair<TextModel, TextModel>.compareDeletes() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -70,7 +71,7 @@ class TestCodeModel() {
         )
     }
 
-    private fun Pair<CodeModel, CodeModel>.compareSubstring() {
+    private fun Pair<TextModel, TextModel>.compareSubstring() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -89,7 +90,7 @@ class TestCodeModel() {
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
-    private fun Pair<CodeModel, CodeModel>.compareCharAt() {
+    private fun Pair<TextModel, TextModel>.compareCharAt() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
 
@@ -107,7 +108,7 @@ class TestCodeModel() {
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
-    private fun Pair<CodeModel, CodeModel>.compareIndexAtLC() {
+    private fun Pair<TextModel, TextModel>.compareIndexAtLC() {
         val line = Random.nextInt(0..<this.first.lines)
         val col = Random.nextInt(0..<256)
 
@@ -126,7 +127,7 @@ class TestCodeModel() {
 
     }
 
-    private fun Pair<CodeModel, CodeModel>.compareLCatIndex() {
+    private fun Pair<TextModel, TextModel>.compareLCatIndex() {
         val index = Random.nextInt(0..this.first.length)
 
         val fLC: Pair<Int, Int>

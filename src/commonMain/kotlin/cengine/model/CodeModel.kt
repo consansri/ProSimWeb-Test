@@ -2,18 +2,22 @@ package cengine.model
 
 import cengine.annotation.Annotater
 import cengine.completion.Completer
+import cengine.editing.Editor
 import cengine.highlighting.Highlighter
-import cengine.structures.RopeModel
+import cengine.selection.Selector
+import cengine.text.TextModel
 
 /**
  * This model is representing the state of the rendered code.
  */
-class CodeModel {
+interface CodeModel {
 
-    var state: RopeModel = RopeModel()
+    val textModel: TextModel
+    val selector: Selector
 
-    var annotater: Annotater? = null
-    var completer: Completer? = null
-    var highlighter: Highlighter? = null
+    var editor: Editor?
+    var highlighter: Highlighter?
+    var annotater: Annotater?
+    var completer: Completer?
 
 }

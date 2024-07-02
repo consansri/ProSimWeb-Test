@@ -1,6 +1,6 @@
-package cengine.structures
+package cengine.text
 
-class StringModel(private var text: String) : CodeModel {
+class StringModel(private var text: String) : TextModel {
     override val length: Int get() = text.length
     override val lines: Int get() = text.count { it == '\n' } + 1
 
@@ -10,6 +10,10 @@ class StringModel(private var text: String) : CodeModel {
 
     override fun delete(start: Int, end: Int) {
         text = text.substring(0, start) + text.substring(end)
+    }
+
+    override fun replaceAll(new: String) {
+        text = new
     }
 
     override fun substring(start: Int, end: Int): String {

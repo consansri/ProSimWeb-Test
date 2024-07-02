@@ -1,11 +1,11 @@
-package cengine.structures
+package cengine.text
 
 
 /**
  * Rope is the data structure for holding the text editor state.
  *
  */
-class RopeModel(text: String = "") : CodeModel {
+class RopeModel(text: String = "") : TextModel {
     private var root: Node = buildTree(text)
     override val length: Int get() = root.weight
     override val lines: Int get() = root.lineBreaks + 1
@@ -21,6 +21,10 @@ class RopeModel(text: String = "") : CodeModel {
         require(start in 0..length && end in start..length) { "Invalid range" }
         root = root.delete(start, end)
         rebalance()
+    }
+
+    override fun replaceAll(new: String) {
+        root = buildTree(new)
     }
 
     override fun substring(start: Int, end: Int): String {
