@@ -1,4 +1,4 @@
-package cengine.model
+package cengine
 
 import cengine.annotation.Annotater
 import cengine.completion.Completer
