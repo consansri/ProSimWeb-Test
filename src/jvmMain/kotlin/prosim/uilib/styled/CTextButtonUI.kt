@@ -1,18 +1,20 @@
 package prosim.uilib.styled
 
+import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
+import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.theme.core.Theme
 import java.awt.*
 import javax.swing.JComponent
 
-class CTextButtonUI(private val fontType: FontType) : CComponentUI<CTextButton>() {
+class CTextButtonUI(private val fontType: FontType, private val borderMode: BorderMode) : CComponentUI<CTextButton>() {
 
     override fun setDefaults(c: CTextButton, theme: Theme, scaling: Scaling, icons: Icons) {
         c.isOpaque = false
-        c.border = scaling.borderScale.getInsetBorder()
+        c.border = borderMode.getBorder()
         c.font = fontType.getFont()
         c.foreground = if (c.primary) theme.textLaF.base else theme.textLaF.baseSecondary
         c.background = Color(0, 0, 0, 0)
@@ -31,9 +33,9 @@ class CTextButtonUI(private val fontType: FontType) : CComponentUI<CTextButton>(
         val height = c.height
 
         // Paint button background
-        if(c.isHovered){
+        if (c.isHovered) {
             g2.color = UIStates.theme.get().iconLaF.iconBgHover
-            g2.fillRoundRect(getInset() / 2, getInset() / 2, width - getInset(), height - getInset(), getCornerRadius(), getCornerRadius())
+            g2.fillRoundRect(c.insets.left / 2, c.insets.top / 2, width - c.insets.right / 2 - c.insets.left / 2, height - c.insets.bottom / 2 - c.insets.top / 2, getCornerRadius(), getCornerRadius())
         }
 
         val fm = c.getFontMetrics(c.font)
@@ -51,12 +53,17 @@ class CTextButtonUI(private val fontType: FontType) : CComponentUI<CTextButton>(
     }
 
     override fun getPreferredSize(c: JComponent?): Dimension {
-        val button = c as? CTextButton ?: return super.getPreferredSize(c)
-        return Dimension(button.getFontMetrics(fontType.getFont()).stringWidth(button.text) + getInset() * 2, button.getFontMetrics(fontType.getFont()).height + getInset() * 2)
+        return getMinimumSize(c)
     }
 
     override fun getMinimumSize(c: JComponent?): Dimension {
-        return getPreferredSize(c)
+        val button = c as? CTextButton ?: return super.getPreferredSize(c)
+        val size = Dimension(
+            button.getFontMetrics(fontType.getFont()).stringWidth(button.text) + c.insets.left + c.insets.right,
+            button.getFontMetrics(fontType.getFont()).height + c.insets.top + c.insets.bottom
+        )
+        nativeLog("Calculating Minimum Size: $size")
+        return size
     }
 
     override fun getMaximumSize(c: JComponent?): Dimension {
@@ -64,5 +71,4 @@ class CTextButtonUI(private val fontType: FontType) : CComponentUI<CTextButton>(
     }
 
     private fun getCornerRadius(): Int = UIStates.scale.get().controlScale.cornerRadius
-    private fun getInset(): Int = UIStates.scale.get().borderScale.insets
 }

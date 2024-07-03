@@ -50,7 +50,7 @@ class COptionPane : JOptionPane() {
                 gbc.gridy += 1
             }
 
-            show(cDialog )
+            show(cDialog)
 
             return cDialog to resultDeferred
         }
@@ -95,7 +95,7 @@ class COptionPane : JOptionPane() {
             return resultDeferred
         }
 
-        fun showDirectoryChooser(parent: Component, message: String):  Deferred<File?> {
+        fun showDirectoryChooser(parent: Component, message: String): Deferred<File?> {
             val resultDeferred = CompletableDeferred<File?>()
 
             var selectedFile: File? = null
@@ -231,7 +231,7 @@ class COptionPane : JOptionPane() {
             gbc.gridx = 0
             gbc.gridy = 0
             gbc.weightx = 1.0
-            gbc.weighty = 0.0
+            gbc.weighty = 1.0
             gbc.fill = GridBagConstraints.HORIZONTAL
 
             gbc.fill = GridBagConstraints.HORIZONTAL
@@ -240,6 +240,7 @@ class COptionPane : JOptionPane() {
             gbc.gridx = 1
             contentPanel.add(cCancelBtn, gbc)
 
+            val size = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16 * 4, Toolkit.getDefaultToolkit().screenSize.height / 9 * 1)
             show(cDialog)
 
             cDialog.requestFocus()
@@ -362,8 +363,8 @@ class COptionPane : JOptionPane() {
             cDialog.pack()
             if (size != null) {
                 cDialog.size = size
-            }else{
-                cDialog.size = Dimension(
+            } else {
+                cDialog.contentPane.size = Dimension(
                     cDialog.insets.left + cDialog.insets.right + cDialog.layout.preferredLayoutSize(cDialog).width,
                     cDialog.insets.top + cDialog.insets.bottom + cDialog.layout.preferredLayoutSize(cDialog).height
                 )

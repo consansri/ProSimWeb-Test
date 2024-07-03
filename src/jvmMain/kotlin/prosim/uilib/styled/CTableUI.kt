@@ -72,7 +72,12 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
             val cTable = table as? CTable ?: return component
 
             return if (column in cTable.clickableHeaderIds) {
-                CTextButton("[$value]", FontType.CODE)
+                CLabel("[$value]", FontType.CODE).apply {
+                    val inset = UIStates.scale.get().borderScale.insets
+                    border = BorderFactory.createEmptyBorder(inset, inset, 0, 0)
+                    horizontalAlignment = SwingConstants.CENTER
+                }
+
             } else {
                 CLabel(value.toString(), FontType.CODE).apply {
                     val inset = UIStates.scale.get().borderScale.insets
