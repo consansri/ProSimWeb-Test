@@ -15,7 +15,7 @@ import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
-class STextButton(val text: String, val fontType: FontType, installHover: Boolean = true, val locationPrimary: Boolean = false) : SComponent() {
+open class STextButton(val text: String, val fontType: FontType, installHover: Boolean = true, val locationPrimary: Boolean = false) : SComponent() {
     private var skiaFont: Font = fontType.getSkiaFont()
     private var isHovered: Boolean = false
         set(value) {

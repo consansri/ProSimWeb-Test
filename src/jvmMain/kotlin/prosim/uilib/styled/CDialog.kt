@@ -67,5 +67,4 @@ class CDialog(parent: Component) : JDialog() {
             return Triple(dialog, cPane, bPane)
         }
     }
-
 }

@@ -50,7 +50,7 @@ class COptionPane : JOptionPane() {
                 gbc.gridy += 1
             }
 
-            show(cDialog)
+            show(cDialog )
 
             return cDialog to resultDeferred
         }
@@ -362,6 +362,11 @@ class COptionPane : JOptionPane() {
             cDialog.pack()
             if (size != null) {
                 cDialog.size = size
+            }else{
+                cDialog.size = Dimension(
+                    cDialog.insets.left + cDialog.insets.right + cDialog.layout.preferredLayoutSize(cDialog).width,
+                    cDialog.insets.top + cDialog.insets.bottom + cDialog.layout.preferredLayoutSize(cDialog).height
+                )
             }
             cDialog.setLocationRelativeTo(null)
             cDialog.isVisible = true

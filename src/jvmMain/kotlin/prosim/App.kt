@@ -2,6 +2,8 @@ package prosim
 
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ui.components.NativeFrame
+import prosim.uilib.styled.editor2.Editor
+import java.awt.Dimension
 import javax.swing.JDialog
 import javax.swing.JFrame
 
@@ -19,6 +21,8 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
+    //testSkia()
+
     // Initialize and test the base application.
     launchBaseApp()
 }
@@ -35,12 +39,12 @@ fun launchBaseApp() {
 }
 
 fun testSkia() {
-    /*val frame = JFrame()
-    frame.contentPane = SEditorArea()
+    val frame = JFrame()
+    frame.contentPane = Editor(frame)
     frame.size = Dimension(800,600)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE*/
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 }
 
 
