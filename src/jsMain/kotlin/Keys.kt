@@ -7,6 +7,7 @@ object Keys {
     const val THEME = "theme"
 
     // files
+    const val FILE_PREFIX = "file:"
     const val FILE_CURR = "file-current"
     const val FILE_COUNT = "file-count"
     const val FILE_NAME = "filename"
