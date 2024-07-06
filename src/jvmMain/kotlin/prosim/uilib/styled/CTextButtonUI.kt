@@ -1,6 +1,5 @@
 package prosim.uilib.styled
 
-import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
@@ -62,7 +61,6 @@ class CTextButtonUI(private val fontType: FontType, private val borderMode: Bord
             button.getFontMetrics(fontType.getFont()).stringWidth(button.text) + c.insets.left + c.insets.right,
             button.getFontMetrics(fontType.getFont()).height + c.insets.top + c.insets.bottom
         )
-        nativeLog("Calculating Minimum Size: $size")
         return size
     }
 
