@@ -1,5 +1,5 @@
 package cengine.completion
 
-interface Completer{
+interface Completer {
 
 }
