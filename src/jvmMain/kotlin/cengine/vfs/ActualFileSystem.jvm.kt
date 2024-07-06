@@ -8,8 +8,8 @@ import java.nio.file.Paths
  *
  * This implementation uses [java.nio.file] for file operations.
  */
-actual class ActualFileSystem actual constructor(rootPath: String) {
-    actual val rootPath: String = rootPath
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+actual class ActualFileSystem actual constructor(actual val rootPath: String) {
     actual fun readFile(path: String): ByteArray = Files.readAllBytes(Paths.get(getAbsolutePath(path)))
 
     actual fun writeFile(path: String, content: ByteArray) {

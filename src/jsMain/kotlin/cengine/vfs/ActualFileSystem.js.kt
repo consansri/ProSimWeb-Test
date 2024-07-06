@@ -8,8 +8,8 @@ import web.storage.localStorage
  *
  * This implementation uses [localStorage] to simulate a file system in a web browser environment.
  */
-actual class ActualFileSystem actual constructor(rootPath: String) {
-    actual val rootPath = rootPath
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+actual class ActualFileSystem actual constructor(actual val rootPath: String) {
 
     actual fun readFile(path: String): ByteArray {
         return localStorage.getItem(getFileKey(path))?.encodeToByteArray() ?: ByteArray(0)

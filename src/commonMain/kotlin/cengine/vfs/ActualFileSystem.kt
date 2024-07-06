@@ -5,6 +5,7 @@ package cengine.vfs
  *
  * @property rootPath The root path of this file system.
  */
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect class ActualFileSystem(rootPath: String) {
     val rootPath: String
 

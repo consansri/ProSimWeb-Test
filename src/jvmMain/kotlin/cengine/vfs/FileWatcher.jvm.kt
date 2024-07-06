@@ -8,6 +8,7 @@ import kotlin.concurrent.thread
  *
  * This implementation uses [java.nio.file.WatchService] for file system monitoring.
  */
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
     private val watchService = FileSystems.getDefault().newWatchService()
     private val watchKeys = mutableMapOf<WatchKey, Path>()
