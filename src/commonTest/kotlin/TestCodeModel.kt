@@ -1,7 +1,7 @@
 
-import cengine.text.RopeModel
+import cengine.editor.text.RopeModel
 import cengine.text.StringModel
-import cengine.text.TextModel
+import cengine.editor.text.TextModel
 import emulator.kit.nativeLog
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -17,7 +17,7 @@ class TestCodeModel() {
     @Test
     fun testRope() {
         val inital = "Hello World\nI like you!\n".repeat(10000)
-        val models = StringModel(inital) to RopeModel(inital)
+        val models = StringModel(inital) to cengine.editor.text.RopeModel(inital)
 
         repeat(20) {
             models.compareInsert()
@@ -33,7 +33,7 @@ class TestCodeModel() {
         }
     }
 
-    private fun Pair<TextModel, TextModel>.compareInsert() {
+    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareInsert() {
         val range = 0..<this.first.length
         val index = Random.nextInt(range)
 
@@ -52,7 +52,7 @@ class TestCodeModel() {
         )
     }
 
-    private fun Pair<TextModel, TextModel>.compareDeletes() {
+    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareDeletes() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -71,7 +71,7 @@ class TestCodeModel() {
         )
     }
 
-    private fun Pair<TextModel, TextModel>.compareSubstring() {
+    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareSubstring() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -90,7 +90,7 @@ class TestCodeModel() {
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
-    private fun Pair<TextModel, TextModel>.compareCharAt() {
+    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareCharAt() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
 
@@ -108,7 +108,7 @@ class TestCodeModel() {
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
     }
 
-    private fun Pair<TextModel, TextModel>.compareIndexAtLC() {
+    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareIndexAtLC() {
         val line = Random.nextInt(0..<this.first.lines)
         val col = Random.nextInt(0..<256)
 
@@ -127,7 +127,7 @@ class TestCodeModel() {
 
     }
 
-    private fun Pair<TextModel, TextModel>.compareLCatIndex() {
+    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareLCatIndex() {
         val index = Random.nextInt(0..this.first.length)
 
         val fLC: Pair<Int, Int>

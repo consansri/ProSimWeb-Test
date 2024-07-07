@@ -1,6 +1,6 @@
-package cengine.selection
+package cengine.editor.selection
 
-import cengine.text.TextModel
+import cengine.editor.text.TextModel
 
 data class Caret(
     val model: TextModel

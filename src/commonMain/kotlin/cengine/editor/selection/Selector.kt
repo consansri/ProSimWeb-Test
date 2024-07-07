@@ -1,4 +1,4 @@
-package cengine.selection
+package cengine.editor.selection
 
 interface Selector {
 

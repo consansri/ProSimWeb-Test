@@ -1,4 +1,4 @@
-package cengine.widgets
+package cengine.editor.widgets
 
 interface WidgetModel {
     fun insert(widget: Widget)

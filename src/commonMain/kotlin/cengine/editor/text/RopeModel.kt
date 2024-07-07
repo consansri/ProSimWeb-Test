@@ -1,4 +1,4 @@
-package cengine.text
+package cengine.editor.text
 
 
 /**
@@ -38,13 +38,13 @@ class RopeModel(text: String = "") : TextModel {
     }
 
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
-        require(index in 0..length) { "Index out of bounds" }
+        require(index in 0..length) { "Index ($index) out of bounds" }
         val result = root.getLineAndColumn(index)
         return result.line to result.col + 1
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
-        require(line > 0 && column > 0) { "Line and column must be positive" }
+        require(line > 0 && column >= 0) { "Line ($line) and column ($column) must be positive" }
         return root.getIndexFromLineAndColumn(line, column).index - 1
     }
 

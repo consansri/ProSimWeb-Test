@@ -1,4 +1,4 @@
-package cengine.selection
+package cengine.editor.selection
 
 data class Selection(
     var start: Int? = null,
@@ -6,12 +6,17 @@ data class Selection(
 ) {
 
     fun select(from: Int, to: Int){
-
+        start = from
+        end = to
     }
 
     fun deselect(){
         start = null
         end = null
+    }
+
+    fun valid(): Boolean{
+        return start != null && end != null
     }
 
     fun moveStart(newEnd: Int){
@@ -21,5 +26,4 @@ data class Selection(
     fun moveEnd(newStart: Int){
         start = newStart
     }
-
 }

@@ -1,6 +1,6 @@
-package cengine.highlighting
+package cengine.editor.highlighting
 
-import cengine.text.TextModel
+import cengine.editor.text.TextModel
 
 interface Highlighter {
     fun updateHL(model: TextModel)
