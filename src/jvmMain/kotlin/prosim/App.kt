@@ -2,7 +2,7 @@ package prosim
 
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ui.components.NativeFrame
-import prosim.uilib.styled.editor2.Editor
+import prosim.uilib.styled.editor3.CEditorArea
 import java.awt.Dimension
 import javax.swing.JDialog
 import javax.swing.JFrame
@@ -21,8 +21,7 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    //testSkia()
-
+    //testNewEditor()
     // Initialize and test the base application.
     launchBaseApp()
 }
@@ -38,9 +37,9 @@ fun launchBaseApp() {
     // BaseFrame()
 }
 
-fun testSkia() {
+fun testNewEditor(){
     val frame = JFrame()
-    frame.contentPane = Editor(frame)
+    frame.contentPane = CEditorArea()
     frame.size = Dimension(800,600)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true
