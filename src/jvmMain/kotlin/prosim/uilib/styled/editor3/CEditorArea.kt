@@ -3,7 +3,6 @@ package prosim.uilib.styled.editor3
 
 import cengine.editor.CodeEditor
 import cengine.editor.annotation.Annotater
-import cengine.editor.editing.EditHandler
 import cengine.editor.folding.CodeFolder
 import cengine.editor.highlighting.Highlighter
 import cengine.editor.selection.Caret
@@ -11,6 +10,7 @@ import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
+import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.WidgetManager
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
@@ -32,7 +32,9 @@ class CEditorArea : JComponent(), CodeEditor {
     override var highlighter: Highlighter? = null
     override var annotater: Annotater? = null
     override var completer: cengine.editor.completion.Completer? = null
-    override var editHandler: EditHandler? = EventHandler()
+
+    val textStateModel = TextStateModel(textModel, selector)
+    val handler = EventHandler()
 
     var fontCode: Font = FontType.CODE.getFont()
     var fontBase: Font = FontType.CODE_INFO.getFont()
@@ -140,12 +142,10 @@ class CEditorArea : JComponent(), CodeEditor {
     }
 
     override fun getMinimumSize(): Dimension {
-        return Dimension(800,600)
+        return Dimension(800, 600)
     }
 
-    inner class EventHandler : EditHandler {
-        override val model: TextModel = textModel
-
+    inner class EventHandler  {
         init {
             this@CEditorArea.addKeyListener(object : KeyAdapter() {
                 override fun keyTyped(e: KeyEvent) {
@@ -157,8 +157,8 @@ class CEditorArea : JComponent(), CodeEditor {
 
                         e.keyChar.isDefined() -> {
                             val newChar = e.keyChar.toString()
-                            textModel.delete(selector.selection)
-                            textModel.insert(selector.caret, newChar)
+                            textStateModel.delete(selector.selection)
+                            textStateModel.insert(selector.caret, newChar)
                         }
                     }
                     repaint()
@@ -182,16 +182,16 @@ class CEditorArea : JComponent(), CodeEditor {
 
                         KeyEvent.VK_C -> {
                             if (e.isControlDown) {
-                                // copy selection to clipboard
+                                copyToClipboard(textModel.substring(selector.selection))
                             }
                         }
 
                         KeyEvent.VK_Z -> {
                             if (e.isControlDown) {
                                 if (e.isShiftDown) {
-                                    // redo()
+                                    textStateModel.redo()
                                 } else {
-                                    // undo()
+                                    textStateModel.undo()
                                 }
                             }
                         }
@@ -199,10 +199,10 @@ class CEditorArea : JComponent(), CodeEditor {
                         KeyEvent.VK_V -> {
                             if (e.isControlDown) {
                                 val content = getClipboardContent()
-                                textModel.delete(selector.selection)
+                                textStateModel.delete(selector.selection)
 
                                 content?.let { text ->
-                                    textModel.insert(selector.caret, text)
+                                    textStateModel.insert(selector.caret, text)
                                 }
                             }
                         }
@@ -212,14 +212,14 @@ class CEditorArea : JComponent(), CodeEditor {
                                 val selected = textModel.substring(selector.selection)
                                 if (selected.isNotEmpty()) {
                                     copyToClipboard(selected)
-                                    textModel.delete(selector.selection)
+                                    textStateModel.delete(selector.selection)
                                 }
                             }
                         }
 
                         KeyEvent.VK_ENTER -> {
-                            textModel.delete(selector.selection)
-                            textModel.insert(selector.caret, "\n")
+                            textStateModel.delete(selector.selection)
+                            textStateModel.insert(selector.caret, "\n")
                         }
 
                         KeyEvent.VK_LEFT -> {
@@ -273,9 +273,9 @@ class CEditorArea : JComponent(), CodeEditor {
 
                         KeyEvent.VK_DELETE -> {
                             if (selector.selection.valid()) {
-                                textModel.delete(selector.selection)
+                                textStateModel.delete(selector.selection)
                             } else {
-                                textModel.delete(selector.caret.index, selector.caret.index + 1)
+                                textStateModel.delete(selector.caret.index, selector.caret.index + 1)
                             }
                         }
 

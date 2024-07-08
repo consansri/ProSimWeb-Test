@@ -5,14 +5,17 @@ data class Selection(
     var end: Int? = null
 ) {
 
-    fun select(from: Int, to: Int){
+    fun select(from: Int?, to: Int?){
         start = from
         end = to
     }
 
     fun deselect(){
-        start = null
-        end = null
+        select(null,null)
+    }
+
+    fun select(pair: Pair<Int?, Int?>){
+        select(pair.first, pair.second)
     }
 
     fun valid(): Boolean{

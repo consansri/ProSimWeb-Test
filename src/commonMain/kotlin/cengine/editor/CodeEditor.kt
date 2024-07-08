@@ -2,7 +2,6 @@ package cengine.editor
 
 import cengine.editor.annotation.Annotater
 import cengine.editor.completion.Completer
-import cengine.editor.editing.EditHandler
 import cengine.editor.folding.CodeFolder
 import cengine.editor.highlighting.Highlighter
 import cengine.editor.selection.Selector
@@ -21,7 +20,6 @@ interface CodeEditor {
     val widgetManager: WidgetManager
 
     var completer: Completer?
-    var editHandler: EditHandler?
     var highlighter: Highlighter?
     var annotater: Annotater?
 
