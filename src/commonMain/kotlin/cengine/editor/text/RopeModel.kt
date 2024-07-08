@@ -42,15 +42,37 @@ class RopeModel(text: String = "") : TextModel {
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
         require(index in 0..length) { "Index ($index) out of bounds" }
         val result = root.getLineAndColumn(index)
+        //nativeLog("LC from Index($index): $result")
         return result.line to result.col
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
-        require(line >= 0 && column >= 0) { "Line ($line) and column ($column) must be positive" }
-        return root.getIndexFromLineAndColumn(line, column).index
+        require(line >= 0 && column >= 0) { "Line ($line) and column ($column) must be non-negative" }
+        val index = root.getIndexFromLineAndColumn(line, column)
+        //nativeLog("Index from LC($line,$column): $index")
+        return index
     }
 
     override fun toString(): String = root.substring(0, length).toString()
+
+    fun printDebugTree() {
+        nativeLog("RopeModel:")
+        printNode(root, "", true)
+        nativeLog("----------")
+    }
+
+    private fun printNode(node: Node, prefix: String, isLast: Boolean) {
+        val nodePrefix = prefix + (if (isLast) "\\-- " else "+-- ")
+        when (node) {
+            is Leaf -> nativeLog("$nodePrefix Leaf[${node.weight},${node.lineBreaks}](\"${node.text.replace("\n", "\\n")}\")")
+            is Branch -> {
+                nativeLog("$nodePrefix Branch [${node.weight},${node.lineBreaks}]")
+                val childPrefix = prefix + (if (isLast) "    " else "|   ")
+                printNode(node.left, childPrefix, false)
+                printNode(node.right, childPrefix, true)
+            }
+        }
+    }
 
     private fun rebalance() {
         if (root.depth > length / LEAF_MAX_LENGTH + 1) {
@@ -86,7 +108,7 @@ class RopeModel(text: String = "") : TextModel {
         abstract var lineBreaks: Int
 
         abstract fun getLineAndColumn(countUntil: Int): LC
-        abstract fun getIndexFromLineAndColumn(line: Int, column: Int): AbsIndex
+        abstract fun getIndexFromLineAndColumn(line: Int, column: Int): Int
         abstract fun insert(index: Int, newText: String): Node
         abstract fun delete(start: Int, end: Int): Node
         abstract fun substring(start: Int, end: Int): StringBuilder
@@ -153,17 +175,17 @@ class RopeModel(text: String = "") : TextModel {
             return lc
         }
 
-        override fun getIndexFromLineAndColumn(line: Int, column: Int): AbsIndex {
+        override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
             var currLine = 0
             var currColumn = 0
             for (i in text.indices) {
                 if (currLine == line && currColumn == column) {
-                    return AbsIndex(currColumn, i)
+                    return i
                 }
                 if (text[i] == '\n') {
                     currLine++
                     if (currLine > line) {
-                        return AbsIndex(currColumn, i)
+                        return i // return index of newline if column exceeds line length
                     }
                     currColumn = 0
                 } else {
@@ -171,7 +193,7 @@ class RopeModel(text: String = "") : TextModel {
                 }
             }
 
-            return AbsIndex(currColumn, text.lastIndex)
+            return text.length // return last index if line/column is beyond the text.
         }
 
         override fun insert(index: Int, newText: String): Node {
@@ -231,25 +253,20 @@ class RopeModel(text: String = "") : TextModel {
             }
         }
 
-        override fun getIndexFromLineAndColumn(line: Int, column: Int): AbsIndex {
+        override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
             val leftLastLine = left.lineBreaks
-            return if (line < leftLastLine) {
-                val value = left.getIndexFromLineAndColumn(line, column)
-                nativeLog("getIndex: Depth $depth: $value")
-                value
-            } else if(line == leftLastLine) {
-                val leftIndex = left.getIndexFromLineAndColumn(line, column)
-                val rightIndex = right.getIndexFromLineAndColumn(0, column - leftIndex.afterLastLineBreak)
-                val index = left.weight + rightIndex.index
-                val value =                 AbsIndex(index, index)
-                nativeLog("getIndex: Depth $depth: $value")
-                value
-            } else {
-                val rightIndex = right.getIndexFromLineAndColumn(line - leftLastLine, column)
-                val index = left.weight + rightIndex.index
-                val value = AbsIndex(rightIndex.afterLastLineBreak, index)
-                nativeLog("getIndex: Depth $depth: $value")
-                value
+            return when {
+                line < leftLastLine -> left.getIndexFromLineAndColumn(line, column)
+                line == leftLastLine -> {
+                    val leftIndex = left.getIndexFromLineAndColumn(line, 0)
+                    val remainingColumn = column - (left.weight - leftIndex)
+                    if (remainingColumn <= 0) {
+                        leftIndex + column
+                    } else {
+                        left.weight + right.getIndexFromLineAndColumn(0, remainingColumn)
+                    }
+                }
+                else -> left.weight + right.getIndexFromLineAndColumn(line - leftLastLine, column)
             }
         }
 

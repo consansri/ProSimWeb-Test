@@ -10,7 +10,7 @@ interface TextModel {
 
     fun insert(index: Int, new: String)
 
-    fun insert(caret: Caret, new: String){
+    fun insert(caret: Caret, new: String) {
         insert(caret.index, new)
         caret.index += new.length
     }
@@ -28,7 +28,7 @@ interface TextModel {
 
     fun substring(start: Int, end: Int): String
 
-    fun substring(selection: Selection): String{
+    fun substring(selection: Selection): String {
         val start = selection.start ?: return ""
         val end = selection.end ?: return ""
         return substring(start, end)
