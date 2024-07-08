@@ -12,7 +12,7 @@ import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.widgets.WidgetManager
-import emulator.kit.nativeLog
+import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
 import java.awt.*
 import java.awt.datatransfer.DataFlavor
@@ -41,8 +41,10 @@ class CEditorArea : JComponent(), CodeEditor {
     private var fmBase = getFontMetrics(fontBase)
 
     init {
+        border = BorderMode.INSET.getBorder()
         textModel.insert(0, "Hello World!\nNice World!")
         isFocusable = true
+        requestFocus()
     }
 
     override fun paintComponent(g: Graphics) {
@@ -67,10 +69,9 @@ class CEditorArea : JComponent(), CodeEditor {
             // Render line text with syntax highlighting
             val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber - 1, 0)
             val endIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
-            nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
-            var colID = 0
+            //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
             var x = insets.left
-            for (charIndex in startingIndex until endIndex) {
+            for ((colID, charIndex) in (startingIndex until endIndex).withIndex()) {
                 val char = textModel.charAt(charIndex)
                 val highlighting = highlighter?.getHighlighting(charIndex)
                 val charWidth = fmCode.charWidth(char)
@@ -101,8 +102,6 @@ class CEditorArea : JComponent(), CodeEditor {
                     g2d.drawString(it.content, x, y + fmBase.ascent)
                     x += fmBase.stringWidth(it.content)
                 }
-
-                colID++
             }
 
             // Render inlay widgets
@@ -114,7 +113,7 @@ class CEditorArea : JComponent(), CodeEditor {
             }
 
             // Draw EOL Caret
-            if (selector.caret.index == endIndex) {
+            if (endIndex == textModel.length && selector.caret.index == textModel.length) {
                 g2d.color = foreground
                 g2d.drawLine(x, y, x, y + fmCode.height)
             }
