@@ -25,7 +25,7 @@ data class Caret(
     }
 
     operator fun plusAssign(other: Int) {
-        if (index + other < model.length) {
+        if (index + other <= model.length) {
             index += other
         }
     }

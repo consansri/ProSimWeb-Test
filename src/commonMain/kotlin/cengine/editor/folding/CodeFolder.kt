@@ -1,7 +1,6 @@
 package cengine.editor.folding
 
 import cengine.editor.Clearable
-import emulator.kit.nativeLog
 
 class CodeFolder: Clearable {
     private val foldRegions = mutableListOf<FoldRegion>()
@@ -27,7 +26,7 @@ class CodeFolder: Clearable {
             }
             curr++
         }
-        nativeLog("Return visible lines: ${visibleLines.joinToString()}")
+        //nativeLog("Return visible lines: ${visibleLines.joinToString()}")
         return visibleLines
     }
 }
