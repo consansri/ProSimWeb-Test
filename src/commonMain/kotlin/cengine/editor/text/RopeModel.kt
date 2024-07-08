@@ -242,13 +242,13 @@ class RopeModel(text: String = "") : TextModel {
         override fun getLineAndColumn(countUntil: Int): LC {
             return if (countUntil < left.weight) {
                 val value = left.getLineAndColumn(countUntil)
-                nativeLog("getLC: Depth $depth: $value")
+                // nativeLog("getLC: Depth $depth: $value")
                 value
             } else {
                 val leftLC = left.getLineAndColumn(left.weight)
                 val rightLC = right.getLineAndColumn(countUntil - left.weight)
                 val value = leftLC + rightLC
-                nativeLog("getLC: Depth $depth: $value")
+                // nativeLog("getLC: Depth $depth: $value")
                 value
             }
         }

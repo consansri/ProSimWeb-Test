@@ -34,26 +34,41 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
-        var currLineIndex = 0
+        require(line >= 0 && column >= 0) {"Line ($line) and Column ($column) must be non-negative"}
+
         var currLine = 0
         var currColumn = 0
-        text.forEachIndexed { index, c ->
-            if (line == currLine && column == currColumn) {
-                return currLineIndex + currColumn
+        var lastLineStart = 0
+
+        for(index in text.indices){
+            if (currLine == line && currColumn == column){
+                return index
             }
-            if (c == '\n') {
-                if (line < currLine + 1) {
-                    return currLineIndex + currColumn
+
+            if (text[index] == '\n') {
+                if (line == currLine) {
+                    // If we're on the correct line but haven't reached the column,
+                    // return the index of the newline character
+                    return index
                 }
-                currLineIndex = index
                 currLine++
                 currColumn = 0
+                lastLineStart = index + 1
             } else {
                 currColumn++
             }
         }
 
-        return currLineIndex + currColumn
+        // If we've reached here, we're either at the end of the text
+        // or the requested line/column is beyond the text
+        return if(currLine == line){
+            // We're on the correct line, but the column is beyond the text length
+            // Return the last character index of this line
+            minOf(lastLineStart + column, text.length)
+        }else{
+            // The requested line is beyond the text, return the last index
+            text.length
+        }
     }
 
     override fun toString(): String = text
