@@ -12,6 +12,7 @@ import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.WidgetManager
+import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
 import java.awt.*
@@ -39,8 +40,10 @@ class CEditorArea : JComponent(), CodeEditor {
     var fontCode: Font = FontType.CODE.getFont()
     var fontBase: Font = FontType.CODE_INFO.getFont()
 
-    private var fmCode = getFontMetrics(fontCode)
-    private var fmBase = getFontMetrics(fontBase)
+    private var fmCode: FontMetrics = getFontMetrics(fontCode)
+    private var fmBase: FontMetrics = getFontMetrics(fontBase)
+    private var caretWidth: Int = 2
+    private var selColor: Color = Color(0x77000000 xor UIStates.theme.get().codeLaF.selectionColor.rgb, true)
 
     init {
         border = BorderMode.INSET.getBorder()
@@ -56,6 +59,7 @@ class CEditorArea : JComponent(), CodeEditor {
 
         val visibleLines = codeFolder.getVisibleLines(textModel.lines)
         var y = insets.top
+        val selection = selector.selection.asRange()
 
         visibleLines.forEach { lineNumber ->
             y += fmCode.height
@@ -78,6 +82,12 @@ class CEditorArea : JComponent(), CodeEditor {
                 val highlighting = highlighter?.getHighlighting(charIndex)
                 val charWidth = fmCode.charWidth(char)
 
+                // Draw Selection
+                selection?.let {
+                    g2d.color = selColor
+                    g2d.fillRect(x, y, charWidth, fmCode.height)
+                }
+
                 // Draw Char
                 g2d.color = highlighting?.color.toColor()
                 g2d.font = fontCode
@@ -92,7 +102,7 @@ class CEditorArea : JComponent(), CodeEditor {
                 // Draw Caret
                 if (selector.caret.index == charIndex) {
                     g2d.color = foreground
-                    g2d.drawLine(x, y, x, y + fmCode.height)
+                    g2d.fillRect(x, y, caretWidth, fmCode.height)
                 }
 
                 x += charWidth
@@ -117,7 +127,7 @@ class CEditorArea : JComponent(), CodeEditor {
             // Draw EOL Caret
             if (endIndex == textModel.length && selector.caret.index == textModel.length) {
                 g2d.color = foreground
-                g2d.drawLine(x, y, x, y + fmCode.height)
+                g2d.fillRect(x, y, caretWidth, fmCode.height)
             }
         }
     }
@@ -145,7 +155,7 @@ class CEditorArea : JComponent(), CodeEditor {
         return Dimension(800, 600)
     }
 
-    inner class EventHandler  {
+    inner class EventHandler {
         init {
             this@CEditorArea.addKeyListener(object : KeyAdapter() {
                 override fun keyTyped(e: KeyEvent) {
@@ -223,52 +233,24 @@ class CEditorArea : JComponent(), CodeEditor {
                         }
 
                         KeyEvent.VK_LEFT -> {
-                            selector.caret -= 1
-
-
-                            /*
-                            TODO
-                            if (e.isShiftDown) handleShiftSelection(e) else {
-                                resetSelection()
-                                caret.moveCaretLeft()
-                            }
-                            */
+                            selector.moveCaretLeft(1, e.isShiftDown)
                         }
 
                         KeyEvent.VK_RIGHT -> {
-                            selector.caret += 1
-
-                            /* TODO
-                                if (e.isShiftDown) handleShiftSelection(e) else {
-                                    resetSelection()
-                                    caret.moveCaretRight()
-                                }
-                            */
+                            selector.moveCaretRight(1, e.isShiftDown)
                         }
 
                         KeyEvent.VK_UP -> {
-                            TODO()
-                            /*if (e.isShiftDown) handleShiftSelection(e) else {
-                                resetSelection()
-                                caret.moveCaretUp()
-                            }*/
+                            selector.moveCaretUp(1, e.isShiftDown)
                         }
 
                         KeyEvent.VK_DOWN -> {
-                            TODO()
-                            /*if (e.isShiftDown) handleShiftSelection(e) else {
-                                resetSelection()
-                                caret.moveCaretDown()
-                            }*/
+                            selector.moveCaretDown(1, e.isShiftDown)
                         }
 
                         KeyEvent.VK_BACK_SPACE -> {
-                            TODO()
-                            /*if (isEditable) {
-                                if (selStart != -1 && selEnd != -1) deleteSelected() else {
-                                    if (caret.getIndex() > 0) deleteText(caret.getIndex() - 1, caret.getIndex())
-                                }
-                            }*/
+                            textStateModel.delete(selector.caret.index - 1, selector.caret.index)
+                            selector.moveCaretLeft(1, false)
                         }
 
                         KeyEvent.VK_DELETE -> {

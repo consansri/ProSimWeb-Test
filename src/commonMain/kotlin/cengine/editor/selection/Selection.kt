@@ -18,15 +18,25 @@ data class Selection(
         select(pair.first, pair.second)
     }
 
+    fun asRange(): IntRange?{
+        val currStart = start ?: return null
+        val currEnd = end ?: return null
+        return if(currStart < currEnd){
+            currStart..currEnd
+        }else {
+            currEnd..currStart
+        }
+    }
+
     fun valid(): Boolean{
         return start != null && end != null
     }
 
-    fun moveStart(newEnd: Int){
+    fun moveEnd(newEnd: Int){
         end = newEnd
     }
 
-    fun moveEnd(newStart: Int){
+    fun moveStart(newStart: Int){
         start = newStart
     }
 }
