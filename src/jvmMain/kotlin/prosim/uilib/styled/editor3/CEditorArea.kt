@@ -12,6 +12,7 @@ import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.widgets.WidgetManager
+import emulator.kit.nativeLog
 import prosim.uilib.styled.params.FontType
 import java.awt.*
 import java.awt.datatransfer.DataFlavor
@@ -64,8 +65,9 @@ class CEditorArea : JComponent(), CodeEditor {
             }
 
             // Render line text with syntax highlighting
-            val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
-            val endIndex = textModel.getIndexFromLineAndColumn(lineNumber + 1, 0)
+            val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber - 1, 0)
+            val endIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
+            nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
             var colID = 0
             var x = insets.left
             for (charIndex in startingIndex until endIndex) {
@@ -104,7 +106,7 @@ class CEditorArea : JComponent(), CodeEditor {
             }
 
             // Render inlay widgets
-            widgetManager.inlayWidgets[lineNumber to colID]?.forEach {
+            widgetManager.postlineWidgets[lineNumber]?.forEach {
                 g2d.font = fontBase
                 g2d.color = foreground
                 g2d.drawString(it.content, x, y + fmBase.ascent)
@@ -157,7 +159,7 @@ class CEditorArea : JComponent(), CodeEditor {
                         e.keyChar.isDefined() -> {
                             val newChar = e.keyChar.toString()
                             textModel.delete(selector.selection)
-                            textModel.insert(selector.caret.index, newChar)
+                            textModel.insert(selector.caret, newChar)
                         }
                     }
                     repaint()

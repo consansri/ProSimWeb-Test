@@ -26,8 +26,11 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
 
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
         val relString = text.substring(0, index)
+        if (relString.isEmpty()) {
+            return 0 to 0
+        }
         val lastLineCountIndex = relString.indexOfLast { it == '\n' }
-        return relString.count { it == '\n' } to index - lastLineCountIndex
+        return relString.count { it == '\n' } to index - lastLineCountIndex - 1
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
@@ -35,6 +38,9 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
         var currLine = 0
         var currColumn = 0
         text.forEachIndexed { index, c ->
+            if (line == currLine && column == currColumn) {
+                return currLineIndex + currColumn
+            }
             if (c == '\n') {
                 if (line < currLine + 1) {
                     return currLineIndex + currColumn
@@ -45,11 +51,9 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
             } else {
                 currColumn++
             }
-            if (line == currLine && column == currColumn) {
-                return currLineIndex + currColumn
-            }
         }
-        return -1
+
+        return currLineIndex + currColumn
     }
 
     override fun toString(): String = text

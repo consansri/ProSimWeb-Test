@@ -1,5 +1,7 @@
 package cengine.editor.text
 
+import emulator.kit.nativeLog
+
 
 /**
  * Rope is the data structure for holding the text editor state.
@@ -28,7 +30,7 @@ class RopeModel(text: String = "") : TextModel {
     }
 
     override fun substring(start: Int, end: Int): String {
-        require(start in 0..length && end in start..length) { "Invalid range" }
+        require(start in 0..length && end in start..length) { "Invalid range $start..$end" }
         return root.substring(start, end).toString()
     }
 
@@ -40,18 +42,19 @@ class RopeModel(text: String = "") : TextModel {
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
         require(index in 0..length) { "Index ($index) out of bounds" }
         val result = root.getLineAndColumn(index)
-        return result.line to result.col + 1
+        return result.line to result.col
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
-        require(line > 0 && column >= 0) { "Line ($line) and column ($column) must be positive" }
-        return root.getIndexFromLineAndColumn(line, column).index - 1
+        require(line >= 0 && column >= 0) { "Line ($line) and column ($column) must be positive" }
+        return root.getIndexFromLineAndColumn(line, column).index
     }
 
     override fun toString(): String = root.substring(0, length).toString()
 
     private fun rebalance() {
-        if (root.depth > MAX_DEPTH) {
+        if (root.depth > length / LEAF_MAX_LENGTH + 1) {
+            nativeLog("RopeModel: rebalance()")
             val newRoot = Node.rebalance(root)
             if (newRoot != root) {
                 root = newRoot
@@ -60,8 +63,7 @@ class RopeModel(text: String = "") : TextModel {
     }
 
     companion object {
-        const val LEAF_MAX_LENGTH = 64
-        const val MAX_DEPTH = 100
+        const val LEAF_MAX_LENGTH = 32
 
         private fun buildTree(text: String): Node {
             return if (text.length <= LEAF_MAX_LENGTH) {
@@ -217,27 +219,37 @@ class RopeModel(text: String = "") : TextModel {
 
         override fun getLineAndColumn(countUntil: Int): LC {
             return if (countUntil < left.weight) {
-                left.getLineAndColumn(countUntil)
+                val value = left.getLineAndColumn(countUntil)
+                nativeLog("getLC: Depth $depth: $value")
+                value
             } else {
                 val leftLC = left.getLineAndColumn(left.weight)
                 val rightLC = right.getLineAndColumn(countUntil - left.weight)
-                leftLC + rightLC
+                val value = leftLC + rightLC
+                nativeLog("getLC: Depth $depth: $value")
+                value
             }
         }
 
         override fun getIndexFromLineAndColumn(line: Int, column: Int): AbsIndex {
             val leftLastLine = left.lineBreaks
             return if (line < leftLastLine) {
-                left.getIndexFromLineAndColumn(line, column)
+                val value = left.getIndexFromLineAndColumn(line, column)
+                nativeLog("getIndex: Depth $depth: $value")
+                value
             } else if(line == leftLastLine) {
                 val leftIndex = left.getIndexFromLineAndColumn(line, column)
                 val rightIndex = right.getIndexFromLineAndColumn(0, column - leftIndex.afterLastLineBreak)
                 val index = left.weight + rightIndex.index
-                AbsIndex(index, index)
+                val value =                 AbsIndex(index, index)
+                nativeLog("getIndex: Depth $depth: $value")
+                value
             } else {
                 val rightIndex = right.getIndexFromLineAndColumn(line - leftLastLine, column)
                 val index = left.weight + rightIndex.index
-                AbsIndex(rightIndex.afterLastLineBreak, index)
+                val value = AbsIndex(rightIndex.afterLastLineBreak, index)
+                nativeLog("getIndex: Depth $depth: $value")
+                value
             }
         }
 

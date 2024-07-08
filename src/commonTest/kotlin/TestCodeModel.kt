@@ -1,6 +1,6 @@
 
 import cengine.editor.text.RopeModel
-import cengine.text.StringModel
+import cengine.editor.text.StringModel
 import cengine.editor.text.TextModel
 import emulator.kit.nativeLog
 import kotlin.random.Random
@@ -8,32 +8,81 @@ import kotlin.random.nextInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 
 
-class TestCodeModel() {
+class TestCodeModel {
 
     private val RANDOM_STRING_RANGE = 1..128
+
+
+
 
     @Test
     fun testRope() {
         val inital = "Hello World\nI like you!\n".repeat(10000)
-        val models = StringModel(inital) to cengine.editor.text.RopeModel(inital)
+        val models = StringModel(inital) to RopeModel(inital)
 
-        repeat(20) {
+        repeat(10) {
             models.compareInsert()
             models.compareSubstring()
         }
-        repeat(20){
+
+        models.compareLCatIndexBounds()
+        models.compareIndexAtLCBounds()
+
+        repeat(10){
             models.compareLCatIndex()
             models.compareIndexAtLC()
         }
-        repeat(20) {
+        repeat(10) {
             models.compareDeletes()
             models.compareCharAt()
         }
+
+
     }
 
-    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareInsert() {
+
+
+
+    private fun Pair<TextModel,TextModel>.compareLCatIndexBounds(){
+        val range = 0..<this.first.length
+
+        val (fValue, fTime) = measureTimedValue {
+            first.getLineAndColumn(1)
+        }
+        val (sValue, sTime) = measureTimedValue {
+            second.getLineAndColumn(1)
+        }
+        nativeLog(
+            "BoundsOf LC At Index: $sValue == $fValue" +
+                    "\n\t${first::class.simpleName}\t\t: ${fTime.inWholeNanoseconds}ns" +
+                    "\n\t${second::class.simpleName}\t\t: ${sTime.inWholeNanoseconds}ns"
+        )
+        assertEquals(fValue, sValue)
+
+    }
+
+    private fun Pair<TextModel,TextModel>.compareIndexAtLCBounds(){
+        val range = 0..<this.first.length
+
+        val (fValue, fTime) = measureTimedValue {
+            first.getIndexFromLineAndColumn(0,0)
+        }
+        val (sValue, sTime) = measureTimedValue {
+            second.getIndexFromLineAndColumn(0,0)
+        }
+        nativeLog(
+            "BoundsOf Index At LC: $fValue == $sValue" +
+                    "\n\t${first::class.simpleName}\t\t: ${fTime.inWholeNanoseconds}ns" +
+                    "\n\t${second::class.simpleName}\t\t: ${sTime.inWholeNanoseconds}ns"
+        )
+        assertEquals(fValue, sValue)
+
+    }
+
+    private fun Pair<TextModel, TextModel>.compareInsert() {
         val range = 0..<this.first.length
         val index = Random.nextInt(range)
 
@@ -44,15 +93,16 @@ class TestCodeModel() {
         val sTime = measureTime {
             second.insert(index, string)
         }
-        assertEquals(first.toString(), second.toString())
         nativeLog(
             "CompareInserts: " +
                     "\n\t${first::class.simpleName}\t\t: ${fTime.inWholeNanoseconds}ns" +
                     "\n\t${second::class.simpleName}\t\t: ${sTime.inWholeNanoseconds}ns"
         )
+        assertEquals(first.toString(), second.toString())
+
     }
 
-    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareDeletes() {
+    private fun Pair<TextModel, TextModel>.compareDeletes() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -63,15 +113,16 @@ class TestCodeModel() {
         val sTime = measureTime {
             second.delete(start, end)
         }
-        assertEquals(first.toString(), second.toString())
         nativeLog(
             "CompareDeletes: $end in 0..$maxlength" +
                     "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
                     "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns"
         )
+        assertEquals(first.toString(), second.toString())
+
     }
 
-    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareSubstring() {
+    private fun Pair<TextModel, TextModel>.compareSubstring() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
         val end = Random.nextInt(start, maxlength)
@@ -84,13 +135,14 @@ class TestCodeModel() {
         val sTime = measureTime {
             sSub = second.substring(start, end)
         }
-        assertEquals(fSub, sSub)
         nativeLog("CompareSubstring: $end in 0..$maxlength " +
                 "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
+        assertEquals(fSub, sSub)
+
     }
 
-    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareCharAt() {
+    private fun Pair<TextModel, TextModel>.compareCharAt() {
         val maxlength = this.first.length
         val start = Random.nextInt(0, maxlength - 1)
 
@@ -102,13 +154,14 @@ class TestCodeModel() {
         val sTime = measureTime {
             sChar = second.charAt(start)
         }
-        assertEquals(fChar, sChar)
         nativeLog("CompareCharAt: $start in 0..$maxlength " +
                 "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
+        assertEquals(fChar, sChar)
+
     }
 
-    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareIndexAtLC() {
+    private fun Pair<TextModel, TextModel>.compareIndexAtLC() {
         val line = Random.nextInt(0..<this.first.lines)
         val col = Random.nextInt(0..<256)
 
@@ -124,10 +177,9 @@ class TestCodeModel() {
                 "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +
                 "\n\t${second::class.simpleName}\t\ttook ${sTime.inWholeNanoseconds}ns")
         assertEquals(fIndex, sIndex)
-
     }
 
-    private fun Pair<cengine.editor.text.TextModel, cengine.editor.text.TextModel>.compareLCatIndex() {
+    private fun Pair<TextModel, TextModel>.compareLCatIndex() {
         val index = Random.nextInt(0..this.first.length)
 
         val fLC: Pair<Int, Int>
