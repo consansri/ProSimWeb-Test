@@ -45,4 +45,12 @@ interface Selector {
         moveCaretTo(newIndex, shift)
     }
 
+    fun home(shift: Boolean) {
+        moveCaretTo(caret.line, 0, shift)
+    }
+
+    fun end(shift: Boolean) {
+        moveCaretTo(caret.line, Int.MAX_VALUE, shift)
+    }
+
 }

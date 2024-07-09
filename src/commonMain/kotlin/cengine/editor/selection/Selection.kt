@@ -7,39 +7,39 @@ data class Selection(
     var end: Int? = null
 ) {
 
-    fun select(from: Int?, to: Int?){
+    fun select(from: Int?, to: Int?) {
         start = from
         end = to
-        nativeLog("Selection: "+ this.toString())
+        nativeLog("Selection: " + this.toString())
     }
 
-    fun deselect(){
-        select(null,null)
+    fun deselect() {
+        select(null, null)
     }
 
-    fun select(pair: Pair<Int?, Int?>){
+    fun select(pair: Pair<Int?, Int?>) {
         select(pair.first, pair.second)
     }
 
-    fun asRange(): IntRange?{
+    fun asRange(): IntRange? {
         val currStart = start ?: return null
         val currEnd = end ?: return null
-        return if(currStart < currEnd){
+        return if (currStart < currEnd) {
             currStart..<currEnd
-        }else {
+        } else {
             currEnd..<currStart
         }
     }
 
-    fun valid(): Boolean{
+    fun valid(): Boolean {
         return start != null && end != null
     }
 
-    fun moveEnd(newEnd: Int){
+    fun moveEnd(newEnd: Int) {
         select(start, newEnd)
     }
 
-    fun moveStart(newStart: Int){
+    fun moveStart(newStart: Int) {
         select(newStart, end)
     }
 

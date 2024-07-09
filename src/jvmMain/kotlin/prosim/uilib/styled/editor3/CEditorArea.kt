@@ -278,27 +278,11 @@ class CEditorArea : JComponent(), CodeEditor {
                         }
 
                         KeyEvent.VK_HOME -> {
-                            TODO()
-                            /*if (e.isShiftDown) handleShiftSelection(e) else {
-                                if (selStart < selEnd) {
-                                    swapSelection()
-                                } else {
-                                    resetSelection()
-                                    caret.moveCaretHome()
-                                }
-                            }*/
+                            selector.home(e.isShiftDown)
                         }
 
                         KeyEvent.VK_END -> {
-                            TODO()
-                            /*if (e.isShiftDown) handleShiftSelection(e) else {
-                                if (selStart > selEnd) {
-                                    swapSelection()
-                                } else {
-                                    resetSelection()
-                                    caret.moveCaretEnd()
-                                }
-                            }*/
+                            selector.end(e.isShiftDown)
                         }
 
                         KeyEvent.VK_F -> {
