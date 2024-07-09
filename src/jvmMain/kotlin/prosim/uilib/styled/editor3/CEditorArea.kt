@@ -13,7 +13,6 @@ import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.WidgetManager
 import emulator.kit.assembler.CodeStyle
-import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
@@ -71,11 +70,8 @@ class CEditorArea : JComponent(), CodeEditor {
         val visibleLines = codeFolder.getVisibleLines(textModel.lines)
         var y = insets.top
         val selection = selector.selection.asRange()
-        nativeLog("Range: $selection")
 
         visibleLines.forEach { lineNumber ->
-
-
             // Render interline widgets
             widgetManager.interlineWidgets[lineNumber]?.forEach {
                 g2d.font = fontBase
