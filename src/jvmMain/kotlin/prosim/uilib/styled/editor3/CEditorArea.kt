@@ -135,7 +135,7 @@ class CEditorArea : JComponent(), CodeEditor {
             }
 
             // Draw EOL Caret
-            if (endIndex == textModel.length && selector.caret.index == textModel.length) {
+            if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber -1) {
                 g2d.color = foreground
                 g2d.fillRect(x, y, caretWidth, fmCode.height)
             }
