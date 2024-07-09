@@ -261,13 +261,21 @@ class CEditorArea : JComponent(), CodeEditor {
                         }
 
                         KeyEvent.VK_BACK_SPACE -> {
-                            textStateModel.delete(selector.caret.index - 1, selector.caret.index)
-                            selector.moveCaretLeft(1, false)
+                            if (selector.selection.valid()) {
+                                val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
+                                val deleted = textStateModel.delete(selector.selection)
+                                if (caretIsHigherBound) selector.caret -= deleted
+                            } else {
+                                textStateModel.delete(selector.caret.index - 1, selector.caret.index)
+                                selector.moveCaretLeft(1, false)
+                            }
                         }
 
                         KeyEvent.VK_DELETE -> {
                             if (selector.selection.valid()) {
-                                textStateModel.delete(selector.selection)
+                                val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
+                                val deleted = textStateModel.delete(selector.selection)
+                                if (caretIsHigherBound) selector.caret -= deleted
                             } else {
                                 textStateModel.delete(selector.caret.index, selector.caret.index + 1)
                             }

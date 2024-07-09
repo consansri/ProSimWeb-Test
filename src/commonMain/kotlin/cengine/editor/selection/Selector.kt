@@ -5,6 +5,8 @@ interface Selector {
     val caret: Caret
     val selection: Selection
 
+    // Modification
+
     fun moveCaretTo(index: Int, shift: Boolean) {
         if (shift) {
             if (!selection.valid()) {
@@ -52,5 +54,11 @@ interface Selector {
     fun end(shift: Boolean) {
         moveCaretTo(caret.line, Int.MAX_VALUE, shift)
     }
+
+    // Information
+    fun caretIsAtHigherBoundOfSel(): Boolean = caret.index == selection.higher
+
+    fun caretIsAtLowerBoundsOfSel(): Boolean = caret.index == selection.lower
+
 
 }

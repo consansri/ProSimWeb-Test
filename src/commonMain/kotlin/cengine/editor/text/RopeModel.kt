@@ -1,6 +1,7 @@
 package cengine.editor.text
 
 import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 
 
 /**
@@ -14,15 +15,21 @@ class RopeModel(text: String = "") : TextModel {
 
 
     override fun insert(index: Int, new: String) {
-        require(index in 0..length) { "Index out of bounds" }
-        root = root.insert(index, new)
-        rebalance()
+        if (index in 0..length) {
+            root = root.insert(index, new)
+            rebalance()
+        } else {
+            nativeWarn("RopeModel.insert(): Index $index out of Bounds [0..$length].")
+        }
     }
 
     override fun delete(start: Int, end: Int) {
-        require(start in 0..length && end in start..length) { "Invalid range" }
-        root = root.delete(start, end)
-        rebalance()
+        if (start in 0..length && end in 0..length) {
+            root = root.delete(start, end)
+            rebalance()
+        }else{
+            nativeWarn("RopeModel.delete(): Range $start..<$end out of Bounds [0..$length].")
+        }
     }
 
     override fun replaceAll(new: String) {
@@ -266,6 +273,7 @@ class RopeModel(text: String = "") : TextModel {
                         left.weight + right.getIndexFromLineAndColumn(0, remainingColumn)
                     }
                 }
+
                 else -> left.weight + right.getIndexFromLineAndColumn(line - leftLastLine, column)
             }
         }

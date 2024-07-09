@@ -13,11 +13,11 @@ interface Editable {
 
     fun delete(start: Int, end: Int)
 
-    fun delete(selection: Selection) {
-        val start = selection.start ?: return
-        val end = selection.end ?: return
+    fun delete(selection: Selection): Int {
+        val range = selection.asRange() ?: return 0
         selection.deselect()
-        delete(start, end)
+        delete(range.first, range.last + 1)
+        return range.count()
     }
 
     fun replaceAll(new: String)

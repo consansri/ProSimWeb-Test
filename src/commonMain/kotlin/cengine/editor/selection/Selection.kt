@@ -5,6 +5,21 @@ data class Selection(
     var end: Int? = null
 ) {
 
+    val lower: Int?
+        get() {
+            val currStart = start ?: return null
+            val currEnd = end ?: return null
+            if (currStart < currEnd) return currStart
+            return currEnd
+        }
+    val higher: Int?
+        get() {
+            val currStart = start ?: return null
+            val currEnd = end ?: return null
+            if (currStart < currEnd) return currEnd
+            return currStart
+        }
+
     fun select(from: Int?, to: Int?) {
         start = from
         end = to
