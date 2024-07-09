@@ -12,6 +12,8 @@ import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.WidgetManager
+import emulator.kit.assembler.CodeStyle
+import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
@@ -48,6 +50,8 @@ class CEditorArea : JComponent(), CodeEditor {
     init {
         border = BorderMode.INSET.getBorder()
         textModel.insert(0, "Hello World!\nNice World!")
+        foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        background = UIStates.theme.get().globalLaF.bgPrimary
         isFocusable = true
         requestFocus()
     }
@@ -57,12 +61,20 @@ class CEditorArea : JComponent(), CodeEditor {
         val g2d = g as Graphics2D
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
+        // draw background
+        g2d.color = background
+        val bounds = bounds
+        g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+
+
+        // draw content
         val visibleLines = codeFolder.getVisibleLines(textModel.lines)
         var y = insets.top
         val selection = selector.selection.asRange()
+        nativeLog("Range: $selection")
 
         visibleLines.forEach { lineNumber ->
-            y += fmCode.height
+
 
             // Render interline widgets
             widgetManager.interlineWidgets[lineNumber]?.forEach {
@@ -84,8 +96,10 @@ class CEditorArea : JComponent(), CodeEditor {
 
                 // Draw Selection
                 selection?.let {
-                    g2d.color = selColor
-                    g2d.fillRect(x, y, charWidth, fmCode.height)
+                    if (charIndex in it) {
+                        g2d.color = selColor
+                        g2d.fillRect(x, y, charWidth, fmCode.height)
+                    }
                 }
 
                 // Draw Char
@@ -129,6 +143,8 @@ class CEditorArea : JComponent(), CodeEditor {
                 g2d.color = foreground
                 g2d.fillRect(x, y, caretWidth, fmCode.height)
             }
+
+            y += fmCode.height
         }
     }
 

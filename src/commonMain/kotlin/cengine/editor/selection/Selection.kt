@@ -1,5 +1,7 @@
 package cengine.editor.selection
 
+import emulator.kit.nativeLog
+
 data class Selection(
     var start: Int? = null,
     var end: Int? = null
@@ -8,6 +10,7 @@ data class Selection(
     fun select(from: Int?, to: Int?){
         start = from
         end = to
+        nativeLog("Selection: "+ this.toString())
     }
 
     fun deselect(){
@@ -22,9 +25,9 @@ data class Selection(
         val currStart = start ?: return null
         val currEnd = end ?: return null
         return if(currStart < currEnd){
-            currStart..currEnd
+            currStart..<currEnd
         }else {
-            currEnd..currStart
+            currEnd..<currStart
         }
     }
 
@@ -33,10 +36,12 @@ data class Selection(
     }
 
     fun moveEnd(newEnd: Int){
-        end = newEnd
+        select(start, newEnd)
     }
 
     fun moveStart(newStart: Int){
-        start = newStart
+        select(newStart, end)
     }
+
+    override fun toString(): String = "[$start:$end]"
 }

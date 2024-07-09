@@ -7,9 +7,9 @@ interface Selector {
 
     fun moveCaretTo(index: Int, shift: Boolean) {
         if (shift) {
-            if(!selection.valid()){
+            if (!selection.valid()) {
                 selection.select(caret.index, index)
-            }else{
+            } else {
                 selection.moveEnd(index)
             }
         } else {
@@ -35,7 +35,7 @@ interface Selector {
 
     fun moveCaretUp(offset: Int, shift: Boolean) {
         val newLine = (caret.line - offset).coerceAtLeast(0)
-        val newIndex = caret.model.getIndexFromLineAndColumn(newLine,caret.col)
+        val newIndex = caret.model.getIndexFromLineAndColumn(newLine, caret.col)
         moveCaretTo(newIndex, shift)
     }
 
