@@ -3,8 +3,7 @@ package cengine.psi.impl
 import cengine.psi.core.*
 
 class PsiServiceImpl(
-    private val parser: PsiParser,
-    private val elementFactory: PsiElementFactory
+    private val parser: PsiParser
 ) : PsiService {
     override fun createFile(name: String, content: String): PsiFile {
         return parser.parseFile(content, name)

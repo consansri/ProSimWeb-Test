@@ -26,16 +26,6 @@ interface Token {
     val end: Position
 
     /**
-     * List of severities associated with this token.
-     */
-    val severities: List<Severity>
-
-    /**
-     * Adds a severity to the token.
-     */
-    fun addSeverity(type: Severity.Type, message: String)
-
-    /**
      * Removes all error severities from the token.
      */
     fun removeSeverityIfError()

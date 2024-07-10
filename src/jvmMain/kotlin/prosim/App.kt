@@ -1,5 +1,6 @@
 package prosim
 
+import cengine.vfs.VFileSystem
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ui.components.NativeFrame
 import prosim.uilib.styled.editor3.CEditorArea
@@ -39,7 +40,11 @@ fun launchBaseApp() {
 
 fun testNewEditor(){
     val frame = JFrame()
-    frame.contentPane = CEditorArea()
+    val fileSystem = VFileSystem("/")
+    val file = fileSystem.findFile("docs/TODO.md")
+    file?.let {
+        frame.contentPane = CEditorArea(file)
+    }
     frame.size = Dimension(800,600)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true

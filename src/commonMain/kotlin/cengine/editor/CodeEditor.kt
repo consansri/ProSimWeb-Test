@@ -1,26 +1,19 @@
 package cengine.editor
 
-import cengine.editor.annotation.Annotater
-import cengine.editor.completion.Completer
-import cengine.editor.folding.CodeFolder
-import cengine.editor.highlighting.Highlighter
 import cengine.editor.selection.Selector
 import cengine.editor.text.TextModel
-import cengine.editor.widgets.WidgetManager
+import cengine.lang.Language
+import cengine.vfs.VirtualFile
 
 /**
  * This model is representing the state of the rendered code.
  */
 interface CodeEditor {
 
+    val file: VirtualFile
     val textModel: TextModel
     val selector: Selector
-
-    val codeFolder: CodeFolder
-    val widgetManager: WidgetManager
-
-    var completer: Completer?
-    var highlighter: Highlighter?
-    var annotater: Annotater?
+    val language: Language?
+        get() = file.getLanguage()
 
 }

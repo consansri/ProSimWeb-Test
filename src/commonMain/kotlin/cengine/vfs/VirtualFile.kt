@@ -1,5 +1,8 @@
 package cengine.vfs
 
+import cengine.lang.Language
+import cengine.lang.Languages
+
 /**
  * Represents a file or directory in the virtual file system.
  */
@@ -45,4 +48,11 @@ interface VirtualFile {
      * @throws UnsupportedOperationException if this is a directory.
      */
     fun setContent(content: ByteArray)
+
+    /**
+     * Returns the language of the file.
+     */
+    fun getLanguage(): Language? {
+        return Languages.entries.firstOrNull { this.name.endsWith(it.language.fileSuffix)  }?.language
+    }
 }

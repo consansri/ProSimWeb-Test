@@ -2,16 +2,14 @@ package prosim.uilib.styled.editor3
 
 
 import cengine.editor.CodeEditor
-import cengine.editor.annotation.Annotater
-import cengine.editor.folding.CodeFolder
-import cengine.editor.highlighting.Highlighter
+import cengine.editor.annotation.AnnotationProvider
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
-import cengine.editor.widgets.WidgetManager
+import cengine.vfs.VirtualFile
 import emulator.kit.assembler.CodeStyle
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
@@ -23,17 +21,15 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 
-class CEditorArea : JComponent(), CodeEditor {
+class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
     override val textModel: TextModel = RopeModel()
     override val selector: Selector = object : Selector {
         override val caret: Caret = Caret(textModel)
         override val selection: Selection = Selection()
     }
-    override val codeFolder: CodeFolder = CodeFolder()
-    override val widgetManager: WidgetManager = WidgetManager()
-    override var highlighter: Highlighter? = null
-    override var annotater: Annotater? = null
-    override var completer: cengine.editor.completion.Completer? = null
+
+    var annotationProvider: AnnotationProvider? = null
+    var completionProvider: cengine.editor.completion.CompletionProvider? = null
 
     val textStateModel = TextStateModel(textModel, selector)
     val handler = EventHandler()
@@ -67,81 +63,113 @@ class CEditorArea : JComponent(), CodeEditor {
 
 
         // draw content
-        val visibleLines = codeFolder.getVisibleLines(textModel.lines)
+
+
+    }
+
+    private fun renderLines(g2d: Graphics2D) {
         var y = insets.top
         val selection = selector.selection.asRange()
+        val visibleLines = language?.codeFoldingProvider?.getVisibleLines(textModel.lines)
+        if (visibleLines == null) {
+            (0..textModel.lines).forEach { lineNumber ->
+                val height = renderLine(g2d, lineNumber, selection, y)
+                y += height
+            }
+        } else {
+            visibleLines.forEach { lineNumber ->
+                val height = renderLine(g2d, lineNumber, selection, y)
+                y += height
+            }
+        }
+    }
 
-        visibleLines.forEach { lineNumber ->
-            // Render interline widgets
-            widgetManager.interlineWidgets[lineNumber]?.forEach {
-                g2d.font = fontBase
+    /**
+     * @return height of line (with drawn widgets)
+     */
+    private fun renderLine(g2d: Graphics2D, lineNumber: Int, selection: IntRange?, y: Int): Int {
+        var height = 0
+
+        // Render interline widgets
+        language?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
+            g2d.font = fontBase
+            g2d.color = foreground
+            g2d.drawString(it.content, insets.left, y + height + fmBase.ascent)
+            height += fmBase.height
+        }
+
+        // Render line text with syntax highlighting
+        val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber - 1, 0)
+        val endIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
+        //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
+        var x = insets.left
+        val lineContent = textModel.substring(startingIndex, endIndex)
+        val highlights = language?.highlightProvider?.fastHighlight(lineContent) ?: emptyList()
+
+        for ((colID, charIndex) in (startingIndex until endIndex).withIndex()) {
+            val char = lineContent[colID]
+            val charWidth = fmCode.charWidth(char)
+
+            // Draw Selection
+            selection?.let {
+                if (charIndex in it) {
+                    g2d.color = selColor
+                    g2d.fillRect(x, y+ height, charWidth, fmCode.height)
+                }
+            }
+
+            // Draw Char
+            g2d.color = (highlights.firstOrNull { it.range.contains(colID) }
+                ?.color(language)
+                ?: language
+                    ?.highlightProvider
+                    ?.cachedHighlights
+                    ?.firstOrNull { it.range.contains(charIndex) }
+                    ?.color(language)
+                    ).toColor()
+
+            g2d.font = fontCode
+            g2d.drawString(char.toString(), x, y + height + fmCode.ascent)
+
+            // Draw Underline
+            language?.annotationProvider?.cachedAnnotations?.firstOrNull {
+                it.range.contains(charIndex)
+            }?.let {
+                g2d.color = it.severity.toColor(language).toColor()
+                g2d.drawLine(x, y + height + fmCode.height - fmCode.descent, x + charWidth, y + height + fmCode.height - fmCode.descent)
+            }
+
+            // Draw Caret
+            if (selector.caret.index == charIndex) {
                 g2d.color = foreground
-                g2d.drawString(it.content, insets.left, y + fmBase.ascent)
-                y += fmBase.height
+                g2d.fillRect(x, y + height, caretWidth, fmCode.height)
             }
 
-            // Render line text with syntax highlighting
-            val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber - 1, 0)
-            val endIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
-            //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
-            var x = insets.left
-            for ((colID, charIndex) in (startingIndex until endIndex).withIndex()) {
-                val char = textModel.charAt(charIndex)
-                val highlighting = highlighter?.getHighlighting(charIndex)
-                val charWidth = fmCode.charWidth(char)
-
-                // Draw Selection
-                selection?.let {
-                    if (charIndex in it) {
-                        g2d.color = selColor
-                        g2d.fillRect(x, y, charWidth, fmCode.height)
-                    }
-                }
-
-                // Draw Char
-                g2d.color = highlighting?.color.toColor()
-                g2d.font = fontCode
-                g2d.drawString(char.toString(), x, y + fmCode.ascent)
-
-                // Draw Underline
-                highlighting?.underline?.let { col ->
-                    g2d.color = col.toColor()
-                    g2d.drawLine(x, y + fmCode.height - fmCode.descent, x + charWidth, y + fmCode.height - fmCode.descent)
-                }
-
-                // Draw Caret
-                if (selector.caret.index == charIndex) {
-                    g2d.color = foreground
-                    g2d.fillRect(x, y, caretWidth, fmCode.height)
-                }
-
-                x += charWidth
-
-                // Render inlay widgets
-                widgetManager.inlayWidgets[lineNumber to colID]?.forEach {
-                    g2d.font = fontBase
-                    g2d.color = foreground
-                    g2d.drawString(it.content, x, y + fmBase.ascent)
-                    x += fmBase.stringWidth(it.content)
-                }
-            }
+            x += charWidth
 
             // Render inlay widgets
-            widgetManager.postlineWidgets[lineNumber]?.forEach {
+            language?.widgetProvider?.cachedInlayWidgets?.filter {it.position.index == charIndex}?.forEach {
                 g2d.font = fontBase
                 g2d.color = foreground
-                g2d.drawString(it.content, x, y + fmBase.ascent)
+                g2d.drawString(it.content, x, y + height + fmBase.ascent)
                 x += fmBase.stringWidth(it.content)
             }
-
-            // Draw EOL Caret
-            if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber -1) {
-                g2d.color = foreground
-                g2d.fillRect(x, y, caretWidth, fmCode.height)
-            }
-
-            y += fmCode.height
         }
+
+        // Render inlay widgets
+        language?.widgetProvider?.cachedPostLineWidget?.filter {it.position.line == lineNumber}?.forEach {
+            g2d.font = fontBase
+            g2d.color = foreground
+            g2d.drawString(it.content, x, y + height + fmBase.ascent)
+            x += fmBase.stringWidth(it.content)
+        }
+
+        // Draw EOL Caret
+        if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber - 1) {
+            g2d.color = foreground
+            g2d.fillRect(x, y + height, caretWidth, fmCode.height)
+        }
+        return height + fmCode.height
     }
 
     fun Int?.toColor(): Color {
