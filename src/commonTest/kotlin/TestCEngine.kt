@@ -11,15 +11,12 @@ import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 
 
-class TestCodeModel {
+class TestCEngine {
 
     private val RANDOM_STRING_RANGE = 1..128
 
-
-
-
     @Test
-    fun testRope() {
+    fun testTextModel() {
         val inital = "Hello World\nI like you!\n".repeat(10000)
         val models = StringModel(inital) to RopeModel(inital)
 
@@ -39,12 +36,7 @@ class TestCodeModel {
             models.compareDeletes()
             models.compareCharAt()
         }
-
-
     }
-
-
-
 
     private fun Pair<TextModel,TextModel>.compareLCatIndexBounds(){
         val range = 0..<this.first.length

@@ -12,7 +12,7 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
     var files: MutableList<DocFile> = (mutableListOf(
         DocFile.SourceFile(
             "User Manual",
-            "documents/user-manual.html"
+            "user-manual.html"
         ),
         DocFile.DefinedFile(
             "Current: Version - ${Constants.VERSION}",
