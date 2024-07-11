@@ -10,6 +10,7 @@ import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
 import cengine.vfs.VirtualFile
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
@@ -44,6 +45,13 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
         background = UIStates.theme.get().globalLaF.bgPrimary
         isFocusable = true
+
+        file.onDiskChange = {
+            loadFromFile()
+            nativeLog("Reloaded Editor Content")
+            revalidate()
+            repaint()
+        }
 
         loadFromFile()
 

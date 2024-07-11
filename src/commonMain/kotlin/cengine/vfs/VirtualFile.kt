@@ -2,6 +2,7 @@ package cengine.vfs
 
 import cengine.lang.Language
 import cengine.lang.Languages
+import cengine.psi.core.PsiFile
 import cengine.system.getSystemLineBreak
 
 /**
@@ -27,6 +28,31 @@ interface VirtualFile {
      * The parent directory of this file or directory, or null if this is the root.
      */
     val parent: VirtualFile?
+
+    /**
+     * Holds the current PSI Representation of this file.
+     */
+    var psiFile: PsiFile?
+
+    /**
+     * To add an execution event when the file changed through another application.
+     */
+    var onDiskChange: () -> Unit
+
+    /**
+     * Updates [psiFile] using the PSI Parser from [getLanguage].
+     */
+    fun refreshPSI() {
+        psiFile = getLanguage()?.psiParser?.parseFile(getAsUTF8String(), name)
+    }
+
+    /**
+     * Will be triggered through the [VFileSystem].
+     */
+    fun hasChangedOnDisk(){
+        refreshPSI()
+        onDiskChange()
+    }
 
     /**
      * Retrieves the child files and directories, or null if this is the root.

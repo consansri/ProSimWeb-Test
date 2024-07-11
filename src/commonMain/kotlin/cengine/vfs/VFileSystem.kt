@@ -1,5 +1,7 @@
 package cengine.vfs
 
+import cengine.psi.core.PsiFile
+
 /**
  * Virtual File System (VFS)
  *
@@ -14,10 +16,14 @@ package cengine.vfs
  */
 class VFileSystem(absRootPath: String) {
     private val actualFileSystem: ActualFileSystem = ActualFileSystem(absRootPath)
-    private val root: VirtualFile = RootDirectory()
+    val root: VirtualFile = RootDirectory(absRootPath.split(DELIMITER).last())
     private val fileCache = mutableMapOf<String, VirtualFile>()
     private val changeListeners = mutableListOf<FileChangeListener>()
     private val fileWatcher: FileWatcher = FileWatcher(this)
+
+    companion object {
+        const val DELIMITER = "/"
+    }
 
     init {
         initializeFileWatcher()
@@ -49,6 +55,8 @@ class VFileSystem(absRootPath: String) {
     /**
      * Finds a file or directory in the virtual file system.
      *
+     * Use [DELIMITER] inside the path!
+     *
      * @param path The path of the file or directory to find.
      * @return The [VirtualFile] object if found, or null if not found.
      */
@@ -59,16 +67,18 @@ class VFileSystem(absRootPath: String) {
     /**
      * Creates a new file or directory in the virtual file system.
      *
+     * Use [DELIMITER] inside the path!
+     *
      * @param path The path where the new file or directory should be created.
      * @param isDirectory Whether to create a directory (true) or a file (false).
      * @return The newly created [VirtualFile] object.
      */
     fun createFile(path: String, isDirectory: Boolean = false): VirtualFile {
-        val parts = path.split("/").filter { it.isNotEmpty() }
+        val parts = path.split(DELIMITER).filter { it.isNotEmpty() }
         var current: VirtualFile = root
         for (i in 0 until parts.size - 1) {
             val part = parts[i]
-            current = current.getChildren().find { it.name == part } ?: createFile("/${parts.slice(0..i).joinToString("/")}", true)
+            current = current.getChildren().find { it.name == part } ?: createFile("/${parts.slice(0..i).joinToString(DELIMITER)}", true)
         }
         val newFile = getOrCreateFile(path, isDirectory)
         fileCache[path] = newFile
@@ -78,6 +88,8 @@ class VFileSystem(absRootPath: String) {
 
     /**
      * Deletes a file or directory from the virtual file system.
+     *
+     * Use [DELIMITER] inside the path!
      *
      * @param path The path of the file or directory to delete.
      */
@@ -91,7 +103,7 @@ class VFileSystem(absRootPath: String) {
     }
 
     private fun findFileInternal(path: String): VirtualFile? {
-        val parts = path.split("/").filter { it.isNotEmpty() }
+        val parts = path.split(DELIMITER).filter { it.isNotEmpty() }
         var current: VirtualFile = root
         for (part in parts) {
             current = current.getChildren().find { it.name == part } ?: return null
@@ -101,8 +113,8 @@ class VFileSystem(absRootPath: String) {
 
     private fun getOrCreateFile(path: String, isDirectory: Boolean = actualFileSystem.isDirectory(path)): VirtualFile {
         return fileCache.getOrPut(path) {
-            val name = path.split("/").last()
-            val parent = findFile(path.substringBeforeLast("/", "/"))
+            val name = path.split(DELIMITER).last()
+            val parent = findFile(path.substringBeforeLast(DELIMITER, DELIMITER))
             val newFile = VirtualFileImpl(name, path, isDirectory, parent)
             newFile
         }
@@ -131,6 +143,7 @@ class VFileSystem(absRootPath: String) {
     }
 
     fun notifyFileChanged(file: VirtualFile) {
+        file.hasChangedOnDisk()
         changeListeners.forEach { it.onFileChanged(file) }
     }
 
@@ -143,20 +156,27 @@ class VFileSystem(absRootPath: String) {
     }
 
 
-    inner class RootDirectory : VirtualFile {
-        override val name: String = ""
-        override val path: String = "/"
+    inner class RootDirectory(override val name: String) : VirtualFile {
+        override val path: String = DELIMITER
         override val isDirectory: Boolean = true
         override val parent: VirtualFile? = null
+        override var psiFile: PsiFile? = null
+        override var onDiskChange: () -> Unit = {}
 
         override fun getChildren(): List<VirtualFile> {
-            return actualFileSystem.listDirectory("/").map { getOrCreateFile("/$it") }
+            return actualFileSystem.listDirectory(DELIMITER).map { getOrCreateFile("$DELIMITER$it") }
         }
 
         override fun getContent(): ByteArray = ByteArray(0)
 
         override fun setContent(content: ByteArray) {
             throw UnsupportedOperationException()
+        }
+
+        override fun toString(): String {
+            return getChildren().joinToString("\n") {
+                it.toString()
+            }
         }
     }
 
@@ -166,9 +186,12 @@ class VFileSystem(absRootPath: String) {
         override val isDirectory: Boolean,
         override val parent: VirtualFile?
     ) : VirtualFile {
+        override var psiFile: PsiFile? = null
+        override var onDiskChange: () -> Unit = {}
+
         override fun getChildren(): List<VirtualFile> {
             return if (isDirectory) {
-                actualFileSystem.listDirectory(path).map { getOrCreateFile("$path/$it") }
+                actualFileSystem.listDirectory(path).map { getOrCreateFile("$path$DELIMITER$it") }
             } else {
                 emptyList()
             }
@@ -188,5 +211,20 @@ class VFileSystem(absRootPath: String) {
                 notifyFileChanged(this)
             }
         }
+
+        override fun toString(): String {
+            return if (isDirectory) {
+                getChildren().joinToString("\n") {
+                    it.toString()
+                }
+            } else {
+                path
+            }
+        }
     }
+
+    override fun toString(): String {
+        return root.toString()
+    }
+
 }

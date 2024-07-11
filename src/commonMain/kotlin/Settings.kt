@@ -52,12 +52,6 @@ object Settings {
      */
     const val PRESTRING_UDECIMAL = "u"
 
-    // REGEX SPLITTER
-    /**
-     * [LINEBREAKS] provides all possible occuring linebreak characters.
-     */
-    val LINEBREAKS = listOf("\n", "\r", "\r\n")
-
     /**
      * [LOCAL_SYMBOL_PREFIX]
      */

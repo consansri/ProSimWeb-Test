@@ -1,5 +1,9 @@
 # TODOS #
 
+ja moin
+
+ok alles klar 
+
 - Value add exponential Numbers
 - JVM: Save and load IDE settings
 - Change Name

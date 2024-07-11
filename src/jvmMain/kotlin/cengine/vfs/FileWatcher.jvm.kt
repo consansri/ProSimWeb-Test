@@ -1,5 +1,7 @@
 package cengine.vfs
 
+import debug.DebugTools
+import emulator.kit.nativeLog
 import java.nio.file.*
 import kotlin.concurrent.thread
 
@@ -38,12 +40,23 @@ actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
                         val kind = event.kind()
                         val fileName = event.context() as? Path
                         if (fileName != null) {
-                            val fullPath = dir.resolve(fileName).toString()
+                            val fullPath = dir.resolve(fileName).normalize().toString().replace("\\", VFileSystem.DELIMITER).removePrefix(vfs.root.name)
                             when (kind) {
-                                StandardWatchEventKinds.ENTRY_CREATE -> vfs.createFile(fullPath)
-                                StandardWatchEventKinds.ENTRY_DELETE -> vfs.deleteFile(fullPath)
-                                StandardWatchEventKinds.ENTRY_MODIFY -> vfs.findFile(fullPath)?.let {
-                                    vfs.notifyFileChanged(it)
+                                StandardWatchEventKinds.ENTRY_CREATE -> {
+                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-CREATED")
+                                    vfs.createFile(fullPath)
+                                }
+
+                                StandardWatchEventKinds.ENTRY_DELETE -> {
+                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-DELETED")
+                                    vfs.deleteFile(fullPath)
+                                }
+
+                                StandardWatchEventKinds.ENTRY_MODIFY -> {
+                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-MODIFIED")
+                                    vfs.findFile(fullPath)?.let {
+                                        vfs.notifyFileChanged(it)
+                                    }
                                 }
                             }
                         }

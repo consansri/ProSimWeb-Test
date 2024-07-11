@@ -15,6 +15,12 @@ object DebugTools {
     const val RV64_showLIDecisions = false
 
     /**
+     * CENGINE
+     */
+
+    const val ENGINE_showFileWatcherInfo = false
+
+    /**
      * KIT
      */
 

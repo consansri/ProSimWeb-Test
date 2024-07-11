@@ -17,16 +17,23 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
     }
 
     actual fun deleteFile(path: String) {
-        Files.delete(Paths.get(getAbsolutePath(path)))
+        try {
+            Files.delete(Paths.get(getAbsolutePath(path)))
+        } catch (e: Exception) {
+            // if not existent, then it shouldn't need to be deleted.
+        }
     }
 
     actual fun listDirectory(path: String): List<String> {
-        return Files.list(Paths.get(getAbsolutePath(path))).use {stream ->
+        return Files.list(Paths.get(getAbsolutePath(path))).use { stream ->
             stream.map { it.fileName.toString() }.toList()
         }
     }
 
     actual fun isDirectory(path: String): Boolean = Files.isDirectory(Paths.get(getAbsolutePath(path)))
     actual fun exists(path: String): Boolean = Files.exists(Paths.get(getAbsolutePath(path)))
-    actual fun getAbsolutePath(path: String): String = Paths.get(rootPath, path).normalize().toString()
+    actual fun getAbsolutePath(path: String): String {
+        val pathString = Paths.get(rootPath, path).normalize().toString()
+        return pathString
+    }
 }
