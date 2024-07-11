@@ -1,5 +1,6 @@
 package prosim
 
+import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.vfs.VFileSystem
 import com.formdev.flatlaf.util.SystemInfo
@@ -24,9 +25,9 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    //testNewEditor()
+    testNewEditor()
     // Initialize and test the base application.
-    launchBaseApp()
+    //launchBaseApp()
 }
 
 /**
@@ -43,12 +44,13 @@ fun launchBaseApp() {
 fun testNewEditor() {
     val frame = JFrame()
 
-    val project = Project("docs")
+    val project = Project("docs", CownLang)
 
-    val file = project.fileSystem.findFile(VFileSystem.DELIMITER + "TODO.md")
+    val file = project.fileSystem.findFile(VFileSystem.DELIMITER + "test.cown")
     file?.let {
         val editor = CEditorArea(file, project)
-        frame.contentPane = editor
+        frame.contentPane = editor.scrollPane
+        frame.title = "${file.path}, lang: ${editor.psiManager?.lang?.name}"
     } ?: {
         nativeError("Couldn't open File!")
     }

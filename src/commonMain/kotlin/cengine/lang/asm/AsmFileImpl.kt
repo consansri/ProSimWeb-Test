@@ -1,6 +1,6 @@
 package cengine.lang.asm
 
-import cengine.psi.core.LanguageService
+import cengine.lang.LanguageService
 import cengine.psi.core.PsiElement
 import cengine.psi.impl.PsiFileImpl
 

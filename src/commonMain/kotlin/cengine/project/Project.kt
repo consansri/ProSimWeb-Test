@@ -18,7 +18,7 @@ class Project(val root: String, vararg languageServices: LanguageService): FileC
         fileSystem.addChangeListener(this)
     }
 
-    fun getManager(lang: LanguageService): PsiManager<*>? = psiManagers.firstOrNull { lang::class == it::class }
+    fun getManager(lang: LanguageService): PsiManager<*>? = psiManagers.firstOrNull { lang::class == it.lang::class }
 
     fun getManager(file: VirtualFile): PsiManager<*>? {
         val service = services.firstOrNull { file.name.endsWith(it.fileSuffix) } ?: return null

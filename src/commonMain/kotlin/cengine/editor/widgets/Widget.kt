@@ -10,6 +10,7 @@ data class Widget(
 ) {
     enum class Type{
         INTERLINE,
-        INLAY
+        INLAY,
+        POSTLINE
     }
 }

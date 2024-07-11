@@ -75,5 +75,3 @@
 - **(done)** transcript not binary representation instead use hex representation
 - **(done)** allow negative hex and resolve them after constant and macro replacements
 - **(done)** reanalyze line after constant insertion to resolve negation
-
-l

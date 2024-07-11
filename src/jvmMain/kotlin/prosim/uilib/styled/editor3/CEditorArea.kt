@@ -193,8 +193,8 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
             x += fmBase.stringWidth(it.content)
         }
 
-        // Draw EOL Caret
-        if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber - 1) {
+        // Draw EOF Caret
+        if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber) {
             g2d.color = foreground
             g2d.fillRect(x, y + height, caretWidth, fmCode.height)
         }
@@ -325,8 +325,10 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                         val deleted = textStateModel.delete(selector.selection)
                         if (caretIsHigherBound) selector.caret -= deleted
                     } else {
-                        textStateModel.delete(selector.caret.index - 1, selector.caret.index)
-                        selector.moveCaretLeft(1, false)
+                        if (selector.caret.index > 0) {
+                            textStateModel.delete(selector.caret.index - 1, selector.caret.index)
+                            selector.moveCaretLeft(1, false)
+                        }
                     }
                 }
 
@@ -336,7 +338,9 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                         val deleted = textStateModel.delete(selector.selection)
                         if (caretIsHigherBound) selector.caret -= deleted
                     } else {
-                        textStateModel.delete(selector.caret.index, selector.caret.index + 1)
+                        if (selector.caret.index < textModel.length) {
+                            textStateModel.delete(selector.caret.index, selector.caret.index + 1)
+                        }
                     }
                 }
 
