@@ -24,9 +24,4 @@ interface Token {
      * The ending position of the token in the source code.
      */
     val end: Position
-
-    /**
-     * Removes all error severities from the token.
-     */
-    fun removeSeverityIfError()
 }
