@@ -22,6 +22,7 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
+import kotlin.time.measureTime
 
 class CEditorArea(override val file: VirtualFile, project: Project) : JComponent(), CodeEditor {
 
@@ -74,13 +75,18 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         val g2d = g as Graphics2D
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
-        // draw background
-        g2d.color = background
-        val bounds = bounds
-        g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
 
-        // draw content
-        renderLines(g2d)
+        val ellapsed = measureTime {
+            // draw background
+            g2d.color = background
+            val bounds = bounds
+            g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+
+            // draw content
+            renderLines(g2d)
+        }
+
+        nativeLog("Render took: ${ellapsed.inWholeNanoseconds} ns")
     }
 
     private fun renderLines(g2d: Graphics2D) {

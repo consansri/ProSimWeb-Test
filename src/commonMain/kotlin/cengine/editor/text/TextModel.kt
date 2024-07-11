@@ -6,6 +6,7 @@ interface TextModel: Editable {
 
     val length: Int
     val lines: Int
+    val maxColumns: Int
 
     fun substring(start: Int, end: Int): String
 

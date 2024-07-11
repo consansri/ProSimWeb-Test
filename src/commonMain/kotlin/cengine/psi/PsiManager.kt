@@ -64,5 +64,4 @@ class PsiManager<T: LanguageService>(
             removePsi(file)
         }
     }
-
 }

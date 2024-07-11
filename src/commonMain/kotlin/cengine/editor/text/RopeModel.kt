@@ -12,7 +12,7 @@ class RopeModel(text: String = "") : TextModel {
     private var root: Node = buildTree(text)
     override val length: Int get() = root.weight
     override val lines: Int get() = root.lineBreaks + 1
-
+    override val maxColumns: Int get() = root.maxColumns
 
     override fun insert(index: Int, new: String) {
         if (index in 0..length) {
@@ -27,7 +27,7 @@ class RopeModel(text: String = "") : TextModel {
         if (start in 0..length && end in 0..length) {
             root = root.delete(start, end)
             rebalance()
-        }else{
+        } else {
             nativeWarn("RopeModel.delete(): Range $start..<$end out of Bounds [0..$length].")
         }
     }
@@ -113,6 +113,9 @@ class RopeModel(text: String = "") : TextModel {
         abstract var weight: Int
         abstract var depth: Int
         abstract var lineBreaks: Int
+        abstract var maxColumns: Int
+        abstract var lastLineLength: Int
+        abstract var firstLineLength: Int
 
         abstract fun getLineAndColumn(countUntil: Int): LC
         abstract fun getIndexFromLineAndColumn(line: Int, column: Int): Int
@@ -162,11 +165,26 @@ class RopeModel(text: String = "") : TextModel {
 
         override var weight: Int = text.length
         override var depth: Int = 0
-        override var lineBreaks: Int = text.count { it == '\n' }
+        override var lineBreaks: Int
+        override var maxColumns: Int
+        override var lastLineLength: Int
+        override var firstLineLength: Int
+
+        init {
+            val lines = text.split('\n')
+            lineBreaks = lines.size - 1
+            maxColumns = lines.maxOfOrNull { it.length } ?: 0
+            lastLineLength = lines.lastOrNull()?.length ?: 0
+            firstLineLength = lines.firstOrNull()?.length ?: 0
+        }
 
         private fun updateMetrics() {
             weight = text.length
-            lineBreaks = text.count { it == '\n' }
+            val lines = text.split('\n')
+            lineBreaks = lines.size - 1
+            maxColumns = lines.maxOfOrNull { it.length } ?: 0
+            lastLineLength = lines.lastOrNull()?.length ?: 0
+            firstLineLength = lines.firstOrNull()?.length ?: 0
         }
 
         override fun getLineAndColumn(countUntil: Int): LC {
@@ -239,11 +257,17 @@ class RopeModel(text: String = "") : TextModel {
         override var weight: Int = left.weight + right.weight
         override var depth: Int = maxOf(left.depth, right.depth) + 1
         override var lineBreaks: Int = left.lineBreaks + right.lineBreaks
+        override var maxColumns: Int = maxOf(left.maxColumns, right.maxColumns, left.lastLineLength + right.firstLineLength)
+        override var lastLineLength: Int = if (right.lineBreaks == 0) left.lastLineLength + right.lastLineLength else right.lastLineLength
+        override var firstLineLength: Int = if (left.lineBreaks == 0) left.firstLineLength + right.firstLineLength else left.firstLineLength
 
         fun updateMetrics() {
             weight = left.weight + right.weight
             depth = maxOf(left.depth, right.depth) + 1
             lineBreaks = left.lineBreaks + right.lineBreaks
+            maxColumns = maxOf(left.maxColumns, right.maxColumns, left.lastLineLength + right.firstLineLength)
+            lastLineLength = if (right.lineBreaks == 0) left.lastLineLength + right.lastLineLength else right.lastLineLength
+            firstLineLength = if (left.lineBreaks == 0) left.firstLineLength + right.firstLineLength else left.firstLineLength
         }
 
         override fun getLineAndColumn(countUntil: Int): LC {

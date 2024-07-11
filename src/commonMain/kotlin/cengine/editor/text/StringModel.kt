@@ -3,6 +3,7 @@ package cengine.editor.text
 class StringModel(private var text: String) : cengine.editor.text.TextModel {
     override val length: Int get() = text.length
     override val lines: Int get() = text.count { it == '\n' } + 1
+    override val maxColumns: Int get() = calculateMaxColumns()
 
     override fun insert(index: Int, new: String) {
         text = text.substring(0, index) + new + text.substring(index)
@@ -34,14 +35,14 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
     }
 
     override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
-        require(line >= 0 && column >= 0) {"Line ($line) and Column ($column) must be non-negative"}
+        require(line >= 0 && column >= 0) { "Line ($line) and Column ($column) must be non-negative" }
 
         var currLine = 0
         var currColumn = 0
         var lastLineStart = 0
 
-        for(index in text.indices){
-            if (currLine == line && currColumn == column){
+        for (index in text.indices) {
+            if (currLine == line && currColumn == column) {
                 return index
             }
 
@@ -61,15 +62,17 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
 
         // If we've reached here, we're either at the end of the text
         // or the requested line/column is beyond the text
-        return if(currLine == line){
+        return if (currLine == line) {
             // We're on the correct line, but the column is beyond the text length
             // Return the last character index of this line
             minOf(lastLineStart + column, text.length)
-        }else{
+        } else {
             // The requested line is beyond the text, return the last index
             text.length
         }
     }
 
     override fun toString(): String = text
+
+    private fun calculateMaxColumns(): Int = text.split('\n').maxOfOrNull { it.length } ?: 0
 }

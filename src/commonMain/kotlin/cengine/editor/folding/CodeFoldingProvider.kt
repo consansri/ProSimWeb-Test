@@ -18,5 +18,4 @@ interface CodeFoldingProvider {
         //nativeLog("Return visible lines: ${visibleLines.joinToString()}")
         return visibleLines
     }
-
 }
