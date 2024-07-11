@@ -2,7 +2,6 @@ package prosim.uilib.styled.editor3
 
 
 import cengine.editor.CodeEditor
-import cengine.editor.annotation.AnnotationProvider
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
@@ -28,10 +27,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         override val selection: Selection = Selection()
     }
 
-    var annotationProvider: AnnotationProvider? = null
-    var completionProvider: cengine.editor.completion.CompletionProvider? = null
-
-    val textStateModel = TextStateModel(textModel, selector)
+    override val textStateModel = TextStateModel(textModel, selector)
     val handler = EventHandler()
 
     var fontCode: Font = FontType.CODE.getFont()
@@ -49,10 +45,9 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         background = UIStates.theme.get().globalLaF.bgPrimary
         isFocusable = true
 
+        loadFromFile()
+
         requestFocus()
-
-        textStateModel.replaceAll(file.getAsUTF8String())
-
         revalidate()
         repaint()
     }
@@ -74,9 +69,9 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
     private fun renderLines(g2d: Graphics2D) {
         var y = insets.top
         val selection = selector.selection.asRange()
-        val visibleLines = language?.codeFoldingProvider?.getVisibleLines(textModel.lines)
+        val visibleLines = lang?.codeFoldingProvider?.getVisibleLines(textModel.lines)
         if (visibleLines == null) {
-            (1..textModel.lines).forEach { lineNumber ->
+            (0..<textModel.lines).forEach { lineNumber ->
                 val height = renderLine(g2d, lineNumber, selection, y)
                 y += height
             }
@@ -97,7 +92,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         var height = 0
 
         // Render interline widgets
-        language?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
+        lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
             g2d.font = fontBase
             g2d.color = foreground
             g2d.drawString(it.content, insets.left, y + height + fmBase.ascent)
@@ -105,12 +100,12 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         }
 
         // Render line text with syntax highlighting
-        val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber - 1, 0)
-        val endIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
+        val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
+        val endIndex = textModel.getIndexFromLineAndColumn(lineNumber + 1, 0)
         //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
         var x = insets.left
         val lineContent = textModel.substring(startingIndex, endIndex)
-        val highlights = language?.highlightProvider?.fastHighlight(lineContent) ?: emptyList()
+        val highlights = lang?.highlightProvider?.fastHighlight(lineContent) ?: emptyList()
 
         for ((colID, charIndex) in (startingIndex until endIndex).withIndex()) {
             val char = lineContent[colID]
@@ -126,22 +121,22 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
 
             // Draw Char
             g2d.color = (highlights.firstOrNull { it.range.contains(colID) }
-                ?.color(language)
-                ?: language
+                ?.color(lang)
+                ?: lang
                     ?.highlightProvider
                     ?.cachedHighlights
                     ?.firstOrNull { it.range.contains(charIndex) }
-                    ?.color(language)
+                    ?.color(lang)
                     ).toColor()
 
             g2d.font = fontCode
             g2d.drawString(char.toString(), x, y + height + fmCode.ascent)
 
             // Draw Underline
-            language?.annotationProvider?.cachedAnnotations?.firstOrNull {
+            lang?.annotationProvider?.cachedAnnotations?.firstOrNull {
                 it.range.contains(charIndex)
             }?.let {
-                g2d.color = it.severity.toColor(language).toColor()
+                g2d.color = it.severity.toColor(lang).toColor()
                 g2d.drawLine(x, y + height + fmCode.height - fmCode.descent, x + charWidth, y + height + fmCode.height - fmCode.descent)
             }
 
@@ -154,7 +149,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
             x += charWidth
 
             // Render inlay widgets
-            language?.widgetProvider?.cachedInlayWidgets?.filter { it.position.index == charIndex }?.forEach {
+            lang?.widgetProvider?.cachedInlayWidgets?.filter { it.position.index == charIndex }?.forEach {
                 g2d.font = fontBase
                 g2d.color = foreground
                 g2d.drawString(it.content, x, y + height + fmBase.ascent)
@@ -163,7 +158,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         }
 
         // Render inlay widgets
-        language?.widgetProvider?.cachedPostLineWidget?.filter { it.position.line == lineNumber }?.forEach {
+        lang?.widgetProvider?.cachedPostLineWidget?.filter { it.position.line == lineNumber }?.forEach {
             g2d.font = fontBase
             g2d.color = foreground
             g2d.drawString(it.content, x, y + height + fmBase.ascent)
@@ -331,9 +326,11 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
                             // TODO if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.REPLACE)
                         }
 
-                        // Custom Use
+                        // Save File
                         KeyEvent.VK_S -> {
-                            // TODO if (e.isControlDown) shortCuts?.ctrlS()
+                            if (e.isControlDown) {
+                                saveToFile()
+                            }
                         }
                     }
                     repaint()

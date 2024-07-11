@@ -9,6 +9,4 @@ data class BasicToken(
     override val value: String,
     override val start: Position,
     override val end: Position
-):Token {
-
-}
+) : Token

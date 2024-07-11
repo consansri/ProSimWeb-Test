@@ -1,5 +1,10 @@
 package cengine.editor.folding
 
+/**
+ * @param startLine 0..<lines
+ * @param endLine 0..<lines
+ * @param isFolded state of folding
+ */
 data class FoldRegion(
     val startLine: Int,
     val endLine: Int,

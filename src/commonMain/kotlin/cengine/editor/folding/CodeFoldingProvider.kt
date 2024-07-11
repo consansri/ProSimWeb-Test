@@ -5,6 +5,7 @@ import cengine.psi.core.PsiFile
 interface CodeFoldingProvider {
     var cachedFoldRegions: List<FoldRegion>
     fun getFoldingRegions(psiFile: PsiFile): List<FoldRegion>
+
     fun getVisibleLines(totalLines: Int): List<Int> {
         val visibleLines = mutableListOf<Int>()
         var curr = 1

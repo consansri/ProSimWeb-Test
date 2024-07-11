@@ -1,5 +1,7 @@
 package cengine.lang
 
-enum class Languages(val language: Language) {
+import cengine.lang.asm.AsmLang
 
+enum class Languages(val language: Language) {
+    ASM(AsmLang)
 }
