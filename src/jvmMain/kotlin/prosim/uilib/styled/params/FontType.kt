@@ -16,7 +16,7 @@ enum class FontType {
             CODE -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
             DATA -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)
             TITLE -> UIStates.theme.get().textLaF.getTitleFont().deriveFont(UIStates.scale.get().fontScale.titleSize)
-            CODE_INFO -> UIStates.theme.get().codeLaF.getMarkupFont().deriveFont(UIStates.scale.get().fontScale.codeSize * 0.6f)
+            CODE_INFO -> UIStates.theme.get().codeLaF.getMarkupFont().deriveFont(UIStates.scale.get().fontScale.codeSize * 0.8f)
         }
     }
 

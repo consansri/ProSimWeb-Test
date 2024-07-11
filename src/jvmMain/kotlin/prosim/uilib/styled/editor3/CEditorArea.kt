@@ -29,6 +29,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     companion object {
         const val columnPadding = 20
         const val linePadding = 5
+        const val strokeWidth: Int = 2
     }
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
@@ -47,7 +48,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
     private var fmCode: FontMetrics = getFontMetrics(fontCode)
     private var fmBase: FontMetrics = getFontMetrics(fontBase)
-    private var caretWidth: Int = 2
+
     private var selColor: Color = Color(0x77000000 xor UIStates.theme.get().codeLaF.selectionColor.rgb, true)
 
     val scrollPane = CScrollPane(true, this).apply {
@@ -91,7 +92,6 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
         // draw content
         renderLines(g2d)
-
     }
 
     private fun renderLines(g2d: Graphics2D) {
@@ -165,13 +165,13 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                 it.range.contains(charIndex)
             }?.let {
                 g2d.color = it.severity.toColor(lang).toColor()
-                g2d.drawLine(x, y + height + fmCode.height - fmCode.descent, x + charWidth, y + height + fmCode.height - fmCode.descent)
+                g2d.fillRect(x, y + height + fmCode.height - fmCode.descent / 2, charWidth, strokeWidth)
             }
 
             // Draw Caret
             if (selector.caret.index == charIndex) {
                 g2d.color = foreground
-                g2d.fillRect(x, y + height, caretWidth, fmCode.height)
+                g2d.fillRect(x, y + height, strokeWidth, fmCode.height)
             }
 
             x += charWidth
@@ -196,7 +196,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         // Draw EOF Caret
         if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber) {
             g2d.color = foreground
-            g2d.fillRect(x, y + height, caretWidth, fmCode.height)
+            g2d.fillRect(x, y + height, strokeWidth, fmCode.height)
         }
         return height + fmCode.height
     }
@@ -367,6 +367,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                     }
                 }
             }
+            revalidate()
             repaint()
         }
 

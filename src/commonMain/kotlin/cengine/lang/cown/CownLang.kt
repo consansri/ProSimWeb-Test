@@ -9,6 +9,7 @@ import cengine.editor.highlighting.Highlight.Type.*
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
+import cengine.lang.cown.psi.CownAnnotator
 import cengine.lang.cown.psi.CownHighlighter
 import cengine.lang.cown.psi.CownPsiParser
 import cengine.lang.cown.psi.CownWidgets
@@ -22,7 +23,7 @@ object CownLang: LanguageService {
     override val codeFoldingProvider: CodeFoldingProvider? = null
     override val widgetProvider: WidgetProvider = CownWidgets()
     override val completionProvider: CompletionProvider? = null
-    override val annotationProvider: AnnotationProvider? = null
+    override val annotationProvider: AnnotationProvider = CownAnnotator()
     override val highlightProvider: HighlightProvider = CownHighlighter()
 
     override fun hlToColor(type: Highlight.Type): Int {

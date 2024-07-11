@@ -54,7 +54,7 @@ fun testNewEditor() {
     } ?: {
         nativeError("Couldn't open File!")
     }
-    frame.size = Dimension(800, 600)
+    frame.size = Dimension(1600, 1200)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
