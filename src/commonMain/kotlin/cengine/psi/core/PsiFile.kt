@@ -7,4 +7,6 @@ interface PsiFile: PsiElement {
     val lang: LanguageService?
     val name: String
     val text: String
+
+    fun updateFrom(content: String)
 }

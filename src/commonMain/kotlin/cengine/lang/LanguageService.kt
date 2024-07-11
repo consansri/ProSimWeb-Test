@@ -9,7 +9,7 @@ import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.psi.core.PsiParser
 
-interface Language {
+interface LanguageService {
 
     val name: String
     val fileSuffix: String

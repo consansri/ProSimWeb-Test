@@ -1,9 +1,9 @@
 package cengine.editor.highlighting
 
-import cengine.lang.Language
+import cengine.lang.LanguageService
 
 data class Highlight(val range: IntRange, val type: Type) {
-    fun color(language: Language?): Int? = language?.hlToColor(type)
+    fun color(languageService: LanguageService?): Int? = languageService?.hlToColor(type)
 
     enum class Type {
         KEYWORD,

@@ -14,4 +14,8 @@ class AsmFileImpl(name: String, text: String): PsiFileImpl(name, text) {
     override val lang: LanguageService?
         get() = TODO("Not yet implemented")
 
+    override fun updateFrom(content: String) {
+        TODO("Not yet implemented")
+    }
+
 }

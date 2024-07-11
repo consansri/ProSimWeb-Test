@@ -8,6 +8,8 @@ import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
+import cengine.project.Project
+import cengine.psi.PsiManager
 import cengine.vfs.VirtualFile
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
@@ -21,7 +23,9 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 
-class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
+class CEditorArea(override val file: VirtualFile, project: Project) : JComponent(), CodeEditor {
+
+    override val psiManager: PsiManager<*>? = project.getManager(file)
     override val textModel: TextModel = RopeModel()
     override val selector: Selector = object : Selector {
         override val caret: Caret = Caret(textModel)
@@ -29,7 +33,8 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
     }
 
     override val textStateModel = TextStateModel(textModel, selector)
-    val handler = EventHandler()
+
+    private val lang get() = psiManager?.lang
 
     var fontCode: Font = FontType.CODE.getFont()
     var fontBase: Font = FontType.CODE_INFO.getFont()
@@ -45,6 +50,10 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
         background = UIStates.theme.get().globalLaF.bgPrimary
         isFocusable = true
+
+        addKeyListener(KeyHandler())
+
+        project.register(this) // to listen to file changes from other sources
 
         file.onDiskChange = {
             loadFromFile()
@@ -77,7 +86,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
     private fun renderLines(g2d: Graphics2D) {
         var y = insets.top
         val selection = selector.selection.asRange()
-        val visibleLines = lang?.codeFoldingProvider?.getVisibleLines(textModel.lines)
+        val visibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(textModel.lines)
         if (visibleLines == null) {
             (0..<textModel.lines).forEach { lineNumber ->
                 val height = renderLine(g2d, lineNumber, selection, y)
@@ -204,150 +213,146 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         return Dimension(800, 600)
     }
 
-    inner class EventHandler {
-        init {
-            this@CEditorArea.addKeyListener(object : KeyAdapter() {
-                override fun keyTyped(e: KeyEvent) {
-                    // Character Insertion
-                    when {
-                        e.keyChar.isISOControl() -> {
 
-                        }
+    inner class KeyHandler: KeyAdapter() {
+        override fun keyTyped(e: KeyEvent) {
+            // Character Insertion
+            when {
+                e.keyChar.isISOControl() -> {
 
-                        e.keyChar.isDefined() -> {
-                            val newChar = e.keyChar.toString()
-                            textStateModel.delete(selector.selection)
-                            textStateModel.insert(selector.caret, newChar)
-                        }
-                    }
-                    repaint()
                 }
 
-                override fun keyPressed(e: KeyEvent) {
-                    when (e.keyCode) {
-                        KeyEvent.VK_TAB -> {
-                            if (e.isShiftDown) {
-                                // remove Indent
-                            } else {
-                                // indent
-                            }
-                        }
-
-                        KeyEvent.VK_A -> {
-                            if (e.isControlDown) {
-                                selector.selection.select(0, textModel.length)
-                            }
-                        }
-
-                        KeyEvent.VK_C -> {
-                            if (e.isControlDown) {
-                                copyToClipboard(textModel.substring(selector.selection))
-                            }
-                        }
-
-                        KeyEvent.VK_Z -> {
-                            if (e.isControlDown) {
-                                if (e.isShiftDown) {
-                                    textStateModel.redo()
-                                } else {
-                                    textStateModel.undo()
-                                }
-                            }
-                        }
-
-                        KeyEvent.VK_V -> {
-                            if (e.isControlDown) {
-                                val content = getClipboardContent()
-                                textStateModel.delete(selector.selection)
-
-                                content?.let { text ->
-                                    textStateModel.insert(selector.caret, text)
-                                }
-                            }
-                        }
-
-                        KeyEvent.VK_X -> {
-                            if (e.isControlDown) {
-                                val selected = textModel.substring(selector.selection)
-                                if (selected.isNotEmpty()) {
-                                    copyToClipboard(selected)
-                                    textStateModel.delete(selector.selection)
-                                }
-                            }
-                        }
-
-                        KeyEvent.VK_ENTER -> {
-                            textStateModel.delete(selector.selection)
-                            textStateModel.insert(selector.caret, "\n")
-                        }
-
-                        KeyEvent.VK_LEFT -> {
-                            selector.moveCaretLeft(1, e.isShiftDown)
-                        }
-
-                        KeyEvent.VK_RIGHT -> {
-                            selector.moveCaretRight(1, e.isShiftDown)
-                        }
-
-                        KeyEvent.VK_UP -> {
-                            selector.moveCaretUp(1, e.isShiftDown)
-                        }
-
-                        KeyEvent.VK_DOWN -> {
-                            selector.moveCaretDown(1, e.isShiftDown)
-                        }
-
-                        KeyEvent.VK_BACK_SPACE -> {
-                            if (selector.selection.valid()) {
-                                val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
-                                val deleted = textStateModel.delete(selector.selection)
-                                if (caretIsHigherBound) selector.caret -= deleted
-                            } else {
-                                textStateModel.delete(selector.caret.index - 1, selector.caret.index)
-                                selector.moveCaretLeft(1, false)
-                            }
-                        }
-
-                        KeyEvent.VK_DELETE -> {
-                            if (selector.selection.valid()) {
-                                val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
-                                val deleted = textStateModel.delete(selector.selection)
-                                if (caretIsHigherBound) selector.caret -= deleted
-                            } else {
-                                textStateModel.delete(selector.caret.index, selector.caret.index + 1)
-                            }
-                        }
-
-                        KeyEvent.VK_HOME -> {
-                            selector.home(e.isShiftDown)
-                        }
-
-                        KeyEvent.VK_END -> {
-                            selector.end(e.isShiftDown)
-                        }
-
-                        KeyEvent.VK_F -> {
-                            // TODO if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.FIND)
-                        }
-
-                        KeyEvent.VK_R -> {
-                            // TODO if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.REPLACE)
-                        }
-
-                        // Save File
-                        KeyEvent.VK_S -> {
-                            if (e.isControlDown) {
-                                saveToFile()
-                            }
-                        }
-                    }
-                    repaint()
+                e.keyChar.isDefined() -> {
+                    val newChar = e.keyChar.toString()
+                    textStateModel.delete(selector.selection)
+                    textStateModel.insert(selector.caret, newChar)
                 }
-
-                override fun keyReleased(e: KeyEvent?) {}
-            })
+            }
+            repaint()
         }
 
+        override fun keyPressed(e: KeyEvent) {
+            when (e.keyCode) {
+                KeyEvent.VK_TAB -> {
+                    if (e.isShiftDown) {
+                        // remove Indent
+                    } else {
+                        // indent
+                    }
+                }
+
+                KeyEvent.VK_A -> {
+                    if (e.isControlDown) {
+                        selector.selection.select(0, textModel.length)
+                    }
+                }
+
+                KeyEvent.VK_C -> {
+                    if (e.isControlDown) {
+                        copyToClipboard(textModel.substring(selector.selection))
+                    }
+                }
+
+                KeyEvent.VK_Z -> {
+                    if (e.isControlDown) {
+                        if (e.isShiftDown) {
+                            textStateModel.redo()
+                        } else {
+                            textStateModel.undo()
+                        }
+                    }
+                }
+
+                KeyEvent.VK_V -> {
+                    if (e.isControlDown) {
+                        val content = getClipboardContent()
+                        textStateModel.delete(selector.selection)
+
+                        content?.let { text ->
+                            textStateModel.insert(selector.caret, text)
+                        }
+                    }
+                }
+
+                KeyEvent.VK_X -> {
+                    if (e.isControlDown) {
+                        val selected = textModel.substring(selector.selection)
+                        if (selected.isNotEmpty()) {
+                            copyToClipboard(selected)
+                            textStateModel.delete(selector.selection)
+                        }
+                    }
+                }
+
+                KeyEvent.VK_ENTER -> {
+                    textStateModel.delete(selector.selection)
+                    textStateModel.insert(selector.caret, "\n")
+                }
+
+                KeyEvent.VK_LEFT -> {
+                    selector.moveCaretLeft(1, e.isShiftDown)
+                }
+
+                KeyEvent.VK_RIGHT -> {
+                    selector.moveCaretRight(1, e.isShiftDown)
+                }
+
+                KeyEvent.VK_UP -> {
+                    selector.moveCaretUp(1, e.isShiftDown)
+                }
+
+                KeyEvent.VK_DOWN -> {
+                    selector.moveCaretDown(1, e.isShiftDown)
+                }
+
+                KeyEvent.VK_BACK_SPACE -> {
+                    if (selector.selection.valid()) {
+                        val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
+                        val deleted = textStateModel.delete(selector.selection)
+                        if (caretIsHigherBound) selector.caret -= deleted
+                    } else {
+                        textStateModel.delete(selector.caret.index - 1, selector.caret.index)
+                        selector.moveCaretLeft(1, false)
+                    }
+                }
+
+                KeyEvent.VK_DELETE -> {
+                    if (selector.selection.valid()) {
+                        val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
+                        val deleted = textStateModel.delete(selector.selection)
+                        if (caretIsHigherBound) selector.caret -= deleted
+                    } else {
+                        textStateModel.delete(selector.caret.index, selector.caret.index + 1)
+                    }
+                }
+
+                KeyEvent.VK_HOME -> {
+                    selector.home(e.isShiftDown)
+                }
+
+                KeyEvent.VK_END -> {
+                    selector.end(e.isShiftDown)
+                }
+
+                KeyEvent.VK_F -> {
+                    // TODO if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.FIND)
+                }
+
+                KeyEvent.VK_R -> {
+                    // TODO if (e.isControlDown) findAndReplace.open(getSelectedAsString(), CEditorAnalyzer.Mode.REPLACE)
+                }
+
+                // Save File
+                KeyEvent.VK_S -> {
+                    if (e.isControlDown) {
+                        saveToFile()
+                    }
+                }
+            }
+            repaint()
+        }
+
+        override fun keyReleased(e: KeyEvent?) {}
     }
 
 }

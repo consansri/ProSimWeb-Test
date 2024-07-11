@@ -1,7 +1,9 @@
 package prosim
 
+import cengine.project.Project
 import cengine.vfs.VFileSystem
 import com.formdev.flatlaf.util.SystemInfo
+import emulator.kit.nativeError
 import prosim.ui.components.NativeFrame
 import prosim.uilib.styled.editor3.CEditorArea
 import java.awt.Dimension
@@ -38,14 +40,19 @@ fun launchBaseApp() {
     // BaseFrame()
 }
 
-fun testNewEditor(){
+fun testNewEditor() {
     val frame = JFrame()
-    val fileSystem = VFileSystem("/")
-    val file = fileSystem.findFile("docs/TODO.md")
+
+    val project = Project("docs")
+
+    val file = project.fileSystem.findFile(VFileSystem.DELIMITER + "TODO.md")
     file?.let {
-        frame.contentPane = CEditorArea(file)
+        val editor = CEditorArea(file, project)
+        frame.contentPane = editor
+    } ?: {
+        nativeError("Couldn't open File!")
     }
-    frame.size = Dimension(800,600)
+    frame.size = Dimension(800, 600)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE

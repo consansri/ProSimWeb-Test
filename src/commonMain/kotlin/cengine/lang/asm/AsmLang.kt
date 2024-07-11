@@ -7,10 +7,10 @@ import cengine.editor.folding.CodeFoldingProvider
 import cengine.editor.highlighting.Highlight
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
-import cengine.lang.Language
+import cengine.lang.LanguageService
 import cengine.psi.core.PsiParser
 
-object AsmLang: Language {
+object AsmLang: LanguageService {
     override val name: String = "Assembly"
     override val fileSuffix: String = ".s"
     override val psiParser: PsiParser

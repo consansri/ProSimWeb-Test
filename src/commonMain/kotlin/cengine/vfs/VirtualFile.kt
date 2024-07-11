@@ -1,8 +1,5 @@
 package cengine.vfs
 
-import cengine.lang.Language
-import cengine.lang.Languages
-import cengine.psi.core.PsiFile
 import cengine.system.getSystemLineBreak
 
 /**
@@ -30,27 +27,14 @@ interface VirtualFile {
     val parent: VirtualFile?
 
     /**
-     * Holds the current PSI Representation of this file.
-     */
-    var psiFile: PsiFile?
-
-    /**
      * To add an execution event when the file changed through another application.
      */
     var onDiskChange: () -> Unit
 
     /**
-     * Updates [psiFile] using the PSI Parser from [getLanguage].
-     */
-    fun refreshPSI() {
-        psiFile = getLanguage()?.psiParser?.parseFile(getAsUTF8String(), name)
-    }
-
-    /**
      * Will be triggered through the [VFileSystem].
      */
     fun hasChangedOnDisk(){
-        refreshPSI()
         onDiskChange()
     }
 
@@ -88,12 +72,5 @@ interface VirtualFile {
      */
     fun setAsUTF8String(content: String) {
         setContent(content.replace("\n", getSystemLineBreak()).encodeToByteArray())
-    }
-
-    /**
-     * Returns the language of the file.
-     */
-    fun getLanguage(): Language? {
-        return Languages.entries.firstOrNull { this.name.endsWith(it.language.fileSuffix) }?.language
     }
 }

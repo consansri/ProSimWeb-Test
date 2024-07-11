@@ -1,7 +1,5 @@
 package cengine.vfs
 
-import cengine.psi.core.PsiFile
-
 /**
  * Virtual File System (VFS)
  *
@@ -155,12 +153,14 @@ class VFileSystem(absRootPath: String) {
         changeListeners.forEach { it.onFileDeleted(file) }
     }
 
+    fun close() {
+        changeListeners.clear()
+    }
 
     inner class RootDirectory(override val name: String) : VirtualFile {
         override val path: String = DELIMITER
         override val isDirectory: Boolean = true
         override val parent: VirtualFile? = null
-        override var psiFile: PsiFile? = null
         override var onDiskChange: () -> Unit = {}
 
         override fun getChildren(): List<VirtualFile> {
@@ -186,7 +186,6 @@ class VFileSystem(absRootPath: String) {
         override val isDirectory: Boolean,
         override val parent: VirtualFile?
     ) : VirtualFile {
-        override var psiFile: PsiFile? = null
         override var onDiskChange: () -> Unit = {}
 
         override fun getChildren(): List<VirtualFile> {
@@ -226,5 +225,6 @@ class VFileSystem(absRootPath: String) {
     override fun toString(): String {
         return root.toString()
     }
+
 
 }

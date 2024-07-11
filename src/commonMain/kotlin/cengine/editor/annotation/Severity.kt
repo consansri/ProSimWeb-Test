@@ -1,11 +1,11 @@
 package cengine.editor.annotation
 
-import cengine.lang.Language
+import cengine.lang.LanguageService
 
 enum class Severity {
     INFO,
     WARNING,
     ERROR;
 
-    fun toColor(language: Language?): Int? = language?.severityToColor(this)
+    fun toColor(languageService: LanguageService?): Int? = languageService?.severityToColor(this)
 }
