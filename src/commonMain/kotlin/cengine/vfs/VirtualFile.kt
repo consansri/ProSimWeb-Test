@@ -2,6 +2,7 @@ package cengine.vfs
 
 import cengine.lang.Language
 import cengine.lang.Languages
+import cengine.system.getSystemLineBreak
 
 /**
  * Represents a file or directory in the virtual file system.
@@ -42,6 +43,11 @@ interface VirtualFile {
     fun getContent(): ByteArray
 
     /**
+     * @return The UTF8 decoded ByteArray with [getSystemLineBreak] replaced with '\n'.
+     */
+    fun getAsUTF8String(): String = getContent().decodeToString().replace(getSystemLineBreak(), "\n")
+
+    /**
      * Sets the content of the file.
      *
      * @param content The new content of the file as a ByteArray
@@ -50,9 +56,18 @@ interface VirtualFile {
     fun setContent(content: ByteArray)
 
     /**
+     * Takes a string, replaces '\n' with [getSystemLineBreak] and then set UTF8 encoded ByteArray via [setContent].
+     *
+     * @throws UnsupportedOperationException if this is a directory.
+     */
+    fun setAsUTF8String(content: String) {
+        setContent(content.replace("\n", getSystemLineBreak()).encodeToByteArray())
+    }
+
+    /**
      * Returns the language of the file.
      */
     fun getLanguage(): Language? {
-        return Languages.entries.firstOrNull { this.name.endsWith(it.language.fileSuffix)  }?.language
+        return Languages.entries.firstOrNull { this.name.endsWith(it.language.fileSuffix) }?.language
     }
 }

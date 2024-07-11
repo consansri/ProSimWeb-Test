@@ -29,5 +29,4 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
     actual fun isDirectory(path: String): Boolean = Files.isDirectory(Paths.get(getAbsolutePath(path)))
     actual fun exists(path: String): Boolean = Files.exists(Paths.get(getAbsolutePath(path)))
     actual fun getAbsolutePath(path: String): String = Paths.get(rootPath, path).normalize().toString()
-
 }

@@ -48,7 +48,13 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
         background = UIStates.theme.get().globalLaF.bgPrimary
         isFocusable = true
+
         requestFocus()
+
+        textStateModel.replaceAll(file.getAsUTF8String())
+
+        revalidate()
+        repaint()
     }
 
     override fun paintComponent(g: Graphics) {
@@ -61,10 +67,8 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         val bounds = bounds
         g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
 
-
         // draw content
-
-
+        renderLines(g2d)
     }
 
     private fun renderLines(g2d: Graphics2D) {
@@ -72,7 +76,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         val selection = selector.selection.asRange()
         val visibleLines = language?.codeFoldingProvider?.getVisibleLines(textModel.lines)
         if (visibleLines == null) {
-            (0..textModel.lines).forEach { lineNumber ->
+            (1..textModel.lines).forEach { lineNumber ->
                 val height = renderLine(g2d, lineNumber, selection, y)
                 y += height
             }
@@ -85,6 +89,8 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
     }
 
     /**
+     * @param lineNumber starting with 1 to [textModel.lines]
+     *
      * @return height of line (with drawn widgets)
      */
     private fun renderLine(g2d: Graphics2D, lineNumber: Int, selection: IntRange?, y: Int): Int {
@@ -114,7 +120,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
             selection?.let {
                 if (charIndex in it) {
                     g2d.color = selColor
-                    g2d.fillRect(x, y+ height, charWidth, fmCode.height)
+                    g2d.fillRect(x, y + height, charWidth, fmCode.height)
                 }
             }
 
@@ -148,7 +154,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
             x += charWidth
 
             // Render inlay widgets
-            language?.widgetProvider?.cachedInlayWidgets?.filter {it.position.index == charIndex}?.forEach {
+            language?.widgetProvider?.cachedInlayWidgets?.filter { it.position.index == charIndex }?.forEach {
                 g2d.font = fontBase
                 g2d.color = foreground
                 g2d.drawString(it.content, x, y + height + fmBase.ascent)
@@ -157,7 +163,7 @@ class CEditorArea(override val file: VirtualFile) : JComponent(), CodeEditor {
         }
 
         // Render inlay widgets
-        language?.widgetProvider?.cachedPostLineWidget?.filter {it.position.line == lineNumber}?.forEach {
+        language?.widgetProvider?.cachedPostLineWidget?.filter { it.position.line == lineNumber }?.forEach {
             g2d.font = fontBase
             g2d.color = foreground
             g2d.drawString(it.content, x, y + height + fmBase.ascent)
