@@ -1,9 +1,5 @@
 # TODOS #
 
-ja moin
-
-ok alles klar 
-
 - Value add exponential Numbers
 - JVM: Save and load IDE settings
 - Change Name
@@ -80,4 +76,4 @@ ok alles klar
 - **(done)** allow negative hex and resolve them after constant and macro replacements
 - **(done)** reanalyze line after constant insertion to resolve negation
 
-
+l

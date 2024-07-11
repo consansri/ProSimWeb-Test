@@ -14,6 +14,7 @@ import cengine.vfs.VirtualFile
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
 import prosim.uilib.UIStates
+import prosim.uilib.styled.CScrollPane
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
 import java.awt.*
@@ -22,9 +23,13 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
-import kotlin.time.measureTime
 
 class CEditorArea(override val file: VirtualFile, project: Project) : JComponent(), CodeEditor {
+
+    companion object {
+        const val columnPadding = 20
+        const val linePadding = 5
+    }
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
     override val textModel: TextModel = RopeModel()
@@ -44,6 +49,10 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private var fmBase: FontMetrics = getFontMetrics(fontBase)
     private var caretWidth: Int = 2
     private var selColor: Color = Color(0x77000000 xor UIStates.theme.get().codeLaF.selectionColor.rgb, true)
+
+    val scrollPane = CScrollPane(true, this).apply {
+        CScrollPane.removeArrowKeyScrolling(this)
+    }
 
     init {
         border = BorderMode.INSET.getBorder()
@@ -75,18 +84,14 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         val g2d = g as Graphics2D
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
+        // draw background
+        g2d.color = background
+        val bounds = bounds
+        g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
 
-        val ellapsed = measureTime {
-            // draw background
-            g2d.color = background
-            val bounds = bounds
-            g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+        // draw content
+        renderLines(g2d)
 
-            // draw content
-            renderLines(g2d)
-        }
-
-        nativeLog("Render took: ${ellapsed.inWholeNanoseconds} ns")
     }
 
     private fun renderLines(g2d: Graphics2D) {
@@ -216,11 +221,14 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     }
 
     override fun getMinimumSize(): Dimension {
-        return Dimension(800, 600)
+        return Dimension(insets.left + insets.right + fmCode.charWidth(' ') * (textModel.maxColumns + columnPadding), insets.top + insets.bottom + fmCode.height * (textModel.lines + linePadding))
     }
 
+    override fun getPreferredSize(): Dimension {
+        return minimumSize
+    }
 
-    inner class KeyHandler: KeyAdapter() {
+    inner class KeyHandler : KeyAdapter() {
         override fun keyTyped(e: KeyEvent) {
             // Character Insertion
             when {
