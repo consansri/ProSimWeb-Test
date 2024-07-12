@@ -19,7 +19,6 @@ class CDialog(parent: Component) : JDialog() {
 
     override fun getPreferredSize(): Dimension {
         val size = layout.preferredLayoutSize(this)
-
         return Dimension(size.width + insets.left + insets.right,size.height + insets.top + insets.bottom)
     }
 

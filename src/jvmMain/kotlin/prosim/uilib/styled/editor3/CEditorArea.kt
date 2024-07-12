@@ -15,6 +15,7 @@ import cengine.psi.PsiManager
 import cengine.vfs.VirtualFile
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
+import kotlinx.coroutines.*
 import prosim.uilib.UIStates
 import prosim.uilib.styled.COverlay
 import prosim.uilib.styled.CScrollPane
@@ -24,7 +25,9 @@ import java.awt.*
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
+import java.util.*
 import javax.swing.JComponent
+import javax.swing.SwingUtilities
 
 class CEditorArea(override val file: VirtualFile, project: Project) : JComponent(), CodeEditor {
 
@@ -119,7 +122,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private fun Graphics2D.renderEditorContent() {
         val tempRenderedLines = mutableListOf<Pair<Bounds, Int>>()
         val tempRenderedWidgets = mutableListOf<Pair<Bounds, Widget>>()
-        val tempRenderedAnnotations = mutableListOf<Pair<Bounds,Annotation>>()
+        val tempRenderedAnnotations = mutableListOf<Pair<Bounds, Annotation>>()
 
         var yOffset = insets.top
         val xOffset = insets.left
@@ -206,7 +209,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
      *
      * @return height of line (with drawn widgets)
      */
-    private fun Graphics2D.renderLine(lineNumber: Int, selection: IntRange?, yOffset: Int, xOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>, tempRenderedAnnotation: MutableList<Pair<Bounds,Annotation>>): Int {
+    private fun Graphics2D.renderLine(lineNumber: Int, selection: IntRange?, yOffset: Int, xOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>, tempRenderedAnnotation: MutableList<Pair<Bounds, Annotation>>): Int {
         var internalYOffset = yOffset
         var internalXOffset = xOffset
 
@@ -310,6 +313,11 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     }
 
     inner class MouseHandler : MouseListener, MouseMotionListener {
+        private val scope = CoroutineScope(Dispatchers.Main)
+        private var hoverJob: Job? = null
+        private var lastMouseX: Int = 0
+        private var lastMouseY: Int = 0
+
         override fun mouseClicked(e: MouseEvent) {
             val widget = renderedWidgets.firstOrNull { it.first.isInBounds(e.x, e.y) } ?: return
             widget.second.onClick()
@@ -336,10 +344,21 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         }
 
         override fun mouseMoved(e: MouseEvent) {
-            val annotation = renderedAnnotations.firstOrNull { it.first.isInBounds(e.x, e.y) }
-            if (annotation != null) {
-                nativeLog("Annotation Hovered: ${annotation.second}")
-                val html = """
+            lastMouseX = e.x
+            lastMouseY = e.y
+
+            hoverJob?.cancel()
+
+            SwingUtilities.invokeLater {
+                overlay.makeInvisible()
+            }
+
+            hoverJob = scope.launch {
+                delay(100)
+
+                val annotation = renderedAnnotations.firstOrNull { it.first.isInBounds(e.x, e.y) }
+                if (annotation != null) {
+                    val html = """
                     <html>
                     <body>
                     <b>${annotation.second.severity}</b><br>
@@ -347,11 +366,11 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                     </body>
                     </html>
                 """.trimIndent()
-                overlay.setContent(html, true)
-                overlay.showAtLocation(e.x, e.y, 300, this@CEditorArea)
-                return
-            } else {
-                overlay.makeInvisible()
+                    SwingUtilities.invokeLater {
+                        overlay.setContent(html, true)
+                        overlay.showAtLocation(e.x, e.y, 300, this@CEditorArea)
+                    }
+                }
             }
         }
     }
