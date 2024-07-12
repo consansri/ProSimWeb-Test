@@ -3,6 +3,7 @@ package prosim.uilib.styled.editor3
 
 import cengine.editor.CodeEditor
 import cengine.editor.annotation.Annotation
+import cengine.editor.folding.FoldRegion
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
@@ -13,6 +14,7 @@ import cengine.editor.widgets.Widget
 import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.vfs.VirtualFile
+import com.formdev.flatlaf.extras.FlatSVGIcon
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
 import kotlinx.coroutines.*
@@ -49,8 +51,6 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
     private val lang get() = psiManager?.lang
 
-    // Children
-    val overlay = COverlay()
 
     // UI
 
@@ -64,17 +64,26 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private var secFGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE4)
     private var secBGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE7)
 
-    val scrollPane = CScrollPane(true, this).apply {
-        CScrollPane.removeArrowKeyScrolling(this)
-    }
+    private var collapseIcon: FlatSVGIcon = UIStates.icon.get().folderClosed
+    private var ellapseIcon: FlatSVGIcon = UIStates.icon.get().folderOpen
+
 
     // TEMPORARY RENDERED ELEMENTS
     private var rowHeaderWidth: Int = 0
+    private var ankerRLineNumber: Int = 0
 
     private var renderedLines: List<Pair<Bounds, Int>> = listOf()
     private var renderedWidgets: List<Pair<Bounds, Widget>> = listOf()
     private var renderedAnnotations: List<Pair<Bounds, Annotation>> = listOf()
+    private var renderedFoldRegions: List<Pair<Bounds, FoldRegion>> = listOf()
 
+    // Children
+    val scrollPane = CScrollPane(true, this).apply {
+        CScrollPane.removeArrowKeyScrolling(this)
+    }
+
+    val annotationOverlay = COverlay()
+    val completionOverlay = COverlay()
 
     init {
         border = BorderMode.INSET.getBorder()
@@ -123,20 +132,21 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         val tempRenderedLines = mutableListOf<Pair<Bounds, Int>>()
         val tempRenderedWidgets = mutableListOf<Pair<Bounds, Widget>>()
         val tempRenderedAnnotations = mutableListOf<Pair<Bounds, Annotation>>()
+        val tempRenderedFoldRegions = mutableListOf<Pair<Bounds, FoldRegion>>()
 
         var yOffset = insets.top
         val xOffset = insets.left
         val lineNumberWidth = fmCode.stringWidth(textModel.lines.toString())
-        rowHeaderWidth = xOffset + lineNumberWidth + 2 * internalPadding
+        rowHeaderWidth = xOffset + lineNumberWidth + fmCode.height + 3 * internalPadding
+        ankerRLineNumber = xOffset + lineNumberWidth
 
         color = secBGColor
-        drawLine(xOffset + lineNumberWidth + internalPadding, yOffset, xOffset + lineNumberWidth + internalPadding, yOffset + scrollPane.visibleRect.height)
+        drawLine(rowHeaderWidth - internalPadding, yOffset, rowHeaderWidth - internalPadding, yOffset + scrollPane.visibleRect.height)
 
         val selection = selector.selection.asRange()
         val visibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(textModel.lines)
         if (visibleLines == null) {
             (0..<textModel.lines).forEach { lineNumber ->
-
                 // Render interline widgets
                 lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
                     val widgetDimension = drawWidget(it, rowHeaderWidth, yOffset, tempRenderedWidgets)
@@ -145,7 +155,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
                 val height = renderLine(lineNumber, selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
 
-                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height))
+                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height), tempRenderedFoldRegions)
 
                 tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to lineNumber
 
@@ -162,7 +172,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
                 val height = renderLine(lineNumber, selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
 
-                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height))
+                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height), tempRenderedFoldRegions)
 
                 tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to lineNumber
 
@@ -173,6 +183,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         renderedLines = tempRenderedLines
         renderedWidgets = tempRenderedWidgets
         renderedAnnotations = tempRenderedAnnotations
+        renderedFoldRegions = tempRenderedFoldRegions
     }
 
     /**
@@ -198,10 +209,21 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         return widgetDimension
     }
 
-    private fun Graphics2D.drawLineNumber(number: Int, rect: Rectangle) {
+    private fun Graphics2D.drawLineNumber(number: Int, rect: Rectangle, renderedFoldRegions: MutableList<Pair<Bounds, FoldRegion>>) {
         color = secFGColor
         font = fontBase
         drawString(number.toString(), rect.x + rect.width - fmBase.stringWidth(number.toString()), rect.y + fmCode.height / 2 - fmBase.height / 2 + fmBase.ascent)
+
+        val foldRegions = lang?.codeFoldingProvider?.cachedFoldRegions ?: return
+
+        foldRegions.firstOrNull { it.startLine == number }?.let {
+            if (it.isFolded) {
+                drawImage(collapseIcon.derive(fmCode.height, fmCode.height).image, rect.x + rect.width + internalPadding, rect.y, null)
+            } else {
+                drawImage(ellapseIcon.derive(fmCode.height, fmCode.height).image, rect.x + rect.width + internalPadding, rect.y, null)
+            }
+            renderedFoldRegions.add(Bounds(rect.x + rect.width + internalPadding, rect.y, fmCode.height, fmCode.height) to it)
+        }
     }
 
     /**
@@ -319,8 +341,16 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         private var lastMouseY: Int = 0
 
         override fun mouseClicked(e: MouseEvent) {
-            val widget = renderedWidgets.firstOrNull { it.first.isInBounds(e.x, e.y) } ?: return
-            widget.second.onClick()
+            val widget = renderedWidgets.firstOrNull { it.first.isInBounds(e.x, e.y) }
+            widget?.second?.onClick?.let { it() }
+
+            val foldRegion = renderedFoldRegions.firstOrNull { it.first.isInBounds(e.x, e.y) }
+            foldRegion?.let {
+                it.second.isFolded = !it.second.isFolded
+            }
+
+            revalidate()
+            repaint()
         }
 
         override fun mousePressed(e: MouseEvent?) {
@@ -350,7 +380,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
             hoverJob?.cancel()
 
             SwingUtilities.invokeLater {
-                overlay.makeInvisible()
+                annotationOverlay.makeInvisible()
             }
 
             hoverJob = scope.launch {
@@ -367,8 +397,8 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                     </html>
                 """.trimIndent()
                     SwingUtilities.invokeLater {
-                        overlay.setContent(html, true)
-                        overlay.showAtLocation(e.x, e.y, 300, this@CEditorArea)
+                        annotationOverlay.setContent("${annotation.second.severity}: ${annotation.second.message}", false)
+                        annotationOverlay.showAtLocation(e.x, e.y, 300, this@CEditorArea)
                     }
                 }
             }

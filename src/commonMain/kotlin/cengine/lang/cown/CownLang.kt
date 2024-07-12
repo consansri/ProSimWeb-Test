@@ -9,10 +9,7 @@ import cengine.editor.highlighting.Highlight.Type.*
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
-import cengine.lang.cown.psi.CownAnnotator
-import cengine.lang.cown.psi.CownHighlighter
-import cengine.lang.cown.psi.CownPsiParser
-import cengine.lang.cown.psi.CownWidgets
+import cengine.lang.cown.psi.*
 import cengine.psi.core.PsiParser
 import emulator.kit.assembler.CodeStyle
 
@@ -20,7 +17,7 @@ object CownLang: LanguageService {
     override val name: String = "cown"
     override val fileSuffix: String = ".cown"
     override val psiParser: PsiParser = CownPsiParser()
-    override val codeFoldingProvider: CodeFoldingProvider? = null
+    override val codeFoldingProvider: CodeFoldingProvider = CownFolder()
     override val widgetProvider: WidgetProvider = CownWidgets()
     override val completionProvider: CompletionProvider? = null
     override val annotationProvider: AnnotationProvider = CownAnnotator()
