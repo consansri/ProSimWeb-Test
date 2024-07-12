@@ -8,6 +8,7 @@ import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
+import cengine.editor.widgets.Widget
 import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.vfs.VirtualFile
@@ -22,6 +23,8 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
 import javax.swing.JComponent
 
 class CEditorArea(override val file: VirtualFile, project: Project) : JComponent(), CodeEditor {
@@ -30,6 +33,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         const val columnPadding = 20
         const val linePadding = 5
         const val strokeWidth: Int = 2
+        const val internalPadding = 4
     }
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
@@ -43,6 +47,8 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
     private val lang get() = psiManager?.lang
 
+    // UI
+
     var fontCode: Font = FontType.CODE.getFont()
     var fontBase: Font = FontType.CODE_INFO.getFont()
 
@@ -50,10 +56,17 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private var fmBase: FontMetrics = getFontMetrics(fontBase)
 
     private var selColor: Color = Color(0x77000000 xor UIStates.theme.get().codeLaF.selectionColor.rgb, true)
+    private var secFGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE4)
+    private var secBGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE7)
 
     val scrollPane = CScrollPane(true, this).apply {
         CScrollPane.removeArrowKeyScrolling(this)
     }
+
+    // TEMPORARY RENDERED ELEMENTS
+    private var renderedLines: List<Pair<Bounds, Int>> = listOf()
+    private var renderedWidgets: List<Pair<Bounds, Widget>> = listOf()
+    private var renderedAnnotations: List<Pair<Bounds, Annotation>> = listOf()
 
     init {
         border = BorderMode.INSET.getBorder()
@@ -91,24 +104,74 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
 
         // draw content
-        renderLines(g2d)
+        g2d.renderEditorContent()
     }
 
-    private fun renderLines(g2d: Graphics2D) {
-        var y = insets.top
+    private fun Graphics2D.renderEditorContent() {
+        val tempRenderedLines = mutableListOf<Pair<Bounds, Int>>()
+        val tempRenderedWidgets = mutableListOf<Pair<Bounds, Widget>>()
+
+        var yOffset = insets.top
+        val xOffset = insets.left
+        val lineNumberWidth = fmCode.stringWidth(textModel.lines.toString())
+        val xLineContentOffset = xOffset + lineNumberWidth + 2 * internalPadding
+
+        color = foreground
+        drawLine(xOffset + lineNumberWidth + internalPadding, yOffset, xOffset + lineNumberWidth + internalPadding, yOffset + scrollPane.visibleRect.height)
+
         val selection = selector.selection.asRange()
         val visibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(textModel.lines)
         if (visibleLines == null) {
             (0..<textModel.lines).forEach { lineNumber ->
-                val height = renderLine(g2d, lineNumber, selection, y)
-                y += height
+
+                val height = renderLine(lineNumber, selection, yOffset, xLineContentOffset, tempRenderedWidgets)
+
+                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height))
+
+                tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to lineNumber
+
+                yOffset += height
             }
         } else {
             visibleLines.forEach { lineNumber ->
-                val height = renderLine(g2d, lineNumber, selection, y)
-                y += height
+                val height = renderLine(lineNumber, selection, yOffset, xLineContentOffset, tempRenderedWidgets)
+
+                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height))
+
+                tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to lineNumber
+
+                yOffset += height
             }
         }
+
+        renderedLines = tempRenderedLines
+        renderedWidgets = tempRenderedWidgets
+    }
+
+    /**
+     * Draws a Widget and returns the needed Dimension.
+     */
+    private fun Graphics2D.drawWidget(widget: Widget, xOffset: Int, yOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>): Dimension {
+        val widgetContentWidth = fmBase.getStringBounds(widget.content, this)
+        val contentRect = Rectangle(xOffset + internalPadding, yOffset + fmCode.height / 2 - widgetContentWidth.height.toInt() / 2, widgetContentWidth.width.toInt(), widgetContentWidth.height.toInt())
+        val bgRect = Rectangle(contentRect.x - internalPadding / 2, contentRect.y - internalPadding / 2, contentRect.width + internalPadding, contentRect.height + internalPadding)
+        color = secBGColor
+        fillRect(bgRect.x, bgRect.y, bgRect.width, bgRect.height)
+
+        color = secFGColor
+        font = fontBase
+        drawString(widget.content, contentRect.x, contentRect.y + fmBase.ascent)
+
+        val widgetDimension = Dimension(widgetContentWidth.width.toInt() + internalPadding * 2, fmCode.height)
+        tempRenderedWidgets.add(Bounds(xOffset, yOffset, widgetDimension.width, widgetDimension.height) to widget)
+
+        return widgetDimension
+    }
+
+    private fun Graphics2D.drawLineNumber(number: Int, rect: Rectangle) {
+        color = secFGColor
+        font = fontBase
+        drawString(number.toString(), rect.x + rect.width - fmBase.stringWidth(number.toString()), rect.y + fmCode.height / 2 - fmBase.height / 2 + fmBase.ascent)
     }
 
     /**
@@ -116,22 +179,21 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
      *
      * @return height of line (with drawn widgets)
      */
-    private fun renderLine(g2d: Graphics2D, lineNumber: Int, selection: IntRange?, y: Int): Int {
-        var height = 0
+    private fun Graphics2D.renderLine(lineNumber: Int, selection: IntRange?, yOffset: Int, xOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>): Int {
+        var internalYOffset = yOffset
+        var internalXOffset = xOffset
 
         // Render interline widgets
         lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
-            g2d.font = fontBase
-            g2d.color = foreground
-            g2d.drawString(it.content, insets.left, y + height + fmBase.ascent)
-            height += fmBase.height
+            val widgetDimension = drawWidget(it, internalXOffset, internalYOffset, tempRenderedWidgets)
+            internalYOffset += widgetDimension.height
         }
 
         // Render line text with syntax highlighting
         val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
         val endIndex = textModel.getIndexFromLineAndColumn(lineNumber + 1, 0)
         //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
-        var x = insets.left
+
         val lineContent = textModel.substring(startingIndex, endIndex)
         val highlights = lang?.highlightProvider?.fastHighlight(lineContent) ?: emptyList()
 
@@ -142,13 +204,13 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
             // Draw Selection
             selection?.let {
                 if (charIndex in it) {
-                    g2d.color = selColor
-                    g2d.fillRect(x, y + height, charWidth, fmCode.height)
+                    color = selColor
+                    fillRect(internalXOffset, internalYOffset, charWidth, fmCode.height)
                 }
             }
 
             // Draw Char
-            g2d.color = (highlights.firstOrNull { it.range.contains(colID) }
+            color = (highlights.firstOrNull { it.range.contains(colID) }
                 ?.color(lang)
                 ?: lang
                     ?.highlightProvider
@@ -157,48 +219,44 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                     ?.color(lang)
                     ).toColor()
 
-            g2d.font = fontCode
-            g2d.drawString(char.toString(), x, y + height + fmCode.ascent)
+            font = fontCode
+            drawString(char.toString(), internalXOffset, internalYOffset + fmCode.ascent)
 
             // Draw Underline
             lang?.annotationProvider?.cachedAnnotations?.firstOrNull {
                 it.range.contains(charIndex)
             }?.let {
-                g2d.color = it.severity.toColor(lang).toColor()
-                g2d.fillRect(x, y + height + fmCode.height - fmCode.descent / 2, charWidth, strokeWidth)
+                color = it.severity.toColor(lang).toColor()
+                fillRect(internalXOffset, internalYOffset + fmCode.height - fmCode.descent / 2, charWidth, strokeWidth)
             }
 
             // Draw Caret
             if (selector.caret.index == charIndex) {
-                g2d.color = foreground
-                g2d.fillRect(x, y + height, strokeWidth, fmCode.height)
+                color = foreground
+                fillRect(internalXOffset, internalYOffset, strokeWidth, fmCode.height)
             }
 
-            x += charWidth
+            internalXOffset += charWidth
 
             // Render inlay widgets
             lang?.widgetProvider?.cachedInlayWidgets?.filter { it.position.index == charIndex }?.forEach {
-                g2d.font = fontBase
-                g2d.color = foreground
-                g2d.drawString(it.content, x, y + height + fmBase.ascent)
-                x += fmBase.stringWidth(it.content)
+                val widgetDim = drawWidget(it, internalXOffset, internalYOffset, tempRenderedWidgets)
+                internalXOffset += widgetDim.width
             }
         }
 
         // Render inlay widgets
         lang?.widgetProvider?.cachedPostLineWidget?.filter { it.position.line == lineNumber }?.forEach {
-            g2d.font = fontBase
-            g2d.color = foreground
-            g2d.drawString(it.content, x, y + height + fmBase.ascent)
-            x += fmBase.stringWidth(it.content)
+            val widgetDim = drawWidget(it, internalXOffset, internalYOffset, tempRenderedWidgets)
+            internalXOffset += widgetDim.width
         }
 
         // Draw EOF Caret
         if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber) {
-            g2d.color = foreground
-            g2d.fillRect(x, y + height, strokeWidth, fmCode.height)
+            color = foreground
+            fillRect(internalXOffset, internalYOffset, strokeWidth, fmCode.height)
         }
-        return height + fmCode.height
+        return internalYOffset + fmCode.height - yOffset
     }
 
     fun Int?.toColor(): Color {
@@ -226,6 +284,29 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
     override fun getPreferredSize(): Dimension {
         return minimumSize
+    }
+
+    inner class MouseHandler : MouseListener {
+        override fun mouseClicked(e: MouseEvent?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun mousePressed(e: MouseEvent?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun mouseReleased(e: MouseEvent?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun mouseEntered(e: MouseEvent?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun mouseExited(e: MouseEvent?) {
+            TODO("Not yet implemented")
+        }
+
     }
 
     inner class KeyHandler : KeyAdapter() {
@@ -374,4 +455,5 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         override fun keyReleased(e: KeyEvent?) {}
     }
 
+    private data class Bounds(val x: Int, val y: Int, val width: Int, val height: Int)
 }
