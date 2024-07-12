@@ -16,7 +16,7 @@ import javax.swing.JFrame
  */
 fun main() {
     // Print a startup message to the console.
-    println("#######################################\nProSimWeb has a jvm ui?\nCrazy :D\n#######################################")
+    println("---------------------------------------\nProSimWeb more like ProSimJVM\n---------------------------------------")
 
     // Check if the application is running on Linux.
     if (SystemInfo.isLinux) {
@@ -25,9 +25,9 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    testNewEditor()
+    //testNewEditor()
     // Initialize and test the base application.
-    //launchBaseApp()
+    launchBaseApp()
 }
 
 /**
