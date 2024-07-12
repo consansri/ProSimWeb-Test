@@ -9,11 +9,18 @@ class CDialog(parent: Component) : JDialog() {
 
     init {
         //rootPane = CRootPane(tm, sm)
+        layout = BorderLayout()
         isAlwaysOnTop = true
         isUndecorated = true
         rootPane.isOpaque = false
         rootPane.background = Color(0, 0, 0, 0)
         contentPane.background = Color(0, 0, 0, 0)
+    }
+
+    override fun getPreferredSize(): Dimension {
+        val size = layout.preferredLayoutSize(this)
+
+        return Dimension(size.width + insets.left + insets.right,size.height + insets.top + insets.bottom)
     }
 
     companion object {
@@ -67,4 +74,6 @@ class CDialog(parent: Component) : JDialog() {
             return Triple(dialog, cPane, bPane)
         }
     }
+
+
 }

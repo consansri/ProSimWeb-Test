@@ -1,13 +1,11 @@
 package prosim.uilib.styled
 
 import prosim.uilib.styled.params.BorderMode
+import java.awt.BorderLayout
+import java.awt.Dimension
 import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.plaf.basic.BasicPanelUI
 
 open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JComponent() {
-
-
 
     var roundedCorners: Boolean = roundCorners
         set(value) {
@@ -30,10 +28,15 @@ open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode
         }
 
     init {
+        layout = BorderLayout()
+
         this.setUI(CPanelUI())
-
-        val ui = BasicPanelUI()
-
-        val panel = JPanel().preferredSize
+        revalidate()
+        repaint()
     }
+
+    override fun getPreferredSize(): Dimension {
+        return ui.getPreferredSize(this)
+    }
+
 }

@@ -59,7 +59,8 @@ open class CTextButton(text: String, fontType: FontType, val primary: Boolean = 
     }
 
     override fun getPreferredSize(): Dimension {
-        return ui.getPreferredSize(this)
+        val size = ui.getPreferredSize(this)
+        return size
     }
 
     override fun getMinimumSize(): Dimension {

@@ -2,6 +2,7 @@ package prosim.uilib.styled.editor3
 
 
 import cengine.editor.CodeEditor
+import cengine.editor.annotation.Annotation
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
@@ -15,16 +16,14 @@ import cengine.vfs.VirtualFile
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
 import prosim.uilib.UIStates
+import prosim.uilib.styled.COverlay
 import prosim.uilib.styled.CScrollPane
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
 import java.awt.*
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
+import java.awt.event.*
 import javax.swing.JComponent
 
 class CEditorArea(override val file: VirtualFile, project: Project) : JComponent(), CodeEditor {
@@ -47,6 +46,9 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
     private val lang get() = psiManager?.lang
 
+    // Children
+    val overlay = COverlay()
+
     // UI
 
     var fontCode: Font = FontType.CODE.getFont()
@@ -64,18 +66,25 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     }
 
     // TEMPORARY RENDERED ELEMENTS
+    private var rowHeaderWidth: Int = 0
+
     private var renderedLines: List<Pair<Bounds, Int>> = listOf()
     private var renderedWidgets: List<Pair<Bounds, Widget>> = listOf()
     private var renderedAnnotations: List<Pair<Bounds, Annotation>> = listOf()
 
+
     init {
         border = BorderMode.INSET.getBorder()
+        cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
         textModel.insert(0, "Hello World!\nNice World!")
         foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
         background = UIStates.theme.get().globalLaF.bgPrimary
         isFocusable = true
 
+        val mouseHandler = MouseHandler()
         addKeyListener(KeyHandler())
+        addMouseMotionListener(mouseHandler)
+        addMouseListener(mouseHandler)
 
         project.register(this) // to listen to file changes from other sources
 
@@ -110,13 +119,14 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private fun Graphics2D.renderEditorContent() {
         val tempRenderedLines = mutableListOf<Pair<Bounds, Int>>()
         val tempRenderedWidgets = mutableListOf<Pair<Bounds, Widget>>()
+        val tempRenderedAnnotations = mutableListOf<Pair<Bounds,Annotation>>()
 
         var yOffset = insets.top
         val xOffset = insets.left
         val lineNumberWidth = fmCode.stringWidth(textModel.lines.toString())
-        val xLineContentOffset = xOffset + lineNumberWidth + 2 * internalPadding
+        rowHeaderWidth = xOffset + lineNumberWidth + 2 * internalPadding
 
-        color = foreground
+        color = secBGColor
         drawLine(xOffset + lineNumberWidth + internalPadding, yOffset, xOffset + lineNumberWidth + internalPadding, yOffset + scrollPane.visibleRect.height)
 
         val selection = selector.selection.asRange()
@@ -124,7 +134,13 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         if (visibleLines == null) {
             (0..<textModel.lines).forEach { lineNumber ->
 
-                val height = renderLine(lineNumber, selection, yOffset, xLineContentOffset, tempRenderedWidgets)
+                // Render interline widgets
+                lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
+                    val widgetDimension = drawWidget(it, rowHeaderWidth, yOffset, tempRenderedWidgets)
+                    yOffset += widgetDimension.height
+                }
+
+                val height = renderLine(lineNumber, selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
 
                 drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height))
 
@@ -134,7 +150,14 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
             }
         } else {
             visibleLines.forEach { lineNumber ->
-                val height = renderLine(lineNumber, selection, yOffset, xLineContentOffset, tempRenderedWidgets)
+
+                // Render interline widgets
+                lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
+                    val widgetDimension = drawWidget(it, rowHeaderWidth, yOffset, tempRenderedWidgets)
+                    yOffset += widgetDimension.height
+                }
+
+                val height = renderLine(lineNumber, selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
 
                 drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height))
 
@@ -146,6 +169,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
         renderedLines = tempRenderedLines
         renderedWidgets = tempRenderedWidgets
+        renderedAnnotations = tempRenderedAnnotations
     }
 
     /**
@@ -154,9 +178,12 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private fun Graphics2D.drawWidget(widget: Widget, xOffset: Int, yOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>): Dimension {
         val widgetContentWidth = fmBase.getStringBounds(widget.content, this)
         val contentRect = Rectangle(xOffset + internalPadding, yOffset + fmCode.height / 2 - widgetContentWidth.height.toInt() / 2, widgetContentWidth.width.toInt(), widgetContentWidth.height.toInt())
-        val bgRect = Rectangle(contentRect.x - internalPadding / 2, contentRect.y - internalPadding / 2, contentRect.width + internalPadding, contentRect.height + internalPadding)
-        color = secBGColor
-        fillRect(bgRect.x, bgRect.y, bgRect.width, bgRect.height)
+
+        if (widget.type != Widget.Type.INTERLINE) {
+            val bgRect = Rectangle(contentRect.x - internalPadding / 2, contentRect.y - internalPadding / 2, contentRect.width + internalPadding, contentRect.height + internalPadding)
+            color = secBGColor
+            fillRoundRect(bgRect.x, bgRect.y, bgRect.width, bgRect.height, internalPadding, internalPadding)
+        }
 
         color = secFGColor
         font = fontBase
@@ -179,15 +206,10 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
      *
      * @return height of line (with drawn widgets)
      */
-    private fun Graphics2D.renderLine(lineNumber: Int, selection: IntRange?, yOffset: Int, xOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>): Int {
+    private fun Graphics2D.renderLine(lineNumber: Int, selection: IntRange?, yOffset: Int, xOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>, tempRenderedAnnotation: MutableList<Pair<Bounds,Annotation>>): Int {
         var internalYOffset = yOffset
         var internalXOffset = xOffset
 
-        // Render interline widgets
-        lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
-            val widgetDimension = drawWidget(it, internalXOffset, internalYOffset, tempRenderedWidgets)
-            internalYOffset += widgetDimension.height
-        }
 
         // Render line text with syntax highlighting
         val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
@@ -228,6 +250,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
             }?.let {
                 color = it.severity.toColor(lang).toColor()
                 fillRect(internalXOffset, internalYOffset + fmCode.height - fmCode.descent / 2, charWidth, strokeWidth)
+                tempRenderedAnnotation.add(Bounds(internalXOffset, internalYOffset, charWidth, fmCode.height) to it)
             }
 
             // Draw Caret
@@ -286,27 +309,51 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         return minimumSize
     }
 
-    inner class MouseHandler : MouseListener {
-        override fun mouseClicked(e: MouseEvent?) {
-            TODO("Not yet implemented")
+    inner class MouseHandler : MouseListener, MouseMotionListener {
+        override fun mouseClicked(e: MouseEvent) {
+            val widget = renderedWidgets.firstOrNull { it.first.isInBounds(e.x, e.y) } ?: return
+            widget.second.onClick()
         }
 
         override fun mousePressed(e: MouseEvent?) {
-            TODO("Not yet implemented")
+
         }
 
         override fun mouseReleased(e: MouseEvent?) {
-            TODO("Not yet implemented")
+
         }
 
         override fun mouseEntered(e: MouseEvent?) {
-            TODO("Not yet implemented")
+
         }
 
         override fun mouseExited(e: MouseEvent?) {
-            TODO("Not yet implemented")
+
         }
 
+        override fun mouseDragged(e: MouseEvent?) {
+
+        }
+
+        override fun mouseMoved(e: MouseEvent) {
+            val annotation = renderedAnnotations.firstOrNull { it.first.isInBounds(e.x, e.y) }
+            if (annotation != null) {
+                nativeLog("Annotation Hovered: ${annotation.second}")
+                val html = """
+                    <html>
+                    <body>
+                    <b>${annotation.second.severity}</b><br>
+                    ${annotation.second.message}
+                    </body>
+                    </html>
+                """.trimIndent()
+                overlay.setContent(html, true)
+                overlay.showAtLocation(e.x, e.y, 300, this@CEditorArea)
+                return
+            } else {
+                overlay.makeInvisible()
+            }
+        }
     }
 
     inner class KeyHandler : KeyAdapter() {
@@ -455,5 +502,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         override fun keyReleased(e: KeyEvent?) {}
     }
 
-    private data class Bounds(val x: Int, val y: Int, val width: Int, val height: Int)
+    private data class Bounds(val x: Int, val y: Int, val width: Int, val height: Int) {
+        fun isInBounds(x: Int, y: Int): Boolean = x > this.x && x < this.x + width && y > this.y && y < this.y + height
+    }
 }
