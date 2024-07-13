@@ -9,11 +9,14 @@ interface CodeFoldingProvider {
     fun getVisibleLines(totalLines: Int): List<LineIndicator> {
         val visibleLines = mutableListOf<LineIndicator>()
         var curr = 0
-        while (curr <= totalLines) {
+        while (curr < totalLines) {
+
+            val startLineFoldRegion = cachedFoldRegions.firstOrNull { it.startLine == curr && it.isFolded }
+            val inFoldedRegion = cachedFoldRegions.firstOrNull { it.foldedRange.contains(curr) && it.isFolded }
 
             when {
-                cachedFoldRegions.firstOrNull { it.startLine == curr && it.isFolded } != null -> visibleLines.add(LineIndicator(curr, true))
-                cachedFoldRegions.firstOrNull { it.foldedRange.contains(curr) && it.isFolded } == null -> visibleLines.add(LineIndicator(curr, false))
+                startLineFoldRegion != null -> visibleLines.add(LineIndicator(curr, true, startLineFoldRegion.placeholder))
+                inFoldedRegion == null -> visibleLines.add(LineIndicator(curr, false, ""))
             }
 
             curr++
