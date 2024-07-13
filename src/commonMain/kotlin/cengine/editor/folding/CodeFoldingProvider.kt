@@ -3,8 +3,8 @@ package cengine.editor.folding
 import cengine.psi.core.PsiFile
 
 interface CodeFoldingProvider {
-    var cachedFoldRegions: List<FoldRegion>
-    fun getFoldingRegions(psiFile: PsiFile): List<FoldRegion>
+    var cachedFoldRegions: List<FoldRegionImpl>
+    fun getFoldingRegions(psiFile: PsiFile): List<FoldRegionImpl>
 
     fun getVisibleLines(totalLines: Int): List<LineIndicator> {
         val visibleLines = mutableListOf<LineIndicator>()

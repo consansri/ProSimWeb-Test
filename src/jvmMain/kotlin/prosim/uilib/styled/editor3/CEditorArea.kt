@@ -3,7 +3,7 @@ package prosim.uilib.styled.editor3
 
 import cengine.editor.CodeEditor
 import cengine.editor.annotation.Annotation
-import cengine.editor.folding.FoldRegion
+import cengine.editor.folding.FoldRegionImpl
 import cengine.editor.folding.LineIndicator
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
@@ -78,7 +78,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private var renderedLines: List<Pair<Bounds, LineIndicator>> = listOf()
     private var renderedWidgets: List<Pair<Bounds, Widget>> = listOf()
     private var renderedAnnotations: List<Pair<Bounds, Annotation>> = listOf()
-    private var renderedFoldRegions: List<Pair<Bounds, FoldRegion>> = listOf()
+    private var renderedFoldRegions: List<Pair<Bounds, FoldRegionImpl>> = listOf()
 
     // Children
     val scrollPane = CScrollPane(true, this).apply {
@@ -135,7 +135,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         val tempRenderedLines = mutableListOf<Pair<Bounds, LineIndicator>>()
         val tempRenderedWidgets = mutableListOf<Pair<Bounds, Widget>>()
         val tempRenderedAnnotations = mutableListOf<Pair<Bounds, Annotation>>()
-        val tempRenderedFoldRegions = mutableListOf<Pair<Bounds, FoldRegion>>()
+        val tempRenderedFoldRegions = mutableListOf<Pair<Bounds, FoldRegionImpl>>()
 
         var yOffset = insets.top
         val xOffset = insets.left
@@ -212,7 +212,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         return widgetDimension
     }
 
-    private fun Graphics2D.drawLineNumber(indicator: LineIndicator, rect: Rectangle, renderedFoldRegions: MutableList<Pair<Bounds, FoldRegion>>) {
+    private fun Graphics2D.drawLineNumber(indicator: LineIndicator, rect: Rectangle, renderedFoldRegions: MutableList<Pair<Bounds, FoldRegionImpl>>) {
         color = secFGColor
         font = fontBase
         drawString((indicator.lineNumber + 1).toString(), rect.x + rect.width - fmBase.stringWidth((indicator.lineNumber + 1).toString()), rect.y + fmCode.height / 2 - fmBase.height / 2 + fmBase.ascent)
@@ -312,7 +312,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
             fillRect(internalXOffset, internalYOffset, strokeWidth, fmCode.height)
         }
 
-        if(indicator.isFoldedBeginning){
+        if (indicator.isFoldedBeginning) {
             val width = fmCode.stringWidth(indicator.placeHolder)
             color = markBGColor
             fillRect(internalXOffset, internalYOffset, width, fmCode.height)
@@ -351,12 +351,11 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         return minimumSize
     }
 
-    private fun getLCFromPos(x: Int, y: Int): Pair<Int, Int> {
-        val line = renderedLines.firstOrNull { it.first.isInBounds(x, y) }
-        val widgetOffset = renderedWidgets.mapNotNull {
-            if (y in it.first.y..(it.first.y + it.first.height)) {
-                null
-            } else {
+    private fun getLCFromPos(x: Int, y: Int): Pair<Int, Int>? {
+        val line = renderedLines.firstOrNull { y >= it.first.y && y < it.first.y + it.first.height } ?: return null
+
+        val xOffsets = renderedWidgets.mapNotNull {
+            if (y >= it.first.y && y < it.first.y + it.first.height) {
                 when {
                     it.first.x + it.first.width < x -> {
                         it.first.width
@@ -364,28 +363,26 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
                     it.first.x < x -> {
                         it.first.x + it.first.width - x
+
                     }
 
                     else -> null
                 }
+            } else {
+                null
             }
-        }.sumOf { it }
+        }
 
-        val col = (x - rowHeaderWidth - widgetOffset) / fmCode.charWidth(' ')
+        val widgetOffset = xOffsets.sum()
+
+        val col = (x + fmCode.charWidth(' ') / 2 - rowHeaderWidth - widgetOffset) / fmCode.charWidth(' ')
 
         val validCol = when {
             col < 0 -> 0
             else -> col
         }
 
-        val validLine = when {
-            line == null -> textModel.lines
-            else -> line.second.lineNumber
-        }
-
-        nativeLog("Decided $validLine, $validCol from coords $x, $y")
-
-        return validLine to validCol
+        return line.second.lineNumber to validCol
     }
 
     inner class MouseHandler : MouseListener, MouseMotionListener {
@@ -403,20 +400,18 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                 it.second.isFolded = !it.second.isFolded
             }
 
-            if (widget == null && foldRegion == null) {
-                val lc = getLCFromPos(e.x, e.y)
-                selector.moveCaretTo(lc.first, lc.second, e.isShiftDown)
-            }
-
             revalidate()
             repaint()
         }
 
-        override fun mousePressed(e: MouseEvent?) {
-
+        override fun mousePressed(e: MouseEvent) {
+            val lc = getLCFromPos(e.x, e.y)
+            lc?.let {
+                selector.moveCaretTo(lc.first, lc.second, e.isShiftDown)
+            }
         }
 
-        override fun mouseReleased(e: MouseEvent?) {
+        override fun mouseReleased(e: MouseEvent) {
 
         }
 
@@ -428,7 +423,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
 
         }
 
-        override fun mouseDragged(e: MouseEvent?) {
+        override fun mouseDragged(e: MouseEvent) {
 
         }
 

@@ -1,15 +1,15 @@
 package cengine.editor.folding
 
-/**
- * @param startLine 0..<lines
- * @param endLine 0..<lines
- * @param isFolded state of folding
- */
-data class FoldRegion(
-    val startLine: Int,
-    val endLine: Int,
-    var isFolded: Boolean,
-    val placeholder: String
-) {
-    val foldedRange = IntRange(startLine + 1, endLine)
+interface FoldRegion {
+
+    companion object{
+        val EMPTY_ARRAY: Array<FoldRegion> = arrayOf()
+    }
+
+    fun isExpanded(): Boolean
+
+    fun setExpanded(expanded: Boolean)
+
+    fun getPlaceHolderText(): String
+
 }
