@@ -6,13 +6,16 @@ interface CodeFoldingProvider {
     var cachedFoldRegions: List<FoldRegion>
     fun getFoldingRegions(psiFile: PsiFile): List<FoldRegion>
 
-    fun getVisibleLines(totalLines: Int): List<Int> {
-        val visibleLines = mutableListOf<Int>()
-        var curr = 1
+    fun getVisibleLines(totalLines: Int): List<LineIndicator> {
+        val visibleLines = mutableListOf<LineIndicator>()
+        var curr = 0
         while (curr <= totalLines) {
-            if (cachedFoldRegions.firstOrNull { it.foldedRange.contains(curr) } == null) {
-                visibleLines.add(curr)
+
+            when {
+                cachedFoldRegions.firstOrNull { it.startLine == curr && it.isFolded } != null -> visibleLines.add(LineIndicator(curr, true))
+                cachedFoldRegions.firstOrNull { it.foldedRange.contains(curr) && it.isFolded } == null -> visibleLines.add(LineIndicator(curr, false))
             }
+
             curr++
         }
         //nativeLog("Return visible lines: ${visibleLines.joinToString()}")

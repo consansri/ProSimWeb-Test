@@ -4,6 +4,7 @@ package prosim.uilib.styled.editor3
 import cengine.editor.CodeEditor
 import cengine.editor.annotation.Annotation
 import cengine.editor.folding.FoldRegion
+import cengine.editor.folding.LineIndicator
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
@@ -72,7 +73,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     private var rowHeaderWidth: Int = 0
     private var ankerRLineNumber: Int = 0
 
-    private var renderedLines: List<Pair<Bounds, Int>> = listOf()
+    private var renderedLines: List<Pair<Bounds, LineIndicator>> = listOf()
     private var renderedWidgets: List<Pair<Bounds, Widget>> = listOf()
     private var renderedAnnotations: List<Pair<Bounds, Annotation>> = listOf()
     private var renderedFoldRegions: List<Pair<Bounds, FoldRegion>> = listOf()
@@ -129,14 +130,14 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     }
 
     private fun Graphics2D.renderEditorContent() {
-        val tempRenderedLines = mutableListOf<Pair<Bounds, Int>>()
+        val tempRenderedLines = mutableListOf<Pair<Bounds, LineIndicator>>()
         val tempRenderedWidgets = mutableListOf<Pair<Bounds, Widget>>()
         val tempRenderedAnnotations = mutableListOf<Pair<Bounds, Annotation>>()
         val tempRenderedFoldRegions = mutableListOf<Pair<Bounds, FoldRegion>>()
 
         var yOffset = insets.top
         val xOffset = insets.left
-        val lineNumberWidth = fmCode.stringWidth(textModel.lines.toString())
+        val lineNumberWidth = fmCode.stringWidth((textModel.lines + 1).toString())
         rowHeaderWidth = xOffset + lineNumberWidth + fmCode.height + 3 * internalPadding
         ankerRLineNumber = xOffset + lineNumberWidth
 
@@ -153,28 +154,28 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                     yOffset += widgetDimension.height
                 }
 
-                val height = renderLine(lineNumber, selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
+                val height = renderLine(LineIndicator(lineNumber, false), selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
 
-                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height), tempRenderedFoldRegions)
+                drawLineNumber(LineIndicator(lineNumber, false), Rectangle(xOffset, yOffset, lineNumberWidth, height), tempRenderedFoldRegions)
 
-                tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to lineNumber
+                tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to LineIndicator(lineNumber, false)
 
                 yOffset += height
             }
         } else {
-            visibleLines.forEach { lineNumber ->
+            visibleLines.forEach { indicator ->
 
                 // Render interline widgets
-                lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == lineNumber }?.forEach {
+                lang?.widgetProvider?.cachedInterLineWidgets?.filter { it.position.line == indicator.lineNumber }?.forEach {
                     val widgetDimension = drawWidget(it, rowHeaderWidth, yOffset, tempRenderedWidgets)
                     yOffset += widgetDimension.height
                 }
 
-                val height = renderLine(lineNumber, selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
+                val height = renderLine(indicator, selection, yOffset, rowHeaderWidth, tempRenderedWidgets, tempRenderedAnnotations)
 
-                drawLineNumber(lineNumber, Rectangle(xOffset, yOffset, lineNumberWidth, height), tempRenderedFoldRegions)
+                drawLineNumber(indicator, Rectangle(xOffset, yOffset, lineNumberWidth, height), tempRenderedFoldRegions)
 
-                tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to lineNumber
+                tempRenderedLines += Bounds(xOffset, yOffset, Int.MAX_VALUE, height) to indicator
 
                 yOffset += height
             }
@@ -209,14 +210,14 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         return widgetDimension
     }
 
-    private fun Graphics2D.drawLineNumber(number: Int, rect: Rectangle, renderedFoldRegions: MutableList<Pair<Bounds, FoldRegion>>) {
+    private fun Graphics2D.drawLineNumber(indicator: LineIndicator, rect: Rectangle, renderedFoldRegions: MutableList<Pair<Bounds, FoldRegion>>) {
         color = secFGColor
         font = fontBase
-        drawString(number.toString(), rect.x + rect.width - fmBase.stringWidth(number.toString()), rect.y + fmCode.height / 2 - fmBase.height / 2 + fmBase.ascent)
+        drawString((indicator.lineNumber + 1).toString(), rect.x + rect.width - fmBase.stringWidth((indicator.lineNumber + 1).toString()), rect.y + fmCode.height / 2 - fmBase.height / 2 + fmBase.ascent)
 
         val foldRegions = lang?.codeFoldingProvider?.cachedFoldRegions ?: return
 
-        foldRegions.firstOrNull { it.startLine == number }?.let {
+        foldRegions.firstOrNull { it.startLine == indicator.lineNumber }?.let {
             if (it.isFolded) {
                 drawImage(collapseIcon.derive(fmCode.height, fmCode.height).image, rect.x + rect.width + internalPadding, rect.y, null)
             } else {
@@ -227,18 +228,18 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     }
 
     /**
-     * @param lineNumber starting with 1 to [textModel.lines]
+     * @param indicator starting with 0 to [textModel.lines]
      *
      * @return height of line (with drawn widgets)
      */
-    private fun Graphics2D.renderLine(lineNumber: Int, selection: IntRange?, yOffset: Int, xOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>, tempRenderedAnnotation: MutableList<Pair<Bounds, Annotation>>): Int {
+    private fun Graphics2D.renderLine(indicator: LineIndicator, selection: IntRange?, yOffset: Int, xOffset: Int, tempRenderedWidgets: MutableList<Pair<Bounds, Widget>>, tempRenderedAnnotation: MutableList<Pair<Bounds, Annotation>>): Int {
         var internalYOffset = yOffset
         var internalXOffset = xOffset
 
 
         // Render line text with syntax highlighting
-        val startingIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
-        val endIndex = textModel.getIndexFromLineAndColumn(lineNumber + 1, 0)
+        val startingIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber, 0)
+        val endIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber + 1, 0)
         //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
 
         val lineContent = textModel.substring(startingIndex, endIndex)
@@ -294,13 +295,13 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         }
 
         // Render inlay widgets
-        lang?.widgetProvider?.cachedPostLineWidget?.filter { it.position.line == lineNumber }?.forEach {
+        lang?.widgetProvider?.cachedPostLineWidget?.filter { it.position.line == indicator.lineNumber }?.forEach {
             val widgetDim = drawWidget(it, internalXOffset, internalYOffset, tempRenderedWidgets)
             internalXOffset += widgetDim.width
         }
 
         // Draw EOF Caret
-        if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineNumber) {
+        if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == indicator.lineNumber) {
             color = foreground
             fillRect(internalXOffset, internalYOffset, strokeWidth, fmCode.height)
         }
