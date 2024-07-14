@@ -60,6 +60,12 @@ class RopeModel(text: String = "") : TextModel {
         return index
     }
 
+    override fun findAllOccurrences(searchString: String, ignoreCase: Boolean): List<IntRange> {
+        if ((searchString.isEmpty() || length < searchString.length)) return emptyList()
+
+        return root.findAllOccurences(searchString, 0, ignoreCase).distinct()
+    }
+
     override fun toString(): String = root.substring(0, length).toString()
 
     fun printDebugTree() {
@@ -123,6 +129,8 @@ class RopeModel(text: String = "") : TextModel {
         abstract fun delete(start: Int, end: Int): Node
         abstract fun substring(start: Int, end: Int): StringBuilder
         abstract fun charAt(index: Int): Char
+
+        abstract fun findAllOccurences(searchString: String, startIndex: Int, ignoreCase: Boolean): List<IntRange>
 
         companion object {
             fun rebalance(node: Node): Node {
@@ -239,6 +247,16 @@ class RopeModel(text: String = "") : TextModel {
         override fun substring(start: Int, end: Int): StringBuilder = StringBuilder(text.substring(start, end))
 
         override fun charAt(index: Int): Char = text[index]
+        override fun findAllOccurences(searchString: String, startIndex: Int, ignoreCase: Boolean): List<IntRange> {
+            val results = mutableListOf<IntRange>()
+            var index = text.indexOf(searchString)
+            while (index != -1) {
+                val start = startIndex + index
+                results.add(start until start + searchString.length)
+                index = text.indexOf(searchString, index + 1, ignoreCase)
+            }
+            return results
+        }
     }
 
     private class Branch(left: Node, right: Node) : Node() {
@@ -354,6 +372,27 @@ class RopeModel(text: String = "") : TextModel {
             } else {
                 right.charAt(index - left.weight)
             }
+        }
+
+        override fun findAllOccurences(searchString: String, startIndex: Int, ignoreCase: Boolean): List<IntRange> {
+            val leftResult = left.findAllOccurences(searchString, startIndex, ignoreCase)
+            val rightResult = right.findAllOccurences(searchString, startIndex + left.weight, ignoreCase)
+
+            // Check for occurences that span the left and right nodes
+            val spanningResults = mutableListOf<IntRange>()
+            val spanLength = minOf(searchString.length - 1, left.lastLineLength + right.firstLineLength)
+            for (i in 0..spanLength) {
+                val start = left.weight - 1
+                if (start >= 0 && start + searchString.length <= weight) {
+                    val substring = substring(start, start + searchString.length).toString()
+
+                    if (substring.compareTo(searchString, ignoreCase) == 0) {
+                        spanningResults.add((startIndex + start) until (startIndex + start + searchString.length))
+                    }
+                }
+            }
+
+            return leftResult + spanningResults + rightResult
         }
     }
 

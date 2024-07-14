@@ -72,6 +72,26 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
         }
     }
 
+    override fun findAllOccurrences(searchString: String, ignoreCase: Boolean): List<IntRange> {
+        if (searchString.isEmpty() || text.isEmpty()) {
+            return emptyList()
+        }
+
+        val results = mutableListOf<IntRange>()
+        var startIndex = 0
+
+        while (true) {
+            val index = text.indexOf(searchString, startIndex, ignoreCase)
+
+            if(index == -1) break
+
+            results.add(index until index + searchString.length)
+            startIndex = index + 1
+        }
+
+        return results
+    }
+
     override fun toString(): String = text
 
     private fun calculateMaxColumns(): Int = text.split('\n').maxOfOrNull { it.length } ?: 0

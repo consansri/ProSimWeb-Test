@@ -36,5 +36,10 @@ interface TextModel: Editable {
      */
     fun getIndexFromLineAndColumn(line: Int, column: Int): Int
 
+    /**
+     * Searches all occurences of [searchString] in the model and returns a list of [IntRange].
+     */
+    fun findAllOccurrences(searchString: String, ignoreCase: Boolean = false): List<IntRange>
+
     override fun toString(): String
 }
