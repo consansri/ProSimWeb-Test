@@ -34,7 +34,7 @@ class StringModel(private var text: String) : cengine.editor.text.TextModel {
         return relString.count { it == '\n' } to index - lastLineCountIndex - 1
     }
 
-    override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
+    override fun indexOf(line: Int, column: Int): Int {
         require(line >= 0 && column >= 0) { "Line ($line) and Column ($column) must be non-negative" }
 
         var currLine = 0

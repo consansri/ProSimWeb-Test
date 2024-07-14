@@ -189,8 +189,8 @@ class PerformantCodeEditor(
         private suspend fun calculateLineInfo(indicator: LineIndicator): LineInfo {
             // Implement logic to calculate line information
             // This includes text, widgets, and folding placeholders
-            val startIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber, 0)
-            val endIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber + 1, 0)
+            val startIndex = textModel.indexOf(indicator.lineNumber, 0)
+            val endIndex = textModel.indexOf(indicator.lineNumber + 1, 0)
             val info = LineInfo(indicator, startIndex, endIndex, psiManager.getInterlineWidgets(indicator.lineNumber), psiManager.getInlayWidgets(indicator.lineNumber), if (indicator.isFoldedBeginning) indicator.placeHolder else null)
             return info
         }
@@ -280,26 +280,27 @@ class PerformantCodeEditor(
     }
 
     inner class Renderer {
-        val fmCode get() = vLayout.fmCode
-        val fmBase get() = vLayout.fmBase
+        private val strokeWidth: Int = 2
+        private val fmCode: FontMetrics get() = vLayout.fmCode
+        private val fmBase: FontMetrics get() = vLayout.fmBase
 
-        var fg: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
-        var bg: Color = UIStates.theme.get().globalLaF.bgPrimary
+        private var fg: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        private var bg: Color = UIStates.theme.get().globalLaF.bgPrimary
 
-        val foldIndication: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW).alpha(13)
-        val secFGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE4)
-        val secBGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE7)
+        private val foldIndication: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW).alpha(13)
+        private val secFGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE4)
+        private val secBGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE7)
 
-        val selColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x55)
-        val markBGColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x13)
+        private val selColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x55)
+        private val markBGColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x13)
 
-        val collapseIcon = UIStates.icon.get().folderClosed.apply {
+        private val collapseIcon = UIStates.icon.get().folderClosed.apply {
             colorFilter = ColorFilter() {
                 secFGColor
             }
         }
 
-        val ellapseIcon = UIStates.icon.get().folderOpen.apply {
+        private val ellapseIcon = UIStates.icon.get().folderOpen.apply {
             colorFilter = ColorFilter {
                 secFGColor
             }
@@ -369,7 +370,7 @@ class PerformantCodeEditor(
                 selection?.let {
                     if (charIndex in it) {
                         color = selColor
-                        fillRect(internalXOffset, internalYOffset, if(char == '\n') width else charWidth, vLayout.lineHeight)
+                        fillRect(internalXOffset, internalYOffset, if (char == '\n') width else charWidth, vLayout.lineHeight)
                     }
                 }
 
@@ -391,13 +392,13 @@ class PerformantCodeEditor(
                     it.range.contains(charIndex)
                 }?.let {
                     color = it.severity.toColor(lang).toColor()
-                    fillRect(internalXOffset, internalYOffset + vLayout.lineHeight - vLayout.linePadding, charWidth, CEditorArea.strokeWidth)
+                    fillRect(internalXOffset, internalYOffset + vLayout.lineHeight - vLayout.linePadding, charWidth, strokeWidth)
                 }
 
                 // Draw Caret
                 if (selector.caret.index == charIndex) {
                     color = foreground
-                    fillRect(internalXOffset, internalYOffset + vLayout.linePadding, CEditorArea.strokeWidth, fmCode.height)
+                    fillRect(internalXOffset, internalYOffset + vLayout.linePadding, strokeWidth, fmCode.height)
                 }
 
                 internalXOffset += charWidth
@@ -425,16 +426,16 @@ class PerformantCodeEditor(
 
             // Draw EOF Caret
             if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineInfo.lineNumber) {
-                color = foreground
-                fillRect(internalXOffset, internalYOffset + vLayout.linePadding, CEditorArea.strokeWidth, fmCode.height)
+                color = fg
+                fillRect(internalXOffset, internalYOffset + vLayout.linePadding, strokeWidth, fmCode.height)
             }
 
             if (lineInfo.foldingPlaceholder != null) {
                 val width = fmCode.stringWidth(lineInfo.foldingPlaceholder)
-                color = markBGColor
+                color = foldIndication
                 fillRect(internalXOffset, internalYOffset, width, vLayout.lineHeight)
 
-                color = foreground
+                color = fg
                 drawString(lineInfo.foldingPlaceholder, internalXOffset, internalYOffset + vLayout.linePadding + fmCode.ascent)
             }
         }
@@ -494,9 +495,15 @@ class PerformantCodeEditor(
     }
 
     inner class InputHandler : MouseListener, MouseMotionListener {
+
         override fun mouseClicked(e: MouseEvent) {
             launch {
                 vLayout.clickOnRowHeader(e.point)
+                if (e.clickCount == 2) {
+                    val line = vLayout.getLineAndColumnAt(e.point)
+                    val index = textModel.indexOf(line.line, line.column)
+                    selector.selectCurrentWord(index,('a'.rangeTo('z') + 'A'.rangeTo('Z') + '0'.rangeTo('9') + '_').toCharArray(), true)
+                }
                 invalidateContent()
             }
         }

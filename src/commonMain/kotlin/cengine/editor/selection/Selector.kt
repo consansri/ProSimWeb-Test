@@ -21,7 +21,7 @@ interface Selector {
     }
 
     fun moveCaretTo(line: Int, column: Int, shift: Boolean) {
-        val index = caret.model.getIndexFromLineAndColumn(line, column)
+        val index = caret.model.indexOf(line, column)
         moveCaretTo(index, shift)
     }
 
@@ -58,7 +58,7 @@ interface Selector {
         } else {
             (caret.line - offset).coerceAtLeast(0)
         }
-        val newIndex = caret.model.getIndexFromLineAndColumn(newLine, caret.col)
+        val newIndex = caret.model.indexOf(newLine, caret.col)
         moveCaretTo(newIndex, shift)
     }
 
@@ -71,7 +71,7 @@ interface Selector {
         } else {
             (caret.line + offset).coerceAtMost(caret.model.lines)
         }
-        val newIndex = caret.model.getIndexFromLineAndColumn(newLine, caret.col)
+        val newIndex = caret.model.indexOf(newLine, caret.col)
         moveCaretTo(newIndex, shift)
     }
 
@@ -83,11 +83,54 @@ interface Selector {
         moveCaretTo(caret.line, Int.MAX_VALUE, shift)
     }
 
+
     // Information
 
     fun caretIsAtHigherBoundOfSel(): Boolean = caret.index == selection.higher
 
     fun caretIsAtLowerBoundsOfSel(): Boolean = caret.index == selection.lower
+
+    /**
+     * Select the word at the caret.
+     */
+    fun selectCurrentWord(index: Int, chars: CharArray, isValidSet: Boolean) {
+        val start = indexOfWordStart(index, chars, isValidSet)
+        val end = indexOfWordEnd(index, chars, isValidSet)
+        selection.select(start, end)
+        caret.set(end)
+    }
+
+    /**
+     * Returns the index of the start of the current word that the caret is in.
+     * If the caret is at a word boundary, it returns the start of the next word.
+     * @param validChars Array of characters that are allowed to be part of the result.
+     */
+    fun indexOfWordStart(beginningIndex: Int, chars: CharArray, isValidSet: Boolean): Int {
+        var index = beginningIndex
+
+        // Move backward until we find an invalid character or the start of the text
+        while (index > 0 && (caret.model.charAt(index - 1) in chars) == isValidSet) {
+            index--
+        }
+
+        return index
+    }
+
+    /**
+     * Returns the index of the end of the current word that the caret is in.
+     * If the caret is at a word boundary, it returns the end of the previous word.
+     * @param validChars Array of characters considered as part of a word
+     */
+    fun indexOfWordEnd(beginningIndex: Int, chars: CharArray, isValidSet: Boolean): Int {
+        var index = beginningIndex
+
+        // Move forward until we find an invalid character or the end of the text
+        while (index < caret.model.length && (caret.model.charAt(index) in chars) == isValidSet) {
+            index++
+        }
+
+        return index
+    }
 
 
 }

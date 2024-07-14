@@ -17,7 +17,7 @@ data class Caret(
     var col: Int = 0
 
     fun set(line: Int, col: Int) {
-        index = model.getIndexFromLineAndColumn(line, col)
+        index = model.indexOf(line, col)
     }
 
     fun set(newIndex: Int) {
@@ -26,7 +26,7 @@ data class Caret(
 
     fun moveUp(offset: Int) {
         if (line - offset >= 0) {
-            index = model.getIndexFromLineAndColumn(line - offset, col)
+            index = model.indexOf(line - offset, col)
         }else{
             index = 0
         }
@@ -34,7 +34,7 @@ data class Caret(
 
     fun moveDown(offset: Int) {
         if (line + offset <= model.lines) {
-            index = model.getIndexFromLineAndColumn(line + offset, col)
+            index = model.indexOf(line + offset, col)
         }
     }
 

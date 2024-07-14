@@ -53,7 +53,7 @@ class RopeModel(text: String = "") : TextModel {
         return result.line to result.col
     }
 
-    override fun getIndexFromLineAndColumn(line: Int, column: Int): Int {
+    override fun indexOf(line: Int, column: Int): Int {
         require(line >= 0 && column >= 0) { "Line ($line) and column ($column) must be non-negative" }
         val index = root.getIndexFromLineAndColumn(line, column)
         //nativeLog("Index from LC($line,$column): $index")

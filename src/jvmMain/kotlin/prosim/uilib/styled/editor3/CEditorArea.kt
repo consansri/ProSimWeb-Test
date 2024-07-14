@@ -239,8 +239,8 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         var internalXOffset = xOffset
 
         // Render line text with syntax highlighting
-        val startingIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber, 0)
-        val endIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber + 1, 0)
+        val startingIndex = textModel.indexOf(indicator.lineNumber, 0)
+        val endIndex = textModel.indexOf(indicator.lineNumber + 1, 0)
         //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
 
         val lineContent = textModel.substring(startingIndex, endIndex)

@@ -80,10 +80,10 @@ class TestCEngine {
         val range = 0..<this.first.length
 
         val (fValue, fTime) = measureTimedValue {
-            first.getIndexFromLineAndColumn(0,0)
+            first.indexOf(0,0)
         }
         val (sValue, sTime) = measureTimedValue {
-            second.getIndexFromLineAndColumn(0,0)
+            second.indexOf(0,0)
         }
         nativeLog(
             "BoundsOf Index At LC: $fValue == $sValue" +
@@ -179,11 +179,11 @@ class TestCEngine {
 
         val fIndex: Int
         val fTime = measureTime {
-            fIndex = first.getIndexFromLineAndColumn(line, col)
+            fIndex = first.indexOf(line, col)
         }
         val sIndex: Int
         val sTime = measureTime {
-            sIndex = second.getIndexFromLineAndColumn(line, col)
+            sIndex = second.indexOf(line, col)
         }
         nativeLog("CompareIndexAtLC: Index: $fIndex pointsOn: ${first.charAt(fIndex)}" +
                 "\n\t${first::class.simpleName}\t\ttook ${fTime.inWholeNanoseconds}ns" +

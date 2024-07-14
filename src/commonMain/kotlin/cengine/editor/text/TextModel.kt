@@ -34,7 +34,7 @@ interface TextModel: Editable {
      *
      * @return line and column of a certain index.
      */
-    fun getIndexFromLineAndColumn(line: Int, column: Int): Int
+    fun indexOf(line: Int, column: Int): Int
 
     /**
      * Searches all occurences of [searchString] in the model and returns a list of [IntRange].
