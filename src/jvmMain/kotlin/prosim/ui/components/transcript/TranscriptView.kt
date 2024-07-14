@@ -208,6 +208,7 @@ class TranscriptView() : CPanel(primary = false) {
      * @param mainManager The main manager responsible for coordinating UI components and actions.
      */
     private fun highlightPCRow() {
+        modelView.resetCellHighlighting()
         val currPC = States.arch.get().regContainer.pc
 
         val index = content.indexOfFirst { it.address.toRawString() == currPC.get().toHex().toRawString() }
