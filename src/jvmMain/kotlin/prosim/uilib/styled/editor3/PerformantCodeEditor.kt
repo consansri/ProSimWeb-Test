@@ -14,6 +14,7 @@ import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.util.text.LineColumn
 import cengine.vfs.VirtualFile
+import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
 import kotlinx.coroutines.*
@@ -134,21 +135,25 @@ class PerformantCodeEditor(
         var fmBase = getFontMetrics(fontBase) // TODO make listen to Theme/Scale changes
             set(value) {
                 field = value
-                internalPadding = fmCode.height - fmBase.height / 2
+                internalPadding = lineHeight - fmBase.height / 2
             }
         var fmCode = getFontMetrics(codeFont) // TODO make listen to Theme/Scale changes
             set(value) {
                 field = value
-                fmLineHeight = value.height
+                lineHeight = value.height + 2 * linePadding
                 fmColumnWidth = value.charWidth(' ')
-                internalPadding = fmCode.height - fmBase.height / 2
+                internalPadding = lineHeight - fmBase.height / 2
             }
-        var fmLineHeight: Int = fmCode.height
+
+        val linePadding: Int = 2
+
+        var lineHeight: Int = fmCode.height + 2 * linePadding
+
         var fmColumnWidth: Int = fmCode.charWidth(' ') // TODO make listen to Theme/Scale changes
 
-        var internalPadding = (fmCode.height - fmBase.height) / 2
+        var internalPadding = (lineHeight - fmBase.height) / 2
 
-        val lineIconSize: Int get() = fmCode.height
+        val lineIconSize: Int get() = lineHeight
         val lineNumberWidth get() = fmCode.stringWidth((textModel.lines + 1).toString())
         val rowHeaderWidth get() = lineNumberWidth + 2 * lineIconSize + 4 * vLayout.internalPadding
         val foldIndicatorBounds: Rectangle get() = Rectangle(rowHeaderWidth - 2 * internalPadding - lineIconSize, 0, lineIconSize, lineIconSize)
@@ -169,7 +174,7 @@ class PerformantCodeEditor(
         suspend fun invalidateAllLines() {
             updateCache()
 
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 nativeLog("Repainting...")
                 revalidate()
                 repaint()
@@ -188,14 +193,14 @@ class PerformantCodeEditor(
             // This includes text, widgets, and folding placeholders
             val startIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber, 0)
             val endIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber + 1, 0)
-            val info = LineInfo(indicator, startIndex, endIndex, psiManager.getInterlineWidgets(indicator.lineNumber), psiManager.getInlayWidgets(indicator.lineNumber), if(indicator.isFoldedBeginning) indicator.placeHolder else null)
+            val info = LineInfo(indicator, startIndex, endIndex, psiManager.getInterlineWidgets(indicator.lineNumber), psiManager.getInlayWidgets(indicator.lineNumber), if (indicator.isFoldedBeginning) indicator.placeHolder else null)
             return info
         }
 
         fun getDocumentSize(): Dimension {
             val possibleLines = cachedLines
             val interlineWidgets = possibleLines.sumOf { it.interlineWidgets.size }
-            val height = (interlineWidgets + possibleLines.size) * fmLineHeight + insets.top + insets.bottom
+            val height = (interlineWidgets + possibleLines.size) * lineHeight + insets.top + insets.bottom
             val width = rowHeaderWidth + textModel.maxColumns * fmColumnWidth
             return Dimension(width, height)
         }
@@ -234,9 +239,9 @@ class PerformantCodeEditor(
             var lineNumber = 0
             while (lineNumber < cachedLines.size) {
                 val info = cachedLines[lineNumber]
-                val lineHeight = (info.interlineWidgets.size + 1) * fmLineHeight
+                val lineHeight = (info.interlineWidgets.size + 1) * lineHeight
 
-                if (y + visibleRect.y + fmLineHeight / 2 in yOffset..<(yOffset + lineHeight)) {
+                if (y + visibleRect.y + this.lineHeight / 2 in yOffset..<(yOffset + lineHeight)) {
                     return lineNumber
                 }
                 yOffset += lineHeight
@@ -289,8 +294,17 @@ class PerformantCodeEditor(
         val selColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x55)
         val markBGColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x13)
 
-        val collapseIcon = UIStates.icon.get().folderClosed
-        val ellapseIcon = UIStates.icon.get().folderOpen
+        val collapseIcon = UIStates.icon.get().folderClosed.apply {
+            colorFilter = ColorFilter(){
+                secFGColor
+            }
+        }
+
+        val ellapseIcon = UIStates.icon.get().folderOpen.apply {
+            colorFilter = ColorFilter {
+                secFGColor
+            }
+        }
 
         suspend fun render(g: Graphics2D, visibleLines: List<LineInfo>) {
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
@@ -319,9 +333,9 @@ class PerformantCodeEditor(
 
                 g.renderLine(lineInfo, selection, xOffset + rowHeaderWidth, yOffset)
 
-                g.drawLineNumber(lineInfo, Rectangle(xOffset, yOffset, vLayout.lineNumberWidth, vLayout.fmLineHeight))
+                g.drawLineNumber(lineInfo, Rectangle(xOffset, yOffset, vLayout.lineNumberWidth, vLayout.lineHeight))
 
-                yOffset += vLayout.fmLineHeight
+                yOffset += vLayout.lineHeight
             }
         }
 
@@ -344,7 +358,7 @@ class PerformantCodeEditor(
 
             if (selector.caret.line == lineInfo.lineNumber) {
                 color = markBGColor
-                fillRect(0, yOffset, size.width, fmCode.height)
+                fillRect(0, yOffset, size.width, vLayout.lineHeight)
             }
 
             for ((colID, charIndex) in (startIndex until endIndex).withIndex()) {
@@ -355,7 +369,7 @@ class PerformantCodeEditor(
                 selection?.let {
                     if (charIndex in it) {
                         color = selColor
-                        fillRect(internalXOffset, internalYOffset, charWidth, fmCode.height)
+                        fillRect(internalXOffset, internalYOffset, charWidth, vLayout.lineHeight)
                     }
                 }
 
@@ -370,20 +384,20 @@ class PerformantCodeEditor(
                         ).toColor()
 
                 font = codeFont
-                drawString(char.toString(), internalXOffset, internalYOffset + fmCode.ascent)
+                drawString(char.toString(), internalXOffset, internalYOffset + fmCode.ascent + vLayout.linePadding)
 
                 // Draw Underline
                 lang?.annotationProvider?.cachedAnnotations?.firstOrNull {
                     it.range.contains(charIndex)
                 }?.let {
                     color = it.severity.toColor(lang).toColor()
-                    fillRect(internalXOffset, internalYOffset + fmCode.height - fmCode.descent / 2, charWidth, CEditorArea.strokeWidth)
+                    fillRect(internalXOffset, internalYOffset + vLayout.lineHeight - vLayout.linePadding, charWidth, CEditorArea.strokeWidth)
                 }
 
                 // Draw Caret
                 if (selector.caret.index == charIndex) {
                     color = foreground
-                    fillRect(internalXOffset, internalYOffset, CEditorArea.strokeWidth, fmCode.height)
+                    fillRect(internalXOffset, internalYOffset + vLayout.linePadding, CEditorArea.strokeWidth, fmCode.height)
                 }
 
                 internalXOffset += charWidth
@@ -404,23 +418,23 @@ class PerformantCodeEditor(
             // Draw EOF Caret
             if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineInfo.lineNumber) {
                 color = foreground
-                fillRect(internalXOffset, internalYOffset, CEditorArea.strokeWidth, fmCode.height)
+                fillRect(internalXOffset, internalYOffset + vLayout.linePadding, CEditorArea.strokeWidth, fmCode.height)
             }
 
             if (lineInfo.foldingPlaceholder != null) {
                 val width = fmCode.stringWidth(lineInfo.foldingPlaceholder)
                 color = markBGColor
-                fillRect(internalXOffset, internalYOffset, width, fmCode.height)
+                fillRect(internalXOffset, internalYOffset, width, vLayout.lineHeight)
 
                 color = foreground
-                drawString(lineInfo.foldingPlaceholder, internalXOffset, internalYOffset + fmCode.ascent)
+                drawString(lineInfo.foldingPlaceholder, internalXOffset, internalYOffset + vLayout.linePadding + fmCode.ascent)
             }
         }
 
         private fun Graphics2D.drawLineNumber(lineInfo: LineInfo, rect: Rectangle) {
             color = secFGColor
             font = fontBase
-            drawString((lineInfo.lineNumber + 1).toString(), rect.x + rect.width - fmBase.stringWidth((lineInfo.lineNumber + 1).toString()), rect.y + fmCode.height / 2 - fmBase.height / 2 + fmBase.ascent)
+            drawString((lineInfo.lineNumber + 1).toString(), rect.x + rect.width - fmBase.stringWidth((lineInfo.lineNumber + 1).toString()), rect.y + vLayout.lineHeight / 2 - fmBase.height / 2 + fmBase.ascent)
 
             val foldRegions = lang?.codeFoldingProvider?.cachedFoldRegions ?: return
 
@@ -439,7 +453,7 @@ class PerformantCodeEditor(
          */
         private fun Graphics2D.drawWidget(widget: Widget, xOffset: Int, yOffset: Int): Dimension {
             val widgetContentWidth = fmBase.getStringBounds(widget.content, this)
-            val contentRect = Rectangle(xOffset + vLayout.internalPadding, yOffset + fmCode.height / 2 - widgetContentWidth.height.toInt() / 2, widgetContentWidth.width.toInt(), widgetContentWidth.height.toInt())
+            val contentRect = Rectangle(xOffset + vLayout.internalPadding, yOffset + vLayout.lineHeight / 2 - widgetContentWidth.height.toInt() / 2, widgetContentWidth.width.toInt(), widgetContentWidth.height.toInt())
 
             if (widget.type != Widget.Type.INTERLINE) {
                 val bgRect = Rectangle(contentRect.x - vLayout.internalPadding / 2, contentRect.y - vLayout.internalPadding / 2, contentRect.width + vLayout.internalPadding, contentRect.height + vLayout.internalPadding)
@@ -451,7 +465,7 @@ class PerformantCodeEditor(
             font = fontBase
             drawString(widget.content, contentRect.x, contentRect.y + fmBase.ascent)
 
-            val widgetDimension = Dimension(widgetContentWidth.width.toInt() + vLayout.internalPadding * 2, fmCode.height)
+            val widgetDimension = Dimension(widgetContentWidth.width.toInt() + vLayout.internalPadding * 2, vLayout.lineHeight)
 
             return widgetDimension
         }
