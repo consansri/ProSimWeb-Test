@@ -1,6 +1,7 @@
 package prosim.uilib.styled.editor3
 
 import cengine.editor.CodeEditor
+import cengine.editor.folding.LineIndicator
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
@@ -18,14 +19,13 @@ import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import prosim.uilib.UIStates
 import prosim.uilib.alpha
+import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
 import java.awt.*
 import java.awt.event.*
 import java.awt.image.BufferedImage
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JPanel
-import javax.swing.SwingUtilities
 
 class PerformantCodeEditor(
     override val file: VirtualFile,
@@ -64,13 +64,13 @@ class PerformantCodeEditor(
     init {
         isFocusable = true
         cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+        border = BorderMode.INSET.getBorder()
 
         addMouseListener(mouseHandler)
         addMouseMotionListener(mouseHandler)
         addKeyListener(keyHandler)
 
-        revalidate()
-        repaint()
+        invalidateContent()
     }
 
     private fun getBuffer(): Image {
@@ -84,11 +84,14 @@ class PerformantCodeEditor(
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         if (width <= 0 || height <= 0) return
+        val g2d = g.create() as Graphics2D
+        g2d.background = background
+        g2d.clearRect(0, 0, width, height)
 
-        val currBuffer = getBuffer()
+        /*val currBuffer = getBuffer()
         val bufferGraphics = currBuffer.graphics.create() as Graphics2D
         bufferGraphics.background = background
-        bufferGraphics.clearRect(0, 0, width, height)
+        bufferGraphics.clearRect(0, 0, width, height)*/
 
         /*bufferGraphics.color = Color.RED
         bufferGraphics.drawRect(0, 0, width - 1, height - 1)*/
@@ -97,9 +100,10 @@ class PerformantCodeEditor(
             val visibleRect = visibleRect
 
             val visibleLines = vLayout.getVisibleLines(visibleRect)
-            renderer.render(bufferGraphics, visibleLines)
+            renderer.render(g2d, visibleLines)
 
-            g.drawImage(buffer, 0, 0, this@PerformantCodeEditor)
+            //g.drawImage(buffer, 0, 0, this@PerformantCodeEditor)
+            g2d.dispose()
         }
 
         /*(g as? Graphics2D)?.let { g2d ->
@@ -112,149 +116,156 @@ class PerformantCodeEditor(
         return vLayout.getDocumentSize()
     }
 
-    fun updateContent() {
+    fun invalidateContent() {
         updateJob.getAndSet(launch {
-            updateJob.get()?.cancelAndJoin()
             updateLayoutAndWidgets()
-            SwingUtilities.invokeLater { repaint() }
         })?.cancel()
-        revalidate()
-        repaint()
     }
 
     private suspend fun updateLayoutAndWidgets() {
         vLayout.invalidateAllLines()
-        revalidate()
-        repaint()
         // TODO update psi
     }
 
     inner class VirtualLayout {
-        private val lineCache = ConcurrentHashMap<Int, Deferred<LineInfo>>()
+        val linePaddingAmount = 3
+
+        private var cachedLines: List<LineInfo> = listOf()
         var fmBase = getFontMetrics(fontBase) // TODO make listen to Theme/Scale changes
             set(value) {
                 field = value
-                widgetPadding = fmCode.height - fmBase.height / 2
+                internalPadding = fmCode.height - fmBase.height / 2
             }
         var fmCode = getFontMetrics(codeFont) // TODO make listen to Theme/Scale changes
             set(value) {
                 field = value
                 fmLineHeight = value.height
                 fmColumnWidth = value.charWidth(' ')
-                widgetPadding = fmCode.height - fmBase.height / 2
+                internalPadding = fmCode.height - fmBase.height / 2
             }
         var fmLineHeight: Int = fmCode.height
         var fmColumnWidth: Int = fmCode.charWidth(' ') // TODO make listen to Theme/Scale changes
 
-        var widgetPadding = fmCode.height - fmBase.height / 2
+        var internalPadding = (fmCode.height - fmBase.height) / 2
 
+        val lineIconSize: Int get() = fmCode.height
         val lineNumberWidth get() = fmCode.stringWidth((textModel.lines + 1).toString())
-        val rowHeaderWidth get() = lineNumberWidth + fmCode.height + 3 * vLayout.widgetPadding
+        val rowHeaderWidth get() = lineNumberWidth + 2 * lineIconSize + 4 * vLayout.internalPadding
+        val foldIndicatorBounds: Rectangle get() = Rectangle(rowHeaderWidth - 2 * internalPadding - lineIconSize, 0, lineIconSize, lineIconSize)
+        val preLineWidgetBounds: Rectangle get() = Rectangle(rowHeaderWidth - 3 * internalPadding - 2 * lineIconSize, 0, lineIconSize, lineIconSize)
 
         private fun Widget.calcSize(): Dimension {
             val width = fmBase.stringWidth(content)
-            return Dimension(width + 2 * widgetPadding, fmBase.height + 2 * widgetPadding)
+            return Dimension(width + 2 * internalPadding, fmBase.height + 2 * internalPadding)
         }
 
         suspend fun getVisibleLines(visibleRect: Rectangle): List<LineInfo> = coroutineScope {
-            val startLine = visibleRect.y / fmLineHeight
-            val endLine = (visibleRect.y + visibleRect.height) / fmLineHeight
+            val startLine = getCachedLineIndexAtY(visibleRect.y) - linePaddingAmount
+            val endLine = getCachedLineIndexAtY(visibleRect.y + visibleRect.height) + linePaddingAmount
 
-            (startLine..endLine).map { lineNumber ->
-                lineCache.getOrPut(lineNumber) {
-                    async(Dispatchers.Default) {
-                        calculateLineInfo(lineNumber)
-                    }
-                }.await()
+            cachedLines.subList(startLine.coerceAtLeast(0), endLine.coerceAtMost(cachedLines.size))
+        }
+
+        suspend fun invalidateAllLines() {
+            updateCache()
+
+            withContext(Dispatchers.Main){
+                nativeLog("Repainting...")
+                revalidate()
+                repaint()
             }
         }
 
-        fun invalidateAllLines() {
-            lineCache.clear()
+        private suspend fun updateCache() {
+            val possibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(textModel.lines) ?: List(textModel.lines) {
+                LineIndicator(it)
+            }
+            cachedLines = possibleLines.map { calculateLineInfo(it) }
         }
 
-        private suspend fun calculateLineInfo(lineNumber: Int): LineInfo {
+        private suspend fun calculateLineInfo(indicator: LineIndicator): LineInfo {
             // Implement logic to calculate line information
             // This includes text, widgets, and folding placeholders
-            val startIndex = textModel.getIndexFromLineAndColumn(lineNumber, 0)
-            val endIndex = textModel.getIndexFromLineAndColumn(lineNumber + 1, 0)
-            val info = LineInfo(lineNumber, startIndex, endIndex, textModel.substring(startIndex, endIndex), psiManager.getInterlineWidgets(lineNumber), psiManager.getInlayWidgets(lineNumber), null)
-            nativeLog(info.text)
+            val startIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber, 0)
+            val endIndex = textModel.getIndexFromLineAndColumn(indicator.lineNumber + 1, 0)
+            val info = LineInfo(indicator, startIndex, endIndex, psiManager.getInterlineWidgets(indicator.lineNumber), psiManager.getInlayWidgets(indicator.lineNumber), if(indicator.isFoldedBeginning) indicator.placeHolder else null)
             return info
         }
 
         fun getDocumentSize(): Dimension {
-            val width = textModel.maxColumns * fmColumnWidth
-            val height = textModel.lines * fmLineHeight
+            val possibleLines = cachedLines
+            val interlineWidgets = possibleLines.sumOf { it.interlineWidgets.size }
+            val height = (interlineWidgets + possibleLines.size) * fmLineHeight + insets.top + insets.bottom
+            val width = rowHeaderWidth + textModel.maxColumns * fmColumnWidth
             return Dimension(width, height)
         }
 
+        suspend fun clickOnRowHeader(point: Point): Boolean {
+            val inFoldBounds = (point.x + insets.left + visibleRect.x) in foldIndicatorBounds.x..<(foldIndicatorBounds.x + foldIndicatorBounds.width)
+            val line = getCachedLineIndexAtY(point.y)
+            if (inFoldBounds) {
+                val realLineNumber = cachedLines[line].lineNumber
+                lang?.codeFoldingProvider?.cachedFoldRegions?.firstOrNull { it.startLine == realLineNumber }?.let {
+                    it.isFolded = !it.isFolded
+                }
+                nativeLog("Click on Fold in line ${line + 1} ($realLineNumber).")
+                return true
+            }
+
+            val inWidgetBounds = (point.x + insets.left + visibleRect.x) in preLineWidgetBounds.x..<(preLineWidgetBounds.x + preLineWidgetBounds.width)
+            if (inWidgetBounds) {
+                nativeLog("Click on Widget in line ${line + 1}.")
+                return true
+            }
+
+            return false
+        }
+
         suspend fun getLineAndColumnAt(point: Point): LineColumn {
-            val line = getLineAtY(point.y)
+            val line = getCachedLineIndexAtY(point.y)
             val column = getColumnAtX(line, point.x)
-            val lc = LineColumn.of(line, column)
-            nativeLog("$lc")
+            val lc = LineColumn.of(cachedLines[line].lineNumber, column)
             return lc
         }
 
-        @OptIn(ExperimentalCoroutinesApi::class)
-        private suspend fun getLineAtY(y: Int): Int {
-            var yOffset = 0
+
+        private suspend fun getCachedLineIndexAtY(y: Int): Int {
+            var yOffset = insets.top
             var lineNumber = 0
-            while (lineNumber < textModel.lines) {
-                val lineHeight = try {
-                    when (val info = lineCache[lineNumber]?.getCompleted()) {
-                        null -> {
-                            fmLineHeight
-                        }
+            while (lineNumber < cachedLines.size) {
+                val info = cachedLines[lineNumber]
+                val lineHeight = (info.interlineWidgets.size + 1) * fmLineHeight
 
-                        else -> {
-                            (info.interlineWidgets.size + 1) * fmLineHeight
-                        }
-                    }
-                } catch (e: IllegalStateException) {
-                    fmLineHeight
-                }
-
-
-                if (y in yOffset..<(yOffset + lineHeight)) {
+                if (y + visibleRect.y + fmLineHeight / 2 in yOffset..<(yOffset + lineHeight)) {
                     return lineNumber
                 }
                 yOffset += lineHeight
                 lineNumber++
             }
-            return textModel.lines
+            return cachedLines.size - 1
         }
 
-        @OptIn(ExperimentalCoroutinesApi::class)
+
         private suspend fun getColumnAtX(line: Int, x: Int): Int {
             // calculate column
             if (x <= 0) return 0
 
-            var xOffset = 0
+            val info = cachedLines[line]
+            var xOffset = insets.left + visibleRect.x + rowHeaderWidth
             var column = 0
 
             while (column < textModel.maxColumns) {
-                val columnWidth = try {
-                    when (val info = lineCache[line]?.getCompleted()) {
-                        null -> fmColumnWidth
-                        else -> {
-                            val widgetAtCol = info.inlayWidgets.firstOrNull { it.position.col == column }
-                            if (widgetAtCol != null) {
-                                widgetAtCol.calcSize().width + fmColumnWidth
-                            } else {
-                                fmColumnWidth
-                            }
-                        }
-                    }
-
-                } catch (e: IllegalStateException) {
+                val widgetAtCol = info.inlayWidgets.firstOrNull { it.position.col == column }
+                val columnWidth = if (widgetAtCol != null) {
+                    widgetAtCol.calcSize().width + fmColumnWidth
+                } else {
                     fmColumnWidth
                 }
 
-                if (x in xOffset..<(xOffset + columnWidth)) {
+                if (x + fmColumnWidth / 2 in xOffset..<(xOffset + columnWidth)) {
                     return column
                 }
+
                 xOffset += columnWidth
                 column++
             }
@@ -281,8 +292,6 @@ class PerformantCodeEditor(
         val collapseIcon = UIStates.icon.get().folderClosed
         val ellapseIcon = UIStates.icon.get().folderOpen
 
-        var rowHeaderWidth = 0
-
         suspend fun render(g: Graphics2D, visibleLines: List<LineInfo>) {
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
             g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
@@ -296,11 +305,15 @@ class PerformantCodeEditor(
             val rowHeaderWidth = vLayout.rowHeaderWidth
             val selection = selector.selection.asRange()
 
+            g.color = secBGColor
+            val vSplitLineX = xOffset + rowHeaderWidth - vLayout.internalPadding
+            g.drawLine(vSplitLineX, 0, vSplitLineX, height)
+
             visibleLines.forEachIndexed { index, lineInfo ->
                 //nativeLog("Rendering ${lineInfo.lineNumber} with height ${vLayout.fmLineHeight} at $xOffset, $yOffset")
                 // Render interline widgets
                 lineInfo.interlineWidgets.filter { it.position.line == lineInfo.lineNumber }.forEach {
-                    val widgetDimension = g.drawWidget(it, rowHeaderWidth, yOffset)
+                    val widgetDimension = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
                     yOffset += widgetDimension.height
                 }
 
@@ -322,11 +335,11 @@ class PerformantCodeEditor(
             var internalXOffset = xOffset
 
             // Render line text with syntax highlighting
-            val startingIndex = lineInfo.startIndex
+            val startIndex = lineInfo.startIndex
             val endIndex = lineInfo.endIndex
             //nativeLog("Line $lineNumber: ${textModel.substring(startingIndex, endIndex)}")
 
-            val lineContent = lineInfo.text
+            val lineContent = textModel.substring(startIndex, endIndex)
             val highlights = lang?.highlightProvider?.fastHighlight(lineContent) ?: emptyList()
 
             if (selector.caret.line == lineInfo.lineNumber) {
@@ -334,9 +347,9 @@ class PerformantCodeEditor(
                 fillRect(0, yOffset, size.width, fmCode.height)
             }
 
-            for ((colID, charIndex) in (startingIndex until endIndex).withIndex()) {
+            for ((colID, charIndex) in (startIndex until endIndex).withIndex()) {
                 val char = lineContent[colID]
-                val charWidth = fmCode.charWidth(char)
+                val charWidth = if (char != '\n') fmCode.charWidth(char) else vLayout.fmColumnWidth / 2
 
                 // Draw Selection
                 selection?.let {
@@ -412,10 +425,11 @@ class PerformantCodeEditor(
             val foldRegions = lang?.codeFoldingProvider?.cachedFoldRegions ?: return
 
             foldRegions.firstOrNull { it.startLine == lineInfo.lineNumber }?.let {
+                val bounds = vLayout.foldIndicatorBounds
                 if (it.isFolded) {
-                    drawImage(collapseIcon.derive(fmCode.height, fmCode.height).image, rect.x + rect.width + CEditorArea.internalPadding, rect.y, null)
+                    drawImage(collapseIcon.derive(bounds.width, bounds.height).image, rect.x + bounds.x, rect.y, null)
                 } else {
-                    drawImage(ellapseIcon.derive(fmCode.height, fmCode.height).image, rect.x + rect.width + CEditorArea.internalPadding, rect.y, null)
+                    drawImage(ellapseIcon.derive(bounds.width, bounds.height).image, rect.x + bounds.x, rect.y, null)
                 }
             }
         }
@@ -425,19 +439,19 @@ class PerformantCodeEditor(
          */
         private fun Graphics2D.drawWidget(widget: Widget, xOffset: Int, yOffset: Int): Dimension {
             val widgetContentWidth = fmBase.getStringBounds(widget.content, this)
-            val contentRect = Rectangle(xOffset + CEditorArea.internalPadding, yOffset + fmCode.height / 2 - widgetContentWidth.height.toInt() / 2, widgetContentWidth.width.toInt(), widgetContentWidth.height.toInt())
+            val contentRect = Rectangle(xOffset + vLayout.internalPadding, yOffset + fmCode.height / 2 - widgetContentWidth.height.toInt() / 2, widgetContentWidth.width.toInt(), widgetContentWidth.height.toInt())
 
             if (widget.type != Widget.Type.INTERLINE) {
-                val bgRect = Rectangle(contentRect.x - CEditorArea.internalPadding / 2, contentRect.y - CEditorArea.internalPadding / 2, contentRect.width + CEditorArea.internalPadding, contentRect.height + CEditorArea.internalPadding)
+                val bgRect = Rectangle(contentRect.x - vLayout.internalPadding / 2, contentRect.y - vLayout.internalPadding / 2, contentRect.width + vLayout.internalPadding, contentRect.height + vLayout.internalPadding)
                 color = secBGColor
-                fillRoundRect(bgRect.x, bgRect.y, bgRect.width, bgRect.height, CEditorArea.internalPadding, CEditorArea.internalPadding)
+                fillRoundRect(bgRect.x, bgRect.y, bgRect.width, bgRect.height, vLayout.internalPadding, vLayout.internalPadding)
             }
 
             color = secFGColor
             font = fontBase
             drawString(widget.content, contentRect.x, contentRect.y + fmBase.ascent)
 
-            val widgetDimension = Dimension(widgetContentWidth.width.toInt() + CEditorArea.internalPadding * 2, fmCode.height)
+            val widgetDimension = Dimension(widgetContentWidth.width.toInt() + vLayout.internalPadding * 2, fmCode.height)
 
             return widgetDimension
         }
@@ -449,13 +463,16 @@ class PerformantCodeEditor(
     }
 
     inner class InputHandler : MouseListener, MouseMotionListener {
-        override fun mouseClicked(e: MouseEvent?) {
-
+        override fun mouseClicked(e: MouseEvent) {
+            launch {
+                vLayout.clickOnRowHeader(e.point)
+                invalidateContent()
+            }
         }
 
         override fun mousePressed(e: MouseEvent) {
             launch {
-                val lc = vLayout.getLineAndColumnAt(Point(e.x - vLayout.rowHeaderWidth - insets.left, e.y - insets.top))
+                val lc = vLayout.getLineAndColumnAt(e.point)
                 selector.moveCaretTo(lc.line, lc.column, e.isShiftDown)
                 repaint()
             }
@@ -475,7 +492,7 @@ class PerformantCodeEditor(
 
         override fun mouseDragged(e: MouseEvent) {
             launch {
-                val (line, column) = vLayout.getLineAndColumnAt(Point(e.x - vLayout.rowHeaderWidth - insets.left, e.y - insets.top))
+                val (line, column) = vLayout.getLineAndColumnAt(e.point)
                 selector.moveCaretTo(line, column, true)
                 repaint()
             }
@@ -501,7 +518,7 @@ class PerformantCodeEditor(
                     textStateModel.insert(selector.caret, newChar)
                 }
             }
-            updateContent()
+            invalidateContent()
         }
 
         override fun keyPressed(e: KeyEvent) {
@@ -626,9 +643,7 @@ class PerformantCodeEditor(
                     }
                 }
             }
-            updateContent()
-            revalidate()
-            repaint()
+            invalidateContent()
         }
 
         override fun keyReleased(e: KeyEvent?) {}
