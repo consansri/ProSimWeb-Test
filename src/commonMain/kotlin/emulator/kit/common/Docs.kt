@@ -17,6 +17,17 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
         DocFile.DefinedFile(
             "Current: Version - ${Constants.VERSION}",
             Chapter(
+              "Version - 0.2.6",
+                Section(
+                    "Fixed",
+                    UnlinkedList(
+                        Text("KIT: RV64 la assembler only accepting up until 32 bit offsets."),
+                        Text("JVM: Transcript never resetting pc mark."),
+                        Text("KIT: Automatic performance control dividing by zero.")
+                    )
+                )
+            ),
+            Chapter(
                 "Version - 0.2.5",
                 Section(
                     "New",
