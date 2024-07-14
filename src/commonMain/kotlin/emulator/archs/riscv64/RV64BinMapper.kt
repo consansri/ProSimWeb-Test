@@ -263,7 +263,7 @@ object RV64BinMapper {
             InstrType.La -> {
                 val regBin = regs[0]
 
-                val offset = (labelAddr - addr).toBin().getUResized(RV64.WORD_WIDTH)
+                val offset = (labelAddr - addr).toBin().getUResized(Bit64)
                 if (!offset.valid) {
                     throw Parser.ParserError(instr.rawInstr.instrName, "RV64 Syntax Issue - value exceeds maximum size! [Instr: ${instr.type.name}]\n${offset}")
                 }
