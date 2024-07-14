@@ -126,8 +126,6 @@ class PerformantCodeEditor(
     }
 
     inner class VirtualLayout {
-
-
         private var cachedLines: List<LineInfo> = listOf()
         var fmBase = getFontMetrics(fontBase) // TODO make listen to Theme/Scale changes
             set(value) {
@@ -255,7 +253,7 @@ class PerformantCodeEditor(
 
         private suspend fun getColumnAtX(line: Int, x: Int): Int {
             // calculate column
-            if (x <= 0) return 0
+            if (x <= insets.left + visibleRect.x + rowHeaderWidth) return 0
 
             val info = cachedLines[line]
             var xOffset = insets.left + visibleRect.x + rowHeaderWidth
@@ -279,8 +277,6 @@ class PerformantCodeEditor(
 
             return textModel.maxColumns
         }
-
-
     }
 
     inner class Renderer {
@@ -367,13 +363,13 @@ class PerformantCodeEditor(
 
             for ((colID, charIndex) in (startIndex until endIndex).withIndex()) {
                 val char = lineContent[colID]
-                val charWidth = if (char != '\n') fmCode.charWidth(char) else vLayout.fmColumnWidth / 2
+                val charWidth = fmCode.charWidth(char)
 
                 // Draw Selection
                 selection?.let {
                     if (charIndex in it) {
                         color = selColor
-                        fillRect(internalXOffset, internalYOffset, charWidth, vLayout.lineHeight)
+                        fillRect(internalXOffset, internalYOffset, if(char == '\n') width else charWidth, vLayout.lineHeight)
                     }
                 }
 
@@ -408,7 +404,15 @@ class PerformantCodeEditor(
 
                 // Render inlay widgets
                 lineInfo.inlayWidgets.filter { it.position.index == charIndex }.forEach {
+
                     val widgetDim = drawWidget(it, internalXOffset, internalYOffset)
+                    // Draw Selection under Widget
+                    selection?.let {
+                        if (charIndex in it) {
+                            color = selColor
+                            fillRect(internalXOffset, internalYOffset, widgetDim.width, vLayout.lineHeight)
+                        }
+                    }
                     internalXOffset += widgetDim.width
                 }
             }
@@ -526,7 +530,9 @@ class PerformantCodeEditor(
         }
 
         override fun mouseMoved(e: MouseEvent?) {
+            launch {
 
+            }
         }
     }
 
@@ -551,9 +557,9 @@ class PerformantCodeEditor(
             when (e.keyCode) {
                 KeyEvent.VK_TAB -> {
                     if (e.isShiftDown) {
-                        // remove Indent
+                        // remove Indent TODO
                     } else {
-                        // indent
+                        // indent TODO
                     }
                 }
 
