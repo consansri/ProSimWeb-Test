@@ -79,10 +79,10 @@ class PerformantCodeEditor(
 
     fun createScrollPane(): CScrollPane {
         val sp = CScrollPane(true, this).apply {
-            /*verticalScrollBar.blockIncrement = height
+            verticalScrollBar.blockIncrement = height
             horizontalScrollBar.blockIncrement = width
-            verticalScrollBar.unitIncrement = vLayout.lineHeight
-            horizontalScrollBar.unitIncrement = vLayout.fmColumnWidth*/
+            verticalScrollBar.unitIncrement = vLayout.lineHeight * 3
+            horizontalScrollBar.unitIncrement = vLayout.fmColumnWidth * 3
         }
         scrollPane = sp
         return sp
@@ -100,28 +100,14 @@ class PerformantCodeEditor(
         if (width <= 0 || height <= 0) return
         val g2d = g.create() as Graphics2D
 
-        /*val currBuffer = getBuffer()
-        val bufferGraphics = currBuffer.graphics.create() as Graphics2D
-        bufferGraphics.background = background
-        bufferGraphics.clearRect(0, 0, width, height)*/
-
-        /*bufferGraphics.color = Color.RED
-        bufferGraphics.drawRect(0, 0, width - 1, height - 1)*/
-
         runBlocking {
             val visibleRect = scrollPane?.visibleRect ?: visibleRect
 
             val visibleLines = vLayout.getVisibleLines(visibleRect)
             renderer.render(g2d, visibleLines)
 
-            //g.drawImage(buffer, 0, 0, this@PerformantCodeEditor)
             g2d.dispose()
         }
-
-        /*(g as? Graphics2D)?.let { g2d ->
-            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
-            g2d.drawImage(currBuffer, 0, 0, width, height, this)
-        }*/
     }
 
     override fun getPreferredSize(): Dimension {
@@ -140,7 +126,7 @@ class PerformantCodeEditor(
     }
 
     inner class VirtualLayout {
-        val linePaddingAmount = 0
+
 
         private var cachedLines: List<LineInfo> = listOf()
         var fmBase = getFontMetrics(fontBase) // TODO make listen to Theme/Scale changes
@@ -170,6 +156,9 @@ class PerformantCodeEditor(
         val foldIndicatorBounds: Rectangle get() = Rectangle(rowHeaderWidth - 2 * internalPadding - lineIconSize, 0, lineIconSize, lineIconSize)
         val preLineWidgetBounds: Rectangle get() = Rectangle(rowHeaderWidth - 3 * internalPadding - 2 * lineIconSize, 0, lineIconSize, lineIconSize)
 
+        private val bottomPadding = lineHeight * 3
+        private val rightPadding = fmColumnWidth * 3
+
         private fun Widget.calcSize(): Dimension {
             val width = fmBase.stringWidth(content)
             return Dimension(width + 2 * internalPadding, fmBase.height + 2 * internalPadding)
@@ -178,17 +167,15 @@ class PerformantCodeEditor(
 
         suspend fun getVisibleLines(visibleRect: Rectangle): VisibleLines = coroutineScope {
             val (startLine, startYOffset) = getCachedLineIndexAtY((-bounds.y).coerceAtLeast(insets.top))
-            val (endLine, endYOffset) = getCachedLineIndexAtY(-bounds.y + visibleRect.height + lineHeight)
-            nativeLog("VisibleLines: ${cachedLines.size} for $bounds from $visibleRect -> $startLine..<$endLine")
+            val (endLine, endYOffset) = getCachedLineIndexAtY((-bounds.y + visibleRect.height))
 
-            VisibleLines(cachedLines.subList(startLine.coerceAtLeast(0), endLine.coerceAtMost(cachedLines.size)), startYOffset)
+            VisibleLines(cachedLines.subList(startLine.coerceAtLeast(0), endLine + 1), startYOffset)
         }
 
         suspend fun invalidateAllLines() {
             updateCache()
 
             withContext(Dispatchers.Main) {
-                nativeLog("Repainting...")
                 revalidate()
                 repaint()
             }
@@ -213,8 +200,8 @@ class PerformantCodeEditor(
         fun getDocumentSize(): Dimension {
             val possibleLines = cachedLines
             val interlineWidgets = possibleLines.sumOf { it.interlineWidgets.size }
-            val height = (interlineWidgets + possibleLines.size) * lineHeight + insets.top + insets.bottom
-            val width = rowHeaderWidth + textModel.maxColumns * fmColumnWidth
+            val height = (interlineWidgets + possibleLines.size) * lineHeight + insets.top + insets.bottom + bottomPadding
+            val width = rowHeaderWidth + textModel.maxColumns * fmColumnWidth + rightPadding
             return Dimension(width, height)
         }
 
@@ -262,8 +249,7 @@ class PerformantCodeEditor(
                 yOffset += actualLineHeight
                 lineNumber++
             }
-            nativeLog("Couldn't find line for $y in $bounds")
-            return cachedLines.size - 1 to yOffset
+            return lineNumber - 1 to yOffset
         }
 
 
@@ -298,7 +284,6 @@ class PerformantCodeEditor(
     }
 
     inner class Renderer {
-
         val fmCode get() = vLayout.fmCode
         val fmBase get() = vLayout.fmBase
 
@@ -536,7 +521,6 @@ class PerformantCodeEditor(
             launch {
                 val (line, column) = vLayout.getLineAndColumnAt(e.point)
                 selector.moveCaretTo(line, column, true)
-                nativeLog("Mouse: ${e.point}, visibleRect: $visibleRect, bounds: $bounds")
                 repaint()
             }
         }
