@@ -26,9 +26,9 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    testNewEditor()
+    //testNewEditor()
     // Initialize and test the base application.
-    //launchBaseApp()
+    launchBaseApp()
 }
 
 /**
@@ -61,6 +61,4 @@ fun testNewEditor() {
     frame.isVisible = true
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 }
-
-
 
