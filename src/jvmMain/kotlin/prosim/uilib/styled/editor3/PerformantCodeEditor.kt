@@ -135,13 +135,13 @@ class PerformantCodeEditor(
         return vLayout.getDocumentSize()
     }
 
-    fun invalidateContent() {
+    override fun invalidateContent() {
         updateJob.getAndSet(launch {
-            updateLayoutAndWidgets()
+            updateContent()
         })?.cancel()
     }
 
-    private suspend fun updateLayoutAndWidgets() {
+    private suspend fun updateContent() {
         vLayout.invalidateAllLines()
         // TODO update psi
     }
@@ -355,13 +355,13 @@ class PerformantCodeEditor(
             colorFilter = ColorFilter() {
                 secFGColor
             }
-        }
+        }.derive(vLayout.lineIconSize, vLayout.lineIconSize).image
 
         private val ellapseIcon = UIStates.icon.get().folderOpen.apply {
             colorFilter = ColorFilter {
                 secFGColor
             }
-        }
+        }.derive(vLayout.lineIconSize, vLayout.lineIconSize).image
 
         suspend fun render(g: Graphics2D, visibleLines: VisibleLines) {
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
@@ -507,9 +507,9 @@ class PerformantCodeEditor(
             foldRegions.firstOrNull { it.startLine == lineInfo.lineNumber }?.let {
                 val bounds = vLayout.foldIndicatorBounds
                 if (it.isFolded) {
-                    drawImage(collapseIcon.derive(bounds.width, bounds.height).image, rect.x + bounds.x, rect.y, null)
+                    drawImage(collapseIcon, rect.x + bounds.x, rect.y, null)
                 } else {
-                    drawImage(ellapseIcon.derive(bounds.width, bounds.height).image, rect.x + bounds.x, rect.y, null)
+                    drawImage(ellapseIcon, rect.x + bounds.x, rect.y, null)
                 }
             }
         }

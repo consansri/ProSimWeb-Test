@@ -23,4 +23,7 @@ interface CodeEditor {
     fun loadFromFile() {
         textModel.replaceAll(file.getAsUTF8String())
     }
+
+    fun invalidateContent()
+
 }

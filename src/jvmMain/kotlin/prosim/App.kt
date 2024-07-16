@@ -6,7 +6,6 @@ import cengine.vfs.VFileSystem
 import com.formdev.flatlaf.util.SystemInfo
 import emulator.kit.nativeError
 import prosim.ui.components.NativeFrame
-import prosim.uilib.styled.editor3.CEditorArea
 import prosim.uilib.styled.editor3.PerformantCodeEditor
 import java.awt.Dimension
 import javax.swing.JDialog
@@ -26,9 +25,9 @@ fun main() {
         JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    //testNewEditor()
+    testNewEditor()
     // Initialize and test the base application.
-    launchBaseApp()
+    //launchBaseApp()
 }
 
 /**
@@ -50,7 +49,6 @@ fun testNewEditor() {
     val file = project.fileSystem.findFile(VFileSystem.DELIMITER + "test.cown")
     file?.let {
         val editor = PerformantCodeEditor(file, project)
-        val editor2 = CEditorArea(file, project)
         frame.contentPane = editor.createScrollPane()
         frame.title = "${file.path}, lang: ${editor.psiManager?.lang?.name}"
     } ?: {

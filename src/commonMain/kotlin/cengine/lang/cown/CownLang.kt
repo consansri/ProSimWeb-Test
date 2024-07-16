@@ -40,4 +40,6 @@ object CownLang: LanguageService {
             Severity.ERROR -> CodeStyle.RED.lightHexColor
         }
     }
+
+
 }
