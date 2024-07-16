@@ -83,7 +83,6 @@ interface Selector {
         moveCaretTo(caret.line, Int.MAX_VALUE, shift)
     }
 
-
     // Information
 
     fun caretIsAtHigherBoundOfSel(): Boolean = caret.index == selection.higher

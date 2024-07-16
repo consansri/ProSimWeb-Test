@@ -310,6 +310,7 @@ class PerformantCodeEditor(
 
         private suspend fun getColumnAtX(line: Int, x: Int): Int {
             // calculate column
+            TODO("has some bugs you should fix.")
             if (x <= insets.left - bounds.y + rowHeaderWidth) return 0
 
             val info = cachedLines[line]

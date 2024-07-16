@@ -10,7 +10,6 @@ interface Editable {
         insert(caret.index, new)
         caret.index += new.length
     }
-
     fun delete(start: Int, end: Int)
 
     fun delete(selection: Selection): Int {
@@ -19,6 +18,7 @@ interface Editable {
         delete(range.first, range.last + 1)
         return range.count()
     }
+
 
     fun replaceAll(new: String)
 }
