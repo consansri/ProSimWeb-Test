@@ -21,7 +21,6 @@ import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 import prosim.uilib.UIStates
 import prosim.uilib.alpha
-import prosim.uilib.styled.COverlay
 import prosim.uilib.styled.CScrollPane
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
@@ -31,7 +30,6 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import java.util.*
 import javax.swing.JComponent
-import javax.swing.SwingUtilities
 
 class CEditorArea(override val file: VirtualFile, project: Project) : JComponent(), CodeEditor {
 
@@ -84,9 +82,6 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
     val scrollPane = CScrollPane(true, this).apply {
         CScrollPane.removeArrowKeyScrolling(this)
     }
-
-    val annotationOverlay = COverlay()
-    val completionOverlay = COverlay()
 
     init {
         border = BorderMode.INSET.getBorder()
@@ -271,7 +266,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
                     ?.cachedHighlights
                     ?.firstOrNull { it.range.contains(charIndex) }
                     ?.color(lang)
-                    ).toColor()
+                    ).toColor(foreground)
 
             font = fontCode
             drawString(char.toString(), internalXOffset, internalYOffset + fmCode.ascent)
@@ -280,7 +275,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
             lang?.annotationProvider?.cachedAnnotations?.firstOrNull {
                 it.range.contains(charIndex)
             }?.let {
-                color = it.severity.toColor(lang).toColor()
+                color = it.severity.toColor(lang).toColor(foreground)
                 fillRect(internalXOffset, internalYOffset + fmCode.height - fmCode.descent / 2, charWidth, strokeWidth)
                 tempRenderedAnnotation.add(Bounds(internalXOffset, internalYOffset, charWidth, fmCode.height) to it)
             }
@@ -324,9 +319,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         return internalYOffset + fmCode.height - yOffset
     }
 
-    fun Int?.toColor(): Color {
-        return if (this == null) foreground else Color(this)
-    }
+
 
     private fun copyToClipboard(text: String) {
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
@@ -428,34 +421,7 @@ class CEditorArea(override val file: VirtualFile, project: Project) : JComponent
         }
 
         override fun mouseMoved(e: MouseEvent) {
-            lastMouseX = e.x
-            lastMouseY = e.y
 
-            hoverJob?.cancel()
-
-            SwingUtilities.invokeLater {
-                annotationOverlay.makeInvisible()
-            }
-
-            hoverJob = scope.launch {
-                delay(100)
-
-                val annotation = renderedAnnotations.firstOrNull { it.first.isInBounds(e.x, e.y) }
-                if (annotation != null) {
-                    val html = """
-                    <html>
-                    <body>
-                    <b>${annotation.second.severity}</b><br>
-                    ${annotation.second.message}
-                    </body>
-                    </html>
-                """.trimIndent()
-                    SwingUtilities.invokeLater {
-                        annotationOverlay.setContent("${annotation.second.severity}: ${annotation.second.message}", false)
-                        annotationOverlay.showAtLocation(e.x, e.y, 300, this@CEditorArea)
-                    }
-                }
-            }
         }
     }
 

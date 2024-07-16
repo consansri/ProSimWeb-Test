@@ -2,6 +2,7 @@ package prosim.uilib.styled.editor3
 
 import cengine.editor.widgets.Widget
 import cengine.psi.PsiManager
+import java.awt.Color
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -29,6 +30,10 @@ fun getClipboardContent(): String? {
     } else {
         null
     }
+}
+
+fun Int?.toColor(foreground: Color): Color {
+    return if (this == null) foreground else Color(this)
 }
 
 

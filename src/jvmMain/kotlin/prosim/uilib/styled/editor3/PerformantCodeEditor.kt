@@ -1,6 +1,7 @@
 package prosim.uilib.styled.editor3
 
 import cengine.editor.CodeEditor
+import cengine.editor.EditorModification
 import cengine.editor.folding.LineIndicator
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
@@ -27,12 +28,17 @@ import java.awt.event.*
 import java.awt.image.BufferedImage
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
-import javax.swing.JPanel
+import javax.swing.JComponent
+import javax.swing.SwingUtilities
 
 class PerformantCodeEditor(
     override val file: VirtualFile,
     project: Project,
-) : JPanel(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
+) : JComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
+    companion object {
+        val DEFAULT_SYMBOL_CHARS = ('a'.rangeTo('z') + 'A'.rangeTo('Z') + '0'.rangeTo('9') + '_').toCharArray()
+    }
+
     override val psiManager: PsiManager<*>? = project.getManager(file)
 
     override val textModel: TextModel = RopeModel(file.getAsUTF8String())
@@ -65,10 +71,23 @@ class PerformantCodeEditor(
     private val updateJob = AtomicReference<Job?>(null)
     private var buffer: Image? = null // will be resized later
 
+    private val modificationOverlay: ModificationOverlay<EditorModification> = ModificationOverlay<EditorModification>(this)
+
     init {
         isFocusable = true
         cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
         border = BorderFactory.createEmptyBorder(0, vLayout.internalPadding, 0, vLayout.internalPadding)
+
+        project.register(this) // to listen to file changes from other sources
+
+        file.onDiskChange = {
+            loadFromFile()
+            nativeLog("Reloaded Editor Content")
+            revalidate()
+            repaint()
+        }
+
+        loadFromFile()
 
         addMouseListener(mouseHandler)
         addMouseMotionListener(mouseHandler)
@@ -79,6 +98,7 @@ class PerformantCodeEditor(
 
     fun createScrollPane(): CScrollPane {
         val sp = CScrollPane(true, this).apply {
+            CScrollPane.removeArrowKeyScrolling(this)
             verticalScrollBar.blockIncrement = height
             horizontalScrollBar.blockIncrement = width
             verticalScrollBar.unitIncrement = vLayout.lineHeight * 3
@@ -155,17 +175,16 @@ class PerformantCodeEditor(
         val preLineWidgetBounds: Rectangle get() = Rectangle(rowHeaderWidth - 3 * internalPadding - 2 * lineIconSize, 0, lineIconSize, lineIconSize)
 
         private val bottomPadding = lineHeight * 3
-        private val rightPadding = fmColumnWidth * 3
+        private val rightPadding = fmColumnWidth * 20
 
         private fun Widget.calcSize(): Dimension {
             val width = fmBase.stringWidth(content)
             return Dimension(width + 2 * internalPadding, fmBase.height + 2 * internalPadding)
         }
 
-
         suspend fun getVisibleLines(visibleRect: Rectangle): VisibleLines = coroutineScope {
-            val (startLine, startYOffset) = getCachedLineIndexAtY((-bounds.y).coerceAtLeast(insets.top))
-            val (endLine, endYOffset) = getCachedLineIndexAtY((-bounds.y + visibleRect.height))
+            val (startLine, startYOffset) = getLineAtY((-bounds.y).coerceAtLeast(insets.top))
+            val (endLine, endYOffset) = getLineAtY((-bounds.y + visibleRect.height))
 
             VisibleLines(cachedLines.subList(startLine.coerceAtLeast(0), endLine + 1), startYOffset)
         }
@@ -205,7 +224,7 @@ class PerformantCodeEditor(
 
         suspend fun clickOnRowHeader(point: Point): Boolean {
             val inFoldBounds = (point.x + insets.left + visibleRect.x) in foldIndicatorBounds.x..<(foldIndicatorBounds.x + foldIndicatorBounds.width)
-            val (line, yOffset) = getCachedLineIndexAtY(point.y)
+            val (line, yOffset) = getLineAtY(point.y)
             if (inFoldBounds) {
                 val realLineNumber = cachedLines[line].lineNumber
                 lang?.codeFoldingProvider?.cachedFoldRegions?.firstOrNull { it.startLine == realLineNumber }?.let {
@@ -224,8 +243,45 @@ class PerformantCodeEditor(
             return false
         }
 
+        suspend fun getCoords(index: Int): Point {
+            var yOffset = 0
+            val xOffset = insets.left + rowHeaderWidth
+
+            for (lineInfo in cachedLines) {
+
+                if (index >= lineInfo.startIndex && index <= lineInfo.endIndex) {
+                    // Found the line containing the index
+                    val lineStartIndex = lineInfo.startIndex
+                    val columnInLine = index - lineStartIndex
+
+                    // Calculate y-coordinate
+                    yOffset += lineInfo.interlineWidgets.size * lineHeight
+
+                    var currentColumn = 0
+                    var currentXOffset = xOffset
+
+                    while (currentColumn < columnInLine) {
+                        val widgetAtCol = lineInfo.inlayWidgets.firstOrNull { it.position.col == currentColumn }
+                        if (widgetAtCol != null) {
+                            currentXOffset += widgetAtCol.calcSize().width
+                        }
+                        currentXOffset += fmColumnWidth
+                        currentColumn++
+                    }
+
+                    return Point(currentXOffset, yOffset)
+                }
+
+                // Move to the next line
+                yOffset += (lineInfo.interlineWidgets.size + 1) * lineHeight
+            }
+
+            // If index is out of bounds, return the coordinates of the last character
+            return Point(xOffset, yOffset - lineHeight)
+        }
+
         suspend fun getLineAndColumnAt(point: Point): LineColumn {
-            val (line, yOffset) = getCachedLineIndexAtY(point.y)
+            val (line, yOffset) = getLineAtY(point.y)
             val column = getColumnAtX(line, point.x)
             val lc = LineColumn.of(cachedLines[line].lineNumber, column)
             return lc
@@ -234,7 +290,7 @@ class PerformantCodeEditor(
         /**
          * @return the lineid to get the LineInfo through [cachedLines] and the yOffset where the line starts.
          */
-        private suspend fun getCachedLineIndexAtY(y: Int): Pair<Int, Int> {
+        private suspend fun getLineAtY(y: Int): Pair<Int, Int> {
             var yOffset = 0
             var lineNumber = 0
             while (lineNumber < cachedLines.size) {
@@ -253,10 +309,10 @@ class PerformantCodeEditor(
 
         private suspend fun getColumnAtX(line: Int, x: Int): Int {
             // calculate column
-            if (x <= insets.left + visibleRect.x + rowHeaderWidth) return 0
+            if (x <= insets.left - bounds.y + rowHeaderWidth) return 0
 
             val info = cachedLines[line]
-            var xOffset = insets.left + visibleRect.x + rowHeaderWidth
+            var xOffset = insets.left + rowHeaderWidth
             var column = 0
 
             while (column < textModel.maxColumns) {
@@ -482,10 +538,10 @@ class PerformantCodeEditor(
         private fun Graphics2D.drawCaretInfo() {
             color = secFGColor
             font = fontBase
-            val infoStr = "${selector.caret.line}:${selector.caret.col} (lines: ${textModel.lines})"
+            val infoStr = "${selector.caret.line}:${selector.caret.col}"
             val strWidth = fmBase.stringWidth(infoStr)
 
-            drawString(infoStr, width - strWidth - insets.right, height - insets.bottom - vLayout.lineHeight + vLayout.linePadding + fmCode.ascent)
+            drawString(infoStr, visibleRect.width - bounds.x - strWidth - insets.right, visibleRect.height - bounds.y - insets.bottom - vLayout.lineHeight + vLayout.linePadding + fmCode.ascent)
         }
 
         private fun Int?.toColor(): Color {
@@ -495,6 +551,9 @@ class PerformantCodeEditor(
     }
 
     inner class InputHandler : MouseListener, MouseMotionListener {
+        private var hoverJob: Job? = null
+        private var lastMouseX: Int = 0
+        private var lastMouseY: Int = 0
 
         override fun mouseClicked(e: MouseEvent) {
             launch {
@@ -502,7 +561,7 @@ class PerformantCodeEditor(
                 if (e.clickCount == 2) {
                     val line = vLayout.getLineAndColumnAt(e.point)
                     val index = textModel.indexOf(line.line, line.column)
-                    selector.selectCurrentWord(index,('a'.rangeTo('z') + 'A'.rangeTo('Z') + '0'.rangeTo('9') + '_').toCharArray(), true)
+                    selector.selectCurrentWord(index, DEFAULT_SYMBOL_CHARS, true)
                 }
                 invalidateContent()
             }
@@ -536,9 +595,28 @@ class PerformantCodeEditor(
             }
         }
 
-        override fun mouseMoved(e: MouseEvent?) {
-            launch {
+        override fun mouseMoved(e: MouseEvent) {
+            lastMouseX = e.x
+            lastMouseY = e.y
 
+            hoverJob?.cancel()
+
+            SwingUtilities.invokeLater {
+                modificationOverlay.makeInvisible()
+            }
+
+            hoverJob = launch {
+                delay(100)
+
+                val (line, column) = vLayout.getLineAndColumnAt(e.point)
+                val index = textModel.indexOf(line, column)
+                val annotations = lang?.annotationProvider?.cachedAnnotations?.filter { index in it.range } ?: listOf()
+
+                if (annotations.isNotEmpty()) {
+                    SwingUtilities.invokeLater {
+                        modificationOverlay.showOverlay(annotations, e.x, e.y, this@PerformantCodeEditor)
+                    }
+                }
             }
         }
     }
@@ -614,8 +692,24 @@ class PerformantCodeEditor(
                 }
 
                 KeyEvent.VK_ENTER -> {
-                    textStateModel.delete(selector.selection)
-                    textStateModel.insert(selector.caret, "\n")
+                    when {
+                        e.isAltDown -> {
+                            launch {
+                                val annotations = lang?.annotationProvider?.cachedAnnotations?.filter { selector.caret.index in it.range } ?: listOf()
+                                val coords = vLayout.getCoords(selector.caret.index)
+                                if (annotations.isNotEmpty()) {
+                                    SwingUtilities.invokeLater {
+                                        modificationOverlay.showOverlay(annotations, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
+                                    }
+                                }
+                            }
+                        }
+
+                        else -> {
+                            textStateModel.delete(selector.selection)
+                            textStateModel.insert(selector.caret, "\n")
+                        }
+                    }
                 }
 
                 KeyEvent.VK_LEFT -> {

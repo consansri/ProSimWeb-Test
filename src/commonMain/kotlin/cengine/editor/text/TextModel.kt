@@ -11,9 +11,8 @@ interface TextModel: Editable {
     fun substring(start: Int, end: Int): String
 
     fun substring(selection: Selection): String {
-        val start = selection.start ?: return ""
-        val end = selection.end ?: return ""
-        return substring(start, end)
+        val range = selection.asRange() ?: return ""
+        return substring(range.first, range.last + 1)
     }
 
     fun charAt(index: Int): Char
