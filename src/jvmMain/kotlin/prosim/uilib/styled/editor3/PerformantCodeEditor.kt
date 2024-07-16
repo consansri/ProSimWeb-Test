@@ -37,6 +37,7 @@ class PerformantCodeEditor(
 ) : JComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
     companion object {
         val DEFAULT_SYMBOL_CHARS = ('a'.rangeTo('z') + 'A'.rangeTo('Z') + '0'.rangeTo('9') + '_').toCharArray()
+        val DEFAULT_SPACING_SET = charArrayOf(' ', '\n')
     }
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
@@ -629,10 +630,11 @@ class PerformantCodeEditor(
 
                 }
 
-                e.keyChar.isDefined() -> {
+                e.keyChar.isDefined() && !e.isControlDown -> {
                     val newChar = e.keyChar.toString()
                     textStateModel.delete(selector.selection)
                     textStateModel.insert(selector.caret, newChar)
+                    e.consume()
                 }
             }
             invalidateContent()
@@ -687,6 +689,24 @@ class PerformantCodeEditor(
                         if (selected.isNotEmpty()) {
                             copyToClipboard(selected)
                             textStateModel.delete(selector.selection)
+                        }
+                    }
+                }
+
+                KeyEvent.VK_SPACE -> {
+                    when {
+                        e.isControlDown -> {
+                            launch {
+                                val prefixIndex = selector.indexOfWordStart(selector.caret.index, DEFAULT_SYMBOL_CHARS, true)
+                                val prefix = textModel.substring(prefixIndex, selector.caret.index)
+                                val completions = lang?.completionProvider?.getCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
+                                val coords = vLayout.getCoords(selector.caret.index)
+                                if (completions.isNotEmpty()) {
+                                    SwingUtilities.invokeLater {
+                                        modificationOverlay.showOverlay(completions, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
+                                    }
+                                }
+                            }
                         }
                     }
                 }

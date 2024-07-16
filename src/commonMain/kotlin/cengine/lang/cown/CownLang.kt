@@ -19,7 +19,7 @@ object CownLang: LanguageService {
     override val psiParser: PsiParser = CownPsiParser()
     override val codeFoldingProvider: CodeFoldingProvider = CownFolder()
     override val widgetProvider: WidgetProvider = CownWidgets()
-    override val completionProvider: CompletionProvider? = null
+    override val completionProvider: CompletionProvider = CownCompleter()
     override val annotationProvider: AnnotationProvider = CownAnnotator()
     override val highlightProvider: HighlightProvider = CownHighlighter()
 

@@ -1,6 +1,5 @@
 package prosim.uilib.styled.editor3
 
-import cengine.editor.CodeEditor
 import cengine.editor.EditorModification
 import emulator.kit.assembler.CodeStyle
 import prosim.uilib.UIStates
@@ -29,7 +28,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
         list.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 if (e.clickCount == 2) {
-                    selectCurrentItem(editor)
+                    selectCurrentItem()
                 }
             }
         })
@@ -38,7 +37,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
             override fun keyPressed(e: KeyEvent) {
                 when (e.keyCode) {
                     KeyEvent.VK_ENTER -> {
-                        selectCurrentItem(editor)
+                        selectCurrentItem()
                         e.consume()
                     }
                     KeyEvent.VK_ESCAPE -> {
@@ -73,15 +72,16 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
         listModel.clear()
         items.forEach { listModel.addElement(it) }
 
-        showAtLocation(x, y, null,null, parentComponent)
+        showAtLocation(x, y, width,height, parentComponent)
         list.requestFocusInWindow()
     }
 
-    private fun selectCurrentItem(editor: CodeEditor) {
+    private fun selectCurrentItem() {
         val selectedValue = list.selectedValue
         if (selectedValue != null) {
             selectedValue.execute(editor)
             makeInvisible()
+            editor.invalidateContent()
         }
     }
 
