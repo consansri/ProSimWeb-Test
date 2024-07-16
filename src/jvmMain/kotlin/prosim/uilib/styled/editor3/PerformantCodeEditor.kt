@@ -623,6 +623,7 @@ class PerformantCodeEditor(
     }
 
     inner class KeyHandler : KeyAdapter() {
+        var completionJob: Job? = null
         override fun keyTyped(e: KeyEvent) {
             // Character Insertion
             when {
@@ -637,6 +638,7 @@ class PerformantCodeEditor(
                     e.consume()
                 }
             }
+            fetchCompletions()
             invalidateContent()
         }
 
@@ -696,17 +698,7 @@ class PerformantCodeEditor(
                 KeyEvent.VK_SPACE -> {
                     when {
                         e.isControlDown -> {
-                            launch {
-                                val prefixIndex = selector.indexOfWordStart(selector.caret.index, DEFAULT_SYMBOL_CHARS, true)
-                                val prefix = textModel.substring(prefixIndex, selector.caret.index)
-                                val completions = lang?.completionProvider?.getCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
-                                val coords = vLayout.getCoords(selector.caret.index)
-                                if (completions.isNotEmpty()) {
-                                    SwingUtilities.invokeLater {
-                                        modificationOverlay.showOverlay(completions, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
-                                    }
-                                }
-                            }
+                            fetchCompletions(true)
                         }
                     }
                 }
@@ -800,6 +792,28 @@ class PerformantCodeEditor(
         }
 
         override fun keyReleased(e: KeyEvent?) {}
+
+        private fun fetchCompletions(showIfPrefixIsEmpty: Boolean = false) {
+            completionJob?.cancel()
+
+            SwingUtilities.invokeLater {
+                modificationOverlay.makeInvisible()
+            }
+
+            completionJob = launch {
+                val prefixIndex = selector.indexOfWordStart(selector.caret.index, DEFAULT_SYMBOL_CHARS, true)
+                val prefix = textModel.substring(prefixIndex, selector.caret.index)
+                if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
+                    val completions = lang?.completionProvider?.getCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
+                    val coords = vLayout.getCoords(selector.caret.index)
+                    if (completions.isNotEmpty()) {
+                        SwingUtilities.invokeLater {
+                            modificationOverlay.showOverlay(completions, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     data class VisibleLines(val lines: List<LineInfo>, val yOffset: Int)

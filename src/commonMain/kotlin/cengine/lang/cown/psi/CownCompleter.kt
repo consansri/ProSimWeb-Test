@@ -8,15 +8,13 @@ import cengine.psi.core.PsiFile
 
 class CownCompleter : CompletionProvider {
 
-
-
     override fun getCompletions(textModel: TextModel, offset: Int, prefix: String, psiFile: PsiFile?): List<Completion> {
         return CownLexer.keywords
-            .filter { it.startsWith(prefix, ignoreCase = true) }
+            .filter { it.startsWith(prefix, ignoreCase = true) && prefix.length != it.length }
             .map { keyword ->
                 Completion(
                     keyword,
-                    keyword.removePrefix(prefix),
+                    keyword.substring(prefix.length),
                 )
             }
     }

@@ -8,6 +8,7 @@ import prosim.uilib.styled.COverlay
 import prosim.uilib.styled.CScrollPane
 import prosim.uilib.styled.params.FontType
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Component
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -20,7 +21,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
     private val list = JList(listModel)
     private val scrollPane = CScrollPane(true, list)
 
-    companion object{
+    companion object {
         const val MAX_VISIBLE_ITEMS = 5
     }
 
@@ -94,6 +95,10 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
         listModel.clear()
         items.forEach { listModel.addElement(it) }
 
+        if (items.isNotEmpty()) {
+            list.selectedIndex = 0
+        }
+
         val oneItemHeight = list.cellRenderer.getListCellRendererComponent(list, items.firstOrNull(), 0, false, false).preferredSize.height
 
         val height = items.size.coerceAtMost(MAX_VISIBLE_ITEMS) * oneItemHeight
@@ -112,10 +117,11 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
     }
 
     private inner class OverlayItemRenderer : DefaultListCellRenderer() {
+        val selectedBGColor: Color get() = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x33)
         override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
             foreground = (value as? EditorModification)?.severity?.toColor(editor.psiManager?.lang).toColor(UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0))
-            background = if(cellHasFocus) UIStates.theme.get().codeLaF.selectionColor.alpha(0x33) else UIStates.theme.get().globalLaF.bgPrimary
+            background = if (cellHasFocus) selectedBGColor else UIStates.theme.get().globalLaF.bgPrimary
             border = BorderFactory.createEmptyBorder()
             roundedCorners = true
             font = FontType.CODE.getFont()

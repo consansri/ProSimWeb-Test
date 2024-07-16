@@ -12,7 +12,14 @@ abstract class COverlay : CPanel(isOverlay = true) {
     }
 
     fun showAtLocation(x: Int, y: Int, width: Int?, height: Int?, parentComponent: JComponent) {
-        this.setBounds(x, y, width ?: preferredSize.width, height ?: preferredSize.height)
+        val actualWidth = if(width != null){
+            width + insets.left + insets.right
+        }else preferredSize.width
+        val actualHeight = if(height != null){
+            height + insets.top + insets.bottom
+        }else preferredSize.height
+
+        this.setBounds(x, y, actualWidth, actualHeight)
         parentComponent.add(this)
         parentComponent.revalidate()
         isVisible = true

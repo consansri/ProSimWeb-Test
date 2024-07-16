@@ -1,12 +1,21 @@
+package cengine.lang.cown.psi
 
-ok ja moin hier ist ein inlay!ok ja moin hier ist ein inlay!ok ja moin hier ist ein inlay!ok ja moin hier ist ein inlay!ok ja moin hier ist ein inlay!ok ja moin hier ist ein inlay!ok ja moin hier ist ein inlay!
-This could be my own language!
+import cengine.editor.completion.Completion
+import cengine.editor.completion.CompletionProvider
+import cengine.editor.text.TextModel
+import cengine.lang.cown.CownLexer
+import cengine.psi.core.PsiFile
 
+class CownCompleter : CompletionProvider {
 
-fun main() {
-
+    override fun getCompletions(textModel: TextModel, offset: Int, prefix: String, psiFile: PsiFile?): List<Completion> {
+        return CownLexer.keywords
+            .filter { it.startsWith(prefix, ignoreCase = true) && prefix.length != it.length }
+            .map { keyword ->
+                Completion(
+                    keyword,
+                    keyword.substring(prefix.length),
+                )
+            }
+    }
 }
-
-
-ok nice was geht ab usw.?
-
