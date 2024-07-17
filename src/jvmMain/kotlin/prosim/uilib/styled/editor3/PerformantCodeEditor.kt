@@ -18,6 +18,7 @@ import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import prosim.uilib.UIStates
 import prosim.uilib.alpha
@@ -310,8 +311,7 @@ class PerformantCodeEditor(
 
         private suspend fun getColumnAtX(line: Int, x: Int): Int {
             // calculate column
-            TODO("has some bugs you should fix.")
-            if (x <= insets.left - bounds.y + rowHeaderWidth) return 0
+            if (x <= insets.left + visibleRect.x + rowHeaderWidth) return 0
 
             val info = cachedLines[line]
             var xOffset = insets.left + rowHeaderWidth
@@ -802,17 +802,22 @@ class PerformantCodeEditor(
             }
 
             completionJob = launch {
-                val prefixIndex = selector.indexOfWordStart(selector.caret.index, DEFAULT_SYMBOL_CHARS, true)
-                val prefix = textModel.substring(prefixIndex, selector.caret.index)
-                if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
-                    val completions = lang?.completionProvider?.getCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
-                    val coords = vLayout.getCoords(selector.caret.index)
-                    if (completions.isNotEmpty()) {
-                        SwingUtilities.invokeLater {
-                            modificationOverlay.showOverlay(completions, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
+                try {
+                    val prefixIndex = selector.indexOfWordStart(selector.caret.index, DEFAULT_SYMBOL_CHARS, true)
+                    val prefix = textModel.substring(prefixIndex, selector.caret.index)
+                    if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
+                        val completions = lang?.completionProvider?.getCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
+                        val coords = vLayout.getCoords(selector.caret.index)
+                        if (completions.isNotEmpty()) {
+                            SwingUtilities.invokeLater {
+                                modificationOverlay.showOverlay(completions, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
+                            }
                         }
                     }
+                } catch (e: Exception) {
+                    nativeWarn("Completion canceled by edit.")
                 }
+
             }
         }
     }

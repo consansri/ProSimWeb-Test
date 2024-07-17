@@ -42,12 +42,12 @@ class RopeModel(text: String = "") : TextModel {
     }
 
     override fun charAt(index: Int): Char {
-//        require(index in 0 until length) { "Index out of bounds" }
+        require(index in 0 until length) { "Index out of bounds" }
         return root.charAt(index)
     }
 
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
-        //require(index in 0..length) { "Index ($index) out of bounds" }
+        require(index in 0..length) { "Index ($index) out of bounds" }
         val result = root.getLineAndColumn(index)
         //nativeLog("LC from Index($index): $result")
         return result.line to result.col
