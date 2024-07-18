@@ -1,4 +1,4 @@
-package cengine.editor.text.indentation
+package cengine.editor.indentation
 
 import cengine.editor.text.Editable
 import cengine.editor.text.Informational

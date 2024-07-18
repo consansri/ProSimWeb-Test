@@ -10,13 +10,19 @@ class PsiServiceImpl(
     }
 
     override fun findElementAt(file: PsiFile, offset: Int): PsiElement? {
-        class Finder(private val targetOffset: Int) : PsiElementVisitor() {
+        class Finder(private val targetOffset: Int) : PsiElementVisitor {
             var result: PsiElement? = null
 
-            override fun visitElement(visitedElement: PsiElement) {
-                if (visitedElement.textRange.startOffset <= targetOffset && targetOffset < visitedElement.textRange.endOffset) {
-                    result = visitedElement
-                    visitedElement.children.forEach { it.accept(this) }
+            override fun visitFile(file: PsiFile) {
+                file.children.forEach {
+                    visitElement(it)
+                }
+            }
+
+            override fun visitElement(element: PsiElement) {
+                if (element.textRange.startOffset <= targetOffset && targetOffset < element.textRange.endOffset) {
+                    result = element
+                    element.children.forEach { it.accept(this) }
                 }
             }
         }
@@ -30,12 +36,17 @@ class PsiServiceImpl(
         // This is a simplistic implementation. In a real-world scenario, you'd need a more sophisticated approach to find references.
         val references = mutableListOf<PsiReference>()
 
-        class ReferenceFinder : PsiElementVisitor() {
-            override fun visitElement(visitedElement: PsiElement) {
-                if (visitedElement is PsiReference && visitedElement.isReferenceTo(element)) {
-                    references.add(visitedElement)
+        class ReferenceFinder : PsiElementVisitor {
+            override fun visitFile(file: PsiFile) {
+                file.children.forEach {
+                    visitElement(it)
                 }
-                visitedElement.children.forEach { it.accept(this) }
+            }
+            override fun visitElement(element: PsiElement) {
+                if (element is PsiReference && element.isReferenceTo(element)) {
+                    references.add(element)
+                }
+                element.children.forEach { it.accept(this) }
             }
         }
 

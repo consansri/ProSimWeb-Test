@@ -21,17 +21,17 @@ class CownCompleter : CompletionProvider {
 }
 
 class Pet(
-   val name: String,
-   var age: Int
+    val name: String,
+    var age: Int
 ){
 
-   init{
-      
-   }
+    init{
+    
+    }
 
-   private fun aging(){
+    private fun aging(){
        age++
-   }
+    }
 }
 
 

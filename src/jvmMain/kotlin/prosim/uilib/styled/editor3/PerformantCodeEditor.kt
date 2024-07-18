@@ -8,8 +8,8 @@ import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
-import cengine.editor.text.indentation.BasicIndenation
-import cengine.editor.text.indentation.IndentationProvider
+import cengine.editor.indentation.BasicIndenation
+import cengine.editor.indentation.IndentationProvider
 import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.Widget
 import cengine.lang.LanguageService

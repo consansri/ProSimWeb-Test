@@ -9,8 +9,9 @@ import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
 import cengine.psi.core.PsiParser
+import emulator.kit.assembler.Assembler
 
-object AsmLang: LanguageService {
+class AsmLang(val assembler: Assembler): LanguageService {
     override val name: String = "Assembly"
     override val fileSuffix: String = ".s"
     override val psiParser: PsiParser

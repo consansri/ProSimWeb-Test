@@ -1,6 +1,9 @@
 package emulator.kit.assembler.parser
 
-import emulator.kit.assembler.*
+import emulator.kit.assembler.AsmFile
+import emulator.kit.assembler.Assembler
+import emulator.kit.assembler.DirTypeInterface
+import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.assembler.lexer.Severity

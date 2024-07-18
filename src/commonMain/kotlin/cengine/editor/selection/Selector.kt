@@ -11,7 +11,6 @@ interface Selector {
         val ONLY_SPACES = charArrayOf(' ')
     }
 
-
     // Modification
 
     fun moveCaretTo(index: Int, shift: Boolean) {
@@ -143,6 +142,4 @@ interface Selector {
 
         return index
     }
-
-
 }

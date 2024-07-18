@@ -2,7 +2,7 @@ package cengine.editor
 
 import cengine.editor.selection.Selector
 import cengine.editor.text.TextModel
-import cengine.editor.text.indentation.IndentationProvider
+import cengine.editor.indentation.IndentationProvider
 import cengine.editor.text.state.TextStateModel
 import cengine.psi.PsiManager
 import cengine.vfs.VirtualFile

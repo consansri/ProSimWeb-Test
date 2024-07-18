@@ -1,7 +1,6 @@
-package cengine.editor.text.indentation
+package cengine.editor.indentation
 
 import cengine.editor.selection.Selector
-import emulator.kit.nativeLog
 
 interface IndentationProvider {
 
@@ -23,7 +22,6 @@ interface IndentationProvider {
     fun removeLineIndent(line: Int): Int
 
     fun indentSelection(selector: Selector) {
-        nativeLog("Indent Selection.")
         val range = selector.selection.asRange()
         if (range == null) {
             // Index Indentation
@@ -50,7 +48,7 @@ interface IndentationProvider {
             val newEndIndex: Int = range.last + 1 + beforeSelectionSpaceChange + insideSelectionSpaceChange
 
             if (caretIsAtHigherBound) {
-                selector.selection.select(newStartIndex, newEndIndex )
+                selector.selection.select(newStartIndex, newEndIndex)
                 selector.caret.set(newEndIndex)
             } else {
                 selector.selection.select(newEndIndex, newStartIndex)
@@ -84,11 +82,11 @@ interface IndentationProvider {
                 }
             }
 
-            val newStartIndex: Int = range.first - beforeSelectionSpaceChange
+            val newStartIndex: Int = if (firstCol != 0) range.first - beforeSelectionSpaceChange else range.first
             val newEndIndex: Int = range.last + 1 - beforeSelectionSpaceChange - insideSelectionSpaceChange
 
             if (caretIsAtHigherBound) {
-                selector.selection.select(newStartIndex, newEndIndex )
+                selector.selection.select(newStartIndex, newEndIndex)
                 selector.caret.set(newEndIndex)
             } else {
                 selector.selection.select(newEndIndex, newStartIndex)
