@@ -8,6 +8,7 @@ data class LineInfo(
     val startIndex: Int,
     val endIndex: Int,
     val firstNonWhitespaceCol: Int,
+    val containsOnlySpaces: Boolean,
     val interlineWidgets: List<Widget>,
     val inlayWidgets: List<Widget>,
     val foldingPlaceholder: String?

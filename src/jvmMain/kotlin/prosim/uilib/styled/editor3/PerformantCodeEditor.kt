@@ -218,8 +218,17 @@ class PerformantCodeEditor(
             // This includes text, widgets, and folding placeholders
             val startIndex = textModel.indexOf(indicator.lineNumber, 0)
             val endIndex = textModel.indexOf(indicator.lineNumber + 1, 0)
-            val firstNonWhiteSpaceCol = selector.indexOfWordEnd(startIndex, Selector.ONLY_SPACES, true) - startIndex
-            val info = LineInfo(indicator, startIndex, endIndex, firstNonWhiteSpaceCol, psiManager.getInterlineWidgets(indicator.lineNumber), psiManager.getInlayWidgets(indicator.lineNumber), if (indicator.isFoldedBeginning) indicator.placeHolder else null)
+            val firstNonWhiteSpaceIndex = selector.indexOfWordEnd(startIndex, Selector.ONLY_SPACES, true)
+            val info = LineInfo(
+                indicator,
+                startIndex,
+                endIndex,
+                firstNonWhiteSpaceIndex - startIndex,
+                firstNonWhiteSpaceIndex == endIndex - 1,
+                psiManager.getInterlineWidgets(indicator.lineNumber),
+                psiManager.getInlayWidgets(indicator.lineNumber),
+                if (indicator.isFoldedBeginning) indicator.placeHolder else null
+            )
             return info
         }
 
@@ -354,7 +363,7 @@ class PerformantCodeEditor(
 
         private val foldIndication: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW).alpha(13)
         private val secFGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE4)
-        private val secBGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE7)
+        private val secBGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE6)
 
         private val selColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x55)
         private val markBGColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x13)
@@ -387,6 +396,8 @@ class PerformantCodeEditor(
             g.color = secBGColor
             val vSplitLineX = xOffset + rowHeaderWidth - vLayout.internalPadding
             g.drawLine(vSplitLineX, 0, vSplitLineX, height)
+
+            val indentationLevels = mutableListOf<Int>()
 
             visibleLines.lines.forEachIndexed { index, lineInfo ->
                 //nativeLog("Rendering ${lineInfo.lineNumber} with height ${vLayout.fmLineHeight} at $xOffset, $yOffset")
@@ -430,6 +441,12 @@ class PerformantCodeEditor(
             for ((colID, charIndex) in (startIndex until endIndex).withIndex()) {
                 val char = lineContent[colID]
                 val charWidth = fmCode.charWidth(char)
+
+                // Draw Indentation Line
+                if (colID != 0 && colID < lineInfo.firstNonWhitespaceCol && !lineInfo.containsOnlySpaces && colID % indentationProvider.spaces == 0 ) {
+                    color = secBGColor
+                    drawLine(internalXOffset, internalYOffset, internalXOffset, internalYOffset + vLayout.lineHeight)
+                }
 
                 // Draw Selection
                 selection?.let {
