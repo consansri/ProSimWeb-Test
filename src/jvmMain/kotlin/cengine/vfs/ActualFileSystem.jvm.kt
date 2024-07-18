@@ -36,4 +36,18 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
         val pathString = Paths.get(rootPath, path).normalize().toString()
         return pathString
     }
+
+    /**
+     * Creates a file or directory.
+     *
+     * @param path The path of the file or directory to create.
+     * @param isDirectory If the file is a directory.
+     */
+    actual fun createFile(path: String, isDirectory: Boolean) {
+        if (isDirectory) {
+            Files.createDirectory(Paths.get(getAbsolutePath(path)))
+        } else {
+            Files.createFile(Paths.get(getAbsolutePath(path)))
+        }
+    }
 }

@@ -50,4 +50,18 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
         }
         return keys
     }
+
+    /**
+     * Creates a file or directory.
+     *
+     * @param path The path of the file or directory to create.
+     * @param isDirectory If the file is a directory.
+     */
+    actual fun createFile(path: String, isDirectory: Boolean) {
+        if (isDirectory) {
+            // don't save!
+        } else {
+            localStorage.setItem(getFileKey(path), "")
+        }
+    }
 }

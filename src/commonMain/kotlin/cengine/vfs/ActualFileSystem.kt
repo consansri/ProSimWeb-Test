@@ -33,6 +33,14 @@ expect class ActualFileSystem(rootPath: String) {
     fun deleteFile(path: String)
 
     /**
+     * Creates a file or directory.
+     *
+     * @param path The path of the file or directory to create.
+     * @param isDirectory If the file is a directory.
+     */
+    fun createFile(path: String, isDirectory: Boolean)
+
+    /**
      * Lists the contents of a directory.
      *
      * @param path The path of the directory to list.
