@@ -7,6 +7,7 @@ data class LineInfo(
     val lineIndicator: LineIndicator,
     val startIndex: Int,
     val endIndex: Int,
+    val firstNonWhitespaceCol: Int,
     val interlineWidgets: List<Widget>,
     val inlayWidgets: List<Widget>,
     val foldingPlaceholder: String?

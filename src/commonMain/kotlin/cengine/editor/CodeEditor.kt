@@ -2,6 +2,7 @@ package cengine.editor
 
 import cengine.editor.selection.Selector
 import cengine.editor.text.TextModel
+import cengine.editor.text.indentation.IndentationProvider
 import cengine.editor.text.state.TextStateModel
 import cengine.psi.PsiManager
 import cengine.vfs.VirtualFile
@@ -15,6 +16,7 @@ interface CodeEditor {
     val textModel: TextModel
     val textStateModel: TextStateModel
     val selector: Selector
+    val indentationProvider: IndentationProvider
 
     fun saveToFile() {
         file.setAsUTF8String(textModel.toString())

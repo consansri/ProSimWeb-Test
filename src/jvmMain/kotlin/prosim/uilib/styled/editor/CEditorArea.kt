@@ -261,7 +261,6 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     // Indentation
     private fun indent() {
         val absSelection = getAbsSelection()
-        // Implement this Function
         if (absSelection.lowIndex == absSelection.highIndex) {
             val caretLine = caret.getLineInfo()
             val caretIndex = caret.getIndex()
@@ -300,7 +299,6 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
 
     private fun removeIndent() {
         val absSelection = getAbsSelection()
-        // Implement this Function
         if (absSelection.lowIndex == absSelection.highIndex) {
             val caretLineInfo = caret.getLineInfo()
             caret.moveCaretLeft(removeLineIndent(caretLineInfo.lineNumber - 1))

@@ -5,6 +5,13 @@ interface Selector {
     val caret: Caret
     val selection: Selection
 
+    companion object {
+        val DEFAULT_SYMBOL_CHARS = ('a'.rangeTo('z') + 'A'.rangeTo('Z') + '0'.rangeTo('9') + '_').toCharArray()
+        val DEFAULT_SPACING_SET = charArrayOf(' ', '\n')
+        val ONLY_SPACES = charArrayOf(' ')
+    }
+
+
     // Modification
 
     fun moveCaretTo(index: Int, shift: Boolean) {
@@ -76,7 +83,13 @@ interface Selector {
     }
 
     fun home(shift: Boolean) {
-        moveCaretTo(caret.line, 0, shift)
+        val rowStartIndex = caret.model.indexOf(caret.line,0)
+        val indexOfFirstValidInCol = indexOfWordEnd(rowStartIndex, ONLY_SPACES, true)
+        if (caret.index != indexOfFirstValidInCol) {
+            moveCaretTo(indexOfFirstValidInCol, shift)
+        } else {
+            moveCaretTo(rowStartIndex, shift)
+        }
     }
 
     fun end(shift: Boolean) {

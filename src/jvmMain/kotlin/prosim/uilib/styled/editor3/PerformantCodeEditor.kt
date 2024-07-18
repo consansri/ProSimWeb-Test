@@ -8,6 +8,8 @@ import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
+import cengine.editor.text.indentation.BasicIndenation
+import cengine.editor.text.indentation.IndentationProvider
 import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.Widget
 import cengine.lang.LanguageService
@@ -37,8 +39,7 @@ class PerformantCodeEditor(
     project: Project,
 ) : JComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
     companion object {
-        val DEFAULT_SYMBOL_CHARS = ('a'.rangeTo('z') + 'A'.rangeTo('Z') + '0'.rangeTo('9') + '_').toCharArray()
-        val DEFAULT_SPACING_SET = charArrayOf(' ', '\n')
+
     }
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
@@ -48,7 +49,10 @@ class PerformantCodeEditor(
         override val caret: Caret = Caret(textModel)
         override val selection: Selection = Selection()
     }
+
     override val textStateModel: TextStateModel = TextStateModel(textModel, selector)
+    override val indentationProvider: IndentationProvider = BasicIndenation(textStateModel, textModel)
+
     val lang: LanguageService? get() = psiManager?.lang
 
     private var scrollPane: CScrollPane? = null
@@ -79,6 +83,8 @@ class PerformantCodeEditor(
         isFocusable = true
         cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
         border = BorderFactory.createEmptyBorder(0, vLayout.internalPadding, 0, vLayout.internalPadding)
+
+        focusTraversalKeysEnabled = false
 
         project.register(this) // to listen to file changes from other sources
 
@@ -212,7 +218,8 @@ class PerformantCodeEditor(
             // This includes text, widgets, and folding placeholders
             val startIndex = textModel.indexOf(indicator.lineNumber, 0)
             val endIndex = textModel.indexOf(indicator.lineNumber + 1, 0)
-            val info = LineInfo(indicator, startIndex, endIndex, psiManager.getInterlineWidgets(indicator.lineNumber), psiManager.getInlayWidgets(indicator.lineNumber), if (indicator.isFoldedBeginning) indicator.placeHolder else null)
+            val firstNonWhiteSpaceCol = selector.indexOfWordEnd(startIndex, Selector.ONLY_SPACES, true) - startIndex
+            val info = LineInfo(indicator, startIndex, endIndex, firstNonWhiteSpaceCol, psiManager.getInterlineWidgets(indicator.lineNumber), psiManager.getInlayWidgets(indicator.lineNumber), if (indicator.isFoldedBeginning) indicator.placeHolder else null)
             return info
         }
 
@@ -563,7 +570,7 @@ class PerformantCodeEditor(
                 if (e.clickCount == 2) {
                     val line = vLayout.getLineAndColumnAt(e.point)
                     val index = textModel.indexOf(line.line, line.column)
-                    selector.selectCurrentWord(index, DEFAULT_SYMBOL_CHARS, true)
+                    selector.selectCurrentWord(index, Selector.DEFAULT_SYMBOL_CHARS, true)
                 }
                 invalidateContent()
             }
@@ -636,7 +643,6 @@ class PerformantCodeEditor(
                     val newChar = e.keyChar.toString()
                     textStateModel.delete(selector.selection)
                     textStateModel.insert(selector.caret, newChar)
-                    e.consume()
                 }
             }
             fetchCompletions()
@@ -647,9 +653,11 @@ class PerformantCodeEditor(
             when (e.keyCode) {
                 KeyEvent.VK_TAB -> {
                     if (e.isShiftDown) {
-                        // remove Indent TODO
+                        // remove Indent
+                        indentationProvider.unindentSelection(selector)
                     } else {
-                        // indent TODO
+                        // indent
+                        indentationProvider.indentSelection(selector)
                     }
                 }
 
@@ -803,7 +811,7 @@ class PerformantCodeEditor(
 
             completionJob = launch {
                 try {
-                    val prefixIndex = selector.indexOfWordStart(selector.caret.index, DEFAULT_SYMBOL_CHARS, true)
+                    val prefixIndex = selector.indexOfWordStart(selector.caret.index, Selector.DEFAULT_SYMBOL_CHARS, true)
                     val prefix = textModel.substring(prefixIndex, selector.caret.index)
                     if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
                         val completions = lang?.completionProvider?.getCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()

@@ -1,6 +1,5 @@
 package cengine.editor.text.indentation
 
-import cengine.editor.selection.Selection
 import cengine.editor.text.Editable
 import cengine.editor.text.Informational
 
@@ -14,8 +13,13 @@ class BasicIndenation(private val editable: Editable, private val informational:
         return spacesToIndent
     }
 
-    override fun unIndentAtIndex(index: Int): Int {
-        val (line, column) = informational.getLineAndColumn(index)
+    override fun addLineIndent(line: Int): Int {
+        val index = informational.indexOf(line,0)
+        editable.insert(index, " ".repeat(spaces))
+        return spaces
+    }
+
+    override fun removeLineIndent(line: Int): Int {
         val lineStartIndex = informational.indexOf(line, 0)
         for (length in spaces downTo 1) {
             if (informational.substring(lineStartIndex, lineStartIndex + length) == " ".repeat(length)) {
