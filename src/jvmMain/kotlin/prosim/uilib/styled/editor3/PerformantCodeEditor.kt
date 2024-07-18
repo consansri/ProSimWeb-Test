@@ -814,6 +814,7 @@ class PerformantCodeEditor(
                     }
                 }
             }
+            fetchCompletions()
             invalidateContent()
         }
 

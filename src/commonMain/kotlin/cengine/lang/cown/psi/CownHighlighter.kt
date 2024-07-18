@@ -19,7 +19,7 @@ class CownHighlighter : HighlightProvider {
         var index = 0
         while (index < text.length) {
             val comparable = text.substring(index)
-            val keyWord = CownLexer.keywords.firstOrNull { comparable.startsWith(it, ignoreCase = true) }
+            val keyWord = CownLexer.keywords.firstOrNull { comparable.startsWith(it) }
             if (keyWord != null) {
                 highlights.add(Highlight(index..<(index + keyWord.length), Highlight.Type.KEYWORD))
                 index += keyWord.length
