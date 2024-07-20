@@ -1,9 +1,11 @@
 package prosim
 
+import cengine.lang.asm.AsmLang
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.vfs.VFileSystem
 import com.formdev.flatlaf.util.SystemInfo
+import emulator.archs.ArchRV32
 import emulator.kit.nativeError
 import prosim.ui.components.NativeFrame
 import prosim.uilib.styled.editor3.PerformantCodeEditor
@@ -20,9 +22,9 @@ fun main() {
 
     // Check if the application is running on Linux.
     if (SystemInfo.isLinux) {
-        // Set the default look and feel for JFrame and JDialog on Linux.
-        JFrame.setDefaultLookAndFeelDecorated(true)
-        JDialog.setDefaultLookAndFeelDecorated(true)
+       // Set the default look and feel for JFrame and JDialog on Linux.
+       JFrame.setDefaultLookAndFeelDecorated(true)
+       JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
     testNewEditor()
@@ -44,9 +46,9 @@ fun launchBaseApp() {
 fun testNewEditor() {
     val frame = JFrame()
 
-    val project = Project("docs", CownLang)
+    val project = Project("docs", CownLang, AsmLang(ArchRV32().assembler))
 
-    val file = project.fileSystem.findFile(VFileSystem.DELIMITER + "test.cown")
+    val file = project.fileSystem.findFile(VFileSystem.DELIMITER + "test.s")
     file?.let {
         val editor = PerformantCodeEditor(file, project)
         frame.contentPane = editor.createScrollPane()
