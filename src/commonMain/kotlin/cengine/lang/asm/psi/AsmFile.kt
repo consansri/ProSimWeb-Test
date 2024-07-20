@@ -15,7 +15,7 @@ class AsmFile(override val name: String, override var text: String, override val
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor.visitFile(this)
-        children.forEach {
+        ArrayList(children).forEach {
             it.accept(visitor)
         }
     }

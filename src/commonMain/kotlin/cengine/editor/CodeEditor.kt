@@ -23,6 +23,7 @@ interface CodeEditor {
     }
 
     fun loadFromFile() {
+        psiManager?.updatePsi(file)
         textModel.replaceAll(file.getAsUTF8String())
     }
 
