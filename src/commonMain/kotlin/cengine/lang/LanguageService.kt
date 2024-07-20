@@ -7,6 +7,7 @@ import cengine.editor.folding.CodeFoldingProvider
 import cengine.editor.highlighting.Highlight
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
+import cengine.psi.core.PsiFile
 import cengine.psi.core.PsiParser
 
 interface LanguageService {
@@ -24,5 +25,13 @@ interface LanguageService {
 
     fun hlToColor(type: Highlight.Type): Int
     fun severityToColor(type: Severity): Int?
+
+    fun updateAnalytics(file: PsiFile){
+        codeFoldingProvider?.getFoldingRegions(file)
+        widgetProvider?.getWidgets(file)
+        completionProvider?.buildCompletionSet(file)
+        annotationProvider?.getAnnotations(file)
+        highlightProvider?.getHighlights(file)
+    }
 
 }

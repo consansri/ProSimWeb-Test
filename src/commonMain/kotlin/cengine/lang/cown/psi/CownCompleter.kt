@@ -2,6 +2,7 @@ package cengine.lang.cown.psi
 
 import cengine.editor.completion.Completion
 import cengine.editor.completion.CompletionProvider
+import cengine.editor.completion.CompletionProvider.Companion.asCompletions
 import cengine.editor.text.TextModel
 import cengine.lang.cown.CownLexer
 import cengine.psi.core.PsiFile
@@ -9,13 +10,10 @@ import cengine.psi.core.PsiFile
 class CownCompleter : CompletionProvider {
 
     override fun getCompletions(textModel: TextModel, offset: Int, prefix: String, psiFile: PsiFile?): List<Completion> {
-        return CownLexer.keywords
-            .filter { it.startsWith(prefix) && prefix.length != it.length }
-            .map { keyword ->
-                Completion(
-                    keyword,
-                    keyword.substring(prefix.length),
-                )
-            }
+        return CownLexer.keywords.asCompletions(prefix)
+    }
+
+    override fun buildCompletionSet(file: PsiFile) {
+        // Not yet implemented
     }
 }

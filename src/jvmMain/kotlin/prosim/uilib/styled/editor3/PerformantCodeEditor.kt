@@ -3,13 +3,13 @@ package prosim.uilib.styled.editor3
 import cengine.editor.CodeEditor
 import cengine.editor.EditorModification
 import cengine.editor.folding.LineIndicator
+import cengine.editor.indentation.BasicIndenation
+import cengine.editor.indentation.IndentationProvider
 import cengine.editor.selection.Caret
 import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
-import cengine.editor.indentation.BasicIndenation
-import cengine.editor.indentation.IndentationProvider
 import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.Widget
 import cengine.lang.LanguageService

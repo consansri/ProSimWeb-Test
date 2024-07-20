@@ -4,9 +4,12 @@ import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.TextRange
 
-data class AsmLabel(override val parent: AsmStatement, val name: String, override val textRange: TextRange) : PsiElement {
+data class AsmLabel(override var parent: AsmStatement?, val name: String, override val textRange: TextRange) : PsiElement {
     override val children: List<PsiElement> = listOf()
     override fun accept(visitor: PsiElementVisitor) {
-        TODO("Not yet implemented")
+        visitor.visitElement(this)
+        children.forEach {
+            it.accept(visitor)
+        }
     }
 }

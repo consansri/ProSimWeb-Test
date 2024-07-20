@@ -9,6 +9,9 @@ data class InstrName(override val parent: AsmInstr, override val textRange: Text
     override val children: List<PsiElement> = listOf()
 
     override fun accept(visitor: PsiElementVisitor) {
-        TODO("Not yet implemented")
+        visitor.visitElement(this)
+        children.forEach {
+            it.accept(visitor)
+        }
     }
 }

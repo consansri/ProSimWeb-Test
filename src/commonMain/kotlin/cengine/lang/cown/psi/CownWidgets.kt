@@ -19,11 +19,9 @@ class CownWidgets: WidgetProvider {
     override var cachedPostLineWidget: List<Widget> = listOf()
     override var cachedInterLineWidgets: List<Widget> = listOf(Widget("interline", "interline widget", Widget.Type.INTERLINE, TextPosition(0, 1,0)))
     override var cachedInlayWidgets: List<Widget> = listOf(Widget("inlay", "inlay widget", Widget.Type.INLAY, TextPosition(3, 1,3)))
-    override var cachedPreLineWidgets: List<Widget>
-        get() = TODO("Not yet implemented")
-        set(value) {}
+    override var cachedPreLineWidgets: List<Widget> = listOf()
 
     override fun getWidgets(psiFile: PsiFile): List<Widget> {
-        TODO("Not yet implemented")
+        return listOf()
     }
 }

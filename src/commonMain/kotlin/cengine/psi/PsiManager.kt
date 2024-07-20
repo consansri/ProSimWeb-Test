@@ -10,13 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class PsiManager<T: LanguageService>(
+class PsiManager<T : LanguageService>(
     private val vfs: VFileSystem,
     val lang: T
 ) {
     private val psiCache = mutableMapOf<String, PsiFile>()
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val listener = VFSListener()
+
     init {
         vfs.addChangeListener(listener)
     }
@@ -26,6 +27,9 @@ class PsiManager<T: LanguageService>(
             val psiFile = psiCache[file.path] ?: createPsiFile(file)
             val newContent = file.getAsUTF8String()
             psiFile.updateFrom(newContent)
+            psiCache.remove(file.path)
+            psiCache[file.path] = psiFile
+            lang.updateAnalytics(psiFile)
         }
     }
 
@@ -33,6 +37,7 @@ class PsiManager<T: LanguageService>(
         coroutineScope.launch {
             val psiFile = createPsiFile(file)
             psiCache[file.path] = psiFile
+            lang.updateAnalytics(psiFile)
         }
     }
 
@@ -51,17 +56,17 @@ class PsiManager<T: LanguageService>(
         return psiCache[file.path]
     }
 
-    inner class VFSListener: FileChangeListener{
+    inner class VFSListener : FileChangeListener {
         override fun onFileChanged(file: VirtualFile) {
-            updatePsi(file)
+            if (file.name.endsWith(lang.fileSuffix)) updatePsi(file)
         }
 
         override fun onFileCreated(file: VirtualFile) {
-            createPsi(file)
+            if (file.name.endsWith(lang.fileSuffix)) createPsi(file)
         }
 
         override fun onFileDeleted(file: VirtualFile) {
-            removePsi(file)
+            if (file.name.endsWith(lang.fileSuffix)) removePsi(file)
         }
     }
 }

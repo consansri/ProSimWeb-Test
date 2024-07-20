@@ -47,7 +47,7 @@ sealed class Node {
     abstract fun print(prefix: String): String
 
     /** Retrieves the line location associated with the node. */
-    abstract fun getLineLoc(): Token.LineLoc?
+    abstract fun getLineLoc(): Token.LineLoc
     override fun toString(): String = print("")
 
     /**
@@ -131,8 +131,15 @@ sealed class Node {
 
         override fun print(prefix: String): String = "${printNodeName(prefix)}${printChilds(prefix)}"
 
-        override fun getLineLoc(): Token.LineLoc? {
-            return tokens().firstOrNull()?.lineLoc
+        override fun getLineLoc(): Token.LineLoc {
+            val file = tokens().first().lineLoc.file
+            val line = tokens().first().lineLoc.lineID
+            val start = tokens().first().lineLoc.startIndex
+            val end = tokens().last().lineLoc.endIndex
+
+            val lineLoc = Token.LineLoc(file, line, start, end)
+
+            return lineLoc
         }
 
         override fun tokens(): Array<out Token> {

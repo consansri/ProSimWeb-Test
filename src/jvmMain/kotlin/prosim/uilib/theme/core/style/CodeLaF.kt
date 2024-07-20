@@ -27,8 +27,7 @@ class CodeLaF(
             field = value
             GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(value)
         }
-
-
+    
     fun getFont(): Font = codeFont
     fun getMarkupFont(): Font = markupFont
     fun getTF(): Typeface = codeTF

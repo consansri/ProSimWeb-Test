@@ -10,7 +10,10 @@ data class AsmSymbolRef(override val parent: PsiElement?, val name: String, over
     override val children: List<PsiElement> = listOf()
 
     override fun accept(visitor: PsiElementVisitor) {
-        TODO("Not yet implemented")
+        visitor.visitElement(this)
+        children.forEach {
+            it.accept(visitor)
+        }
     }
 
     override val element: PsiElement = this
