@@ -19,6 +19,7 @@ class Project(val root: String, vararg languageServices: LanguageService): FileC
     }
 
     fun getManager(lang: LanguageService): PsiManager<*>? = psiManagers.firstOrNull { lang::class == it.lang::class }
+    fun getLang(file: VirtualFile): LanguageService? = getManager(file)?.lang
 
     fun getManager(file: VirtualFile): PsiManager<*>? {
         val service = services.firstOrNull { file.name.endsWith(it.fileSuffix) } ?: return null

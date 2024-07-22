@@ -483,6 +483,5 @@ class Workspace(
             return if (displayPath) file.path else file.name
         }
     }
-
 }
 

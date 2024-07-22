@@ -73,4 +73,6 @@ interface VirtualFile {
     fun setAsUTF8String(content: String) {
         setContent(content.replace("\n", getSystemLineBreak()).encodeToByteArray())
     }
+
+    override fun toString(): String
 }

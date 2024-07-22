@@ -1,9 +1,9 @@
 package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import prosim.uilib.workspace.Workspace
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.workspace.Workspace
 import java.awt.*
 import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
@@ -28,7 +28,7 @@ class CTreeUI(
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
-        val cTree = c as? prosim.uilib.styled.CTree ?: return
+        val cTree = c as? CTree ?: return
         cTree.border = BorderFactory.createEmptyBorder(
             UIStates.scale.get().borderScale.insets,
             UIStates.scale.get().borderScale.insets,
@@ -48,7 +48,7 @@ class CTreeUI(
         setDefaults(cTree)
     }
 
-    private fun setDefaults(tree: prosim.uilib.styled.CTree) {
+    private fun setDefaults(tree: CTree) {
         selectedColor = UIStates.theme.get().globalLaF.borderColor
         colorFilter = FlatSVGIcon.ColorFilter {
             UIStates.theme.get().iconLaF.iconFgPrimary

@@ -1,4 +1,4 @@
-package prosim.uilib.styled.editor3
+package prosim.ide.editor3
 
 import cengine.editor.CodeEditor
 import cengine.editor.EditorModification
@@ -38,9 +38,6 @@ class PerformantCodeEditor(
     override val file: VirtualFile,
     project: Project,
 ) : JComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
-    companion object {
-
-    }
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
 
@@ -84,6 +81,7 @@ class PerformantCodeEditor(
         cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
         border = BorderFactory.createEmptyBorder(0, vLayout.internalPadding, 0, vLayout.internalPadding)
 
+        isFocusCycleRoot = true
         focusTraversalKeysEnabled = false
 
         project.register(this) // to listen to file changes from other sources
@@ -599,6 +597,7 @@ class PerformantCodeEditor(
                 selector.moveCaretTo(lc.line, lc.column, e.isShiftDown)
                 repaint()
             }
+            requestFocusInWindow()
         }
 
         override fun mouseReleased(e: MouseEvent?) {
@@ -664,6 +663,7 @@ class PerformantCodeEditor(
             }
             fetchCompletions()
             invalidateContent()
+            e.consume()
         }
 
         override fun keyPressed(e: KeyEvent) {
@@ -816,6 +816,7 @@ class PerformantCodeEditor(
             }
             fetchCompletions()
             invalidateContent()
+            e.consume()
         }
 
         override fun keyReleased(e: KeyEvent?) {}

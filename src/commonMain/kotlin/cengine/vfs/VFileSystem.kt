@@ -173,11 +173,7 @@ class VFileSystem(absRootPath: String) {
             throw UnsupportedOperationException()
         }
 
-        override fun toString(): String {
-            return getChildren().joinToString("\n") {
-                it.toString()
-            }
-        }
+        override fun toString(): String = name
     }
 
     inner class VirtualFileImpl(
@@ -211,15 +207,7 @@ class VFileSystem(absRootPath: String) {
             }
         }
 
-        override fun toString(): String {
-            return if (isDirectory) {
-                getChildren().joinToString("\n") {
-                    it.toString()
-                }
-            } else {
-                path
-            }
-        }
+        override fun toString(): String = name
     }
 
     override fun toString(): String {

@@ -10,13 +10,12 @@ import emulator.kit.assembler.Assembler
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.lexer.Token
-import emulator.kit.nativeLog
 
 class AsmPsiParser(val assembler: Assembler, val languageService: AsmLang) : PsiParser {
     override fun parseFile(content: String, fileName: String): cengine.lang.asm.psi.AsmFile {
-        nativeLog("AsmPsiParser parses file: $fileName!")
+        //nativeLog("AsmPsiParser parses file: $fileName!")
         val result = assembler.compile(AsmFile(fileName, fileName, content), listOf(), Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD)
-        nativeLog(result.tree.toString())
+        //nativeLog(result.tree.toString())
         val psiFile = cengine.lang.asm.psi.AsmFile(fileName, content, languageService)
         result.tree.rootNode?.getAllStatements()?.forEach { stmnt ->
             psiFile.children.add(stmnt.parse())

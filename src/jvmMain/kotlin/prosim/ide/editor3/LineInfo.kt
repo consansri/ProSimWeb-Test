@@ -1,4 +1,4 @@
-package prosim.uilib.styled.editor3
+package prosim.ide.editor3
 
 import cengine.editor.folding.LineIndicator
 import cengine.editor.widgets.Widget
