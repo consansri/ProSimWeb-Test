@@ -15,11 +15,6 @@ class CPanelUI() : CComponentUI<CPanel>() {
     override fun setDefaults(c: CPanel, theme: Theme, scaling: Scaling, icons: Icons) {
         c.isOpaque = false
         c.background = Color(0, 0, 0, 0)
-        c.border = c.borderMode.getBorder()
-
-        if (c.isOverlay) {
-            c.border = UIStates.scale.get().borderScale.getInsetBorder()
-        }
     }
 
     override fun onInstall(c: CPanel) {
