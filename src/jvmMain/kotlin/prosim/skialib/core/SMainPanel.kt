@@ -1,4 +1,4 @@
-package prosim.uilib.styled.core
+package prosim.skialib.core
 
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Color
@@ -6,10 +6,10 @@ import org.jetbrains.skia.Paint
 import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkikoRenderDelegate
 import prosim.uilib.UIStates
-import prosim.uilib.styled.core.border.Insets
-import prosim.uilib.styled.core.layouts.Attribute
-import prosim.uilib.styled.core.layouts.BorderLayout
-import prosim.uilib.styled.core.layouts.Layout
+import prosim.skialib.core.border.Insets
+import prosim.skialib.core.layouts.Attribute
+import prosim.skialib.core.layouts.BorderLayout
+import prosim.skialib.core.layouts.Layout
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JFrame

@@ -7,7 +7,7 @@ import org.jetbrains.skia.RRect
 import prosim.uilib.UIStates
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
-import prosim.uilib.styled.core.SComponent
+import prosim.skialib.core.SComponent
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.theme.core.Theme
 import java.awt.Color

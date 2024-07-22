@@ -1,9 +1,9 @@
-package prosim.uilib.styled.core
+package prosim.skialib.core
 
-import prosim.uilib.styled.core.border.Insets
-import prosim.uilib.styled.core.layouts.Attribute
-import prosim.uilib.styled.core.layouts.BorderLayout
-import prosim.uilib.styled.core.layouts.Layout
+import prosim.skialib.core.border.Insets
+import prosim.skialib.core.layouts.Attribute
+import prosim.skialib.core.layouts.BorderLayout
+import prosim.skialib.core.layouts.Layout
 
 abstract class SComp: SChild {
     override val children: MutableMap<Attribute, SChild> = mutableMapOf()

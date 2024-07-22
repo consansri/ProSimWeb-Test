@@ -1,7 +1,7 @@
-package prosim.uilib.styled.core.layouts
+package prosim.skialib.core.layouts
 
 import org.jetbrains.skia.Canvas
-import prosim.uilib.styled.core.SChild
+import prosim.skialib.core.SChild
 
 sealed class Layout {
     abstract val width: Int

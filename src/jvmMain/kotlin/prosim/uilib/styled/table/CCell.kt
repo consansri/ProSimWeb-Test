@@ -1,29 +1,24 @@
 package prosim.uilib.styled.table
 
+import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.FontMetrics
+import java.awt.Font
 import javax.swing.JComponent
 
-abstract class CCell(fontType: FontType) : JComponent() {
+abstract class CCell(val fontType: FontType) : JComponent() {
 
     var customBG: Color? = null
         set(value) {
             field = value
-            (ui as? CCellUI)?.updateTextColors(this)
+            repaint()
         }
 
     var customFG: Color? = null
         set(value) {
             field = value
-            (ui as? CCellUI)?.updateTextColors(this)
-        }
-
-    var fontMetrics: FontMetrics = this.getFontMetrics(fontType.getFont())
-        set(value) {
-            field = value
-            revalidate()
+            repaint()
         }
 
     init {
@@ -34,8 +29,22 @@ abstract class CCell(fontType: FontType) : JComponent() {
 
     override fun getMinimumSize(): Dimension {
         val string = textToDraw()
-        val width = fontMetrics.stringWidth(string)
-        val height = fontMetrics.height
+        val fm = getFontMetrics(font)
+        val width = fm.stringWidth(string)
+        val height = fm.height
         return Dimension(width, height)
     }
+
+    override fun getForeground(): Color {
+        return customFG ?: UIStates.theme.get().textLaF.base
+    }
+
+    override fun getBackground(): Color {
+        return customBG ?: Color(0, 0, 0, 0)
+    }
+
+    override fun getFont(): Font {
+        return fontType.getFont()
+    }
+
 }

@@ -1,4 +1,4 @@
-package prosim.uilib.styled.core
+package prosim.skialib.core
 
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skiko.SkiaLayer

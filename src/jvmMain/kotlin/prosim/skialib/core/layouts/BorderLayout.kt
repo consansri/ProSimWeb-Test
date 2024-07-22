@@ -1,4 +1,4 @@
-package prosim.uilib.styled.core.layouts
+package prosim.skialib.core.layouts
 
 import emulator.kit.nativeLog
 import org.jetbrains.skia.Canvas

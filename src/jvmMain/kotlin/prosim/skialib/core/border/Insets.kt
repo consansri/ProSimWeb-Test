@@ -1,4 +1,4 @@
-package prosim.uilib.styled.core.border
+package prosim.skialib.core.border
 
 data class Insets(
     val top: Int = 0,
