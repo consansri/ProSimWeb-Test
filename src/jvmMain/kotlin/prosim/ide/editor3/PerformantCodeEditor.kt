@@ -31,13 +31,12 @@ import java.awt.event.*
 import java.awt.image.BufferedImage
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
-import javax.swing.JComponent
 import javax.swing.SwingUtilities
 
 class PerformantCodeEditor(
     override val file: VirtualFile,
     project: Project,
-) : JComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
+) : EditorComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
 

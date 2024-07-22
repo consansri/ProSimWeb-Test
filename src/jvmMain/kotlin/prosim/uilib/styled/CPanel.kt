@@ -31,12 +31,12 @@ open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode
         layout = BorderLayout()
 
         this.setUI(CPanelUI())
-        revalidate()
-        repaint()
+        this.revalidate()
+        this.repaint()
     }
 
     override fun getPreferredSize(): Dimension {
-        return ui.getPreferredSize(this)
+        return layout.preferredLayoutSize(this)
     }
 
 }

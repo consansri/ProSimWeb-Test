@@ -3,15 +3,17 @@ package prosim
 import cengine.lang.asm.AsmLang
 import cengine.lang.cown.CownLang
 import cengine.project.Project
+import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
-import prosim.ide.filetree.FileTreeUIChangeListener
 import com.formdev.flatlaf.util.SystemInfo
 import emulator.archs.ArchRV32
 import prosim.ide.editor3.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
+import prosim.ide.filetree.FileTreeUIChangeListener
 import prosim.ui.components.NativeFrame
-import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.CSplitPane
+import prosim.uilib.styled.CTextField
+import prosim.uilib.styled.params.FontType
 import java.awt.Dimension
 import javax.swing.JDialog
 import javax.swing.JFrame
@@ -50,11 +52,11 @@ fun launchBaseApp() {
 fun testNewEditor() {
     val frame = JFrame()
 
-    val project = Project("docs", CownLang, AsmLang(ArchRV32().assembler))
+    val project = Project(ProjectState("docs"), CownLang, AsmLang(ArchRV32().assembler))
 
     val fileTree = FileTree(project)
 
-    val splitPane = CSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTree.createContainer(), CPanel())
+    val splitPane = CSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTree.createContainer(), CTextField("Open File!",fontType = FontType.BASIC))
 
     fileTree.setFileTreeListener(object  : FileTreeUIChangeListener {
         override fun onNodeSelected(file: VirtualFile) {
@@ -94,4 +96,5 @@ fun testNewEditor() {
     frame.isVisible = true
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 }
+
 

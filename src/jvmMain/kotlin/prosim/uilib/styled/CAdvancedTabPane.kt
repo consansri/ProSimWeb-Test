@@ -169,4 +169,8 @@ open class CAdvancedTabPane(
         CLOSE
     }
 
+    interface Tab {
+        val isClosable: Boolean
+    }
+
 }

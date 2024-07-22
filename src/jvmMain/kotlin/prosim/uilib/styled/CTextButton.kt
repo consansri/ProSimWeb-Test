@@ -12,6 +12,7 @@ open class CTextButton(text: String, fontType: FontType = FontType.BASIC, val pr
     var text: String = text
         set(value) {
             field = value
+            size = Dimension(getFontMetrics(font).stringWidth(value) + insets.left + insets.right, getFontMetrics(font).height + insets.top + insets.bottom)
             revalidate()
             repaint()
         }
@@ -30,11 +31,11 @@ open class CTextButton(text: String, fontType: FontType = FontType.BASIC, val pr
 
     init {
         this.setUI(CTextButtonUI(fontType, borderMode))
-        if(hoverEffect) installHoverEffect()
+        if (hoverEffect) installHoverEffect()
     }
 
-    fun addActionListener(event: () -> Unit){
-        addMouseListener(object : MouseAdapter(){
+    fun addActionListener(event: () -> Unit) {
+        addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 event()
             }

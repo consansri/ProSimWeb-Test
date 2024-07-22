@@ -4,7 +4,10 @@ import prosim.uilib.UIStates
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
 import prosim.uilib.theme.core.Theme
-import java.awt.*
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import javax.swing.JComponent
 
 class CPanelUI() : CComponentUI<CPanel>() {
@@ -54,12 +57,5 @@ class CPanelUI() : CComponentUI<CPanel>() {
 
         g2d.dispose()
     }
-
-    override fun getPreferredSize(c: JComponent?): Dimension {
-        val cPanel = c as? CPanel ?: return super.getPreferredSize(c)
-        val size = c.layout.preferredLayoutSize(c)
-        return Dimension(size.width + c.insets.left + c.insets.right, size.height + c.insets.top + c.insets.bottom)
-    }
-
 
 }
