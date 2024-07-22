@@ -22,6 +22,12 @@ interface VirtualFile {
     val isDirectory: Boolean
 
     /**
+     * Indicates whether this is a file
+     */
+    val isFile: Boolean
+        get() = !isDirectory
+
+    /**
      * The parent directory of this file or directory, or null if this is the root.
      */
     val parent: VirtualFile?

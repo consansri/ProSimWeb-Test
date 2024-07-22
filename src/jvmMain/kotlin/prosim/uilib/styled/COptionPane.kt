@@ -210,7 +210,7 @@ class COptionPane : JOptionPane() {
         fun confirm(parent: Component, message: String): Deferred<Boolean> {
             val resultDeferred = CompletableDeferred<Boolean>()
 
-            val (cDialog, contentPanel) = createBasicOptionPane(parent, message)
+            val (cDialog, _,contentPanel) = CDialog.createWithTitle(message, parent)
 
             val cConfirmBtn = CTextButton("confirm", FontType.BASIC).apply {
                 addActionListener {

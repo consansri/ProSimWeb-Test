@@ -15,11 +15,47 @@ class CDialog(parent: Component) : JDialog() {
         rootPane.isOpaque = false
         rootPane.background = Color(0, 0, 0, 0)
         contentPane.background = Color(0, 0, 0, 0)
+
+        defaultCloseOperation = DISPOSE_ON_CLOSE
+
+        glassPane = object : Component() {
+            override fun paint(g: Graphics) {
+                val g2d = g as Graphics2D
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+
+                // Draw shadow
+                val shadowSize = 5
+                g2d.color = Color(0, 0, 0, 50)
+                g2d.fillRoundRect(shadowSize, shadowSize, width - shadowSize * 2, height - shadowSize * 2, 10, 10)
+
+                // Draw rounded rectangle for the dialog
+                g2d.color = background
+                g2d.fillRoundRect(0, 0, width - shadowSize, height - shadowSize, 10, 10)
+            }
+        }
+        glassPane.isVisible
+
+        // Add some padding
+
     }
 
-    override fun getPreferredSize(): Dimension {
-        val size = layout.preferredLayoutSize(this)
-        return Dimension(size.width + insets.left + insets.right,size.height + insets.top + insets.bottom)
+    override fun setVisible(b: Boolean) {
+        if(b){
+            pack()
+            setLocationRelativeTo(parent)
+        }
+        super.setVisible(b)
+    }
+
+    override fun setBackground(bgColor: Color?) {
+        super.setBackground(bgColor)
+        glassPane.repaint()
+    }
+
+    fun setContent(component: Component){
+        contentPane.removeAll()
+        contentPane.add(component)
+        pack()
     }
 
     companion object {

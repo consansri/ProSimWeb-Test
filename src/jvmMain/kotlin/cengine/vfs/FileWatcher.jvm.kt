@@ -44,12 +44,17 @@ actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
                             when (kind) {
                                 StandardWatchEventKinds.ENTRY_CREATE -> {
                                     if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-CREATED")
-                                    vfs.createFile(fullPath)
+                                    vfs.findFile(fullPath)?.let {
+                                        vfs.notifyFileCreated(it)
+                                    }
                                 }
 
                                 StandardWatchEventKinds.ENTRY_DELETE -> {
                                     if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-DELETED")
                                     vfs.deleteFile(fullPath)
+                                    vfs.findFile(fullPath)?.let {
+                                        vfs.notifyFileDeleted(it)
+                                    }
                                 }
 
                                 StandardWatchEventKinds.ENTRY_MODIFY -> {

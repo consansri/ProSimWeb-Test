@@ -72,6 +72,7 @@ class VFileSystem(absRootPath: String) {
      * @return The newly created [VirtualFile] object.
      */
     fun createFile(path: String, isDirectory: Boolean = false): VirtualFile {
+        actualFileSystem.createFile(path, isDirectory)
         val parts = path.split(DELIMITER).filter { it.isNotEmpty() }
         var current: VirtualFile = root
         for (i in 0 until parts.size - 1) {
@@ -145,11 +146,11 @@ class VFileSystem(absRootPath: String) {
         changeListeners.forEach { it.onFileChanged(file) }
     }
 
-    private fun notifyFileCreated(file: VirtualFile) {
+    fun notifyFileCreated(file: VirtualFile) {
         changeListeners.forEach { it.onFileCreated(file) }
     }
 
-    private fun notifyFileDeleted(file: VirtualFile) {
+    fun notifyFileDeleted(file: VirtualFile) {
         changeListeners.forEach { it.onFileDeleted(file) }
     }
 

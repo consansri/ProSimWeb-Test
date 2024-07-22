@@ -3,15 +3,19 @@ package prosim
 import cengine.lang.asm.AsmLang
 import cengine.lang.cown.CownLang
 import cengine.project.Project
-import cengine.vfs.VFileSystem
+import cengine.vfs.VirtualFile
+import prosim.ide.filetree.FileTreeUIChangeListener
 import com.formdev.flatlaf.util.SystemInfo
 import emulator.archs.ArchRV32
-import emulator.kit.nativeError
+import prosim.ide.editor3.PerformantCodeEditor
+import prosim.ide.filetree.FileTree
 import prosim.ui.components.NativeFrame
-import prosim.uilib.styled.editor3.PerformantCodeEditor
+import prosim.uilib.styled.CPanel
+import prosim.uilib.styled.CSplitPane
 import java.awt.Dimension
 import javax.swing.JDialog
 import javax.swing.JFrame
+import javax.swing.JSplitPane
 
 /**
  * The main entry point for the ProSim application.
@@ -48,14 +52,43 @@ fun testNewEditor() {
 
     val project = Project("docs", CownLang, AsmLang(ArchRV32().assembler))
 
-    val file = project.fileSystem.findFile(VFileSystem.DELIMITER + "test.s")
-    file?.let {
-        val editor = PerformantCodeEditor(file, project)
-        frame.contentPane = editor.createScrollPane()
-        frame.title = "${file.path}, lang: ${editor.psiManager?.lang?.name}"
-    } ?: {
-        nativeError("Couldn't open File!")
-    }
+    val fileTree = FileTree(project)
+
+    val splitPane = CSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTree.createContainer(), CPanel())
+
+    fileTree.setFileTreeListener(object  : FileTreeUIChangeListener {
+        override fun onNodeSelected(file: VirtualFile) {
+
+        }
+
+        override fun onNodeExpanded(directory: VirtualFile) {
+
+        }
+
+        override fun onNodeCollapsed(directory: VirtualFile) {
+
+        }
+
+        override fun onCreateRequest(parentDirectory: VirtualFile, name: String, isDirectory: Boolean) {
+
+        }
+
+        override fun onDeleteRequest(file: VirtualFile) {
+
+        }
+
+        override fun onRenameRequest(file: VirtualFile, newName: String) {
+
+        }
+
+        override fun onOpenRequest(file: VirtualFile) {
+            val editor = PerformantCodeEditor(file, project)
+            splitPane.rightComponent = editor.createScrollPane()
+            frame.title = "Editing: ${file.path}, lang: ${editor.psiManager?.lang?.name}"
+        }
+    })
+
+    frame.contentPane = splitPane
     frame.size = Dimension(1600, 1200)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true

@@ -7,7 +7,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
-open class CTextButton(text: String, fontType: FontType, val primary: Boolean = true, hoverEffect: Boolean = true, borderMode: BorderMode = BorderMode.INSET) : JComponent() {
+open class CTextButton(text: String, fontType: FontType = FontType.BASIC, val primary: Boolean = true, hoverEffect: Boolean = true, borderMode: BorderMode = BorderMode.INSET) : JComponent() {
 
     var text: String = text
         set(value) {
@@ -59,16 +59,10 @@ open class CTextButton(text: String, fontType: FontType, val primary: Boolean = 
     }
 
     override fun getPreferredSize(): Dimension {
-        val size = ui.getPreferredSize(this)
-        return size
-    }
-
-    override fun getMinimumSize(): Dimension {
-        return ui.getMinimumSize(this)
-    }
-
-    override fun getMaximumSize(): Dimension {
-        return ui.getMaximumSize(this)
+        val fm = getFontMetrics(font)
+        val width = fm.stringWidth(text) + insets.left + insets.right
+        val height = fm.height + insets.top + insets.bottom
+        return Dimension(width, height)
     }
 
 }

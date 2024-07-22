@@ -1,4 +1,4 @@
-package cengine.vfs.tree
+package prosim.ide.filetree
 
 interface FileTreeUI {
 
