@@ -1,47 +1,37 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
-import prosim.uilib.styled.params.FontType
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicPopupMenuUI
 
-class CPopupMenuUI( private val fontType: FontType) : BasicPopupMenuUI() {
+class CPopupMenuUI : BasicPopupMenuUI() {
 
-    private var cornerRadius = UIStates.scale.get().controlScale.cornerRadius
-    private var borderColor = UIStates.theme.get().globalLaF.borderColor
-    private var background = UIStates.theme.get().globalLaF.bgOverlay
+    private val cornerRadius
+        get() = UIStates.scale.get().controlScale.cornerRadius
+
+    private val borderColor
+        get() = UIStates.theme.get().globalLaF.borderColor
+
+    private val background
+        get() = UIStates.theme.get().globalLaF.bgOverlay
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val optionPane = c as? CPopupMenu ?: return
 
-        UIStates.theme.addEvent(WeakReference(optionPane)) { _ ->
-            setDefaults(optionPane)
-        }
-
-        UIStates.scale.addEvent(WeakReference(optionPane)) { _ ->
-            setDefaults(optionPane)
-        }
-
         setDefaults(optionPane)
     }
 
 
     private fun setDefaults(cPopupMenu: CPopupMenu) {
-        cornerRadius = UIStates.scale.get().controlScale.cornerRadius
-        borderColor = UIStates.theme.get().globalLaF.borderColor
-        background = UIStates.theme.get().globalLaF.bgOverlay
         cPopupMenu.isOpaque = false
         cPopupMenu.background = Color(0, 0, 0, 0)
-        cPopupMenu.foreground = UIStates.theme.get().textLaF.base
-        cPopupMenu.font = fontType.getFont()
         cPopupMenu.border = BorderFactory.createEmptyBorder()
     }
 

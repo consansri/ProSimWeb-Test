@@ -19,7 +19,6 @@ import javax.swing.tree.DefaultTreeModel
 class COptionPane : JOptionPane() {
 
     companion object {
-
         fun <T> showSelector(parent: Component, title: String, entries: List<T>, fontType: FontType = FontType.BASIC): Pair<CDialog, Deferred<T?>> {
             val resultDeferred = CompletableDeferred<T?>()
 
@@ -108,7 +107,7 @@ class COptionPane : JOptionPane() {
             val tree = CTree(treeModel, FontType.BASIC)
             val cScrollPane = CScrollPane(false)
             cScrollPane.setViewportView(tree)
-            cScrollPane.size = Dimension(300, 300)
+            cScrollPane.preferredSize = Dimension(600, 800)
 
             // Current Path Identificator
             val currPathTextField = CTextField(FontType.BASIC)
@@ -210,7 +209,7 @@ class COptionPane : JOptionPane() {
         fun confirm(parent: Component, message: String): Deferred<Boolean> {
             val resultDeferred = CompletableDeferred<Boolean>()
 
-            val (cDialog, _,contentPanel) = CDialog.createWithTitle(message, parent)
+            val (cDialog, _, contentPanel) = CDialog.createWithTitle(message, parent)
 
             val cConfirmBtn = CTextButton("confirm", FontType.BASIC).apply {
                 addActionListener {
@@ -362,13 +361,14 @@ class COptionPane : JOptionPane() {
         private fun show(cDialog: CDialog, size: Dimension? = null) {
             cDialog.pack()
             if (size != null) {
-                cDialog.size = size
+                cDialog.contentPane.size = size
             } else {
                 cDialog.contentPane.size = Dimension(
                     cDialog.insets.left + cDialog.insets.right + cDialog.layout.preferredLayoutSize(cDialog).width,
                     cDialog.insets.top + cDialog.insets.bottom + cDialog.layout.preferredLayoutSize(cDialog).height
                 )
             }
+            cDialog.revalidate()
             cDialog.setLocationRelativeTo(null)
             cDialog.isVisible = true
         }

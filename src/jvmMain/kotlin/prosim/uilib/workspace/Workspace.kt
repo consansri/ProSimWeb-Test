@@ -66,7 +66,7 @@ class Workspace(
         // Initialize the file tree UI component.
         tree = CTree(treeModel, FontType.BASIC)
 
-        // Add mouse listener for handling user interactions with the file tree.
+        // Add a mouse listener for handling user interactions with the file tree.
         tree.addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {}
 
@@ -261,7 +261,7 @@ class Workspace(
                     else -> "nothing"
                 }
 
-                if(files.isEmpty() && dirsAreEmpty){
+                if (files.isEmpty() && dirsAreEmpty) {
                     dirs.forEach {
                         if (!it.file.delete()) {
                             logger?.error("Failed to delete directory ${it.file.name}!")
@@ -379,7 +379,7 @@ class Workspace(
                     val addrLabel = CLabel("Address Width [Bits]", FontType.BASIC)
                     val wordLabel = CLabel("Data Width [Bits]", FontType.BASIC)
                     val addrSpinner = CNumberPicker(CNumberPicker.IntModel(8, Int.MAX_VALUE, 8, States.arch.get().memory.addressSize.bitWidth))
-                    val wordSpinner = CNumberPicker(CNumberPicker.IntModel(8,Int.MAX_VALUE,8, States.arch.get().memory.instanceSize.bitWidth))
+                    val wordSpinner = CNumberPicker(CNumberPicker.IntModel(8, Int.MAX_VALUE, 8, States.arch.get().memory.instanceSize.bitWidth))
                     val export = CTextButton("Export", FontType.CODE).apply {
                         addActionListener {
                             CoroutineScope(Dispatchers.Default).launch {

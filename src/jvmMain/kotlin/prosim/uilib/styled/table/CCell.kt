@@ -44,7 +44,11 @@ abstract class CCell(val fontType: FontType) : JComponent() {
     }
 
     override fun getFont(): Font {
-        return fontType.getFont()
+        return try {
+            fontType.getFont()
+        } catch (e: NullPointerException) {
+            super.getFont()
+        }
     }
 
 }

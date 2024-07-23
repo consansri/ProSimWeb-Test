@@ -8,14 +8,18 @@ import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.lang.ref.WeakReference
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.BoxLayout
+import javax.swing.JFrame
+import javax.swing.SwingConstants
 import kotlin.system.exitProcess
 
 open class CFrame() : JFrame() {
     val titleBar = TitleBar()
-    val content = CPanel( primary = false)
+    val content = CPanel(primary = false)
 
-    private var cornerRadius: Int = UIStates.scale.get().borderScale.cornerRadius
+    private val cornerRadius: Int
+        get() = UIStates.scale.get().borderScale.cornerRadius
 
     private var posX = 0
     private var posY = 0
@@ -30,7 +34,7 @@ open class CFrame() : JFrame() {
         layout = BorderLayout()
 
         addBaseComponents()
-        this.setupUI()
+        setDefaults()
 
         isVisible = true
     }
@@ -51,29 +55,19 @@ open class CFrame() : JFrame() {
         titleBar.titleLabel.text = newtitle
     }
 
-    private fun setupUI() {
-        SwingUtilities.invokeLater {
-            UIStates.scale.addEvent(WeakReference(this)) { _ ->
-                setDefaults()
-            }
+    override fun getBackground(): Color {
+        return UIStates.theme.get().globalLaF.bgSecondary
+    }
 
-            UIStates.theme.addEvent(WeakReference(this)) { _ ->
-                setDefaults()
-            }
-
-            setDefaults()
-        }
+    override fun getIconImage(): Image {
+        val icon = UIStates.icon.get().appLogo.derive(64, 64)
+        icon.colorFilter = UIStates.theme.get().icon.colorFilter
+        return icon.image
     }
 
     private fun setDefaults() {
         rootPane.border = BorderFactory.createEmptyBorder()
         content.border = BorderFactory.createEmptyBorder()
-        cornerRadius = UIStates.scale.get().borderScale.cornerRadius
-        background = UIStates.theme.get().globalLaF.bgSecondary
-
-        val icon = UIStates.icon.get().appLogo.derive(64, 64)
-        icon.colorFilter = UIStates.theme.get().icon.colorFilter
-        iconImage = icon.image
     }
 
     fun addTitleBar(comp: Component) {
@@ -96,14 +90,16 @@ open class CFrame() : JFrame() {
         content.add(comp, constraints, index)
     }
 
-    inner class TitleBar : CPanel( primary = false, BorderMode.SOUTH) {
+    inner class TitleBar : CPanel(primary = false, BorderMode.SOUTH) {
 
-        val logoButton = CIconButton( UIStates.icon.get().appLogo, CIconButton.Mode.GRADIENT_NORMAL)
-        val titleLabel = CLabel( title, FontType.BASIC)
-        val minimizeButton = CIconButton( UIStates.icon.get().decrease, CIconButton.Mode.SECONDARY_SMALL)
-        val maximizeButton = CIconButton( UIStates.icon.get().increase, CIconButton.Mode.SECONDARY_SMALL)
-        val closeButton = CIconButton( UIStates.icon.get().close, CIconButton.Mode.SECONDARY_SMALL)
-        val titleContent = CPanel( primary = false)
+        val logoButton = CIconButton(UIStates.icon.get().appLogo, CIconButton.Mode.GRADIENT_NORMAL)
+
+
+        val titleLabel = CLabel(title, FontType.BASIC)
+        val minimizeButton = CIconButton(UIStates.icon.get().decrease, CIconButton.Mode.SECONDARY_SMALL)
+        val maximizeButton = CIconButton(UIStates.icon.get().increase, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton(UIStates.icon.get().close, CIconButton.Mode.SECONDARY_SMALL)
+        val titleContent = CPanel(primary = false)
 
         init {
             attachContent()
@@ -202,7 +198,7 @@ open class CFrame() : JFrame() {
 
         private fun applyThemeDefaults() {
             UIStates.icon.get().appLogo.colorFilter = FlatSVGIcon.ColorFilter {
-               UIStates.theme.get().textLaF.base
+                UIStates.theme.get().textLaF.base
             }
 
             logoButton.svgIcon = UIStates.icon.get().appLogo

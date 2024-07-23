@@ -1,9 +1,7 @@
 package prosim.uilib.styled
 
-import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
 import java.awt.*
-import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicLabelUI
 
@@ -16,25 +14,6 @@ class CVerticalLabelUI( private val primary: Boolean, private val fontType: Font
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
-
-        val cLabel = c as? CVerticalLabel ?: return
-
-        UIStates.theme.addEvent(WeakReference(cLabel)) { _ ->
-            setDefaults(cLabel)
-        }
-
-        UIStates.scale.addEvent(WeakReference(cLabel)) { _ ->
-            setDefaults(cLabel)
-        }
-
-        setDefaults(cLabel)
-    }
-
-    private fun setDefaults(cLabel: CVerticalLabel) {
-        cLabel.font = fontType.getFont()
-        cLabel.border = UIStates.scale.get().borderScale.getInsetBorder()
-        cLabel.foreground = if(primary) UIStates.theme.get().textLaF.base else UIStates.theme.get().textLaF.baseSecondary
-        cLabel.repaint()
     }
 
     override fun getPreferredSize(c: JComponent?): Dimension {

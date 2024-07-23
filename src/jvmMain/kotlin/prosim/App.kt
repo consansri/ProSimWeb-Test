@@ -33,9 +33,9 @@ fun main() {
        JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
-    testNewEditor()
+    //testNewEditor()
     // Initialize and test the base application.
-    //launchBaseApp()
+    launchBaseApp()
 }
 
 /**

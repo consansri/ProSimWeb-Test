@@ -1,25 +1,20 @@
 package prosim.uilib.styled.table
 
-import prosim.uilib.resource.Icons
-import prosim.uilib.scale.core.Scaling
-import prosim.uilib.styled.CComponentUI
 import prosim.uilib.styled.params.FontType
-import prosim.uilib.theme.core.Theme
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.plaf.ComponentUI
 
-class CCellUI(private val fontType: FontType) : CComponentUI<CCell>() {
+class CCellUI(private val fontType: FontType) : ComponentUI() {
 
-    override fun setDefaults(c: CCell, theme: Theme, scaling: Scaling, icons: Icons) {
+    override fun installUI(c: JComponent?) {
+        c as? CCell ?: return super.installUI(c)
+
         c.isOpaque = false
         c.border = BorderFactory.createEmptyBorder()
-    }
-
-    override fun onInstall(c: CCell) {
-        // nothing needs to be installed
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {

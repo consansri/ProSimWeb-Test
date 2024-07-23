@@ -1,24 +1,20 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
-import prosim.uilib.resource.Icons
-import prosim.uilib.scale.core.Scaling
-import prosim.uilib.theme.core.Theme
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import javax.swing.JComponent
+import javax.swing.plaf.ComponentUI
 
-class CPanelUI() : CComponentUI<CPanel>() {
+class CPanelUI() : ComponentUI() {
 
-    override fun setDefaults(c: CPanel, theme: Theme, scaling: Scaling, icons: Icons) {
+    override fun installUI(c: JComponent?) {
+        c as? CPanel ?: return super.installUI(c)
+
         c.isOpaque = false
         c.background = Color(0, 0, 0, 0)
-    }
-
-    override fun onInstall(c: CPanel) {
-        // nothing needs to be installed
     }
 
     override fun paint(g: Graphics, c: JComponent?) {

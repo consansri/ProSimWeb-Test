@@ -1,28 +1,20 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
-import prosim.uilib.resource.Icons
-import prosim.uilib.scale.core.Scaling
-import prosim.uilib.theme.core.Theme
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
-import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.plaf.ComponentUI
 
-open class CIconButtonUI() : CComponentUI<CIconButton>() {
-    override fun onInstall(c: CIconButton) {
-        // Nothing needs to be done
-    }
+open class CIconButtonUI() : ComponentUI() {
+    override fun installUI(c: JComponent?) {
+        c as? CIconButton ?: return super.installUI(c)
 
-    override fun setDefaults(c: CIconButton, theme: Theme, scaling: Scaling, icons: Icons) {
-        // Set Standard Appearance
         c.isFocusable = true
         c.isOpaque = false
-        c.iconBg = UIStates.theme.get().iconLaF.iconBg
-        val inset = c.mode.getInset()
-        c.border = BorderFactory.createEmptyBorder(inset, inset, inset, inset)
+
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
@@ -38,7 +30,7 @@ open class CIconButtonUI() : CComponentUI<CIconButton>() {
         g2.rotate(button.rotationAngle, width / 2.0, height / 2.0)
 
         // Paint button background
-        val bgColor = if (button.isHovered && !button.isDeactivated) {
+        if (button.isHovered && !button.isDeactivated) {
             g2.color = UIStates.theme.get().iconLaF.iconBgHover
         } else {
             g2.color = button.iconBg

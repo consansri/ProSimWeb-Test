@@ -6,8 +6,6 @@ import prosim.uilib.styled.borders.DirectionalBorder
 import prosim.uilib.styled.params.FontType
 import java.awt.Color
 import java.awt.Component
-import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
 import javax.swing.*
 import javax.swing.plaf.basic.BasicTableUI
 import javax.swing.table.DefaultTableCellRenderer
@@ -21,14 +19,6 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
         super.installUI(c)
 
         val table = c as? CTable ?: return
-
-        UIStates.theme.addEvent(WeakReference(table)) { _ ->
-            setDefaults(table)
-        }
-
-        UIStates.scale.addEvent(WeakReference(table)) { _ ->
-            setDefaults(table)
-        }
 
         setDefaults(table)
     }
@@ -100,40 +90,23 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
     }
 
     fun setDefaults(table: CTable) {
-        table.background = UIStates.theme.get().globalLaF.bgSecondary
-        table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
-        table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
-        table.setDefaultEditor(Any::class.java, CCellEditor())
-        table.tableHeader.border = DirectionalBorder(south = true)
         table.isOpaque = true
         table.setShowGrid(false)
         table.showVerticalLines = false
         table.showHorizontalLines = false
-        table.gridColor = table.background
-        table.rowHeight = table.getFontMetrics(UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)).height + 2 * UIStates.scale.get().borderScale.insets
+        table.setDefaultRenderer(Any::class.java, CCellRenderer(primary))
+        table.setDefaultEditor(Any::class.java, CCellEditor())
+        table.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
 
-        val header = table.tableHeader
-        header.resizingAllowed = false
-        header.background = UIStates.theme.get().globalLaF.bgPrimary
-        header.foreground = UIStates.theme.get().textLaF.baseSecondary
-        header.font = FontType.DATA.getFont()
-        header.defaultRenderer = CHeaderRenderer(!primary)
-        //header.resizingAllowed = false
+        val header = CTable.CTableHeader()
+        header.border = DirectionalBorder(south = true)
         header.isOpaque = true
         header.reorderingAllowed = false
         header.updateTableInRealTime = true
-    }
-
-    private fun forwardMouseEvent(e: MouseEvent?) {
-        e?.let { event ->
-            val point = event.point
-            val column = table.tableHeader.columnAtPoint(point)
-            val headerRenderer = table.tableHeader.defaultRenderer
-            val component = headerRenderer.getTableCellRendererComponent(table, table.columnModel.getColumn(column).headerValue, false, false, -1, column)
-            val translatedEvent = SwingUtilities.convertMouseEvent(table.tableHeader, event, component)
-
-            component.dispatchEvent(translatedEvent)
-        }
+        header.resizingAllowed = false
+        header.font = FontType.DATA.getFont()
+        header.defaultRenderer = CHeaderRenderer(!primary)
+        table.tableHeader = header
     }
 
     data class CellHL(val color: Color, val rowID: Int?, val colID: Int?)

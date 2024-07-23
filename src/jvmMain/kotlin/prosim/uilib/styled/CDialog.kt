@@ -28,14 +28,12 @@ class CDialog(parent: Component) : JDialog() {
                 g2d.color = Color(0, 0, 0, 50)
                 g2d.fillRoundRect(shadowSize, shadowSize, width - shadowSize * 2, height - shadowSize * 2, 10, 10)
 
-                // Draw rounded rectangle for the dialog
+                // Draw a rounded rectangle for the dialog
                 g2d.color = background
                 g2d.fillRoundRect(0, 0, width - shadowSize, height - shadowSize, 10, 10)
             }
         }
         glassPane.isVisible
-
-        // Add some padding
 
     }
 
@@ -110,5 +108,7 @@ class CDialog(parent: Component) : JDialog() {
         }
     }
 
-
+    override fun getMinimumSize(): Dimension {
+        return layout.minimumLayoutSize(this)
+    }
 }

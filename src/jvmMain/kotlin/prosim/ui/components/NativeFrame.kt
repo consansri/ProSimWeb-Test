@@ -19,6 +19,7 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
 import java.io.IOException
+import java.lang.ref.WeakReference
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.JFrame
@@ -149,7 +150,21 @@ class NativeFrame : JFrame(), ProSimFrame {
         defaultCloseOperation = EXIT_ON_CLOSE
         size = Dimension(1920, 1080)
         setLocationRelativeTo(null)
+
+        UIStates.theme.addEvent(WeakReference(this)){
+            revalidate()
+            repaint()
+        }
+
+        UIStates.scale.addEvent(WeakReference(this)){
+            revalidate()
+            repaint()
+        }
+
         isVisible = true
+
+        revalidate()
+        repaint()
     }
 
     /**

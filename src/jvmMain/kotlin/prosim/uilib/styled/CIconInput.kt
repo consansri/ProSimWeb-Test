@@ -6,10 +6,10 @@ import prosim.uilib.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 
-class CIconInput(icon: FlatSVGIcon, fontType: FontType, primary: Boolean = false) : prosim.uilib.styled.CPanel( primary, roundCorners = true, borderMode = BorderMode.THICKNESS) {
+class CIconInput(icon: FlatSVGIcon, fontType: FontType, primary: Boolean = false) : CPanel( primary, roundCorners = true, borderMode = BorderMode.THICKNESS) {
 
-    val button = prosim.uilib.styled.CIconButton(icon)
-    val input = prosim.uilib.styled.CTextField(fontType)
+    val button = CIconButton(icon)
+    val input = CTextField(fontType)
 
     init {
         attachComponents()

@@ -1,44 +1,33 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
-import prosim.uilib.styled.params.FontType
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.lang.ref.WeakReference
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicMenuItemUI
 
-class CMenuItemUI(private val fontType: FontType) : BasicMenuItemUI() {
+class CMenuItemUI() : BasicMenuItemUI() {
 
-    private var cornerRadius = UIStates.scale.get().controlScale.cornerRadius
-    private var hoverBackground = UIStates.theme.get().iconLaF.iconBgHover
+    private val cornerRadius
+        get() = UIStates.scale.get().controlScale.cornerRadius
+
+    private val hoverBackground
+        get() = UIStates.theme.get().iconLaF.iconBgHover
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val optionPane = c as? CMenuItem ?: return
 
-        UIStates.theme.addEvent(WeakReference(optionPane)) { _ ->
-            setDefaults(optionPane)
-        }
-
-        UIStates.scale.addEvent(WeakReference(optionPane)) { _ ->
-            setDefaults(optionPane)
-        }
-
         setDefaults(optionPane)
     }
 
     private fun setDefaults(item: CMenuItem) {
-        cornerRadius = UIStates.scale.get().controlScale.cornerRadius
         item.isOpaque = false
         item.background = Color(0, 0, 0, 0)
-        item.font = fontType.getFont()
-        item.foreground = UIStates.theme.get().textLaF.base
-        item.border = UIStates.scale.get().controlScale.getNormalInsetBorder()
-        selectionBackground = Color(0,0,0,0)
+        selectionBackground = Color(0, 0, 0, 0)
         selectionForeground = item.foreground
     }
 

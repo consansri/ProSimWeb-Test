@@ -7,9 +7,11 @@ import prosim.uilib.theme.core.Theme
 import java.awt.Color
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.Timer
+import javax.swing.border.Border
 
 open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hoverEffect: Boolean = true) : JComponent() {
 
@@ -29,10 +31,15 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hove
             updateAnim()
         }
 
-    var iconBg = UIStates.theme.get().iconLaF.iconBg
+    var customBG: Color? = null
         set(value) {
             field = value
             repaint()
+        }
+
+    val iconBg: Color
+        get() {
+            return customBG ?: UIStates.theme.get().iconLaF.iconBg
         }
 
     var isHovered: Boolean = false
@@ -124,6 +131,11 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hove
                 rotationAngle = 0.0
             }
         }
+    }
+
+    override fun getBorder(): Border {
+        val inset = mode.getInset()
+        return BorderFactory.createEmptyBorder(inset, inset, inset, inset)
     }
 
     enum class Mode {

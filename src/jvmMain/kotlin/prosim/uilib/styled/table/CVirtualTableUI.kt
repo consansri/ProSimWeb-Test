@@ -1,19 +1,19 @@
 package prosim.uilib.styled.table
 
-import prosim.uilib.resource.Icons
-import prosim.uilib.scale.core.Scaling
-import prosim.uilib.styled.CComponentUI
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.FontType
-import prosim.uilib.theme.core.Theme
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
+import javax.swing.plaf.ComponentUI
 
-class CVirtualTableUI : CComponentUI<CVirtualTable>() {
+class CVirtualTableUI : ComponentUI() {
 
-    override fun setDefaults(c: CVirtualTable, theme: Theme, scaling: Scaling, icons: Icons) {
+    override fun installUI(c: JComponent?) {
+        c as? CVirtualTable ?: return super.installUI(c)
+
         c.isOpaque = false
     }
 
@@ -22,7 +22,7 @@ class CVirtualTableUI : CComponentUI<CVirtualTable>() {
     }
 
     fun createCellRenderer(table: CVirtualTable, rowID: Int, colID: Int): CCellRenderer {
-        return CCellRenderer(table,table.contentfontType, rowID, colID)
+        return CCellRenderer(table, table.contentfontType, rowID, colID)
     }
 
     class CHeaderRenderer(val table: CVirtualTable, text: String, fontType: FontType, val rowID: Int, val colID: Int) : CLabel(text, fontType) {
@@ -58,9 +58,5 @@ class CVirtualTableUI : CComponentUI<CVirtualTable>() {
             customBG = table.customCellBGColor(realRowID, realColID)
             return table.getCellContent(realRowID, realColID)
         }
-    }
-
-    override fun onInstall(c: CVirtualTable) {
-        // nothing needs to be installed
     }
 }

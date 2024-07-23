@@ -1,5 +1,6 @@
 package prosim.uilib.styled
 
+import prosim.uilib.UIStates
 import prosim.uilib.scale.core.ResizeCondition
 import java.awt.Component
 import java.awt.event.ComponentAdapter
@@ -20,6 +21,10 @@ open class CSplitPane( newOrientation: Int, newContinuousLayout: Boolean, newLef
                 this@CSplitPane.isOneTouchExpandable = rResizable && lResizable
             }
         })
+    }
+
+    override fun getDividerSize(): Int {
+        return UIStates.scale.get().dividerScale.thickness
     }
 
 }

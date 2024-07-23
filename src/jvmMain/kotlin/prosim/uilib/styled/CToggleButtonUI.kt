@@ -5,9 +5,9 @@ import prosim.uilib.styled.params.FontType
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.SwingConstants
+import javax.swing.border.Border
 import javax.swing.plaf.basic.BasicButtonUI
 
 class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private val fontType: FontType) : BasicButtonUI() {
@@ -17,34 +17,10 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
 
         val button = c as? CToggleButton ?: return
         button.horizontalAlignment = SwingConstants.CENTER
-
-        UIStates.theme.addEvent(WeakReference(button)) { _ ->
-            setDefaults( button)
-        }
-
-        UIStates.scale.addEvent(WeakReference(button)) { _ ->
-            setDefaults( button)
-        }
-
-        setDefaults( button)
-    }
-
-    fun setDefaults(button: CToggleButton) {
         button.isOpaque = false
         button.isContentAreaFilled = false
         button.isFocusPainted = false
         button.isFocusable = false
-        button.font = fontType.getFont()
-        button.border = when (toggleSwitchType) {
-            ToggleSwitchType.SMALL -> UIStates.scale.get().controlScale.getSmallInsetBorder()
-            ToggleSwitchType.NORMAL -> UIStates.scale.get().controlScale.getNormalInsetBorder()
-        }
-        button.size = when (toggleSwitchType) {
-            ToggleSwitchType.SMALL -> UIStates.scale.get().controlScale.getSmallSize()
-            ToggleSwitchType.NORMAL -> UIStates.scale.get().controlScale.getNormalSize()
-        }
-        button.background = if (button.isActive) UIStates.theme.get().iconLaF.iconBgActive else UIStates.theme.get().iconLaF.iconBg
-        button.foreground = if (button.isDeactivated) UIStates.theme.get().textLaF.baseSecondary else UIStates.theme.get().textLaF.base
     }
 
     override fun paint(g: Graphics?, c: JComponent?) {
@@ -56,7 +32,7 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
 
         // Paint button background
         g2.color = button.background
-        g2.fillRoundRect(0, 0, width , height, UIStates.scale.get().controlScale.cornerRadius, UIStates.scale.get().controlScale.cornerRadius)
+        g2.fillRoundRect(0, 0, width, height, UIStates.scale.get().controlScale.cornerRadius, UIStates.scale.get().controlScale.cornerRadius)
 
         // Paint button
         super.paint(g2, c)
@@ -72,8 +48,8 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
     }
 
     override fun getMinimumSize(c: JComponent?): Dimension {
-        val button = c as? CToggleButton ?: return super.getPreferredSize(c)
-        val preferredSize = when(toggleSwitchType){
+        c as? CToggleButton ?: return super.getPreferredSize(c)
+        val preferredSize = when (toggleSwitchType) {
             ToggleSwitchType.SMALL -> UIStates.scale.get().controlScale.getSmallSize()
             ToggleSwitchType.NORMAL -> UIStates.scale.get().controlScale.getNormalSize()
         }
@@ -86,12 +62,13 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
 
     enum class ToggleSwitchType {
         SMALL,
-        NORMAL
-    }
-    
-    private fun getInset() =  when (toggleSwitchType) {
-        ToggleSwitchType.SMALL -> UIStates.scale.get().controlScale.smallInset
-        ToggleSwitchType.NORMAL -> UIStates.scale.get().controlScale.normalInset
-    }
+        NORMAL;
 
+        fun getBorder(): Border {
+            return when (this) {
+                SMALL -> UIStates.scale.get().controlScale.getSmallInsetBorder()
+                NORMAL -> UIStates.scale.get().controlScale.getNormalInsetBorder()
+            }
+        }
+    }
 }

@@ -2,18 +2,15 @@ package prosim.uilib.styled.editor
 
 import emulator.kit.assembler.CodeStyle
 import prosim.uilib.UIStates
-import prosim.uilib.resource.Icons
-import prosim.uilib.scale.core.Scaling
-import prosim.uilib.styled.CComponentUI
-import prosim.uilib.theme.core.Theme
 import java.awt.*
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.Timer
+import javax.swing.plaf.ComponentUI
 
 class CEditorAreaUI(
     private val lineOverhead: Int = 3
-) :  CComponentUI<CEditorArea>() {
+) :  ComponentUI() {
     private var defaultSelectionColor = Color(0, 0, 0, 0)
     private var defaultSearchResultColor = Color(0, 0, 0, 0)
     private var caretLineBG = Color(0, 0, 0, 0)
@@ -21,20 +18,9 @@ class CEditorAreaUI(
     private var caretTimer: Timer? = null
     private var caretColor: Color? = null
 
-    private var selectionColor = UIStates.theme.get().codeLaF.selectionColor
-        set(value) {
-            field = value
-            defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 127)
-            caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
-        }
+    override fun installUI(c: JComponent?) {
+        c as? CEditorArea ?: return super.installUI(c)
 
-    private var searchResultColor = UIStates.theme.get().codeLaF.searchResultColor
-        set(value) {
-            field = value
-            defaultSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 127)
-        }
-
-    override fun setDefaults(c: CEditorArea, theme: Theme, scaling: Scaling, icons: Icons) {
         // Setup Base Editor Defaults
         c.isOpaque = false
         c.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
@@ -72,9 +58,18 @@ class CEditorAreaUI(
         caretTimer?.start()
     }
 
-    override fun onInstall(c: CEditorArea) {
-        // nothing needs to be installed
-    }
+    private var selectionColor = UIStates.theme.get().codeLaF.selectionColor
+        set(value) {
+            field = value
+            defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 127)
+            caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
+        }
+
+    private var searchResultColor = UIStates.theme.get().codeLaF.searchResultColor
+        set(value) {
+            field = value
+            defaultSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 127)
+        }
 
     override fun paint(g: Graphics?, c: JComponent?) {
         val g2d = g?.create() as? Graphics2D ?: return

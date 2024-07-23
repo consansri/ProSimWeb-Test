@@ -5,28 +5,24 @@ import prosim.uilib.UIStates
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.lang.ref.WeakReference
+import javax.swing.Icon
 import javax.swing.JButton
+import javax.swing.border.Border
 
-class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButton.Mode = CIconButton.Mode.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
+class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean = false, val mode: CIconButton.Mode = CIconButton.Mode.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
 
-    var active = active
+    var active: Boolean = active
         set(value) {
             field = value
-            updateIcon()
+            repaint()
         }
 
-    var activeBG: Color = UIStates.theme.get().iconLaF.iconBgActive
-        set(value) {
-            field = value
-            updateIcon()
-        }
+    val activeBG: Color
+        get() = UIStates.theme.get().iconLaF.iconBgActive
 
-    var inactiveBG: Color = UIStates.theme.get().iconLaF.iconBg
-        set(value) {
-            field = value
-            updateIcon()
-        }
+
+    val inactiveBG: Color
+        get() = UIStates.theme.get().iconLaF.iconBg
 
     init {
         // Set Standard Appearance
@@ -36,35 +32,24 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean, val mode: CIconButt
         isFocusable = false
         isOpaque = false
 
-        UIStates.theme.addEvent(WeakReference(this)) {
-            setDefaults()
-        }
-
-        UIStates.scale.addEvent(WeakReference(this)) {
-            setDefaults()
-        }
-
         addActionListener {
             this@CIconToggle.active = !this@CIconToggle.active
             onChange(this@CIconToggle.active)
         }
-        setDefaults()
     }
 
-    fun updateIcon() {
-        background = if (active) activeBG else inactiveBG
-        val size = mode.size(UIStates.scale.get())
-        icon = svgIcon.derive(size, size)
+    override fun getBackground(): Color {
+        return if (active) activeBG else inactiveBG
     }
 
-    fun setDefaults() {
-        activeBG = UIStates.theme.get().iconLaF.iconBgActive
-        inactiveBG = UIStates.theme.get().iconLaF.iconBg
+    override fun getIcon(): Icon {
         mode.applyFilter(svgIcon, UIStates.theme.get())
-        border = UIStates.scale.get().borderScale.getInsetBorder()
-        updateIcon()
-        revalidate()
-        repaint()
+        val size = mode.size(UIStates.scale.get())
+        return svgIcon.derive(size, size)
+    }
+
+    override fun getBorder(): Border {
+        return UIStates.scale.get().borderScale.getInsetBorder()
     }
 
     override fun paint(g: Graphics?) {

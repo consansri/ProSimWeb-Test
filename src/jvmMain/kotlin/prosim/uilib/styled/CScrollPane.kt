@@ -1,5 +1,7 @@
 package prosim.uilib.styled
 
+import prosim.uilib.UIStates
+import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -17,10 +19,11 @@ open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
     }
 
     init {
-        this.setUI(CScrollPaneUI())
+        this.setUI(CScrollPaneUI(primary))
         verticalScrollBar.unitIncrement = 16
         horizontalScrollBar.unitIncrement = 16
     }
+
     override fun paint(g: Graphics?) {
         val g2d = g?.create() as? Graphics2D ?: return
         g2d.color = background
@@ -31,8 +34,12 @@ open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
         g2d.dispose()
     }
 
-    companion object{
-        fun removeArrowKeyScrolling(scrollPane: JScrollPane){
+    override fun getBackground(): Color {
+        return if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
+    }
+
+    companion object {
+        fun removeArrowKeyScrolling(scrollPane: JScrollPane) {
             val inputMap = scrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
             // Remove bindings for arrow keys
@@ -42,14 +49,14 @@ open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
             inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "none")
         }
 
-        fun removePageUpDownScrolling(scrollPane: JScrollPane){
+        fun removePageUpDownScrolling(scrollPane: JScrollPane) {
             val inputMap = scrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
             inputMap.put(KeyStroke.getKeyStroke("PAGE_UP"), "none")
             inputMap.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "none")
         }
 
-        fun restoreArrowKeyScrolling(scrollPane: JScrollPane){
+        fun restoreArrowKeyScrolling(scrollPane: JScrollPane) {
             val inputMap = scrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
             // restore bindings for arrow keys
@@ -59,7 +66,7 @@ open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
             inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "scrollRight")
         }
 
-        fun restorePageUpDownScrolling(scrollPane: JScrollPane){
+        fun restorePageUpDownScrolling(scrollPane: JScrollPane) {
             val inputMap = scrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
             inputMap.put(KeyStroke.getKeyStroke("PAGE_UP"), "scrollUpExtend")

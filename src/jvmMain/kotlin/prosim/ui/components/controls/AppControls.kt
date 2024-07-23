@@ -7,7 +7,7 @@ import prosim.ui.components.controls.buttons.FeatureSwitch
 import prosim.ui.components.controls.buttons.Settings
 import prosim.ui.components.controls.buttons.ThemeSwitch
 import prosim.uilib.UIStates
-import prosim.uilib.styled.CIconButton
+import prosim.uilib.styled.CIconToggle
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
 import java.awt.Component
@@ -36,17 +36,11 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
 
     private val buttons = listOf(
         ThemeSwitch(),
-        CIconButton(UIStates.icon.get().processor).apply {
-            addActionListener {
-                processorShown = !processorShown
-                iconBg = if (processorShown) UIStates.theme.get().iconLaF.iconBgActive else UIStates.theme.get().iconLaF.iconBg
-            }
+        CIconToggle(UIStates.icon.get().processor){
+            processorShown = it
         },
-        CIconButton(UIStates.icon.get().disassembler).apply {
-            addActionListener {
-                consoleAndInfoShown = !consoleAndInfoShown
-                iconBg = if (consoleAndInfoShown) UIStates.theme.get().iconLaF.iconBgActive else UIStates.theme.get().iconLaF.iconBg
-            }
+        CIconToggle(UIStates.icon.get().disassembler){
+            consoleAndInfoShown = it
         },
         Settings()
     )

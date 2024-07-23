@@ -1,8 +1,12 @@
 package prosim.uilib.styled
 
+import prosim.uilib.UIStates
+import prosim.uilib.styled.params.FontType
 import java.awt.Color
+import java.awt.Font
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
+import javax.swing.table.JTableHeader
 
 open class CTable( tableModel: AbstractTableModel, private val primary: Boolean, vararg val columnAlignments: Int, private val shouldDrawComponents: Boolean = false) : JTable(tableModel) {
 
@@ -45,6 +49,38 @@ open class CTable( tableModel: AbstractTableModel, private val primary: Boolean,
     fun resetCellHighlighting() {
         val tableUI = (ui as? CTableUI) ?: return
         tableUI.cellHighlighting.clear()
+    }
+
+    override fun getFont(): Font {
+        return FontType.DATA.getFont()
+    }
+
+    override fun getGridColor(): Color {
+        return background
+    }
+
+    override fun getBackground(): Color {
+        return UIStates.theme.get().globalLaF.bgSecondary
+    }
+
+    override fun getRowHeight(): Int {
+        return getFontMetrics(font).height + 2 * UIStates.scale.get().borderScale.insets
+    }
+
+    override fun getTableHeader(): JTableHeader {
+        return super.getTableHeader()
+    }
+
+    class CTableHeader(): JTableHeader(){
+
+        override fun getForeground(): Color {
+            return UIStates.theme.get().textLaF.baseSecondary
+        }
+
+        override fun getBackground(): Color {
+            return UIStates.theme.get().globalLaF.bgPrimary
+        }
+
     }
 
 }

@@ -7,7 +7,7 @@ import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.border.Border
 
-open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JComponent() {
+open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.NONE, roundCorners: Boolean = false, val isOverlay: Boolean = false) : JComponent() {
 
     var roundedCorners: Boolean = roundCorners
         set(value) {
@@ -42,7 +42,10 @@ open class CPanel( primary: Boolean = false, borderMode: BorderMode = BorderMode
     }
 
     override fun getBorder(): Border {
-        return if(isOverlay) UIStates.scale.get().borderScale.getInsetBorder() else  borderMode.getBorder()
+        return if (isOverlay) UIStates.scale.get().borderScale.getInsetBorder() else borderMode.getBorder()
     }
 
+    override fun getMinimumSize(): Dimension {
+        return layout.minimumLayoutSize(this)
+    }
 }

@@ -2,10 +2,8 @@ package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.uilib.UIStates
-import prosim.uilib.styled.params.FontType
 import prosim.uilib.workspace.Workspace
 import java.awt.*
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JTree
@@ -14,16 +12,11 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.TreePath
 
-class CTreeUI(
-    private val fontType: FontType
-) : BasicTreeUI() {
-    var selectedColor: Color = UIStates.theme.get().globalLaF.bgPrimary
-        set(value) {
-            field = value
-            tree.repaint()
+class CTreeUI : BasicTreeUI() {
+    val colorFilter: FlatSVGIcon.ColorFilter
+        get() = FlatSVGIcon.ColorFilter {
+            UIStates.theme.get().iconLaF.iconFgPrimary
         }
-
-    var colorFilter: FlatSVGIcon.ColorFilter? = null
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -34,31 +27,9 @@ class CTreeUI(
             UIStates.scale.get().borderScale.insets,
             UIStates.scale.get().borderScale.insets,
             UIStates.scale.get().borderScale.insets
-        ) // Set empty border when not focused
+        ) // Set an empty border when not focused
+
         cTree.cellRenderer = CTreeCellRenderer()
-
-        UIStates.theme.addEvent(WeakReference(cTree)) { _ ->
-            setDefaults(cTree)
-        }
-
-        UIStates.scale.addEvent(WeakReference(cTree)) { _ ->
-            setDefaults(cTree)
-        }
-
-        setDefaults(cTree)
-    }
-
-    private fun setDefaults(tree: CTree) {
-        selectedColor = UIStates.theme.get().globalLaF.borderColor
-        colorFilter = FlatSVGIcon.ColorFilter {
-            UIStates.theme.get().iconLaF.iconFgPrimary
-        }
-        tree.background = UIStates.theme.get().globalLaF.bgSecondary
-        tree.foreground = UIStates.theme.get().textLaF.base
-        tree.font = fontType.getFont()
-        tree.border = UIStates.scale.get().borderScale.getInsetBorder()
-        tree.revalidate()
-        tree.repaint()
     }
 
     override fun paint(g: Graphics, c: JComponent?) {
@@ -70,7 +41,7 @@ class CTreeUI(
     }
 
     override fun paintVerticalPartOfLeg(g: Graphics?, clipBounds: Rectangle?, insets: Insets?, path: TreePath?) {
-        // Do not paint horizontal line
+        // Do not paint a horizontal line
     }
 
     override fun paintHorizontalPartOfLeg(
@@ -84,8 +55,7 @@ class CTreeUI(
         hasBeenExpanded: Boolean,
         isLeaf: Boolean
     ) {
-        // Do not paint horizontal line
-
+        // Do not paint a horizontal line
     }
 
     override fun paintExpandControl(

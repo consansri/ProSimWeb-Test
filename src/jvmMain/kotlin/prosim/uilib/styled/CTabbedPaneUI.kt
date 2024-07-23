@@ -5,37 +5,20 @@ import prosim.uilib.styled.params.FontType
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTabbedPaneUI
 
 class CTabbedPaneUI( private val primary: Boolean, private val fontType: FontType) : BasicTabbedPaneUI() {
 
-    private var selectedColor = UIStates.theme.get().globalLaF.borderColor
+    private val selectedColor
+        get() = UIStates.theme.get().globalLaF.borderColor
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
         val pane = c as? CTabbedPane ?: return
         pane.border = BorderFactory.createEmptyBorder()
-
-        UIStates.theme.addEvent(WeakReference(pane)) { _ ->
-            setDefaults(pane)
-        }
-
-        UIStates.scale.addEvent(WeakReference(pane)) { _ ->
-            setDefaults(pane)
-        }
-        setDefaults(pane)
-    }
-
-    private fun setDefaults(pane: CTabbedPane) {
-        pane.background = if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
-        pane.foreground = UIStates.theme.get().textLaF.base
-        selectedColor = UIStates.theme.get().globalLaF.borderColor
-        pane.font = fontType.getFont()
-        pane.repaint()
     }
 
     override fun paintTabBorder(g: Graphics?, tabPlacement: Int, tabIndex: Int, x: Int, y: Int, w: Int, h: Int, isSelected: Boolean) {

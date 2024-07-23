@@ -1,4 +1,4 @@
-package prosim.uilib.styled
+package prosim.skialib.core
 
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
@@ -7,7 +7,6 @@ import org.jetbrains.skia.RRect
 import prosim.uilib.UIStates
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
-import prosim.skialib.core.SComponent
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.theme.core.Theme
 import java.awt.Color

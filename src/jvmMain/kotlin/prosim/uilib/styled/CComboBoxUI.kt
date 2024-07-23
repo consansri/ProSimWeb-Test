@@ -6,7 +6,6 @@ import java.awt.*
 import java.awt.event.FocusEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
 import javax.swing.*
 import javax.swing.plaf.basic.BasicComboBoxUI
 
@@ -34,23 +33,7 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
                 isHovered = false
             }
         })
-
-        UIStates.theme.addEvent(WeakReference(comboBox)) { _ ->
-            setDefaults(comboBox)
-        }
-
-        UIStates.scale.addEvent(WeakReference(comboBox)) { _ ->
-            setDefaults(comboBox)
-        }
-
-        setDefaults(comboBox)
-    }
-
-    private fun setDefaults(pane: CComboBox<*>) {
-        pane.font = fontType.getFont()
-        pane.foreground = UIStates.theme.get().textLaF.base
-        pane.renderer = CComboBoxRenderer()
-        pane.repaint()
+        comboBox.renderer = CComboBoxRenderer()
     }
 
     override fun createArrowButton(): JButton? {

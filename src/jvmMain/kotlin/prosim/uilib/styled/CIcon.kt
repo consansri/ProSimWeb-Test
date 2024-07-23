@@ -5,31 +5,29 @@ import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import prosim.uilib.UIStates
 import prosim.uilib.styled.CIconButton.Mode
 import java.awt.Color
-import java.lang.ref.WeakReference
+import javax.swing.Icon
 import javax.swing.JLabel
+import javax.swing.border.Border
 
 class CIcon(val svgIcon: FlatSVGIcon, val mode: Mode = Mode.PRIMARY_NORMAL) : JLabel() {
 
     init {
-        UIStates.theme.addEvent(WeakReference(this)) { _ ->
-            setDefaults()
-        }
-
-        UIStates.scale.addEvent(WeakReference(this)) { _ ->
-            setDefaults()
-        }
-
         setDefaults()
     }
 
     private fun setDefaults() {
         isOpaque = false
         background = Color(0, 0, 0, 0)
-        border = when (mode) {
+    }
+
+    override fun getBorder(): Border {
+        return when (mode) {
             Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> UIStates.scale.get().controlScale.getNormalInsetBorder()
             Mode.GRADIENT_SMALL, Mode.SECONDARY_SMALL, Mode.PRIMARY_SMALL -> UIStates.scale.get().controlScale.getSmallInsetBorder()
         }
+    }
 
+    override fun getIcon(): Icon {
         svgIcon.colorFilter = ColorFilter {
             when (mode) {
                 Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> UIStates.theme.get().iconLaF.iconFgPrimary
@@ -43,8 +41,6 @@ class CIcon(val svgIcon: FlatSVGIcon, val mode: Mode = Mode.PRIMARY_NORMAL) : JL
             Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> UIStates.scale.get().controlScale.normalSize
         }
 
-        icon = svgIcon.derive(size, size)
+        return svgIcon.derive(size, size)
     }
-
-
 }

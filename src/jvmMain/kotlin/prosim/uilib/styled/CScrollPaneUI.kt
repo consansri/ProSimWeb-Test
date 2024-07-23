@@ -5,58 +5,36 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Rectangle
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.plaf.basic.BasicScrollPaneUI
 
-class CScrollPaneUI() : BasicScrollPaneUI() {
+class CScrollPaneUI(val primary: Boolean) : BasicScrollPaneUI() {
 
-    var scrollBarFgColor: Color = UIStates.theme.get().globalLaF.borderColor
-        set(value) {
-            field = value
-            scrollpane.verticalScrollBar.repaint()
-            scrollpane.horizontalScrollBar.repaint()
-        }
+    private val scrollBarFgColor: Color
+        get() = UIStates.theme.get().globalLaF.borderColor
 
-    var scrollBarBgColor: Color = Color(0, 0, 0, 0)
-        set(value) {
-            field = value
-            scrollpane.verticalScrollBar.repaint()
-            scrollpane.horizontalScrollBar.repaint()
-        }
+    private val scrollBarBgColor: Color
+        get() = if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
 
     override fun installUI(x: JComponent?) {
         super.installUI(x)
 
         val pane = x as? CScrollPane ?: return
+
         pane.border = BorderFactory.createEmptyBorder()
         pane.verticalScrollBar.setUI(CScrollBarUI())
         pane.horizontalScrollBar.setUI(CScrollBarUI())
         pane.isOpaque = false
+        pane.viewport.preferredSize = pane.preferredSize
+        pane.viewport.isOpaque = false
+        pane.verticalScrollBar.preferredSize = Dimension(UIStates.scale.get().scrollScale.thumbSize, 0)
+        pane.horizontalScrollBar.preferredSize = Dimension(0, UIStates.scale.get().scrollScale.thumbSize)
 
-        UIStates.scale.addEvent(WeakReference(pane)) { _ ->
-            setDefaults(pane)
-        }
-
-        UIStates.theme.addEvent(WeakReference(pane)) { _ ->
-            setDefaults(pane)
-        }
-
-        setDefaults(pane)
-    }
-
-    private fun setDefaults(cScrollPane: CScrollPane) {
-        cScrollPane.viewport.preferredSize = cScrollPane.preferredSize
-        cScrollPane.viewport.isOpaque = false
-        cScrollPane.background = if (cScrollPane.primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
-        scrollBarBgColor = if (cScrollPane.primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
-        scrollBarFgColor = UIStates.theme.get().globalLaF.borderColor
-        cScrollPane.verticalScrollBar.preferredSize = Dimension(UIStates.scale.get().scrollScale.thumbSize, 0)
-        cScrollPane.horizontalScrollBar.preferredSize = Dimension(0, UIStates.scale.get().scrollScale.thumbSize)
-        cScrollPane.repaint()
+        pane.revalidate()
+        pane.repaint()
     }
 
     inner class CScrollBarUI() : BasicScrollBarUI() {

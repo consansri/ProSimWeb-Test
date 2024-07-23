@@ -11,7 +11,7 @@ import java.lang.ref.WeakReference
 import javax.swing.*
 
 /**
- * Represents a code editor with tabbed interface for managing multiple files.
+ * Represents a code editor with a tabbed interface for managing multiple files.
  * @property mainManager The main manager instance.
  */
 class CodeEditor(val bBar: BottomBar) : CAdvancedTabPane(true, true, emptyMessage = "Open File through the tree!") {
