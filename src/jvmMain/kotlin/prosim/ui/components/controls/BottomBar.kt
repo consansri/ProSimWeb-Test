@@ -15,6 +15,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.lang.management.ManagementFactory
 import java.lang.ref.WeakReference
+import javax.swing.SwingConstants
 
 /**
  * Represents a panel for displaying information at the bottom.
@@ -23,7 +24,9 @@ import java.lang.ref.WeakReference
 class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
 
     // Labels for displaying various types of information
-    private val wsInfo = CLabel("Back to work? :D", FontType.BASIC)
+    private val wsInfo = CLabel("Back to work? :D", FontType.BASIC).apply {
+        horizontalAlignment = SwingConstants.LEFT
+    }
     val editorInfo = CLabel("", FontType.BASIC)
     val compilerInfo = CLabel("", FontType.BASIC)
     val generalPurpose = CLabel("", FontType.BASIC)
@@ -87,6 +90,7 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
         gbc.gridy = 0
         gbc.weighty = 0.0
         gbc.weightx = 1.0
+        gbc.ipadx = UIStates.scale.get().borderScale.insets
         gbc.fill = GridBagConstraints.HORIZONTAL
 
         add(wsInfo, gbc)

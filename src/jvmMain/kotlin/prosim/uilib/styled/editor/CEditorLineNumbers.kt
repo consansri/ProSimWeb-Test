@@ -4,12 +4,18 @@ import prosim.uilib.UIStates
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.border.Border
 
-class CEditorLineNumbers( private val editor: CEditorArea) : JComponent() {
+class CEditorLineNumbers(private val editor: CEditorArea) : JComponent() {
 
-    var fm: FontMetrics = getFontMetrics(UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize))
-    var selBg = Color(0, 0, 0, 0)
+    val fm: FontMetrics
+        get() = getFontMetrics(UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize))
+
+    val selBg: Color
+        get() = (editor.ui as? CEditorAreaUI)?.caretLineBG ?: Color(0,0,0,0)
+
     var lineCount: Int = 1
         set(value) {
             field = value
@@ -73,6 +79,22 @@ class CEditorLineNumbers( private val editor: CEditorArea) : JComponent() {
         }
 
         g2d.dispose()
+    }
+
+    override fun getBorder(): Border {
+        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+    }
+
+    override fun getFont(): Font {
+        return editor.font
+    }
+
+    override fun getForeground(): Color {
+        return UIStates.theme.get().textLaF.baseSecondary
+    }
+
+    override fun getBackground(): Color {
+        return editor.background
     }
 
     override fun getMinimumSize(): Dimension {

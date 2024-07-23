@@ -1,26 +1,26 @@
 package emulator.archs.ikrrisc2
 
 import emulator.archs.ArchIKRRisc2
-import emulator.kit.common.Docs
-import emulator.kit.common.RegContainer
-import emulator.kit.common.RegContainer.Register
-import emulator.kit.common.RegContainer.RegisterFile
-import emulator.kit.memory.*
-import emulator.kit.config.AsmConfig
-import emulator.kit.config.Config
-import emulator.kit.optional.SetupSetting
-import emulator.core.*
 import emulator.core.Size.Bit32
 import emulator.core.Size.Bit5
 import emulator.core.Value.Bin
 import emulator.core.Value.Dec
+import emulator.core.Variable
+import emulator.kit.common.Docs
+import emulator.kit.common.RegContainer
+import emulator.kit.common.RegContainer.Register
+import emulator.kit.common.RegContainer.RegisterFile
+import emulator.kit.config.AsmConfig
+import emulator.kit.config.Config
+import emulator.kit.memory.*
+import emulator.kit.optional.SetupSetting
 
 data object IKRRisc2 {
 
     val WORD_WIDTH = Bit32
     val REG_SIZE = Bit5
     val WORD_WIDTH_ONE = Bin("1", WORD_WIDTH)
-    val WORD_WIDTH_NEGATIVE_ONE =Dec("-1", WORD_WIDTH).toBin()
+    val WORD_WIDTH_NEGATIVE_ONE = Dec("-1", WORD_WIDTH).toBin()
     val WORD_WIDTH_ZERO = Bin("0", WORD_WIDTH)
     val R31_ADDR = Bin("11111", REG_SIZE)
     const val REG_INIT = "0"
@@ -72,7 +72,7 @@ data object IKRRisc2 {
                     Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
                     Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
                     Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
                     Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
                     Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
                 }
@@ -86,7 +86,7 @@ data object IKRRisc2 {
                     Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
                     Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
                     Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
                     Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
                     Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
                 }
@@ -104,7 +104,7 @@ data object IKRRisc2 {
                     listOf(Docs.DocComponent.Text(instr.id), Docs.DocComponent.Text(instr.paramType.exampleString),
                         Docs.DocComponent.Table(
                             header = instr.opCode.maskLabels.map { it.name },
-                            contentRows = arrayOf(instr.opCode.opMaskList.map { Docs.DocComponent.Text(it) } )))
+                            contentRows = arrayOf(instr.opCode.opMaskList.map { Docs.DocComponent.Text(it) })))
                 }.toTypedArray()
             )
         ),

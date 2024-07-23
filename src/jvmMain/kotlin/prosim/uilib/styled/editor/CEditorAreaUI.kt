@@ -1,19 +1,25 @@
 package prosim.uilib.styled.editor
 
-import emulator.kit.assembler.CodeStyle
 import prosim.uilib.UIStates
 import java.awt.*
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.Timer
 import javax.swing.plaf.ComponentUI
 
 class CEditorAreaUI(
     private val lineOverhead: Int = 3
-) :  ComponentUI() {
-    private var defaultSelectionColor = Color(0, 0, 0, 0)
-    private var defaultSearchResultColor = Color(0, 0, 0, 0)
-    private var caretLineBG = Color(0, 0, 0, 0)
+) : ComponentUI() {
+
+    val selectionColor: Color
+        get() = UIStates.theme.get().codeLaF.selectionColor
+    val searchResultColor: Color
+        get() = UIStates.theme.get().codeLaF.searchResultColor
+    val defaultSelectionColor: Color
+        get() = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 127)
+    val defaultSearchResultColor: Color
+        get() = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 127)
+    val caretLineBG: Color
+        get() = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
 
     private var caretTimer: Timer? = null
     private var caretColor: Color? = null
@@ -23,25 +29,12 @@ class CEditorAreaUI(
 
         // Setup Base Editor Defaults
         c.isOpaque = false
-        c.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
-        c.background = UIStates.theme.get().globalLaF.bgPrimary
-        c.foreground = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
-        c.font = UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
-        selectionColor = UIStates.theme.get().codeLaF.selectionColor
-        searchResultColor = UIStates.theme.get().codeLaF.searchResultColor
-        c.tabSize = UIStates.scale.get().fontScale.tabSize
         c.focusTraversalKeysEnabled = false
 
         // Setup Sub Components
         c.scrollPane.verticalScrollBar.unitIncrement = c.getFontMetrics(c.font).height
         c.scrollPane.horizontalScrollBar.unitIncrement = c.getFontMetrics(c.font).charWidth(' ')
-        c.lineNumbers.fm = c.getFontMetrics(c.font)
-        c.lineNumbers.background = c.background
-        c.lineNumbers.font = c.font
-        c.lineNumbers.foreground = UIStates.theme.get().textLaF.baseSecondary
-        c.lineNumbers.border = BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
         c.lineNumbers.isOpaque = false
-        c.lineNumbers.selBg = caretLineBG
 
         caretColor = c.foreground
         // Setup Caret Timer
@@ -58,18 +51,6 @@ class CEditorAreaUI(
         caretTimer?.start()
     }
 
-    private var selectionColor = UIStates.theme.get().codeLaF.selectionColor
-        set(value) {
-            field = value
-            defaultSelectionColor = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 127)
-            caretLineBG = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 15)
-        }
-
-    private var searchResultColor = UIStates.theme.get().codeLaF.searchResultColor
-        set(value) {
-            field = value
-            defaultSearchResultColor = Color(searchResultColor.red, searchResultColor.green, searchResultColor.blue, 127)
-        }
 
     override fun paint(g: Graphics?, c: JComponent?) {
         val g2d = g?.create() as? Graphics2D ?: return

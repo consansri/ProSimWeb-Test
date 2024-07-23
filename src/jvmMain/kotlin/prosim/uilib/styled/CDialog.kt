@@ -101,7 +101,8 @@ class CDialog(parent: Component) : JDialog() {
             // Add Content Panel to Dialog Frame
             dialog.layout = BorderLayout()
             dialog.add(contentPane, BorderLayout.CENTER)
-            dialog.size = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16 * 4, Toolkit.getDefaultToolkit().screenSize.height / 9 * 4)
+            contentPane.size = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16 * 4, Toolkit.getDefaultToolkit().screenSize.height / 9 * 4)
+            dialog.revalidate()
             dialog.setLocationRelativeTo(null)
 
             return Triple(dialog, cPane, bPane)
@@ -109,6 +110,6 @@ class CDialog(parent: Component) : JDialog() {
     }
 
     override fun getMinimumSize(): Dimension {
-        return layout.minimumLayoutSize(this)
+        return contentPane.minimumSize
     }
 }

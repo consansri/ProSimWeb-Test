@@ -1,19 +1,20 @@
 package prosim.uilib.styled.editor
 
+import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeError
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import prosim.uilib.UIStates
 import prosim.uilib.styled.CScrollPane
-import java.awt.Color
-import java.awt.Cursor
-import java.awt.Dimension
-import java.awt.Toolkit
+import prosim.uilib.styled.params.FontType
+import java.awt.*
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
 import java.util.*
+import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.border.Border
 
 class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQueryMillis: Long = 500) : JComponent() {
 
@@ -98,7 +99,9 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     private var selEndColumn = -1
 
     // Settings
-    var tabSize = UIStates.scale.get().fontScale.tabSize
+    val tabSize: Int
+        get() = UIStates.scale.get().fontScale.tabSize
+
     var scrollMarginLines = 2
     var scrollMarginChars = 10
     var isEditable = true
@@ -1168,5 +1171,21 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
         }
 
         override fun mouseMoved(e: MouseEvent?) {}
+    }
+
+    override fun getBorder(): Border {
+        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+    }
+
+    override fun getBackground(): Color {
+        return UIStates.theme.get().globalLaF.bgPrimary
+    }
+
+    override fun getForeground(): Color {
+        return UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+    }
+
+    override fun getFont(): Font {
+        return FontType.CODE.getFont()
     }
 }
