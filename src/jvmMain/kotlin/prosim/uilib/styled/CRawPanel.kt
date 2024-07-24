@@ -12,6 +12,6 @@ open class CRawPanel( border: AbstractBorder? = null): JPanel() {
     }
 
     override fun getBackground(): Color {
-        return UIStates.theme.get().globalLaF.bgPrimary
+        return UIStates.theme.get().COLOR_BG_0
     }
 }

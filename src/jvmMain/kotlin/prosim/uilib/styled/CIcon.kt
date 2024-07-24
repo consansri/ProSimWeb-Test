@@ -22,23 +22,23 @@ class CIcon(val svgIcon: FlatSVGIcon, val mode: Mode = Mode.PRIMARY_NORMAL) : JL
 
     override fun getBorder(): Border {
         return when (mode) {
-            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> UIStates.scale.get().controlScale.getNormalInsetBorder()
-            Mode.GRADIENT_SMALL, Mode.SECONDARY_SMALL, Mode.PRIMARY_SMALL -> UIStates.scale.get().controlScale.getSmallInsetBorder()
+            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
+            Mode.GRADIENT_SMALL, Mode.SECONDARY_SMALL, Mode.PRIMARY_SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
         }
     }
 
     override fun getIcon(): Icon {
         svgIcon.colorFilter = ColorFilter {
             when (mode) {
-                Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> UIStates.theme.get().iconLaF.iconFgPrimary
-                Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> UIStates.theme.get().iconLaF.iconFgSecondary
+                Mode.PRIMARY_NORMAL, Mode.PRIMARY_SMALL -> UIStates.theme.get().COLOR_ICON_FG_0
+                Mode.SECONDARY_NORMAL, Mode.SECONDARY_SMALL -> UIStates.theme.get().COLOR_ICON_FG_1
                 Mode.GRADIENT_NORMAL, Mode.GRADIENT_SMALL -> null
             }
         }
 
         val size = when (mode) {
-            Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL, Mode.GRADIENT_SMALL -> UIStates.scale.get().controlScale.smallSize
-            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> UIStates.scale.get().controlScale.normalSize
+            Mode.PRIMARY_SMALL, Mode.SECONDARY_SMALL, Mode.GRADIENT_SMALL -> UIStates.scale.get().SIZE_CONTROL_SMALL
+            Mode.PRIMARY_NORMAL, Mode.SECONDARY_NORMAL, Mode.GRADIENT_NORMAL -> UIStates.scale.get().SIZE_CONTROL_MEDIUM
         }
 
         return svgIcon.derive(size, size)

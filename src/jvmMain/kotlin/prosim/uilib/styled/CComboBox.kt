@@ -21,7 +21,7 @@ open class CComboBox<T>(array: Array<T>, val fontType: FontType) : JComboBox<T>(
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().textLaF.base
+        return UIStates.theme.get().COLOR_FG_0
     }
 
 }

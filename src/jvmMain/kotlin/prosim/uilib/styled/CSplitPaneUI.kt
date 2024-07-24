@@ -46,7 +46,7 @@ class CSplitPaneUI() : BasicSplitPaneUI() {
         }
 
         override fun getBackground(): Color {
-            return UIStates.theme.get().globalLaF.borderColor
+            return UIStates.theme.get().COLOR_BORDER
         }
     }
 }

@@ -1,6 +1,5 @@
 package prosim.uilib.styled.table
 
-import prosim.uilib.styled.params.FontType
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
@@ -8,7 +7,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.ComponentUI
 
-class CCellUI(private val fontType: FontType) : ComponentUI() {
+class CCellUI() : ComponentUI() {
 
     override fun installUI(c: JComponent?) {
         c as? CCell ?: return super.installUI(c)

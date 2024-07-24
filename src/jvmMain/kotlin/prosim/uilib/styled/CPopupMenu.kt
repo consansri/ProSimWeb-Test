@@ -13,7 +13,7 @@ class CPopupMenu(val fontType: FontType = FontType.BASIC) : JPopupMenu() {
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().textLaF.base
+        return UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getFont(): Font {

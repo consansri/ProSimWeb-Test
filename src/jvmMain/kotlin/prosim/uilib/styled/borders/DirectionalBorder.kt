@@ -14,8 +14,8 @@ class DirectionalBorder(
     private val east: Boolean = false
 ) : AbstractBorder() {
 
-    val lineBorder = LineBorder(UIStates.theme.get().globalLaF.borderColor, UIStates.scale.get().borderScale.thickness)
-    val thickness = UIStates.scale.get().borderScale.thickness
+    val lineBorder = LineBorder(UIStates.theme.get().COLOR_BORDER, UIStates.scale.get().SIZE_BORDER_THICKNESS)
+    val thickness = UIStates.scale.get().SIZE_BORDER_THICKNESS
 
     override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
         if (north) lineBorder.paintBorder(c, g, x, y, width, thickness)
@@ -25,11 +25,11 @@ class DirectionalBorder(
     }
 
     override fun getBorderInsets(c: Component): Insets {
-        return UIStates.scale.get().borderScale.getInsets()
+        return UIStates.scale.get().INSETS_MEDIUM
     }
 
     override fun getBorderInsets(c: Component, insets: Insets): Insets {
-        val themeInsets = UIStates.scale.get().borderScale.getInsets()
+        val themeInsets = UIStates.scale.get().INSETS_MEDIUM
         insets.set(themeInsets.top, themeInsets.left, themeInsets.bottom, themeInsets.right)
         return insets
     }

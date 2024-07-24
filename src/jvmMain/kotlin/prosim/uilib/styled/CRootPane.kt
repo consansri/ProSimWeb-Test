@@ -13,12 +13,12 @@ class CRootPane() : JRootPane() {
     }
 
     override fun getBorder(): Border {
-        val inset = UIStates.scale.get().borderScale.insets
+        val inset = UIStates.scale.get().SIZE_INSET_MEDIUM
          return BorderFactory.createEmptyBorder(inset, inset, inset, inset)
     }
 
     override fun getBackground(): Color {
-        return UIStates.theme.get().globalLaF.bgSecondary
+        return UIStates.theme.get().COLOR_BG_1
     }
 
 

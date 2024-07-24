@@ -38,7 +38,7 @@ class CDialog(parent: Component) : JDialog() {
     }
 
     override fun setVisible(b: Boolean) {
-        if(b){
+        if (b) {
             pack()
             setLocationRelativeTo(parent)
         }
@@ -50,7 +50,7 @@ class CDialog(parent: Component) : JDialog() {
         glassPane.repaint()
     }
 
-    fun setContent(component: Component){
+    fun setContent(component: Component) {
         contentPane.removeAll()
         contentPane.add(component)
         pack()
@@ -90,20 +90,28 @@ class CDialog(parent: Component) : JDialog() {
             }
 
             val cPane = CPanel(primary = true)
+            cPane.layout = BorderLayout()
+            cPane.preferredSize = Dimension(300,300)
             val bPane = CPanel(primary = true)
+            bPane.layout = BorderLayout()
 
             val contentPane = CPanel(isOverlay = true)
             contentPane.layout = BorderLayout()
+            contentPane.minimumSize = Dimension(300, 300)
             contentPane.add(tPane, BorderLayout.NORTH)
-            contentPane.add(CScrollPane(true, cPane), BorderLayout.CENTER)
+            val scrollPane = CScrollPane(true, cPane)
+            scrollPane.minimumSize = Dimension(200,200)
+            contentPane.add(scrollPane, BorderLayout.CENTER)
             contentPane.add(bPane, BorderLayout.SOUTH)
 
             // Add Content Panel to Dialog Frame
             dialog.layout = BorderLayout()
-            dialog.add(contentPane, BorderLayout.CENTER)
             contentPane.size = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16 * 4, Toolkit.getDefaultToolkit().screenSize.height / 9 * 4)
-            dialog.revalidate()
+            dialog.add(contentPane, BorderLayout.CENTER)
+            //dialog.revalidate()
+            dialog.validate()
             dialog.setLocationRelativeTo(null)
+            dialog.repaint()
 
             return Triple(dialog, cPane, bPane)
         }

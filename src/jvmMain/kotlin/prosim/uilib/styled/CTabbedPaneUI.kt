@@ -12,7 +12,7 @@ import javax.swing.plaf.basic.BasicTabbedPaneUI
 class CTabbedPaneUI( private val primary: Boolean, private val fontType: FontType) : BasicTabbedPaneUI() {
 
     private val selectedColor
-        get() = UIStates.theme.get().globalLaF.borderColor
+        get() = UIStates.theme.get().COLOR_BORDER
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
@@ -25,12 +25,12 @@ class CTabbedPaneUI( private val primary: Boolean, private val fontType: FontTyp
         if (isSelected) {
             val g2d = g?.create() as? Graphics2D ?: return
             g2d.color = selectedColor
-            g2d.fillRect(x, y + h - UIStates.scale.get().borderScale.markedThickness, w, UIStates.scale.get().borderScale.markedThickness)
+            g2d.fillRect(x, y + h - UIStates.scale.get().SIZE_BORDER_THICKNESS_MARKED, w, UIStates.scale.get().SIZE_BORDER_THICKNESS_MARKED)
             g2d.dispose()
         } else {
             val g2d = g?.create() as? Graphics2D ?: return
             g2d.color = selectedColor
-            g2d.fillRect(x, y + h - UIStates.scale.get().borderScale.thickness, w, UIStates.scale.get().borderScale.thickness)
+            g2d.fillRect(x, y + h - UIStates.scale.get().SIZE_BORDER_THICKNESS, w, UIStates.scale.get().SIZE_BORDER_THICKNESS)
             g2d.dispose()
         }
     }

@@ -117,11 +117,11 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
     }
 
     private inner class OverlayItemRenderer : DefaultListCellRenderer() {
-        val selectedBGColor: Color get() = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x33)
+        val selectedBGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x33)
         override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            foreground = (value as? EditorModification)?.severity?.toColor(editor.psiManager?.lang).toColor(UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0))
-            background = if (cellHasFocus) selectedBGColor else UIStates.theme.get().globalLaF.bgPrimary
+            foreground = (value as? EditorModification)?.severity?.toColor(editor.psiManager?.lang).toColor(UIStates.theme.get().getColor(CodeStyle.BASE0))
+            background = if (cellHasFocus) selectedBGColor else UIStates.theme.get().COLOR_BG_0
             border = BorderFactory.createEmptyBorder()
             roundedCorners = true
             font = FontType.CODE.getFont()

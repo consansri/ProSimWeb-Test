@@ -11,9 +11,9 @@ class CEditorAreaUI(
 ) : ComponentUI() {
 
     val selectionColor: Color
-        get() = UIStates.theme.get().codeLaF.selectionColor
+        get() = UIStates.theme.get().COLOR_SELECTION
     val searchResultColor: Color
-        get() = UIStates.theme.get().codeLaF.searchResultColor
+        get() = UIStates.theme.get().COLOR_SEARCH_RESULT
     val defaultSelectionColor: Color
         get() = Color(selectionColor.red, selectionColor.green, selectionColor.blue, 127)
     val defaultSearchResultColor: Color

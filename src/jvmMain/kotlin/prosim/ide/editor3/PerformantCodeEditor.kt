@@ -355,15 +355,15 @@ class PerformantCodeEditor(
         private val fmCode: FontMetrics get() = vLayout.fmCode
         private val fmBase: FontMetrics get() = vLayout.fmBase
 
-        private var fg: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
-        private var bg: Color = UIStates.theme.get().globalLaF.bgPrimary
+        private var fg: Color = UIStates.theme.get().getColor(CodeStyle.BASE0)
+        private var bg: Color = UIStates.theme.get().COLOR_BG_0
 
-        private val foldIndication: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW).alpha(13)
-        private val secFGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE4)
-        private val secBGColor: Color = UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE6)
+        private val foldIndication: Color = UIStates.theme.get().getColor(CodeStyle.YELLOW).alpha(13)
+        private val secFGColor: Color = UIStates.theme.get().getColor(CodeStyle.BASE4)
+        private val secBGColor: Color = UIStates.theme.get().getColor(CodeStyle.BASE6)
 
-        private val selColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x55)
-        private val markBGColor = UIStates.theme.get().codeLaF.getColor(CodeStyle.BLUE).alpha(0x13)
+        private val selColor = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x55)
+        private val markBGColor = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x13)
 
         private val collapseIcon = UIStates.icon.get().folderClosed.apply {
             colorFilter = ColorFilter() {

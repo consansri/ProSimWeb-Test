@@ -4,7 +4,6 @@ import prosim.ui.Events
 import prosim.ui.States
 import prosim.uilib.UIStates
 import prosim.uilib.styled.CIconButton
-import prosim.uilib.styled.CIconInput
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
@@ -74,7 +73,7 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
     }
 
     init {
-        layout = GridLayout(1, 0, UIStates.scale.get().borderScale.insets, 0)
+        layout = GridLayout(1, 0, UIStates.scale.get().SIZE_INSET_MEDIUM, 0)
 
         continuous.alignmentY = CENTER_ALIGNMENT
         singleStep.alignmentY = CENTER_ALIGNMENT
@@ -85,17 +84,16 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
 
         // Listeners
         UIStates.scale.addEvent(WeakReference(this)) {
-            layout = GridLayout(1, 0, it.borderScale.insets, 0)
+            layout = GridLayout(1, 0, it.SIZE_INSET_MEDIUM, 0)
         }
 
         UIStates.theme.addEvent(WeakReference(this)) {
-            val exeStyle = it.exeStyle
-            continuous.customColor = exeStyle.continuous
-            singleStep.customColor = exeStyle.single
-            mStep.button.customColor = exeStyle.multi
-            skipSubroutine.customColor = exeStyle.skipSR
-            returnSubroutine.customColor = exeStyle.returnSR
-            reset.customColor = exeStyle.reassemble
+            continuous.customColor = it.COLOR_GREEN
+            singleStep.customColor = it.COLOR_GREEN_LIGHT
+            mStep.button.customColor = it.COLOR_YELLOW
+            skipSubroutine.customColor = it.COLOR_BLUE
+            returnSubroutine.customColor = it.COLOR_ORANGE
+            reset.customColor = it.COLOR_RED
         }
 
         add(continuous)
@@ -105,13 +103,13 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
         add(returnSubroutine)
         add(reset)
 
-        val exeStyle = UIStates.theme.get().exeStyle
-        continuous.customColor = exeStyle.continuous
-        singleStep.customColor = exeStyle.single
-        mStep.button.customColor = exeStyle.multi
-        skipSubroutine.customColor = exeStyle.skipSR
-        returnSubroutine.customColor = exeStyle.returnSR
-        reset.customColor = exeStyle.reassemble
+        val theme = UIStates.theme.get()
+        continuous.customColor = theme.COLOR_GREEN
+        singleStep.customColor = theme.COLOR_GREEN_LIGHT
+        mStep.button.customColor = theme.COLOR_YELLOW
+        skipSubroutine.customColor = theme.COLOR_BLUE
+        returnSubroutine.customColor = theme.COLOR_ORANGE
+        reset.customColor = theme.COLOR_RED
     }
 
 }

@@ -24,11 +24,11 @@ class CMenuItem(text: String, val fontType: FontType = FontType.BASIC) : JMenuIt
     }
 
     override fun getBorder(): Border {
-        return UIStates.scale.get().controlScale.getNormalInsetBorder()
+        return UIStates.scale.get().BORDER_INSET_MEDIUM
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().textLaF.base
+        return UIStates.theme.get().COLOR_FG_0
     }
 
 }

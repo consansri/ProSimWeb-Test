@@ -27,7 +27,7 @@ class CTextButtonUI() : ComponentUI() {
 
         // Paint button background
         if (c.isHovered) {
-            g2.color = UIStates.theme.get().iconLaF.iconBgHover
+            g2.color = UIStates.theme.get().COLOR_ICON_BG_HOVER
             g2.fillRoundRect(c.insets.left / 2, c.insets.top / 2, width - c.insets.right / 2 - c.insets.left / 2, height - c.insets.bottom / 2 - c.insets.top / 2, getCornerRadius(), getCornerRadius())
         }
 
@@ -45,5 +45,5 @@ class CTextButtonUI() : ComponentUI() {
         g2.drawString(c.text, x, y)
     }
 
-    private fun getCornerRadius(): Int = UIStates.scale.get().controlScale.cornerRadius
+    private fun getCornerRadius(): Int = UIStates.scale.get().SIZE_CORNER_RADIUS
 }

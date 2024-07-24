@@ -11,7 +11,7 @@ import javax.swing.border.Border
 class CEditorLineNumbers(private val editor: CEditorArea) : JComponent() {
 
     val fm: FontMetrics
-        get() = getFontMetrics(UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize))
+        get() = getFontMetrics(UIStates.scale.get().FONT_CODE_MEDIUM)
 
     val selBg: Color
         get() = (editor.ui as? CEditorAreaUI)?.caretLineBG ?: Color(0,0,0,0)
@@ -82,7 +82,7 @@ class CEditorLineNumbers(private val editor: CEditorArea) : JComponent() {
     }
 
     override fun getBorder(): Border {
-        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().SIZE_INSET_MEDIUM, 0, UIStates.scale.get().SIZE_INSET_MEDIUM)
     }
 
     override fun getFont(): Font {
@@ -90,7 +90,7 @@ class CEditorLineNumbers(private val editor: CEditorArea) : JComponent() {
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().textLaF.baseSecondary
+        return UIStates.theme.get().COLOR_FG_1
     }
 
     override fun getBackground(): Color {

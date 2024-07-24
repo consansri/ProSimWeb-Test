@@ -11,10 +11,10 @@ import javax.swing.plaf.basic.BasicMenuItemUI
 class CMenuItemUI() : BasicMenuItemUI() {
 
     private val cornerRadius
-        get() = UIStates.scale.get().controlScale.cornerRadius
+        get() = UIStates.scale.get().SIZE_CORNER_RADIUS
 
     private val hoverBackground
-        get() = UIStates.theme.get().iconLaF.iconBgHover
+        get() = UIStates.theme.get().COLOR_ICON_BG_HOVER
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)

@@ -12,13 +12,13 @@ import javax.swing.plaf.basic.BasicPopupMenuUI
 class CPopupMenuUI : BasicPopupMenuUI() {
 
     private val cornerRadius
-        get() = UIStates.scale.get().controlScale.cornerRadius
+        get() = UIStates.scale.get().SIZE_CORNER_RADIUS
 
     private val borderColor
-        get() = UIStates.theme.get().globalLaF.borderColor
+        get() = UIStates.theme.get().COLOR_BORDER
 
     private val background
-        get() = UIStates.theme.get().globalLaF.bgOverlay
+        get() = UIStates.theme.get().COLOR_BG_OVERLAY
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)

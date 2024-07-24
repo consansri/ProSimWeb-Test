@@ -18,7 +18,7 @@ class CTextArea(val fontType: FontType, val primary: Boolean = true, val borderM
         return try {
             fontType.getFont()
         } catch (e: NullPointerException) {
-            super.getFont()
+            FontType.CODE.getFont()
         }
     }
 
@@ -31,10 +31,10 @@ class CTextArea(val fontType: FontType, val primary: Boolean = true, val borderM
     }
 
     override fun getForeground(): Color {
-        return if (primary) UIStates.theme.get().textLaF.base else UIStates.theme.get().textLaF.baseSecondary
+        return if (primary) UIStates.theme.get().COLOR_FG_0 else UIStates.theme.get().COLOR_FG_1
     }
 
     override fun getCaretColor(): Color {
-        return  UIStates.theme.get().textLaF.base
+        return  UIStates.theme.get().COLOR_FG_0
     }
 }

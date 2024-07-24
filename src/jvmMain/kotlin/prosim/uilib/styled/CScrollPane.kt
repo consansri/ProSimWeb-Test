@@ -24,18 +24,14 @@ open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
         horizontalScrollBar.unitIncrement = 16
     }
 
-    override fun paint(g: Graphics?) {
-        val g2d = g?.create() as? Graphics2D ?: return
+    override fun paintComponent(g: Graphics?) {
+        val g2d = g as? Graphics2D ?: return
         g2d.color = background
         g2d.fillRect(0, 0, width, height)
-
-        super.paint(g2d)
-
-        g2d.dispose()
     }
 
     override fun getBackground(): Color {
-        return if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
+        return if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
     }
 
     companion object {

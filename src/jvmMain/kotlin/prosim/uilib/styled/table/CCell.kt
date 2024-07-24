@@ -22,7 +22,7 @@ abstract class CCell(val fontType: FontType) : JComponent() {
         }
 
     init {
-        this.setUI(CCellUI(fontType))
+        this.setUI(CCellUI())
     }
 
     abstract fun textToDraw(): String
@@ -36,7 +36,7 @@ abstract class CCell(val fontType: FontType) : JComponent() {
     }
 
     override fun getForeground(): Color {
-        return customFG ?: UIStates.theme.get().textLaF.base
+        return customFG ?: UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getBackground(): Color {
@@ -47,7 +47,7 @@ abstract class CCell(val fontType: FontType) : JComponent() {
         return try {
             fontType.getFont()
         } catch (e: NullPointerException) {
-            super.getFont()
+            FontType.DATA.getFont()
         }
     }
 

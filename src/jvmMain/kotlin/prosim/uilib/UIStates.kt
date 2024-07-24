@@ -1,5 +1,7 @@
 package prosim.uilib
 
+import prosim.ui.Keys
+import prosim.ui.States
 import prosim.uilib.resource.BenIcons
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
@@ -8,10 +10,8 @@ import prosim.uilib.state.Manager
 import prosim.uilib.state.WSConfig
 import prosim.uilib.theme.core.Theme
 import prosim.uilib.theme.themes.LightTheme
-import prosim.ui.Keys
-import prosim.ui.States
 
-object UIStates {
+data object UIStates {
     val icon = object : Manager<Icons>(BenIcons()) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_ICONS)?.let { value ->
@@ -26,7 +26,7 @@ object UIStates {
         }
     }
 
-    val theme = object : Manager<Theme>(LightTheme()) {
+    val theme = object : Manager<Theme>(LightTheme) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_THEME)?.let { value ->
                 UIResource.themes.firstOrNull { it.name == value }?.let {
@@ -40,7 +40,7 @@ object UIStates {
         }
     }
 
-    val scale = object : Manager<Scaling>(StandardScaling()) {
+    val scale = object : Manager<Scaling>(StandardScaling) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_SCALE)?.let { value ->
                 UIResource.scalings.firstOrNull { it.name == value }?.let {

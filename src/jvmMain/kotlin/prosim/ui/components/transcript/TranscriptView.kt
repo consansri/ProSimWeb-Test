@@ -186,7 +186,7 @@ class TranscriptView() : CPanel(primary = false) {
         for (row in content) {
             model.addRow(row.getAddrLblBytesTranscript())
         }
-        modelView.fitColumnWidths(UIStates.scale.get().borderScale.insets)
+        modelView.fitColumnWidths(UIStates.scale.get().SIZE_INSET_MEDIUM)
         highlightPCRow()
         modelView.revalidate()
         modelView.repaint()
@@ -212,7 +212,7 @@ class TranscriptView() : CPanel(primary = false) {
         val currPC = States.arch.get().regContainer.pc
 
         val index = content.indexOfFirst { it.address.toRawString() == currPC.get().toHex().toRawString() }
-        modelView.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, null)
+        modelView.addCellHighlighting(UIStates.theme.get().getColor(CodeStyle.GREENPC), index, null)
     }
 
     override fun getMinimumSize(): Dimension {

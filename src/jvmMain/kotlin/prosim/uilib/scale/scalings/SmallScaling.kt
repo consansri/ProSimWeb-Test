@@ -1,16 +1,34 @@
 package prosim.uilib.scale.scalings
 
-import prosim.uilib.scale.core.components.*
 import prosim.uilib.scale.core.Scaling
 
-class SmallScaling : Scaling {
+data object SmallScaling : Scaling() {
     override val name: String = "75%"
-    override val controlScale: ControlScale = ControlScale(21, 14, 2, 3, 8, 96)
-    override val fontScale: FontScale = FontScale(11f, 11f, 11f, 12f, 4)
-    override val borderScale: BorderScale = BorderScale(1, 3, 4, 10)
-    override val dividerScale: DividerScale = DividerScale(3)
-    override val scrollScale: ScrollScale = ScrollScale(6)
-    override val shadowScale: ShadowScale = ShadowScale(2)
+
+    override val PATH_FONT_TEXT: String = "fonts/Roboto/Roboto-Regular.ttf"
+    override val PATH_FONT_CODE: String = "fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"
+
+    override val FONTSCALE_SMALL: Float = 8f
+    override val FONTSCALE_MEDIUM: Float = 12f
+    override val FONTSCALE_LARGE: Float = 16f
+
+    override val SIZE_COMBOBOX: Int = 96
+
+    override val SIZE_CONTROL_SMALL: Int = 14
+    override val SIZE_CONTROL_MEDIUM: Int = 20
+
+    override val SIZE_INSET_SMALL: Int = 2
+    override val SIZE_INSET_MEDIUM: Int = 3
+    override val SIZE_INSET_LARGE: Int = 4
+
+    override val SIZE_CORNER_RADIUS: Int = 10
+    override val SIZE_BORDER_THICKNESS: Int = 1
+    override val SIZE_DIVIDER_THICKNESS: Int = 3
+    override val SIZE_SCROLL_THUMB: Int = 6
+
+    init {
+        initializeFonts()
+    }
 
     override fun toString(): String {
         return name

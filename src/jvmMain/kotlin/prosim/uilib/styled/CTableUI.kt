@@ -27,8 +27,8 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
-            val fg = UIStates.theme.get().textLaF.base
-            val bg = if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
+            val fg = UIStates.theme.get().COLOR_FG_0
+            val bg = if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
 
             val cTable = table as? CTable
             cTable?.let { tab ->
@@ -43,7 +43,7 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
             val hl = cellHighlighting.firstOrNull { (it.rowID == null || it.rowID == row) && (it.colID == column || it.colID == null) }
 
             foreground = hl?.color ?: when (value) {
-                is MainMemory.MemInstance -> UIStates.theme.get().dataLaF.getMemInstanceColor(value.mark)
+                is MainMemory.MemInstance -> UIStates.theme.get().getColor(value.mark)
                 else -> fg
             }
 
@@ -63,14 +63,14 @@ class CTableUI(private val primary: Boolean) : BasicTableUI() {
 
             return if (column in cTable.clickableHeaderIds) {
                 CLabel("[$value]", FontType.CODE).apply {
-                    val inset = UIStates.scale.get().borderScale.insets
+                    val inset = UIStates.scale.get().SIZE_INSET_MEDIUM
                     border = BorderFactory.createEmptyBorder(inset, inset, 0, 0)
                     horizontalAlignment = SwingConstants.CENTER
                 }
 
             } else {
                 CLabel(value.toString(), FontType.CODE).apply {
-                    val inset = UIStates.scale.get().borderScale.insets
+                    val inset = UIStates.scale.get().SIZE_INSET_MEDIUM
                     border = BorderFactory.createEmptyBorder(inset, inset, 0, 0)
                     horizontalAlignment = SwingConstants.CENTER
                 }

@@ -9,7 +9,7 @@ import javax.swing.plaf.basic.BasicRootPaneUI
 class CRootPaneUI() : BasicRootPaneUI() {
 
     val cornerRadius: Int
-        get() = UIStates.scale.get().borderScale.cornerRadius
+        get() = UIStates.scale.get().SIZE_CORNER_RADIUS
 
     override fun installDefaults(c: JRootPane?) {
         super.installDefaults(c)

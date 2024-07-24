@@ -43,11 +43,11 @@ open class CToggleButton(initialText: String, val toggleSwitchType: CToggleButto
     }
 
     override fun getBackground(): Color {
-        return if (isActive) UIStates.theme.get().iconLaF.iconBgActive else UIStates.theme.get().iconLaF.iconBg
+        return if (isActive) UIStates.theme.get().COLOR_ICON_BG_ACTIVE else UIStates.theme.get().COLOR_ICON_BG
     }
 
     override fun getForeground(): Color {
-        return if (isDeactivated) UIStates.theme.get().textLaF.baseSecondary else UIStates.theme.get().textLaF.base
+        return if (isDeactivated) UIStates.theme.get().COLOR_FG_1 else UIStates.theme.get().COLOR_FG_0
     }
 
 }

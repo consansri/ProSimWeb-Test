@@ -14,10 +14,10 @@ import javax.swing.plaf.basic.BasicScrollPaneUI
 class CScrollPaneUI(val primary: Boolean) : BasicScrollPaneUI() {
 
     private val scrollBarFgColor: Color
-        get() = UIStates.theme.get().globalLaF.borderColor
+        get() = UIStates.theme.get().COLOR_BORDER
 
     private val scrollBarBgColor: Color
-        get() = if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
+        get() = if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
 
     override fun installUI(x: JComponent?) {
         super.installUI(x)
@@ -30,8 +30,8 @@ class CScrollPaneUI(val primary: Boolean) : BasicScrollPaneUI() {
         pane.isOpaque = false
         pane.viewport.preferredSize = pane.preferredSize
         pane.viewport.isOpaque = false
-        pane.verticalScrollBar.preferredSize = Dimension(UIStates.scale.get().scrollScale.thumbSize, 0)
-        pane.horizontalScrollBar.preferredSize = Dimension(0, UIStates.scale.get().scrollScale.thumbSize)
+        pane.verticalScrollBar.preferredSize = Dimension(UIStates.scale.get().SIZE_SCROLL_THUMB, 0)
+        pane.horizontalScrollBar.preferredSize = Dimension(0, UIStates.scale.get().SIZE_SCROLL_THUMB)
 
         pane.revalidate()
         pane.repaint()

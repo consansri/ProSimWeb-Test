@@ -1,60 +1,41 @@
 package prosim.uilib.theme.themes
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import emulator.kit.assembler.CodeStyle
+import emulator.kit.memory.Memory
 import prosim.uilib.UIStates
 import prosim.uilib.theme.core.Theme
-import prosim.uilib.theme.core.style.*
 import java.awt.Color
 
-class LightTheme : Theme {
+data object LightTheme : Theme {
     override val name: String = "light"
     override val icon: FlatSVGIcon = UIStates.icon.get().getLightMode()
     override val dark: Boolean = false
+    override val COLOR_BG_0: Color = Color(0xFFFFFF)
+    override val COLOR_BG_1: Color = Color(0xF0F2F5)
+    override val COLOR_BG_OVERLAY: Color = Color(0xFFFFFF)
+    override val COLOR_FG_0: Color = Color(0x454545)
+    override val COLOR_FG_1: Color = Color(0x999999)
+    override val COLOR_BORDER: Color = Color(0xCDCDCD)
+    override val COLOR_SELECTION: Color = Color(0x4d90fe)
+    override val COLOR_SEARCH_RESULT: Color = Color(0xE2B124)
+    override val COLOR_GREEN_LIGHT: Color = Color(0x41A05A)
+    override val COLOR_GREEN: Color = Color(0x19A744)
+    override val COLOR_YELLOW: Color = Color(0xB68B0F)
+    override val COLOR_BLUE: Color = Color(0x126EB4)
+    override val COLOR_ORANGE: Color = Color(0xAC5916)
+    override val COLOR_RED: Color = Color(0x9A0000)
+    override val COLOR_ICON_FG_0: Color = Color(0x333333)
+    override val COLOR_ICON_FG_1: Color = Color(0x666666)
+    override val COLOR_ICON_FG_INACTIVE: Color = Color(0x77777733, true)
+    override val COLOR_ICON_BG: Color = Color(0x00EFEFEF, true)
+    override val COLOR_ICON_BG_HOVER: Color = Color(0x20777777, true)
+    override val COLOR_ICON_BG_ACTIVE: Color = Color(0x50777777, true)
 
-    override val codeLaF: CodeLaF = CodeLaF(
-        codeFontPath = "fonts/JetBrainsMono/JetBrainsMono-Regular.ttf",
-        markupFontPath =  "fonts/Roboto/Roboto-Regular.ttf",
-        pcIdenticator = ">",
-        selectionColor = Color(0x4d90fe),
-        searchResultColor = Color(0xE2B124)
-    ) {
-        if (it == null) return@CodeLaF Color(0x333333)
-        return@CodeLaF Color(it.lightHexColor)
+    override fun getColor(style: CodeStyle?): Color {
+        if (style == null) return Color(0x333333)
+        return Color(style.lightHexColor)
     }
 
-    override val dataLaF: DataLaF = DataLaF {
-        Color(it.light)
-    }
-
-    override val globalLaF: GlobalLaF = GlobalLaF(
-        bgPrimary = Color(0xFFFFFF),
-        bgSecondary = Color(0xF0F2F5),
-        bgOverlay = Color(0xFFFFFF),
-        borderColor = Color(0xCDCDCD)
-    )
-
-    override val iconLaF: IconLaF = IconLaF(
-        iconFgPrimary = Color(0x333333),
-        iconFgSecondary = Color(0x666666),
-        iconBgActive = Color(0x50777777, true),
-        iconBg = Color(0x00EFEFEF, true),
-        iconBgHover = Color(0x20777777, true)
-    )
-
-    override val textLaF: TextLaF = TextLaF(
-        base = Color(0x454545),
-        baseSecondary = Color(0x999999),
-        selected = Color(0xE0E2E5),
-        fontPath = "fonts/Roboto/Roboto-Regular.ttf",
-        titleFontPath = "fonts/Roboto/Roboto-Light.ttf"
-    )
-
-    override val exeStyle: ExeLaF = ExeLaF(
-        continuous = Color(0x19A744),
-        single = Color(0x41A05A),
-        multi = Color(0xB68B0F),
-        skipSR = Color(0x126EB4),
-        returnSR = Color(0xAC5916),
-        reassemble = Color(0x9A0000)
-    )
+    override fun getColor(style: Memory.InstanceType): Color = Color(style.light)
 }

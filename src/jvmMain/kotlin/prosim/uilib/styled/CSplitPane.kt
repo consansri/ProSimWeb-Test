@@ -24,7 +24,7 @@ open class CSplitPane( newOrientation: Int, newContinuousLayout: Boolean, newLef
     }
 
     override fun getDividerSize(): Int {
-        return UIStates.scale.get().dividerScale.thickness
+        return UIStates.scale.get().SIZE_DIVIDER_THICKNESS
     }
 
 }

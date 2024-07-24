@@ -41,7 +41,7 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
     }
 
     override fun paintComponent(g: Graphics?) {
-        val g2d = g?.create() as? Graphics2D
+        val g2d = g as? Graphics2D
         if (g2d == null) {
             super.paintComponent(g)
             return
@@ -49,22 +49,23 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        g2d.color = if (isOverlay) UIStates.theme.get().globalLaF.bgOverlay else if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
+        g2d.color = if (isOverlay) UIStates.theme.get().COLOR_BG_OVERLAY else if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
         if (roundedCorners) {
-            g2d.fillRoundRect(0, 0, width, height, UIStates.scale.get().borderScale.cornerRadius, UIStates.scale.get().borderScale.cornerRadius)
+            val cornerRadius = UIStates.scale.get().SIZE_CORNER_RADIUS
+            g2d.fillRoundRect(0, 0, width, height, cornerRadius, cornerRadius)
         } else {
             g2d.fillRect(0, 0, width, height)
         }
 
         if (isOverlay) {
-            g2d.color = UIStates.theme.get().globalLaF.borderColor
-            g2d.drawRoundRect(0, 0, width - 1, height - 1, UIStates.scale.get().borderScale.cornerRadius, UIStates.scale.get().borderScale.cornerRadius)
+            g2d.color = UIStates.theme.get().COLOR_BORDER
+            g2d.drawRoundRect(0, 0, width - 1, height - 1, UIStates.scale.get().SIZE_CORNER_RADIUS, UIStates.scale.get().SIZE_CORNER_RADIUS)
         }
     }
 
     override fun getBorder(): Border {
         return try {
-            if (isOverlay) UIStates.scale.get().borderScale.getInsetBorder() else borderMode.getBorder()
+            if (isOverlay) UIStates.scale.get().BORDER_INSET_MEDIUM else borderMode.getBorder()
         } catch (e: NullPointerException) {
             BorderMode.INSET.getBorder()
         }

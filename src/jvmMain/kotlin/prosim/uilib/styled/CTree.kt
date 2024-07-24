@@ -23,14 +23,14 @@ class CTree(treeModel: TreeModel, val fontType: FontType) : JTree(treeModel) {
     }
 
     override fun getBackground(): Color {
-        return UIStates.theme.get().globalLaF.bgSecondary
+        return UIStates.theme.get().COLOR_BG_1
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().textLaF.base
+        return UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getBorder(): Border {
-        return UIStates.scale.get().borderScale.getInsetBorder()
+        return UIStates.scale.get().BORDER_INSET_MEDIUM
     }
 }

@@ -14,10 +14,10 @@ import java.lang.ref.WeakReference
 class ConsoleView : CConsole(){
     init {
         Events.exe.addListener(WeakReference(this)) {
-            updateContent(States.arch.get().console.getMessages().toStyledContent(UIStates.theme.get().codeLaF))
+            updateContent(States.arch.get().console.getMessages().toStyledContent(UIStates.theme.get()))
         }
         Events.compile.addListener(WeakReference(this)) {
-            updateContent(States.arch.get().console.getMessages().toStyledContent(UIStates.theme.get().codeLaF))
+            updateContent(States.arch.get().console.getMessages().toStyledContent(UIStates.theme.get()))
         }
         isEditable = false
     }

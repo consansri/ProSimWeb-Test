@@ -99,7 +99,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
                 copyOfMemList.filter { it.row.toRawString() == rowAddresses[index] }.sortedBy { it.offset }.forEach {
                     contentArray[it.offset] = it
                     if (States.arch.get().regContainer.pc.get().toHex().toRawString() == it.address.toRawString()) {
-                        table.addCellHighlighting(UIStates.theme.get().codeLaF.getColor(CodeStyle.GREENPC), index, it.offset + 1)
+                        table.addCellHighlighting(UIStates.theme.get().getColor(CodeStyle.GREENPC), index, it.offset + 1)
                     }
                 }
                 val ascii = contentArray.joinToString("") {
@@ -118,7 +118,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
     }
 
     private fun updateColumnWidths(entrysInRow: Int) {
-        val charWidth = getFontMetrics(UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)).charWidth('0')
+        val charWidth = getFontMetrics(UIStates.scale.get().FONT_CODE_MEDIUM).charWidth('0')
         val wordSize = memory.instanceSize
         val addrScale = memory.addressSize
         val asciiScale = entrysInRow * wordSize.getByteCount()

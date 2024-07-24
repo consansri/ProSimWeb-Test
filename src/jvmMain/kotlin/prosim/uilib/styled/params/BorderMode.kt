@@ -21,8 +21,8 @@ enum class BorderMode {
 
     fun getBorder(): Border {
         return when (this) {
-            INSET -> UIStates.scale.get().borderScale.getInsetBorder()
-            THICKNESS -> UIStates.scale.get().borderScale.getThicknessBorder()
+            INSET -> UIStates.scale.get().BORDER_INSET_MEDIUM
+            THICKNESS -> UIStates.scale.get().BORDER_THICKNESS
             BASIC -> DirectionalBorder(north = true, west = true, south = true, east = true)
             NORTH -> DirectionalBorder(north = true)
             SOUTH -> DirectionalBorder(south = true)

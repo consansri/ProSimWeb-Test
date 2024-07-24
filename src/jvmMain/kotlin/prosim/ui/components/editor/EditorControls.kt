@@ -42,11 +42,11 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
 
         // Listeners
         UIStates.scale.addEvent(WeakReference(this)) {
-            val insets = it.borderScale.insets
+            val insets = it.SIZE_INSET_MEDIUM
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
         UIStates.theme.addEvent(WeakReference(this)) {
-            background = it.globalLaF.bgSecondary
+            background = it.COLOR_BG_1
         }
 
         // Functions
@@ -54,9 +54,9 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         installBuildButton(editor)
 
         // Set Defaults
-        val insets = UIStates.scale.get().borderScale.insets
+        val insets = UIStates.scale.get().SIZE_INSET_MEDIUM
         border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-        background = UIStates.theme.get().globalLaF.bgSecondary
+        background = UIStates.theme.get().COLOR_BG_1
 
         statusIcon.isDeactivated = true
         statusIcon.rotating = true

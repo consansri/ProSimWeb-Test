@@ -60,11 +60,11 @@ open class CTable( tableModel: AbstractTableModel, private val primary: Boolean,
     }
 
     override fun getBackground(): Color {
-        return UIStates.theme.get().globalLaF.bgSecondary
+        return UIStates.theme.get().COLOR_BG_1
     }
 
     override fun getRowHeight(): Int {
-        return getFontMetrics(font).height + 2 * UIStates.scale.get().borderScale.insets
+        return getFontMetrics(font).height + 2 * UIStates.scale.get().SIZE_INSET_MEDIUM
     }
 
     override fun getTableHeader(): JTableHeader {
@@ -74,11 +74,11 @@ open class CTable( tableModel: AbstractTableModel, private val primary: Boolean,
     class CTableHeader(): JTableHeader(){
 
         override fun getForeground(): Color {
-            return UIStates.theme.get().textLaF.baseSecondary
+            return UIStates.theme.get().COLOR_FG_1
         }
 
         override fun getBackground(): Color {
-            return UIStates.theme.get().globalLaF.bgPrimary
+            return UIStates.theme.get().COLOR_BG_0
         }
 
     }

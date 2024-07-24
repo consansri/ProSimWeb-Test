@@ -36,11 +36,11 @@ open class CTextField(val fontType: FontType, val primary: Boolean = false) : JT
     }
 
     override fun getBackground(): Color {
-        return customBG ?: if(primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
+        return customBG ?: if(primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
     }
 
     override fun getForeground(): Color {
-        return customFG ?: UIStates.theme.get().textLaF.base
+        return customFG ?: UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getFont(): Font {
@@ -52,7 +52,7 @@ open class CTextField(val fontType: FontType, val primary: Boolean = false) : JT
     }
 
     override fun getCaretColor(): Color {
-        return UIStates.theme.get().textLaF.base
+        return UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getBorder(): Border {

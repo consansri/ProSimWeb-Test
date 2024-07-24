@@ -12,32 +12,31 @@ enum class FontType {
 
     fun getFont(): Font {
         return when (this) {
-            BASIC -> UIStates.theme.get().textLaF.getBaseFont().deriveFont(UIStates.scale.get().fontScale.textSize)
-            CODE -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.codeSize)
-            DATA -> UIStates.theme.get().codeLaF.getFont().deriveFont(UIStates.scale.get().fontScale.dataSize)
-            TITLE -> UIStates.theme.get().textLaF.getTitleFont().deriveFont(UIStates.scale.get().fontScale.titleSize)
-            CODE_INFO -> UIStates.theme.get().codeLaF.getMarkupFont().deriveFont(UIStates.scale.get().fontScale.codeSize * 0.9f)
+            BASIC -> UIStates.scale.get().FONT_TEXT_MEDIUM
+            CODE -> UIStates.scale.get().FONT_CODE_MEDIUM
+            DATA -> UIStates.scale.get().FONT_CODE_MEDIUM
+            TITLE -> UIStates.scale.get().FONT_TEXT_LARGE
+            CODE_INFO -> UIStates.scale.get().FONT_CODE_SMALL
         }
     }
 
     fun getSkiaFont(): org.jetbrains.skia.Font {
-        val theme = UIStates.theme.get()
+        val scale = UIStates.scale.get()
         val tf = when (this) {
-            BASIC -> theme.textLaF.getBaseTypeface()
-            CODE -> theme.codeLaF.getTF()
-            DATA -> theme.codeLaF.getTF()
-            TITLE -> theme.textLaF.getTitleTypeface()
-            CODE_INFO -> theme.codeLaF.getMarkupTF()
+            BASIC -> scale.TF_TEXT
+            CODE -> scale.TF_CODE
+            DATA -> scale.TF_CODE
+            TITLE -> scale.TF_TEXT
+            CODE_INFO -> scale.TF_CODE
         }
 
-        val fontScale = UIStates.scale.get().fontScale
-        val scale = when (this) {
-            BASIC -> fontScale.textSize
-            CODE -> fontScale.codeSize
-            DATA -> fontScale.dataSize
-            TITLE -> fontScale.titleSize
-            CODE_INFO -> fontScale.codeSize * 0.002f
+        val fontScale = when (this) {
+            BASIC -> scale.FONTSCALE_MEDIUM
+            CODE -> scale.FONTSCALE_MEDIUM
+            DATA -> scale.FONTSCALE_MEDIUM
+            TITLE -> scale.FONTSCALE_LARGE
+            CODE_INFO -> scale.FONTSCALE_SMALL * 0.002f
         }
-        return org.jetbrains.skia.Font(tf, scale * 1.7f)
+        return org.jetbrains.skia.Font(tf, fontScale * 1.7f)
     }
 }

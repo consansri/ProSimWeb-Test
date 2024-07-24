@@ -10,22 +10,22 @@ import prosim.uilib.theme.core.Theme
 import prosim.uilib.theme.themes.DarkTheme
 import prosim.uilib.theme.themes.LightTheme
 
-object UIResource {
+data object UIResource {
     val icons = listOf(
         BenIcons()
     )
 
     // List of available themes.
     val themes: List<Theme> = listOf(
-        LightTheme(),
-        DarkTheme()
+        LightTheme,
+        DarkTheme
     )
 
     // List of available scaling options.
     val scalings: List<Scaling> = listOf(
-        SmallScaling(),
-        StandardScaling(),
-        LargerScaling(),
-        LargeScaling()
+        SmallScaling,
+        StandardScaling,
+        LargerScaling,
+        LargeScaling
     )
 }

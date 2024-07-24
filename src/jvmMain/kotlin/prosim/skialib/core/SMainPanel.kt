@@ -23,7 +23,7 @@ open class SMainPanel(val frame: JFrame) : JComponent(), SkikoRenderDelegate, SC
     override val sHeight: Int get() = layout.height
     override var insets: Insets = Insets()
     val background: Paint = Paint().apply {
-        color = UIStates.theme.get().globalLaF.bgPrimary.rgb
+        color = UIStates.theme.get().COLOR_BG_0.rgb
     }
     override var layout: Layout = BorderLayout()
 

@@ -31,11 +31,11 @@ open class CIconButtonUI() : ComponentUI() {
 
         // Paint button background
         if (button.isHovered && !button.isDeactivated) {
-            g2.color = UIStates.theme.get().iconLaF.iconBgHover
+            g2.color = UIStates.theme.get().COLOR_ICON_BG_HOVER
         } else {
             g2.color = button.iconBg
         }
-        g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, UIStates.scale.get().controlScale.cornerRadius, UIStates.scale.get().controlScale.cornerRadius)
+        g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, UIStates.scale.get().SIZE_CORNER_RADIUS, UIStates.scale.get().SIZE_CORNER_RADIUS)
 
         // Paint button
         val icon = button.svgIcon

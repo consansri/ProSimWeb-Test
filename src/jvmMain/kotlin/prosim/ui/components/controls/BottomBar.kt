@@ -48,7 +48,7 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setError(text: String) {
-        generalPurpose.setColouredText(text, UIStates.theme.get().codeLaF.getColor(CodeStyle.RED))
+        generalPurpose.setColouredText(text, UIStates.theme.get().getColor(CodeStyle.RED))
     }
 
     /**
@@ -56,7 +56,7 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setWarning(text: String) {
-        generalPurpose.setColouredText(text, UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
+        generalPurpose.setColouredText(text, UIStates.theme.get().getColor(CodeStyle.YELLOW))
     }
 
     /**
@@ -64,19 +64,19 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
      * @param text The text to display.
      */
     fun setInfo(text: String) {
-        generalPurpose.setColouredText(text, UIStates.theme.get().textLaF.baseSecondary)
+        generalPurpose.setColouredText(text, UIStates.theme.get().COLOR_FG_1)
     }
 
     fun setWSError(text: String) {
-        wsInfo.setColouredText(text, UIStates.theme.get().codeLaF.getColor(CodeStyle.RED))
+        wsInfo.setColouredText(text, UIStates.theme.get().getColor(CodeStyle.RED))
     }
 
     fun setWSWarning(text: String) {
-        wsInfo.setColouredText(text, UIStates.theme.get().codeLaF.getColor(CodeStyle.YELLOW))
+        wsInfo.setColouredText(text, UIStates.theme.get().getColor(CodeStyle.YELLOW))
     }
 
     fun setWSInfo(text: String) {
-        wsInfo.setColouredText(text, UIStates.theme.get().textLaF.baseSecondary)
+        wsInfo.setColouredText(text, UIStates.theme.get().COLOR_FG_1)
     }
 
     /**
@@ -90,7 +90,7 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
         gbc.gridy = 0
         gbc.weighty = 0.0
         gbc.weightx = 1.0
-        gbc.ipadx = UIStates.scale.get().borderScale.insets
+        gbc.ipadx = UIStates.scale.get().SIZE_INSET_MEDIUM
         gbc.fill = GridBagConstraints.HORIZONTAL
 
         add(wsInfo, gbc)

@@ -19,7 +19,7 @@ open class CFrame() : JFrame() {
     val content = CPanel(primary = false)
 
     private val cornerRadius: Int
-        get() = UIStates.scale.get().borderScale.cornerRadius
+        get() = UIStates.scale.get().SIZE_CORNER_RADIUS
 
     private var posX = 0
     private var posY = 0
@@ -56,7 +56,7 @@ open class CFrame() : JFrame() {
     }
 
     override fun getBackground(): Color {
-        return UIStates.theme.get().globalLaF.bgSecondary
+        return UIStates.theme.get().COLOR_BG_1
     }
 
     override fun getIconImage(): Image {
@@ -198,7 +198,7 @@ open class CFrame() : JFrame() {
 
         private fun applyThemeDefaults() {
             UIStates.icon.get().appLogo.colorFilter = FlatSVGIcon.ColorFilter {
-                UIStates.theme.get().textLaF.base
+                UIStates.theme.get().COLOR_FG_0
             }
 
             logoButton.svgIcon = UIStates.icon.get().appLogo
@@ -270,9 +270,9 @@ open class CFrame() : JFrame() {
     }
 
     private fun isEdge(point: Point): ResizeMode? {
-        val left = point.x <= UIStates.scale.get().borderScale.insets
-        val right = point.x >= width - UIStates.scale.get().borderScale.insets
-        val bottom = point.y >= height - UIStates.scale.get().borderScale.insets
+        val left = point.x <= UIStates.scale.get().SIZE_INSET_MEDIUM
+        val right = point.x >= width - UIStates.scale.get().SIZE_INSET_MEDIUM
+        val bottom = point.y >= height - UIStates.scale.get().SIZE_INSET_MEDIUM
 
         return when {
             left && bottom -> ResizeMode.LEFTANDBOTTOM

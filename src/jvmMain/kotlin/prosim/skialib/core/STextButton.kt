@@ -21,7 +21,7 @@ open class STextButton(val text: String, val fontType: FontType, installHover: B
             field = value
             repaint()
         }
-    private var hoverColor: Color = UIStates.theme.get().iconLaF.iconBgHover
+    private var hoverColor: Color = UIStates.theme.get().COLOR_ICON_BG_HOVER
 
     init {
         transparency = true
@@ -53,10 +53,10 @@ open class STextButton(val text: String, val fontType: FontType, installHover: B
         transparency = true
         isFocusable = true
         skiaFont = fontType.getSkiaFont()
-        border = scaling.borderScale.getInsetBorder()
-        foreground = theme.textLaF.base
-        background = if (locationPrimary) theme.globalLaF.bgPrimary else theme.globalLaF.bgSecondary
-        hoverColor = UIStates.theme.get().iconLaF.iconBgHover
+        border = scaling.BORDER_INSET_MEDIUM
+        foreground = theme.COLOR_FG_0
+        background = if (locationPrimary) theme.COLOR_BG_0 else theme.COLOR_BG_1
+        hoverColor = UIStates.theme.get().COLOR_ICON_BG_HOVER
     }
 
     override fun onRender(canvas: Canvas, width: Int, height: Int, nanoTime: Long) {
@@ -76,7 +76,7 @@ open class STextButton(val text: String, val fontType: FontType, installHover: B
                 insets.top.toFloat(),
                 width.toFloat() - insets.left - insets.right,
                 height.toFloat() - insets.top - insets.bottom,
-                UIStates.scale.get().borderScale.cornerRadius.toFloat() / 2
+                UIStates.scale.get().SIZE_CORNER_RADIUS.toFloat() / 2
             )
 
             canvas.drawRRect(rect, hoverPaint)

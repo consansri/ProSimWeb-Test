@@ -1,57 +1,47 @@
 package prosim.uilib.theme.core
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import org.jetbrains.skia.Data
-import org.jetbrains.skia.Typeface
-import prosim.uilib.theme.core.style.*
-import java.awt.Font
-import java.awt.FontFormatException
-import java.io.IOException
-import java.io.InputStream
+import emulator.kit.assembler.CodeStyle
+import emulator.kit.memory.Memory
+import java.awt.Color
 
 interface Theme {
     val name: String
     val icon: FlatSVGIcon
     val dark: Boolean
-    val codeLaF: CodeLaF
-    val dataLaF: DataLaF
-    val globalLaF: GlobalLaF
-    val iconLaF: IconLaF
-    val textLaF: TextLaF
-    val exeStyle: ExeLaF
 
+    // COLORS (BASIC)
 
-    companion object{
-        fun loadFont(url: String): Font {
-            val inputStream: InputStream? = this::class.java.classLoader.getResourceAsStream(url)
+    val COLOR_BG_0: Color
+    val COLOR_BG_1: Color
+    val COLOR_BG_OVERLAY: Color
 
-            requireNotNull(inputStream) { "Font file not found: $url" }
+    val COLOR_FG_0: Color
+    val COLOR_FG_1: Color
 
-            return try {
-                Font.createFont(Font.TRUETYPE_FONT, inputStream)
-            } catch (e: FontFormatException) {
-                throw RuntimeException("Error loading font", e)
-            } finally {
-                try {
-                    inputStream.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
+    val COLOR_BORDER: Color
 
-        fun loadSkiaTF(url: String): Typeface? {
-            try {
-                val resource = this::class.java.classLoader.getResourceAsStream(url)
+    val COLOR_SELECTION: Color
+    val COLOR_SEARCH_RESULT: Color
 
-                if (resource != null) {
-                    return Typeface.makeFromData(Data.makeFromBytes(resource.readBytes()))
-                }
-            }catch (e: Exception){
-                e.printStackTrace()
-            }
-            return null
-        }
-    }
+    // COLORS (SIMPLE)
 
+    val COLOR_GREEN_LIGHT: Color
+    val COLOR_GREEN: Color
+    val COLOR_YELLOW: Color
+    val COLOR_BLUE: Color
+    val COLOR_ORANGE: Color
+    val COLOR_RED: Color
+
+    // COLORS (ICON)
+
+    val COLOR_ICON_FG_0: Color
+    val COLOR_ICON_FG_1: Color
+    val COLOR_ICON_FG_INACTIVE: Color
+    val COLOR_ICON_BG: Color
+    val COLOR_ICON_BG_HOVER: Color
+    val COLOR_ICON_BG_ACTIVE: Color
+
+    fun getColor(style: CodeStyle?): Color
+    fun getColor(style: Memory.InstanceType): Color
 }

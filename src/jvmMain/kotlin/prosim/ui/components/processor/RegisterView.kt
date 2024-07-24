@@ -86,7 +86,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
         regViews.add(regView)
         add(regView, gbc)
         gbc.gridx++
-        gbc.insets = Insets(0, UIStates.scale.get().borderScale.insets, 0, 0)
+        gbc.insets = Insets(0, UIStates.scale.get().SIZE_INSET_MEDIUM, 0, 0)
     }
 
     private fun removeBox() {

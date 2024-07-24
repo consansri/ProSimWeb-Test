@@ -39,24 +39,24 @@ class CTextPane(val fontType: FontType = FontType.CODE) : JTextPane() {
 
     override fun getFont(): Font {
         val font = fontType.getFont()
-        font.install(this, UIStates.scale.get().fontScale.codeSize)
+        font.install(this)
         return font
     }
 
     override fun getBorder(): Border {
-        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().SIZE_INSET_MEDIUM, 0, UIStates.scale.get().SIZE_INSET_MEDIUM)
     }
 
     override fun getBackground(): Color {
-        return UIStates.theme.get().globalLaF.bgPrimary
+        return UIStates.theme.get().COLOR_BG_0
     }
 
     override fun getCaretColor(): Color {
-        return UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        return UIStates.theme.get().getColor(CodeStyle.BASE0)
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        return UIStates.theme.get().getColor(CodeStyle.BASE0)
     }
 
 

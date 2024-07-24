@@ -32,7 +32,7 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
 
         // Paint button background
         g2.color = button.background
-        g2.fillRoundRect(0, 0, width, height, UIStates.scale.get().controlScale.cornerRadius, UIStates.scale.get().controlScale.cornerRadius)
+        g2.fillRoundRect(0, 0, width, height, UIStates.scale.get().SIZE_CORNER_RADIUS, UIStates.scale.get().SIZE_CORNER_RADIUS)
 
         // Paint button
         super.paint(g2, c)
@@ -50,8 +50,8 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
     override fun getMinimumSize(c: JComponent?): Dimension {
         c as? CToggleButton ?: return super.getPreferredSize(c)
         val preferredSize = when (toggleSwitchType) {
-            ToggleSwitchType.SMALL -> UIStates.scale.get().controlScale.getSmallSize()
-            ToggleSwitchType.NORMAL -> UIStates.scale.get().controlScale.getNormalSize()
+            ToggleSwitchType.SMALL -> UIStates.scale.get().DIM_CONTROL_SMALL
+            ToggleSwitchType.NORMAL -> UIStates.scale.get().DIM_CONTROL_MEDIUM
         }
         return Dimension(preferredSize.width + c.insets.left + c.insets.right, preferredSize.height + c.insets.top + c.insets.bottom)
     }
@@ -66,8 +66,8 @@ class CToggleButtonUI(private val toggleSwitchType: ToggleSwitchType, private va
 
         fun getBorder(): Border {
             return when (this) {
-                SMALL -> UIStates.scale.get().controlScale.getSmallInsetBorder()
-                NORMAL -> UIStates.scale.get().controlScale.getNormalInsetBorder()
+                SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
+                NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
             }
         }
     }

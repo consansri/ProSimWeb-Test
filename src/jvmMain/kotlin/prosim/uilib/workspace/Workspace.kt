@@ -366,7 +366,7 @@ class Workspace(
             content.layout = GridBagLayout()
             val contentGBC = GridBagConstraints()
             contentGBC.weightx = 1.0
-            contentGBC.insets = UIStates.scale.get().borderScale.getInsets()
+            contentGBC.insets = UIStates.scale.get().INSETS_MEDIUM
             contentGBC.fill = GridBagConstraints.HORIZONTAL
 
             submit.layout = GridBagLayout()
@@ -449,9 +449,9 @@ class Workspace(
      */
     private fun setTreeLook() {
         UIStates.theme.addEvent(WeakReference(this)) { theme ->
-            tree.background = theme.globalLaF.bgSecondary
+            tree.background = theme.COLOR_BG_1
         }
-        tree.background = UIStates.theme.get().globalLaF.bgSecondary
+        tree.background = UIStates.theme.get().COLOR_BG_1
         tree.isFocusable = false
     }
 

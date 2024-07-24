@@ -23,7 +23,7 @@ class CFormattedTextField(val fontType: FontType): JFormattedTextField() {
     }
 
     override fun getForeground(): Color {
-        return customFG ?: UIStates.theme.get().textLaF.base
+        return customFG ?: UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getBackground(): Color {
@@ -39,7 +39,7 @@ class CFormattedTextField(val fontType: FontType): JFormattedTextField() {
     }
 
     override fun getCaretColor(): Color {
-        return UIStates.theme.get().textLaF.base
+        return UIStates.theme.get().COLOR_FG_0
     }
 
 }

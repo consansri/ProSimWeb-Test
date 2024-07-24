@@ -41,7 +41,7 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
     }
 
     override fun getMaximumSize(c: JComponent?): Dimension {
-        return Dimension(UIStates.scale.get().controlScale.comboBoxWidth, super.getPreferredSize(c).height)
+        return Dimension(UIStates.scale.get().SIZE_COMBOBOX, super.getPreferredSize(c).height)
     }
 
     override fun paintCurrentValueBackground(g: Graphics, bounds: Rectangle, hasFocus: Boolean) {
@@ -49,8 +49,8 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
         if (isHovered) {
-            val cornerRadius = UIStates.scale.get().controlScale.cornerRadius
-            g2.color = UIStates.theme.get().globalLaF.bgPrimary
+            val cornerRadius = UIStates.scale.get().SIZE_CORNER_RADIUS
+            g2.color = UIStates.theme.get().COLOR_BG_0
             g2.fillRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, cornerRadius, cornerRadius)
         }
 
@@ -89,8 +89,8 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
                 cellHasFocus: Boolean
             ): Component {
                 val c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-                c.background = if (isSelected) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
-                c.foreground = UIStates.theme.get().textLaF.base
+                c.background = if (isSelected) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
+                c.foreground = UIStates.theme.get().COLOR_FG_0
                 (c as? JComponent)?.border = BorderFactory.createEmptyBorder()
                 return c
             }
@@ -115,9 +115,9 @@ class CComboBoxUI(private val fontType: FontType) : BasicComboBoxUI() {
     class CComboBoxRenderer() : DefaultListCellRenderer() {
         override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            background = if (isSelected) UIStates.theme.get().globalLaF.bgSecondary else UIStates.theme.get().globalLaF.bgPrimary
-            foreground = UIStates.theme.get().textLaF.base
-            this.border = UIStates.scale.get().controlScale.getNormalInsetBorder()
+            background = if (isSelected) UIStates.theme.get().COLOR_BG_1 else UIStates.theme.get().COLOR_BG_0
+            foreground = UIStates.theme.get().COLOR_FG_0
+            this.border = UIStates.scale.get().BORDER_INSET_MEDIUM
             horizontalAlignment = SwingConstants.CENTER
             return this
         }

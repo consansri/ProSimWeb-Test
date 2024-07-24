@@ -26,11 +26,11 @@ open class CLabel(content: String, val fontType: FontType) : JLabel(content) {
     }
 
     override fun getBorder(): Border {
-        return UIStates.scale.get().borderScale.getInsetBorder()
+        return UIStates.scale.get().BORDER_INSET_MEDIUM
     }
 
     override fun getForeground(): Color {
-        return customFG ?: UIStates.theme.get().textLaF.base
+        return customFG ?: UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getFont(): Font {

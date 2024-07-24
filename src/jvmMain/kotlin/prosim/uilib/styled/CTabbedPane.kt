@@ -25,11 +25,11 @@ open class CTabbedPane(val primary: Boolean, val fontType: FontType) : JTabbedPa
     }
 
     override fun getBackground(): Color {
-        return if (primary) UIStates.theme.get().globalLaF.bgPrimary else UIStates.theme.get().globalLaF.bgSecondary
+        return if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().textLaF.base
+        return UIStates.theme.get().COLOR_FG_0
     }
 
     override fun getFont(): Font {

@@ -18,11 +18,11 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean = false, val mode: C
         }
 
     val activeBG: Color
-        get() = UIStates.theme.get().iconLaF.iconBgActive
+        get() = UIStates.theme.get().COLOR_ICON_BG_ACTIVE
 
 
     val inactiveBG: Color
-        get() = UIStates.theme.get().iconLaF.iconBg
+        get() = UIStates.theme.get().COLOR_ICON_BG
 
     init {
         // Set Standard Appearance
@@ -49,14 +49,14 @@ class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean = false, val mode: C
     }
 
     override fun getBorder(): Border {
-        return UIStates.scale.get().borderScale.getInsetBorder()
+        return UIStates.scale.get().BORDER_INSET_MEDIUM
     }
 
     override fun paint(g: Graphics?) {
         val g2d = g?.create() as? Graphics2D ?: return super.paint(g)
 
         g2d.paint = background
-        g2d.fillRoundRect(0, 0, width, height, UIStates.scale.get().borderScale.cornerRadius, UIStates.scale.get().borderScale.cornerRadius)
+        g2d.fillRoundRect(0, 0, width, height, UIStates.scale.get().SIZE_CORNER_RADIUS, UIStates.scale.get().SIZE_CORNER_RADIUS)
 
         super.paint(g2d)
         g2d.dispose()

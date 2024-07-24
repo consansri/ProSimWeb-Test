@@ -99,8 +99,7 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     private var selEndColumn = -1
 
     // Settings
-    val tabSize: Int
-        get() = UIStates.scale.get().fontScale.tabSize
+    val tabSize: Int = 4
 
     var scrollMarginLines = 2
     var scrollMarginChars = 10
@@ -1174,15 +1173,15 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     }
 
     override fun getBorder(): Border {
-        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().borderScale.insets, 0, UIStates.scale.get().borderScale.insets)
+        return BorderFactory.createEmptyBorder(0, UIStates.scale.get().SIZE_INSET_MEDIUM, 0, UIStates.scale.get().SIZE_INSET_MEDIUM)
     }
 
     override fun getBackground(): Color {
-        return UIStates.theme.get().globalLaF.bgPrimary
+        return UIStates.theme.get().COLOR_BG_0
     }
 
     override fun getForeground(): Color {
-        return UIStates.theme.get().codeLaF.getColor(CodeStyle.BASE0)
+        return UIStates.theme.get().getColor(CodeStyle.BASE0)
     }
 
     override fun getFont(): Font {

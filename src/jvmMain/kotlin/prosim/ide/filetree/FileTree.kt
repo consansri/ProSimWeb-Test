@@ -435,9 +435,9 @@ class FileTree(private val project: Project) : FileTreeUI {
         init {
             this.isOpaque = true
             this.font = tree.font
-            this.textNonSelectionColor = UIStates.theme.get().textLaF.base
-            this.textSelectionColor = UIStates.theme.get().textLaF.selected
-            this.border = UIStates.scale.get().controlScale.getNormalInsetBorder()
+            this.textNonSelectionColor = UIStates.theme.get().COLOR_FG_0
+            this.textSelectionColor = UIStates.theme.get().COLOR_SELECTION
+            this.border = UIStates.scale.get().BORDER_INSET_MEDIUM
         }
 
         override fun getTreeCellRendererComponent(
@@ -458,41 +458,41 @@ class FileTree(private val project: Project) : FileTreeUI {
                     val fileIcon = project.getLang(uobj)?.getFileIcon()
                     if (fileIcon != null) {
                         fileIcon.derive(
-                            UIStates.scale.get().controlScale.smallSize,
-                            UIStates.scale.get().controlScale.smallSize
+                            UIStates.scale.get().SIZE_CONTROL_SMALL,
+                            UIStates.scale.get().SIZE_CONTROL_SMALL
                         )
                     } else {
                         UIStates.icon.get().file.derive(
-                            UIStates.scale.get().controlScale.smallSize,
-                            UIStates.scale.get().controlScale.smallSize
+                            UIStates.scale.get().SIZE_CONTROL_SMALL,
+                            UIStates.scale.get().SIZE_CONTROL_SMALL
                         )
                     }
                 } else {
                     UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().controlScale.smallSize,
-                        UIStates.scale.get().controlScale.smallSize
+                        UIStates.scale.get().SIZE_CONTROL_SMALL,
+                        UIStates.scale.get().SIZE_CONTROL_SMALL
                     )
                 }
 
             } else {
                 if (expanded) {
                     UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().controlScale.smallSize,
-                        UIStates.scale.get().controlScale.smallSize
+                        UIStates.scale.get().SIZE_CONTROL_SMALL,
+                        UIStates.scale.get().SIZE_CONTROL_SMALL
                     )
                 } else {
                     UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().controlScale.smallSize,
-                        UIStates.scale.get().controlScale.smallSize
+                        UIStates.scale.get().SIZE_CONTROL_SMALL,
+                        UIStates.scale.get().SIZE_CONTROL_SMALL
                     )
                 }
             }
 
-            this.background = if (sel) UIStates.theme.get().textLaF.selected else UIStates.theme.get().globalLaF.bgSecondary
+            this.background = if (sel) UIStates.theme.get().COLOR_SELECTION else UIStates.theme.get().COLOR_BG_1
             loadedIcon.colorFilter = FlatSVGIcon.ColorFilter {
-                UIStates.theme.get().iconLaF.iconFgPrimary
+                UIStates.theme.get().COLOR_ICON_FG_0
             }
-            this.foreground = UIStates.theme.get().textLaF.base
+            this.foreground = UIStates.theme.get().COLOR_FG_0
             this.icon = loadedIcon
             return this
         }

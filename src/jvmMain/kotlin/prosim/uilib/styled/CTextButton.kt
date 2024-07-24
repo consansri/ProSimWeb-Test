@@ -88,7 +88,7 @@ open class CTextButton(text: String, val fontType: FontType = FontType.BASIC, va
     }
 
     override fun getForeground(): Color {
-        return if (primary) UIStates.theme.get().textLaF.base else UIStates.theme.get().textLaF.baseSecondary
+        return if (primary) UIStates.theme.get().COLOR_FG_0 else UIStates.theme.get().COLOR_FG_1
     }
 
 }
