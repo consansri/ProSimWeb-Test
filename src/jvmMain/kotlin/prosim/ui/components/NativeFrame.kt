@@ -1,5 +1,6 @@
 package prosim.ui.components
 
+import emulator.kit.nativeLog
 import prosim.ui.components.console.ConsoleView
 import prosim.ui.components.controls.AppControls
 import prosim.ui.components.controls.BottomBar
@@ -10,16 +11,17 @@ import prosim.ui.components.processor.ProcessorView
 import prosim.ui.components.transcript.TranscriptView
 import prosim.ui.components.tree.FileTree
 import prosim.uilib.UIStates
+import prosim.uilib.scale.core.Scaling
 import prosim.uilib.state.*
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CIcon
 import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CSplitPane
+import prosim.uilib.theme.core.Theme
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
 import java.io.IOException
-import java.lang.ref.WeakReference
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.JFrame
@@ -31,6 +33,22 @@ import javax.swing.SwingUtilities
  * @param mManager The main manager responsible for coordinating UI components and actions.
  */
 class NativeFrame : JFrame(), ProSimFrame {
+
+    val themeListener = object : StateListener<Theme> {
+        override suspend fun onStateChange(newVal: Theme) {
+            nativeLog("${this.javaClass.simpleName} onStateChange(theme: Theme)")
+            revalidate()
+            repaint()
+        }
+    }
+
+    val scaleListener = object : StateListener<Scaling> {
+        override suspend fun onStateChange(newVal: Scaling) {
+            nativeLog("${this.javaClass.simpleName} onStateChange(scaling: Scaling)")
+            revalidate()
+            repaint()
+        }
+    }
 
     override val bottomBar = BottomBar()
     override val topBar = TopControls(showArchSwitch = true)
@@ -151,15 +169,8 @@ class NativeFrame : JFrame(), ProSimFrame {
         size = Dimension(1920, 1080)
         setLocationRelativeTo(null)
 
-        UIStates.theme.addEvent(WeakReference(this)){
-            revalidate()
-            repaint()
-        }
-
-        UIStates.scale.addEvent(WeakReference(this)){
-            revalidate()
-            repaint()
-        }
+        UIStates.theme.addEvent(themeListener)
+        UIStates.scale.addEvent(scaleListener)
 
         isVisible = true
 
@@ -180,5 +191,11 @@ class NativeFrame : JFrame(), ProSimFrame {
             e.printStackTrace()
             null
         }
+    }
+
+    override fun dispose() {
+        super.dispose()
+        UIStates.theme.removeEvent(themeListener)
+        UIStates.scale.removeEvent(scaleListener)
     }
 }

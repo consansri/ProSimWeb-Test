@@ -1,5 +1,6 @@
 package prosim.ui.components.processor
 
+import emulator.kit.Architecture
 import emulator.kit.MicroSetup
 import emulator.kit.memory.Cache
 import emulator.kit.memory.MainMemory
@@ -7,26 +8,26 @@ import prosim.ui.Events
 import prosim.ui.States
 import prosim.ui.components.processor.memory.MainMemView
 import prosim.ui.components.processor.memory.NewCacheView
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.FontType
 import java.lang.ref.WeakReference
 
-class MemoryView : CAdvancedTabPane(tabsAreCloseable = false) {
+class MemoryView : CAdvancedTabPane(tabsAreCloseable = false), StateListener<Architecture> {
 
     init {
         addContentChangeListener()
     }
 
     private fun addContentChangeListener() {
-        States.arch.addEvent(WeakReference(this)) {
-            updateContent()
-        }
+        States.arch.addEvent(this)
         Events.archSettingChange.addListener(WeakReference(this)) {
             updateContent()
         }
         updateContent()
     }
+
 
     private fun updateContent() {
         removeAllTabs()
@@ -37,5 +38,9 @@ class MemoryView : CAdvancedTabPane(tabsAreCloseable = false) {
             }
             addTab(CLabel(it.name, FontType.BASIC), content)
         }
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        updateContent()
     }
 }

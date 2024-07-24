@@ -6,18 +6,35 @@ import org.jetbrains.skiko.SkikoRenderDelegate
 import prosim.uilib.UIStates
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
+import prosim.uilib.state.StateListener
 import prosim.uilib.theme.core.Theme
-import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 abstract class SComponent : SkiaLayer() {
+
+    val themeListener = object : StateListener<Theme>{
+        override suspend fun onStateChange(newVal: Theme) {
+            updateTheme(newVal)
+        }
+    }
+    val scaleListener = object : StateListener<Scaling>{
+        override suspend fun onStateChange(newVal: Scaling) {
+            updateScale(newVal)
+        }
+
+    }
+    val iconListener = object : StateListener<Icons>{
+        override suspend fun onStateChange(newVal: Icons) {
+            updateIcon(newVal)
+        }
+    }
 
     init {
         installStateListeners()
         renderDelegate = RenderDelegate()
     }
 
-    fun setup(){
+    fun setup() {
         applyDefaults(UIStates.theme.get(), UIStates.scale.get(), UIStates.icon.get())
     }
 
@@ -48,15 +65,15 @@ abstract class SComponent : SkiaLayer() {
     }
 
     private fun installStateListeners() {
-        UIStates.theme.addEvent(WeakReference(this), ::updateTheme)
-        UIStates.scale.addEvent(WeakReference(this), ::updateScale)
-        UIStates.icon.addEvent(WeakReference(this), ::updateIcon)
+        UIStates.theme.addEvent(themeListener)
+        UIStates.scale.addEvent(scaleListener)
+        UIStates.icon.addEvent(iconListener)
     }
 
     private fun removeStateListeners() {
-        UIStates.theme.removeEvent(::updateTheme)
-        UIStates.scale.removeEvent(::updateScale)
-        UIStates.icon.removeEvent(::updateIcon)
+        UIStates.theme.removeEvent(themeListener)
+        UIStates.scale.removeEvent(scaleListener)
+        UIStates.icon.removeEvent(iconListener)
     }
 
     inner class RenderDelegate : SkikoRenderDelegate {

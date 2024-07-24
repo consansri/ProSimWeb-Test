@@ -1,5 +1,6 @@
 package prosim.ui.components.controls
 
+import emulator.kit.Architecture
 import prosim.ui.Events
 import prosim.ui.States
 import prosim.ui.components.ProSimFrame
@@ -7,6 +8,7 @@ import prosim.ui.components.controls.buttons.FeatureSwitch
 import prosim.ui.components.controls.buttons.Settings
 import prosim.ui.components.controls.buttons.ThemeSwitch
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CIconToggle
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
@@ -21,7 +23,7 @@ import java.lang.ref.WeakReference
  * It contains buttons for various functionalities like theme switching,
  * processor/disassembler toggling, and feature activation.
  */
-class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, BorderMode.WEST) {
+class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, BorderMode.WEST), StateListener<Architecture> {
     private var processorShown = false
         set(value) {
             field = value
@@ -78,9 +80,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
             updateFeatureButtons()
         }
 
-        States.arch.addEvent(WeakReference(this)) {
-            attachFeatureButtons()
-        }
+        States.arch.addEvent(this)
         attachFeatureButtons()
     }
 
@@ -103,5 +103,9 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
         featureButtons.forEach {
             it.updateFeatureState()
         }
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        attachFeatureButtons()
     }
 }

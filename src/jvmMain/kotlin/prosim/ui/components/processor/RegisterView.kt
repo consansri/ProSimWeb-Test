@@ -1,12 +1,14 @@
 package prosim.ui.components.processor
 
 import emulator.core.Value
+import emulator.kit.Architecture
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
 import prosim.ui.Events
 import prosim.ui.States
 import prosim.ui.components.processor.models.RegTableModel
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.CPanel
@@ -23,7 +25,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
 import kotlin.math.abs
 
-class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
+class RegisterView() : CPanel( primary = true, BorderMode.SOUTH), StateListener<Architecture> {
 
     private val regViews = mutableListOf<CAdvancedTabPane>()
 
@@ -50,9 +52,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
         gbc.weighty = 1.0
         gbc.fill = GridBagConstraints.BOTH
 
-        States.arch.addEvent(WeakReference(this)) {
-            resetRegViews()
-        }
+        States.arch.addEvent(this)
 
         Events.archFeatureChange.addListener(WeakReference(this)) {
             resetRegViews()
@@ -285,5 +285,9 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH) {
             ALIASES,
             ADDRESS
         }
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        resetRegViews()
     }
 }

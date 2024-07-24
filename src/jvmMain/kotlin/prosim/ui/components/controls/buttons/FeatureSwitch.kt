@@ -1,28 +1,24 @@
 package prosim.ui.components.controls.buttons
 
+import emulator.kit.Architecture
 import emulator.kit.optional.Feature
 import prosim.ui.Events
 import prosim.ui.States
-
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CToggleButton
 import prosim.uilib.styled.CToggleButtonUI
 import prosim.uilib.styled.params.FontType
-import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 /**
  * This class represents a button used for enabling/disabling functionalities within the application based on a Feature object.
  */
-class FeatureSwitch(private val feature: Feature) : CToggleButton(feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC) {
+class FeatureSwitch(private val feature: Feature) : CToggleButton(feature.name, CToggleButtonUI.ToggleSwitchType.NORMAL, FontType.BASIC), StateListener<Architecture> {
 
     private var switchingFeatures = false
 
     init {
-        States.arch.addEvent(WeakReference(this)) {
-            if (!switchingFeatures) {
-                isActive = feature.isActive()
-            }
-        }
+        States.arch.addEvent(this)
 
         this.addActionListener {
             if (!feature.static) {
@@ -49,6 +45,12 @@ class FeatureSwitch(private val feature: Feature) : CToggleButton(feature.name, 
         }
 
         isActive = feature.isActive()
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        if (!switchingFeatures) {
+            isActive = feature.isActive()
+        }
     }
 
     fun updateFeatureState() {

@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import prosim.ui.States
 import prosim.ui.States.setFromPath
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.state.WSEditor
 import prosim.uilib.state.WSLogger
 import prosim.uilib.styled.*
@@ -16,7 +17,6 @@ import java.awt.Cursor
 import java.awt.FlowLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.SwingUtilities
 
@@ -24,7 +24,7 @@ import javax.swing.SwingUtilities
  * Represents a panel containing a file tree component for displaying and navigating project files.
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  */
-class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true) {
+class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true), StateListener<Workspace?> {
     private val projectButton = CTextButton(Workspace::class.simpleName.toString(), FontType.TITLE)
     private val emptyWorkspace = CTextField(FontType.CODE).apply {
         isEditable = false
@@ -36,9 +36,7 @@ class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true) {
     init {
         attachMouseListener()
 
-        States.ws.addEvent(WeakReference(this)) {
-            refreshWSTree()
-        }
+        States.ws.addEvent(this)
 
         refreshWSTree()
         setTreeDefaults()
@@ -118,5 +116,11 @@ class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true) {
         this.add(content, BorderLayout.CENTER)
 
         this.border = BorderFactory.createEmptyBorder()
+    }
+
+    override suspend fun onStateChange(newVal: Workspace?) {
+        SwingUtilities.invokeLater {
+            refreshWSTree()
+        }
     }
 }

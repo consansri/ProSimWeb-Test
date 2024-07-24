@@ -2,14 +2,14 @@ package prosim.ui.components.controls.buttons
 
 import prosim.uilib.UIResource
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CIconButton
 import prosim.uilib.theme.core.Theme
-import java.lang.ref.WeakReference
 
 /**
  * This class represents a button used for switching between themes within the application.
  */
-class ThemeSwitch() : CIconButton(UIStates.theme.get().icon, mode = Mode.PRIMARY_NORMAL) {
+class ThemeSwitch() : CIconButton(UIStates.theme.get().icon, mode = Mode.PRIMARY_NORMAL), StateListener<Theme> {
 
     private var currentIndex = 0
 
@@ -20,12 +20,7 @@ class ThemeSwitch() : CIconButton(UIStates.theme.get().icon, mode = Mode.PRIMARY
             switchTheme()
         }
 
-        UIStates.theme.addEvent(WeakReference(this), ::updateTheme)
-    }
-
-    private fun updateTheme(theme: Theme) {
-        currentIndex = UIResource.themes.indexOf(theme)
-        svgIcon = theme.icon
+        UIStates.theme.addEvent(this)
     }
 
     private fun switchTheme() {
@@ -44,6 +39,11 @@ class ThemeSwitch() : CIconButton(UIStates.theme.get().icon, mode = Mode.PRIMARY
             UIStates.theme.set(it)
             svgIcon = it.icon
         }
+    }
+
+    override suspend fun onStateChange(newVal: Theme) {
+        currentIndex = UIResource.themes.indexOf(newVal)
+        svgIcon = newVal.icon
     }
 
 }

@@ -4,6 +4,7 @@ import emulator.kit.Architecture
 import prosim.ui.Events
 import prosim.ui.States
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.CPanel
@@ -13,7 +14,7 @@ import java.awt.GridBagLayout
 import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
-class ProcessorSettings(processorView: ProcessorView) : CPanel(primary = false) {
+class ProcessorSettings(processorView: ProcessorView) : CPanel(primary = false), StateListener<Architecture> {
 
     val increaseRegViews = CIconButton(UIStates.icon.get().increase)
     val decreaseRegViews = CIconButton(UIStates.icon.get().decrease)
@@ -24,9 +25,8 @@ class ProcessorSettings(processorView: ProcessorView) : CPanel(primary = false) 
         attachListeners(processorView)
         attachComponents()
 
-        States.arch.addEvent(WeakReference(this)) {
-            updatePC(States.arch.get())
-        }
+        States.arch.addEvent(this)
+
         Events.compile.addListener(WeakReference(this)) {
             updatePC(States.arch.get())
         }
@@ -78,6 +78,10 @@ class ProcessorSettings(processorView: ProcessorView) : CPanel(primary = false) 
 
     private fun updatePC(arch: Architecture) {
         pcLabel.text = "PC(${arch.regContainer.pc.get().toHex().toRawString()})"
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        updatePC(newVal)
     }
 
 

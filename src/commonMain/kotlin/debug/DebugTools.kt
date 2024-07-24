@@ -53,6 +53,6 @@ object DebugTools {
      */
 
     const val JVM_showWSConfigInfo = false
-    const val JVM_showStateManagerInfo = false
+    const val JVM_showStateManagerInfo = true
 
 }

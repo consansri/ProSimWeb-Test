@@ -16,6 +16,7 @@ import prosim.uilib.styled.CTable
 import prosim.uilib.styled.CVerticalLabel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.workspace.Workspace
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -29,7 +30,7 @@ import javax.swing.SwingUtilities
  * Represents a panel containing a transcript view for displaying assembly code and its execution status.
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  */
-class TranscriptView() : CPanel(primary = false) {
+class TranscriptView() : CPanel(primary = false), StateListener<Workspace?> {
 
     // SubComponents
     val compIDs = listOf("Address", "Labels", "Bytes", "Disassembled")
@@ -72,11 +73,7 @@ class TranscriptView() : CPanel(primary = false) {
             }
         }
 
-        States.ws.addEvent(WeakReference(this)) {
-            SwingUtilities.invokeLater {
-                updateResult()
-            }
-        }
+        States.ws.addEvent(this)
 
         Events.exe.addListener(WeakReference(this)) {
             highlightPCRow()
@@ -217,5 +214,11 @@ class TranscriptView() : CPanel(primary = false) {
 
     override fun getMinimumSize(): Dimension {
         return Dimension(label.width, 100)
+    }
+
+    override suspend fun onStateChange(newVal: Workspace?) {
+        SwingUtilities.invokeLater {
+            updateResult()
+        }
     }
 }

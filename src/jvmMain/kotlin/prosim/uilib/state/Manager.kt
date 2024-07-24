@@ -2,13 +2,17 @@ package prosim.uilib.state
 
 import debug.DebugTools
 import emulator.kit.nativeLog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 abstract class Manager<T>(init: T) : WSConfigLoader<T> {
 
     protected var curr: T = init
+    private val eventScope = CoroutineScope(Dispatchers.Default)
 
-    private val listeners = mutableListOf<Pair<WeakReference<*>, (T) -> Unit>>()
+    private val listeners = mutableListOf<WeakReference<StateListener<T>>>()
 
     fun set(value: T) {
         curr = value
@@ -27,7 +31,7 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
         var removed = 0
         try {
             listeners.removeIf {
-                val ref = it.first.get()
+                val ref = it.get()
                 val shouldBeRemoved = ref == null
                 if (shouldBeRemoved) removed++
                 shouldBeRemoved
@@ -36,12 +40,25 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
         }
 
         onChange(curr)
-        ArrayList(listeners).forEach {
-            val event = it.second(curr)
-        }
-        if (DebugTools.JVM_showStateManagerInfo) {
-            curr?.let { curr ->
-                nativeLog("[Manager] Changed State to ${curr::class.simpleName} (${listeners.size} listeners, removed $removed)")
+
+        eventScope.launch {
+            ArrayList(listeners).forEach {
+                val event = it.get()
+                if (event != null) {
+                    event.onStateChange(curr)
+                }
+            }
+            if (DebugTools.JVM_showStateManagerInfo) {
+                curr?.let { curr ->
+                    nativeLog("[Manager] Changed State to ${curr::class.simpleName} (${listeners.size} listeners, removed $removed)" +
+                            "[Listener Details] ${
+                                listeners.joinToString {
+                                    val event = it.get()
+                                    event?.toString() ?: "null"
+                                }
+                            }"
+                    )
+                }
             }
         }
     }
@@ -51,15 +68,15 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
     /**
      * Adds an EventListener which executes the event on state change.
      *
-     * If the WeakReference of the event function is null it will automatically get removed by the Manager.
+     * If the WeakReference of the event function is null, it will automatically get removed by the Manager.
      */
-    fun addEvent(ref: WeakReference<*>, event: (T) -> Unit) {
-        listeners.add(ref to event)
+    fun addEvent(listener: StateListener<T>) {
+        listeners.add(WeakReference(listener))
     }
 
-    fun removeEvent(event: (T) -> Unit) {
+    fun removeEvent(listener: StateListener<T>) {
         listeners.removeIf {
-            it.second == event
+            it.get() == listener
         }
     }
 }

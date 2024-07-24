@@ -2,10 +2,12 @@ package prosim.ui.components.editor
 
 import prosim.ui.Events
 import prosim.uilib.UIStates
+import prosim.uilib.scale.core.Scaling
 import prosim.uilib.state.*
 import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
+import prosim.uilib.theme.core.Theme
 import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
@@ -16,6 +18,19 @@ import javax.swing.BoxLayout
  * @property editor The code editor associated with the controls.
  */
 class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode = BorderMode.EAST) {
+
+    val scaleListener = object : StateListener<Scaling>{
+        override suspend fun onStateChange(newVal: Scaling) {
+            val insets = newVal.SIZE_INSET_MEDIUM
+            border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
+        }
+    }
+
+    val themeListener = object : StateListener<Theme>{
+        override suspend fun onStateChange(newVal: Theme) {
+            background = newVal.COLOR_BG_1
+        }
+    }
 
     // Control buttons
     private val statusIcon: CIconButton = CIconButton(UIStates.icon.get().statusLoading)
@@ -41,13 +56,8 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         add(infoButton)
 
         // Listeners
-        UIStates.scale.addEvent(WeakReference(this)) {
-            val insets = it.SIZE_INSET_MEDIUM
-            border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
-        }
-        UIStates.theme.addEvent(WeakReference(this)) {
-            background = it.COLOR_BG_1
-        }
+        UIStates.scale.addEvent(scaleListener)
+        UIStates.theme.addEvent(themeListener)
 
         // Functions
         installStatusButton()

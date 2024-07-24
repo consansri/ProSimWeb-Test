@@ -2,12 +2,14 @@ package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.uilib.UIStates
+import prosim.uilib.scale.core.Scaling
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.theme.core.Theme
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JFrame
@@ -91,6 +93,18 @@ open class CFrame() : JFrame() {
     }
 
     inner class TitleBar : CPanel(primary = false, BorderMode.SOUTH) {
+
+        val themeListener = object : StateListener<Theme>{
+            override suspend fun onStateChange(newVal: Theme) {
+                applyThemeDefaults()
+            }
+        }
+
+        val scaleListener = object  : StateListener<Scaling>{
+            override suspend fun onStateChange(newVal: Scaling) {
+                applyThemeDefaults()
+            }
+        }
 
         val logoButton = CIconButton(UIStates.icon.get().appLogo, CIconButton.Mode.GRADIENT_NORMAL)
 
@@ -186,12 +200,8 @@ open class CFrame() : JFrame() {
             titleLabel.horizontalAlignment = SwingConstants.LEFT
             logoButton.isDeactivated = true
 
-            UIStates.theme.addEvent(WeakReference(this)) { _ ->
-                applyThemeDefaults()
-            }
-            UIStates.scale.addEvent(WeakReference(this)) { _ ->
-                applyThemeDefaults()
-            }
+            UIStates.theme.addEvent(themeListener)
+            UIStates.scale.addEvent(scaleListener)
 
             applyThemeDefaults()
         }
@@ -306,6 +316,8 @@ open class CFrame() : JFrame() {
         LEFTANDBOTTOM(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR)),
         RIGHTANDBOTTOM(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR))
     }
+
+
 
 
 }

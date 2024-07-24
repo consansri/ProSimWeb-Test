@@ -4,7 +4,6 @@ import emulator.archs.ArchIKRRisc2
 import emulator.core.Size.Bit32
 import emulator.core.Size.Bit5
 import emulator.core.Value.Bin
-import emulator.core.Value.Dec
 import emulator.core.Variable
 import emulator.kit.common.Docs
 import emulator.kit.common.RegContainer
@@ -20,7 +19,7 @@ data object IKRRisc2 {
     val WORD_WIDTH = Bit32
     val REG_SIZE = Bit5
     val WORD_WIDTH_ONE = Bin("1", WORD_WIDTH)
-    val WORD_WIDTH_NEGATIVE_ONE = Dec("-1", WORD_WIDTH).toBin()
+    val WORD_WIDTH_NEGATIVE_ONE = Bin("1".repeat(WORD_WIDTH.bitWidth), WORD_WIDTH).toBin()
     val WORD_WIDTH_ZERO = Bin("0", WORD_WIDTH)
     val R31_ADDR = Bin("11111", REG_SIZE)
     const val REG_INIT = "0"

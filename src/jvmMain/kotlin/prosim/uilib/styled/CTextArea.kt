@@ -11,7 +11,8 @@ import javax.swing.border.Border
 class CTextArea(val fontType: FontType, val primary: Boolean = true, val borderMode: BorderMode = BorderMode.THICKNESS) : JTextArea() {
 
     init {
-        this.setUI(CTextAreaUI(fontType))
+        isOpaque = false
+        background = Color(0,0,0,0)
     }
 
     override fun getFont(): Font {
@@ -26,7 +27,7 @@ class CTextArea(val fontType: FontType, val primary: Boolean = true, val borderM
         return try {
             borderMode.getBorder()
         } catch (e: NullPointerException){
-            super.getBorder()
+            BorderMode.NONE.getBorder()
         }
     }
 

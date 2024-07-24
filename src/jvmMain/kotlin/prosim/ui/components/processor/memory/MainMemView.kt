@@ -1,6 +1,7 @@
 package prosim.ui.components.processor.memory
 
 import emulator.core.Value
+import emulator.kit.Architecture
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.MainMemory
 import emulator.kit.nativeWarn
@@ -8,6 +9,7 @@ import prosim.ui.Events
 import prosim.ui.States
 import prosim.ui.components.processor.models.MemTableModel
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.CTable
 import java.awt.BorderLayout
@@ -15,7 +17,7 @@ import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 
-class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
+class MainMemView(val memory: MainMemory) : CPanel(primary = false), StateListener<Architecture> {
 
     val tableModel = MemTableModel()
     val table = CTable(tableModel, false)
@@ -62,9 +64,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
     }
 
     private fun addContentChangeListener() {
-        States.arch.addEvent(WeakReference(this)) {
-            updateContent()
-        }
+        States.arch.addEvent(this)
 
         Events.exe.addListener(WeakReference(this)) {
             updateContent()
@@ -141,5 +141,9 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false) {
                 else -> wordSize.hexChars * charWidth
             }
         }
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        updateContent()
     }
 }

@@ -1,6 +1,7 @@
 package prosim.ui.components.editor
 
 import Settings
+import emulator.kit.Architecture
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.nativeLog
@@ -21,7 +22,7 @@ import javax.swing.SwingUtilities
  * @property mainManager The main manager responsible for coordinating UI components and actions.
  * @property editorFile The file associated with the editor.
  */
-class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts {
+class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts, StateListener<Architecture> {
     init {
         fileInterface = editorFile
         // Attach listeners for various events
@@ -35,14 +36,16 @@ class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(ma
         Events.compile.addListener(WeakReference(this)) {
             markPC()
         }
-        States.arch.addEvent(WeakReference(this)) {
-            invokeHL()
-        }
+        States.arch.addEvent(this)
         Events.archFeatureChange.addListener(WeakReference(this)) {
             invokeHL()
         }
 
         markPC()
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        invokeHL()
     }
 
     /**

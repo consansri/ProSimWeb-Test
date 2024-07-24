@@ -3,17 +3,37 @@ package prosim.ui.components.processor
 import prosim.ui.Events
 import prosim.ui.States
 import prosim.uilib.UIStates
+import prosim.uilib.scale.core.Scaling
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.theme.core.Theme
 import java.awt.GridLayout
-import java.lang.ref.WeakReference
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 
 class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
+
+    val scaleListener = object : StateListener<Scaling> {
+        override suspend fun onStateChange(newVal: Scaling) {
+            layout = GridLayout(1, 0, newVal.SIZE_INSET_MEDIUM, 0)
+        }
+    }
+
+    val themeListener = object : StateListener<Theme> {
+        override suspend fun onStateChange(newVal: Theme) {
+            continuous.customColor = newVal.COLOR_GREEN
+            singleStep.customColor = newVal.COLOR_GREEN_LIGHT
+            mStep.button.customColor = newVal.COLOR_YELLOW
+            skipSubroutine.customColor = newVal.COLOR_BLUE
+            returnSubroutine.customColor = newVal.COLOR_ORANGE
+            reset.customColor = newVal.COLOR_RED
+        }
+    }
+
     val continuous = CIconButton(UIStates.icon.get().continuousExe).apply {
         addActionListener {
             States.arch.get().exeContinuous()
@@ -83,18 +103,8 @@ class ExecutionControls() : CPanel(primary = false, BorderMode.SOUTH) {
         reset.alignmentY = CENTER_ALIGNMENT
 
         // Listeners
-        UIStates.scale.addEvent(WeakReference(this)) {
-            layout = GridLayout(1, 0, it.SIZE_INSET_MEDIUM, 0)
-        }
-
-        UIStates.theme.addEvent(WeakReference(this)) {
-            continuous.customColor = it.COLOR_GREEN
-            singleStep.customColor = it.COLOR_GREEN_LIGHT
-            mStep.button.customColor = it.COLOR_YELLOW
-            skipSubroutine.customColor = it.COLOR_BLUE
-            returnSubroutine.customColor = it.COLOR_ORANGE
-            reset.customColor = it.COLOR_RED
-        }
+        UIStates.scale.addEvent(scaleListener)
+        UIStates.theme.addEvent(themeListener)
 
         add(continuous)
         add(singleStep)

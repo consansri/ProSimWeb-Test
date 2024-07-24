@@ -1,9 +1,11 @@
 package prosim.ui.components.docs
 
 
+import emulator.kit.Architecture
 import emulator.kit.common.Docs
 import prosim.ui.States
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.CPanel
@@ -13,7 +15,6 @@ import prosim.uilib.styled.params.FontType
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.lang.ref.WeakReference
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 
@@ -21,7 +22,7 @@ import javax.swing.SwingConstants
  * Represents a panel for displaying documentation.
  * @property mainManager The main manager instance.
  */
-class InfoView() : CPanel(primary = false) {
+class InfoView() : CPanel(primary = false), StateListener<Architecture> {
 
     // Tabbed pane for displaying documentation
     private val docTabs = CAdvancedTabPane(primary = false, tabsAreCloseable = false).apply {
@@ -50,10 +51,12 @@ class InfoView() : CPanel(primary = false) {
      * @param mainManager The main manager instance.
      */
     private fun attachListeners() {
-        States.arch.addEvent(WeakReference(this)) {
-            updateDocs()
-        }
+        States.arch.addEvent(this)
 
+        updateDocs()
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
         updateDocs()
     }
 

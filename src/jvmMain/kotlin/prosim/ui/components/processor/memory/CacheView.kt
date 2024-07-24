@@ -1,11 +1,13 @@
 package prosim.ui.components.processor.memory
 
+import emulator.kit.Architecture
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.Cache
 import prosim.ui.Events
 import prosim.ui.States
 import prosim.ui.components.processor.models.CacheTableModel
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.CTable
 import prosim.uilib.styled.CTextButton
@@ -14,7 +16,7 @@ import java.awt.BorderLayout
 import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
-class CacheView(val cache: Cache) : CPanel(primary = false) {
+class CacheView(val cache: Cache) : CPanel(primary = false), StateListener<Architecture> {
 
     val tableModel = CacheTableModel()
     val table = CTable(tableModel, false)
@@ -42,9 +44,7 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
     }
 
     private fun addContentChangeListener() {
-        States.arch.addEvent(WeakReference(this)) {
-            updateContent()
-        }
+        States.arch.addEvent(this)
 
         Events.exe.addListener(WeakReference(this)) {
             updateContent()
@@ -142,6 +142,10 @@ class CacheView(val cache: Cache) : CPanel(primary = false) {
                 else -> inBetweenWidth
             }
         }
+    }
+
+    override suspend fun onStateChange(newVal: Architecture) {
+        updateContent()
     }
 
 }

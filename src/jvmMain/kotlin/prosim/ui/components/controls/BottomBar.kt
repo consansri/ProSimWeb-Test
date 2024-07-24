@@ -1,10 +1,12 @@
 package prosim.ui.components.controls
 
+import emulator.kit.Architecture
 import emulator.kit.assembler.CodeStyle
 import kotlinx.coroutines.*
 import prosim.ui.Events
 import prosim.ui.States
 import prosim.uilib.UIStates
+import prosim.uilib.state.StateListener
 
 
 import prosim.uilib.styled.CLabel
@@ -21,7 +23,7 @@ import javax.swing.SwingConstants
  * Represents a panel for displaying information at the bottom.
  * @property mainManager The main manager instance.
  */
-class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
+class BottomBar() : CPanel(borderMode = BorderMode.NORTH), StateListener<Architecture> {
 
     // Labels for displaying various types of information
     private val wsInfo = CLabel("Back to work? :D", FontType.BASIC).apply {
@@ -117,9 +119,7 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
      * Observes architecture change and resets compiler process printer.
      */
     private fun observeArchitectureChange() {
-        States.arch.addEvent(WeakReference(this)) {
-            resetPrinterInterval()
-        }
+        States.arch.addEvent(this)
     }
 
     /**
@@ -168,4 +168,7 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH) {
         memoryUsage.text = "$usedHeap MB / $maxHeap MB ${if (usedNonHeap != 0L) "(extern $usedNonHeap MB)" else ""}"
     }
 
+    override suspend fun onStateChange(newVal: Architecture) {
+        resetPrinterInterval()
+    }
 }

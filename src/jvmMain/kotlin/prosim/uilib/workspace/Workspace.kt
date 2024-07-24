@@ -23,7 +23,6 @@ import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
-import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -448,10 +447,6 @@ class Workspace(
      * @param tm The theme manager instance.
      */
     private fun setTreeLook() {
-        UIStates.theme.addEvent(WeakReference(this)) { theme ->
-            tree.background = theme.COLOR_BG_1
-        }
-        tree.background = UIStates.theme.get().COLOR_BG_1
         tree.isFocusable = false
     }
 

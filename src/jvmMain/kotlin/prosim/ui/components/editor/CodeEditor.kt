@@ -3,18 +3,19 @@ package prosim.ui.components.editor
 import kotlinx.coroutines.*
 import prosim.ui.States
 import prosim.ui.components.controls.BottomBar
+import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.workspace.Workspace
 import java.io.File
-import java.lang.ref.WeakReference
 import javax.swing.*
 
 /**
  * Represents a code editor with a tabbed interface for managing multiple files.
  * @property mainManager The main manager instance.
  */
-class CodeEditor(val bBar: BottomBar) : CAdvancedTabPane(true, true, emptyMessage = "Open File through the tree!") {
+class CodeEditor(val bBar: BottomBar) : CAdvancedTabPane(true, true, emptyMessage = "Open File through the tree!"), StateListener<Workspace?> {
 
     // List of editor panels
     private val panels = mutableListOf<ProSimEditor>()
@@ -105,26 +106,32 @@ class CodeEditor(val bBar: BottomBar) : CAdvancedTabPane(true, true, emptyMessag
      * Attaches a workspace change listener to remove tabs for files that are no longer in the workspace.
      */
     private fun attachWorkspaceListener() {
-        States.ws.addEvent(WeakReference(this)) { ws ->
-            SwingUtilities.invokeLater {
-                if (ws == null) {
-                    removeAllTabs()
-                    return@invokeLater
+        States.ws.addEvent(this)
+    }
+
+    override suspend fun onStateChange(newVal: Workspace?) {
+        onWSChange(newVal)
+    }
+
+    private fun onWSChange(ws: Workspace?) {
+        SwingUtilities.invokeLater {
+            if (ws == null) {
+                removeAllTabs()
+                return@invokeLater
+            }
+
+            val bufferedTabs = ArrayList(tabs)
+            for (tab in bufferedTabs) {
+                val content = tab.content
+                if (content !is ProSimEditor) {
+                    removeTab(tab)
+                    continue
                 }
 
-                val bufferedTabs = ArrayList(tabs)
-                for (tab in bufferedTabs) {
-                    val content = tab.content
-                    if (content !is ProSimEditor) {
-                        removeTab(tab)
-                        continue
-                    }
-
-                    if (ws.getAllFiles().firstOrNull { it.path == content.editorFile.file.path && it.name == content.editorFile.file.name } == null) {
-                        removeTab(tab)
-                        panels.remove(content)
-                        continue
-                    }
+                if (ws.getAllFiles().firstOrNull { it.path == content.editorFile.file.path && it.name == content.editorFile.file.name } == null) {
+                    removeTab(tab)
+                    panels.remove(content)
+                    continue
                 }
             }
         }
