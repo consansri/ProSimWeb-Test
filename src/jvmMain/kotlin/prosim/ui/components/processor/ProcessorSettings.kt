@@ -11,7 +11,6 @@ import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 class ProcessorSettings(processorView: ProcessorView) : CPanel(primary = false), StateListener<Architecture> {
@@ -21,18 +20,20 @@ class ProcessorSettings(processorView: ProcessorView) : CPanel(primary = false),
     val filler = CLabel("", FontType.BASIC)
     val pcLabel = CLabel("", FontType.CODE)
 
+    val compileListener = Events.compile.createAndAddListener {
+        updatePC(States.arch.get())
+    }
+
+    val exeListener = Events.exe.createAndAddListener {
+        updatePC(States.arch.get())
+    }
+
     init {
         attachListeners(processorView)
         attachComponents()
 
         States.arch.addEvent(this)
 
-        Events.compile.addListener(WeakReference(this)) {
-            updatePC(States.arch.get())
-        }
-        Events.exe.addListener(WeakReference(this)) {
-            updatePC(States.arch.get())
-        }
         updatePC(States.arch.get())
     }
 

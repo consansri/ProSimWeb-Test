@@ -1,7 +1,9 @@
 package emulator.kit.optional
 
 import emulator.kit.Architecture
+import emulator.kit.nativeLog
 import kotlin.enums.EnumEntries
+import kotlin.time.measureTime
 
 sealed class SetupSetting<T>(val name: String, val init: T, private val valueToString: (T) -> String, private val parseValueFromString: (String) -> T, val onChange: (Architecture, SetupSetting<T>) -> Unit) {
 
@@ -28,7 +30,7 @@ sealed class SetupSetting<T>(val name: String, val init: T, private val valueToS
 
     class Any<T>(name: String, init: T, valueToString: (T) -> String, parseValueFromString: (String) -> T, onChange: (Architecture, SetupSetting<T>) -> Unit) : SetupSetting<T>(name, init, valueToString, parseValueFromString, onChange)
 
-    companion object{
+    companion object {
         val spaceRegex = Regex("""\s""")
     }
 

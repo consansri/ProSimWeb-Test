@@ -14,7 +14,7 @@ import prosim.uilib.styled.params.FontType
  * @property fontType The font type used for displaying text.
  * @property onSelect A lambda function that is called when an entry is selected.
  */
-open class CChooser<T : Any>(val model: Model<T>, fontType: FontType, val onSelect: (T) -> Unit = {}, primary: Boolean = true) : CTextButton(model.getUIName(model.default), fontType, primary = primary) {
+open class CChooser<T : Any>(val model: Model<T>, fontType: FontType, val onSelect: suspend (T) -> Unit = {}, primary: Boolean = true) : CTextButton(model.getUIName(model.default), fontType, primary = primary) {
 
     private var openDialog: Pair<CDialog, Deferred<T?>>? = null
 

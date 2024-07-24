@@ -4,11 +4,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.FontType
 import java.awt.Color
+import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import javax.swing.JComponent
+import kotlin.time.measureTime
 
 abstract class CVirtualTable(
     val contentfontType: FontType,
@@ -22,7 +24,7 @@ abstract class CVirtualTable(
     val defaultWeight: Double = 0.0,
     val colWeights: Array<Double> = arrayOf(),
     val rowWeights: Array<Double> = arrayOf()
-) : JComponent() {
+) : CPanel() {
     val content: List<CVirtualTableUI.CCellRenderer>
     val headers: List<CVirtualTableUI.CHeaderRenderer>
 
@@ -40,6 +42,13 @@ abstract class CVirtualTable(
             field = value
             updateCellContent()
         }
+
+    override fun paint(g: Graphics?) {
+        val time = measureTime {
+            super.paint(g)
+        }
+        // nativeLog("${this::class.simpleName} paint took ${time.inWholeNanoseconds} ns")
+    }
 
     init {
         this.setUI(CVirtualTableUI())

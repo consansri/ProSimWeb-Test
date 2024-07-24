@@ -20,12 +20,11 @@ import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
 import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
 import kotlin.math.abs
 
-class RegisterView() : CPanel( primary = true, BorderMode.SOUTH), StateListener<Architecture> {
+class RegisterView() : CPanel(primary = true, BorderMode.SOUTH), StateListener<Architecture> {
 
     private val regViews = mutableListOf<CAdvancedTabPane>()
 
@@ -45,6 +44,14 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH), StateListener<
             repaint()
         }
 
+    val archFeatureListener = Events.archFeatureChange.createAndAddListener {
+        resetRegViews()
+    }
+
+    val archSettingListener = Events.archSettingChange.createAndAddListener {
+        resetRegViews()
+    }
+
     init {
         layout = GridBagLayout()
 
@@ -53,14 +60,6 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH), StateListener<
         gbc.fill = GridBagConstraints.BOTH
 
         States.arch.addEvent(this)
-
-        Events.archFeatureChange.addListener(WeakReference(this)) {
-            resetRegViews()
-        }
-
-        Events.archSettingChange.addListener(WeakReference(this)) {
-            resetRegViews()
-        }
 
         resetRegViews()
     }
@@ -119,7 +118,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH), StateListener<
         val cTabbedPane = CAdvancedTabPane(tabsAreCloseable = false, primary = false, borderMode = BorderMode.NONE)
 
         States.arch.get().getAllRegFiles().forEach {
-            val tabLabel = CLabel( it.name, FontType.BASIC)
+            val tabLabel = CLabel(it.name, FontType.BASIC)
             if (it.getRegisters(States.arch.get().features).isNotEmpty()) {
                 val regFileTable = prosim.ui.components.processor.RegisterView.RegFileTable(it) {
                     updateAllValues()
@@ -133,7 +132,7 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH), StateListener<
     }
 
     class RegFileTable(val regFile: RegContainer.RegisterFile, val tableModel: RegTableModel = RegTableModel(), val onRegValueChange: (RegContainer.Register) -> Unit) :
-        CTable( tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
+        CTable(tableModel, false, SwingConstants.LEFT, SwingConstants.CENTER, SwingConstants.CENTER, SwingConstants.LEFT) {
 
         private var currentlyUpdating = false
         private val identifierLabel = "Identifiers"
@@ -166,15 +165,16 @@ class RegisterView() : CPanel( primary = true, BorderMode.SOUTH), StateListener<
                 updateContent()
             }
 
+        val exeListener = Events.exe.createAndAddListener {
+            updateRegValues()
+        }
+
+        val compileListener = Events.compile.createAndAddListener {
+            updateRegValues()
+        }
+
         init {
             this.setClickableHeaders(0, 1)
-            Events.exe.addListener(WeakReference(this)) {
-                updateRegValues()
-            }
-
-            Events.compile.addListener(WeakReference(this)) {
-                updateRegValues()
-            }
 
             attachNumericSwitcher()
             attachValueChangeListener()

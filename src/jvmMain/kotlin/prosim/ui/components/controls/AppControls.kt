@@ -8,6 +8,7 @@ import prosim.ui.components.controls.buttons.FeatureSwitch
 import prosim.ui.components.controls.buttons.Settings
 import prosim.ui.components.controls.buttons.ThemeSwitch
 import prosim.uilib.UIStates
+import prosim.uilib.state.EventListener
 import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CIconToggle
 import prosim.uilib.styled.CPanel
@@ -16,14 +17,13 @@ import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Insets
-import java.lang.ref.WeakReference
 
 /**
  * This class represents the application control panel within the ProSimFrame window.
  * It contains buttons for various functionalities like theme switching,
  * processor/disassembler toggling, and feature activation.
  */
-class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, BorderMode.WEST), StateListener<Architecture> {
+class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, BorderMode.WEST), StateListener<Architecture>, EventListener<Architecture> {
     private var processorShown = false
         set(value) {
             field = value
@@ -76,9 +76,7 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.weighty = 0.0
 
-        Events.archFeatureChange.addListener(WeakReference(this)) {
-            updateFeatureButtons()
-        }
+        Events.archFeatureChange.addListener(this)
 
         States.arch.addEvent(this)
         attachFeatureButtons()
@@ -107,5 +105,9 @@ class AppControls(private val psFrame: ProSimFrame) : CPanel(primary = false, Bo
 
     override suspend fun onStateChange(newVal: Architecture) {
         attachFeatureButtons()
+    }
+
+    override suspend fun onTrigger(newVal: Architecture) {
+        updateFeatureButtons()
     }
 }

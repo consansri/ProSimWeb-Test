@@ -13,7 +13,6 @@ import prosim.uilib.styled.CTable
 import prosim.uilib.styled.CTextButton
 import prosim.uilib.styled.params.FontType
 import java.awt.BorderLayout
-import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 class CacheView(val cache: Cache) : CPanel(primary = false), StateListener<Architecture> {
@@ -27,6 +26,13 @@ class CacheView(val cache: Cache) : CPanel(primary = false), StateListener<Archi
     }
     val asciiTitle = "ASCII"
 
+    private val exeListener = Events.exe.createAndAddListener {
+        updateContent()
+    }
+
+    private val compileListener = Events.compile.createAndAddListener {
+        updateContent()
+    }
 
     init {
         layout = BorderLayout()
@@ -45,14 +51,6 @@ class CacheView(val cache: Cache) : CPanel(primary = false), StateListener<Archi
 
     private fun addContentChangeListener() {
         States.arch.addEvent(this)
-
-        Events.exe.addListener(WeakReference(this)) {
-            updateContent()
-        }
-
-        Events.compile.addListener(WeakReference(this)) {
-            updateContent()
-        }
     }
 
     private fun updateContent() {

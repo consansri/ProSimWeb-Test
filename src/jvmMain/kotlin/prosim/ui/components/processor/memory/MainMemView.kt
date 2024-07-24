@@ -13,7 +13,6 @@ import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.CTable
 import java.awt.BorderLayout
-import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 
@@ -24,6 +23,14 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false), StateListen
     val addrTitle = "ADDR"
     val asciiTitle = "ASCII"
     var currentlyUpdating = false
+
+    private val exeListener = Events.exe.createAndAddListener {
+        updateContent()
+    }
+
+    private val compileListener = Events.compile.createAndAddListener {
+        updateContent()
+    }
 
     init {
         layout = BorderLayout()
@@ -65,14 +72,6 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false), StateListen
 
     private fun addContentChangeListener() {
         States.arch.addEvent(this)
-
-        Events.exe.addListener(WeakReference(this)) {
-            updateContent()
-        }
-
-        Events.compile.addListener(WeakReference(this)) {
-            updateContent()
-        }
     }
 
     private fun updateContent() {

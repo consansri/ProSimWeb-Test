@@ -8,7 +8,6 @@ import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.theme.core.Theme
-import java.lang.ref.WeakReference
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 
@@ -19,14 +18,14 @@ import javax.swing.BoxLayout
  */
 class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode = BorderMode.EAST) {
 
-    val scaleListener = object : StateListener<Scaling>{
+    val scaleListener = object : StateListener<Scaling> {
         override suspend fun onStateChange(newVal: Scaling) {
             val insets = newVal.SIZE_INSET_MEDIUM
             border = BorderFactory.createEmptyBorder(insets, insets, insets, insets)
         }
     }
 
-    val themeListener = object : StateListener<Theme>{
+    val themeListener = object : StateListener<Theme> {
         override suspend fun onStateChange(newVal: Theme) {
             background = newVal.COLOR_BG_1
         }
@@ -38,6 +37,21 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
     private val redoButton: CIconButton = CIconButton(UIStates.icon.get().forwards)
     private val buildButton: CIconButton = CIconButton(UIStates.icon.get().build)
     private val infoButton: CIconButton = CIconButton(UIStates.icon.get().info)
+
+    val fileEditListener = Events.fileEdit.createAndAddListener {
+        statusIcon.svgIcon = UIStates.icon.get().statusLoading
+        statusIcon.rotating = true
+    }
+
+    val compileListener = Events.compile.createAndAddListener { result ->
+        if (result.success) {
+            statusIcon.svgIcon = UIStates.icon.get().statusFine
+            statusIcon.rotating = false
+        } else {
+            statusIcon.svgIcon = UIStates.icon.get().statusError
+            statusIcon.rotating = false
+        }
+    }
 
     init {
         // Apply layout
@@ -60,7 +74,6 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
         UIStates.theme.addEvent(themeListener)
 
         // Functions
-        installStatusButton()
         installBuildButton(editor)
 
         // Set Defaults
@@ -70,27 +83,6 @@ class EditorControls(private val editor: CodeEditor) : CPanel(false, borderMode 
 
         statusIcon.isDeactivated = true
         statusIcon.rotating = true
-    }
-
-    /**
-     * Installs the status button and handles its functionality.
-     * @param mainManager The main manager instance.
-     */
-    private fun installStatusButton() {
-        Events.fileEdit.addListener(WeakReference(this)) {
-            statusIcon.svgIcon = UIStates.icon.get().statusLoading
-            statusIcon.rotating = true
-        }
-
-        Events.compile.addListener(WeakReference(this)) { result ->
-            if (result.success) {
-                statusIcon.svgIcon = UIStates.icon.get().statusFine
-                statusIcon.rotating = false
-            } else {
-                statusIcon.svgIcon = UIStates.icon.get().statusError
-                statusIcon.rotating = false
-            }
-        }
     }
 
     /**

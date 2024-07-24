@@ -1,14 +1,15 @@
 package prosim.ui.components.controls
 
+
 import emulator.kit.Architecture
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.assembler.Process
 import kotlinx.coroutines.*
 import prosim.ui.Events
 import prosim.ui.States
 import prosim.uilib.UIStates
+import prosim.uilib.state.EventListener
 import prosim.uilib.state.StateListener
-
-
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
@@ -16,14 +17,13 @@ import prosim.uilib.styled.params.FontType
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.lang.management.ManagementFactory
-import java.lang.ref.WeakReference
 import javax.swing.SwingConstants
 
 /**
  * Represents a panel for displaying information at the bottom.
  * @property mainManager The main manager instance.
  */
-class BottomBar() : CPanel(borderMode = BorderMode.NORTH), StateListener<Architecture> {
+class BottomBar() : CPanel(borderMode = BorderMode.NORTH), StateListener<Architecture>, EventListener<Process.Result> {
 
     // Labels for displaying various types of information
     private val wsInfo = CLabel("Back to work? :D", FontType.BASIC).apply {
@@ -126,13 +126,7 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH), StateListener<Archite
      * Observes compilation and updates the display accordingly.
      */
     private fun observeCompilation() {
-        Events.compile.addListener(WeakReference(this)) { result ->
-            if (result.success) {
-                setInfo(result.shortInfoStr())
-            } else {
-                setError(result.shortInfoStr())
-            }
-        }
+        Events.compile.addListener(this)
     }
 
     /**
@@ -170,5 +164,13 @@ class BottomBar() : CPanel(borderMode = BorderMode.NORTH), StateListener<Archite
 
     override suspend fun onStateChange(newVal: Architecture) {
         resetPrinterInterval()
+    }
+
+    override suspend fun onTrigger(newVal: Process.Result) {
+        if (newVal.success) {
+            setInfo(newVal.shortInfoStr())
+        } else {
+            setError(newVal.shortInfoStr())
+        }
     }
 }

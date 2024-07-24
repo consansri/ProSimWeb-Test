@@ -79,4 +79,21 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
             it.get() == listener
         }
     }
+
+    /**
+     * Attach the [StateListener] to the component which uses it!
+     *
+     * Cause otherwise it gets automatically garbage collected.
+     */
+    fun createAndAddListener(lambda: suspend (T) -> Unit): StateListener<T> {
+        val listener = object : StateListener<T> {
+            val function = lambda
+
+            override suspend fun onStateChange(newVal: T) {
+                function(newVal)
+            }
+        }
+        addEvent(listener)
+        return listener
+    }
 }

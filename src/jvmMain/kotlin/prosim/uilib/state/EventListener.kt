@@ -2,6 +2,6 @@ package prosim.uilib.state
 
 interface EventListener<T> {
 
-    fun onEventChange(newVal: T)
+    suspend fun onTrigger(newVal: T)
 
 }

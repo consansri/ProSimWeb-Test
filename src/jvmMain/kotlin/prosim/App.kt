@@ -18,6 +18,7 @@ import java.awt.Dimension
 import javax.swing.JDialog
 import javax.swing.JFrame
 import javax.swing.JSplitPane
+import javax.swing.SwingUtilities
 
 /**
  * The main entry point for the ProSim application.
@@ -43,7 +44,9 @@ fun main() {
  */
 fun launchBaseApp() {
     // Create and display the main application frame using NativeFrame.
-    NativeFrame()
+    SwingUtilities.invokeLater {
+        NativeFrame()
+    }
 
     // Uncomment the following line if BaseFrame with UIManager is needed.
     // BaseFrame()

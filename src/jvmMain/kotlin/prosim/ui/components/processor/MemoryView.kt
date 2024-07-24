@@ -12,9 +12,12 @@ import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.FontType
-import java.lang.ref.WeakReference
 
 class MemoryView : CAdvancedTabPane(tabsAreCloseable = false), StateListener<Architecture> {
+
+    val archSettingListener = Events.archSettingChange.createAndAddListener {
+        updateContent()
+    }
 
     init {
         addContentChangeListener()
@@ -22,9 +25,6 @@ class MemoryView : CAdvancedTabPane(tabsAreCloseable = false), StateListener<Arc
 
     private fun addContentChangeListener() {
         States.arch.addEvent(this)
-        Events.archSettingChange.addListener(WeakReference(this)) {
-            updateContent()
-        }
         updateContent()
     }
 

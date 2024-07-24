@@ -9,7 +9,6 @@ import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.table.CVirtualTable
 import prosim.uilib.styled.table.CVirtualTableUI
 import java.awt.Color
-import java.lang.ref.WeakReference
 
 class NewCacheView(val cache: Cache) : CVirtualTable(
     FontType.CODE,
@@ -23,16 +22,16 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
     defaultWeight = 1.0
 ) {
 
+    private val exeListener = Events.exe.createAndAddListener {
+        updateCellContent()
+    }
+
+    private val compileListener = Events.compile.createAndAddListener {
+        updateCellContent()
+    }
+
     init {
         updateCellContent()
-
-        Events.exe.addListener(WeakReference(this)) {
-            updateCellContent()
-        }
-
-        Events.compile.addListener(WeakReference(this)) {
-            updateCellContent()
-        }
     }
 
     override fun getCellContent(contentRowID: Int, contentColID: Int): String {
@@ -106,7 +105,7 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
         val rowIndex = contentRowID / cache.model.blockCount
         val blockIndex = contentRowID % cache.model.blockCount
         val block = cache.model.rows.getOrNull(rowIndex)?.blocks?.getOrNull(blockIndex) ?: return null
-        return if (block.dirty) UIStates.theme.get().getColor(CodeStyle.BASE6) else if(block.valid) UIStates.theme.get().getColor(CodeStyle.BASE7) else null
+        return if (block.dirty) UIStates.theme.get().getColor(CodeStyle.BASE6) else if (block.valid) UIStates.theme.get().getColor(CodeStyle.BASE7) else null
     }
 
     override fun onCellClick(cell: CVirtualTableUI.CCellRenderer, contentRowID: Int, contentColID: Int) {

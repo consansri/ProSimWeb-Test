@@ -22,7 +22,6 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.lang.ref.WeakReference
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
@@ -51,7 +50,7 @@ class TranscriptView() : CPanel(primary = false), StateListener<Workspace?> {
     private val label = CVerticalLabel("[no section selected]", FontType.CODE)
 
     // MainComponents
-    val labelPane = CPanel(primary = false, borderMode = BorderMode.EAST).apply {
+    private val labelPane = CPanel(primary = false, borderMode = BorderMode.EAST).apply {
         this.layout = GridBagLayout()
         val gbc = GridBagConstraints()
         gbc.weighty = 0.0
@@ -59,25 +58,27 @@ class TranscriptView() : CPanel(primary = false), StateListener<Workspace?> {
         this.add(label, gbc)
     }
 
-    val contentPane = CScrollPane(primary = false).apply {
+    private val contentPane = CScrollPane(primary = false).apply {
         setViewportView(modelView)
         minimumSize = Dimension(0, 0)
     }
 
     private var showCompiled: Boolean = true
 
-    init {
-        Events.compile.addListener(WeakReference(this)) {
-            SwingUtilities.invokeLater {
-                updateResult(it)
-            }
+    private val compileListener = Events.compile.createAndAddListener {
+        SwingUtilities.invokeLater {
+            updateResult(it)
         }
+    }
 
-        States.ws.addEvent(this)
-
-        Events.exe.addListener(WeakReference(this)) {
+    private val exeListener = Events.exe.createAndAddListener {
+        SwingUtilities.invokeLater {
             highlightPCRow()
         }
+    }
+
+    init {
+        States.ws.addEvent(this)
 
         SwingUtilities.invokeLater {
             attachSettings()

@@ -14,7 +14,6 @@ import prosim.ui.components.controls.BottomBar
 import prosim.uilib.UIStates
 import prosim.uilib.state.*
 import prosim.uilib.styled.editor.*
-import java.lang.ref.WeakReference
 import javax.swing.SwingUtilities
 
 /**
@@ -23,6 +22,19 @@ import javax.swing.SwingUtilities
  * @property editorFile The file associated with the editor.
  */
 class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(maxStackSize = Settings.UNDO_STATE_MAX, stackQueryMillis = Settings.UNDO_DELAY_MILLIS), Highlighter, InfoLogger, ShortCuts, StateListener<Architecture> {
+
+    private val exeListener = Events.exe.createAndAddListener {
+        markPC()
+    }
+
+    private val compileListener = Events.compile.createAndAddListener {
+        markPC()
+    }
+
+    private val featureListener = Events.archFeatureChange.createAndAddListener {
+        invokeHL()
+    }
+
     init {
         fileInterface = editorFile
         // Attach listeners for various events
@@ -30,16 +42,7 @@ class ProSimEditor(val editorFile: EditorFile, val bBar: BottomBar) : CEditor(ma
         infoLogger = this
         shortCuts = this
 
-        Events.exe.addListener(WeakReference(this)) {
-            markPC()
-        }
-        Events.compile.addListener(WeakReference(this)) {
-            markPC()
-        }
         States.arch.addEvent(this)
-        Events.archFeatureChange.addListener(WeakReference(this)) {
-            invokeHL()
-        }
 
         markPC()
     }

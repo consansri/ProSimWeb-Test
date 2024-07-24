@@ -7,9 +7,9 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
-import javax.swing.plaf.ComponentUI
+import javax.swing.plaf.basic.BasicPanelUI
 
-class CVirtualTableUI : ComponentUI() {
+class CVirtualTableUI : BasicPanelUI() {
 
     override fun installUI(c: JComponent?) {
         c as? CVirtualTable ?: return super.installUI(c)
