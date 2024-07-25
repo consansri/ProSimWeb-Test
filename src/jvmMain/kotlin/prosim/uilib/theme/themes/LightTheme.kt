@@ -17,8 +17,8 @@ data object LightTheme : Theme {
     override val COLOR_FG_0: Color = Color(0x454545)
     override val COLOR_FG_1: Color = Color(0x999999)
     override val COLOR_BORDER: Color = Color(0xCDCDCD)
-    override val COLOR_SELECTION: Color = Color(0x4d90fe)
-    override val COLOR_SEARCH_RESULT: Color = Color(0xE2B124)
+    override val COLOR_SELECTION: Color = Color(0x334d90fe, true) // old one
+    override val COLOR_SEARCH_RESULT: Color = Color(0x33E2B124, true)
     override val COLOR_GREEN_LIGHT: Color = Color(0x41A05A)
     override val COLOR_GREEN: Color = Color(0x19A744)
     override val COLOR_YELLOW: Color = Color(0xB68B0F)

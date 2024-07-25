@@ -35,7 +35,7 @@ open class CConsole(maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPan
     private val scrollDown = CIconToggle(UIStates.icon.get().autoscroll, scrollToBottom, CIconButton.Mode.SECONDARY_SMALL) {
         scrollToBottom = it
     }
-    private val topBar = CPanel(primary = false, BorderMode.INSET).apply {
+    private val topBar = CPanel(primary = false, BorderMode.MEDIUM).apply {
         this.layout = GridBagLayout()
         val gbc = GridBagConstraints()
         gbc.gridx = 0

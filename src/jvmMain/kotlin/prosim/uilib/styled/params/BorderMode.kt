@@ -6,7 +6,9 @@ import javax.swing.BorderFactory
 import javax.swing.border.Border
 
 enum class BorderMode {
-    INSET,
+    SMALL,
+    MEDIUM,
+    LARGE,
     THICKNESS,
     BASIC,
     NORTH,
@@ -21,7 +23,9 @@ enum class BorderMode {
 
     fun getBorder(): Border {
         return when (this) {
-            INSET -> UIStates.scale.get().BORDER_INSET_MEDIUM
+            SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
+            MEDIUM -> UIStates.scale.get().BORDER_INSET_MEDIUM
+            LARGE -> UIStates.scale.get().BORDER_INSET_LARGE
             THICKNESS -> UIStates.scale.get().BORDER_THICKNESS
             BASIC -> DirectionalBorder(north = true, west = true, south = true, east = true)
             NORTH -> DirectionalBorder(north = true)

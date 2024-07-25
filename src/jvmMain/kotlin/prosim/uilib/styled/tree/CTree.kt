@@ -1,4 +1,4 @@
-package prosim.uilib.styled
+package prosim.uilib.styled.tree
 
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType

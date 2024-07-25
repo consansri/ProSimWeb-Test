@@ -1,5 +1,6 @@
 package prosim.uilib.workspace
 
+import com.formdev.flatlaf.extras.FlatSVGIcon
 import emulator.kit.assembler.AsmFile
 import emulator.kit.common.FileBuilder
 import emulator.kit.common.FileBuilder.ExportFormat
@@ -18,6 +19,8 @@ import prosim.uilib.state.WSEditor
 import prosim.uilib.state.WSLogger
 import prosim.uilib.styled.*
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.tree.CTree
+import prosim.uilib.styled.tree.TreeIconProvider
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
@@ -473,7 +476,13 @@ class Workspace(
      * @param file The file or directory.
      * @param displayPath Whether to display the full path or just the name.
      */
-    data class TreeFile(val file: File, val displayPath: Boolean = false) {
+    data class TreeFile(val file: File, val displayPath: Boolean = false) : TreeIconProvider {
+        override fun getIcon(): FlatSVGIcon? = when {
+            file.name.endsWith(".s") -> UIStates.icon.get().asmFile
+            file.name.endsWith(".S") -> UIStates.icon.get().asmFile
+            else -> null
+        }
+
         override fun toString(): String {
             return if (displayPath) file.path else file.name
         }

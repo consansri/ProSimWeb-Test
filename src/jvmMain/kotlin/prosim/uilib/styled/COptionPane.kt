@@ -3,6 +3,7 @@ package prosim.uilib.styled
 import kotlinx.coroutines.*
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.tree.CTree
 import prosim.uilib.workspace.Workspace
 import java.awt.*
 import java.awt.event.FocusAdapter

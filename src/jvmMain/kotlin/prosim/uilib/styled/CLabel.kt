@@ -11,16 +11,15 @@ import javax.swing.JLabel
 import javax.swing.SwingConstants
 import javax.swing.border.Border
 
-open class CLabel(content: String, val fontType: FontType, val borderMode: BorderMode = BorderMode.INSET) : JLabel(content) {
+open class CLabel(content: String, val fontType: FontType, val borderMode: BorderMode = BorderMode.MEDIUM) : JLabel(content) {
 
     var customFG: Color? = null
-        set(value) {
-            field = value
-            repaint()
-        }
+
+    var customBG: Color? = null
 
     init {
         horizontalAlignment = SwingConstants.CENTER
+        isFocusable = false
     }
 
     fun setColouredText(text: String, color: Color) {
@@ -32,6 +31,10 @@ open class CLabel(content: String, val fontType: FontType, val borderMode: Borde
         return borderMode.getBorder()
     }
 
+    override fun getBackground(): Color {
+        return customBG ?: Color(0, 0, 0, 0)
+    }
+
     override fun getForeground(): Color {
         return customFG ?: UIStates.theme.get().COLOR_FG_0
     }
@@ -41,10 +44,9 @@ open class CLabel(content: String, val fontType: FontType, val borderMode: Borde
     }
 
     override fun getPreferredSize(): Dimension {
-        val fm = getFontMetrics(font)
-        val width = fm.stringWidth(text) + insets.left + insets.right
-        val height = fm.height + insets.top + insets.bottom
-        return Dimension(width, height)
+        val size = super.getPreferredSize()
+        val insets = insets
+        return Dimension(size.width + insets.left + insets.right, size.height + insets.top + insets.bottom)
     }
 
     override fun getFont(): Font {

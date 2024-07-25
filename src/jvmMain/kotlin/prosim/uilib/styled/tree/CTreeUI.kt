@@ -1,7 +1,10 @@
-package prosim.uilib.styled
+package prosim.uilib.styled.tree
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.uilib.UIStates
+import prosim.uilib.styled.CLabel
+import prosim.uilib.styled.params.BorderMode
+import prosim.uilib.styled.params.FontType
 import prosim.uilib.workspace.Workspace
 import java.awt.*
 import javax.swing.BorderFactory
@@ -10,6 +13,7 @@ import javax.swing.JTree
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
+import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
 
 class CTreeUI : BasicTreeUI() {
@@ -29,7 +33,7 @@ class CTreeUI : BasicTreeUI() {
             UIStates.scale.get().SIZE_INSET_MEDIUM
         ) // Set an empty border when not focused
 
-        cTree.cellRenderer = CTreeCellRenderer()
+        cTree.cellRenderer = CNewTreeCellRenderer()
     }
 
     override fun paint(g: Graphics, c: JComponent?) {
@@ -83,8 +87,57 @@ class CTreeUI : BasicTreeUI() {
         g2d.dispose()
     }
 
-    inner class CTreeCellRenderer : DefaultTreeCellRenderer() {
+    inner class CNewTreeCellRenderer : TreeCellRenderer {
+        val c = CLabel("", FontType.BASIC, BorderMode.SMALL)
+        override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, selected: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
+            c.text = value.toString()
+            c.isOpaque = selected
 
+            val uobj = ((value as? DefaultMutableTreeNode)?.userObject as? TreeIconProvider)
+
+            val loadedIcon = if (leaf) {
+                uobj?.getIcon()?.derive(
+                    UIStates.scale.get().SIZE_CONTROL_SMALL,
+                    UIStates.scale.get().SIZE_CONTROL_SMALL
+                ) ?: UIStates.icon.get().file.derive(
+                    UIStates.scale.get().SIZE_CONTROL_SMALL,
+                    UIStates.scale.get().SIZE_CONTROL_SMALL
+                )
+            } else {
+                if (expanded) {
+                    UIStates.icon.get().folder.derive(
+                        UIStates.scale.get().SIZE_CONTROL_SMALL,
+                        UIStates.scale.get().SIZE_CONTROL_SMALL
+                    )
+                } else {
+                    UIStates.icon.get().folder.derive(
+                        UIStates.scale.get().SIZE_CONTROL_SMALL,
+                        UIStates.scale.get().SIZE_CONTROL_SMALL
+                    )
+                }
+            }
+
+            c.customBG = if (selected) {
+                if (hasFocus) {
+                    UIStates.theme.get().COLOR_SELECTION
+                } else {
+                    UIStates.theme.get().COLOR_SELECTION
+                }
+            } else {
+                null
+            }
+
+            loadedIcon.colorFilter = colorFilter
+            c.customFG = UIStates.theme.get().COLOR_FG_0
+            c.icon = loadedIcon
+            c.revalidate()
+            c.repaint()
+            return c
+        }
+    }
+
+    @Deprecated("Using DefaultTreeCellRenderer which makes it inflexible.")
+    inner class CTreeCellRenderer : DefaultTreeCellRenderer() {
         init {
             this.isOpaque = true
             this.font = tree.font

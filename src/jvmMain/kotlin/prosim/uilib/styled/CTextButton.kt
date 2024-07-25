@@ -12,7 +12,7 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.border.Border
 
-open class CTextButton(text: String, val fontType: FontType = FontType.BASIC, val primary: Boolean = true, hoverEffect: Boolean = true, val borderMode: BorderMode = BorderMode.INSET) : JComponent() {
+open class CTextButton(text: String, val fontType: FontType = FontType.BASIC, val primary: Boolean = true, hoverEffect: Boolean = true, val borderMode: BorderMode = BorderMode.MEDIUM) : JComponent() {
 
     var text: String = text
         set(value) {

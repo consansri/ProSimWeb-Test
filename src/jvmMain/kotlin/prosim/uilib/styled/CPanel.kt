@@ -67,7 +67,7 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
         return try {
             if (isOverlay) UIStates.scale.get().BORDER_INSET_MEDIUM else borderMode.getBorder()
         } catch (e: NullPointerException) {
-            BorderMode.INSET.getBorder()
+            BorderMode.MEDIUM.getBorder()
         }
     }
 

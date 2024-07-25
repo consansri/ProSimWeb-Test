@@ -4,25 +4,24 @@ import cengine.project.Project
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
-import com.formdev.flatlaf.extras.FlatSVGIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import prosim.ide.getFileIcon
-import prosim.uilib.UIStates
-import prosim.uilib.styled.*
+import prosim.uilib.styled.CMenuItem
+import prosim.uilib.styled.COptionPane
+import prosim.uilib.styled.CPopupMenu
+import prosim.uilib.styled.CScrollPane
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.tree.CTree
 import java.awt.Component
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JTree
 import javax.swing.SwingUtilities
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeExpansionListener
 import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
 
@@ -72,7 +71,6 @@ class FileTree(private val project: Project) : FileTreeUI {
     private fun setupTree() {
         tree.isRootVisible = true
         tree.showsRootHandles = true
-        tree.cellRenderer = CellRenderer()
         tree.addMouseListener(TreeMouseListener())
         tree.addTreeExpansionListener(ExpansionListener())
     }
@@ -427,74 +425,6 @@ class FileTree(private val project: Project) : FileTreeUI {
 
             menu.show(component, x, y)
             menu.requestFocus()
-        }
-    }
-
-    private inner class CellRenderer : DefaultTreeCellRenderer() {
-
-        init {
-            this.isOpaque = true
-            this.font = tree.font
-            this.textNonSelectionColor = UIStates.theme.get().COLOR_FG_0
-            this.textSelectionColor = UIStates.theme.get().COLOR_SELECTION
-            this.border = UIStates.scale.get().BORDER_INSET_MEDIUM
-        }
-
-        override fun getTreeCellRendererComponent(
-            tree: JTree?,
-            value: Any?,
-            sel: Boolean,
-            expanded: Boolean,
-            leaf: Boolean,
-            row: Int,
-            hasFocus: Boolean
-        ): Component {
-            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus)
-
-            val uobj = ((value as? DefaultMutableTreeNode)?.userObject as? VFileSystem.VirtualFileImpl)
-
-            val loadedIcon = if (leaf) {
-                if (uobj != null && !uobj.isDirectory) {
-                    val fileIcon = project.getLang(uobj)?.getFileIcon()
-                    if (fileIcon != null) {
-                        fileIcon.derive(
-                            UIStates.scale.get().SIZE_CONTROL_SMALL,
-                            UIStates.scale.get().SIZE_CONTROL_SMALL
-                        )
-                    } else {
-                        UIStates.icon.get().file.derive(
-                            UIStates.scale.get().SIZE_CONTROL_SMALL,
-                            UIStates.scale.get().SIZE_CONTROL_SMALL
-                        )
-                    }
-                } else {
-                    UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().SIZE_CONTROL_SMALL,
-                        UIStates.scale.get().SIZE_CONTROL_SMALL
-                    )
-                }
-
-            } else {
-                if (expanded) {
-                    UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().SIZE_CONTROL_SMALL,
-                        UIStates.scale.get().SIZE_CONTROL_SMALL
-                    )
-                } else {
-                    UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().SIZE_CONTROL_SMALL,
-                        UIStates.scale.get().SIZE_CONTROL_SMALL
-                    )
-                }
-            }
-
-            this.background = if (sel) UIStates.theme.get().COLOR_SELECTION else UIStates.theme.get().COLOR_BG_1
-            loadedIcon.colorFilter = FlatSVGIcon.ColorFilter {
-                UIStates.theme.get().COLOR_ICON_FG_0
-            }
-            this.foreground = UIStates.theme.get().COLOR_FG_0
-            this.icon = loadedIcon
-            return this
         }
     }
 

@@ -1,6 +1,5 @@
 package prosim.ui.components
 
-import emulator.kit.nativeLog
 import prosim.ui.components.console.ConsoleView
 import prosim.ui.components.controls.AppControls
 import prosim.ui.components.controls.BottomBar
@@ -37,7 +36,6 @@ class NativeFrame : JFrame(), ProSimFrame {
 
     val themeListener = object : StateListener<Theme> {
         override suspend fun onStateChange(newVal: Theme) {
-            nativeLog("${this.javaClass.simpleName} onStateChange(theme: Theme)")
             revalidate()
             repaint()
         }
@@ -45,7 +43,6 @@ class NativeFrame : JFrame(), ProSimFrame {
 
     val scaleListener = object : StateListener<Scaling> {
         override suspend fun onStateChange(newVal: Scaling) {
-            nativeLog("${this.javaClass.simpleName} onStateChange(scaling: Scaling)")
             revalidate()
             repaint()
         }
