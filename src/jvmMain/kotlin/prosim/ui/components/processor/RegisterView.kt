@@ -24,7 +24,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
 import kotlin.math.abs
 
-class RegisterView() : CPanel(primary = true, BorderMode.SOUTH), StateListener<Architecture> {
+class RegisterView : CPanel(primary = true, BorderMode.SOUTH), StateListener<Architecture> {
 
     private val regViews = mutableListOf<CAdvancedTabPane>()
 
@@ -101,7 +101,7 @@ class RegisterView() : CPanel(primary = true, BorderMode.SOUTH), StateListener<A
     private fun updateDetails() {
         regViews.forEach { tabbedPane ->
             tabbedPane.tabs.forEach { tab ->
-                (tab.content as? prosim.ui.components.processor.RegisterView.RegFileTable)?.showDetails = registerPaneCount == 1
+                (tab.content as? RegFileTable)?.showDetails = registerPaneCount == 1
             }
         }
     }
@@ -109,7 +109,7 @@ class RegisterView() : CPanel(primary = true, BorderMode.SOUTH), StateListener<A
     private fun updateAllValues() {
         regViews.forEach { pane ->
             pane.tabs.forEach { tab ->
-                (tab.content as? prosim.ui.components.processor.RegisterView.RegFileTable)?.updateRegValues()
+                (tab.content as? RegFileTable)?.updateRegValues()
             }
         }
     }
@@ -120,7 +120,7 @@ class RegisterView() : CPanel(primary = true, BorderMode.SOUTH), StateListener<A
         States.arch.get().getAllRegFiles().forEach {
             val tabLabel = CLabel(it.name, FontType.BASIC)
             if (it.getRegisters(States.arch.get().features).isNotEmpty()) {
-                val regFileTable = prosim.ui.components.processor.RegisterView.RegFileTable(it) {
+                val regFileTable = RegFileTable(it) {
                     updateAllValues()
                 }
                 regFileTable.updateContent()
@@ -139,12 +139,12 @@ class RegisterView() : CPanel(primary = true, BorderMode.SOUTH), StateListener<A
         private val ccLabel = "CC"
         private val description = "Description"
 
-        private var sortOrder: prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder = prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder.ALIASES
+        private var sortOrder: SortOrder = SortOrder.ALIASES
             set(value) {
                 field = value
                 regs = when (value) {
-                    prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder.ALIASES -> regFile.getRegisters(States.arch.get().features).sortedBy { it.aliases.firstOrNull() }
-                    prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder.ADDRESS -> regFile.getRegisters(States.arch.get().features).sortedBy { it.address.toRawString() }
+                    SortOrder.ALIASES -> regFile.getRegisters(States.arch.get().features).sortedBy { it.aliases.firstOrNull() }
+                    SortOrder.ADDRESS -> regFile.getRegisters(States.arch.get().features).sortedBy { it.address.toRawString() }
                 }
             }
 
@@ -252,8 +252,8 @@ class RegisterView() : CPanel(primary = true, BorderMode.SOUTH), StateListener<A
                         when (colum) {
                             0 -> {
                                 sortOrder = when (sortOrder) {
-                                    prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder.ALIASES -> prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder.ADDRESS
-                                    prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder.ADDRESS -> prosim.ui.components.processor.RegisterView.RegFileTable.SortOrder.ALIASES
+                                    SortOrder.ALIASES -> SortOrder.ADDRESS
+                                    SortOrder.ADDRESS -> SortOrder.ALIASES
                                 }
                             }
 

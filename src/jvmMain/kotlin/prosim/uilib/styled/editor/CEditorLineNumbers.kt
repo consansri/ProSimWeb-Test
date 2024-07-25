@@ -101,6 +101,10 @@ class CEditorLineNumbers(private val editor: CEditorArea) : JComponent() {
         return Dimension(preferredSize.width, editor.preferredSize.height)
     }
 
+    override fun getInsets(): Insets {
+        return border.getBorderInsets(this)
+    }
+
     override fun getPreferredSize(): Dimension {
         return if (lineContent.isNotEmpty()) {
             Dimension(lineContent.maxOf { it.getWidth(fm) } + maxWidth + insets.left + insets.right, editor.preferredSize.height)

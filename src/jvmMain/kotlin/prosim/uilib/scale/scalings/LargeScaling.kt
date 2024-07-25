@@ -27,7 +27,7 @@ data object LargeScaling: Scaling() {
     override val SIZE_SCROLL_THUMB: Int = 12
 
     init {
-        initializeFonts()
+        initAWTComponents()
     }
 
     override fun toString(): String {

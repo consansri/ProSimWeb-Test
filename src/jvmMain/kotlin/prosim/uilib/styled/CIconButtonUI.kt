@@ -22,7 +22,7 @@ open class CIconButtonUI() : ComponentUI() {
         val g2 = g as? Graphics2D ?: return
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        val inset = button.mode.getInset()
+        val inset = button.insets
 
         val width = button.width
         val height = button.height
@@ -35,7 +35,7 @@ open class CIconButtonUI() : ComponentUI() {
         } else {
             g2.color = button.iconBg
         }
-        g2.fillRoundRect(inset, inset, width - inset * 2, height - inset * 2, UIStates.scale.get().SIZE_CORNER_RADIUS, UIStates.scale.get().SIZE_CORNER_RADIUS)
+        g2.fillRoundRect(inset.left / 2, inset.top / 2, width - inset.left / 2 - inset.right / 2, height - inset.top / 2 - inset.bottom / 2, UIStates.scale.get().SIZE_CORNER_RADIUS, UIStates.scale.get().SIZE_CORNER_RADIUS)
 
         // Paint button
         val icon = button.svgIcon

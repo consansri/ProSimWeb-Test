@@ -61,7 +61,15 @@ abstract class Scaling {
     val DIM_CONTROL_SMALL: Dimension by lazy { Dimension(SIZE_CONTROL_SMALL, SIZE_CONTROL_SMALL) }
     val DIM_CONTROL_MEDIUM: Dimension by lazy { Dimension(SIZE_CONTROL_MEDIUM, SIZE_CONTROL_MEDIUM) }
 
-    fun initializeFonts() {
+    fun initAWTComponents() {
+        initFonts()
+    }
+
+    private fun initBorders(){
+
+    }
+
+    private fun initFonts(){
         val textFont = loadFont(PATH_FONT_TEXT)
         GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(textFont)
 

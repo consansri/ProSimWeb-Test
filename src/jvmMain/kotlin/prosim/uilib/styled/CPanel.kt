@@ -2,10 +2,7 @@ package prosim.uilib.styled
 
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.RenderingHints
+import java.awt.*
 import javax.swing.JPanel
 import javax.swing.border.Border
 
@@ -35,7 +32,6 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
         isOpaque = false
         border = border
 
-        //this.setUI(CPanelUI())
         this.revalidate()
         this.repaint()
     }
@@ -61,6 +57,10 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
             g2d.color = UIStates.theme.get().COLOR_BORDER
             g2d.drawRoundRect(0, 0, width - 1, height - 1, UIStates.scale.get().SIZE_CORNER_RADIUS, UIStates.scale.get().SIZE_CORNER_RADIUS)
         }
+    }
+
+    override fun getInsets(): Insets {
+        return border.getBorderInsets(this)
     }
 
     override fun getBorder(): Border {

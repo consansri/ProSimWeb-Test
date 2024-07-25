@@ -118,10 +118,10 @@ open class CAdvancedTabPane(
         add(contentPane, BorderLayout.CENTER)
     }
 
-    inner class ClosableTab(closeIcon: FlatSVGIcon, primary: Boolean, private val isCloseable: Boolean, val tab: Component, val content: Component, val actionEvent: ((Event, ClosableTab) -> Unit)? = null) :
+    inner class ClosableTab(closeIcon: FlatSVGIcon, primary: Boolean, private val isCloseable: Boolean, private val tab: Component, val content: Component, val actionEvent: ((Event, ClosableTab) -> Unit)? = null) :
         CPanel(primary, roundCorners = true) {
 
-        val unselectedPrimaryValue = primary
+        private val unselectedPrimaryValue = primary
         val closeButton = CIconButton(closeIcon, CIconButton.Mode.SECONDARY_SMALL)
 
         init {
@@ -144,13 +144,15 @@ open class CAdvancedTabPane(
         fun showTabContextMenu(e: MouseEvent) {
             val popupMenu = CPopupMenu()
 
-            val itemCloseAll = CMenuItem("Close all tabs", FontType.BASIC).apply {
-                addActionListener {
-                    this@CAdvancedTabPane.removeAllTabs()
+            if (isCloseable) {
+                val itemCloseAll = CMenuItem("Close all tabs", FontType.BASIC).apply {
+                    addActionListener {
+                        this@CAdvancedTabPane.removeAllTabs()
+                    }
                 }
-            }
 
-            popupMenu.add(itemCloseAll)
+                popupMenu.add(itemCloseAll)
+            }
 
             popupMenu.show(this, e.x, e.y)
         }

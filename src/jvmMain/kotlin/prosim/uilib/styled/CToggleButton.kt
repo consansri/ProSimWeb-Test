@@ -4,10 +4,11 @@ import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
 import java.awt.Color
 import java.awt.Font
+import java.awt.Insets
 import javax.swing.JButton
 import javax.swing.border.Border
 
-open class CToggleButton(initialText: String, val toggleSwitchType: CToggleButtonUI.ToggleSwitchType, val fontType: FontType) : JButton() {
+open class CToggleButton(initialText: String, private val toggleSwitchType: CToggleButtonUI.ToggleSwitchType, val fontType: FontType) : JButton() {
 
     var isDeactivated = false
         set(value) {
@@ -48,6 +49,10 @@ open class CToggleButton(initialText: String, val toggleSwitchType: CToggleButto
 
     override fun getForeground(): Color {
         return if (isDeactivated) UIStates.theme.get().COLOR_FG_1 else UIStates.theme.get().COLOR_FG_0
+    }
+
+    override fun getInsets(): Insets {
+        return toggleSwitchType.getBorder().getBorderInsets(this)
     }
 
 }

@@ -5,9 +5,10 @@ import prosim.uilib.UIStates
 import prosim.uilib.scale.core.Scaling
 import prosim.uilib.theme.core.Theme
 import java.awt.Color
+import java.awt.Dimension
+import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.Timer
@@ -134,8 +135,16 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hove
     }
 
     override fun getBorder(): Border {
-        val inset = mode.getInset()
-        return BorderFactory.createEmptyBorder(inset, inset, inset, inset)
+        return mode.getBorder()
+    }
+
+    override fun getInsets(): Insets {
+        return border.getBorderInsets(this)
+    }
+
+    override fun getPreferredSize(): Dimension {
+        val iconSize = mode.size(UIStates.scale.get())
+        return Dimension(iconSize + insets.left + insets.right, iconSize + insets.top + insets.bottom)
     }
 
     enum class Mode {
@@ -159,6 +168,14 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hove
             PRIMARY_SMALL, SECONDARY_SMALL, GRADIENT_SMALL -> scale.SIZE_CONTROL_SMALL
         }
 
+        fun getBorder(): Border = when(this){
+            PRIMARY_NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
+            SECONDARY_NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
+            PRIMARY_SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
+            SECONDARY_SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
+            GRADIENT_NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
+            GRADIENT_SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
+        }
 
         fun getInset(): Int = when (this) {
             PRIMARY_NORMAL, GRADIENT_NORMAL -> UIStates.scale.get().SIZE_INSET_MEDIUM
@@ -166,6 +183,5 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hove
             PRIMARY_SMALL, GRADIENT_SMALL -> UIStates.scale.get().SIZE_CONTROL_SMALL
             SECONDARY_SMALL -> UIStates.scale.get().SIZE_CONTROL_SMALL
         }
-
     }
 }

@@ -15,7 +15,6 @@ import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.FontType
-import java.awt.Graphics
 
 class MemoryView : CAdvancedTabPane(tabsAreCloseable = false), StateListener<Architecture> {
 
@@ -30,12 +29,6 @@ class MemoryView : CAdvancedTabPane(tabsAreCloseable = false), StateListener<Arc
     private fun addContentChangeListener() {
         States.arch.addEvent(this)
         updateContent()
-    }
-
-    override fun paint(g: Graphics?) {
-        //Thread.dumpStack()
-        nativeLog("Paint ${this::class.simpleName}")
-        super.paint(g)
     }
 
     private fun updateContent() {
