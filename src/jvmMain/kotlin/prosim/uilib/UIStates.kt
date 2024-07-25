@@ -6,13 +6,13 @@ import prosim.uilib.resource.BenIcons
 import prosim.uilib.resource.Icons
 import prosim.uilib.scale.core.Scaling
 import prosim.uilib.scale.scalings.StandardScaling
-import prosim.uilib.state.Manager
+import prosim.uilib.state.StateManager
 import prosim.uilib.state.WSConfig
 import prosim.uilib.theme.core.Theme
 import prosim.uilib.theme.themes.LightTheme
 
 data object UIStates {
-    val icon = object : Manager<Icons>(BenIcons()) {
+    val icon = object : StateManager<Icons>(BenIcons()) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_ICONS)?.let { value ->
                 UIResource.icons.firstOrNull { it.name == value }?.let {
@@ -26,7 +26,7 @@ data object UIStates {
         }
     }
 
-    val theme = object : Manager<Theme>(LightTheme) {
+    val theme = object : StateManager<Theme>(LightTheme) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_THEME)?.let { value ->
                 UIResource.themes.firstOrNull { it.name == value }?.let {
@@ -40,7 +40,7 @@ data object UIStates {
         }
     }
 
-    val scale = object : Manager<Scaling>(StandardScaling) {
+    val scale = object : StateManager<Scaling>(StandardScaling) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_SCALE)?.let { value ->
                 UIResource.scalings.firstOrNull { it.name == value }?.let {

@@ -1,4 +1,4 @@
-package prosim.ide.editor3
+package prosim.ide.editor
 
 import javax.swing.JComponent
 

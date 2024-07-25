@@ -8,14 +8,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import prosim.ui.impl.WSBehaviourImpl
 import prosim.uilib.UIStates
-import prosim.uilib.state.Manager
+import prosim.uilib.state.StateManager
 import prosim.uilib.state.WSConfig
 import prosim.uilib.state.WSEditor
 import prosim.uilib.state.WSLogger
 import prosim.uilib.workspace.Workspace
 
 object States {
-    val ws = object : Manager<Workspace?>(null) {
+    val ws = object : StateManager<Workspace?>(null) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             // nothing
         }
@@ -30,7 +30,7 @@ object States {
         }
     }
 
-    val arch = object : Manager<Architecture>(Link.RV32I.load()) {
+    val arch = object : StateManager<Architecture>(Link.RV32I.load()) {
         init {
             get().loadArchSettings()
         }
@@ -60,7 +60,7 @@ object States {
      * Sets the current workspace to a new path and updates the bottom bar.
      * @param path The new workspace path.
      */
-    fun Manager<Workspace?>.setFromPath(path: String, editor: WSEditor?, logger: WSLogger?) {
+    fun StateManager<Workspace?>.setFromPath(path: String, editor: WSEditor?, logger: WSLogger?) {
         logger?.log("Switching Workspace ($path)")
         CoroutineScope(Dispatchers.Default).launch {
             set(Workspace(path, WSBehaviourImpl.ASM, editor, logger))

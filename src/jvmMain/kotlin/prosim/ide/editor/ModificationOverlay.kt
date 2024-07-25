@@ -1,4 +1,4 @@
-package prosim.ide.editor3
+package prosim.ide.editor
 
 import cengine.editor.EditorModification
 import emulator.kit.assembler.CodeStyle

@@ -1,6 +1,5 @@
 package prosim.uilib.styled.table
 
-import emulator.kit.nativeLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -8,7 +7,6 @@ import kotlinx.coroutines.launch
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.FontType
 import java.awt.Color
-import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
@@ -16,7 +14,6 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
-import kotlin.time.measureTime
 
 abstract class CVirtualTable(
     val contentfontType: FontType,
@@ -49,7 +46,6 @@ abstract class CVirtualTable(
             updateCellContent()
         }
 
-
     init {
         isOpaque = false
 
@@ -61,13 +57,6 @@ abstract class CVirtualTable(
         content = attachTableContent(offsetX, offsetY)
 
         attachWheelListener()
-    }
-
-    override fun paint(g: Graphics?) {
-        val time = measureTime {
-            super.paint(g)
-        }
-        nativeLog("${this::class.simpleName} paint took ${time.inWholeNanoseconds} ns")
     }
 
     abstract fun getCellContent(contentRowID: Int, contentColID: Int): String

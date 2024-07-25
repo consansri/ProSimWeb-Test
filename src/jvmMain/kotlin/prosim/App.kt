@@ -8,7 +8,7 @@ import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.util.SystemInfo
 import emulator.archs.ArchRV32
 import emulator.kit.nativeLog
-import prosim.ide.editor3.PerformantCodeEditor
+import prosim.ide.editor.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIChangeListener
 import prosim.ui.components.NativeFrame

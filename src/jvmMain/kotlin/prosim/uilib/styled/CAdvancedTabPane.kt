@@ -1,7 +1,6 @@
 package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
@@ -98,7 +97,6 @@ open class CAdvancedTabPane(
 
     fun removeTab(closeableTab: ClosableTab) {
         closeableTab.actionEvent?.let {
-            nativeLog("ActionEvent")
             it(Event.CLOSE, closeableTab)
         }
         tabs.remove(closeableTab)
