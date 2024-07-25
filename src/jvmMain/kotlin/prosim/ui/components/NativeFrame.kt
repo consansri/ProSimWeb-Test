@@ -20,6 +20,7 @@ import prosim.uilib.styled.CSplitPane
 import prosim.uilib.theme.core.Theme
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Graphics
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -158,6 +159,10 @@ class NativeFrame : JFrame(), ProSimFrame {
      */
     private fun styleFrame() {
         iconImage = UIStates.icon.get().appLogo.derive(64, 64).image
+    }
+
+    override fun paint(g: Graphics?) {
+        super.paint(g)
     }
 
     /**

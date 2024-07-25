@@ -3,14 +3,15 @@ package prosim.ui.components.processor
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.CSplitPane
 import java.awt.Dimension
+import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JSplitPane
 
-class ProcessorView() : CPanel( primary = false) {
+class ProcessorView : CPanel( primary = false) {
 
     val exeControl = ExecutionControls()
-    val regView = prosim.ui.components.processor.RegisterView().apply {
+    val regView = RegisterView().apply {
         minimumSize = Dimension(0,0)
     }
     val memoryView = MemoryView().apply {
@@ -24,6 +25,10 @@ class ProcessorView() : CPanel( primary = false) {
 
     init {
         attachContent()
+    }
+
+    override fun paint(g: Graphics?) {
+        super.paint(g)
     }
 
     private fun attachContent(){

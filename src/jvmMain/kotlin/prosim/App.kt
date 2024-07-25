@@ -7,6 +7,7 @@ import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.util.SystemInfo
 import emulator.archs.ArchRV32
+import emulator.kit.nativeLog
 import prosim.ide.editor3.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIChangeListener
@@ -46,10 +47,15 @@ fun launchBaseApp() {
     // Create and display the main application frame using NativeFrame.
     SwingUtilities.invokeLater {
         NativeFrame()
+        appSuccessfullyLaunched()
     }
 
     // Uncomment the following line if BaseFrame with UIManager is needed.
     // BaseFrame()
+}
+
+fun appSuccessfullyLaunched(){
+    nativeLog("Launched App")
 }
 
 fun testNewEditor() {

@@ -1,3 +1,4 @@
+import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 
 object Coroutines {
@@ -6,6 +7,7 @@ object Coroutines {
 
     fun setTimeout(timeoutMillis: Long, block: suspend () -> Unit): Job {
         return context.launch {
+            nativeLog("Executing with delay!")
             delay(timeoutMillis)
             block()
         }

@@ -1,5 +1,6 @@
 package prosim.uilib.styled
 
+import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import java.awt.Color
 import java.awt.Component
@@ -22,6 +23,13 @@ open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
         this.setUI(CScrollPaneUI(primary))
         verticalScrollBar.unitIncrement = 16
         horizontalScrollBar.unitIncrement = 16
+    }
+
+
+
+    override fun paint(g: Graphics?) {
+        nativeLog("Paint ${this::class.simpleName}")
+        super.paint(g)
     }
 
     override fun paintComponent(g: Graphics?) {

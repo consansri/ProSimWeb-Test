@@ -9,16 +9,8 @@ import javax.swing.JPanel
 abstract class CCell(val fontType: FontType) : JPanel() {
 
     var customBG: Color? = null
-        set(value) {
-            field = value
-            repaint()
-        }
 
     var customFG: Color? = null
-        set(value) {
-            field = value
-            repaint()
-        }
 
     init {
         isOpaque = false

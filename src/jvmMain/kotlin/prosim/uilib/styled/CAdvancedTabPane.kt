@@ -1,12 +1,11 @@
 package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
-import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.FlowLayout
+import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.SwingConstants
@@ -98,7 +97,10 @@ open class CAdvancedTabPane(
     fun getCurrent() = currentTab
 
     fun removeTab(closeableTab: ClosableTab) {
-        closeableTab.actionEvent?.let { it(Event.CLOSE, closeableTab) }
+        closeableTab.actionEvent?.let {
+            nativeLog("ActionEvent")
+            it(Event.CLOSE, closeableTab)
+        }
         tabs.remove(closeableTab)
         if (currentTab == closeableTab) currentTab = null
         tabsPane.remove(closeableTab)

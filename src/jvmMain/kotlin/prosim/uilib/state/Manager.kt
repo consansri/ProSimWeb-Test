@@ -20,7 +20,9 @@ abstract class Manager<T>(init: T) : WSConfigLoader<T> {
         triggerChange()
     }
 
-    fun get(): T = curr
+    fun get(): T {
+        return curr
+    }
 
     fun setConfigNotChanged(value: T) {
         curr = value

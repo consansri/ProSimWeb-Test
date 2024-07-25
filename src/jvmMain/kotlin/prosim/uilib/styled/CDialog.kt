@@ -34,7 +34,6 @@ class CDialog(parent: Component) : JDialog() {
             }
         }
         glassPane.isVisible
-
     }
 
     override fun setVisible(b: Boolean) {
@@ -115,9 +114,5 @@ class CDialog(parent: Component) : JDialog() {
 
             return Triple(dialog, cPane, bPane)
         }
-    }
-
-    override fun getMinimumSize(): Dimension {
-        return contentPane.minimumSize
     }
 }

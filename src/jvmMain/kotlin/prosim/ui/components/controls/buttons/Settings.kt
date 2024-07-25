@@ -61,21 +61,17 @@ class Settings : CIconButton(UIStates.icon.get().settings) {
         val component: Component = when (this) {
             is SetupSetting.Bool -> {
                 CSwitch(this.get(), Mode.PRIMARY_NORMAL) {
-                    SwingUtilities.invokeLater {
-                        this@toSwing.set(arch, it)
-                        this@toSwing.save(arch)
-                        Events.archSettingChange.triggerEvent(arch)
-                    }
+                    this@toSwing.set(arch, it)
+                    this@toSwing.save(arch)
+                    Events.archSettingChange.triggerEvent(arch)
                 }
             }
 
             is SetupSetting.Enumeration<*> -> {
                 CChooser(CChooser.Model(this.enumValues, this@toSwing.get()), FontType.BASIC, primary = true, onSelect = {
-                    SwingUtilities.invokeLater {
-                        this@toSwing.loadFromString(arch, it.name)
-                        this@toSwing.save(arch)
-                        Events.archSettingChange.triggerEvent(arch)
-                    }
+                    this@toSwing.loadFromString(arch, it.name)
+                    this@toSwing.save(arch)
+                    Events.archSettingChange.triggerEvent(arch)
                 })
             }
 
@@ -83,11 +79,9 @@ class Settings : CIconButton(UIStates.icon.get().settings) {
                 CTextField(this.valueToString(), FontType.CODE).apply {
                     addFocusListener(object : FocusAdapter() {
                         override fun focusLost(e: FocusEvent?) {
-                            SwingUtilities.invokeLater {
-                                this@toSwing.loadFromString(arch, this@apply.text)
-                                this@toSwing.save(arch)
-                                Events.archSettingChange.triggerEvent(arch)
-                            }
+                            this@toSwing.loadFromString(arch, this@apply.text)
+                            this@toSwing.save(arch)
+                            Events.archSettingChange.triggerEvent(arch)
                         }
                     })
                 }
