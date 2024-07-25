@@ -7,7 +7,6 @@ import prosim.ui.States
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.table.CVirtualTable
-import prosim.uilib.styled.table.CVirtualTableUI
 import java.awt.Color
 
 class NewCacheView(val cache: Cache) : CVirtualTable(
@@ -108,11 +107,11 @@ class NewCacheView(val cache: Cache) : CVirtualTable(
         return if (block.dirty) UIStates.theme.get().getColor(CodeStyle.BASE6) else if (block.valid) UIStates.theme.get().getColor(CodeStyle.BASE7) else null
     }
 
-    override fun onCellClick(cell: CVirtualTableUI.CCellRenderer, contentRowID: Int, contentColID: Int) {
+    override fun onCellClick(cell: CCellRenderer, contentRowID: Int, contentColID: Int) {
         // unused
     }
 
-    override fun onHeaderClick(header: CVirtualTableUI.CHeaderRenderer, headerRowID: Int, headerColID: Int) {
+    override fun onHeaderClick(header: CHeaderRenderer, headerRowID: Int, headerColID: Int) {
         // unused
     }
 
