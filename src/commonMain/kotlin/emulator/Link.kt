@@ -10,12 +10,12 @@ import kotlin.reflect.KClass
  *  This enum-class contains every specific Architecture
  *  <NEEDS TO BE EXTENDED>
  */
-enum class Link(private val arch: () -> Architecture) {
-    RV32I({ ArchRV32() }),
-    RV64I({ ArchRV64() }),
-    T6502({ ArchT6502() }),
-    IKRMINI({ ArchIKRMini() }),
-    IKRRISC2({ ArchIKRRisc2() });
+enum class Link(private val arch: () -> Architecture, val classType: KClass<*>) {
+    RV32I({ ArchRV32() }, ArchRV32::class),
+    RV64I({ ArchRV64() }, ArchRV64::class),
+    T6502({ ArchT6502() }, ArchT6502::class),
+    IKRMINI({ ArchIKRMini() }, ArchIKRMini::class),
+    IKRRISC2({ ArchIKRRisc2() }, ArchIKRRisc2::class);
 
     fun load(): Architecture {
         nativeLog("KIT: Loading $name ...")
@@ -27,8 +27,6 @@ enum class Link(private val arch: () -> Architecture) {
     fun descr(): Config.Description {
         return arch().description
     }
-
-    fun classType(): KClass<*> = arch::class
 
     override fun toString(): String {
         return descr().fullName

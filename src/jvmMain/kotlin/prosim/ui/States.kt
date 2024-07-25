@@ -38,7 +38,7 @@ object States {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_ARCH)?.let { value ->
                 setConfigNotChanged(Link.entries.firstOrNull {
-                    it.classType().simpleName.toString() == value
+                    it.classType.simpleName.toString() == value
                 }?.load() ?: Link.RV32I.load())
             }
         }

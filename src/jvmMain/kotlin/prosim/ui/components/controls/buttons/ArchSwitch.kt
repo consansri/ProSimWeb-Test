@@ -21,7 +21,7 @@ class ArchSwitch : CChooser<Link>(Model(Link.entries, Link.RV32I, "Architecture"
 
     override suspend fun onStateChange(newVal: Architecture) {
         value = Link.entries.firstOrNull {
-            it.classType() == States.arch.get()::class
+            it.classType.isInstance(States.arch.get())
         } ?: Link.RV32I
     }
 }
