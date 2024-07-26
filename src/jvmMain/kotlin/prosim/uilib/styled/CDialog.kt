@@ -33,6 +33,7 @@ class CDialog(parent: Component) : JDialog() {
                 g2d.fillRoundRect(0, 0, width - shadowSize, height - shadowSize, 10, 10)
             }
         }
+
         glassPane.isVisible
     }
 

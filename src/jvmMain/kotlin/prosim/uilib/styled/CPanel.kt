@@ -28,6 +28,8 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
             repaint()
         }
 
+    open val customBG: Color? = null
+
     init {
         isOpaque = false
         border = border
@@ -45,7 +47,7 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
-        g2d.color = if (isOverlay) UIStates.theme.get().COLOR_BG_OVERLAY else if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
+        g2d.color = background
         if (roundedCorners) {
             val cornerRadius = UIStates.scale.get().SIZE_CORNER_RADIUS
             g2d.fillRoundRect(0, 0, width, height, cornerRadius, cornerRadius)
@@ -72,6 +74,12 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
     }
 
     override fun getBackground(): Color {
-        return Color(0, 0, 0, 0)
+        val currCustomBG = customBG
+        return when{
+            currCustomBG != null -> currCustomBG
+            isOverlay -> UIStates.theme.get().COLOR_BG_OVERLAY
+            primary -> UIStates.theme.get().COLOR_BG_0
+            else -> UIStates.theme.get().COLOR_BG_1
+        }
     }
 }
