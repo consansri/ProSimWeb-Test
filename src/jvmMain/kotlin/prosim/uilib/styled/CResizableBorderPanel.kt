@@ -17,6 +17,7 @@ class CResizableBorderPanel : CPanel() {
 
     private val thisLayout = BorderLayout()
     private val resizeHandles = mutableMapOf<String, ResizeHandle>()
+    private val occupiedConstraints = mutableSetOf<String>()
 
     init {
         layout = thisLayout
@@ -27,46 +28,23 @@ class CResizableBorderPanel : CPanel() {
         layoutConstraints.forEach { direction ->
             val handle = ResizeHandle(direction)
             resizeHandles[direction] = handle
-            add(handle, direction)
+            handle.isVisible = false // Initially hide all handles
         }
     }
-
-    /*override fun add(comp: Component, constraints: Any?) {
-        if (constraints is String) {
-            when (constraints) {
-                BorderLayout.NORTH, BorderLayout.SOUTH, BorderLayout.EAST, BorderLayout.WEST -> {
-                    val wrapper = JLayeredPane()
-                    wrapper.layout = BorderLayout()
-                    wrapper.add(comp, BorderLayout.CENTER)
-                    wrapper.add(resizeHandles[constraints], BorderLayout.CENTER)
-                    wrapper.setLayer(resizeHandles[constraints], JLayeredPane.DRAG_LAYER)
-                    return super.add(wrapper, constraints)
-                }
-                else -> return super.add(comp, constraints)
-            }
-        }
-        return super.add(comp, constraints)
-    }*/
 
     override fun addImpl(comp: Component?, constraints: Any?, index: Int) {
         if (comp != null && constraints is String) {
             when (constraints) {
-                BorderLayout.NORTH, BorderLayout.SOUTH -> {
+                BorderLayout.NORTH, BorderLayout.SOUTH, BorderLayout.EAST, BorderLayout.WEST -> {
+                    removeComponentsAtConstraint(constraints)
                     val wrapper = CPanel().apply {
                         layout = BorderLayout()
                     }
                     wrapper.add(comp, BorderLayout.CENTER)
-                    wrapper.add(resizeHandles[constraints], if (constraints == BorderLayout.NORTH) BorderLayout.SOUTH else BorderLayout.NORTH)
+                    wrapper.add(resizeHandles[constraints], getOppositeConstraint(constraints))
                     super.addImpl(wrapper, constraints, index)
-                }
-
-                BorderLayout.EAST, BorderLayout.WEST -> {
-                    val wrapper = CPanel().apply {
-                        layout = BorderLayout()
-                    }
-                    wrapper.add(comp, BorderLayout.CENTER)
-                    wrapper.add(resizeHandles[constraints], if (constraints == BorderLayout.EAST) BorderLayout.WEST else BorderLayout.EAST)
-                    super.addImpl(wrapper, constraints, index)
+                    occupiedConstraints.add(constraints)
+                    updateResizeHandlesVisibility()
                 }
 
                 else -> super.addImpl(comp, constraints, index)
@@ -74,6 +52,36 @@ class CResizableBorderPanel : CPanel() {
             comp.minimumSize = minCompDim
         } else {
             super.addImpl(comp, constraints, index)
+        }
+        revalidate()
+        repaint()
+    }
+
+    fun removeComponentsAtConstraint(constraint: String) {
+        val component = thisLayout.getLayoutComponent(constraint)
+        if (component is Container) {
+            component.removeAll()
+            remove(component)
+            occupiedConstraints.remove(constraint)
+            updateResizeHandlesVisibility()
+            revalidate()
+            repaint()
+        }
+    }
+
+    private fun getOppositeConstraint(constraint: String): String{
+        return when (constraint) {
+            BorderLayout.NORTH -> BorderLayout.SOUTH
+            BorderLayout.SOUTH -> BorderLayout.NORTH
+            BorderLayout.EAST -> BorderLayout.WEST
+            BorderLayout.WEST -> BorderLayout.EAST
+            else -> constraint
+        }
+    }
+
+    private fun updateResizeHandlesVisibility() {
+        layoutConstraints.forEach { direction ->
+            resizeHandles[direction]?.isVisible = direction in occupiedConstraints
         }
     }
 

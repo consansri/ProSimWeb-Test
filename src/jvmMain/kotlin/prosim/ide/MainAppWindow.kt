@@ -10,13 +10,11 @@ import prosim.ide.editor.CDraggableTabbedEditorPane
 import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIAdapter
-import prosim.uilib.styled.CLabel
-import prosim.uilib.styled.CPanel
-import prosim.uilib.styled.CResizableBorderPanel
-import prosim.uilib.styled.ColouredPanel
+import prosim.uilib.UIStates
+import prosim.uilib.styled.*
+import prosim.uilib.styled.editor.CConsole
 import prosim.uilib.styled.params.BorderMode
-import prosim.uilib.styled.params.FontType
-import java.awt.BorderLayout
+import java.awt.*
 
 class MainAppWindow : CPanel() {
 
@@ -30,6 +28,8 @@ class MainAppWindow : CPanel() {
         })
     }
 
+    val console = CConsole()
+
     private val northPane = NORTHControls()
     private val eastPane = EASTControls()
     private val southPane = SOUTHControls()
@@ -37,9 +37,6 @@ class MainAppWindow : CPanel() {
 
     val contentPane = CResizableBorderPanel()
     val editorPanel = CDraggableTabbedEditorPane() // CAdvancedTabPane(tabsAreCloseable = true, primary = true, emptyMessage = "Open Files through File tree.")
-    val leftContentPane = fileTree.createContainer()
-    val rightContentPane = CLabel("Right Content", FontType.TITLE)
-    val bottomContentPane = CLabel("Bottom Content", FontType.TITLE)
 
     init {
         setupLayout()
@@ -51,9 +48,6 @@ class MainAppWindow : CPanel() {
         // Inner ContentPanel
 
         contentPane.add(editorPanel, BorderLayout.CENTER)
-        contentPane.add(leftContentPane, BorderLayout.WEST)
-        contentPane.add(bottomContentPane, BorderLayout.SOUTH)
-        contentPane.add(rightContentPane, BorderLayout.EAST)
 
         // Outer Main Panel
 
@@ -64,20 +58,100 @@ class MainAppWindow : CPanel() {
         add(contentPane, BorderLayout.CENTER)
     }
 
+    /**
+     * Is deciding on the content of the left and bottom content Panel.
+     */
     private inner class EASTControls() : CPanel(borderMode = BorderMode.WEST) {
         init {
 
         }
+
+        private fun setRightContent(content: Component?) {
+            if (content == null) return contentPane.removeComponentsAtConstraint(BorderLayout.EAST)
+            contentPane.add(content, BorderLayout.EAST)
+        }
     }
 
+    /**
+     * Is deciding on the content of the right content Panel.
+     */
     private inner class WESTControls() : CPanel(borderMode = BorderMode.EAST) {
 
+        private val openFileTree = CIconToggle(UIStates.icon.get().folder, false, CIconButton.Mode.PRIMARY_NORMAL) {
+            if (it) {
+                setLeftContent(fileTree.createContainer())
+            } else {
+                setLeftContent(null)
+            }
+        }
+
+        private val emptyFiller = object : CPanel() {
+            override val customBG: Color = Color(0, 0, 0, 0)
+        }
+
+        private val openConsole = CIconToggle(UIStates.icon.get().console, false, CIconButton.Mode.PRIMARY_NORMAL) {
+            if (it) {
+                setBottomContent(console)
+            } else {
+                setBottomContent(null)
+            }
+        }
+
+        init {
+            layout = GridBagLayout()
+
+            val gbc = GridBagConstraints()
+            gbc.gridy = 0
+            gbc.gridx = 0
+            gbc.weighty = 0.0
+            gbc.weightx = 0.0
+            gbc.fill = GridBagConstraints.NONE
+            add(openFileTree, gbc)
+
+            gbc.gridy += 1
+            gbc.gridx = 0
+            gbc.weighty = 1.0
+            gbc.weightx = 1.0
+            gbc.fill = GridBagConstraints.BOTH
+            add(emptyFiller, gbc)
+
+            gbc.gridy += 1
+            gbc.weightx = 0.0
+            gbc.weighty = 0.0
+            gbc.fill = GridBagConstraints.NONE
+            add(openConsole, gbc)
+        }
+
+        private fun setBottomContent(content: Component?) {
+            if (content == null) return contentPane.removeComponentsAtConstraint(BorderLayout.SOUTH)
+            contentPane.add(content, BorderLayout.SOUTH)
+        }
+
+        private fun setLeftContent(content: Component?) {
+            if (content == null) return contentPane.removeComponentsAtConstraint(BorderLayout.WEST)
+            contentPane.add(content, BorderLayout.WEST)
+        }
     }
 
+    /**
+     * Is only for global controls.
+     */
     private inner class NORTHControls() : CPanel(borderMode = BorderMode.SOUTH) {
 
+        init {
+            layout = GridBagLayout()
+
+        }
+
+        private fun setNorthContent(content: Component?) {
+            if (content == null) return contentPane.removeComponentsAtConstraint(BorderLayout.NORTH)
+            contentPane.add(content, BorderLayout.NORTH)
+        }
     }
 
+    /**
+     * Is mainly a display for global information.
+     */
     private inner class SOUTHControls() : ColouredPanel() {
 
     }

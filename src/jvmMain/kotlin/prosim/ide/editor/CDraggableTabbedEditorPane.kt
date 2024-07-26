@@ -16,9 +16,9 @@ import javax.swing.SwingUtilities
 
 class CDraggableTabbedEditorPane : CPanel() {
 
-    private val placeholder: CPanel = CPanel().apply {
+    private val placeholder: CPanel = CPanel(true).apply {
         layout = BorderLayout()
-        add(CLabel("No tabs open", FontType.CODE), BorderLayout.CENTER)
+        add(CLabel("Open File through Tree", FontType.CODE), BorderLayout.CENTER)
     }
     private val leftPane: CTabbedPane = CTabbedPane().apply {
         addMouseListener(TabMouseListener())

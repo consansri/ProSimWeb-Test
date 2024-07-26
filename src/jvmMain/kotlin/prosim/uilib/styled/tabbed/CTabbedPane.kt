@@ -5,12 +5,11 @@ import prosim.uilib.UIStates
 import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.CPanel
+import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
-import java.awt.Color
-import java.awt.Component
-import java.awt.FlowLayout
-import java.awt.Font
+import java.awt.*
 import javax.swing.JTabbedPane
+import javax.swing.border.Border
 
 open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = FontType.BASIC) : JTabbedPane() {
 
@@ -62,6 +61,14 @@ open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = Fon
         }
     }
 
+    override fun paintComponent(g: Graphics) {
+        // Custom background for the empty content
+        g.color = background
+        g.fillRect(0, 0, width, height)
+
+        super.paintComponent(g)
+    }
+
     override fun getBackground(): Color {
         return if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
     }
@@ -76,6 +83,14 @@ open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = Fon
         } catch (e: NullPointerException) {
             super.getFont()
         }
+    }
+
+    override fun getBorder(): Border {
+        return BorderMode.NONE.getBorder()
+    }
+
+    override fun getInsets(): Insets {
+        return border.getBorderInsets(this)
     }
 
     interface TabProvider {
