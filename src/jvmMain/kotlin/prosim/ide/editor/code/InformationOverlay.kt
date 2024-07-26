@@ -1,4 +1,4 @@
-package prosim.ide.editor
+package prosim.ide.editor.code
 
 import prosim.uilib.styled.COverlay
 

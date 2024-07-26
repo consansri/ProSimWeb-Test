@@ -1,4 +1,4 @@
-package prosim.ide.editor
+package prosim.ide.editor.code
 
 import cengine.editor.folding.LineIndicator
 import cengine.editor.widgets.Widget

@@ -1,4 +1,4 @@
-package prosim.ide.editor
+package prosim.ide.editor.code
 
 import cengine.editor.CodeEditor
 import cengine.editor.EditorModification
@@ -17,11 +17,14 @@ import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.util.text.LineColumn
 import cengine.vfs.VirtualFile
+import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
+import prosim.ide.editor.*
+import prosim.ide.getFileIcon
 import prosim.uilib.UIStates
 import prosim.uilib.alpha
 import prosim.uilib.styled.CScrollPane
@@ -74,6 +77,13 @@ class PerformantCodeEditor(
     private var buffer: Image? = null // will be resized later
 
     private val modificationOverlay: ModificationOverlay<EditorModification> = ModificationOverlay<EditorModification>(this)
+
+
+    override val component: Component = createScrollPane()
+
+    override val icon: FlatSVGIcon? = psiManager?.lang?.getFileIcon()
+    override val title: String get() = file.name
+    override val tooltip: String get() = file.path
 
     init {
         isFocusable = true
@@ -134,6 +144,7 @@ class PerformantCodeEditor(
             g2d.dispose()
         }
     }
+
 
     override fun getPreferredSize(): Dimension {
         return vLayout.getDocumentSize()
@@ -440,7 +451,7 @@ class PerformantCodeEditor(
                 val charWidth = fmCode.charWidth(char)
 
                 // Draw Indentation Line
-                if (colID != 0 && colID < lineInfo.firstNonWhitespaceCol && !lineInfo.containsOnlySpaces && colID % indentationProvider.spaces == 0 ) {
+                if (colID != 0 && colID < lineInfo.firstNonWhitespaceCol && !lineInfo.containsOnlySpaces && colID % indentationProvider.spaces == 0) {
                     color = secBGColor
                     drawLine(internalXOffset, internalYOffset, internalXOffset, internalYOffset + vLayout.lineHeight)
                 }

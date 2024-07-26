@@ -30,7 +30,7 @@ class FileTree(private val project: Project) : FileTreeUI {
     private val root: DefaultMutableTreeNode = DefaultMutableTreeNode(vfs.root)
     private val treeModel: DefaultTreeModel = DefaultTreeModel(root)
     private val tree: CTree = CTree(treeModel, FontType.BASIC)
-    private var listener: FileTreeUIChangeListener? = null
+    private var listener: FileTreeUIListener? = null
     private val overlayScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
     companion object {
@@ -148,7 +148,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
     }
 
-    override fun setFileTreeListener(listener: FileTreeUIChangeListener) {
+    override fun setFileTreeListener(listener: FileTreeUIListener) {
         this.listener = listener
     }
 

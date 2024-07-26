@@ -5,7 +5,7 @@ import cengine.vfs.VirtualFile
 /**
  * Listener interface for file tree change events.
  */
-interface FileTreeUIChangeListener {
+interface FileTreeUIListener {
     fun onNodeSelected(file: VirtualFile)
     fun onNodeExpanded(directory: VirtualFile)
     fun onNodeCollapsed(directory: VirtualFile)

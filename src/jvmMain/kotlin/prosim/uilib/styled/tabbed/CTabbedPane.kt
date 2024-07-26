@@ -1,0 +1,88 @@
+package prosim.uilib.styled.tabbed
+
+import com.formdev.flatlaf.extras.FlatSVGIcon
+import prosim.uilib.UIStates
+import prosim.uilib.styled.CIconButton
+import prosim.uilib.styled.CLabel
+import prosim.uilib.styled.CPanel
+import prosim.uilib.styled.params.FontType
+import java.awt.Color
+import java.awt.Component
+import java.awt.FlowLayout
+import java.awt.Font
+import javax.swing.JTabbedPane
+
+open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = FontType.BASIC) : JTabbedPane() {
+
+    val dndHandler = DnDHandler(this) // Reorderable Tabs functionality.
+
+    init {
+        this.setUI(CTabbedPaneUI())
+    }
+
+    fun addClosableTab(tab: TabProvider) {
+        val tabComponent = CPanel(primary).apply {
+            layout = FlowLayout(FlowLayout.LEFT, 0, 0)
+        }
+
+        val closeButton = CIconButton(UIStates.icon.get().close, CIconButton.Mode.SECONDARY_SMALL).apply {
+            addActionListener {
+                val index = indexOfTabComponent(tabComponent)
+                if (index != -1) {
+                    removeTabAt(index)
+                }
+            }
+        }
+
+        val title = object : CLabel(tab.title, svgIcon = tab.icon, mode = CIconButton.Mode.PRIMARY_SMALL) {
+            override fun getText(): String {
+                return tab.title
+            }
+        }
+
+        tabComponent.add(title)
+        tabComponent.add(closeButton)
+
+        addTab(tab.title, tab.component)
+        setTabComponentAt(tabCount - 1, tabComponent)
+        setToolTipTextAt(tabCount - 1, tab.tooltip)
+    }
+
+    fun moveTab(fromIndex: Int, toIndex: Int) {
+        val component = getComponentAt(fromIndex)
+        val title = getTitleAt(fromIndex)
+        removeTabAt(fromIndex)
+        insertTab(title, null, component, null, toIndex)
+        selectedIndex = toIndex
+    }
+
+    fun copyTabs(source: CTabbedPane) {
+        for (i in 0 until source.tabCount) {
+            addTab(source.getTitleAt(i), source.getComponentAt(i))
+        }
+    }
+
+    override fun getBackground(): Color {
+        return if (primary) UIStates.theme.get().COLOR_BG_0 else UIStates.theme.get().COLOR_BG_1
+    }
+
+    override fun getForeground(): Color {
+        return UIStates.theme.get().COLOR_FG_0
+    }
+
+    override fun getFont(): Font {
+        return try {
+            fontType.getFont()
+        } catch (e: NullPointerException) {
+            super.getFont()
+        }
+    }
+
+    interface TabProvider {
+        val title: String
+        val icon: FlatSVGIcon?
+        val component: Component
+        val tooltip: String?
+    }
+
+}

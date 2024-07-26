@@ -5,7 +5,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.LinearGradientPaint
 
-open class ColouredPanel(primary: Boolean) : CPanel(primary) {
+open class ColouredPanel() : CPanel() {
     private var colors: List<ColorAnker> = listOf(ColorAnker(0.0f, Color(0xc76b29)), ColorAnker(1.0f, Color(0x3d8fd1)))
         set(value) {
             field = value

@@ -62,8 +62,8 @@ interface FileTreeUI {
     /**
      * Set a listener for file tree events.
      *
-     * @param listener The [FileTreeUIChangeListener] to set.
+     * @param listener The [FileTreeUIListener] to set.
      */
-    fun setFileTreeListener(listener: FileTreeUIChangeListener)
+    fun setFileTreeListener(listener: FileTreeUIListener)
 
 }

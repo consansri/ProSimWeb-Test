@@ -1,7 +1,6 @@
-package prosim.uilib.styled
+package prosim.uilib.styled.tabbed
 
 import prosim.uilib.UIStates
-import prosim.uilib.styled.params.FontType
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -9,7 +8,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.plaf.basic.BasicTabbedPaneUI
 
-class CTabbedPaneUI( private val primary: Boolean, private val fontType: FontType) : BasicTabbedPaneUI() {
+class CTabbedPaneUI : BasicTabbedPaneUI() {
 
     private val selectedColor
         get() = UIStates.theme.get().COLOR_BORDER
@@ -39,8 +38,9 @@ class CTabbedPaneUI( private val primary: Boolean, private val fontType: FontTyp
 
     }
 
-    override fun paintTabBackground(g: Graphics?, tabPlacement: Int, tabIndex: Int, x: Int, y: Int, w: Int, h: Int, isSelected: Boolean) {
-
+    override fun paintTabBackground(g: Graphics, tabPlacement: Int, tabIndex: Int, x: Int, y: Int, w: Int, h: Int, isSelected: Boolean) {
+        g.color = tabPane.background
+        g.fillRect(x, y, w, h)
     }
 
     override fun paintFocusIndicator(g: Graphics?, tabPlacement: Int, rects: Array<out Rectangle>?, tabIndex: Int, iconRect: Rectangle?, textRect: Rectangle?, isSelected: Boolean) {

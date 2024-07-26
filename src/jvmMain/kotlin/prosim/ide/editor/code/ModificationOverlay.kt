@@ -1,7 +1,8 @@
-package prosim.ide.editor
+package prosim.ide.editor.code
 
 import cengine.editor.EditorModification
 import emulator.kit.assembler.CodeStyle
+import prosim.ide.editor.toColor
 import prosim.uilib.UIStates
 import prosim.uilib.alpha
 import prosim.uilib.styled.COverlay

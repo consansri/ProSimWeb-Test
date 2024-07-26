@@ -8,9 +8,9 @@ import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.util.SystemInfo
 import emulator.archs.ArchRV32
 import prosim.ide.MainAppWindow
-import prosim.ide.editor.PerformantCodeEditor
+import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
-import prosim.ide.filetree.FileTreeUIChangeListener
+import prosim.ide.filetree.FileTreeUIListener
 import prosim.ui.components.NativeFrame
 import prosim.uilib.styled.CSplitPane
 import prosim.uilib.styled.CTextField
@@ -75,7 +75,7 @@ fun testNewEditor() {
 
     val splitPane = CSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTree.createContainer(), CTextField("Open File!",fontType = FontType.BASIC))
 
-    fileTree.setFileTreeListener(object  : FileTreeUIChangeListener {
+    fileTree.setFileTreeListener(object  : FileTreeUIListener {
         override fun onNodeSelected(file: VirtualFile) {
 
         }

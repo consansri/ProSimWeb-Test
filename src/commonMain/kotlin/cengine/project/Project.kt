@@ -7,7 +7,7 @@ import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
 
-class Project(initialState: ProjectState, vararg languageServices: LanguageService): FileChangeListener {
+class Project(initialState: ProjectState, vararg languageServices: LanguageService) : FileChangeListener {
 
     val projectState: ProjectState = initialState
     val services: Set<LanguageService> = languageServices.toSet()
@@ -27,11 +27,11 @@ class Project(initialState: ProjectState, vararg languageServices: LanguageServi
         return getManager(service)
     }
 
-    fun register(editor: CodeEditor){
+    fun register(editor: CodeEditor) {
         currentEditors.add(editor)
     }
 
-    fun unregister(editor: CodeEditor){
+    fun unregister(editor: CodeEditor) {
         currentEditors.remove(editor)
     }
 
@@ -47,9 +47,8 @@ class Project(initialState: ProjectState, vararg languageServices: LanguageServi
         // nothing
     }
 
-    fun close(){
+    fun close() {
         fileSystem.close()
         currentEditors.clear()
     }
-
 }
