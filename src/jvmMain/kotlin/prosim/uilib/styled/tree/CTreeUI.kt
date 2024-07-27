@@ -154,16 +154,6 @@ class CTreeUI<T>(val nodeInformationProvider: NodeInformationProvider<T>) : Basi
                 c.text = value.toString()
             }
 
-            c.customBG = null /* if (selected) {
-                if (hasFocus) {
-                    UIStates.theme.get().COLOR_SELECTION
-                } else {
-                    UIStates.theme.get().COLOR_SELECTION
-                }
-            } else {
-                null
-            }*/
-
             c.customFG = UIStates.theme.get().COLOR_FG_0
 
             c.revalidate()
