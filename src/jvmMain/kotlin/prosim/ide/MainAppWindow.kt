@@ -5,22 +5,28 @@ import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
+import com.formdev.flatlaf.extras.FlatSVGIcon
 import emulator.archs.ArchRV32
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import prosim.ide.editor.CDraggableTabbedEditorPane
 import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIAdapter
+import prosim.uilib.UIResource
 import prosim.uilib.UIStates
-import prosim.uilib.styled.CIconToggle
-import prosim.uilib.styled.CPanel
-import prosim.uilib.styled.CResizableBorderPanel
-import prosim.uilib.styled.ColouredPanel
+import prosim.uilib.scale.core.Scaling
+import prosim.uilib.styled.*
 import prosim.uilib.styled.editor.CConsole
 import prosim.uilib.styled.params.BorderMode
+import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.params.IconSize
 import java.awt.*
 
 class MainAppWindow : CPanel() {
+
+    private val overlayScope = CoroutineScope(Dispatchers.Default)
 
     val project = Project(ProjectState("docs"), CownLang, AsmLang(ArchRV32().assembler))
 
@@ -142,14 +148,84 @@ class MainAppWindow : CPanel() {
      */
     private inner class NORTHControls() : CPanel(borderMode = BorderMode.SOUTH) {
 
+        private var currOverlay: CDialog? = null
+
+        private val emptyFiller = object : CPanel() {
+            override val customBG: Color = Color(0, 0, 0, 0)
+        }
+
+        private val scaleSwitch = CChooser<Scaling>(CChooser.Model(UIResource.scalings, UIStates.scale.get(), "Scale"), FontType.BASIC, {
+            UIStates.scale.set(it)
+        })
+
+        private val themeButton = object : CIconButton(UIStates.theme.get().icon) {
+            override val iconSupplier: FlatSVGIcon
+                get() = UIStates.theme.get().icon
+        }.apply {
+            addActionListener {
+                currOverlay?.dispose()
+                showThemeSelector()
+            }
+        }
+
+        private val settingsButton = CIconButton(UIStates.icon.get().settings).apply {
+            addActionListener {
+                currOverlay?.dispose()
+                showSettings()
+            }
+        }
+
         init {
             layout = GridBagLayout()
 
+            val gbc = GridBagConstraints()
+            gbc.gridx = 0
+            gbc.gridy = 0
+            gbc.weightx = 0.0
+            gbc.weighty = 0.0
+            gbc.fill = GridBagConstraints.NONE
+
+            gbc.gridx += 1
+            gbc.weightx = 1.0
+            gbc.weighty = 1.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            add(emptyFiller, gbc)
+
+            gbc.gridx += 1
+            gbc.weightx = 0.0
+            gbc.weighty = 0.0
+            gbc.fill = GridBagConstraints.NONE
+
+            add(scaleSwitch, gbc)
+
+            gbc.gridx += 1
+            add(themeButton, gbc)
+
+            gbc.gridx += 1
+            add(settingsButton, gbc)
         }
 
         private fun setNorthContent(content: Component?) {
             if (content == null) return contentPane.removeComponentsAtConstraint(BorderLayout.NORTH)
             contentPane.add(content, BorderLayout.NORTH)
+        }
+
+        private fun showSettings() {
+            overlayScope.launch {
+
+            }
+        }
+
+        private fun showThemeSelector() {
+            overlayScope.launch {
+                val (dialog, theme) = COptionPane.showSelector(this@MainAppWindow, "Theme", UIResource.themes)
+                val newTheme = theme.await()
+                if (newTheme != null) {
+                    UIStates.theme.set(newTheme)
+                    revalidate()
+                    repaint()
+                }
+            }
         }
     }
 

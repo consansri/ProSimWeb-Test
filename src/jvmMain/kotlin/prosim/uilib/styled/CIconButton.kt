@@ -61,6 +61,8 @@ open class CIconButton(icon: FlatSVGIcon, iconSize: IconSize = IconSize.PRIMARY_
             repaint()
         }
 
+    open val iconSupplier: FlatSVGIcon? = null
+
     var svgIcon = icon
         set(value) {
             field = value
@@ -69,7 +71,7 @@ open class CIconButton(icon: FlatSVGIcon, iconSize: IconSize = IconSize.PRIMARY_
         }
         get() {
             val size = mode.size(UIStates.scale.get())
-            val icon = field
+            val icon = iconSupplier ?: field
             val customColor = customColor
 
             if (customColor != null) {

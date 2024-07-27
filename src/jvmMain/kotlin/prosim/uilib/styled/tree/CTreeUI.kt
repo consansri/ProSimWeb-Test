@@ -1,7 +1,6 @@
 package prosim.uilib.styled.tree
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.BorderMode
@@ -105,7 +104,6 @@ class CTreeUI<T>(val nodeInformationProvider: NodeInformationProvider<T>) : Basi
                 c.text = nodeInformationProvider.getName(uobj)
 
                 val loadedIcon = if (leaf) {
-                    nativeLog("uobj: ${(value as? DefaultMutableTreeNode)?.userObject!!::class.simpleName}")
                     nodeInformationProvider.getIcon(uobj) ?: UIStates.icon.get().file
                 } else {
                     if (expanded) {

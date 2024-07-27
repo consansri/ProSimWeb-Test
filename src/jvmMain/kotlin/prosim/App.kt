@@ -12,6 +12,7 @@ import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIListener
 import prosim.ui.components.NativeFrame
+import prosim.uilib.UIStates
 import prosim.uilib.styled.CSplitPane
 import prosim.uilib.styled.CTextField
 import prosim.uilib.styled.params.FontType
@@ -56,14 +57,22 @@ fun launchBaseApp() {
 
 fun testMainAppWindow(){
 
-    val frame = JFrame()
+    val frame = object : JFrame() {
+        val themeListener = UIStates.theme.createAndAddListener {
+            revalidate()
+            repaint()
+        }
+        val scaleListener = UIStates.scale.createAndAddListener {
+            revalidate()
+            repaint()
+        }
+    }
 
     frame.contentPane = MainAppWindow()
     frame.size = Dimension(1600, 1200)
     frame.setLocationRelativeTo(null)
     frame.isVisible = true
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-
 }
 
 fun testNewEditor() {

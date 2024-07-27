@@ -56,6 +56,13 @@ class PerformantCodeEditor(
 
     private var scrollPane: CScrollPane? = null
 
+    private val scaleListener = UIStates.scale.createAndAddListener {
+        codeFont = FontType.CODE.getFont()
+        fontBase = FontType.CODE_INFO.getFont()
+        revalidate()
+        repaint()
+    }
+
     var codeFont: Font = FontType.CODE.getFont()
         set(value) {
             field = value
@@ -163,6 +170,7 @@ class PerformantCodeEditor(
 
     inner class VirtualLayout {
         private var cachedLines: List<LineInfo> = listOf()
+
         var fmBase = getFontMetrics(fontBase) // TODO make listen to Theme/Scale changes
             set(value) {
                 field = value
@@ -366,15 +374,15 @@ class PerformantCodeEditor(
         private val fmCode: FontMetrics get() = vLayout.fmCode
         private val fmBase: FontMetrics get() = vLayout.fmBase
 
-        private var fg: Color = UIStates.theme.get().getColor(CodeStyle.BASE0)
-        private var bg: Color = UIStates.theme.get().COLOR_BG_0
+        private val fg: Color get() = UIStates.theme.get().getColor(CodeStyle.BASE0)
+        private val bg: Color get() = UIStates.theme.get().COLOR_BG_0
 
-        private val foldIndication: Color = UIStates.theme.get().getColor(CodeStyle.YELLOW).alpha(13)
-        private val secFGColor: Color = UIStates.theme.get().getColor(CodeStyle.BASE4)
-        private val secBGColor: Color = UIStates.theme.get().getColor(CodeStyle.BASE6)
+        private val foldIndication: Color get() = UIStates.theme.get().getColor(CodeStyle.YELLOW).alpha(13)
+        private val secFGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BASE4)
+        private val secBGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BASE6)
 
-        private val selColor = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x55)
-        private val markBGColor = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x13)
+        private val selColor get() =  UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x55)
+        private val markBGColor get() =  UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x13)
 
         private val collapseIcon = UIStates.icon.get().folderClosed.apply {
             colorFilter = ColorFilter() {
@@ -491,7 +499,7 @@ class PerformantCodeEditor(
 
                 // Draw Caret
                 if (selector.caret.index == charIndex) {
-                    color = foreground
+                    color = fg
                     fillRect(internalXOffset, internalYOffset + vLayout.linePadding, strokeWidth, fmCode.height)
                 }
 
