@@ -1,10 +1,12 @@
 package prosim.uilib.styled.tree
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
+import emulator.kit.nativeLog
 import prosim.uilib.UIStates
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.params.IconSize
 import prosim.uilib.workspace.Workspace
 import java.awt.*
 import javax.swing.BorderFactory
@@ -16,16 +18,20 @@ import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
 
-class CTreeUI : BasicTreeUI() {
+class CTreeUI<T>(val nodeInformationProvider: NodeInformationProvider<T>) : BasicTreeUI() {
     val colorFilter: FlatSVGIcon.ColorFilter
         get() = FlatSVGIcon.ColorFilter {
-            UIStates.theme.get().COLOR_ICON_FG_0
+            if (it == Color.black) {
+                UIStates.theme.get().COLOR_ICON_FG_0
+            } else {
+                it
+            }
         }
 
     override fun installUI(c: JComponent?) {
         super.installUI(c)
 
-        val cTree = c as? CTree ?: return
+        val cTree = c as? CTree<*> ?: return
         cTree.border = BorderFactory.createEmptyBorder(
             UIStates.scale.get().SIZE_INSET_MEDIUM,
             UIStates.scale.get().SIZE_INSET_MEDIUM,
@@ -88,33 +94,31 @@ class CTreeUI : BasicTreeUI() {
     }
 
     inner class CNewTreeCellRenderer : TreeCellRenderer {
-        val c = CLabel("", FontType.BASIC, BorderMode.SMALL)
+        val c = CLabel("", FontType.BASIC, BorderMode.SMALL, iconSize = IconSize.PRIMARY_SMALL)
         override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, selected: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
-            c.text = value.toString()
+
             c.isOpaque = selected
 
-            val uobj = ((value as? DefaultMutableTreeNode)?.userObject as? TreeIconProvider)
+            val uobj = (value as? DefaultMutableTreeNode)?.userObject as? T
 
-            val loadedIcon = if (leaf) {
-                uobj?.getIcon()?.derive(
-                    UIStates.scale.get().SIZE_CONTROL_SMALL,
-                    UIStates.scale.get().SIZE_CONTROL_SMALL
-                ) ?: UIStates.icon.get().file.derive(
-                    UIStates.scale.get().SIZE_CONTROL_SMALL,
-                    UIStates.scale.get().SIZE_CONTROL_SMALL
-                )
-            } else {
-                if (expanded) {
-                    UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().SIZE_CONTROL_SMALL,
-                        UIStates.scale.get().SIZE_CONTROL_SMALL
-                    )
+            if (uobj != null) {
+                c.text = nodeInformationProvider.getName(uobj)
+
+                val loadedIcon = if (leaf) {
+                    nativeLog("uobj: ${(value as? DefaultMutableTreeNode)?.userObject!!::class.simpleName}")
+                    nodeInformationProvider.getIcon(uobj) ?: UIStates.icon.get().file
                 } else {
-                    UIStates.icon.get().folder.derive(
-                        UIStates.scale.get().SIZE_CONTROL_SMALL,
-                        UIStates.scale.get().SIZE_CONTROL_SMALL
-                    )
+                    if (expanded) {
+                        UIStates.icon.get().folder
+                    } else {
+                        UIStates.icon.get().folder
+                    }
                 }
+                loadedIcon.colorFilter = colorFilter
+                c.svgIcon = loadedIcon
+
+            } else {
+                c.text = value.toString()
             }
 
             c.customBG = if (selected) {
@@ -127,9 +131,8 @@ class CTreeUI : BasicTreeUI() {
                 null
             }
 
-            loadedIcon.colorFilter = colorFilter
             c.customFG = UIStates.theme.get().COLOR_FG_0
-            c.icon = loadedIcon
+
             c.revalidate()
             c.repaint()
             return c

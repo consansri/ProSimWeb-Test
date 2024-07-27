@@ -13,6 +13,7 @@ import prosim.ui.components.tree.FileTree
 import prosim.uilib.UIStates
 import prosim.uilib.state.*
 import prosim.uilib.styled.*
+import prosim.uilib.styled.params.IconSize
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
@@ -104,8 +105,8 @@ class BaseFrame() : CFrame(), ProSimFrame {
     private fun attachComponents() {
         content.layout = BorderLayout()
 
-        infoTabPane.addTab(CIcon(UIStates.icon.get().console, CIconButton.Mode.PRIMARY_SMALL), console)
-        infoTabPane.addTab(CIcon(UIStates.icon.get().info, CIconButton.Mode.SECONDARY_SMALL), infoView)
+        infoTabPane.addTab(CIcon(UIStates.icon.get().console, IconSize.PRIMARY_SMALL), console)
+        infoTabPane.addTab(CIcon(UIStates.icon.get().info, IconSize.SECONDARY_SMALL), infoView)
 
         infoTabPane.select(0)
 

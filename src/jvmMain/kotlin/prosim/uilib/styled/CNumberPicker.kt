@@ -2,6 +2,7 @@ package prosim.uilib.styled
 
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.params.IconSize
 import java.awt.BorderLayout
 import javax.swing.SwingConstants
 
@@ -12,13 +13,13 @@ class CNumberPicker<T : Number>(private val model: Model<T>, private val onChang
         verticalAlignment = SwingConstants.CENTER
     }
 
-    private val increase = CIconButton(UIStates.icon.get().increase, CIconButton.Mode.PRIMARY_SMALL).apply {
+    private val increase = CIconButton(UIStates.icon.get().increase, IconSize.PRIMARY_SMALL).apply {
         addActionListener {
             value = model.next(value)
         }
     }
 
-    private val decrease = CIconButton(UIStates.icon.get().decrease, CIconButton.Mode.PRIMARY_SMALL).apply {
+    private val decrease = CIconButton(UIStates.icon.get().decrease, IconSize.PRIMARY_SMALL).apply {
         addActionListener {
             value = model.prev(value)
         }

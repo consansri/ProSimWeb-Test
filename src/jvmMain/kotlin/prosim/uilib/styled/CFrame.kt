@@ -6,6 +6,7 @@ import prosim.uilib.scale.core.Scaling
 import prosim.uilib.state.StateListener
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.params.IconSize
 import prosim.uilib.theme.core.Theme
 import java.awt.*
 import java.awt.event.MouseAdapter
@@ -94,25 +95,25 @@ open class CFrame() : JFrame() {
 
     inner class TitleBar : CPanel(primary = false, BorderMode.SOUTH) {
 
-        val themeListener = object : StateListener<Theme>{
+        val themeListener = object : StateListener<Theme> {
             override suspend fun onStateChange(newVal: Theme) {
                 applyThemeDefaults()
             }
         }
 
-        val scaleListener = object  : StateListener<Scaling>{
+        val scaleListener = object : StateListener<Scaling> {
             override suspend fun onStateChange(newVal: Scaling) {
                 applyThemeDefaults()
             }
         }
 
-        val logoButton = CIconButton(UIStates.icon.get().appLogo, CIconButton.Mode.GRADIENT_NORMAL)
+        val logoButton = CIconButton(UIStates.icon.get().appLogo, IconSize.GRADIENT_NORMAL)
 
 
         val titleLabel = CLabel(title, FontType.BASIC)
-        val minimizeButton = CIconButton(UIStates.icon.get().decrease, CIconButton.Mode.SECONDARY_SMALL)
-        val maximizeButton = CIconButton(UIStates.icon.get().increase, CIconButton.Mode.SECONDARY_SMALL)
-        val closeButton = CIconButton(UIStates.icon.get().close, CIconButton.Mode.SECONDARY_SMALL)
+        val minimizeButton = CIconButton(UIStates.icon.get().decrease, IconSize.SECONDARY_SMALL)
+        val maximizeButton = CIconButton(UIStates.icon.get().increase, IconSize.SECONDARY_SMALL)
+        val closeButton = CIconButton(UIStates.icon.get().close, IconSize.SECONDARY_SMALL)
         val titleContent = CPanel(primary = false)
 
         init {
@@ -208,7 +209,9 @@ open class CFrame() : JFrame() {
 
         private fun applyThemeDefaults() {
             UIStates.icon.get().appLogo.colorFilter = FlatSVGIcon.ColorFilter {
-                UIStates.theme.get().COLOR_FG_0
+                if (it == Color.black) {
+                    UIStates.theme.get().COLOR_FG_0
+                } else it
             }
 
             logoButton.svgIcon = UIStates.icon.get().appLogo
@@ -316,8 +319,6 @@ open class CFrame() : JFrame() {
         LEFTANDBOTTOM(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR)),
         RIGHTANDBOTTOM(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR))
     }
-
-
 
 
 }

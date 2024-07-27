@@ -378,13 +378,17 @@ class PerformantCodeEditor(
 
         private val collapseIcon = UIStates.icon.get().folderClosed.apply {
             colorFilter = ColorFilter() {
-                secFGColor
+                if (it == Color.black) {
+                    secFGColor
+                } else it
             }
         }.derive(vLayout.lineIconSize, vLayout.lineIconSize).image
 
         private val ellapseIcon = UIStates.icon.get().folderOpen.apply {
             colorFilter = ColorFilter {
-                secFGColor
+                if (it == Color.black) {
+                    secFGColor
+                } else it
             }
         }.derive(vLayout.lineIconSize, vLayout.lineIconSize).image
 

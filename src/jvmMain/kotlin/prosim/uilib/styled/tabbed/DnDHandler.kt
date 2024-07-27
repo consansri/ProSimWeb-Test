@@ -1,42 +1,39 @@
 package prosim.uilib.styled.tabbed
 
+import emulator.kit.nativeLog
 import java.awt.Component
+import java.awt.KeyboardFocusManager
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.dnd.*
 
-class DnDHandler(val tabbedPane: CTabbedPane) : DropTargetListener, DragSourceListener, DragGestureListener {
+class DnDHandler(tabbedPane: CTabbedPane) : DropTargetListener, DragSourceListener, DragGestureListener {
 
     private val dragSource = DragSource.getDefaultDragSource()
-    private var draggingTabIndex: Int = -1
 
     init {
-        setup()
+        setup(tabbedPane)
     }
 
-    private fun setup() {
+    private fun setup(tabbedPane: CTabbedPane) {
         dragSource.createDefaultDragGestureRecognizer(tabbedPane, DnDConstants.ACTION_MOVE, this)
         DropTarget(tabbedPane, DnDConstants.ACTION_MOVE, this, true)
     }
 
     override fun dragEnter(dtde: DropTargetDragEvent) {
-        if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+        if (dtde.isDataFlavorSupported(TabData.flavor)) {
             dtde.acceptDrag(DnDConstants.ACTION_MOVE)
+        } else {
+            dtde.rejectDrag()
         }
     }
 
     override fun dragOver(dtde: DropTargetDragEvent) {
         if (dtde.isDataFlavorSupported(TabData.flavor)) {
-            val targetIndex = tabbedPane.indexAtLocation(dtde.location.x, dtde.location.y)
-            if (targetIndex >= 0 && targetIndex != draggingTabIndex) {
-                val tabComp = dtde.transferable.getTransferData(TabData.flavor) as TabData
-                tabbedPane.removeTabAt(draggingTabIndex)
-                tabbedPane.insertTab("", null, tabComp.contentComp, null, targetIndex)
-                tabbedPane.setTabComponentAt(targetIndex, tabComp.tabComp)
-
-                draggingTabIndex = targetIndex
-            }
+            dtde.acceptDrag(DnDConstants.ACTION_MOVE)
+        } else {
+            dtde.rejectDrag()
         }
     }
 
@@ -47,31 +44,48 @@ class DnDHandler(val tabbedPane: CTabbedPane) : DropTargetListener, DragSourceLi
     override fun drop(dtde: DropTargetDropEvent) {
         if (dtde.isDataFlavorSupported(TabData.flavor)) {
             dtde.acceptDrop(DnDConstants.ACTION_MOVE)
+
+            val tabData = dtde.transferable.getTransferData(TabData.flavor) as TabData
+
+            val target = dtde.dropTargetContext.component as? CTabbedPane ?: return
+            val targetIndex = target.indexAtLocation(dtde.location.x, dtde.location.y)
+
+            if (targetIndex >= 0 && (target != tabData.sourceTabbedPane || targetIndex != tabData.sourceTabIndex)) {
+
+                tabData.sourceTabbedPane.removeTabAt(tabData.sourceTabIndex)
+
+                target.insertTab("", null, tabData.contentComp, null, targetIndex)
+                target.setTabComponentAt(targetIndex, tabData.tabComp)
+            }
+
             dtde.dropComplete(true)
         } else {
             dtde.rejectDrop()
         }
     }
 
-    override fun dragEnter(dsde: DragSourceDragEvent?) {}
+    override fun dragEnter(dsde: DragSourceDragEvent?) {
+        nativeLog("Drag entered, focused component: ${KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner}")
+    }
 
     override fun dragOver(dsde: DragSourceDragEvent) {
+
     }
 
     override fun dropActionChanged(dsde: DragSourceDragEvent?) {}
 
     override fun dragExit(dse: DragSourceEvent?) {}
 
-    override fun dragDropEnd(dsde: DragSourceDropEvent?) {
-        draggingTabIndex = -1
-    }
+    override fun dragDropEnd(dsde: DragSourceDropEvent) {}
 
     override fun dragGestureRecognized(dge: DragGestureEvent) {
-        draggingTabIndex = tabbedPane.indexAtLocation(dge.dragOrigin.x, dge.dragOrigin.y)
+        val sourceTabbedPane = dge.component as? CTabbedPane ?: return
+        val draggingTabIndex = sourceTabbedPane.indexAtLocation(dge.dragOrigin.x, dge.dragOrigin.y)
         if (draggingTabIndex >= 0) {
-            val contentComponent = tabbedPane.getComponentAt(draggingTabIndex)
-            val tabComponent = tabbedPane.getTabComponentAt(draggingTabIndex)
-            val transferable = TabTransferable(TabData(tabComponent, contentComponent))
+            val contentComponent = sourceTabbedPane.getComponentAt(draggingTabIndex)
+            val tabComponent = sourceTabbedPane.getTabComponentAt(draggingTabIndex)
+
+            val transferable = TabTransferable(TabData(tabComponent, contentComponent, sourceTabbedPane, draggingTabIndex))
 
             dragSource.startDrag(dge, DragSource.DefaultMoveDrop, transferable, this)
         }
@@ -79,7 +93,9 @@ class DnDHandler(val tabbedPane: CTabbedPane) : DropTargetListener, DragSourceLi
 
     data class TabData(
         val tabComp: Component,
-        val contentComp: Component
+        val contentComp: Component,
+        val sourceTabbedPane: CTabbedPane,
+        val sourceTabIndex: Int
     ) {
         companion object {
             val flavor: DataFlavor = DataFlavor(TabData::class.java, "Tab Data")

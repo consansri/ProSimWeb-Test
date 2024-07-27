@@ -7,7 +7,9 @@ import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.params.IconSize
 import java.awt.*
+import java.awt.event.MouseListener
 import javax.swing.JTabbedPane
 import javax.swing.border.Border
 
@@ -19,12 +21,12 @@ open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = Fon
         this.setUI(CTabbedPaneUI())
     }
 
-    fun addClosableTab(tab: TabProvider) {
+    fun addClosableTab(tab: TabProvider, mouseListener: MouseListener? = null) {
         val tabComponent = CPanel(primary).apply {
             layout = FlowLayout(FlowLayout.LEFT, 0, 0)
         }
 
-        val closeButton = CIconButton(UIStates.icon.get().close, CIconButton.Mode.SECONDARY_SMALL).apply {
+        val closeButton = CIconButton(UIStates.icon.get().close, IconSize.SECONDARY_SMALL).apply {
             addActionListener {
                 val index = indexOfTabComponent(tabComponent)
                 if (index != -1) {
@@ -33,7 +35,7 @@ open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = Fon
             }
         }
 
-        val title = object : CLabel(tab.title, svgIcon = tab.icon, mode = CIconButton.Mode.PRIMARY_SMALL) {
+        val title = object : CLabel(tab.title, svgIcon = tab.icon, iconSize = IconSize.PRIMARY_SMALL) {
             override fun getText(): String {
                 return tab.title
             }
@@ -41,6 +43,7 @@ open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = Fon
 
         tabComponent.add(title)
         tabComponent.add(closeButton)
+        if (mouseListener != null) tabComponent.addMouseListener(mouseListener)
 
         addTab(tab.title, tab.component)
         setTabComponentAt(tabCount - 1, tabComponent)
@@ -99,5 +102,6 @@ open class CTabbedPane(val primary: Boolean = true, val fontType: FontType = Fon
         val component: Component
         val tooltip: String?
     }
+
 
 }

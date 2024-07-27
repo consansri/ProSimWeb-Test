@@ -11,9 +11,13 @@ import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIAdapter
 import prosim.uilib.UIStates
-import prosim.uilib.styled.*
+import prosim.uilib.styled.CIconToggle
+import prosim.uilib.styled.CPanel
+import prosim.uilib.styled.CResizableBorderPanel
+import prosim.uilib.styled.ColouredPanel
 import prosim.uilib.styled.editor.CConsole
 import prosim.uilib.styled.params.BorderMode
+import prosim.uilib.styled.params.IconSize
 import java.awt.*
 
 class MainAppWindow : CPanel() {
@@ -77,7 +81,7 @@ class MainAppWindow : CPanel() {
      */
     private inner class WESTControls() : CPanel(borderMode = BorderMode.EAST) {
 
-        private val openFileTree = CIconToggle(UIStates.icon.get().folder, false, CIconButton.Mode.PRIMARY_NORMAL) {
+        private val openFileTree = CIconToggle(UIStates.icon.get().folder, false, IconSize.PRIMARY_NORMAL) {
             if (it) {
                 setLeftContent(fileTree.createContainer())
             } else {
@@ -89,7 +93,7 @@ class MainAppWindow : CPanel() {
             override val customBG: Color = Color(0, 0, 0, 0)
         }
 
-        private val openConsole = CIconToggle(UIStates.icon.get().console, false, CIconButton.Mode.PRIMARY_NORMAL) {
+        private val openConsole = CIconToggle(UIStates.icon.get().console, false, IconSize.PRIMARY_NORMAL) {
             if (it) {
                 setBottomContent(console)
             } else {

@@ -14,8 +14,8 @@ import prosim.uilib.scale.core.Scaling
 import prosim.uilib.state.*
 import prosim.uilib.styled.CAdvancedTabPane
 import prosim.uilib.styled.CIcon
-import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CSplitPane
+import prosim.uilib.styled.params.IconSize
 import prosim.uilib.theme.core.Theme
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -129,8 +129,8 @@ class NativeFrame : JFrame(), ProSimFrame {
     private fun attachComponents() {
         layout = BorderLayout()
 
-        infoTabPane.addTab(CIcon(UIStates.icon.get().console, mode = CIconButton.Mode.PRIMARY_SMALL), console)
-        infoTabPane.addTab(CIcon(UIStates.icon.get().info, mode = CIconButton.Mode.SECONDARY_SMALL), infoView)
+        infoTabPane.addTab(CIcon(UIStates.icon.get().console, iconSize = IconSize.PRIMARY_SMALL), console)
+        infoTabPane.addTab(CIcon(UIStates.icon.get().info, iconSize = IconSize.SECONDARY_SMALL), infoView)
 
         infoTabPane.select(0)
 

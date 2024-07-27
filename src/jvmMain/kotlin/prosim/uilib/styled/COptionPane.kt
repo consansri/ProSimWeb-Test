@@ -1,9 +1,11 @@
 package prosim.uilib.styled
 
+import com.formdev.flatlaf.extras.FlatSVGIcon
 import kotlinx.coroutines.*
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.tree.CTree
+import prosim.uilib.styled.tree.NodeInformationProvider
 import prosim.uilib.workspace.Workspace
 import java.awt.*
 import java.awt.event.FocusAdapter
@@ -105,7 +107,11 @@ class COptionPane : JOptionPane() {
             // Scrollable Tree View
             val root = DefaultMutableTreeNode("root")
             val treeModel = DefaultTreeModel(root)
-            val tree = CTree(treeModel, FontType.BASIC)
+            val tree = CTree(treeModel, FontType.BASIC, object : NodeInformationProvider<File>{
+                override fun getIcon(userObject: File): FlatSVGIcon? = null
+
+                override fun getName(userObject: File): String? = userObject.name
+            })
             val cScrollPane = CScrollPane(false)
             cScrollPane.setViewportView(tree)
             cScrollPane.preferredSize = Dimension(600, 800)

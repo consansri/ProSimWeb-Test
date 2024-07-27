@@ -8,6 +8,7 @@ import prosim.ui.States.save
 import prosim.uilib.UIStates
 import prosim.uilib.styled.*
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.params.IconSize
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -60,7 +61,7 @@ class Settings : CIconButton(UIStates.icon.get().settings) {
 
         val component: Component = when (this) {
             is SetupSetting.Bool -> {
-                CSwitch(this.get(), Mode.PRIMARY_NORMAL) {
+                CSwitch(this.get(), IconSize.PRIMARY_NORMAL) {
                     this@toSwing.set(arch, it)
                     this@toSwing.save(arch)
                     Events.archSettingChange.triggerEvent(arch)

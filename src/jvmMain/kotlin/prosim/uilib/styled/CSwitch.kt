@@ -1,17 +1,18 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
+import prosim.uilib.styled.params.IconSize
 import javax.swing.Icon
 import javax.swing.JButton
 
-class CSwitch(active: Boolean, mode: CIconButton.Mode = CIconButton.Mode.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
+class CSwitch(active: Boolean, iconSize: IconSize = IconSize.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
     var active: Boolean = active
         set(value) {
             field = value
             repaint()
         }
 
-    var mode: CIconButton.Mode = mode
+    var mode: IconSize = iconSize
         set(value) {
             field = value
             repaint()

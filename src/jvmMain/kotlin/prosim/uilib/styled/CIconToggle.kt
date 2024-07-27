@@ -2,6 +2,7 @@ package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.uilib.UIStates
+import prosim.uilib.styled.params.IconSize
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -9,7 +10,7 @@ import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.border.Border
 
-class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean = false, val mode: CIconButton.Mode = CIconButton.Mode.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
+class CIconToggle(val svgIcon: FlatSVGIcon, active: Boolean = false, val mode: IconSize = IconSize.PRIMARY_NORMAL, onChange: (Boolean) -> Unit) : JButton() {
 
     var active: Boolean = active
         set(value) {

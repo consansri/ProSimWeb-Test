@@ -8,10 +8,10 @@ import javax.swing.JTree
 import javax.swing.border.Border
 import javax.swing.tree.TreeModel
 
-class CTree(treeModel: TreeModel, val fontType: FontType) : JTree(treeModel) {
+class CTree<T>(treeModel: TreeModel, val fontType: FontType, val nodeInformationProvider: NodeInformationProvider<T>) : JTree(treeModel) {
 
     init {
-        setUI(CTreeUI())
+        setUI(CTreeUI<T>(nodeInformationProvider))
     }
 
     override fun getFont(): Font {

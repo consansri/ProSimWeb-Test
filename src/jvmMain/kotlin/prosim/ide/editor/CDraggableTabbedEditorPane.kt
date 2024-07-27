@@ -1,37 +1,26 @@
 package prosim.ide.editor
 
-import prosim.uilib.styled.CLabel
-import prosim.uilib.styled.CPanel
-import prosim.uilib.styled.CSplitPane
+import prosim.uilib.UIStates
+import prosim.uilib.styled.*
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.tabbed.CTabbedPane
+import prosim.uilib.styled.tabbed.DnDHandler
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionAdapter
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
 
-class CDraggableTabbedEditorPane : CPanel() {
+class CDraggableTabbedEditorPane() : CPanel() {
 
     private val placeholder: CPanel = CPanel(true).apply {
         layout = BorderLayout()
         add(CLabel("Open File through Tree", FontType.CODE), BorderLayout.CENTER)
     }
-    private val leftPane: CTabbedPane = CTabbedPane().apply {
-        addMouseListener(TabMouseListener())
-        addMouseMotionListener(TabMouseMotionListener())
-    }
-    private val rightPane: CTabbedPane = CTabbedPane().apply {
-        addMouseListener(TabMouseListener())
-        addMouseMotionListener(TabMouseMotionListener())
-    }
+    private val leftPane: CTabbedPane = CTabbedPane()
+    private val rightPane: CTabbedPane = CTabbedPane()
     private var splitPane: CSplitPane? = null
-    private var draggedTab: EditorComponent? = null
-    private var draggedTabIndex: Int = -1
-    private var draggedTabPane: CTabbedPane? = null
     private var state: State = State.EMPTY
 
     init {
@@ -80,93 +69,24 @@ class CDraggableTabbedEditorPane : CPanel() {
         }
     }
 
-    private inner class TabMouseListener : MouseAdapter() {
-        override fun mousePressed(e: MouseEvent) {
-            val tabbedPane = e.source as CTabbedPane
-            draggedTabIndex = tabbedPane.indexAtLocation(e.x, e.y)
-            if (draggedTabIndex != -1) {
-                draggedTab = tabbedPane.getComponentAt(draggedTabIndex) as? EditorComponent
-                draggedTabPane = tabbedPane
-            }
-        }
+    fun CTabbedPane.toOtherPane(index: Int) {
+        if (this == leftPane) {
+            val tabComponent = leftPane.getTabComponentAt(index)
+            val contentComponent = leftPane.getComponentAt(index)
+            leftPane.removeTabAt(index)
 
-        override fun mouseReleased(e: MouseEvent) {
-            if (draggedTab != null) {
-                val dropLocation = SwingUtilities.convertPoint(e.source as Component, e.point, this@CDraggableTabbedEditorPane)
-                handleTabDrop(dropLocation)
-            }
-            draggedTab = null
-            draggedTabIndex = -1
-            draggedTabPane = null
-        }
-    }
-
-    private inner class TabMouseMotionListener : MouseMotionAdapter() {
-        override fun mouseDragged(e: MouseEvent) {
-            repaint()
-        }
-    }
-
-    private fun handleTabDrop(dropLocation: Point) {
-        val targetComponent = findComponentAt(dropLocation)
-        when (targetComponent) {
-            is CTabbedPane -> moveTabToPane(targetComponent, dropLocation)
-            else -> splitOrMerge(dropLocation)
-        }
-    }
-
-    private fun moveTabToPane(targetPane: CTabbedPane, dropLocation: Point) {
-        if (draggedTabPane != targetPane) {
-            draggedTabPane?.remove(draggedTab)
-            val targetIndex = targetPane.indexAtLocation(dropLocation.x, dropLocation.y)
-            if (targetIndex != -1) {
-                targetPane.insertTab(draggedTab!!.name, null, draggedTab, null, targetIndex)
-            } else {
-                targetPane.addTab(draggedTab!!.name, draggedTab)
-            }
+            val insertIndex = rightPane.tabCount
+            rightPane.insertTab("", null, contentComponent, null, insertIndex)
+            rightPane.setTabComponentAt(insertIndex, tabComponent)
         } else {
-            val targetIndex = targetPane.indexAtLocation(dropLocation.x, dropLocation.y)
-            if (targetIndex != -1 && targetIndex != draggedTabIndex) {
-                targetPane.moveTab(draggedTabIndex, targetIndex)
-            }
+            val tabComponent = rightPane.getTabComponentAt(index)
+            val contentComponent = rightPane.getComponentAt(index)
+            rightPane.removeTabAt(index)
+
+            val insertIndex = leftPane.tabCount
+            leftPane.insertTab("", null, contentComponent, null, insertIndex)
+            leftPane.setTabComponentAt(insertIndex, tabComponent)
         }
-        cleanupEmptyPanes()
-    }
-
-    private fun splitOrMerge(dropLocation: Point) {
-        when {
-            splitPane == null -> {
-                val orientation = if (dropLocation.x > width / 2) JSplitPane.HORIZONTAL_SPLIT else JSplitPane.VERTICAL_SPLIT
-                draggedTabPane?.remove(draggedTab)
-                rightPane.addTab(draggedTab!!.name, draggedTab)
-                showSplitPane(orientation)
-            }
-
-            dropLocation.x < width / 3 -> {
-                splitPane?.orientation = JSplitPane.HORIZONTAL_SPLIT
-                draggedTabPane?.remove(draggedTab)
-                leftPane.addTab(draggedTab!!.name, draggedTab)
-            }
-
-            dropLocation.x > width * 2 / 3 -> {
-                splitPane?.orientation = JSplitPane.HORIZONTAL_SPLIT
-                draggedTabPane?.remove(draggedTab)
-                rightPane.addTab(draggedTab!!.name, draggedTab)
-            }
-
-            dropLocation.y < height / 3 -> {
-                splitPane?.orientation = JSplitPane.VERTICAL_SPLIT
-                draggedTabPane?.remove(draggedTab)
-                leftPane.addTab(draggedTab!!.name, draggedTab)
-            }
-
-            dropLocation.y > height * 2 / 3 -> {
-                splitPane?.orientation = JSplitPane.VERTICAL_SPLIT
-                draggedTabPane?.remove(draggedTab)
-                rightPane.addTab(draggedTab!!.name, draggedTab)
-            }
-        }
-        cleanupEmptyPanes()
     }
 
     fun cleanupEmptyPanes() {
@@ -188,6 +108,69 @@ class CDraggableTabbedEditorPane : CPanel() {
         SINGLE,
         MULTIPLE_HORIZONTAL,
         MULTIPLE_VERTICAL
+    }
+
+    inner class RightClickMenu : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+            if (SwingUtilities.isRightMouseButton(e)) {
+                val sourcePane = e.source as? CTabbedPane ?: return
+                val index = sourcePane.indexAtLocation(e.x, e.y)
+                if (index == -1) return
+
+                showPopupMenu(e.point, sourcePane, index)
+            }
+        }
+
+        private fun showPopupMenu(point: Point, tabbedPane: CTabbedPane, index: Int) {
+            val menu = CPopupMenu()
+
+            val splitHorizontally = CMenuItem("Split Horizontally").apply {
+                icon = UIStates.icon.get().splitCells
+                addActionListener {
+                    tabbedPane.toOtherPane(index)
+                    showSplitPane(JSplitPane.HORIZONTAL_SPLIT)
+                }
+            }
+
+            val splitVertically = CMenuItem("Split Vertically").apply {
+                icon = UIStates.icon.get().splitCells
+                addActionListener {
+                    tabbedPane.toOtherPane(index)
+                    showSplitPane(JSplitPane.VERTICAL_SPLIT)
+                }
+            }
+
+            val singlePane = CMenuItem("Single Pane").apply {
+                icon = UIStates.icon.get().combineCells
+                addActionListener {
+                    showSinglePane()
+                }
+            }
+
+            val closeAll = CMenuItem("Close All").apply {
+                addActionListener {
+                    showPlaceholder()
+                }
+            }
+
+            cleanupEmptyPanes()
+
+            menu.add(closeAll)
+            menu.add(singlePane)
+            menu.add(splitVertically)
+            menu.add(splitHorizontally)
+
+            menu.show(this@CDraggableTabbedEditorPane, point.x, point.y)
+        }
+    }
+
+    private fun CTabbedPane.addTabFromTabData(tabData: DnDHandler.TabData) {
+        tabData.sourceTabbedPane.removeTabAt(tabData.sourceTabIndex)
+
+        val lastIndex = this.tabCount
+
+        this.insertTab("", null, tabData.contentComp, null, lastIndex)
+        this.setTabComponentAt(lastIndex, tabData.tabComp)
     }
 
 }

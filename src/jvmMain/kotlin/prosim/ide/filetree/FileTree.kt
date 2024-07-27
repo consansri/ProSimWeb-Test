@@ -4,16 +4,19 @@ import cengine.project.Project
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
+import com.formdev.flatlaf.extras.FlatSVGIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import prosim.ide.getFileIcon
 import prosim.uilib.styled.CMenuItem
 import prosim.uilib.styled.COptionPane
 import prosim.uilib.styled.CPopupMenu
 import prosim.uilib.styled.CScrollPane
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.tree.CTree
+import prosim.uilib.styled.tree.NodeInformationProvider
 import java.awt.Component
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -29,7 +32,15 @@ class FileTree(private val project: Project) : FileTreeUI {
     private val vfs: VFileSystem = project.fileSystem
     private val root: DefaultMutableTreeNode = DefaultMutableTreeNode(vfs.root)
     private val treeModel: DefaultTreeModel = DefaultTreeModel(root)
-    private val tree: CTree = CTree(treeModel, FontType.BASIC)
+    private val tree: CTree<VirtualFile> = CTree(treeModel, FontType.BASIC, object : NodeInformationProvider<VirtualFile> {
+        override fun getIcon(userObject: VirtualFile): FlatSVGIcon? {
+            return project.getLang(userObject)?.getFileIcon()
+        }
+
+        override fun getName(userObject: VirtualFile): String {
+            return userObject.name
+        }
+    })
     private var listener: FileTreeUIListener? = null
     private val overlayScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
@@ -79,7 +90,6 @@ class FileTree(private val project: Project) : FileTreeUI {
         refreshNode(root)
         treeModel.reload()
     }
-
 
     override fun expandNode(path: String) {
         val node = findNodeByPath(path)

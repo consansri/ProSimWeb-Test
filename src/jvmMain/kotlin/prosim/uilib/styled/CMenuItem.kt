@@ -7,9 +7,7 @@ import java.awt.Font
 import javax.swing.JMenuItem
 import javax.swing.border.Border
 
-class CMenuItem(text: String, val fontType: FontType = FontType.BASIC) : JMenuItem(text) {
-
-    constructor(fontType: FontType) : this("", fontType)
+class CMenuItem(text: String = "", val fontType: FontType = FontType.BASIC) : JMenuItem(text) {
 
     init {
         this.setUI(CMenuItemUI())

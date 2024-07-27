@@ -4,12 +4,13 @@ import prosim.uilib.UIResource
 import prosim.uilib.UIStates
 import prosim.uilib.state.StateListener
 import prosim.uilib.styled.CIconButton
+import prosim.uilib.styled.params.IconSize
 import prosim.uilib.theme.core.Theme
 
 /**
  * This class represents a button used for switching between themes within the application.
  */
-class ThemeSwitch() : CIconButton(UIStates.theme.get().icon, mode = Mode.PRIMARY_NORMAL), StateListener<Theme> {
+class ThemeSwitch() : CIconButton(UIStates.theme.get().icon, iconSize = IconSize.PRIMARY_NORMAL), StateListener<Theme> {
 
     private var currentIndex = 0
 

@@ -2,8 +2,7 @@ package prosim.uilib.styled
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.uilib.UIStates
-import prosim.uilib.scale.core.Scaling
-import prosim.uilib.theme.core.Theme
+import prosim.uilib.styled.params.IconSize
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Insets
@@ -14,7 +13,7 @@ import javax.swing.SwingUtilities
 import javax.swing.Timer
 import javax.swing.border.Border
 
-open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hoverEffect: Boolean = true) : JComponent() {
+open class CIconButton(icon: FlatSVGIcon, iconSize: IconSize = IconSize.PRIMARY_NORMAL, hoverEffect: Boolean = true) : JComponent() {
 
     private var timer: Timer? = null
     var rotationAngle: Double = 0.0
@@ -49,7 +48,7 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hove
             repaint()
         }
 
-    var mode: Mode = mode
+    var mode: IconSize = iconSize
         set(value) {
             field = value
             revalidate()
@@ -147,41 +146,5 @@ open class CIconButton(icon: FlatSVGIcon, mode: Mode = Mode.PRIMARY_NORMAL, hove
         return Dimension(iconSize + insets.left + insets.right, iconSize + insets.top + insets.bottom)
     }
 
-    enum class Mode {
-        PRIMARY_NORMAL,
-        SECONDARY_NORMAL,
-        PRIMARY_SMALL,
-        SECONDARY_SMALL,
-        GRADIENT_NORMAL,
-        GRADIENT_SMALL;
 
-        fun applyFilter(icon: FlatSVGIcon, theme: Theme) {
-            when (this) {
-                PRIMARY_NORMAL, PRIMARY_SMALL -> icon.colorFilter = FlatSVGIcon.ColorFilter { theme.COLOR_ICON_FG_0 }
-                SECONDARY_NORMAL, SECONDARY_SMALL -> icon.colorFilter = FlatSVGIcon.ColorFilter { theme.COLOR_ICON_FG_1 }
-                GRADIENT_NORMAL, GRADIENT_SMALL -> {}
-            }
-        }
-
-        fun size(scale: Scaling): Int = when (this) {
-            PRIMARY_NORMAL, SECONDARY_NORMAL, GRADIENT_NORMAL -> scale.SIZE_CONTROL_MEDIUM
-            PRIMARY_SMALL, SECONDARY_SMALL, GRADIENT_SMALL -> scale.SIZE_CONTROL_SMALL
-        }
-
-        fun getBorder(): Border = when(this){
-            PRIMARY_NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
-            SECONDARY_NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
-            PRIMARY_SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
-            SECONDARY_SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
-            GRADIENT_NORMAL -> UIStates.scale.get().BORDER_INSET_MEDIUM
-            GRADIENT_SMALL -> UIStates.scale.get().BORDER_INSET_SMALL
-        }
-
-        fun getInset(): Int = when (this) {
-            PRIMARY_NORMAL, GRADIENT_NORMAL -> UIStates.scale.get().SIZE_INSET_MEDIUM
-            SECONDARY_NORMAL -> UIStates.scale.get().SIZE_INSET_MEDIUM
-            PRIMARY_SMALL, GRADIENT_SMALL -> UIStates.scale.get().SIZE_CONTROL_SMALL
-            SECONDARY_SMALL -> UIStates.scale.get().SIZE_CONTROL_SMALL
-        }
-    }
 }

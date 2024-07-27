@@ -4,6 +4,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.uilib.UIStates
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.params.IconSize
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -122,7 +123,7 @@ open class CAdvancedTabPane(
         CPanel(primary, roundCorners = true) {
 
         private val unselectedPrimaryValue = primary
-        val closeButton = CIconButton(closeIcon, CIconButton.Mode.SECONDARY_SMALL)
+        val closeButton = CIconButton(closeIcon, IconSize.SECONDARY_SMALL)
 
         init {
             layout = BorderLayout()

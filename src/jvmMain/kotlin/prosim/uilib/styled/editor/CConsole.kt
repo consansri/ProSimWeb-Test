@@ -1,12 +1,12 @@
 package prosim.uilib.styled.editor
 
 import prosim.uilib.UIStates
-import prosim.uilib.styled.CIconButton
 import prosim.uilib.styled.CIconToggle
 import prosim.uilib.styled.CLabel
 import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
+import prosim.uilib.styled.params.IconSize
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -32,7 +32,7 @@ open class CConsole(maxStackSize: Int = 30, stackQueryMillis: Long = 500) : CPan
         }
 
     private val titleLabel = CLabel(title, FontType.TITLE)
-    private val scrollDown = CIconToggle(UIStates.icon.get().autoscroll, scrollToBottom, CIconButton.Mode.SECONDARY_SMALL) {
+    private val scrollDown = CIconToggle(UIStates.icon.get().autoscroll, scrollToBottom, IconSize.SECONDARY_SMALL) {
         scrollToBottom = it
     }
     private val topBar = CPanel(primary = false, BorderMode.MEDIUM).apply {

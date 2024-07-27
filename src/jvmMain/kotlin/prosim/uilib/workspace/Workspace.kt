@@ -20,7 +20,7 @@ import prosim.uilib.state.WSLogger
 import prosim.uilib.styled.*
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.tree.CTree
-import prosim.uilib.styled.tree.TreeIconProvider
+import prosim.uilib.styled.tree.NodeInformationProvider
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
@@ -55,7 +55,7 @@ class Workspace(
     private val treeModel = DefaultTreeModel(rootNode)
 
     // UI component representing the file tree.
-    val tree: CTree
+    val tree: CTree<TreeFile>
 
     init {
         config = WSConfig(Keys.getConfigFile(rootDir)) {
@@ -66,7 +66,12 @@ class Workspace(
         buildFileTree(rootDir, rootNode)
 
         // Initialize the file tree UI component.
-        tree = CTree(treeModel, FontType.BASIC)
+        tree = CTree(treeModel, FontType.BASIC, object : NodeInformationProvider<TreeFile>{
+            override fun getIcon(userObject: TreeFile): FlatSVGIcon? = userObject.icon
+
+            override fun getName(userObject: TreeFile): String = userObject.name
+
+        })
 
         // Add a mouse listener for handling user interactions with the file tree.
         tree.addMouseListener(object : MouseAdapter() {
@@ -476,12 +481,17 @@ class Workspace(
      * @param file The file or directory.
      * @param displayPath Whether to display the full path or just the name.
      */
-    data class TreeFile(val file: File, val displayPath: Boolean = false) : TreeIconProvider {
-        override fun getIcon(): FlatSVGIcon? = when {
+    data class TreeFile(val file: File, val displayPath: Boolean = false) {
+
+        val content: File = file
+
+        val icon: FlatSVGIcon? = when {
             file.name.endsWith(".s") -> UIStates.icon.get().asmFile
             file.name.endsWith(".S") -> UIStates.icon.get().asmFile
             else -> null
         }
+
+        val name: String get() =  toString()
 
         override fun toString(): String {
             return if (displayPath) file.path else file.name
