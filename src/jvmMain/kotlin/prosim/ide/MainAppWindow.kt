@@ -154,7 +154,7 @@ class MainAppWindow : CPanel() {
             override val customBG: Color = Color(0, 0, 0, 0)
         }
 
-        private val scaleSwitch = CChooser<Scaling>(CChooser.Model(UIResource.scalings, UIStates.scale.get(), "Scale"), FontType.BASIC, {
+        private val scaleSwitch = CChooser<Scaling>(CChooser.Model(UIResource.scalings, UIStates.scale.get()), FontType.TITLE, {
             UIStates.scale.set(it)
         })
 
