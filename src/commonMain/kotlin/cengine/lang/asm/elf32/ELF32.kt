@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf
+package cengine.lang.asm.elf32
 
 
 typealias ELF32_ADDR = UInt

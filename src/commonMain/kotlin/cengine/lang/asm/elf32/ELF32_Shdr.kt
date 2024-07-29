@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf
+package cengine.lang.asm.elf32
 
 /**
  * ELF Section Header
@@ -56,7 +56,7 @@ data class ELF32_Shdr(
     var sh_info: ELF32_WORD = 0U,
     var sh_addralign: ELF32_WORD = 0U,
     var sh_entsize: ELF32_WORD = 0U
-) {
+): BinaryProvider {
 
     companion object {
 
@@ -402,6 +402,10 @@ data class ELF32_Shdr(
         )
 
 
+    }
+
+    override fun build(): ByteArray {
+        TODO("Not yet implemented")
     }
 
 }

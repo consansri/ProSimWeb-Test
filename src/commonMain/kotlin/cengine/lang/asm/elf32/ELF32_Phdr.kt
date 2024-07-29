@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf
+package cengine.lang.asm.elf32
 
 /**
  * ELF Program Header
@@ -48,7 +48,7 @@ data class ELF32_Phdr(
     var p_memsz: ELF32_WORD,
     var p_flags: ELF32_WORD,
     var p_align: ELF32_WORD
-) {
+): BinaryProvider {
 
     companion object{
         /**
@@ -112,5 +112,9 @@ data class ELF32_Phdr(
          * [PT_LOPROC] .. [PT_HIPROC] : Values in this inclusive range are reserved for processor-specific semantics.
          */
         const val PT_HIPROC: ELF32_WORD = 0x7fffffffU
+    }
+
+    override fun build(): ByteArray {
+        TODO("Not yet implemented")
     }
 }

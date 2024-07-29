@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf
+package cengine.lang.asm.elf32
 
 /**
  * ELF Relocation Entry
@@ -31,11 +31,15 @@ package cengine.lang.asm.elf
 data class ELF32_Rel(
     var r_offset: ELF32_ADDR,
     var r_info: ELF32_WORD
-) {
+): BinaryProvider {
     companion object {
         fun ELF32_R_SYM(i: ELF32_WORD) = i.shr(8)
         fun ELF32_R_TYPE(i: ELF32_WORD) = i.toUByte()
         fun ELF32_R_INFO(s: ELF32_WORD, t: ELF32_WORD) = s.shl(8) + t.toUByte()
+    }
+
+    override fun build(): ByteArray {
+        TODO("Not yet implemented")
     }
 
 }

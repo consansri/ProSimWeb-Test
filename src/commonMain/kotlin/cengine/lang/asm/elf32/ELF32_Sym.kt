@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf
+package cengine.lang.asm.elf32
 
 /**
  * Symbol Table
@@ -36,7 +36,7 @@ data class ELF32_Sym(
     var st_info: ELF32_UnsignedChar,
     var st_other: ELF32_UnsignedChar,
     var st_shndx: ELF32_HALF
-) {
+): BinaryProvider {
     companion object {
         const val STN_UNDEF = 0U
 
@@ -133,6 +133,10 @@ data class ELF32_Sym(
          */
         const val STT_HIPROC: ELF32_WORD = 15U
 
+    }
+
+    override fun build(): ByteArray {
+        TODO("Not yet implemented")
     }
 
 }

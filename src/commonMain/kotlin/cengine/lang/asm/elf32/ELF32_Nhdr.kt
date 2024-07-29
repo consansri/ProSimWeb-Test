@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf
+package cengine.lang.asm.elf32
 
 /**
  * Note Information
@@ -34,14 +34,18 @@ package cengine.lang.asm.elf
  * a descriptor.  Types currently must be non-negative. ELF does not define
  * what descriptors mean.
  */
-data class ELF32_NoteInformation(
+data class ELF32_Nhdr(
     var namesz: ELF32_WORD,
     var descsz: ELF32_WORD,
     var type: ELF32_WORD,
     var name: Array<ELF32_WORD>,
     var descs: Array<ELF32_WORD>
-) {
+): BinaryProvider {
     companion object{
 
+    }
+
+    override fun build(): ByteArray {
+        TODO("Not yet implemented")
     }
 }

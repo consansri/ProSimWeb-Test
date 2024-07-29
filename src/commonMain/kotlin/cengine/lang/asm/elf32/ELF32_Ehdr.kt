@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf
+package cengine.lang.asm.elf32
 
 
 /**
@@ -9,13 +9,34 @@ package cengine.lang.asm.elf
  * @param e_machine This member's value specifies the required architecture for an individual file.
  * @param e_version This member identifies the object file version.
  * @param e_entry This member gives the virtual address to which the system first transfers control, thus starting the process. If the file has no associated entry point, this member holds zero.
+ * @param e_phoff This member holds the program header table's file offset in bytes. If the file has no
+ * program header table, this member holds zero.
+ * @param e_shoff This member holds the section header table's file offset in bytes. If the file has no
+ * section header table, this member holds zero.
+ * @param e_flags This member holds processor-specific flags associated with the file. Flag names
+ * take the form [EF_machine_flag].
+ * @param e_ehsize This member holds the ELF header's size in bytes.
+ * @param e_phentsize This member holds the size in bytes of one entry in the file's program header table;
+ * all entries are the same size.
+ * @param e_phnum This member holds the number of entries in the program header table. Thus, the
+ * product of [e_phentsize] and [e_phnum] gives the table's size in bytes. If a file
+ * has no program header table, [e_phnum] holds value zero.
+ * @param e_shentsize This member holds a section header's size in bytes. A section header is one entry
+ * in the section header table; all entries are the same size.
+ * @param e_shnum This member holds the number of entries in the section header table. Thus, the
+ * product of [e_shentsize] and [e_shnum] gives the section header table's size in
+ * bytes. If a file has no section header table, [e_shnum] holds value zero.
+ * @param e_shstrndx This member holds the section header table index of the entry associated with the
+ * section name string table. If the file has no section name string table, this member
+ * holds the value [SHN_UNDEF]. See "Sections" and "String Table" below for more
+ * information.
  *
  */
 data class ELF32_Ehdr(
     var e_ident: E_IDENT,
     var e_type: ELF32_HALF,
     var e_machine: ELF32_HALF,
-    var e_version: ELF32_WORD,
+    var e_version: ELF32_WORD = EV_CURRENT,
     var e_entry: ELF32_ADDR,
     var e_phoff: ELF32_OFF,
     var e_shoff: ELF32_OFF,
@@ -26,7 +47,17 @@ data class ELF32_Ehdr(
     var e_shentsize: ELF32_HALF,
     var e_shnum: ELF32_HALF,
     var e_shstrndx: ELF32_HALF
-) {
+): BinaryProvider {
+
+    /*constructor(
+        ei_class: ELF32_UnsignedChar,
+        ei_data: ELF32_UnsignedChar,
+        e_type: ELF32_HALF,
+
+    ): this(
+        E_IDENT(ei_class = ei_class, ei_data = ei_data),
+        e_type
+    )*/
 
     companion object {
 
@@ -210,6 +241,10 @@ data class ELF32_Ehdr(
             }
             return result
         }
+    }
+
+    override fun build(): ByteArray {
+        TODO("Not yet implemented")
     }
 
 
