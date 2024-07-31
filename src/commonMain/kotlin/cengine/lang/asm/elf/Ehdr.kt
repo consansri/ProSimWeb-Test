@@ -50,6 +50,27 @@ interface Ehdr : BinaryProvider {
 
     companion object {
 
+        private fun getELFType(type: Elf_Half): String = when (type) {
+            ET_NONE -> "NONE (No file type)"
+            ET_REL -> "REL (Relocatable file)"
+            ET_EXEC -> "EXEC (Executable file)"
+            ET_DYN -> "DYN (Shared object file)"
+            ET_CORE -> "CORE (Core file)"
+            else -> "UNKNOWN (0x${type.toString(16)})"
+        }
+
+        private fun getELFMachine(machine: Elf_Half): String = when (machine) {
+            EM_386 -> "Intel 80386"
+            EM_VPP500 -> "VPP500"
+            EM_SPARC -> "SPARC"
+            EM_68K -> "68K"
+            EM_88K -> "88K"
+            EM_X86_64 -> "AMD x86-64 architecture"
+            EM_ARM -> "ARM"
+            EM_RISCV -> "RISCV"
+            else -> "UNKNOWN (0x${machine.toString(16)})"
+        }
+
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT): Ehdr {
             val eIdentSize = eIdent.ei_nident.toInt()
             var currIndex = eIdentSize
@@ -212,6 +233,28 @@ interface Ehdr : BinaryProvider {
          * MIPS RS4000 Big-Endian
          */
         const val EM_MIPS_RS4_BE: Elf_Half = 10U
+
+        /**
+         * Fujitsu VPP500
+         */
+        const val EM_VPP500: Elf_Half = 17U
+
+        /**
+         * ARM
+         */
+        const val EM_ARM: Elf_Half = 40U
+
+        /**
+         * X86 64Bit
+         */
+        const val EM_X86_64: Elf_Half = 62U
+
+        /**
+         * RISC-V
+         */
+        const val EM_RISCV: Elf_Half = 243U
+
+        // ...
 
         /**
          * [e_machine]

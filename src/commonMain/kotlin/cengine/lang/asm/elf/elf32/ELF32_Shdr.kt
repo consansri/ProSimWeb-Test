@@ -59,7 +59,7 @@ data class ELF32_Shdr(
     var sh_addr: Elf32_Addr = 0U,
     var sh_offset: Elf32_Off = 0U,
     var sh_size: Elf_Word = 0U,
-    override var sh_link: Elf_Word = SHN_UNDEF,
+    override var sh_link: Elf_Word = SHN_UNDEF.toUInt(),
     override var sh_info: Elf_Word = 0U,
     var sh_addralign: Elf_Word = 0U,
     var sh_entsize: Elf_Word = 0U

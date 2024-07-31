@@ -62,6 +62,21 @@ data class ELF32_Ehdr(
         e_type
     )*/
 
+    override fun print(): String {
+        return " Class: " +
+                " Data: " +
+                " Version: " +
+                " OS/ABI: " +
+                " ABI Version: " +
+                " Type: " +
+                " Machine" +
+                "" +
+                "" +
+                "" +
+                "" +
+                ""
+    }
+
 
     override fun build(): ByteArray {
         TODO("Not yet implemented")

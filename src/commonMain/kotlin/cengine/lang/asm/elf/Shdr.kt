@@ -10,7 +10,35 @@ interface Shdr : BinaryProvider {
     var sh_link: Elf_Word
     var sh_info: Elf_Word
 
+    override fun print(): String {
+        TODO("Not yet implemented")
+    }
+
     companion object {
+
+        fun getSectionType(type: Elf_Word): String = when (type) {
+            SHT_NULL -> "NULL"
+            SHT_PROGBITS -> "PROGBITS"
+            SHT_SYMTAB -> "SYMTAB"
+            SHT_STRTAB -> "STRTAB"
+            SHT_RELA -> "RELA"
+            SHT_HASH -> "HASH"
+            SHT_DYNAMIC -> "DYNAMIC"
+            SHT_NOTE -> "NOTE"
+            SHT_NOBITS -> "NOBITS"
+            SHT_REL -> "REL"
+            SHT_SHLIB -> "SHLIB"
+            SHT_DYNSYM -> "DYNSYM"
+            else -> "UNKNOWN (0x${type.toString(16)})"
+        }
+
+        fun getSectionFlags(flags: Elf_Xword): String {
+            val flagsList = mutableListOf<String>()
+            if (flags and SHF_WRITE.toULong() != 0UL) flagsList.add("W")
+            if (flags and SHF_ALLOC.toULong() != 0UL) flagsList.add("A")
+            if (flags and SHF_EXECINSTR.toULong() != 0UL) flagsList.add("X")
+            return flagsList.joinToString("")
+        }
 
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Shdr {
             var currIndex = offset
@@ -71,35 +99,35 @@ interface Shdr : BinaryProvider {
          * meaningless section reference. For example, a symbol "defined'' relative to
          * section number [SHN_UNDEF] is an undefined symbol.
          */
-        const val SHN_UNDEF: Elf_Word = 0U
+        const val SHN_UNDEF: Elf_Half = 0U
 
         /**
          * This value specifies the lower bound of the range of reserved indexes.
          */
-        const val SHN_LORESERVE: Elf_Word = 0xff00U
+        const val SHN_LORESERVE: Elf_Half = 0xff00U
 
         /**
          * [SHN_LOPROC] .. [SHN_HIPROC] Values in this inclusive range are reserved for processor-specific  semantics.
          */
-        const val SHN_LOPROC: Elf_Word = 0xff00U
+        const val SHN_LOPROC: Elf_Half = 0xff00U
 
         /**
          * [SHN_LOPROC] .. [SHN_HIPROC] Values in this inclusive range are reserved for processor-specific  semantics.
          */
-        const val SHN_HIPROC: Elf_Word = 0xff1fU
+        const val SHN_HIPROC: Elf_Half = 0xff1fU
 
         /**
          *  This value specifies absolute values for the corresponding reference. For
          * example, symbols defined relative to section number [SHN_ABS] have
          * absolute values and are not affected by relocation.
          */
-        const val SHN_ABS: Elf_Word = 0xfff1U
+        const val SHN_ABS: Elf_Half = 0xfff1U
 
         /**
          * Symbols defined relative to this section are common symbols, such as
          * FORTRAN COMMON or unallocated C external variables.
          */
-        const val SHN_COMMON: Elf_Word = 0xfff2U
+        const val SHN_COMMON: Elf_Half = 0xfff2U
 
         /**
          * This value specifies the upper bound of the range of reserved indexes. The

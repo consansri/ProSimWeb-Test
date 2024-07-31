@@ -3,9 +3,9 @@ package cengine.lang.asm.elf
 import cengine.lang.asm.elf.elf32.ELF32_Rela
 import cengine.lang.asm.elf.elf64.ELF64_Rela
 
-interface Rela: BinaryProvider {
+interface Rela : BinaryProvider {
 
-    companion object{
+    companion object {
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Rela {
             var currIndex = offset
             when (eIdent.ei_class) {
@@ -17,6 +17,7 @@ interface Rela: BinaryProvider {
                     val r_addend = byteArray.loadInt(eIdent, currIndex)
                     return ELF32_Rela(r_offset, r_info, r_addend)
                 }
+
                 E_IDENT.ELFCLASS64 -> {
                     val r_offset = byteArray.loadULong(eIdent, currIndex)
                     currIndex += 8
@@ -25,6 +26,7 @@ interface Rela: BinaryProvider {
                     val r_addend = byteArray.loadLong(eIdent, currIndex)
                     return ELF64_Rela(r_offset, r_info, r_addend)
                 }
+
                 else -> throw NotInELFFormatException
             }
         }

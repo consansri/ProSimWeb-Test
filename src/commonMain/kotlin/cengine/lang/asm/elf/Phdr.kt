@@ -42,12 +42,41 @@ import cengine.lang.asm.elf.elf64.ELF64_Phdr
  *
  *
  */
-interface Phdr: BinaryProvider {
+interface Phdr : BinaryProvider {
 
     var p_type: Elf_Word
     var p_flags: Elf_Word
 
-    companion object{
+    override fun print(): String {
+        TODO("Not yet implemented")
+    }
+
+    companion object {
+
+        fun getProgramHeaderType(type: Elf_Word): String = when (type) {
+            PT_NULL -> "NULL"
+            PT_LOAD -> "LOAD"
+            PT_DYNAMIC -> "DYNAMIC"
+            PT_INTERP -> "INTERP"
+            PT_NOTE -> "NOTE"
+            PT_SHLIB -> "SHLIB"
+            PT_PHDR -> "PHDR"
+            PT_TLS -> "TLS"
+            in PT_LOOS..PT_HIOS -> "OS"
+            in PT_LOPROC..PT_HIPROC -> "PROC"
+            else -> "UNKNOWN (0x${type.toString(16)})"
+        }
+
+        fun getProgramHeaderFlags(flags: Elf_Word): String {
+            val flagsList = mutableListOf<String>()
+            if (flags and PF_X != 0U) flagsList.add("X")
+            if (flags and PF_W != 0U) flagsList.add("W")
+            if (flags and PF_R != 0U) flagsList.add("R")
+            if (flags and PF_MASKPROC != 0U) flagsList.add("PROC")
+            if (flags and PF_MASKOS != 0U) flagsList.add("OS")
+            return flagsList.joinToString(" ")
+        }
+
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Phdr {
             var currIndex = offset
             val p_type = byteArray.loadUInt(eIdent, currIndex)
@@ -71,6 +100,7 @@ interface Phdr: BinaryProvider {
 
                     return ELF32_Phdr(p_type, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_flags, p_align)
                 }
+
                 E_IDENT.ELFCLASS64 -> {
                     val p_flags = byteArray.loadUInt(eIdent, currIndex)
                     currIndex += 4
@@ -88,12 +118,13 @@ interface Phdr: BinaryProvider {
 
                     return ELF64_Phdr(p_type, p_flags, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_align)
                 }
+
                 else -> throw NotInELFFormatException
             }
         }
 
         /**
-         * Segment Types
+         * [p_type]
          */
 
         /**
@@ -145,6 +176,21 @@ interface Phdr: BinaryProvider {
         const val PT_PHDR: Elf_Word = 6U
 
         /**
+         * The array element specifies the Thread-Local Storage template. Implementations need not support this program table entry.
+         */
+        const val PT_TLS: Elf_Word = 7U
+
+        /**
+         * [PT_LOOS] .. [PT_HIOS] : Values in this inclusive range are reserved for operating system-specific semantics.
+         */
+        const val PT_LOOS: Elf_Word = 0x60000000U
+
+        /**
+         * [PT_LOOS] .. [PT_HIOS] : Values in this inclusive range are reserved for operating system-specific semantics.
+         */
+        const val PT_HIOS: Elf_Word = 0x6fffffffU
+
+        /**
          * [PT_LOPROC] .. [PT_HIPROC] : Values in this inclusive range are reserved for processor-specific semantics.
          */
         const val PT_LOPROC: Elf_Word = 0x70000000U
@@ -153,6 +199,36 @@ interface Phdr: BinaryProvider {
          * [PT_LOPROC] .. [PT_HIPROC] : Values in this inclusive range are reserved for processor-specific semantics.
          */
         const val PT_HIPROC: Elf_Word = 0x7fffffffU
+
+        /**
+         * [p_flags]
+         */
+
+        /**
+         * Execute
+         */
+        const val PF_X: Elf_Word = 0x1U
+
+        /**
+         * Write
+         */
+        const val PF_W: Elf_Word = 0x2U
+
+        /**
+         * Read
+         */
+        const val PF_R: Elf_Word = 0x4U
+
+        /**
+         * Unspecified
+         */
+        const val PF_MASKOS: Elf_Word = 0x0ff00000U
+
+        /**
+         * Unspecified
+         */
+        const val PF_MASKPROC: Elf_Word = 0xf0000000U
+
     }
 
 }
