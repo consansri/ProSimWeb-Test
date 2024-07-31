@@ -1,5 +1,8 @@
 package cengine.lang.asm.elf
 
+import cengine.lang.asm.elf.elf32.ELF32_Phdr
+import cengine.lang.asm.elf.elf64.ELF64_Phdr
+
 /**
  * ELF Program Header
  *
@@ -41,7 +44,54 @@ package cengine.lang.asm.elf
  */
 interface Phdr: BinaryProvider {
 
+    var p_type: Elf_Word
+    var p_flags: Elf_Word
+
     companion object{
+        fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Phdr {
+            var currIndex = offset
+            val p_type = byteArray.loadUInt(eIdent, currIndex)
+            currIndex += 4
+
+            when (eIdent.ei_class) {
+                E_IDENT.ELFCLASS32 -> {
+                    val p_offset = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val p_vaddr = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val p_paddr = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val p_filesz = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val p_memsz = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val p_flags = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val p_align = byteArray.loadUInt(eIdent, currIndex)
+
+                    return ELF32_Phdr(p_type, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_flags, p_align)
+                }
+                E_IDENT.ELFCLASS64 -> {
+                    val p_flags = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val p_offset = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val p_vaddr = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val p_paddr = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val p_filesz = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val p_memsz = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val p_align = byteArray.loadULong(eIdent, currIndex)
+
+                    return ELF64_Phdr(p_type, p_flags, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_align)
+                }
+                else -> throw NotInELFFormatException
+            }
+        }
+
         /**
          * Segment Types
          */

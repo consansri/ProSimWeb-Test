@@ -45,13 +45,13 @@ import cengine.lang.asm.elf.Phdr
  *
  */
 data class ELF32_Phdr(
-    var p_type: Elf_Word,
+    override var p_type: Elf_Word,
     var p_offset: Elf32_Off,
     var p_vaddr: Elf32_Addr,
     var p_paddr: Elf32_Addr,
     var p_filesz: Elf_Word,
     var p_memsz: Elf_Word,
-    var p_flags: Elf_Word,
+    override var p_flags: Elf_Word,
     var p_align: Elf_Word
 ) : Phdr {
 

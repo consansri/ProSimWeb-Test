@@ -1,5 +1,8 @@
 package cengine.lang.asm.elf
 
+import cengine.lang.asm.elf.elf32.ELF32_Dyn
+import cengine.lang.asm.elf.elf64.ELF64_Dyn
+
 /**
  * Data class representing the Elf32_Dyn structure in the ELF format.
  *
@@ -10,6 +13,31 @@ package cengine.lang.asm.elf
 interface Dyn: BinaryProvider {
 
     companion object{
+        fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Dyn {
+            var currIndex = offset
+            when (eIdent.ei_class) {
+                E_IDENT.ELFCLASS32 -> {
+                    val d_tag = byteArray.loadInt(eIdent, currIndex)
+                    currIndex += 4
+                    val d_un = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val d_ptr = byteArray.loadUInt(eIdent, currIndex)
+
+                    return ELF32_Dyn(d_tag, d_un, d_ptr)
+                }
+                E_IDENT.ELFCLASS64 -> {
+                    val d_tag = byteArray.loadLong(eIdent, currIndex)
+                    currIndex += 8
+                    val d_un = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val d_ptr = byteArray.loadULong(eIdent, currIndex)
+                    return ELF64_Dyn(d_tag, d_un, d_ptr)
+                }
+                else -> throw NotInELFFormatException
+            }
+        }
+
+
         /**
          * Marks end of dynamic section.
          */

@@ -29,6 +29,10 @@ fun alignTo4Bytes(value: Int): Int = (value + 3) and (-4)
 fun alignTo4Bytes(value: Long): Long = (value + 3L) and (-4L)
 
 // Helper functions to load multiple bytes into other types
+fun ByteArray.loadUByte(index: Int): UByte = this.get(index).toUByte()
+
+fun ByteArray.loadByte(index: Int): Byte = this.get(index)
+
 fun ByteArray.loadUShort(e_ident: E_IDENT, index: Int): UShort {
     val bigEndian = e_ident.ei_data == E_IDENT.ELFDATA2MSB
 
@@ -40,6 +44,8 @@ fun ByteArray.loadUShort(e_ident: E_IDENT, index: Int): UShort {
     }
     return result
 }
+
+fun ByteArray.loadShort(e_ident: E_IDENT, index: Int): Short = this.loadUShort(e_ident, index).toShort()
 
 fun ByteArray.loadUInt(e_ident: E_IDENT, index: Int): UInt {
     val bigEndian = e_ident.ei_data == E_IDENT.ELFDATA2MSB
@@ -53,6 +59,8 @@ fun ByteArray.loadUInt(e_ident: E_IDENT, index: Int): UInt {
     return result
 }
 
+fun ByteArray.loadInt(e_ident: E_IDENT, index: Int): Int = this.loadUInt(e_ident, index).toInt()
+
 fun ByteArray.loadULong(e_ident: E_IDENT, index: Int): ULong {
     val bigEndian = e_ident.ei_data == E_IDENT.ELFDATA2MSB
 
@@ -64,6 +72,8 @@ fun ByteArray.loadULong(e_ident: E_IDENT, index: Int): ULong {
     }
     return result
 }
+
+fun ByteArray.loadLong(e_ident: E_IDENT, index: Int): Long = this.loadULong(e_ident, index).toLong()
 
 
 // Exceptions

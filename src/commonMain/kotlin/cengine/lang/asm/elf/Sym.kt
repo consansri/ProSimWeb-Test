@@ -1,5 +1,8 @@
 package cengine.lang.asm.elf
 
+import cengine.lang.asm.elf.elf32.ELF32_Sym
+import cengine.lang.asm.elf.elf64.ELF64_Sym
+
 interface Sym: BinaryProvider {
 
     val st_name: Elf_Word
@@ -9,6 +12,45 @@ interface Sym: BinaryProvider {
 
 
     companion object {
+
+        fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Sym {
+            var currIndex = offset
+            when (eIdent.ei_class) {
+                E_IDENT.ELFCLASS32 -> {
+                    val st_name = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val st_value = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val st_size = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val st_info = byteArray.loadUByte(currIndex)
+                    currIndex += 1
+                    val st_other = byteArray.loadUByte(currIndex)
+                    currIndex += 1
+                    val st_shndx = byteArray.loadUShort(eIdent, currIndex)
+
+                    return ELF32_Sym(st_name, st_value, st_size, st_info, st_other, st_shndx)
+                }
+                E_IDENT.ELFCLASS64 -> {
+                    val st_name = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val st_info = byteArray.loadUByte(currIndex)
+                    currIndex += 1
+                    val st_other = byteArray.loadUByte(currIndex)
+                    currIndex += 1
+                    val st_shndx = byteArray.loadUShort(eIdent, currIndex)
+                    currIndex += 2
+                    val st_value = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val st_size = byteArray.loadULong(eIdent, currIndex)
+
+                    return ELF64_Sym(st_name, st_info, st_other, st_shndx, st_value, st_size)
+                }
+                else -> throw NotInELFFormatException
+            }
+        }
+
+
         const val STN_UNDEF = 0U
 
         /**

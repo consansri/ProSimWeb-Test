@@ -12,7 +12,7 @@ import cengine.lang.asm.elf.Elf_Word
  * @property d_val The integer value associated with the dynamic table entry.
  * @property d_ptr The address associated with the dynamic table entry.
  */
-data class Elf32_Dyn(
+data class ELF32_Dyn(
     var d_tag: Elf_Sword,
     var d_val: Elf_Word,
     var d_ptr: Elf32_Addr

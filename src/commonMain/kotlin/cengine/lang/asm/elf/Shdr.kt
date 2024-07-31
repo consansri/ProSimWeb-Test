@@ -1,6 +1,7 @@
 package cengine.lang.asm.elf
 
 import cengine.lang.asm.elf.elf32.ELF32_Shdr
+import cengine.lang.asm.elf.elf64.ELF64_Shdr
 
 interface Shdr : BinaryProvider {
 
@@ -10,6 +11,56 @@ interface Shdr : BinaryProvider {
     var sh_info: Elf_Word
 
     companion object {
+
+        fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Shdr {
+            var currIndex = offset
+            val sh_name = byteArray.loadUInt(eIdent, currIndex)
+            currIndex += 4
+            val sh_type = byteArray.loadUInt(eIdent, currIndex)
+            currIndex += 4
+
+            when (eIdent.ei_class) {
+                E_IDENT.ELFCLASS32 -> {
+                    val sh_flags = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_addr = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_offset = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_size = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_link = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_info = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_addralign = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_entsize = byteArray.loadUInt(eIdent, currIndex)
+
+                    return ELF32_Shdr(sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_addralign, sh_entsize)
+                }
+                E_IDENT.ELFCLASS64 -> {
+                    val sh_flags = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val sh_addr = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val sh_offset = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val sh_size = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val sh_link = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_info = byteArray.loadUInt(eIdent, currIndex)
+                    currIndex += 4
+                    val sh_addralign = byteArray.loadULong(eIdent, currIndex)
+                    currIndex += 8
+                    val sh_entsize = byteArray.loadULong(eIdent, currIndex)
+
+                    return ELF64_Shdr(sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_addralign, sh_entsize)
+                }
+                else -> throw NotInELFFormatException
+            }
+        }
 
         /**
          * Special Section Indexes

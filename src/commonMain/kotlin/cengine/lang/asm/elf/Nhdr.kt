@@ -34,10 +34,26 @@ package cengine.lang.asm.elf
  * a descriptor.  Types currently must be non-negative. ELF does not define
  * what descriptors mean.
  */
-interface Nhdr: BinaryProvider {
-
-    var n_namesz: Elf_Word
-    var n_descsz: Elf_Word
+data class Nhdr(
+    var n_namesz: Elf_Word,
+    var n_descsz: Elf_Word,
     var n_type: Elf_Word
+): BinaryProvider {
+
+    companion object{
+        fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Nhdr {
+            var currIndex = offset
+            val n_namesz = byteArray.loadUInt(eIdent, currIndex)
+            currIndex += 4
+            val n_descsz = byteArray.loadUInt(eIdent, currIndex)
+            currIndex += 4
+            val n_type = byteArray.loadUInt(eIdent, currIndex)
+            return Nhdr(n_namesz, n_descsz, n_type)
+        }
+    }
+
+    override fun build(): ByteArray {
+        TODO("Not yet implemented")
+    }
 
 }
