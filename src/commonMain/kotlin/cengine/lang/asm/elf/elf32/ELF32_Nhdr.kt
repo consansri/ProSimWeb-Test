@@ -1,4 +1,7 @@
-package cengine.lang.asm.elf32
+package cengine.lang.asm.elf.elf32
+
+import cengine.lang.asm.elf.Elf_Word
+import cengine.lang.asm.elf.Nhdr
 
 /**
  * Note Information
@@ -35,15 +38,12 @@ package cengine.lang.asm.elf32
  * what descriptors mean.
  */
 data class ELF32_Nhdr(
-    var namesz: ELF32_WORD,
-    var descsz: ELF32_WORD,
-    var type: ELF32_WORD,
-    var name: Array<ELF32_WORD>,
-    var descs: Array<ELF32_WORD>
-): BinaryProvider {
-    companion object{
-
-    }
+    var namesz: Elf_Word,
+    var descsz: Elf_Word,
+    var type: Elf_Word,
+    var name: Array<Elf_Word>,
+    var descs: Array<Elf_Word>
+): Nhdr {
 
     override fun build(): ByteArray {
         TODO("Not yet implemented")

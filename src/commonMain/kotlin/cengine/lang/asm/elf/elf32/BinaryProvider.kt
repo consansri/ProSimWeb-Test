@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf32
+package cengine.lang.asm.elf.elf32
 
 interface BinaryProvider {
 

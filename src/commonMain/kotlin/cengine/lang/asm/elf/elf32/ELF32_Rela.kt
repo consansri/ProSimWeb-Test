@@ -1,7 +1,6 @@
-package cengine.lang.asm.elf32
+package cengine.lang.asm.elf.elf32
 
-import cengine.lang.asm.elf32.ELF32_Rel.Companion.ELF32_R_SYM
-import cengine.lang.asm.elf32.ELF32_Rel.Companion.ELF32_R_TYPE
+import cengine.lang.asm.elf.*
 
 /**
  * ELF Relocation Entry (with addend)
@@ -35,10 +34,10 @@ import cengine.lang.asm.elf32.ELF32_Rel.Companion.ELF32_R_TYPE
  *
  */
 data class ELF32_Rela(
-    var r_offset: ELF32_ADDR,
-    var r_info: ELF32_WORD,
-    var r_addend: ELF32_SWORD
-): BinaryProvider{
+    var r_offset: Elf32_Addr,
+    var r_info: Elf_Word,
+    var r_addend: Elf_Sword
+): Rela {
     override fun build(): ByteArray {
         TODO("Not yet implemented")
     }
