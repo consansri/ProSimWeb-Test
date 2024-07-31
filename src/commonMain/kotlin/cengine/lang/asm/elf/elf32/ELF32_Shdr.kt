@@ -53,14 +53,14 @@ import cengine.lang.asm.elf.Shdr.Companion.SHT_NULL
  *
  */
 data class ELF32_Shdr(
-    var sh_name: Elf_Word = 0U,
-    var sh_type: Elf_Word = SHT_NULL,
+    override var sh_name: Elf_Word = 0U,
+    override var sh_type: Elf_Word = SHT_NULL,
     var sh_flags: Elf_Word = 0U,
     var sh_addr: Elf32_Addr = 0U,
     var sh_offset: Elf32_Off = 0U,
     var sh_size: Elf_Word = 0U,
-    var sh_link: Elf_Word = SHN_UNDEF,
-    var sh_info: Elf_Word = 0U,
+    override var sh_link: Elf_Word = SHN_UNDEF,
+    override var sh_info: Elf_Word = 0U,
     var sh_addralign: Elf_Word = 0U,
     var sh_entsize: Elf_Word = 0U
 ): Shdr {

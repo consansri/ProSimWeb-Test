@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf.elf32
+package cengine.lang.asm.elf.elf64
 
 import cengine.lang.asm.elf.Elf_Word
 import cengine.lang.asm.elf.Nhdr
@@ -37,12 +37,11 @@ import cengine.lang.asm.elf.Nhdr
  * a descriptor.  Types currently must be non-negative. ELF does not define
  * what descriptors mean.
  */
-data class ELF32_Nhdr(
+class ELF64_Nhdr(
     override var n_namesz: Elf_Word,
     override var n_descsz: Elf_Word,
-    override var n_type: Elf_Word,
+    override var n_type: Elf_Word
 ): Nhdr {
-
     override fun build(): ByteArray {
         TODO("Not yet implemented")
     }

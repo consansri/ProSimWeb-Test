@@ -1,10 +1,13 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.BinaryProvider
 import cengine.lang.asm.elf.elf32.ELF32_Shdr
 
-interface Shdr: BinaryProvider {
+interface Shdr : BinaryProvider {
 
+    var sh_name: Elf_Word
+    var sh_type: Elf_Word
+    var sh_link: Elf_Word
+    var sh_info: Elf_Word
 
     companion object {
 

@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf.elf32
+package cengine.lang.asm.elf.elf64
 
 import cengine.lang.asm.elf.*
 
@@ -31,18 +31,15 @@ import cengine.lang.asm.elf.*
  * some section indexes indicate special meanings.
  *
  */
-data class ELF32_Sym(
-    override var st_name: Elf_Word,
-    var st_value: Elf32_Addr,
-    var st_size: Elf_Word,
-    override var st_info: Elf_Byte,
-    override var st_other: Elf_Byte,
-    override var st_shndx: Elf_Half
+data class ELF64_Sym(
+    override val st_name: Elf_Word,
+    override val st_info: Elf_Byte,
+    override val st_other: Elf_Byte,
+    override val st_shndx: Elf_Half,
+    var st_value: Elf_Xword,
+    var st_size: Elf_Xword,
 ): Sym {
-
-
     override fun build(): ByteArray {
         TODO("Not yet implemented")
     }
-
 }

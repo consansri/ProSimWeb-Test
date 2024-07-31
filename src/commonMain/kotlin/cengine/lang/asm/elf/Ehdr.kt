@@ -1,17 +1,44 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.BinaryProvider
 import cengine.lang.asm.elf.elf32.ELF32_Ehdr
 import cengine.lang.asm.elf.elf64.ELF64_Ehdr
 
-interface Ehdr<ADDR, OFF> : BinaryProvider {
+/**
+ * ELF Header
+ *
+ * @property e_ident The initial bytes mark the file as an object file and provide machine-independent data with which to decode and interpret the file's contents.
+ * @property e_type This member identifies the object file type.
+ * @property e_machine This member's value specifies the required architecture for an individual file.
+ * @property e_version This member identifies the object file version.
+ * @property e_entry This member gives the virtual address to which the system first transfers control, thus starting the process. If the file has no associated entry point, this member holds zero.
+ * @property e_phoff This member holds the program header table's file offset in bytes. If the file has no
+ * program header table, this member holds zero.
+ * @property e_shoff This member holds the section header table's file offset in bytes. If the file has no
+ * section header table, this member holds zero.
+ * @property e_flags This member holds processor-specific flags associated with the file. Flag names
+ * take the form [EF_machine_flag].
+ * @property e_ehsize This member holds the ELF header's size in bytes.
+ * @property e_phentsize This member holds the size in bytes of one entry in the file's program header table;
+ * all entries are the same size.
+ * @property e_phnum This member holds the number of entries in the program header table. Thus, the
+ * product of [e_phentsize] and [e_phnum] gives the table's size in bytes. If a file
+ * has no program header table, [e_phnum] holds value zero.
+ * @property e_shentsize This member holds a section header's size in bytes. A section header is one entry
+ * in the section header table; all entries are the same size.
+ * @property e_shnum This member holds the number of entries in the section header table. Thus, the
+ * product of [e_shentsize] and [e_shnum] gives the section header table's size in
+ * bytes. If a file has no section header table, [e_shnum] holds value zero.
+ * @property e_shstrndx This member holds the section header table index of the entry associated with the
+ * section name string table. If the file has no section name string table, this member
+ * holds the value [SHN_UNDEF]. See "Sections" and "String Table" below for more
+ * information.
+ *
+ */
+interface Ehdr : BinaryProvider {
 
     val e_ident: E_IDENT
     val e_type: Elf_Half
     val e_machine: Elf_Half
-    val e_entry: ADDR
-    val e_phoff: OFF
-    val e_shoff: OFF
     val e_version: Elf_Word
     val e_flags: Elf_Word
     val e_ehsize: Elf_Half
@@ -23,7 +50,7 @@ interface Ehdr<ADDR, OFF> : BinaryProvider {
 
     companion object {
 
-        fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT): Ehdr<*, *> {
+        fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT): Ehdr {
             val eIdentSize = eIdent.ei_nident.toInt()
             var currIndex = eIdentSize
             val e_type = byteArray.loadUShort(eIdent, currIndex)

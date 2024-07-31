@@ -40,9 +40,9 @@ data class ELF32_Ehdr(
     override var e_type: Elf_Half,
     override var e_machine: Elf_Half,
     override var e_version: Elf_Word = EV_CURRENT,
-    override var e_entry: Elf32_Addr,
-    override var e_phoff: Elf32_Off,
-    override var e_shoff: Elf32_Off,
+    var e_entry: Elf32_Addr,
+    var e_phoff: Elf32_Off,
+    var e_shoff: Elf32_Off,
     override var e_flags: Elf_Word,
     override var e_ehsize: Elf_Half,
     override var e_phentsize: Elf_Half,
@@ -50,7 +50,7 @@ data class ELF32_Ehdr(
     override var e_shentsize: Elf_Half,
     override var e_shnum: Elf_Half,
     override var e_shstrndx: Elf_Half
-) : Ehdr<Elf32_Addr, Elf32_Off> {
+) : Ehdr {
 
     /*constructor(
         ei_class: Elf_Byte,

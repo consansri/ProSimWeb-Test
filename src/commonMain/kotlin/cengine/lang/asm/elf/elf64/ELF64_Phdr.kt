@@ -1,9 +1,6 @@
-package cengine.lang.asm.elf.elf32
+package cengine.lang.asm.elf.elf64
 
-import cengine.lang.asm.elf.Elf32_Addr
-import cengine.lang.asm.elf.Elf32_Off
-import cengine.lang.asm.elf.Elf_Word
-import cengine.lang.asm.elf.Phdr
+import cengine.lang.asm.elf.*
 
 /**
  * ELF Program Header
@@ -44,17 +41,16 @@ import cengine.lang.asm.elf.Phdr
  *
  *
  */
-data class ELF32_Phdr(
-    var p_type: Elf_Word,
-    var p_offset: Elf32_Off,
-    var p_vaddr: Elf32_Addr,
-    var p_paddr: Elf32_Addr,
-    var p_filesz: Elf_Word,
-    var p_memsz: Elf_Word,
-    var p_flags: Elf_Word,
-    var p_align: Elf_Word
-) : Phdr {
-
+data class ELF64_Phdr(
+    var p_type: Elf_Xword,
+    var p_offset: Elf64_Off,
+    var p_vaddr: Elf64_Addr,
+    var p_paddr: Elf64_Addr,
+    var p_filesz: Elf_Xword,
+    var p_memsz: Elf_Xword,
+    var p_flags: Elf_Xword,
+    var p_align: Elf_Xword
+): Phdr {
 
     override fun build(): ByteArray {
         TODO("Not yet implemented")

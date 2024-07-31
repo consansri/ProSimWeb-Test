@@ -1,8 +1,12 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.BinaryProvider
-
 interface Sym: BinaryProvider {
+
+    val st_name: Elf_Word
+    val st_info: Elf_Byte
+    val st_other: Elf_Byte
+    val st_shndx: Elf_Half
+
 
     companion object {
         const val STN_UNDEF = 0U

@@ -5,7 +5,8 @@ package cengine.lang.asm.elf
  */
 class ELFReader(val fileContent: ByteArray) {
     val e_ident: E_IDENT = E_IDENT.extractFrom(fileContent)
-    val ehdr: Ehdr<*, *> = Ehdr.extractFrom(fileContent, e_ident)
+    val ehdr: Ehdr = Ehdr.extractFrom(fileContent, e_ident)
+
 
 
     init {
