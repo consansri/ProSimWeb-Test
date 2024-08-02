@@ -1,28 +1,14 @@
-
+/* ok alles klar */
 .text
+label: .byte 23
+.data
 
-.macro push
-    addi t0,t0,45
-    
+nice:
 
-.endm
-label:
+neues_label:
 
-nice_long_label:
+zweites_label:
 
-some:
+oh_yeah:
 
-11:
-
-11:
-
-some
-
-nice_long_label2:
-nice_long_label3:
-
-
-
-
-
-
+nice

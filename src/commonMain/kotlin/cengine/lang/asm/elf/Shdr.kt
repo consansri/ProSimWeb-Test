@@ -10,10 +10,6 @@ interface Shdr : BinaryProvider {
     var sh_link: Elf_Word
     var sh_info: Elf_Word
 
-    override fun print(): String {
-        TODO("Not yet implemented")
-    }
-
     companion object {
 
         fun getSectionType(type: Elf_Word): String = when (type) {

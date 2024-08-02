@@ -6,6 +6,7 @@ interface FoldRegion {
         val EMPTY_ARRAY: Array<FoldRegion> = arrayOf()
     }
 
+
     fun isExpanded(): Boolean
 
     fun setExpanded(expanded: Boolean)

@@ -47,10 +47,6 @@ interface Phdr : BinaryProvider {
     var p_type: Elf_Word
     var p_flags: Elf_Word
 
-    override fun print(): String {
-        TODO("Not yet implemented")
-    }
-
     companion object {
 
         fun getProgramHeaderType(type: Elf_Word): String = when (type) {

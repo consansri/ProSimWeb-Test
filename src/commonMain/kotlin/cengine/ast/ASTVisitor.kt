@@ -1,8 +1,9 @@
 package cengine.ast
 
 import cengine.ast.node.*
+import cengine.psi.core.PsiElementVisitor
 
-interface ASTVisitor<T> {
+interface ASTVisitor<T>: PsiElementVisitor {
     fun visitProgram(node: Program): T
     fun visitFunctionDefinition(node: FunctionDefinition): T
     fun visitParameter(node: Parameter): T

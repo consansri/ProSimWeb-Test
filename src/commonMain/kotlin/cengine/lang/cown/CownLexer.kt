@@ -1,7 +1,7 @@
 package cengine.lang.cown
 
-import cengine.lexer.core.Token
-import cengine.lexer.impl.BaseLexer
+import cengine.psi.lexer.core.Token
+import cengine.psi.lexer.impl.BaseLexer
 
 class CownLexer(input: String): BaseLexer(input) {
 
@@ -19,9 +19,12 @@ class CownLexer(input: String): BaseLexer(input) {
         )
     }
 
+    override fun consume(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean): Token {
+        TODO("Not yet implemented")
+    }
 
-    override fun nextToken(): Token {
-        TODO()
+    override fun peek(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean): Token {
+        TODO("Not yet implemented")
     }
 
 

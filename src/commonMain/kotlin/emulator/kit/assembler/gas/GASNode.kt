@@ -57,7 +57,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
 
     companion object {
         /**
-         * Severities will be set by the Lowest Node which is actually checking the token.
+         * Severities will be set by the Lowest Node, which is actually checking the token.
          */
         fun buildNode(gasNodeType: GASNodeType, source: List<Token>, allDirs: List<DirTypeInterface>, asmHeader: AsmHeader, assignedSymbols: List<GASParser.Symbol> = emptyList()): GASNode? {
             val remainingTokens = source.toMutableList()

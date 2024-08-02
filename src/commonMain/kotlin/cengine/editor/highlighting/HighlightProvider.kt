@@ -4,12 +4,12 @@ import cengine.psi.core.PsiFile
 
 interface HighlightProvider {
 
-    var cachedHighlights: List<Highlight>
+    var cachedHighlights: List<HLInfo>
 
-    fun getHighlights(psiFile: PsiFile): List<Highlight>
+    fun getHighlights(psiFile: PsiFile): List<HLInfo>
 
     /**
      * Should only use a fast lexical analysis to determine the highlighting.
      */
-    fun fastHighlight(text: String): List<Highlight>
+    fun fastHighlight(text: String): List<HLInfo>
 }

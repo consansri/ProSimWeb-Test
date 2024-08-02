@@ -5,7 +5,7 @@ import cengine.psi.core.TextRange
 data class FunctionCall(
     val function: Expression,
     val arguments: List<Expression>,
-    override val range: TextRange
+    override var textRange: TextRange
 ): Expression(){
-    override val children: List<ASTNode> = listOf(function) + arguments
+    override val children: List<Node> = listOf(function) + arguments
 }

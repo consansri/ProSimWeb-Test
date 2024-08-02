@@ -1,13 +1,13 @@
 package cengine.ast.node
 
 import cengine.ast.ASTVisitor
-import cengine.psi.core.TextRange
+import cengine.psi.core.PsiElement
+import cengine.psi.core.PsiElementVisitor
 
-sealed class ASTNode {
-    abstract val children: List<ASTNode>
-    abstract val range: TextRange
-
-    fun accept(visitor: ASTVisitor<*>) {
+sealed class Node : PsiElement {
+    override var parent: PsiElement? = null
+    override fun accept(visitor: PsiElementVisitor) {
+        visitor as? ASTVisitor<*> ?: return
         when (this) {
             is BlockStatement -> visitor.visitBlockStatement(this)
             is BinaryExpression -> visitor.visitBinaryExpression(this)

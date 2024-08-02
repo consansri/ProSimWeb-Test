@@ -47,8 +47,8 @@ class RopeModel(text: String = "") : TextModel {
     }
 
     override fun getLineAndColumn(index: Int): Pair<Int, Int> {
-        require(index in 0..length) { "Index ($index) out of bounds" }
-        val result = root.getLineAndColumn(index)
+        val coercedIndex = index.coerceIn(0..length)
+        val result = root.getLineAndColumn(coercedIndex)
         //nativeLog("LC from Index($index): $result")
         return result.line to result.col
     }

@@ -4,8 +4,8 @@ import cengine.editor.completion.Completion
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.completion.CompletionProvider.Companion.asCompletions
 import cengine.editor.text.TextModel
+import cengine.lang.asm.ast.gas.GASNode
 import cengine.lang.asm.psi.AsmFile
-import cengine.lang.asm.psi.stmnt.AsmLabel
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -39,8 +39,8 @@ class AsmCompleter : CompletionProvider {
 
         override fun visitElement(element: PsiElement) {
             when (element) {
-                is AsmLabel -> {
-                    labels.add(element.name.removeSuffix(":"))
+                is GASNode.Label -> {
+                    labels.add(element.identifier)
                 }
             }
         }

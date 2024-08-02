@@ -1,19 +1,19 @@
 package cengine.psi
 
+import cengine.editor.text.Informational
 import cengine.lang.LanguageService
 import cengine.psi.core.PsiFile
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import emulator.kit.nativeLog
+import kotlinx.coroutines.*
 
 class PsiManager<T : LanguageService>(
     private val vfs: VFileSystem,
     val lang: T
 ) {
+    private var job: Job? = null
     private val psiCache = mutableMapOf<String, PsiFile>()
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val listener = VFSListener()
@@ -22,22 +22,26 @@ class PsiManager<T : LanguageService>(
         vfs.addChangeListener(listener)
     }
 
-    fun updatePsi(file: VirtualFile) {
-        coroutineScope.launch {
+    fun updatePsi(file: VirtualFile, informational: Informational?) {
+        job?.cancel()
+        job = coroutineScope.launch {
+            nativeLog("Update PSI for ${file.name}")
             val psiFile = psiCache[file.path] ?: createPsiFile(file)
-            val newContent = file.getAsUTF8String()
-            psiFile.updateFrom(newContent)
+            psiFile.update()
             psiCache.remove(file.path)
             psiCache[file.path] = psiFile
-            lang.updateAnalytics(psiFile)
+            nativeLog("Update Analytics for ${file.name}")
+            lang.updateAnalytics(psiFile, informational)
+            nativeLog("Finished updating PSI!")
         }
     }
 
     private fun createPsi(file: VirtualFile) {
-        coroutineScope.launch {
+        job?.cancel()
+        job = coroutineScope.launch {
             val psiFile = createPsiFile(file)
             psiCache[file.path] = psiFile
-            lang.updateAnalytics(psiFile)
+            lang.updateAnalytics(psiFile, null)
         }
     }
 
@@ -46,9 +50,8 @@ class PsiManager<T : LanguageService>(
     }
 
     private suspend fun createPsiFile(file: VirtualFile): PsiFile {
-        val content = file.getAsUTF8String()
         return withContext(Dispatchers.Default) {
-            lang.psiParser.parseFile(content, file.path)
+            lang.psiParser.parseFile(file)
         }
     }
 
@@ -58,7 +61,7 @@ class PsiManager<T : LanguageService>(
 
     inner class VFSListener : FileChangeListener {
         override fun onFileChanged(file: VirtualFile) {
-            if (file.name.endsWith(lang.fileSuffix)) updatePsi(file)
+            if (file.name.endsWith(lang.fileSuffix)) updatePsi(file, null)
         }
 
         override fun onFileCreated(file: VirtualFile) {

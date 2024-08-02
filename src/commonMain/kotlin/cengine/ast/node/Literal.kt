@@ -5,7 +5,7 @@ import cengine.psi.core.TextRange
 data class Literal(
     val value: String,
     val type: String,
-    override val range: TextRange
+    override var textRange: TextRange
 ): Expression(){
-    override val children: List<ASTNode> = emptyList()
+    override val children: List<Node> = emptyList()
 }

@@ -4,26 +4,23 @@ import cengine.editor.annotation.AnnotationProvider
 import cengine.editor.annotation.Severity
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.folding.CodeFoldingProvider
-import cengine.editor.highlighting.Highlight
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
+import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.features.AsmCompleter
-import emulator.kit.assembler.Assembler
+import cengine.lang.asm.features.AsmFolder
+import cengine.lang.asm.features.AsmHighlighter
 
-class AsmLang(val assembler: Assembler): LanguageService {
+class AsmLang(val spec: AsmSpec): LanguageService {
     override val name: String = "Assembly"
     override val fileSuffix: String = ".s"
-    override val psiParser: AsmPsiParser = AsmPsiParser(assembler, this)
-    override val codeFoldingProvider: CodeFoldingProvider? = null
+    override val psiParser: AsmPsiParser = AsmPsiParser(spec, this)
+    override val codeFoldingProvider: CodeFoldingProvider = AsmFolder()
     override val widgetProvider: WidgetProvider? = null
     override val completionProvider: CompletionProvider = AsmCompleter()
     override val annotationProvider: AnnotationProvider? = null
-    override val highlightProvider: HighlightProvider? = null
-
-    override fun hlToColor(type: Highlight.Type): Int {
-        TODO("Not yet implemented")
-    }
+    override val highlightProvider: HighlightProvider = AsmHighlighter(spec)
 
     override fun severityToColor(type: Severity): Int? {
         TODO("Not yet implemented")

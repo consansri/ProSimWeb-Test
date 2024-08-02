@@ -20,10 +20,11 @@ interface CodeEditor {
 
     fun saveToFile() {
         file.setAsUTF8String(textModel.toString())
+        psiManager?.updatePsi(file, textModel)
     }
 
     fun loadFromFile() {
-        psiManager?.updatePsi(file)
+        psiManager?.updatePsi(file, textModel)
         textModel.replaceAll(file.getAsUTF8String())
     }
 

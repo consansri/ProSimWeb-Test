@@ -1,9 +1,11 @@
 package emulator.kit.common
 
-import emulator.kit.optional.Feature
 import emulator.core.Size
-import emulator.core.*
 import emulator.core.Value
+import emulator.core.Variable
+import emulator.kit.common.RegContainer.PC
+import emulator.kit.common.RegContainer.RegisterFile
+import emulator.kit.optional.Feature
 
 /**
  * The [RegContainer] is making all [RegisterFile]s besides the [PC] accessible.
@@ -132,6 +134,8 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         val name: String, val unsortedRegisters: Array<Register>, val hasPrivileges: Boolean = false
     ) {
         private val registers: Array<Register> = unsortedRegisters.sortedBy { if (it.aliases.isNotEmpty()) null else it.address.input }.toTypedArray()
+
+        fun search(nameOrAlias: String): Register? = unsortedRegisters.firstOrNull { it.names.contains(nameOrAlias) || it.aliases.contains(nameOrAlias) }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

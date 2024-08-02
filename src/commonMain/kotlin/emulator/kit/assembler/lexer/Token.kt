@@ -268,7 +268,6 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
         CURLY_BRACKET_CLOSING(Regex("^${Regex.escape("}")}"), CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
         SQUARE_BRACKET_OPENING(Regex("^\\["), CodeStyle.punctuation, isPunctuation = true, isOpeningBracket = true),
         SQUARE_BRACKET_CLOSING(Regex("^${Regex.escape("]")}"), CodeStyle.punctuation, isPunctuation = true, isClosingBracket = true),
-
         ERROR(Regex("^."));
 
         fun isLinkableSymbol(): Boolean = this == SYMBOL || this == L_LABEL_REF

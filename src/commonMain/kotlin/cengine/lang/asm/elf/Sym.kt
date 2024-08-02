@@ -10,11 +10,6 @@ interface Sym : BinaryProvider {
     val st_other: Elf_Byte
     val st_shndx: Elf_Half
 
-
-    override fun print(): String {
-        TODO("Not yet implemented")
-    }
-
     companion object {
 
         fun getSymbolType(st_info: Elf_Byte): String = when (ELF_ST_TYPE(st_info)) {

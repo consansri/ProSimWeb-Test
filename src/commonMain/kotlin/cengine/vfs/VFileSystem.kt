@@ -204,7 +204,6 @@ class VFileSystem(absRootPath: String) {
         override fun setContent(content: ByteArray) {
             if (!isDirectory) {
                 actualFileSystem.writeFile(path, content)
-                notifyFileChanged(this)
             }
         }
 

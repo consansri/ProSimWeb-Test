@@ -7,7 +7,7 @@ data class FunctionDefinition(
     val parameters: List<Parameter>,
     val returnType: TypeNode?,
     val body: BlockStatement,
-    override val range: TextRange
-) : ASTNode() {
-    override val children: List<ASTNode> = parameters + listOfNotNull(returnType, body)
+    override var textRange: TextRange
+) : Node() {
+    override val children: List<Node> = parameters + listOfNotNull(returnType, body)
 }

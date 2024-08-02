@@ -7,8 +7,8 @@ import cengine.psi.core.TextPosition
 
 class CownWidgets: WidgetProvider {
     override var cachedWidgets: List<Widget> = listOf(
-        Widget("interline", "interline widget", Widget.Type.INTERLINE, TextPosition(0, 1,0)),
-        Widget("inlay", "inlay widget", Widget.Type.INLAY, TextPosition(3, 1,3))
+        Widget("interline", "interline widget", Widget.Type.INTERLINE, TextPosition(0)),
+        Widget("inlay", "inlay widget", Widget.Type.INLAY, TextPosition(3))
     )
         set(value) {
             field = value
@@ -17,8 +17,8 @@ class CownWidgets: WidgetProvider {
             cachedPostLineWidget = value.filter { it.type == Widget.Type.POSTLINE }
         }
     override var cachedPostLineWidget: List<Widget> = listOf()
-    override var cachedInterLineWidgets: List<Widget> = listOf(Widget("interline", "interline widget", Widget.Type.INTERLINE, TextPosition(0, 1,0)))
-    override var cachedInlayWidgets: List<Widget> = listOf(Widget("inlay", "inlay widget", Widget.Type.INLAY, TextPosition(3, 1,3)))
+    override var cachedInterLineWidgets: List<Widget> = listOf(Widget("interline", "interline widget", Widget.Type.INTERLINE, TextPosition(0)))
+    override var cachedInlayWidgets: List<Widget> = listOf(Widget("inlay", "inlay widget", Widget.Type.INLAY, TextPosition(3)))
     override var cachedPreLineWidgets: List<Widget> = listOf()
 
     override fun getWidgets(psiFile: PsiFile): List<Widget> {

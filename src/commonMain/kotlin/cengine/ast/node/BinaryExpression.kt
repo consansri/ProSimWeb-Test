@@ -1,12 +1,13 @@
 package cengine.ast.node
 
+import cengine.psi.core.PsiElement
 import cengine.psi.core.TextRange
 
 data class BinaryExpression(
     val left: Expression,
     val operator: String,
     val right: Expression,
-    override val range: TextRange
+    override var textRange: TextRange
 ): Expression(){
-    override val children: List<ASTNode> = listOf(left, right)
+    override val children: List<Node> = listOf(left, right)
 }

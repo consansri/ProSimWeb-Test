@@ -223,7 +223,7 @@ class PerformantCodeEditor(
         }
 
         private suspend fun updateCache() {
-            val possibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(textModel.lines) ?: List(textModel.lines) {
+            val possibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(textModel.lines, textModel) ?: List(textModel.lines) {
                 LineIndicator(it)
             }
             cachedLines = possibleLines.map { calculateLineInfo(it) }
@@ -241,8 +241,8 @@ class PerformantCodeEditor(
                 endIndex,
                 firstNonWhiteSpaceIndex - startIndex,
                 firstNonWhiteSpaceIndex == endIndex - 1,
-                psiManager.getInterlineWidgets(indicator.lineNumber),
-                psiManager.getInlayWidgets(indicator.lineNumber),
+                psiManager.getInterlineWidgets(indicator.lineNumber, textModel),
+                psiManager.getInlayWidgets(indicator.lineNumber, textModel),
                 if (indicator.isFoldedBeginning) indicator.placeHolder else null
             )
             return info
@@ -295,7 +295,7 @@ class PerformantCodeEditor(
                     var currentXOffset = xOffset
 
                     while (currentColumn < columnInLine) {
-                        val widgetAtCol = lineInfo.inlayWidgets.firstOrNull { it.position.col == currentColumn }
+                        val widgetAtCol = lineInfo.inlayWidgets.firstOrNull { it.position.index == index }
                         if (widgetAtCol != null) {
                             currentXOffset += widgetAtCol.calcSize().width
                         }
@@ -350,7 +350,7 @@ class PerformantCodeEditor(
             var column = 0
 
             while (column < textModel.maxColumns) {
-                val widgetAtCol = info.inlayWidgets.firstOrNull { it.position.col == column }
+                val widgetAtCol = info.inlayWidgets.firstOrNull { textModel.getLineAndColumn(it.position.index).second == column }
                 val columnWidth = if (widgetAtCol != null) {
                     widgetAtCol.calcSize().width + fmColumnWidth
                 } else {
@@ -422,7 +422,7 @@ class PerformantCodeEditor(
             visibleLines.lines.forEachIndexed { index, lineInfo ->
                 //nativeLog("Rendering ${lineInfo.lineNumber} with height ${vLayout.fmLineHeight} at $xOffset, $yOffset")
                 // Render interline widgets
-                lineInfo.interlineWidgets.filter { it.position.line == lineInfo.lineNumber }.forEach {
+                lineInfo.interlineWidgets.filter { textModel.getLineAndColumn(it.position.index).first == lineInfo.lineNumber }.forEach {
                     val widgetDimension = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
                     yOffset += widgetDimension.height
                 }
@@ -477,14 +477,7 @@ class PerformantCodeEditor(
                 }
 
                 // Draw Char
-                color = (highlights.firstOrNull { it.range.contains(colID) }
-                    ?.color(lang)
-                    ?: lang
-                        ?.highlightProvider
-                        ?.cachedHighlights
-                        ?.firstOrNull { it.range.contains(charIndex) }
-                        ?.color(lang)
-                        ).toColor()
+                color = (highlights.firstOrNull { it.range.contains(colID) }?.color ?: lang?.highlightProvider?.cachedHighlights?.firstOrNull { it.range.contains(charIndex) }?.color).toColor()
 
                 font = codeFont
                 drawString(char.toString(), internalXOffset, internalYOffset + fmCode.ascent + vLayout.linePadding)
@@ -521,7 +514,7 @@ class PerformantCodeEditor(
             }
 
             // Render inlay widgets
-            lang?.widgetProvider?.cachedPostLineWidget?.filter { it.position.line == lineInfo.lineNumber }?.forEach {
+            lang?.widgetProvider?.cachedPostLineWidget?.filter { textModel.getLineAndColumn(it.position.index).first == lineInfo.lineNumber }?.forEach {
                 val widgetDim = drawWidget(it, internalXOffset, internalYOffset)
                 internalXOffset += widgetDim.width
             }

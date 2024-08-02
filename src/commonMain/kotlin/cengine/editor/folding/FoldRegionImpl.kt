@@ -10,6 +10,13 @@ data class FoldRegionImpl(
     val endLine: Int,
     var isFolded: Boolean,
     val placeholder: String
-) {
-    val foldedRange = IntRange(startLine + 1, endLine)
+) : FoldRegion {
+    val foldRange = IntRange(startLine + 1, endLine)
+    override fun isExpanded(): Boolean = !isFolded
+
+    override fun setExpanded(expanded: Boolean) {
+        isFolded = !expanded
+    }
+
+    override fun getPlaceHolderText(): String = placeholder
 }

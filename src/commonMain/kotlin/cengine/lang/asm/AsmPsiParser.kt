@@ -1,54 +1,47 @@
 package cengine.lang.asm
 
-import cengine.lang.asm.psi.dir.AsmDir
-import cengine.lang.asm.psi.instr.AsmInstr
-import cengine.lang.asm.psi.stmnt.*
+import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.ast.gas.GASNodeType
+import cengine.lang.asm.psi.AsmFile
 import cengine.psi.core.PsiParser
-import cengine.psi.core.TextRange
-import emulator.kit.assembler.AsmFile
-import emulator.kit.assembler.Assembler
-import emulator.kit.assembler.Process
-import emulator.kit.assembler.gas.GASNode
-import emulator.kit.assembler.lexer.Token
+import cengine.vfs.VirtualFile
+import emulator.kit.nativeLog
 
-class AsmPsiParser(val assembler: Assembler, val languageService: AsmLang) : PsiParser {
-    override fun parseFile(content: String, fileName: String): cengine.lang.asm.psi.AsmFile {
+class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiParser {
+
+
+
+    override fun parseFile(file: VirtualFile): AsmFile {
+        nativeLog("Parsing file ...")
+        val lexer = asmSpec.createLexer("")
+        val content = file.getAsUTF8String()
+        lexer.reset(content)
+     /*   val initialPos = lexer.position
+        val tokens = mutableListOf<AsmToken>()
+
+        while (lexer.hasMoreTokens()) {
+            tokens.add(lexer.consume(true))
+        }*/
+/*
+        nativeLog("Tokens: ${tokens.joinToString { it.toString() }}")
+
+        lexer.position = initialPos*/
+        val program = GASNode.buildNode(GASNodeType.PROGRAM, lexer, asmSpec) as GASNode.Program
+
+        nativeLog("Parsed File!")
+
         //nativeLog("AsmPsiParser parses file: $fileName!")
-        val result = assembler.compile(AsmFile(fileName, fileName, content), listOf(), Process.Mode.STOP_AFTER_TREE_HAS_BEEN_BUILD)
-        //nativeLog(result.tree.toString())
-        val psiFile = cengine.lang.asm.psi.AsmFile(fileName, content, languageService)
-        result.tree.rootNode?.getAllStatements()?.forEach { stmnt ->
-            psiFile.children.add(stmnt.parse())
-        }
 
-        return psiFile
+        return AsmFile(file, languageService, program)
     }
 
-    private fun GASNode.Statement.parse(): AsmStatement {
-        val lineLoc = getLineLoc()
-        return when (this) {
-            is GASNode.Statement.Dir -> AsmDirStmnt(label?.parse(), dir.parse(), lineLoc.toTextRange())
-            is GASNode.Statement.Empty -> AsmEmptyStmnt(label?.parse(), lineLoc.toTextRange())
-            is GASNode.Statement.Instr -> AsmInstrStmnt(label?.parse(), rawInstr.parse(), lineLoc.toTextRange())
-            is GASNode.Statement.Unresolved -> AsmEmptyStmnt(null, lineLoc.toTextRange())
-        }
+    fun reparseStatements(fromIndex: Int, toIndex: Int, asmFile: AsmFile): List<GASNode.Statement> {
+        val lexer = asmSpec.createLexer("")
+        val content = asmFile.file.getAsUTF8String().substring(fromIndex, toIndex)
+        lexer.reset(content)
+        val program = GASNode.buildNode(GASNodeType.PROGRAM, lexer, asmSpec) as GASNode.Program
+        return program.getAllStatements()
     }
-
-    private fun GASNode.Label.parse(): AsmLabel {
-        val lineLoc = getLineLoc()
-        return AsmLabel(null, this.identifier, lineLoc.toTextRange())
-    }
-
-    private fun GASNode.Directive.parse(): AsmDir {
-        val lineLoc = getLineLoc()
-        return AsmDir(null, listOf(), lineLoc.toTextRange())
-    }
-
-    private fun GASNode.RawInstr.parse(): AsmInstr {
-        val lineLoc = getLineLoc()
-        return AsmInstr(null, listOf(), lineLoc.toTextRange())
-    }
-
-    private fun Token.LineLoc.toTextRange(): TextRange = TextRange(this.startIndex, this.endIndex)
 
 }

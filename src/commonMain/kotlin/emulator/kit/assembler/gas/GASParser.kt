@@ -1,6 +1,11 @@
 package emulator.kit.assembler.gas
 
 import debug.DebugTools
+import emulator.core.*
+import emulator.core.Size.Bit16
+import emulator.core.Value.Bin
+import emulator.core.Value.Hex
+import emulator.core.Value.Tools.mergeToChunks
 import emulator.kit.assembler.*
 import emulator.kit.assembler.gas.GASNode.*
 import emulator.kit.assembler.lexer.Lexer
@@ -11,11 +16,6 @@ import emulator.kit.assembler.parser.TreeResult
 import emulator.kit.memory.Memory
 import emulator.kit.nativeLog
 import emulator.kit.optional.Feature
-import emulator.core.*
-import emulator.core.Size.Bit16
-import emulator.core.Value.Tools.mergeToChunks
-import emulator.core.Value.Bin
-import emulator.core.Value.Hex
 
 /**
  * The GASParser class is responsible for parsing GAS (GNU Assembler) syntax.
@@ -62,7 +62,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
             e.token.addSeverity(Severity.Type.ERROR, e.message)
             null
         }
-        if (root == null || root !is Root) return TreeResult(null, source, filteredSource)
+        if (root == null || root !is GASNode.Root) return TreeResult(null, source, filteredSource)
 
         // Filter
         root.removeEmptyStatements()
@@ -114,7 +114,7 @@ class GASParser(assembler: Assembler, private val asmHeader: AsmHeader) : Parser
                     tempContainer.currSection.addContent(Label(it))
                 }
                 when (firstStatement) {
-                    is Statement.Dir -> {
+                    is GASNode.Statement.Dir -> {
                         firstStatement.dir.type.executeDirective(firstStatement, tempContainer)
                     }
 

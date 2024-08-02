@@ -4,5 +4,5 @@ import cengine.psi.core.TextRange
 
 data class BlockStatement(
     override val children: List<Statement>,
-    override val range: TextRange
-): ASTNode()
+    override var textRange: TextRange
+): Node()

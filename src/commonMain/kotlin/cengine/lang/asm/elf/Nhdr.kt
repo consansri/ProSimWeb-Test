@@ -40,9 +40,6 @@ data class Nhdr(
     var n_type: Elf_Word
 ): BinaryProvider {
 
-    override fun print(): String {
-        TODO("Not yet implemented")
-    }
     companion object{
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Nhdr {
             var currIndex = offset

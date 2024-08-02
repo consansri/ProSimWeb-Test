@@ -6,7 +6,7 @@ data class VariableDeclaration(
     val name: String,
     val type: TypeNode?,
     val initializer: Expression?,
-    override val range: TextRange
-) : ASTNode() {
-    override val children: List<ASTNode> = listOfNotNull(type, initializer)
+    override var textRange: TextRange
+) : Node() {
+    override val children: List<Node> = listOfNotNull(type, initializer)
 }

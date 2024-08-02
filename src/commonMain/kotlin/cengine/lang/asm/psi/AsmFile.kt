@@ -1,17 +1,24 @@
 package cengine.lang.asm.psi
 
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.psi.stmnt.AsmStatement
+import cengine.lang.asm.ast.gas.GASNode
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 import cengine.psi.core.TextRange
+import cengine.vfs.VirtualFile
+import emulator.kit.nativeLog
 
-class AsmFile(override val name: String, override var text: String, override val lang: AsmLang, override val children: MutableList<AsmStatement> = mutableListOf()) : PsiFile {
+class AsmFile(override val file: VirtualFile, override val lang: AsmLang, private var program: GASNode.Program) : PsiFile {
+
     override val parent: PsiElement? = null
+    override val children: MutableList<GASNode> get() = program.children
 
-    override val textRange: TextRange
-        get() = TextRange(0, text.length)
+    override var textRange: TextRange = program.textRange
+
+    init {
+        nativeLog(print(""))
+    }
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor.visitFile(this)
@@ -20,16 +27,12 @@ class AsmFile(override val name: String, override var text: String, override val
         }
     }
 
-    override fun updateFrom(content: String) {
-        text = content
-        children.clear()
+    override fun update() {
         // Reparse the file and update children
-        parse()
+        val newFile = lang.psiParser.parseFile(file)
+        program = newFile.program
+        textRange = newFile.textRange
+        nativeLog("Updated: " + print(""))
     }
-
-    private fun parse() {
-        children.addAll(lang.psiParser.parseFile(text, name).children)
-    }
-
 
 }

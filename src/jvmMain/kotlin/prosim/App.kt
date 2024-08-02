@@ -1,12 +1,12 @@
 package prosim
 
 import cengine.lang.asm.AsmLang
+import cengine.lang.asm.specific.rv32.RV32Spec
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.util.SystemInfo
-import emulator.archs.ArchRV32
 import prosim.ide.MainAppWindow
 import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
@@ -78,7 +78,7 @@ fun testMainAppWindow(){
 fun testNewEditor() {
     val frame = JFrame()
 
-    val project = Project(ProjectState("docs"), CownLang, AsmLang(ArchRV32().assembler))
+    val project = Project(ProjectState("docs"), CownLang, AsmLang(RV32Spec()))
 
     val fileTree = FileTree(project)
 

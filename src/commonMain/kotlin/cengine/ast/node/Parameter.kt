@@ -5,7 +5,7 @@ import cengine.psi.core.TextRange
 data class Parameter(
     val name: String,
     val type: TypeNode,
-    override val range: TextRange
-): ASTNode() {
-    override val children: List<ASTNode> = listOf(type)
+    override var textRange: TextRange
+): Node() {
+    override val children: List<Node> = listOf(type)
 }

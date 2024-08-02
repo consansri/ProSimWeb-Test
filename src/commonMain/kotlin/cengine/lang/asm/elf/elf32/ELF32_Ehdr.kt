@@ -62,7 +62,7 @@ data class ELF32_Ehdr(
         e_type
     )*/
 
-    override fun print(): String {
+    fun print(): String {
         return " Class: " +
                 " Data: " +
                 " Version: " +

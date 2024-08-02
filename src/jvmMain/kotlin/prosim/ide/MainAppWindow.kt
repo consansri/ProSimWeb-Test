@@ -1,12 +1,12 @@
 package prosim.ide
 
 import cengine.lang.asm.AsmLang
+import cengine.lang.asm.specific.rv32.RV32Spec
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.extras.FlatSVGIcon
-import emulator.archs.ArchRV32
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +28,7 @@ class MainAppWindow : CPanel() {
 
     private val overlayScope = CoroutineScope(Dispatchers.Default)
 
-    val project = Project(ProjectState("docs"), CownLang, AsmLang(ArchRV32().assembler))
+    val project = Project(ProjectState("docs"), CownLang, AsmLang(RV32Spec()))
 
     val fileTree = FileTree(project).apply {
         setFileTreeListener(object : FileTreeUIAdapter() {

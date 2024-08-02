@@ -1,12 +1,13 @@
 package cengine.psi.impl
 
 import cengine.psi.core.*
+import cengine.vfs.VirtualFile
 
 class PsiServiceImpl(
     private val parser: PsiParser
 ) : PsiService {
-    override fun createFile(name: String, content: String): PsiFile {
-        return parser.parseFile(content, name)
+    override fun createFile(file: VirtualFile): PsiFile {
+        return parser.parseFile(file)
     }
 
     override fun findElementAt(file: PsiFile, offset: Int): PsiElement? {
@@ -20,7 +21,7 @@ class PsiServiceImpl(
             }
 
             override fun visitElement(element: PsiElement) {
-                if (element.textRange.startOffset <= targetOffset && targetOffset < element.textRange.endOffset) {
+                if (element.textRange.startOffset.index <= targetOffset && targetOffset < element.textRange.endOffset.index) {
                     result = element
                     element.children.forEach { it.accept(this) }
                 }

@@ -2,9 +2,10 @@ package cengine.lang.cown.psi
 
 import cengine.psi.core.PsiFile
 import cengine.psi.core.PsiParser
+import cengine.vfs.VirtualFile
 
 class CownPsiParser: PsiParser {
-    override fun parseFile(content: String, name: String): PsiFile {
-        return CownPsiFile(name, content)
+    override fun parseFile(file: VirtualFile): PsiFile {
+        return CownPsiFile(file)
     }
 }
