@@ -1,11 +1,13 @@
 package cengine.ast.node
 
 import cengine.ast.ASTVisitor
+import cengine.editor.annotation.Notation
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 
 sealed class Node : PsiElement {
     override var parent: PsiElement? = null
+    override val notations: MutableList<Notation> = mutableListOf()
     override fun accept(visitor: PsiElementVisitor) {
         visitor as? ASTVisitor<*> ?: return
         when (this) {

@@ -7,10 +7,13 @@ package cengine.psi.core
  * @param endOffset exclusive
  */
 data class TextRange(val startOffset: TextPosition, val endOffset: TextPosition) {
-    constructor(start: Int, end: Int): this(TextPosition(start), TextPosition(end))
+    constructor(start: Int, end: Int) : this(TextPosition(start), TextPosition(end))
+    constructor(index: Int) : this(TextPosition(index), TextPosition(index + 1))
+
     operator fun contains(other: TextPosition): Boolean = other < endOffset && other >= startOffset
     operator fun contains(other: Int): Boolean = other < endOffset.index && other >= startOffset.index
     fun move(offset: TextPosition): TextRange = TextRange(startOffset + offset, endOffset + offset)
     fun difference(other: TextRange): TextPosition = TextPosition(endOffset.index - startOffset.index)
     fun toIntRange(): IntRange = IntRange(startOffset.index, endOffset.index - 1)
+    override fun toString(): String = "$startOffset..<$endOffset"
 }

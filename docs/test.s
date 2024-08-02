@@ -1,7 +1,10 @@
+
 /* ok alles klar */
 .text
 label: .byte 23
 .data
+
+.set newSym, 341
 
 nice:
 
@@ -11,4 +14,3 @@ zweites_label:
 
 oh_yeah:
 
-nice

@@ -4,8 +4,8 @@ import cengine.psi.core.PsiFile
 
 interface AnnotationProvider {
 
-    var cachedAnnotations: List<Annotation>
+    var cachedNotations: List<Notation>
 
-    fun getAnnotations(psiFile: PsiFile): List<Annotation>
+    fun getAnnotations(psiFile: PsiFile): List<Notation>
 
 }

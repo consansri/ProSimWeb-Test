@@ -8,4 +8,5 @@ data class TextPosition(val index: Int = 0) : Comparable<TextPosition> {
     operator fun plus(other: TextPosition): TextPosition = TextPosition(index + other.index)
     operator fun minus(other: TextPosition): TextPosition = TextPosition(index - other.index)
     override fun compareTo(other: TextPosition): Int = index.compareTo(other.index)
+    override fun toString(): String = index.toString()
 }

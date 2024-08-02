@@ -483,7 +483,7 @@ class PerformantCodeEditor(
                 drawString(char.toString(), internalXOffset, internalYOffset + fmCode.ascent + vLayout.linePadding)
 
                 // Draw Underline
-                lang?.annotationProvider?.cachedAnnotations?.firstOrNull {
+                lang?.annotationProvider?.cachedNotations?.firstOrNull {
                     it.range.contains(charIndex)
                 }?.let {
                     color = it.severity.toColor(lang).toColor()
@@ -650,7 +650,7 @@ class PerformantCodeEditor(
 
                 val (line, column) = vLayout.getLineAndColumnAt(e.point)
                 val index = textModel.indexOf(line, column)
-                val annotations = lang?.annotationProvider?.cachedAnnotations?.filter { index in it.range } ?: listOf()
+                val annotations = lang?.annotationProvider?.cachedNotations?.filter { index in it.range } ?: listOf()
 
                 if (annotations.isNotEmpty()) {
                     SwingUtilities.invokeLater {
@@ -748,7 +748,7 @@ class PerformantCodeEditor(
                     when {
                         e.isAltDown -> {
                             launch {
-                                val annotations = lang?.annotationProvider?.cachedAnnotations?.filter { selector.caret.index in it.range } ?: listOf()
+                                val annotations = lang?.annotationProvider?.cachedNotations?.filter { selector.caret.index in it.range } ?: listOf()
                                 val coords = vLayout.getCoords(selector.caret.index)
                                 if (annotations.isNotEmpty()) {
                                     SwingUtilities.invokeLater {
@@ -859,7 +859,6 @@ class PerformantCodeEditor(
                 } catch (e: Exception) {
                     nativeWarn("Completion canceled by edit.")
                 }
-
             }
         }
     }

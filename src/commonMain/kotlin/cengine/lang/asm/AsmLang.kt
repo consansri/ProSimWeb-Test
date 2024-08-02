@@ -8,6 +8,7 @@ import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
 import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.features.AsmAnnotator
 import cengine.lang.asm.features.AsmCompleter
 import cengine.lang.asm.features.AsmFolder
 import cengine.lang.asm.features.AsmHighlighter
@@ -19,10 +20,14 @@ class AsmLang(val spec: AsmSpec): LanguageService {
     override val codeFoldingProvider: CodeFoldingProvider = AsmFolder()
     override val widgetProvider: WidgetProvider? = null
     override val completionProvider: CompletionProvider = AsmCompleter()
-    override val annotationProvider: AnnotationProvider? = null
+    override val annotationProvider: AnnotationProvider = AsmAnnotator()
     override val highlightProvider: HighlightProvider = AsmHighlighter(spec)
 
     override fun severityToColor(type: Severity): Int? {
-        TODO("Not yet implemented")
+        return when(type){
+            Severity.INFO -> null
+            Severity.WARNING -> CodeStyle.YELLOW.lightHexColor
+            Severity.ERROR -> CodeStyle.RED.lightHexColor
+        }
     }
 }

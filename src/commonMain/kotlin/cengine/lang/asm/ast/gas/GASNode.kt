@@ -1,5 +1,6 @@
 package cengine.lang.asm.ast.gas
 
+import cengine.editor.annotation.Notation
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
@@ -36,6 +37,8 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
     override var parent: PsiElement? = null
 
     final override val children: MutableList<GASNode> = mutableListOf(*children)
+    final override val notations: MutableList<Notation> = mutableListOf()
+
     open fun getCodeStyle(position: TextPosition): CodeStyle? {
         return children.firstOrNull {
             position in it.textRange
@@ -75,18 +78,20 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
             when (gasNodeType) {
                 GASNodeType.PROGRAM -> {
                     val statements = mutableListOf<Statement>()
+                    val annotations = mutableListOf<Notation>()
+
                     while (lexer.hasMoreTokens()) {
                         val node = buildNode(GASNodeType.STATEMENT, lexer, asmSpec)
 
                         if (node == null) {
+                            val token = lexer.consume(true)
+                            annotations.add(Notation.error(token, "Expected a Statement!"))
                             continue
                         }
 
                         if (node is Statement.Unresolved && node.lineTokens.isEmpty() && node.label == null) {
                             continue
                         }
-
-                        nativeLog("Found Statement: ${node::class.simpleName}")
 
                         if (node !is Statement) {
                             throw PsiParser.NodeException(node, "Didn't get a statement node for GASNode.buildNode(${GASNodeType.STATEMENT})!")
@@ -95,22 +100,24 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                         statements.add(node)
                     }
 
-                    return Program(*statements.toTypedArray())
+                    val node = Program(*statements.toTypedArray())
+                    node.notations.addAll(annotations)
+                    return node
                 }
 
                 GASNodeType.STATEMENT -> {
                     val label = buildNode(GASNodeType.LABEL, lexer, asmSpec) as? Label
-                    nativeLog("Parsing Statement...")
 
                     val directive = buildNode(GASNodeType.DIRECTIVE, lexer, asmSpec)
                     if (directive != null && directive is Directive) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
-                            nativeLog("Returning null (from Directive) $lineBreak ${directive.type} ${directive.print("")}")
-                            lexer.position = initialPos
-                            return null
+                            // TODO Error Handling
+                            val node = Statement.Dir(label, directive, lineBreak)
+                            node.notations.add(Notation.error(lineBreak, "Linebreak is missing!"))
+                            return node
                         }
-                        nativeLog("Returning Directive")
+
                         return Statement.Dir(label, directive, lineBreak)
                     }
 
@@ -118,11 +125,12 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                     if (instruction != null && instruction is RawInstr) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
-                            nativeLog("Returning null (from Instruction)")
-                            lexer.position = initialPos
+                            // TODO Error Handling
+                            val node = Statement.Instr(label, instruction, lineBreak)
+                            node.notations.add(Notation.error(lineBreak, "Linebreak is missing!"))
                             return null
                         }
-                        nativeLog("Returning Instruction")
+
                         return Statement.Instr(label, instruction, lineBreak)
                     }
 
@@ -139,19 +147,18 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                             }
 
                             if (!lexer.hasMoreTokens()) {
-                                nativeLog("Returning null (from Unresolved)")
-                                lexer.position = initialPos
-                                return null
+                                // TODO Error Handling
+                                val node = Statement.Unresolved(label, unresolvedTokens, token)
+                                node.notations.add(Notation.error(lineBreak, "Linebreak is missing!"))
+                                return node
                             }
 
                             unresolvedTokens.add(token)
                         }
 
-                        nativeLog("Returning Unresolved")
                         return Statement.Unresolved(label, unresolvedTokens, token)
                     }
 
-                    nativeLog("Returning Empty")
                     return Statement.Empty(label, lineBreak)
                 }
 
@@ -258,15 +265,6 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 }
             }
         }
-
-        fun MutableList<Token>.dropSpaces(): List<Token> {
-            val dropped = mutableListOf<Token>()
-            while (this.isNotEmpty()) {
-                if (this.first().type != AsmTokenType.WHITESPACE) break
-                dropped.add(this.removeFirst())
-            }
-            return dropped
-        }
     }
 
     /**
@@ -276,6 +274,10 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
     class Program(vararg statements: Statement) : GASNode(*statements) {
 
         override var textRange: TextRange = statements.minBy { it.textRange.startOffset }.textRange.startOffset..<statements.maxBy { it.textRange.endOffset }.textRange.endOffset
+
+        init {
+            removeEmptyStatements()
+        }
 
         override fun getFormatted(): String = children.joinToString("") { it.getFormatted() }
 

@@ -1,5 +1,6 @@
 package cengine.lang.asm.psi
 
+import cengine.editor.annotation.Notation
 import cengine.lang.asm.AsmLang
 import cengine.lang.asm.ast.gas.GASNode
 import cengine.psi.core.PsiElement
@@ -10,6 +11,8 @@ import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 
 class AsmFile(override val file: VirtualFile, override val lang: AsmLang, private var program: GASNode.Program) : PsiFile {
+    override val notations: List<Notation>
+        get() = program.notations
 
     override val parent: PsiElement? = null
     override val children: MutableList<GASNode> get() = program.children

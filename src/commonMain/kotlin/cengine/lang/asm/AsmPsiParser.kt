@@ -10,8 +10,6 @@ import emulator.kit.nativeLog
 
 class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiParser {
 
-
-
     override fun parseFile(file: VirtualFile): AsmFile {
         nativeLog("Parsing file ...")
         val lexer = asmSpec.createLexer("")
