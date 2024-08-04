@@ -4,7 +4,7 @@ import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.gas.GASDirType
-import cengine.psi.lexer.core.Lexer
+import cengine.psi.core.TextPosition
 import cengine.psi.lexer.impl.BaseLexer
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
@@ -48,15 +48,9 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
 
         for (type in AsmTokenType.entries) {
 
-            val regex = regexMap[type]
-            if (regex == null) {
-                continue
-            }
+            val regex = regexMap[type] ?: continue
             //val contentToMatch = input.substring(index)
-            val match = regex.matchAt(input, index)
-            if (match == null) {
-                continue
-            }
+            val match = regex.matchAt(input, index) ?: continue
 
             //regex.find(input, index) ?: continue
 
@@ -115,7 +109,11 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
 
         nativeWarn("AsmLexer: retry $index ${input.substring(index).take(5)}")
 
-        throw Lexer.InvalidCharException(peekChar(), index)
+        //throw Lexer.InvalidCharException(peekChar(), index)
+        val char = input[index].toString()
+        val start = index
+        advance()
+        return AsmToken(AsmTokenType.ERROR, char, TextPosition(start), TextPosition(index))
         //nativeError("InvalidTokenException $token $index")
     }
 

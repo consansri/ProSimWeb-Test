@@ -249,7 +249,13 @@ class RopeModel(text: String = "") : TextModel {
             return this
         }
 
-        override fun substring(start: Int, end: Int): StringBuilder = StringBuilder(text.substring(start, end))
+        override fun substring(start: Int, end: Int): StringBuilder {
+            try {
+                return StringBuilder(text.substring(start, end))
+            } catch (e: IndexOutOfBoundsException) {
+                throw ConcurrentModificationException("RopeModel.Leaf.substring was out of bounds, cause it has changed while building the substring!\n$e")
+            }
+        }
 
         override fun charAt(index: Int): Char = text[index]
         override fun findAllOccurences(searchString: String, startIndex: Int, ignoreCase: Boolean): List<IntRange> {
@@ -367,7 +373,11 @@ class RopeModel(text: String = "") : TextModel {
             return when {
                 end <= leftWeight -> left.substring(start, end)
                 start >= leftWeight -> right.substring(start - leftWeight, end - leftWeight)
-                else -> left.substring(start, leftWeight).append(right.substring(0, end - leftWeight).toString())
+                else -> {
+                    val leftPart = left.substring(start, leftWeight)
+                    val rightPart = right.substring(0, end - leftWeight)
+                    leftPart.append(rightPart)
+                }
             }
         }
 
@@ -413,6 +423,4 @@ class RopeModel(text: String = "") : TextModel {
 
         operator fun plus(other: LC): LC = LC(line + other.line, if (other.line != 0) other.col else col + other.col)
     }
-
-
 }

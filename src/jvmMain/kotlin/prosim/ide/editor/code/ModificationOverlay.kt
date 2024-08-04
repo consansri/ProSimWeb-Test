@@ -1,25 +1,25 @@
 package prosim.ide.editor.code
 
 import cengine.editor.EditorModification
-import emulator.kit.assembler.CodeStyle
 import prosim.ide.editor.toColor
 import prosim.uilib.UIStates
-import prosim.uilib.alpha
+import prosim.uilib.styled.CList
 import prosim.uilib.styled.COverlay
 import prosim.uilib.styled.CScrollPane
-import prosim.uilib.styled.params.FontType
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Component
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.*
+import javax.swing.DefaultListModel
+import javax.swing.JComponent
+import javax.swing.JList
+import javax.swing.ListSelectionModel
 
 class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEditor) : COverlay() {
     private val listModel = DefaultListModel<T>()
-    private val list = JList(listModel)
+    private val list = CList(listModel, true)
     private val scrollPane = CScrollPane(true, list)
 
     companion object {
@@ -30,7 +30,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
         layout = BorderLayout()
 
         list.selectionMode = ListSelectionModel.SINGLE_SELECTION
-        list.cellRenderer = OverlayItemRenderer()
+        list.cellRenderer = ModificationRenderer()
 
         list.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
@@ -108,26 +108,20 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
         list.requestFocusInWindow()
     }
 
+    private inner class ModificationRenderer() : CList.OverlayItemRenderer<T>() {
+        override fun getListCellRendererComponent(list: JList<out T>?, value: T, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+            customFG = value.severity?.toColor(editor.lang).toColor(UIStates.theme.get().COLOR_FG_0)
+            return this
+        }
+    }
+
     private fun selectCurrentItem() {
         val selectedValue = list.selectedValue
         if (selectedValue != null) {
             selectedValue.execute(editor)
             makeInvisible()
             editor.invalidateContent()
-        }
-    }
-
-    private inner class OverlayItemRenderer : DefaultListCellRenderer() {
-        val selectedBGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x33)
-        override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
-            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            foreground = (value as? EditorModification)?.severity?.toColor(editor.psiManager?.lang).toColor(UIStates.theme.get().getColor(CodeStyle.BASE0))
-            background = if (cellHasFocus) selectedBGColor else UIStates.theme.get().COLOR_BG_0
-            border = BorderFactory.createEmptyBorder()
-            roundedCorners = true
-            font = FontType.CODE.getFont()
-            text = (value as? EditorModification)?.displayText ?: value.toString()
-            return this
         }
     }
 

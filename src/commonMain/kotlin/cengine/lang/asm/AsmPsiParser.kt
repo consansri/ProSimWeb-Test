@@ -17,7 +17,12 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
     override fun parseFile(file: VirtualFile, textModel: TextModel?): AsmFile {
         nativeLog("Parsing file ...")
 
-        val content = textModel?.toString() ?: file.getAsUTF8String()
+        val content = try {
+            textModel?.toString() ?: file.getAsUTF8String()
+        } catch (e: ConcurrentModificationException) {
+            textModel?.toString() ?: file.getAsUTF8String()
+        }
+
         val lexer = asmSpec.createLexer(content)
         lexer.reset(content)
 

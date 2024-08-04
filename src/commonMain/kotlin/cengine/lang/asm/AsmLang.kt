@@ -17,7 +17,7 @@ class AsmLang(val spec: AsmSpec): LanguageService {
     override val psiParser: AsmPsiParser = AsmPsiParser(spec, this)
     override val codeFoldingProvider: CodeFoldingProvider = AsmFolder()
     override val widgetProvider: WidgetProvider? = null
-    override val completionProvider: CompletionProvider = AsmCompleter()
+    override val completionProvider: CompletionProvider = AsmCompleter(spec)
     override val annotationProvider: AnnotationProvider = AsmAnnotator()
     override val highlightProvider: HighlightProvider = AsmHighlighter(spec)
     override val formatter: Formatter = AsmFormatter()

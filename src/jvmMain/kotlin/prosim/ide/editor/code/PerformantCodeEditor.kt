@@ -807,7 +807,7 @@ class PerformantCodeEditor(
 
                 KeyEvent.VK_L -> {
                     if (e.isControlDown && e.isAltDown) {
-                        psiManager?.getPsiFile(file)?.let {psiFile ->
+                        psiManager?.getPsiFile(file)?.let { psiFile ->
                             val string = lang?.formatter?.formatted(psiFile)
                             string?.let { content ->
                                 textStateModel.replaceAll(content)
@@ -839,7 +839,7 @@ class PerformantCodeEditor(
 
             completionJob = launch {
                 try {
-                    val prefixIndex = selector.indexOfWordStart(selector.caret.index, Selector.DEFAULT_SYMBOL_CHARS, true)
+                    val prefixIndex = selector.indexOfWordStart(selector.caret.index, Selector.DEFAULT_SPACING_SET, false)
                     val prefix = textModel.substring(prefixIndex, selector.caret.index)
                     if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
                         val completions = lang?.completionProvider?.fetchCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
