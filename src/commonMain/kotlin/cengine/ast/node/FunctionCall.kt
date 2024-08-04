@@ -7,5 +7,8 @@ data class FunctionCall(
     val arguments: List<Expression>,
     override var textRange: TextRange
 ): Expression(){
-    override val children: List<Node> = listOf(function) + arguments
+    init {
+        children.add(function)
+        children.addAll(arguments)
+    }
 }

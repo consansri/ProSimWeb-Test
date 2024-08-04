@@ -7,5 +7,7 @@ data class TypeNode(
     val genericParameters: List<TypeNode> = emptyList(),
     override var textRange: TextRange
 ): Node() {
-    override val children: List<Node> = genericParameters
+    init {
+        children.addAll(genericParameters)
+    }
 }

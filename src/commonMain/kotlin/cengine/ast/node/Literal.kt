@@ -7,5 +7,4 @@ data class Literal(
     val type: String,
     override var textRange: TextRange
 ): Expression(){
-    override val children: List<Node> = emptyList()
 }

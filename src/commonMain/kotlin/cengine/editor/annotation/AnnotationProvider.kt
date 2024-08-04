@@ -4,8 +4,8 @@ import cengine.psi.core.PsiFile
 
 interface AnnotationProvider {
 
-    var cachedNotations: List<Notation>
+    val cachedNotations: MutableMap<PsiFile, List<Notation>>
 
-    fun getAnnotations(psiFile: PsiFile): List<Notation>
+    fun updateAnnotations(psiFile: PsiFile)
 
 }

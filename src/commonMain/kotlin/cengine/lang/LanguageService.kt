@@ -4,6 +4,7 @@ import cengine.editor.annotation.AnnotationProvider
 import cengine.editor.annotation.Severity
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.folding.CodeFoldingProvider
+import cengine.editor.formatting.Formatter
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.text.Informational
 import cengine.editor.widgets.WidgetProvider
@@ -22,18 +23,19 @@ interface LanguageService {
     val completionProvider: CompletionProvider?
     val annotationProvider: AnnotationProvider?
     val highlightProvider: HighlightProvider?
+    val formatter: Formatter?
 
     fun severityToColor(type: Severity): Int?
 
     fun updateAnalytics(file: PsiFile, informational: Informational?) {
 
         if (informational != null) {
-            codeFoldingProvider?.getFoldingRegions(file, informational)
+            codeFoldingProvider?.updateFoldRegions(file, informational)
         }
         widgetProvider?.getWidgets(file)
         completionProvider?.buildCompletionSet(file)
-        annotationProvider?.getAnnotations(file)
-        highlightProvider?.getHighlights(file)
+        annotationProvider?.updateAnnotations(file)
+        highlightProvider?.updateHighlights(file)
     }
 
 }

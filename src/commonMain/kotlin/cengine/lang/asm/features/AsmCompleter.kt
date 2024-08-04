@@ -15,7 +15,7 @@ class AsmCompleter : CompletionProvider {
 
     val labels: MutableMap<PsiFile, List<String>> = mutableMapOf()
 
-    override fun getCompletions(textModel: TextModel, offset: Int, prefix: String, psiFile: PsiFile?): List<Completion> {
+    override fun fetchCompletions(textModel: TextModel, offset: Int, prefix: String, psiFile: PsiFile?): List<Completion> {
         return labels[psiFile]?.asCompletions(prefix) ?: listOf()
     }
 

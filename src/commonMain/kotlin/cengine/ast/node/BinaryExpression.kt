@@ -1,6 +1,5 @@
 package cengine.ast.node
 
-import cengine.psi.core.PsiElement
 import cengine.psi.core.TextRange
 
 data class BinaryExpression(
@@ -9,5 +8,5 @@ data class BinaryExpression(
     val right: Expression,
     override var textRange: TextRange
 ): Expression(){
-    override val children: List<Node> = listOf(left, right)
+    override val children: MutableList<Node> = mutableListOf(left, right)
 }

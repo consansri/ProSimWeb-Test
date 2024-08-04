@@ -6,6 +6,7 @@ import cengine.editor.annotation.Notation
  * Base Element for all PSI elements
  */
 interface PsiElement : Locatable {
+
     val parent: PsiElement?
     val children: List<PsiElement>
     val notations: List<Notation>

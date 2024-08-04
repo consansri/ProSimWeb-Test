@@ -7,5 +7,7 @@ data class Parameter(
     val type: TypeNode,
     override var textRange: TextRange
 ): Node() {
-    override val children: List<Node> = listOf(type)
+    init {
+        children.add(type)
+    }
 }

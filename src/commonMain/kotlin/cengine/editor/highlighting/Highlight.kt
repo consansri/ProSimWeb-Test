@@ -1,8 +1,9 @@
 package cengine.editor.highlighting
 
 import cengine.lang.asm.CodeStyle
+import cengine.psi.core.TextRange
 
-data class Highlight(override val range: IntRange, val type: Type): HLInfo {
+data class Highlight(override var range: TextRange, val type: Type): HLInfo {
 
     override val color: Int
         get() = type.style.getDarkElseLight()

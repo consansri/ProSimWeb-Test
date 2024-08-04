@@ -5,14 +5,12 @@ import cengine.editor.highlighting.Highlight
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.cown.CownLexer
 import cengine.psi.core.PsiFile
+import cengine.psi.core.TextRange
 
 class CownHighlighter : HighlightProvider {
-    override var cachedHighlights: List<HLInfo> = listOf(Highlight(0..3, Highlight.Type.COMMENT))
+    override var cachedHighlights: MutableMap<PsiFile, List<HLInfo>> = mutableMapOf()
+    override fun updateHighlights(psiFile: PsiFile) {
 
-    override fun getHighlights(psiFile: PsiFile): List<Highlight> {
-        val hls = mutableListOf<Highlight>()
-        cachedHighlights = hls
-        return hls
     }
 
     override fun fastHighlight(text: String): List<Highlight> {
@@ -22,7 +20,7 @@ class CownHighlighter : HighlightProvider {
             val comparable = text.substring(index)
             val keyWord = CownLexer.keywords.firstOrNull { comparable.startsWith(it) }
             if (keyWord != null) {
-                highlights.add(Highlight(index..<(index + keyWord.length), Highlight.Type.KEYWORD))
+                highlights.add(Highlight(TextRange(index, index + keyWord.length), Highlight.Type.KEYWORD))
                 index += keyWord.length
             } else {
                 index++

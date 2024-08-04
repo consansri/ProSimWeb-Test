@@ -7,7 +7,7 @@ class PsiServiceImpl(
     private val parser: PsiParser
 ) : PsiService {
     override fun createFile(file: VirtualFile): PsiFile {
-        return parser.parseFile(file)
+        return parser.parseFile(file, null)
     }
 
     override fun findElementAt(file: PsiFile, offset: Int): PsiElement? {

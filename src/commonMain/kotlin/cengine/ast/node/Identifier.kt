@@ -6,5 +6,5 @@ data class Identifier(
     val name: String,
     override var textRange: TextRange
 ): Expression(){
-    override val children: List<Node> = emptyList()
+
 }

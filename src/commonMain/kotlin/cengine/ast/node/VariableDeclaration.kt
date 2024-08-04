@@ -8,5 +8,8 @@ data class VariableDeclaration(
     val initializer: Expression?,
     override var textRange: TextRange
 ) : Node() {
-    override val children: List<Node> = listOfNotNull(type, initializer)
+
+    init {
+        children.addAll(listOfNotNull(type, initializer))
+    }
 }

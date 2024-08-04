@@ -8,26 +8,22 @@ import cengine.lang.asm.ast.gas.GASNode
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
-import emulator.kit.nativeLog
+import cengine.psi.core.TextRange
 
 class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
-    override var cachedHighlights: List<HLInfo> = listOf()
-        set(value) {
-            field = value
-            nativeLog("Highlights: " + value.joinToString(" ") { it.toString() })
-        }
+    override val cachedHighlights: MutableMap<PsiFile, List<HLInfo>> = mutableMapOf()
 
     private val lexer = asmSpec.createLexer("")
 
-    data class HL(override val range: IntRange, val style: CodeStyle) : HLInfo {
+    data class HL(override var range: TextRange, val style: CodeStyle) : HLInfo {
         override val color: Int get() = style.getDarkElseLight()
     }
 
-    override fun getHighlights(psiFile: PsiFile): List<HLInfo> {
+    override fun updateHighlights(psiFile: PsiFile) {
         val builder = HighlightCollector()
         psiFile.accept(builder)
-        cachedHighlights = builder.highlights
-        return builder.highlights
+        cachedHighlights.remove(psiFile)
+        cachedHighlights[psiFile] = builder.highlights
     }
 
     override fun fastHighlight(text: String): List<HLInfo> {
@@ -43,7 +39,7 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
             val style = token.type.style
 
             style?.let {
-                highlights.add(HL(token.textRange.toIntRange(), it))
+                highlights.add(HL(token.textRange, it))
             }
         }
 
@@ -59,13 +55,13 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
         override fun visitElement(element: PsiElement) {
             if (element !is GASNode) return
             when (element) {
-                is GASNode.ArgDef.Named -> highlights.add(HL(element.name.textRange.toIntRange(), CodeStyle.argument))
-                is GASNode.Argument.Basic -> highlights.add(HL(element.argName.textRange.toIntRange(), CodeStyle.argument))
-                is GASNode.Argument.DefaultValue -> highlights.add(HL(element.argName.textRange.toIntRange(), CodeStyle.argument))
-                is GASNode.Label -> highlights.add(HL(element.textRange.toIntRange(), CodeStyle.label))
-                is GASNode.NumericExpr.Operand.Char -> highlights.add(HL(element.char.textRange.toIntRange(), CodeStyle.char))
-                is GASNode.NumericExpr.Operand.Number -> highlights.add(HL(element.number.textRange.toIntRange(), CodeStyle.integer))
-                is GASNode.StringExpr.Operand.StringLiteral -> highlights.add(HL(element.string.textRange.toIntRange(), CodeStyle.string))
+                is GASNode.ArgDef.Named -> highlights.add(HL(element.name.textRange, CodeStyle.argument))
+                is GASNode.Argument.Basic -> highlights.add(HL(element.argName.textRange, CodeStyle.argument))
+                is GASNode.Argument.DefaultValue -> highlights.add(HL(element.argName.textRange, CodeStyle.argument))
+                is GASNode.Label -> highlights.add(HL(element.textRange, CodeStyle.label))
+                is GASNode.NumericExpr.Operand.Char -> highlights.add(HL(element.char.textRange, CodeStyle.char))
+                is GASNode.NumericExpr.Operand.Number -> highlights.add(HL(element.number.textRange, CodeStyle.integer))
+                is GASNode.StringExpr.Operand.StringLiteral -> highlights.add(HL(element.string.textRange, CodeStyle.string))
                 else -> {}
             }
         }

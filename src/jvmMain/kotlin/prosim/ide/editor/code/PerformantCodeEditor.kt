@@ -49,7 +49,7 @@ class PerformantCodeEditor(
         override val selection: Selection = Selection()
     }
 
-    override val textStateModel: TextStateModel = TextStateModel(textModel, selector)
+    override val textStateModel: TextStateModel = TextStateModel(this, textModel, selector)
     override val indentationProvider: IndentationProvider = BasicIndenation(textStateModel, textModel)
 
     val lang: LanguageService? get() = psiManager?.lang
@@ -223,7 +223,7 @@ class PerformantCodeEditor(
         }
 
         private suspend fun updateCache() {
-            val possibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(textModel.lines, textModel) ?: List(textModel.lines) {
+            val possibleLines = psiManager?.lang?.codeFoldingProvider?.getVisibleLines(psiManager.getPsiFile(file), textModel.lines, textModel) ?: List(textModel.lines) {
                 LineIndicator(it)
             }
             cachedLines = possibleLines.map { calculateLineInfo(it) }
@@ -261,7 +261,7 @@ class PerformantCodeEditor(
             val (line, yOffset) = getLineAtY(point.y)
             if (inFoldBounds) {
                 val realLineNumber = cachedLines[line].lineNumber
-                lang?.codeFoldingProvider?.cachedFoldRegions?.firstOrNull { it.startLine == realLineNumber }?.let {
+                lang?.codeFoldingProvider?.cachedFoldRegions?.get(psiManager?.getPsiFile(file))?.firstOrNull { it.startLine == realLineNumber }?.let {
                     it.isFolded = !it.isFolded
                 }
                 nativeLog("Click on Fold in line ${line + 1} ($realLineNumber).")
@@ -381,8 +381,8 @@ class PerformantCodeEditor(
         private val secFGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BASE4)
         private val secBGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BASE6)
 
-        private val selColor get() =  UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x55)
-        private val markBGColor get() =  UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x13)
+        private val selColor get() = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x55)
+        private val markBGColor get() = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x13)
 
         private val collapseIcon = UIStates.icon.get().folderClosed.apply {
             colorFilter = ColorFilter() {
@@ -477,13 +477,13 @@ class PerformantCodeEditor(
                 }
 
                 // Draw Char
-                color = (highlights.firstOrNull { it.range.contains(colID) }?.color ?: lang?.highlightProvider?.cachedHighlights?.firstOrNull { it.range.contains(charIndex) }?.color).toColor()
+                color = (highlights.firstOrNull { it.range.contains(colID) }?.color ?: lang?.highlightProvider?.cachedHighlights?.get(psiManager?.getPsiFile(file))?.firstOrNull { it.range.contains(charIndex) }?.color).toColor()
 
                 font = codeFont
                 drawString(char.toString(), internalXOffset, internalYOffset + fmCode.ascent + vLayout.linePadding)
 
                 // Draw Underline
-                lang?.annotationProvider?.cachedNotations?.firstOrNull {
+                lang?.annotationProvider?.cachedNotations?.get(psiManager?.getPsiFile(file))?.firstOrNull {
                     it.range.contains(charIndex)
                 }?.let {
                     color = it.severity.toColor(lang).toColor()
@@ -542,7 +542,7 @@ class PerformantCodeEditor(
 
             val foldRegions = lang?.codeFoldingProvider?.cachedFoldRegions ?: return
 
-            foldRegions.firstOrNull { it.startLine == lineInfo.lineNumber }?.let {
+            foldRegions.get(psiManager?.getPsiFile(file))?.firstOrNull { it.startLine == lineInfo.lineNumber }?.let {
                 val bounds = vLayout.foldIndicatorBounds
                 if (it.isFolded) {
                     drawImage(collapseIcon, rect.x + bounds.x, rect.y, null)
@@ -650,7 +650,7 @@ class PerformantCodeEditor(
 
                 val (line, column) = vLayout.getLineAndColumnAt(e.point)
                 val index = textModel.indexOf(line, column)
-                val annotations = lang?.annotationProvider?.cachedNotations?.filter { index in it.range } ?: listOf()
+                val annotations = lang?.annotationProvider?.cachedNotations?.get(psiManager?.getPsiFile(file))?.filter { index in it.range } ?: listOf()
 
                 if (annotations.isNotEmpty()) {
                     SwingUtilities.invokeLater {
@@ -748,7 +748,7 @@ class PerformantCodeEditor(
                     when {
                         e.isAltDown -> {
                             launch {
-                                val annotations = lang?.annotationProvider?.cachedNotations?.filter { selector.caret.index in it.range } ?: listOf()
+                                val annotations = lang?.annotationProvider?.cachedNotations?.get(psiManager?.getPsiFile(file))?.filter { selector.caret.index in it.range } ?: listOf()
                                 val coords = vLayout.getCoords(selector.caret.index)
                                 if (annotations.isNotEmpty()) {
                                     SwingUtilities.invokeLater {
@@ -848,7 +848,7 @@ class PerformantCodeEditor(
                     val prefixIndex = selector.indexOfWordStart(selector.caret.index, Selector.DEFAULT_SYMBOL_CHARS, true)
                     val prefix = textModel.substring(prefixIndex, selector.caret.index)
                     if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
-                        val completions = lang?.completionProvider?.getCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
+                        val completions = lang?.completionProvider?.fetchCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
                         val coords = vLayout.getCoords(selector.caret.index)
                         if (completions.isNotEmpty()) {
                             SwingUtilities.invokeLater {

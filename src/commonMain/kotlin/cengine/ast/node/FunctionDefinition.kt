@@ -9,5 +9,8 @@ data class FunctionDefinition(
     val body: BlockStatement,
     override var textRange: TextRange
 ) : Node() {
-    override val children: List<Node> = parameters + listOfNotNull(returnType, body)
+
+    init {
+        children.addAll(parameters + listOfNotNull(returnType, body))
+    }
 }

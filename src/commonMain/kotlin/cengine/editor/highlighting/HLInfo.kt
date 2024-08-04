@@ -1,6 +1,8 @@
 package cengine.editor.highlighting
 
+import cengine.psi.core.TextRange
+
 interface HLInfo {
-    val range: IntRange
+    var range: TextRange
     val color: Int
 }

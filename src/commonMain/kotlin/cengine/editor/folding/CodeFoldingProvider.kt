@@ -4,15 +4,20 @@ import cengine.editor.text.Informational
 import cengine.psi.core.PsiFile
 
 interface CodeFoldingProvider {
-    var cachedFoldRegions: List<FoldRegionImpl>
-    fun getFoldingRegions(psiFile: PsiFile, informational: Informational): List<FoldRegionImpl>
+    val cachedFoldRegions: MutableMap<PsiFile, List<FoldRegion>>
 
-    fun getVisibleLines(totalLines: Int, informational: Informational): List<LineIndicator> {
+    fun updateFoldRegions(psiFile: PsiFile, informational: Informational)
+
+    fun getVisibleLines(psiFile: PsiFile?, totalLines: Int, informational: Informational): List<LineIndicator> {
+        if (psiFile == null) return List(totalLines) {
+            LineIndicator(it)
+        }
+
         val visibleLines = mutableListOf<LineIndicator>()
         var curr = 0
         while (curr < totalLines) {
-            val startLineFoldRegion = cachedFoldRegions.firstOrNull { it.startLine == curr && it.isFolded }
-            val inFoldedRegion = cachedFoldRegions.firstOrNull {  it.foldRange.contains(curr) && it.isFolded }
+            val startLineFoldRegion = cachedFoldRegions[psiFile]?.firstOrNull { it.startLine == curr && it.isFolded }
+            val inFoldedRegion = cachedFoldRegions[psiFile]?.firstOrNull { it.foldRange.contains(curr) && it.isFolded }
 
             when {
                 startLineFoldRegion != null -> visibleLines.add(LineIndicator(curr, true, startLineFoldRegion.placeholder))

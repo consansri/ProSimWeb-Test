@@ -1,6 +1,7 @@
 package cengine.lang.asm.features
 
 import cengine.editor.folding.CodeFoldingProvider
+import cengine.editor.folding.FoldRegion
 import cengine.editor.folding.FoldRegionImpl
 import cengine.editor.text.Informational
 import cengine.lang.asm.ast.gas.GASNode
@@ -9,12 +10,12 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 
 class AsmFolder : CodeFoldingProvider {
-    override var cachedFoldRegions: List<FoldRegionImpl> = listOf()
-    override fun getFoldingRegions(psiFile: PsiFile, informational: Informational): List<FoldRegionImpl> {
+    override val cachedFoldRegions: MutableMap<PsiFile, List<FoldRegion>> = mutableMapOf()
+    override fun updateFoldRegions(psiFile: PsiFile, informational: Informational) {
         val builder = FoldRegionBuilder(psiFile, informational)
         psiFile.accept(builder)
-        cachedFoldRegions = builder.regions
-        return builder.regions
+        cachedFoldRegions.remove(psiFile)
+        cachedFoldRegions[psiFile] = builder.regions
     }
 
     inner class FoldRegionBuilder(val psiFile: PsiFile, val informational: Informational) : PsiElementVisitor {

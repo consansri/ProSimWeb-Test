@@ -1,6 +1,6 @@
 package cengine.psi
 
-import cengine.editor.text.Informational
+import cengine.editor.text.TextModel
 import cengine.lang.LanguageService
 import cengine.psi.core.PsiFile
 import cengine.vfs.FileChangeListener
@@ -22,26 +22,30 @@ class PsiManager<T : LanguageService>(
         vfs.addChangeListener(listener)
     }
 
-    fun updatePsi(file: VirtualFile, informational: Informational?) {
+    fun updatePsi(file: VirtualFile, textModel: TextModel?, onfinish: () -> Unit = {}) {
         job?.cancel()
         job = coroutineScope.launch {
             nativeLog("Update PSI for ${file.name}")
-            val psiFile = psiCache[file.path] ?: createPsiFile(file)
+            val psiFile = psiCache[file.path] ?: createPsiFile(file, textModel)
+            psiFile.textModel = textModel
             psiFile.update()
             psiCache.remove(file.path)
             psiCache[file.path] = psiFile
             nativeLog("Update Analytics for ${file.name}")
-            lang.updateAnalytics(psiFile, informational)
+            lang.updateAnalytics(psiFile, textModel)
             nativeLog("Finished updating PSI!")
+            onfinish()
         }
     }
 
-    private fun createPsi(file: VirtualFile) {
+    private fun createPsi(file: VirtualFile, textModel: TextModel?, onfinish: () -> Unit = {}) {
         job?.cancel()
         job = coroutineScope.launch {
-            val psiFile = createPsiFile(file)
+            val psiFile = createPsiFile(file, textModel)
+            psiFile.textModel = textModel
             psiCache[file.path] = psiFile
             lang.updateAnalytics(psiFile, null)
+            onfinish()
         }
     }
 
@@ -49,9 +53,9 @@ class PsiManager<T : LanguageService>(
         psiCache.remove(file.path)
     }
 
-    private suspend fun createPsiFile(file: VirtualFile): PsiFile {
+    private suspend fun createPsiFile(file: VirtualFile, textModel: TextModel?): PsiFile {
         return withContext(Dispatchers.Default) {
-            lang.psiParser.parseFile(file)
+            lang.psiParser.parseFile(file, textModel)
         }
     }
 
@@ -65,7 +69,7 @@ class PsiManager<T : LanguageService>(
         }
 
         override fun onFileCreated(file: VirtualFile) {
-            if (file.name.endsWith(lang.fileSuffix)) createPsi(file)
+            if (file.name.endsWith(lang.fileSuffix)) createPsi(file, null)
         }
 
         override fun onFileDeleted(file: VirtualFile) {

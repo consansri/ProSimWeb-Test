@@ -7,13 +7,13 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 
 class AsmAnnotator : AnnotationProvider {
-    override var cachedNotations: List<Notation> = listOf()
+    override val cachedNotations: MutableMap<PsiFile, List<Notation>> = mutableMapOf()
 
-    override fun getAnnotations(psiFile: PsiFile): List<Notation> {
+    override fun updateAnnotations(psiFile: PsiFile) {
         val collector = AnnotationCollector()
         psiFile.accept(collector)
-        cachedNotations = collector.notations
-        return collector.notations
+        cachedNotations.remove(psiFile)
+        cachedNotations[psiFile] = collector.notations
     }
 
     inner class AnnotationCollector : PsiElementVisitor {
@@ -25,6 +25,5 @@ class AsmAnnotator : AnnotationProvider {
         override fun visitElement(element: PsiElement) {
             notations.addAll(element.notations)
         }
-
     }
 }

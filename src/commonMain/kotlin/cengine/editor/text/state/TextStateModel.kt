@@ -1,12 +1,13 @@
 package cengine.editor.text.state
 
 import cengine.editor.selection.Selector
-import cengine.editor.text.TextModel
+import cengine.editor.text.Editable
+import cengine.editor.text.Informational
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlin.time.DurationUnit
 
-class TextStateModel(override val textModel: TextModel, private val selector: Selector, private val editGroupTimeThreshold: Long = 500L) : StateModel {
+class TextStateModel(override val editable: Editable, override val informational: Informational, private val selector: Selector, private val editGroupTimeThreshold: Long = 500L) : StateModel {
     private val undoStack = mutableListOf<EditGroup>()
     private val redoStack = mutableListOf<EditGroup>()
     private var currentEditGroup: EditGroup? = null
@@ -44,8 +45,6 @@ class TextStateModel(override val textModel: TextModel, private val selector: Se
 
     override fun replaceAll(new: String) = execute(ReplaceAllModCmd(new), selector)
 
-    override fun toString(): String = textModel.toString()
-
     // StateModel Implementation
 
     private fun execute(command: TextModCmd, selector: Selector) {
@@ -55,7 +54,7 @@ class TextStateModel(override val textModel: TextModel, private val selector: Se
             currentEditGroup = EditGroup()
         }
         currentEditGroup?.addCommand(command)
-        command.execute(textModel, selector)
+        command.execute(editable, informational, selector)
         redoStack.clear()
     }
 
@@ -78,11 +77,11 @@ class TextStateModel(override val textModel: TextModel, private val selector: Se
         }
 
         fun execute(selector: Selector) {
-            commands.forEach { it.execute(textModel, selector) }
+            commands.forEach { it.execute(editable, informational, selector) }
         }
 
         fun undo(selector: Selector) {
-            commands.asReversed().forEach { it.undo(textModel, selector) }
+            commands.asReversed().forEach { it.undo(editable, informational, selector) }
         }
     }
 

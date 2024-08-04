@@ -2,6 +2,7 @@ package cengine.editor
 
 import cengine.editor.indentation.IndentationProvider
 import cengine.editor.selection.Selector
+import cengine.editor.text.Editable
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
 import cengine.psi.PsiManager
@@ -10,7 +11,7 @@ import cengine.vfs.VirtualFile
 /**
  * This model is representing the state of the rendered code.
  */
-interface CodeEditor {
+interface CodeEditor : Editable {
     val psiManager: PsiManager<*>?
     val file: VirtualFile
     val textModel: TextModel
@@ -20,14 +21,38 @@ interface CodeEditor {
 
     fun saveToFile() {
         file.setAsUTF8String(textModel.toString())
-        psiManager?.updatePsi(file, textModel)
+        psiManager?.updatePsi(file, textModel) {
+            invalidateContent()
+        }
     }
 
     fun loadFromFile() {
-        psiManager?.updatePsi(file, textModel)
         textModel.replaceAll(file.getAsUTF8String())
+        psiManager?.updatePsi(file, null) {
+            invalidateContent()
+        }
+    }
+
+    override fun insert(index: Int, new: String) {
+        textModel.insert(index, new)
+        psiManager?.updatePsi(file, textModel) {
+            invalidateContent()
+        }
+    }
+
+    override fun replaceAll(new: String) {
+        textModel.replaceAll(new)
+        psiManager?.updatePsi(file, textModel) {
+            invalidateContent()
+        }
+    }
+
+    override fun delete(start: Int, end: Int) {
+        textModel.delete(start, end)
+        psiManager?.updatePsi(file, textModel) {
+            invalidateContent()
+        }
     }
 
     fun invalidateContent()
-
 }

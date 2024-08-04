@@ -2,7 +2,11 @@ package cengine.ast.node
 
 import cengine.psi.core.TextRange
 
-data class BlockStatement(
-    override val children: List<Statement>,
+class BlockStatement(
+    statements: List<Statement>,
     override var textRange: TextRange
-): Node()
+): Node(){
+    init {
+        children.addAll(statements)
+    }
+}

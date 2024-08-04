@@ -1,17 +1,13 @@
 package cengine.lang.cown.psi
 
-import cengine.editor.annotation.Notation
 import cengine.editor.annotation.AnnotationProvider
-import cengine.editor.annotation.Severity
+import cengine.editor.annotation.Notation
 import cengine.psi.core.PsiFile
 
 class CownAnnotator : AnnotationProvider {
-    override var cachedNotations: List<Notation> = listOf(
-        Notation(10..20, "This is a warning!", Severity.WARNING),
-        Notation(33..40, "This is an error!", Severity.ERROR)
-    )
+    override var cachedNotations: MutableMap<PsiFile, List<Notation>> = mutableMapOf(    )
 
-    override fun getAnnotations(psiFile: PsiFile): List<Notation> {
-        return listOf()
+    override fun updateAnnotations(psiFile: PsiFile) {
+
     }
 }
