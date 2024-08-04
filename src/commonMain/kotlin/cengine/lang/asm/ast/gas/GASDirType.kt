@@ -1006,7 +1006,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             }
         )
     }),
-    INSERTION(rule = Rule {
+    /*INSERTION(rule = Rule {
         Seq(
             InSpecific(AsmTokenType.SYMBOL),
             Optional {
@@ -1021,7 +1021,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 )
             },
         )
-    });
+    })*/;
 
     override val typeName: String
         get() = name

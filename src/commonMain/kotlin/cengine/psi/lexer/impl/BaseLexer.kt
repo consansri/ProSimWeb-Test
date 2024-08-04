@@ -2,6 +2,7 @@ package cengine.psi.lexer.impl
 
 import cengine.psi.core.TextPosition
 import cengine.psi.lexer.core.Lexer
+import cengine.psi.lexer.core.Token
 
 /**
  * Abstract base class for language-specific lexers.
@@ -20,7 +21,12 @@ abstract class BaseLexer(
         }
         get() = TextPosition(index)
 
+    override val error: MutableList<Token> = mutableListOf()
+    override val ignored: MutableList<Token> = mutableListOf()
+
     override fun reset(input: String) {
+        error.clear()
+        ignored.clear()
         this.input = input
         index = 0
     }

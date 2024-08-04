@@ -7,7 +7,6 @@ import cengine.lang.asm.ast.gas.GASDirType
 import cengine.psi.core.TextPosition
 import cengine.psi.lexer.impl.BaseLexer
 import emulator.kit.common.RegContainer
-import emulator.kit.nativeWarn
 
 class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
 
@@ -33,7 +32,9 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
 
         if (ignoreComments) {
             val token = peek(ignoreLeadingSpaces, false)
-            if (token.type.isComment()) consume(ignoreLeadingSpaces, false)
+            if (token.type.isComment()) {
+                ignored.add(consume(ignoreLeadingSpaces, false))
+            }
         }
 
         if (!hasMoreTokens()) {
@@ -107,13 +108,13 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
             return token
         }
 
-        nativeWarn("AsmLexer: retry $index ${input.substring(index).take(5)}")
-
         //throw Lexer.InvalidCharException(peekChar(), index)
         val char = input[index].toString()
         val start = index
         advance()
-        return AsmToken(AsmTokenType.ERROR, char, TextPosition(start), TextPosition(index))
+        val token = AsmToken(AsmTokenType.ERROR, char, TextPosition(start), TextPosition(index))
+        error.add(token)
+        return token
         //nativeError("InvalidTokenException $token $index")
     }
 

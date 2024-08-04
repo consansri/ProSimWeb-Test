@@ -4,7 +4,9 @@ import cengine.editor.highlighting.HLInfo
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.gas.GASDirType
 import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.lexer.AsmTokenType
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -55,13 +57,23 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
         override fun visitElement(element: PsiElement) {
             if (element !is GASNode) return
             when (element) {
-                is GASNode.ArgDef.Named -> highlights.add(HL(element.name.textRange, CodeStyle.argument))
+                is GASNode.ArgDef.Named -> highlights.add(HL(element.nameToken.textRange, CodeStyle.argument))
                 is GASNode.Argument.Basic -> highlights.add(HL(element.argName.textRange, CodeStyle.argument))
                 is GASNode.Argument.DefaultValue -> highlights.add(HL(element.argName.textRange, CodeStyle.argument))
                 is GASNode.Label -> highlights.add(HL(element.textRange, CodeStyle.label))
                 is GASNode.NumericExpr.Operand.Char -> highlights.add(HL(element.char.textRange, CodeStyle.char))
                 is GASNode.NumericExpr.Operand.Number -> highlights.add(HL(element.number.textRange, CodeStyle.integer))
                 is GASNode.StringExpr.Operand.StringLiteral -> highlights.add(HL(element.string.textRange, CodeStyle.string))
+                is GASNode.Directive -> {
+                    when(element.type){
+                        GASDirType.MACRO -> {
+                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
+                            identifier?.let {
+                                highlights.add(HL(identifier.textRange, CodeStyle.symbol))
+                            }
+                        }
+                    }
+                }
                 else -> {}
             }
         }

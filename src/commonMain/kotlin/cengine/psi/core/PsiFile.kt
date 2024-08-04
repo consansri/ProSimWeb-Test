@@ -15,7 +15,7 @@ interface PsiFile : PsiElement {
     val file: VirtualFile
     var textModel: TextModel?
 
-    val name: String
+    override val pathName: String
         get() = file.name
 
     val content: String

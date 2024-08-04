@@ -6,6 +6,7 @@ import cengine.editor.text.Editable
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
 import cengine.psi.PsiManager
+import cengine.psi.core.PsiElement
 import cengine.vfs.VirtualFile
 
 /**
@@ -18,6 +19,7 @@ interface CodeEditor : Editable {
     val textStateModel: TextStateModel
     val selector: Selector
     val indentationProvider: IndentationProvider
+    var currentElement: PsiElement?
 
     fun saveToFile() {
         file.setAsUTF8String(textModel.toString())

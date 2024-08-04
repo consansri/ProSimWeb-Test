@@ -7,6 +7,7 @@ import cengine.editor.annotation.Notation
  */
 interface PsiElement : Locatable {
 
+    val pathName: String
     val parent: PsiElement?
     val children: List<PsiElement>
     val notations: List<Notation>

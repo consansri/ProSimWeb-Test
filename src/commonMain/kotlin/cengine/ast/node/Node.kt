@@ -6,6 +6,7 @@ import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 
 sealed class Node : PsiElement {
+    override val pathName: String = this::class.simpleName.toString()
     override var parent: PsiElement? = null
     override val notations: MutableList<Notation> = mutableListOf()
     override val children: MutableList<Node> = mutableListOf()

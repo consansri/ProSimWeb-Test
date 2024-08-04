@@ -6,4 +6,6 @@ interface PsiFunction: PsiElement {
     val name: String
     val parameters: List<PsiParameter>
     val body: PsiBlock
+    override val pathName: String
+        get() = "$name()"
 }

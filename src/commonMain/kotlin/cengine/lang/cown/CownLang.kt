@@ -10,12 +10,15 @@ import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
 import cengine.lang.cown.psi.*
 import cengine.psi.core.PsiParser
+import cengine.psi.core.PsiService
+import cengine.psi.impl.PsiServiceImpl
 import emulator.kit.assembler.CodeStyle
 
 object CownLang: LanguageService {
     override val name: String = "cown"
     override val fileSuffix: String = ".cown"
     override val psiParser: PsiParser = CownPsiParser()
+    override val psiService: PsiService = PsiServiceImpl(psiParser)
     override val codeFoldingProvider: CodeFoldingProvider = CownFolder()
     override val widgetProvider: WidgetProvider = CownWidgets()
     override val completionProvider: CompletionProvider = CownCompleter()

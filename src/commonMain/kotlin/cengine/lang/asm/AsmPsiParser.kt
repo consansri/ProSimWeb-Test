@@ -1,5 +1,6 @@
 package cengine.lang.asm
 
+import cengine.editor.annotation.Notation
 import cengine.editor.text.TextModel
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.gas.GASNode
@@ -29,6 +30,8 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         val program = GASNode.buildNode(GASNodeType.PROGRAM, lexer, asmSpec) as GASNode.Program
 
         program.accept(ParentLinker())
+        program.notations.addAll(lexer.error.map { Notation.error(it, "Unexpected char!") })
+        program.notations.addAll(lexer.ignored.map { Notation.info(it, "Is ignored!") })
 
         nativeLog("Parsed File!")
 
@@ -56,6 +59,17 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         override fun visitElement(element: PsiElement) {
             if (element !is GASNode) return
             element.children.forEach { it.parent = element }
+        }
+    }
+
+    private inner class MacroResolution: PsiElementVisitor {
+
+        override fun visitFile(file: PsiFile) {
+            TODO("Not yet implemented")
+        }
+
+        override fun visitElement(element: PsiElement) {
+            TODO("Not yet implemented")
         }
     }
 

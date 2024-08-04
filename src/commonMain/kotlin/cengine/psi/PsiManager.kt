@@ -22,7 +22,7 @@ class PsiManager<T : LanguageService>(
         vfs.addChangeListener(listener)
     }
 
-    fun updatePsi(file: VirtualFile, textModel: TextModel?, onfinish: () -> Unit = {}) {
+    fun updatePsi(file: VirtualFile, textModel: TextModel?, onfinish: (PsiFile) -> Unit = {}) {
         job?.cancel()
         job = coroutineScope.launch {
             nativeLog("Update PSI for ${file.name}")
@@ -34,18 +34,18 @@ class PsiManager<T : LanguageService>(
             nativeLog("Update Analytics for ${file.name}")
             lang.updateAnalytics(psiFile, textModel)
             nativeLog("Finished updating PSI!")
-            onfinish()
+            onfinish(psiFile)
         }
     }
 
-    private fun createPsi(file: VirtualFile, textModel: TextModel?, onfinish: () -> Unit = {}) {
+    private fun createPsi(file: VirtualFile, textModel: TextModel?, onfinish: (PsiFile) -> Unit = {}) {
         job?.cancel()
         job = coroutineScope.launch {
             val psiFile = createPsiFile(file, textModel)
             psiFile.textModel = textModel
             psiCache[file.path] = psiFile
             lang.updateAnalytics(psiFile, null)
-            onfinish()
+            onfinish(psiFile)
         }
     }
 

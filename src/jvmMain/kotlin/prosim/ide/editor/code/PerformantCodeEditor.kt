@@ -15,6 +15,7 @@ import cengine.editor.widgets.Widget
 import cengine.lang.LanguageService
 import cengine.project.Project
 import cengine.psi.PsiManager
+import cengine.psi.core.PsiElement
 import cengine.util.text.LineColumn
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.extras.FlatSVGIcon
@@ -39,6 +40,12 @@ class PerformantCodeEditor(
     override val file: VirtualFile,
     project: Project,
 ) : EditorComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
+
+    override var currentElement: PsiElement? = null
+        set(value) {
+            field = value
+            if (value != null) nativeLog("Path: ${lang?.psiService?.path(value)?.joinToString(" > ") { it.pathName }}")
+        }
 
     override val psiManager: PsiManager<*>? = project.getManager(file)
 
@@ -150,6 +157,9 @@ class PerformantCodeEditor(
 
     override fun invalidateContent() {
         updateJob.getAndSet(launch {
+            psiManager?.getPsiFile(file)?.let {
+                currentElement = psiManager.lang.psiService.findElementAt(it, selector.caret.index)
+            }
             updateContent()
         })?.cancel()
     }

@@ -10,6 +10,7 @@ import cengine.editor.text.Informational
 import cengine.editor.widgets.WidgetProvider
 import cengine.psi.core.PsiFile
 import cengine.psi.core.PsiParser
+import cengine.psi.core.PsiService
 
 interface LanguageService {
 
@@ -17,6 +18,7 @@ interface LanguageService {
     val fileSuffix: String
 
     val psiParser: PsiParser
+    val psiService: PsiService
 
     val codeFoldingProvider: CodeFoldingProvider?
     val widgetProvider: WidgetProvider?
