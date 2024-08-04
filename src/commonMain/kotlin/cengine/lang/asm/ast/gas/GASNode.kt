@@ -39,6 +39,9 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
     final override val children: MutableList<GASNode> = mutableListOf(*children)
     final override val notations: MutableList<Notation> = mutableListOf()
 
+    override val additionalInfo: String
+        get() = ""
+
     open fun getCodeStyle(position: TextPosition): CodeStyle? {
         return children.firstOrNull {
             position in it.textRange
@@ -53,20 +56,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         }
     }
 
-    class Label(val name: AsmToken, val colon: AsmToken) : GASNode() {
-        val type = if (name.type == AsmTokenType.INT_DEC) Type.LOCAL else Type.GLOBAL
-        val identifier = name.value
-        override var textRange: TextRange = name.start..<colon.end
 
-        override fun getFormatted(): String = "$name$colon"
-
-        override fun getCodeStyle(position: TextPosition): CodeStyle = CodeStyle.label
-
-        enum class Type {
-            LOCAL,
-            GLOBAL
-        }
-    }
 
     companion object {
         /**
@@ -279,7 +269,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
             removeEmptyStatements()
         }
 
-        override fun getFormatted(): String = children.joinToString("") { it.getFormatted() }
+        override fun getFormatted(identSize: Int): String = children.joinToString("") { it.getFormatted(identSize) }
 
         fun removeEmptyStatements() {
             ArrayList(children).filterIsInstance<Statement.Empty>().forEach {
@@ -317,39 +307,75 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
             children.addAll(childs)
         }
 
-        override fun getFormatted(): String = children.joinToString(" ") { it.getFormatted() } + lineBreak.value
-
         class Dir(label: Label?, val dir: Directive, lineBreak: AsmToken) : Statement(label, lineBreak, dir) {
+            override fun getFormatted(identSize: Int): String {
+                return if (label != null) {
+                    label.getFormatted(identSize) + " ".repeat(identSize - label.textRange.length % identSize) + dir.getFormatted(identSize) + lineBreak.value
+                } else {
+                    dir.getFormatted(identSize) + lineBreak.value
+                }
+            }
         }
 
         class Instr(label: Label?, val rawInstr: RawInstr, lineBreak: AsmToken) : Statement(label, lineBreak, rawInstr) {
-
+            override fun getFormatted(identSize: Int): String {
+                return if (label != null) {
+                    label.getFormatted(identSize) + " ".repeat(identSize - label.textRange.length % identSize) + rawInstr.getFormatted(identSize) + lineBreak.value
+                } else {
+                    " ".repeat(identSize) + rawInstr.getFormatted(identSize) + lineBreak.value
+                }
+            }
         }
 
         class Unresolved(label: Label?, val lineTokens: List<AsmToken>, lineBreak: AsmToken) : Statement(label, lineBreak) {
             init {
-                //throw PsiParser.NodeException(this, "Found unresolved Statement!")
+                notations.add(Notation.error(this, "Statement is not valid!"))
             }
 
+            override fun getFormatted(identSize: Int): String = children.joinToString(" ") { it.getFormatted(identSize) } + lineBreak.value
         }
 
         class Empty(label: Label?, lineBreak: AsmToken) : Statement(label, lineBreak) {
+            override fun getFormatted(identSize: Int): String {
+                return if (label != null) {
+                    label.getFormatted(identSize) + lineBreak.value
+                } else {
+                    lineBreak.value
+                }
+            }
+        }
+    }
 
+    class Label(val name: AsmToken, val colon: AsmToken) : GASNode() {
+        val type = if (name.type == AsmTokenType.INT_DEC) Type.LOCAL else Type.GLOBAL
+        val identifier = name.value
+        override var textRange: TextRange = name.start..<colon.end
+
+        override fun getFormatted(identSize: Int): String = "${name.value}${colon.value}"
+
+        override fun getCodeStyle(position: TextPosition): CodeStyle = CodeStyle.label
+
+        enum class Type {
+            LOCAL,
+            GLOBAL
         }
     }
 
     /**
      * Directive
      */
-    class Directive(val type: DirTypeInterface, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<GASNode> = listOf()) : GASNode(*additionalNodes.toTypedArray()) {
+    class Directive(val type: DirTypeInterface, val optionalIdentificationToken: AsmToken?, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<GASNode> = listOf()) : GASNode(*additionalNodes.toTypedArray()) {
 
-        override var textRange: TextRange = allTokens.first().textRange.startOffset..<maxOf(allTokens.lastOrNull()?.textRange?.endOffset ?: TextPosition(), additionalNodes.lastOrNull()?.textRange?.endOffset ?: TextPosition())
+        override var textRange: TextRange = (optionalIdentificationToken?.textRange?.startOffset ?: allTokens.first().textRange.startOffset)..<maxOf(allTokens.lastOrNull()?.textRange?.endOffset ?: TextPosition(), additionalNodes.lastOrNull()?.textRange?.endOffset ?: TextPosition())
+
+        override val additionalInfo: String
+            get() = type.typeName + " " + optionalIdentificationToken
 
         private val sortedContent = (allTokens + additionalNodes).sortedBy { it.textRange.startOffset }
 
-        override fun getFormatted(): String = sortedContent.joinToString(" ") {
+        override fun getFormatted(identSize: Int): String = if (optionalIdentificationToken != null) "${optionalIdentificationToken.value} " else "" + sortedContent.joinToString(" ") {
             when (it) {
-                is GASNode -> it.getFormatted()
+                is GASNode -> it.getFormatted(identSize)
                 is Token -> it.value
                 else -> ""
             }
@@ -369,7 +395,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
             override fun getDefaultValue(): String = ""
             override var textRange: TextRange = argName.textRange
 
-            override fun getFormatted(): String = argName.value
+            override fun getFormatted(identSize: Int): String = argName.value
         }
 
         class DefaultValue(argName: AsmToken, val assignment: AsmToken, private val expression: GASNode? = null) : Argument(argName) {
@@ -387,14 +413,14 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 return super.getCodeStyle(position)
             }
 
-            override fun getDefaultValue(): String = expression?.getFormatted() ?: ""
+            override fun getDefaultValue(): String = expression?.getFormatted(identSize = 4) ?: ""
             override var textRange: TextRange = argName.textRange.startOffset..<(expression?.textRange?.endOffset ?: assignment.textRange.endOffset)
 
             override fun accept(visitor: PsiElementVisitor) {
 
             }
 
-            override fun getFormatted(): String = "$argName ${assignment.value}${if (expression != null) " ${expression.getFormatted()}" else ""}"
+            override fun getFormatted(identSize: Int): String = "${argName.value} ${assignment.value}${if (expression != null) " ${expression.getFormatted(identSize)}" else ""}"
         }
     }
 
@@ -414,7 +440,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 }
             }
 
-            override fun getFormatted(): String = content.joinToString("") { it.value }
+            override fun getFormatted(identSize: Int): String = content.joinToString("") { it.value }
         }
 
         class Named(val name: AsmToken, val assignment: AsmToken, content: List<AsmToken>) : ArgDef(content) {
@@ -440,7 +466,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 return super.getCodeStyle(position)
             }
 
-            override fun getFormatted(): String = "$name $assignment ${content.joinToString("") { it.value }}"
+            override fun getFormatted(identSize: Int): String = "${name.value} ${assignment.value} ${content.joinToString("") { it.value }}"
         }
     }
 
@@ -448,7 +474,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         var addr: Value? = null
         override var textRange: TextRange = instrName.textRange.startOffset..<(remainingTokens.lastOrNull()?.textRange?.endOffset ?: instrName.textRange.endOffset)
 
-        override fun getFormatted(): String = "$instrName ${remainingTokens.joinToString("") { it.value }}"
+        override fun getFormatted(identSize: Int): String = "${instrName.value} ${remainingTokens.joinToString("") { it.value }}"
 
         override fun getCodeStyle(position: TextPosition): CodeStyle? {
             if (position in instrName.textRange) {
@@ -469,7 +495,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
     class TokenExpr(val token: AsmToken) : GASNode() {
         override var textRange: TextRange = token.textRange
 
-        override fun getFormatted(): String = token.value
+        override fun getFormatted(identSize: Int): String = token.value
     }
 
     sealed class StringExpr(vararg operands: StringExpr) : GASNode(*operands) {
@@ -482,7 +508,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
             override var textRange: TextRange = exprs.first().textRange.startOffset..<exprs.last().textRange.endOffset
 
-            override fun getFormatted(): String = exprs.joinToString(" ") { it.getFormatted() }
+            override fun getFormatted(identSize: Int): String = exprs.joinToString(" ") { it.getFormatted(identSize) }
         }
 
         sealed class Operand(val token: AsmToken) : StringExpr() {
@@ -513,7 +539,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                     return ""
                 }
 
-                override fun getFormatted(): String = symbol.value
+                override fun getFormatted(identSize: Int): String = symbol.value
 
 
                 override fun resolve(): PsiElement? = referencedElement
@@ -527,7 +553,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
                 override var textRange: TextRange = string.textRange
 
-                override fun getFormatted(): String = string.value
+                override fun getFormatted(identSize: Int): String = string.value
             }
         }
 
@@ -616,7 +642,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                     "NumericExpr:" +
                             "\n\tRelevantTokens: ${relevantTokens.joinToString(" ") { it.value }}" +
                             "\n\tPostFixNotation: ${postFixTokens.joinToString(" ") { it.value }}" +
-                            "\n\tExpression: ${expression?.getFormatted()}"
+                            "\n\tExpression: ${expression?.getFormatted(4)}"
                 )
 
                 return expression
@@ -793,7 +819,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 }
             }
 
-            override fun getFormatted(): String = if (brackets.isEmpty()) "${operator.value}${operand.getFormatted()}" else "${operator.value}(${operand.getFormatted()})"
+            override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operator.value}${operand.getFormatted(identSize)}" else "${operator.value}(${operand.getFormatted(identSize)})"
 
             override fun isDefined(): Boolean = operand.isDefined()
         }
@@ -823,7 +849,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 }).toDec()
             }
 
-            override fun getFormatted(): String = if (brackets.isEmpty()) "${operandA.getFormatted()} ${operator.value} ${operandB.getFormatted()}" else "(${operandA.getFormatted()} ${operator.value} ${operandB.getFormatted()})"
+            override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)}" else "(${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)})"
 
             override fun isDefined(): Boolean = operandA.isDefined() && operandB.isDefined()
         }
@@ -835,7 +861,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 private var labelAddr: Value? = null
 
                 override var textRange: TextRange = symbol.textRange
-                override fun getFormatted(): String = symbol.value
+                override fun getFormatted(identSize: Int): String = symbol.value
                 fun isLinked(): Boolean = expr != null
                 override fun evaluate(throwErrors: Boolean): Value.Dec {
                     val currExpr = expr
@@ -944,7 +970,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
                 override fun evaluate(throwErrors: Boolean): Value.Dec = value
 
-                override fun getFormatted(): String = number.value
+                override fun getFormatted(identSize: Int): String = number.value
                 override fun getCodeStyle(position: TextPosition): CodeStyle? = number.type.style
 
                 override fun isDefined(): Boolean = true
@@ -961,7 +987,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 val value: Value.Dec
                 override var textRange: TextRange = char.textRange
 
-                override fun getFormatted(): String = char.value
+                override fun getFormatted(identSize: Int): String = char.value
 
                 init {
                     val hexString = Value.Tools.asciiToHex(char.getContentAsString())

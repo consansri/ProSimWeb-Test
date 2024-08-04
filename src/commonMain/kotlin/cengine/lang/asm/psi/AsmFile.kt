@@ -18,6 +18,8 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
     override var textModel: TextModel? = null
     override val notations: List<Notation>
         get() = program.notations
+    override val additionalInfo: String
+        get() = program.additionalInfo
 
     override val parent: PsiElement?
         get() = program.parent
@@ -25,9 +27,7 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
 
     override var textRange: TextRange = program.textRange
 
-    fun reformat() {
-        file.setAsUTF8String(program.getFormatted())
-    }
+    fun getFormattedString(identSize: Int): String = program.getFormatted(identSize)
 
     init {
         nativeLog(print(""))

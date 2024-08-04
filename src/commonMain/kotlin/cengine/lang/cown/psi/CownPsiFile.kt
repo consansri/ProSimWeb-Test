@@ -15,6 +15,7 @@ class CownPsiFile(file: VirtualFile): PsiFileImpl(file) {
     override val quickeditScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
     override val children: MutableList<PsiElement> = mutableListOf()
 
+    override val additionalInfo: String = ""
     override val notations: List<Notation> = listOf()
     override var textRange: TextRange = TextRange(0, file.getContent().size)
 

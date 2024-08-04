@@ -10,5 +10,5 @@ interface Lexer {
     fun peekChar(): Char?
     fun hasMoreTokens(): Boolean
 
-    class InvalidTokenException(val token: Token, val index: Int) : Exception("$token at $index is invalid!")
+    class InvalidCharException(val invalidChar: Char?, val index: Int) : Exception("$invalidChar at $index is invalid!")
 }

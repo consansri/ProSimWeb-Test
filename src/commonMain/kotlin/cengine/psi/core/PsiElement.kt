@@ -11,9 +11,11 @@ interface PsiElement : Locatable {
     val children: List<PsiElement>
     val notations: List<Notation>
 
+    val additionalInfo: String
+
     override var textRange: TextRange
 
-    fun print(prefix: String): String = "$prefix${this::class.simpleName}: \n" + ArrayList(children).joinToString("\n") { it.print(prefix + "\t") }
+    fun print(prefix: String): String = "$prefix${this::class.simpleName}: $additionalInfo\n" + ArrayList(children).joinToString("\n") { it.print(prefix + "\t") }
 
     fun moveTextRange(offset: TextPosition) {
         textRange = textRange.move(offset)

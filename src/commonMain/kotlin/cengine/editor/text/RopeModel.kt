@@ -127,6 +127,11 @@ class RopeModel(text: String = "") : TextModel {
         abstract fun getIndexFromLineAndColumn(line: Int, column: Int): Int
         abstract fun insert(index: Int, newText: String): Node
         abstract fun delete(start: Int, end: Int): Node
+
+        /**
+         * @param start inclusive
+         * @param end exclusive
+         */
         abstract fun substring(start: Int, end: Int): StringBuilder
         abstract fun charAt(index: Int): Char
 

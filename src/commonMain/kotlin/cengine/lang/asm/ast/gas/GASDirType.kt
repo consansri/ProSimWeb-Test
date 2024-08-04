@@ -1023,6 +1023,9 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
         )
     });
 
+    override val typeName: String
+        get() = name
+
     override fun getDetectionString(): String = if (!this.contentStartsDirectly) this.name.removePrefix("_") else ""
 
     override fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): GASNode.Directive? {
@@ -1036,7 +1039,12 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
 
         if (result.matches) {
             //nativeLog("RuleResult: ${result} for $this")
-            return GASNode.Directive(this, result.matchingTokens, result.matchingNodes)
+            val identificationToken = result.matchingTokens.firstOrNull { it.type == AsmTokenType.DIRECTIVE }
+            return if (identificationToken != null) {
+                GASNode.Directive(this, identificationToken, result.matchingTokens - identificationToken, result.matchingNodes)
+            } else {
+                GASNode.Directive(this, identificationToken, result.matchingTokens, result.matchingNodes)
+            }
         }
 
         lexer.position = initialPos

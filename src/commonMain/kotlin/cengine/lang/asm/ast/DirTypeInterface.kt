@@ -12,6 +12,7 @@ interface DirTypeInterface {
     fun getDetectionString(): String
     val isSection: Boolean
     val rule: Rule?
+    val typeName: String
     fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): GASNode.Directive?
 
 }

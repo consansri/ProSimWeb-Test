@@ -53,7 +53,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
      */
     data class MatchResult(val matches: Boolean, val matchingTokens: List<AsmToken> = listOf(), val matchingNodes: List<GASNode> = listOf()) {
         override fun toString(): String {
-            return "Matches: $matches,${matchingTokens.joinToString("") { "\n\t${it::class.simpleName}" }}${matchingNodes.joinToString("") { it.getFormatted() }}"
+            return "Matches: $matches,${matchingTokens.joinToString("") { "\n\t${it::class.simpleName}" }}${matchingNodes.joinToString("") { it.getFormatted(4) }}"
         }
     }
 }

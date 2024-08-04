@@ -9,6 +9,7 @@ sealed class Node : PsiElement {
     override var parent: PsiElement? = null
     override val notations: MutableList<Notation> = mutableListOf()
     override val children: MutableList<Node> = mutableListOf()
+    override val additionalInfo: String = ""
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor as? ASTVisitor<*> ?: return

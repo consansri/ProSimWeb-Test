@@ -1,5 +1,5 @@
 package cengine.psi.core
 
 interface PsiFormatter {
-    fun getFormatted(): String
+    fun getFormatted(identSize: Int): String
 }

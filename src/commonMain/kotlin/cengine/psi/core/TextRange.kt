@@ -7,6 +7,7 @@ package cengine.psi.core
  * @param endOffset exclusive
  */
 data class TextRange(val startOffset: TextPosition, val endOffset: TextPosition) {
+    val length: Int get() = endOffset.index - startOffset.index
     constructor(start: Int, end: Int) : this(TextPosition(start), TextPosition(end))
     constructor(index: Int) : this(TextPosition(index), TextPosition(index + 1))
 

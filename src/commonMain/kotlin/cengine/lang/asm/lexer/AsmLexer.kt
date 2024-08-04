@@ -4,6 +4,7 @@ import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.gas.GASDirType
+import cengine.psi.lexer.core.Lexer
 import cengine.psi.lexer.impl.BaseLexer
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
@@ -114,12 +115,11 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
 
         nativeWarn("AsmLexer: retry $index ${input.substring(index).take(5)}")
 
-        //throw Lexer.InvalidTokenException(foundToken ?: token, startPosition.index)
+        throw Lexer.InvalidCharException(peekChar(), index)
         //nativeError("InvalidTokenException $token $index")
-        return consume(ignoreLeadingSpaces, ignoreComments)
     }
 
-    private fun InstrTypeInterface.getInstrRegex(): Regex = Regex("${Regex.escape(this.getDetectionName())}", RegexOption.IGNORE_CASE)
+    private fun InstrTypeInterface.getInstrRegex(): Regex = Regex(Regex.escape(this.getDetectionName()), RegexOption.IGNORE_CASE)
     private fun DirTypeInterface.getDirRegex(): Regex = Regex("\\.${Regex.escape(this.getDetectionString())}", RegexOption.IGNORE_CASE)
     private fun RegContainer.Register.getRegex(): Regex = Regex("(?:${(this.names + this.aliases).joinToString("|") { Regex.escape(it) }})")
 

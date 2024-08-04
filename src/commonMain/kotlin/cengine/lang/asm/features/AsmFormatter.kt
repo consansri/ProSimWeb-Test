@@ -5,9 +5,9 @@ import cengine.lang.asm.psi.AsmFile
 import cengine.psi.core.PsiFile
 
 class AsmFormatter : Formatter {
-    override fun reformat(psiFile: PsiFile) {
-        if (psiFile !is AsmFile) return
+    override fun formatted(psiFile: PsiFile): String? {
+        if (psiFile !is AsmFile) return null
         psiFile.update()
-        psiFile.reformat()
+        return psiFile.getFormattedString(4)
     }
 }
