@@ -659,7 +659,7 @@ class PerformantCodeEditor(
 
                 e.keyChar.isDefined() && !e.isControlDown -> {
                     val newChar = e.keyChar.toString()
-                    textStateModel.delete(selector.selection)
+                    textStateModel.deleteSelection(selector)
                     textStateModel.insert(selector.caret, newChar)
                 }
             }
@@ -705,7 +705,7 @@ class PerformantCodeEditor(
                 KeyEvent.VK_V -> {
                     if (e.isControlDown) {
                         val content = getClipboardContent()
-                        textStateModel.delete(selector.selection)
+                        textStateModel.deleteSelection(selector)
 
                         content?.let { text ->
                             textStateModel.insert(selector.caret, text)
@@ -718,7 +718,7 @@ class PerformantCodeEditor(
                         val selected = textModel.substring(selector.selection)
                         if (selected.isNotEmpty()) {
                             copyToClipboard(selected)
-                            textStateModel.delete(selector.selection)
+                            textStateModel.deleteSelection(selector)
                         }
                     }
                 }
@@ -746,7 +746,7 @@ class PerformantCodeEditor(
                         }
 
                         else -> {
-                            textStateModel.delete(selector.selection)
+                            textStateModel.deleteSelection(selector)
                             textStateModel.insert(selector.caret, "\n")
                         }
                     }
@@ -770,9 +770,7 @@ class PerformantCodeEditor(
 
                 KeyEvent.VK_BACK_SPACE -> {
                     if (selector.selection.valid()) {
-                        val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
-                        val deleted = textStateModel.delete(selector.selection)
-                        if (caretIsHigherBound) selector.caret -= deleted
+                        textStateModel.deleteSelection(selector)
                     } else {
                         if (selector.caret.index > 0) {
                             textStateModel.delete(selector.caret.index - 1, selector.caret.index)
@@ -783,9 +781,7 @@ class PerformantCodeEditor(
 
                 KeyEvent.VK_DELETE -> {
                     if (selector.selection.valid()) {
-                        val caretIsHigherBound = selector.caretIsAtHigherBoundOfSel()
-                        val deleted = textStateModel.delete(selector.selection)
-                        if (caretIsHigherBound) selector.caret -= deleted
+                        val deleted = textStateModel.deleteSelection(selector)
                     } else {
                         if (selector.caret.index < textModel.length) {
                             textStateModel.delete(selector.caret.index, selector.caret.index + 1)

@@ -1,7 +1,7 @@
 package cengine.editor.text
 
 import cengine.editor.selection.Caret
-import cengine.editor.selection.Selection
+import cengine.editor.selection.Selector
 
 interface Editable {
     fun insert(index: Int, new: String)
@@ -12,10 +12,12 @@ interface Editable {
     }
     fun delete(start: Int, end: Int)
 
-    fun delete(selection: Selection): Int {
+    fun deleteSelection(selector: Selector): Int {
+        val selection = selector.selection
         val range = selection.asRange() ?: return 0
         selection.deselect()
         delete(range.first, range.last + 1)
+        selector.caret.set(range.first)
         return range.count()
     }
 
