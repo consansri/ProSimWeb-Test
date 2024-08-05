@@ -8,6 +8,8 @@ import cengine.editor.text.state.TextStateModel
 import cengine.psi.PsiManager
 import cengine.psi.core.PsiElement
 import cengine.vfs.VirtualFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * This model is representing the state of the rendered code.
@@ -23,38 +25,50 @@ interface CodeEditor : Editable {
 
     fun saveToFile() {
         file.setAsUTF8String(textModel.toString())
-        psiManager?.updatePsi(file, textModel) {
-            invalidateContent()
+        psiManager?.queueUpdate(file, textModel) {
+            withContext(Dispatchers.Main){
+                invalidateContent()
+            }
         }
     }
 
     fun loadFromFile() {
         textModel.replaceAll(file.getAsUTF8String())
-        psiManager?.updatePsi(file, null) {
-            invalidateContent()
+        psiManager?.queueUpdate(file, null) {
+            withContext(Dispatchers.Main) {
+                invalidateContent()
+            }
         }
     }
 
     override fun insert(index: Int, new: String) {
         textModel.insert(index, new)
-        psiManager?.updatePsi(file, textModel) {
-            invalidateContent()
-        }
-    }
-
-    override fun replaceAll(new: String) {
-        textModel.replaceAll(new)
-        psiManager?.updatePsi(file, textModel) {
-            invalidateContent()
+        psiManager?.inserted(file, textModel, index, new) {
+            withContext(Dispatchers.Main) {
+                invalidateContent()
+            }
         }
     }
 
     override fun delete(start: Int, end: Int) {
         textModel.delete(start, end)
-        psiManager?.updatePsi(file, textModel) {
-            invalidateContent()
+        psiManager?.deleted(file, textModel, start, end) {
+            withContext(Dispatchers.Main) {
+                invalidateContent()
+            }
         }
     }
+
+    override fun replaceAll(new: String) {
+        textModel.replaceAll(new)
+        psiManager?.queueUpdate(file, textModel) {
+            withContext(Dispatchers.Main) {
+                invalidateContent()
+            }
+        }
+    }
+
+
 
     fun invalidateContent()
 }

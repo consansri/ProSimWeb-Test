@@ -7,10 +7,7 @@ import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.gas.GASDirType
 import cengine.lang.asm.ast.gas.GASNode
 import cengine.lang.asm.lexer.AsmTokenType
-import cengine.psi.core.PsiElement
-import cengine.psi.core.PsiElementVisitor
-import cengine.psi.core.PsiFile
-import cengine.psi.core.TextRange
+import cengine.psi.core.*
 import emulator.kit.nativeError
 
 class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
@@ -18,7 +15,9 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
 
     private val lexer = asmSpec.createLexer("")
 
-    data class HL(override var range: TextRange, val style: CodeStyle) : HLInfo {
+    data class HL(val element: Locatable, val style: CodeStyle) : HLInfo {
+        override val range: TextRange
+            get() = element.textRange
         override val color: Int get() = style.getDarkElseLight()
     }
 
@@ -37,12 +36,12 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
                 break
             }
 
-            val token = lexer.consume(true, false)
+            val token = lexer.consume(ignoreLeadingSpaces = true, ignoreComments = false)
 
             val style = token.type.style
 
             style?.let {
-                highlights.add(HL(token.textRange, it))
+                highlights.add(HL(token, it))
             }
         }
 
@@ -58,32 +57,32 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
         override fun visitElement(element: PsiElement) {
             if (element !is GASNode) return
             when (element) {
-                is GASNode.ArgDef.Named -> highlights.add(HL(element.nameToken.textRange, CodeStyle.argument))
-                is GASNode.Argument.Basic -> highlights.add(HL(element.argName.textRange, CodeStyle.argument))
-                is GASNode.Argument.DefaultValue -> highlights.add(HL(element.argName.textRange, CodeStyle.argument))
-                is GASNode.Label -> highlights.add(HL(element.textRange, CodeStyle.label))
-                is GASNode.NumericExpr.Operand.Char -> highlights.add(HL(element.char.textRange, CodeStyle.char))
-                is GASNode.NumericExpr.Operand.Number -> highlights.add(HL(element.number.textRange, CodeStyle.integer))
-                is GASNode.StringExpr.Operand.StringLiteral -> highlights.add(HL(element.string.textRange, CodeStyle.string))
+                is GASNode.ArgDef.Named -> highlights.add(HL(element, CodeStyle.argument))
+                is GASNode.Argument.Basic -> highlights.add(HL(element, CodeStyle.argument))
+                is GASNode.Argument.DefaultValue -> highlights.add(HL(element, CodeStyle.argument))
+                is GASNode.Label -> highlights.add(HL(element, CodeStyle.label))
+                is GASNode.NumericExpr.Operand.Char -> highlights.add(HL(element, CodeStyle.char))
+                is GASNode.NumericExpr.Operand.Number -> highlights.add(HL(element, CodeStyle.integer))
+                is GASNode.StringExpr.Operand.StringLiteral -> highlights.add(HL(element, CodeStyle.string))
                 is GASNode.Directive -> {
                     when (element.type) {
                         GASDirType.MACRO -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
-                                highlights.add(HL(identifier.textRange, CodeStyle.symbol))
+                                highlights.add(HL(identifier, CodeStyle.symbol))
                             } ?: nativeError("Identifier is missing for ${element.type.typeName} allTokens: ${element.allTokens.joinToString { it.toString() }}")
                         }
 
                         GASDirType.SET_ALT -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
-                                highlights.add(HL(identifier.textRange, CodeStyle.symbol))
+                                highlights.add(HL(identifier, CodeStyle.symbol))
                             } ?: nativeError("Identifier is missing for ${element.type.typeName} allTokens: ${element.allTokens.joinToString { it.toString() }}")
                         }
                     }
                 }
 
-                is GASNode.Comment -> highlights.add(HL(element.textRange, CodeStyle.comment))
+                is GASNode.Comment -> highlights.add(HL(element, CodeStyle.comment))
                 else -> {}
             }
         }

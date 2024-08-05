@@ -63,7 +63,7 @@ enum class AsmTokenType(
     ERROR,
     EOF;
 
-    fun isComment(): Boolean = this == COMMENT_SL || this == COMMENT_ML || this == COMMENT_ML
+    fun isComment(): Boolean = this == COMMENT_SL || this == COMMENT_ML || this == COMMENT_NATIVE
     fun isLinkableSymbol(): Boolean = this == SYMBOL || this == L_LABEL_REF
     fun isLiteral(): Boolean = isStringLiteral || isNumberLiteral || isCharLiteral
     fun isBasicBracket(): Boolean = this == BRACKET_OPENING || this == BRACKET_CLOSING

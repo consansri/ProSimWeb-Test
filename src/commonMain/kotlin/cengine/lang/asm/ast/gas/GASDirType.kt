@@ -1042,10 +1042,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             //nativeLog("RuleResult: ${result} for $this")
             val identificationToken = result.matchingTokens.firstOrNull { it.type == AsmTokenType.DIRECTIVE }
             return if (identificationToken != null) {
-                nativeLog("Found Directive $typeName")
                 GASNode.Directive(this, identificationToken, result.matchingTokens - identificationToken, result.matchingNodes)
             } else {
-                nativeLog("Found Directive $typeName")
                 GASNode.Directive(this, identificationToken, result.matchingTokens, result.matchingNodes)
             }
         }
