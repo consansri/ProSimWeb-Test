@@ -8,6 +8,7 @@ import cengine.lang.asm.parser.Component.*
 import cengine.lang.asm.parser.Rule
 import emulator.core.Size.*
 import emulator.core.Value.Hex
+import emulator.kit.nativeLog
 
 enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -559,7 +560,7 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
     }),
     MACRO(rule = Rule {
         Seq(
-            Dir("macro"),
+            Specific(".macro", ignoreCase = true),
             InSpecific(AsmTokenType.SYMBOL),
             Optional {
                 Seq(
@@ -1041,8 +1042,10 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
             //nativeLog("RuleResult: ${result} for $this")
             val identificationToken = result.matchingTokens.firstOrNull { it.type == AsmTokenType.DIRECTIVE }
             return if (identificationToken != null) {
+                nativeLog("Found Directive $typeName")
                 GASNode.Directive(this, identificationToken, result.matchingTokens - identificationToken, result.matchingNodes)
             } else {
+                nativeLog("Found Directive $typeName")
                 GASNode.Directive(this, identificationToken, result.matchingTokens, result.matchingNodes)
             }
         }

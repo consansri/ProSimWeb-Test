@@ -11,6 +11,7 @@ import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 import cengine.psi.core.TextRange
+import emulator.kit.nativeError
 
 class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
     override val cachedHighlights: MutableMap<PsiFile, List<HLInfo>> = mutableMapOf()
@@ -65,15 +66,23 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
                 is GASNode.NumericExpr.Operand.Number -> highlights.add(HL(element.number.textRange, CodeStyle.integer))
                 is GASNode.StringExpr.Operand.StringLiteral -> highlights.add(HL(element.string.textRange, CodeStyle.string))
                 is GASNode.Directive -> {
-                    when(element.type){
+                    when (element.type) {
                         GASDirType.MACRO -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
                                 highlights.add(HL(identifier.textRange, CodeStyle.symbol))
-                            }
+                            } ?: nativeError("Identifier is missing for ${element.type.typeName} allTokens: ${element.allTokens.joinToString { it.toString() }}")
+                        }
+
+                        GASDirType.SET_ALT -> {
+                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
+                            identifier?.let {
+                                highlights.add(HL(identifier.textRange, CodeStyle.symbol))
+                            } ?: nativeError("Identifier is missing for ${element.type.typeName} allTokens: ${element.allTokens.joinToString { it.toString() }}")
                         }
                     }
                 }
+
                 is GASNode.Comment -> highlights.add(HL(element.textRange, CodeStyle.comment))
                 else -> {}
             }

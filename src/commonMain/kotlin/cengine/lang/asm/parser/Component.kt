@@ -8,6 +8,7 @@ import cengine.lang.asm.lexer.AsmToken
 import cengine.lang.asm.lexer.AsmTokenType
 import debug.DebugTools
 import emulator.kit.common.RegContainer
+import emulator.kit.nativeInfo
 import emulator.kit.nativeLog
 
 /**
@@ -21,7 +22,7 @@ sealed class Component {
     class Optional(comp: () -> Component) : Component() {
         private val comp = comp()
         override fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): Rule.MatchResult {
-            val result = comp.matchStart(lexer,  asmSpec)
+            val result = comp.matchStart(lexer, asmSpec)
             if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Optional ${comp.print("")}")
             return Rule.MatchResult(true, result.matchingTokens, result.matchingNodes)
         }
@@ -55,7 +56,7 @@ sealed class Component {
             var iteration = 0
             while (true) {
                 val initialPos = lexer.position
-                val result = comp.matchStart(lexer,  asmSpec)
+                val result = comp.matchStart(lexer, asmSpec)
                 if (!result.matches || (maxLength != null && iteration >= maxLength)) {
                     lexer.position = initialPos
                     break
@@ -73,14 +74,20 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix(vararg ${comp.print("")})"
     }
 
-    class Seq(vararg val comps: Component) : Component() {
+    class Seq(vararg val comps: Component, val print: Boolean = false) : Component() {
         override fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): Rule.MatchResult {
             val initialPosition = lexer.position
             val matchingNodes = mutableListOf<GASNode>()
             val matchingTokens = mutableListOf<AsmToken>()
 
             for (comp in comps) {
+                val peeked = lexer.peek(true)
+
                 val result = comp.matchStart(lexer, asmSpec)
+
+                if (print) {
+                    nativeInfo("${this::class.simpleName}: ${comp.print("")} == [${peeked}] -> ${result.matches}")
+                }
 
                 if (!result.matches) {
                     lexer.position = initialPosition
@@ -173,14 +180,23 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix.${dirName}"
     }
 
-    class InSpecific(private val type: AsmTokenType) : Component() {
+    class InSpecific(private val type: AsmTokenType, val print: Boolean = false) : Component() {
         override fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): Rule.MatchResult {
             val initialPos = lexer.position
-            val token = lexer.consume(false)
+            val token = lexer.consume(true)
+
             if (token.type != type) {
+                if (print) {
+                    nativeInfo("${this::class.simpleName} ${token.type} == $type -> false")
+                }
                 lexer.position = initialPos
                 return Rule.MatchResult(false)
             }
+
+            if (print) {
+                nativeInfo("${this::class.simpleName} ${token.type} == $type -> true")
+            }
+
             if (DebugTools.KIT_showRuleChecks) nativeLog("Match: InSpecific ${type.name}")
             return Rule.MatchResult(true, listOf(token))
         }

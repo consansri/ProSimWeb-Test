@@ -16,7 +16,6 @@ import debug.DebugTools
 import emulator.core.Size
 import emulator.core.Value
 import emulator.kit.nativeLog
-import emulator.kit.nativeWarn
 
 /**
  * Node Relatives
@@ -62,9 +61,11 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
             get() = PATHNAME
 
         override var textRange: TextRange = token.textRange
+
         companion object {
             const val PATHNAME = "COMMENT"
         }
+
         override fun getFormatted(identSize: Int): String = token.value
     }
 
@@ -85,7 +86,6 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-
     companion object {
         /**
          * Severities will be set by the Lowest Node, which is actually checking the token.
@@ -100,17 +100,15 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
                     while (lexer.hasMoreTokens()) {
                         val node = buildNode(GASNodeType.STATEMENT, lexer, asmSpec)
-                        nativeLog("Parsed $node")
 
                         if (node == null) {
                             val token = lexer.consume(true)
                             annotations.add(Notation.error(token, "Expected a Statement!"))
-                            nativeWarn("Expected a statement for $token at ${token.textRange}")
                             continue
                         }
 
                         if (node is Statement.Unresolved && node.lineTokens.isEmpty() && node.label == null) {
-                            annotations.add(Notation.warn(node, "Statement is empty!"))
+                            // node is empty
                             continue
                         }
 
@@ -155,13 +153,13 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
                     val lineBreak = lexer.consume(true)
                     if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
-                        val unresolvedTokens = mutableListOf<AsmToken>()
+                        val unresolvedTokens = mutableListOf<AsmToken>(lineBreak)
                         var token: AsmToken
 
                         while (true) {
                             token = lexer.consume(false)
 
-                            if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
+                            if (token.type == AsmTokenType.LINEBREAK || token.type == AsmTokenType.EOF) {
                                 break
                             }
 
@@ -297,16 +295,16 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         override var textRange: TextRange = statements.minBy { it.textRange.startOffset }.textRange.startOffset..<statements.maxBy { it.textRange.endOffset }.textRange.endOffset
 
         init {
-            removeEmptyStatements()
+            //removeEmptyStatements()
         }
 
         override fun getFormatted(identSize: Int): String = children.joinToString("") { it.getFormatted(identSize) }
 
-        fun removeEmptyStatements() {
+        /*private fun removeEmptyStatements() {
             ArrayList(children).filterIsInstance<Statement.Empty>().forEach {
                 if (it.label == null) children.remove(it)
             }
-        }
+        }*/
 
         fun getAllStatements(): List<Statement> = children.filterIsInstance<Statement>()
     }
@@ -343,7 +341,6 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         }
 
         class Dir(label: Label?, val dir: Directive, lineBreak: AsmToken) : Statement(label, lineBreak, dir) {
-
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + " ".repeat(identSize - label.textRange.length % identSize) + dir.getFormatted(identSize) + lineBreak.value
@@ -364,14 +361,18 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         }
 
         class Unresolved(label: Label?, val lineTokens: List<AsmToken>, lineBreak: AsmToken) : Statement(label, lineBreak) {
+            override var textRange: TextRange = (label?.textRange?.startOffset ?: lineTokens.firstOrNull()?.textRange?.startOffset ?: lineBreak.textRange.startOffset)..<lineBreak.textRange.endOffset
+            val content = lineTokens.joinToString("") { it.value } + lineBreak.value
+
             init {
-                notations.add(Notation.error(this, "Statement is not valid!"))
+                notations.add(Notation.warn(this, "Statement is unresolved!"))
             }
 
-            override fun getFormatted(identSize: Int): String = children.joinToString(" ") { it.getFormatted(identSize) } + lineBreak.value
+            override fun getFormatted(identSize: Int): String = (label?.getFormatted(identSize) ?: "") + lineTokens.joinToString("") { it.value } + lineBreak.value
         }
 
         class Empty(label: Label?, lineBreak: AsmToken) : Statement(label, lineBreak) {
+
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + lineBreak.value
@@ -410,7 +411,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
         private val sortedContent = (allTokens + additionalNodes).sortedBy { it.textRange.startOffset }
 
-        override fun getFormatted(identSize: Int): String = if (optionalIdentificationToken != null) "${optionalIdentificationToken.value} " else "" + sortedContent.joinToString(" ") {
+        override fun getFormatted(identSize: Int): String = (optionalIdentificationToken?.value ?: "") + sortedContent.joinToString("", " ") {
             when (it) {
                 is GASNode -> it.getFormatted(identSize)
                 is Token -> it.value
@@ -556,10 +557,10 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
     sealed class StringExpr(vararg operands: StringExpr) : GASNode(*operands) {
 
         abstract fun evaluate(printErrors: Boolean): String
-        override val pathName: String
-            get() = PATHNAME
 
         class Concatenation(private val exprs: Array<StringExpr>) : StringExpr(*exprs) {
+            override val pathName: String
+                get() = "Concatenation"
 
             override fun evaluate(printErrors: Boolean): String = exprs.joinToString("") { it.evaluate(printErrors) }
 
@@ -608,6 +609,9 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
             class StringLiteral(val string: AsmToken) : Operand(string) {
                 private val stringContent: String = token.getContentAsString()
+                override val pathName: String
+                    get() = string.value
+
                 override fun evaluate(printErrors: Boolean): String = stringContent
 
                 override var textRange: TextRange = string.textRange
@@ -660,11 +664,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         abstract fun evaluate(throwErrors: Boolean): Value.Dec
         abstract fun isDefined(): Boolean
 
-        override val pathName: String
-            get() = PATHNAME
-
         companion object {
-            const val PATHNAME = "Numeric Expression"
             fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
                 val initialPos = lexer.position
                 val relevantTokens = mutableListOf<AsmToken>()
@@ -870,9 +870,9 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
          *
          */
         class Prefix(private val operator: AsmToken, private val operand: NumericExpr, brackets: List<AsmToken>) : NumericExpr(brackets, operand) {
-
-
             override var textRange: TextRange = operator.textRange.startOffset..<(brackets.lastOrNull()?.textRange?.endOffset ?: operand.textRange.endOffset)
+            override val pathName: String
+                get() = operator.value
 
             override fun evaluate(throwErrors: Boolean): Value.Dec {
                 return when (operator.type) {
@@ -896,6 +896,9 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
          */
         class Classic(private val operandA: NumericExpr, private val operator: AsmToken, private val operandB: NumericExpr, brackets: List<AsmToken>) : NumericExpr(brackets, operandA, operandB) {
             override var textRange: TextRange = (brackets.firstOrNull()?.textRange?.startOffset ?: operandA.textRange.startOffset)..<(brackets.lastOrNull()?.textRange?.endOffset ?: operandB.textRange.endOffset)
+            override val pathName: String
+                get() = operator.value
+
             override fun evaluate(throwErrors: Boolean): Value.Dec {
                 return (when (operator.type) {
                     AsmTokenType.MULT -> operandA.evaluate(throwErrors) * operandB.evaluate(throwErrors)
@@ -921,12 +924,16 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         }
 
         sealed class Operand(val token: AsmToken) : NumericExpr(brackets = listOf()) {
+            override val pathName: String
+                get() = additionalInfo
 
             class Identifier(val symbol: AsmToken) : Operand(symbol), PsiReference {
                 private var expr: NumericExpr? = null
                 private var labelAddr: Value? = null
-
                 override var textRange: TextRange = symbol.textRange
+                override val additionalInfo: String
+                    get() = token.value
+
                 override fun getFormatted(identSize: Int): String = symbol.value
                 fun isLinked(): Boolean = expr != null
                 override fun evaluate(throwErrors: Boolean): Value.Dec {
@@ -965,6 +972,8 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                 val type: Type
                 val value: Value.Dec
                 override var textRange: TextRange = number.textRange
+                override val additionalInfo: String
+                    get() = number.value
 
                 init {
                     val intVal: Value?
@@ -1052,6 +1061,8 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
                 val value: Value.Dec
                 override var textRange: TextRange = char.textRange
+                override val additionalInfo: String
+                    get() = char.value
 
                 override fun getFormatted(identSize: Int): String = char.value
 

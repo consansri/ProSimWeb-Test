@@ -6,7 +6,6 @@ import cengine.psi.core.PsiFile
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import kotlinx.coroutines.*
 
 class PsiManager<T : LanguageService>(
@@ -25,16 +24,21 @@ class PsiManager<T : LanguageService>(
     fun updatePsi(file: VirtualFile, textModel: TextModel?, onfinish: (PsiFile) -> Unit = {}) {
         job?.cancel()
         job = coroutineScope.launch {
-            nativeLog("Update PSI for ${file.name}")
-            val psiFile = psiCache[file.path] ?: createPsiFile(file, textModel)
-            psiFile.textModel = textModel
-            psiFile.update()
-            psiCache.remove(file.path)
-            psiCache[file.path] = psiFile
-            nativeLog("Update Analytics for ${file.name}")
-            lang.updateAnalytics(psiFile, textModel)
-            nativeLog("Finished updating PSI!")
-            onfinish(psiFile)
+            val psiFile = psiCache[file.path]
+            if (psiFile == null) {
+                val created = createPsiFile(file, textModel)
+                created.textModel = textModel
+                psiCache[file.path] = created
+                lang.updateAnalytics(created, textModel)
+                onfinish(created)
+            } else {
+                psiFile.textModel = textModel
+                psiFile.update()
+                psiCache.remove(file.path)
+                psiCache[file.path] = psiFile
+                lang.updateAnalytics(psiFile, textModel)
+                onfinish(psiFile)
+            }
         }
     }
 

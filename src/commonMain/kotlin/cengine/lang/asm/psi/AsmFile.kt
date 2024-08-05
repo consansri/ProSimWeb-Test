@@ -9,7 +9,6 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 import cengine.psi.core.TextRange
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
@@ -28,10 +27,6 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
     override var textRange: TextRange = program.textRange
 
     fun getFormattedString(identSize: Int): String = program.getFormatted(identSize)
-
-    init {
-        nativeLog(print(""))
-    }
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor.visitFile(this)

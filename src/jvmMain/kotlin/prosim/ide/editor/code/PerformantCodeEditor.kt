@@ -484,7 +484,7 @@ class PerformantCodeEditor(
                     it.range.contains(charIndex)
                 }?.let {
                     color = it.severity.toColor(lang).toColor()
-                    fillRect(internalXOffset, yOffset + vLayout.lineHeight - vLayout.linePadding, charWidth, strokeWidth)
+                    drawLine(internalXOffset, yOffset + vLayout.lineHeight - vLayout.linePadding, internalXOffset + charWidth, yOffset + vLayout.lineHeight - vLayout.linePadding)
                 }
 
                 // Draw Caret
@@ -574,7 +574,7 @@ class PerformantCodeEditor(
         private fun Graphics2D.drawCaretInfo() {
             color = secFGColor
             font = fontBase
-            val infoStr = "${selector.caret.line}:${selector.caret.col}"
+            val infoStr = "${selector.caret.line + 1}:${selector.caret.col + 1}"
             val strWidth = fmBase.stringWidth(infoStr)
 
             drawString(infoStr, visibleRect.width - bounds.x - strWidth - insets.right, visibleRect.height - bounds.y - insets.bottom - vLayout.lineHeight + vLayout.linePadding + fmCode.ascent)

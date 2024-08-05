@@ -10,7 +10,9 @@ Noch ein Kommentar!
  */
 
 
+.macro newmacro attr1
 
+.endm
 
 
 .text
