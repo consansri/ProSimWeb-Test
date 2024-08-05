@@ -1,3 +1,18 @@
+/*
+ja moin das ist mein Kommentar!
+*/
+# Das ist auch ein Kommentar
+
+// selbst das ist einer
+
+/*
+Noch ein Kommentar!
+ */
+
+
+
+
+
 .text
 label: .byte 23
 .data

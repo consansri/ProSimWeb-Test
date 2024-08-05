@@ -21,8 +21,8 @@ abstract class BaseLexer(
         }
         get() = TextPosition(index)
 
-    override val error: MutableList<Token> = mutableListOf()
-    override val ignored: MutableList<Token> = mutableListOf()
+    override val error: MutableSet<Token> = mutableSetOf()
+    override val ignored: MutableSet<Token> = mutableSetOf()
 
     override fun reset(input: String) {
         error.clear()

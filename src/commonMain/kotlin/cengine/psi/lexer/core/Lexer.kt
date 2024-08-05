@@ -5,8 +5,8 @@ package cengine.psi.lexer.core
  */
 interface Lexer {
 
-    val ignored: List<Token>
-    val error: List<Token>
+    val ignored: Set<Token>
+    val error: Set<Token>
 
     fun reset(input: String)
     fun consume(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean = true): Token

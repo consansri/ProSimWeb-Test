@@ -57,6 +57,34 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         }
     }
 
+    class Comment(val token: AsmToken) : GASNode() {
+        override val pathName: String
+            get() = PATHNAME
+
+        override var textRange: TextRange = token.textRange
+        companion object {
+            const val PATHNAME = "COMMENT"
+        }
+        override fun getFormatted(identSize: Int): String = token.value
+    }
+
+    class Error(val token: AsmToken) : GASNode() {
+        override val pathName: String
+            get() = PATHNAME
+
+        override var textRange: TextRange = token.textRange
+
+        companion object {
+            const val PATHNAME = "COMMENT"
+        }
+
+        init {
+            notations.add(Notation.error(this, "Unexpected $token!"))
+        }
+
+        override fun getFormatted(identSize: Int): String = token.value
+    }
+
 
     companion object {
         /**
@@ -72,6 +100,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
                     while (lexer.hasMoreTokens()) {
                         val node = buildNode(GASNodeType.STATEMENT, lexer, asmSpec)
+                        nativeLog("Parsed $node")
 
                         if (node == null) {
                             val token = lexer.consume(true)
@@ -92,7 +121,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
                         statements.add(node)
                     }
 
-                    val node = Program(*statements.toTypedArray())
+                    val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) }, lexer.error.map { Error(it as AsmToken) })
                     node.notations.addAll(annotations)
                     return node
                 }
@@ -261,7 +290,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
      * [Program]
      * A RootNode only contains several [Statement]s.
      */
-    class Program(vararg statements: Statement) : GASNode(*statements) {
+    class Program(statements: List<Statement>, comments: List<Comment>, errors: List<Error>) : GASNode(*(statements + comments + errors).sortedBy { it.textRange.startOffset.index }.toTypedArray()) {
 
         override val pathName: String = this::class.simpleName.toString()
 
@@ -309,7 +338,7 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
             children.addAll(childs)
         }
 
-        companion object{
+        companion object {
             const val PATHNAME = "Statement"
         }
 
@@ -343,10 +372,6 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
         }
 
         class Empty(label: Label?, lineBreak: AsmToken) : Statement(label, lineBreak) {
-            init {
-                notations.add(Notation.info(this, "Statement is empty."))
-            }
-
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + lineBreak.value
@@ -516,9 +541,10 @@ sealed class GASNode(vararg children: GASNode) : PsiElement, PsiFormatter {
 
 
     class TokenExpr(val token: AsmToken) : GASNode() {
-        companion object{
+        companion object {
             const val PATHNAME = "Token"
         }
+
         override val pathName: String
             get() = PATHNAME
 

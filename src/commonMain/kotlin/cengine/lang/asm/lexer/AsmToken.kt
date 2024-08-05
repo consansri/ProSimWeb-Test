@@ -11,7 +11,7 @@ data class AsmToken(
     override val start: TextPosition,
     override val end: TextPosition,
     val onlyNumber: String? = null
-) : Token {
+) : Token() {
 
     val asNumber: String get() = onlyNumber ?: value
 

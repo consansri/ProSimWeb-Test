@@ -9,4 +9,6 @@ data class BasicToken(
     override val value: String,
     override val start: TextPosition,
     override val end: TextPosition
-) : Token
+) : Token(){
+
+}

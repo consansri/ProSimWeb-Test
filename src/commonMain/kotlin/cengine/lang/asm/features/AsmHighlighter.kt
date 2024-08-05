@@ -74,6 +74,7 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
                         }
                     }
                 }
+                is GASNode.Comment -> highlights.add(HL(element.textRange, CodeStyle.comment))
                 else -> {}
             }
         }
