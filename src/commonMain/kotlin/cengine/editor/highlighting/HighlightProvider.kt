@@ -1,12 +1,9 @@
 package cengine.editor.highlighting
 
-import cengine.psi.core.PsiFile
+import cengine.psi.core.PsiElement
 
 interface HighlightProvider {
-
-    val cachedHighlights: MutableMap<PsiFile, List<HLInfo>>
-
-    fun updateHighlights(psiFile: PsiFile)
+    fun getHighlights(element: PsiElement): List<HLInfo>
 
     /**
      * Should only use a fast lexical analysis to determine the highlighting.

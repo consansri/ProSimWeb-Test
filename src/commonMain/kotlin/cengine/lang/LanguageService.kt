@@ -37,7 +37,6 @@ interface LanguageService {
         widgetProvider?.getWidgets(file)
         completionProvider?.buildCompletionSet(file)
         annotationProvider?.updateAnnotations(file)
-        highlightProvider?.updateHighlights(file)
     }
 
 }

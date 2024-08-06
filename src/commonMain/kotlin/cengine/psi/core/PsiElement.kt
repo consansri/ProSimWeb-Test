@@ -18,14 +18,15 @@ interface PsiElement : Interval {
 
     fun print(prefix: String): String = "$prefix${this::class.simpleName}: $additionalInfo\n" + ArrayList(children).joinToString("\n") { it.print(prefix + "\t") }
 
-    suspend fun inserted(index: Int, value: String) {
+    fun inserted(index: Int, value: String) {
         range = IntRange(range.first, range.last + value.length)
         val affectedChildren = children.filter { index <= it.range.last }
-        affectedChildren.forEach {child ->
-            when{
+        affectedChildren.forEach { child ->
+            when {
                 index <= child.range.first -> {
-                    child.range = IntRange(child.range.first + value.length, child.range.last + value.length)
+                    child.move(value.length)
                 }
+
                 index in child.range -> {
                     child.inserted(index, value)
                 }
@@ -33,24 +34,33 @@ interface PsiElement : Interval {
         }
     }
 
-    suspend fun deleted(start: Int, end: Int) {
+    fun deleted(start: Int, end: Int) {
         val length = end - start
         range = IntRange(range.first, range.last - length)
-        val affectedChildren = children.filter { it.range.first <= end }
+        val affectedChildren = children
         affectedChildren.forEach { child ->
-            when{
+            when {
                 end <= child.range.first -> {
-                    child.range = IntRange(child.range.first - length, child.range.last - length)
+                    child.move(-length)
                 }
+
                 start >= child.range.last -> {
                     // No change needed
                 }
+
                 else -> {
                     val childStart = start.coerceAtLeast(child.range.first)
                     val childEnd = end.coerceAtMost(child.range.last)
                     child.deleted(childStart, childEnd)
                 }
             }
+        }
+    }
+
+    fun move(offset: Int) {
+        range = IntRange(range.first + offset, range.last + offset)
+        children.forEach {
+            it.move(offset)
         }
     }
 

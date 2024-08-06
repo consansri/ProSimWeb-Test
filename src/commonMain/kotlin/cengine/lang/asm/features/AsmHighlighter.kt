@@ -9,26 +9,49 @@ import cengine.lang.asm.ast.gas.GASNode
 import cengine.lang.asm.lexer.AsmTokenType
 import cengine.psi.core.Interval
 import cengine.psi.core.PsiElement
-import cengine.psi.core.PsiElementVisitor
-import cengine.psi.core.PsiFile
-import emulator.kit.nativeError
 
 class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
-    override val cachedHighlights: MutableMap<PsiFile, List<HLInfo>> = mutableMapOf()
+    private val cache = mutableMapOf<PsiElement, List<HLInfo>>()
 
     private val lexer = asmSpec.createLexer("")
 
-    data class HL(val element: Interval, val style: CodeStyle) : HLInfo {
-        override val range: IntRange
-            get() = element.range
-        override val color: Int get() = style.getDarkElseLight()
-    }
+    override fun getHighlights(element: PsiElement): List<HLInfo> {
+        if (element !is GASNode) return emptyList()
+        return cache.getOrPut(element){
+            when (element) {
+                is GASNode.ArgDef.Named -> listOf(HL(element, CodeStyle.argument))
+                is GASNode.Argument.Basic -> listOf(HL(element, CodeStyle.argument))
+                is GASNode.Argument.DefaultValue -> listOf(HL(element, CodeStyle.argument))
+                is GASNode.Label -> listOf(HL(element, CodeStyle.label))
+                is GASNode.NumericExpr.Operand.Char -> listOf(HL(element, CodeStyle.char))
+                is GASNode.NumericExpr.Operand.Number -> listOf(HL(element, CodeStyle.integer))
+                is GASNode.StringExpr.Operand.StringLiteral -> listOf(HL(element, CodeStyle.string))
+                is GASNode.Directive -> {
+                    when (element.type) {
+                        GASDirType.MACRO -> {
+                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
+                            identifier?.let {
+                                listOf(HL(identifier, CodeStyle.symbol))
+                            } ?: emptyList()
+                        }
 
-    override fun updateHighlights(psiFile: PsiFile) {
-        val builder = HighlightCollector()
-        psiFile.accept(builder)
-        cachedHighlights.remove(psiFile)
-        cachedHighlights[psiFile] = builder.highlights
+                        GASDirType.SET_ALT -> {
+                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
+                            identifier?.let {
+                                listOf(HL(identifier, CodeStyle.symbol))
+                            } ?: emptyList()
+                        }
+
+                        else -> emptyList()
+                    }
+                }
+
+                is GASNode.Comment -> listOf(HL(element, CodeStyle.comment))
+                else -> {
+                    emptyList()
+                }
+            }
+        }
     }
 
     override fun fastHighlight(text: String): List<HLInfo> {
@@ -51,45 +74,12 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
         return highlights
     }
 
-    inner class HighlightCollector : PsiElementVisitor {
-        val highlights = mutableListOf<HLInfo>()
-        override fun visitFile(file: PsiFile) {
-            // Nothing needs to be done here
+    data class HL(val element: Interval, val style: CodeStyle) : HLInfo {
+        override val range: IntRange
+            get() = element.range
+        override val color: Int get() = style.getDarkElseLight()
+        override fun toString(): String {
+            return "<$range:${style.name}>"
         }
-
-        override fun visitElement(element: PsiElement) {
-            if (element !is GASNode) return
-            when (element) {
-                is GASNode.ArgDef.Named -> highlights.add(HL(element, CodeStyle.argument))
-                is GASNode.Argument.Basic -> highlights.add(HL(element, CodeStyle.argument))
-                is GASNode.Argument.DefaultValue -> highlights.add(HL(element, CodeStyle.argument))
-                is GASNode.Label -> highlights.add(HL(element, CodeStyle.label))
-                is GASNode.NumericExpr.Operand.Char -> highlights.add(HL(element, CodeStyle.char))
-                is GASNode.NumericExpr.Operand.Number -> highlights.add(HL(element, CodeStyle.integer))
-                is GASNode.StringExpr.Operand.StringLiteral -> highlights.add(HL(element, CodeStyle.string))
-                is GASNode.Directive -> {
-                    when (element.type) {
-                        GASDirType.MACRO -> {
-                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
-                            identifier?.let {
-                                highlights.add(HL(identifier, CodeStyle.symbol))
-                            } ?: nativeError("Identifier is missing for ${element.type.typeName} allTokens: ${element.allTokens.joinToString { it.toString() }}")
-                        }
-
-                        GASDirType.SET_ALT -> {
-                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
-                            identifier?.let {
-                                highlights.add(HL(identifier, CodeStyle.symbol))
-                            } ?: nativeError("Identifier is missing for ${element.type.typeName} allTokens: ${element.allTokens.joinToString { it.toString() }}")
-                        }
-                    }
-                }
-
-                is GASNode.Comment -> highlights.add(HL(element, CodeStyle.comment))
-                else -> {}
-            }
-        }
-
     }
-
 }

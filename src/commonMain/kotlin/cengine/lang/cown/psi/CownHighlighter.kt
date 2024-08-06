@@ -5,13 +5,12 @@ import cengine.editor.highlighting.Highlight
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.cown.CownLexer
 import cengine.psi.core.Interval
-import cengine.psi.core.PsiFile
+import cengine.psi.core.PsiElement
 
 
 class CownHighlighter : HighlightProvider {
-    override var cachedHighlights: MutableMap<PsiFile, List<HLInfo>> = mutableMapOf()
-    override fun updateHighlights(psiFile: PsiFile) {
-
+    override fun getHighlights(element: PsiElement): List<HLInfo> {
+        return emptyList()
     }
 
     override fun fastHighlight(text: String): List<Highlight> {

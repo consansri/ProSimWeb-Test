@@ -32,17 +32,11 @@ import emulator.kit.nativeLog
  *   - [Statement.Unresolved] Unresolved Content
  * --------------------
  */
-sealed class GASNode(range: IntRange, vararg children: GASNode) : PsiElement, PsiFormatter {
+sealed class GASNode(override var range: IntRange, vararg children: GASNode) : PsiElement, PsiFormatter {
     override var parent: PsiElement? = null
 
     final override val children: MutableList<GASNode> = mutableListOf(*children)
     final override val notations: MutableList<Notation> = mutableListOf()
-    override var range: IntRange = range
-        get() = field
-        set(value) {
-            field = value
-            nativeLog("Moved ${this::class.simpleName}: $range")
-        }
 
     override val additionalInfo: String
         get() = ""
@@ -75,8 +69,6 @@ sealed class GASNode(range: IntRange, vararg children: GASNode) : PsiElement, Ps
     class Error(val token: AsmToken) : GASNode(token.range) {
         override val pathName: String
             get() = PATHNAME
-
-        override var range: IntRange = token.range
 
         companion object {
             const val PATHNAME = "COMMENT"
@@ -466,9 +458,9 @@ sealed class GASNode(range: IntRange, vararg children: GASNode) : PsiElement, Ps
         }
     }
 
-    sealed class ArgDef(val content: List<AsmToken>) : GASNode(content.first().range.first..content.last().range.last) {
+    sealed class ArgDef(val content: List<AsmToken>, range: IntRange) : GASNode(range) {
 
-        class Positional(content: List<AsmToken>) : ArgDef(content) {
+        class Positional(content: List<AsmToken>) : ArgDef(content, content.first().range.first..content.last().range.last) {
             override val pathName: String
                 get() = PATHNAME
 
@@ -486,11 +478,9 @@ sealed class GASNode(range: IntRange, vararg children: GASNode) : PsiElement, Ps
             override fun getFormatted(identSize: Int): String = content.joinToString("") { it.value }
         }
 
-        class Named(val nameToken: AsmToken, val assignment: AsmToken, content: List<AsmToken>) : ArgDef(content) {
+        class Named(val nameToken: AsmToken, val assignment: AsmToken, content: List<AsmToken>) : ArgDef(content, nameToken.range.first..(content.lastOrNull()?.range?.last ?: assignment.range.last)) {
             override val pathName: String
                 get() = nameToken.value
-
-            override var range: IntRange = nameToken.range.first..(content.lastOrNull()?.range?.last ?: assignment.range.last)
 
             companion object {
                 val rule = Rule {

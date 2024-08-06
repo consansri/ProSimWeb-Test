@@ -16,6 +16,7 @@ import cengine.lang.LanguageService
 import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.psi.core.PsiElement
+import cengine.psi.core.PsiFile
 import cengine.util.text.LineColumn
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.extras.FlatSVGIcon
@@ -401,6 +402,7 @@ class PerformantCodeEditor(
         }.derive(vLayout.lineIconSize, vLayout.lineIconSize).image
 
         suspend fun render(g: Graphics2D, visibleLines: VisibleLines) {
+            val psiFile = psiManager?.getPsiFile(file)
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
             g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
             g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
@@ -425,7 +427,7 @@ class PerformantCodeEditor(
                     yOffset += widgetDimension.height
                 }
 
-                g.renderLine(lineInfo, selection, xOffset + rowHeaderWidth, yOffset)
+                g.renderLine(psiFile, lineInfo, selection, xOffset + rowHeaderWidth, yOffset)
 
                 g.drawLineNumber(lineInfo, Rectangle(xOffset, yOffset, vLayout.lineNumberWidth, vLayout.lineHeight))
 
@@ -439,7 +441,7 @@ class PerformantCodeEditor(
          *
          * @return height of line (with drawn widgets)
          */
-        private fun Graphics2D.renderLine(lineInfo: LineInfo, selection: IntRange?, xOffset: Int, yOffset: Int) {
+        private fun Graphics2D.renderLine(psiFile: PsiFile?, lineInfo: LineInfo, selection: IntRange?, xOffset: Int, yOffset: Int) {
             var internalXOffset = xOffset
 
             // Render line text with syntax highlighting
@@ -456,6 +458,15 @@ class PerformantCodeEditor(
             }
 
             for ((colID, charIndex) in (startIndex until endIndex).withIndex()) {
+
+                val psiElement = psiFile?.let {
+                    lang?.psiService?.findElementAt(psiFile, lineInfo.startIndex)
+                }
+
+                val psiHighlights = if (psiElement != null) {
+                    lang?.highlightProvider?.getHighlights(psiElement)
+                } else emptyList()
+
                 val char = lineContent[colID]
                 val charWidth = fmCode.charWidth(char)
 
@@ -474,7 +485,7 @@ class PerformantCodeEditor(
                 }
 
                 // Draw Char
-                color = (highlights.firstOrNull { it.range.contains(colID) }?.color ?: lang?.highlightProvider?.cachedHighlights?.get(psiManager?.getPsiFile(file))?.firstOrNull { it.range.contains(charIndex) }?.color).toColor()
+                color = (highlights.firstOrNull { it.range.contains(colID) }?.color ?: psiHighlights?.firstOrNull { it.range.contains(charIndex) }?.color).toColor()
 
                 font = codeFont
                 drawString(char.toString(), internalXOffset, yOffset + fmCode.ascent + vLayout.linePadding)
