@@ -1,15 +1,19 @@
 package cengine.lang.asm.lexer
 
 import cengine.lang.asm.lexer.AsmTokenType.*
-import cengine.psi.core.TextPosition
 import cengine.psi.lexer.core.Token
 
-
+/**
+ *
+ * @param start inclusive
+ * @param end exclusive
+ *
+ */
 data class AsmToken(
     override val type: AsmTokenType,
     override val value: String,
-    override val start: TextPosition,
-    override val end: TextPosition,
+    override val start: Int,
+    override val end: Int,
     val onlyNumber: String? = null
 ) : Token() {
 

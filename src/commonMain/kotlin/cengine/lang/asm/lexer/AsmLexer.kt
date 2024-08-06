@@ -4,7 +4,6 @@ import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.gas.GASDirType
-import cengine.psi.core.TextPosition
 import cengine.psi.lexer.impl.BaseLexer
 import emulator.kit.common.RegContainer
 
@@ -112,7 +111,7 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
         val char = input[index].toString()
         val start = index
         advance()
-        val token = AsmToken(AsmTokenType.ERROR, char, TextPosition(start), TextPosition(index))
+        val token = AsmToken(AsmTokenType.ERROR, char, start, index)
         error.add(token)
         return token
         //nativeError("InvalidTokenException $token $index")

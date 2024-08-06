@@ -21,7 +21,7 @@ class PsiServiceImpl(
             }
 
             override fun visitElement(element: PsiElement) {
-                if (element.textRange.startOffset.index <= targetOffset && targetOffset < element.textRange.endOffset.index) {
+                if (element.range.first <= targetOffset && targetOffset <= element.range.last) {
                     result = element
                     element.children.forEach { it.accept(this) }
                 }

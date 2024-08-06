@@ -10,12 +10,12 @@ import java.awt.datatransfer.StringSelection
 
 fun PsiManager<*>?.getInterlineWidgets(lineNumber: Int, informational: Informational): List<Widget>{
     if(this == null) return listOf()
-    return lang.widgetProvider?.cachedInterLineWidgets?.filter { informational.getLineAndColumn(it.position.index).first == lineNumber } ?: listOf()
+    return lang.widgetProvider?.cachedInterLineWidgets?.filter { informational.getLineAndColumn(it.position).first == lineNumber } ?: listOf()
 }
 
 fun PsiManager<*>?.getInlayWidgets(lineNumber: Int, informational: Informational): List<Widget>{
     if(this == null) return listOf()
-    return lang.widgetProvider?.cachedInlayWidgets?.filter { informational.getLineAndColumn(it.position.index).first == lineNumber } ?: listOf()
+    return lang.widgetProvider?.cachedInlayWidgets?.filter { informational.getLineAndColumn(it.position).first == lineNumber } ?: listOf()
 }
 
 fun copyToClipboard(text: String) {

@@ -1,12 +1,11 @@
 package cengine.editor.highlighting
 
 import cengine.lang.asm.CodeStyle
-import cengine.psi.core.Locatable
-import cengine.psi.core.TextRange
+import cengine.psi.core.Interval
 
-data class Highlight(val element: Locatable, val type: Type): HLInfo {
-    override val range: TextRange
-        get() = element.textRange
+data class Highlight(val element: Interval, val type: Type): HLInfo {
+    override val range: IntRange
+        get() = element.range
 
     override val color: Int
         get() = type.style.getDarkElseLight()

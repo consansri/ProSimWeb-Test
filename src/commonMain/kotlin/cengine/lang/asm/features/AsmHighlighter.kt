@@ -7,7 +7,10 @@ import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.gas.GASDirType
 import cengine.lang.asm.ast.gas.GASNode
 import cengine.lang.asm.lexer.AsmTokenType
-import cengine.psi.core.*
+import cengine.psi.core.Interval
+import cengine.psi.core.PsiElement
+import cengine.psi.core.PsiElementVisitor
+import cengine.psi.core.PsiFile
 import emulator.kit.nativeError
 
 class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
@@ -15,9 +18,9 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
 
     private val lexer = asmSpec.createLexer("")
 
-    data class HL(val element: Locatable, val style: CodeStyle) : HLInfo {
-        override val range: TextRange
-            get() = element.textRange
+    data class HL(val element: Interval, val style: CodeStyle) : HLInfo {
+        override val range: IntRange
+            get() = element.range
         override val color: Int get() = style.getDarkElseLight()
     }
 

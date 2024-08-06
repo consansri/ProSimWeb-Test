@@ -1,6 +1,5 @@
 package cengine.psi.lexer.impl
 
-import cengine.psi.core.TextPosition
 import cengine.psi.lexer.core.Lexer
 import cengine.psi.lexer.core.Token
 
@@ -12,14 +11,11 @@ abstract class BaseLexer(
 ) : Lexer {
 
     protected var index = 0
-    protected var line = 0
-    protected var col = 0
-    var position: TextPosition
+    var position: Int
         set(value) {
-
-            index = value.index
+            index = value
         }
-        get() = TextPosition(index)
+        get() = index
 
     override val error: MutableSet<Token> = mutableSetOf()
     override val ignored: MutableSet<Token> = mutableSetOf()

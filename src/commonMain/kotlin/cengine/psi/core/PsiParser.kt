@@ -10,6 +10,6 @@ import cengine.vfs.VirtualFile
 interface PsiParser {
     fun parseFile(file: VirtualFile, textModel: TextModel?): PsiFile
 
-    class NodeException(element: PsiElement, message: String): Exception("${element.textRange}: $message")
-    class TokenException(element: Token, message: String): Exception("${element.textRange}: $message")
+    class NodeException(element: PsiElement, message: String): Exception("${element.range}: $message")
+    class TokenException(element: Token, message: String): Exception("${element.range}: $message")
 }

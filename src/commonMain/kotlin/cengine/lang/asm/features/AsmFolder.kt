@@ -26,9 +26,8 @@ class AsmFolder : CodeFoldingProvider {
         override fun visitElement(element: PsiElement) {
             when (element) {
                 is GASNode.Statement -> {
-                    val (startIndex, endIndex) = element.textRange
-                    val firstLine = informational.getLineAndColumn(startIndex.index).first
-                    val lastLine = informational.getLineAndColumn(endIndex.index - 1).first
+                    val firstLine = informational.getLineAndColumn(element.range.first).first
+                    val lastLine = informational.getLineAndColumn(element.range.last).first
                     if (firstLine != lastLine) {
                         regions.add(FoldRegionImpl(firstLine, lastLine, false, "[...]"))
                     }

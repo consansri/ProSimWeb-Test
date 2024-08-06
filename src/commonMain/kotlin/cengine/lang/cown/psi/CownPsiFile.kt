@@ -5,7 +5,7 @@ import cengine.editor.text.TextModel
 import cengine.lang.LanguageService
 import cengine.lang.cown.CownLang
 import cengine.psi.core.PsiElement
-import cengine.psi.core.TextRange
+
 import cengine.psi.impl.PsiFileImpl
 import cengine.vfs.VirtualFile
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +17,7 @@ class CownPsiFile(file: VirtualFile): PsiFileImpl(file) {
 
     override val additionalInfo: String = ""
     override val notations: List<Notation> = listOf()
-    override var textRange: TextRange = TextRange(0, file.getContent().size)
+    override var range: IntRange = 0..<file.getContent().size
 
     override val lang: LanguageService = CownLang
     override var textModel: TextModel? = null

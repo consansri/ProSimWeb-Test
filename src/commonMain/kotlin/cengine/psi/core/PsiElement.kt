@@ -5,7 +5,7 @@ import cengine.editor.annotation.Notation
 /**
  * Base Element for all PSI elements
  */
-interface PsiElement : Locatable {
+interface PsiElement : Interval {
 
     val pathName: String
     val parent: PsiElement?
@@ -14,46 +14,44 @@ interface PsiElement : Locatable {
 
     val additionalInfo: String
 
-    override var textRange: TextRange
+    override var range: IntRange
 
     fun print(prefix: String): String = "$prefix${this::class.simpleName}: $additionalInfo\n" + ArrayList(children).joinToString("\n") { it.print(prefix + "\t") }
 
     suspend fun inserted(index: Int, value: String) {
-        textRange = textRange.expand(value.length)
-        children.forEach {
-            when {
-                index < it.textRange.startOffset.index -> {}
-                index > it.textRange.endOffset.index -> {
-                    it.moveTextRange(value.length)
+        range = IntRange(range.first, range.last + value.length)
+        val affectedChildren = children.filter { index <= it.range.last }
+        affectedChildren.forEach {child ->
+            when{
+                index <= child.range.first -> {
+                    child.range = IntRange(child.range.first + value.length, child.range.last + value.length)
                 }
-
-                index in it.textRange -> {
-                    // affected
-                    it.inserted(index, value)
+                index in child.range -> {
+                    child.inserted(index, value)
                 }
             }
         }
     }
 
     suspend fun deleted(start: Int, end: Int) {
-        textRange = textRange.shrink(end - start)
-        children.forEach {
-            when {
-                end < it.textRange.startOffset.index -> {}
-                start > it.textRange.endOffset.index -> {
-                    it.moveTextRange(start - end)
+        val length = end - start
+        range = IntRange(range.first, range.last - length)
+        val affectedChildren = children.filter { it.range.first <= end }
+        affectedChildren.forEach { child ->
+            when{
+                end <= child.range.first -> {
+                    child.range = IntRange(child.range.first - length, child.range.last - length)
                 }
-
+                start >= child.range.last -> {
+                    // No change needed
+                }
                 else -> {
-                    // affected
-                    it.deleted(start.coerceIn(textRange.toIntRange()), end.coerceIn(textRange.toIntRange()))
+                    val childStart = start.coerceAtLeast(child.range.first)
+                    val childEnd = end.coerceAtMost(child.range.last)
+                    child.deleted(childStart, childEnd)
                 }
             }
         }
-    }
-
-    fun moveTextRange(offset: Int) {
-        textRange = textRange.move(offset)
     }
 
     fun accept(visitor: PsiElementVisitor)

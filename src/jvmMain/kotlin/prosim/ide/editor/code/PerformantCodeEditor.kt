@@ -295,7 +295,7 @@ class PerformantCodeEditor(
                     var currentXOffset = xOffset
 
                     while (currentColumn < columnInLine) {
-                        val widgetAtCol = lineInfo.inlayWidgets.firstOrNull { it.position.index == index }
+                        val widgetAtCol = lineInfo.inlayWidgets.firstOrNull { it.position == index }
                         if (widgetAtCol != null) {
                             currentXOffset += widgetAtCol.calcSize().width
                         }
@@ -350,7 +350,7 @@ class PerformantCodeEditor(
             var column = 0
 
             while (column < textModel.maxColumns) {
-                val widgetAtCol = info.inlayWidgets.firstOrNull { textModel.getLineAndColumn(it.position.index).second == column }
+                val widgetAtCol = info.inlayWidgets.firstOrNull { textModel.getLineAndColumn(it.position).second == column }
                 val columnWidth = if (widgetAtCol != null) {
                     widgetAtCol.calcSize().width + fmColumnWidth
                 } else {
@@ -420,7 +420,7 @@ class PerformantCodeEditor(
             visibleLines.lines.forEachIndexed { _, lineInfo ->
                 //nativeLog("Rendering ${lineInfo.lineNumber} with height ${vLayout.fmLineHeight} at $xOffset, $yOffset")
                 // Render interline widgets
-                lineInfo.interlineWidgets.filter { textModel.getLineAndColumn(it.position.index).first == lineInfo.lineNumber }.forEach {
+                lineInfo.interlineWidgets.filter { textModel.getLineAndColumn(it.position).first == lineInfo.lineNumber }.forEach {
                     val widgetDimension = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
                     yOffset += widgetDimension.height
                 }
@@ -496,7 +496,7 @@ class PerformantCodeEditor(
                 internalXOffset += charWidth
 
                 // Render inlay widgets
-                lineInfo.inlayWidgets.filter { it.position.index == charIndex }.forEach { widget ->
+                lineInfo.inlayWidgets.filter { it.position == charIndex }.forEach { widget ->
 
                     val widgetDim = drawWidget(widget, internalXOffset, yOffset)
                     // Draw Selection under Widget
@@ -511,7 +511,7 @@ class PerformantCodeEditor(
             }
 
             // Render inlay widgets
-            lang?.widgetProvider?.cachedPostLineWidget?.filter { textModel.getLineAndColumn(it.position.index).first == lineInfo.lineNumber }?.forEach {
+            lang?.widgetProvider?.cachedPostLineWidget?.filter { textModel.getLineAndColumn(it.position).first == lineInfo.lineNumber }?.forEach {
                 val widgetDim = drawWidget(it, internalXOffset, yOffset)
                 internalXOffset += widgetDim.width
             }

@@ -1,13 +1,11 @@
 package cengine.psi.lexer.core
 
-import cengine.psi.core.Locatable
-import cengine.psi.core.TextPosition
-import cengine.psi.core.TextRange
+import cengine.psi.core.Interval
 
 /**
  * Interface representing a token in the source code.
  */
-abstract class Token : Locatable {
+abstract class Token : Interval {
     /**
      * The type of the token.
      */
@@ -21,18 +19,18 @@ abstract class Token : Locatable {
     /**
      * The starting position of the token in the source code.
      */
-    abstract val start: TextPosition
+    abstract val start: Int
 
     /**
      * The ending position of the token in the source code.
      */
-    abstract val end: TextPosition
+    abstract val end: Int
 
     /**
      * Builds a TextRange object from [start] and [end] index.
      */
-    override val textRange: TextRange
-        get() = TextRange(start, end)
+    override val range: IntRange
+        get() = start..<end
 
     override fun equals(other: Any?): Boolean {
         if (other !is Token) return false
