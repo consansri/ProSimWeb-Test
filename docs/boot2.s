@@ -37,19 +37,19 @@
 ##                  SETUP                   ##
 ##############################################
 
-_start:     li	    sp,	0x2000
+_start:     li  sp, 0x2000
 
-            li	    t0, 0xFF
-            li	    t1, LED_BASE_ADDR
-            sb	    t0, 0(t1)
+            li  t0, 0xFF
+            li  t1, LED_BASE_ADDR
+            sb  t0, 0(t1)
 
             #print info string
-            la	    a0, infoStr
-            jal	    s11, uart.outStr	
+            la a0, infoStr
+            jal s11, uart.outStr
+            li t1,LED_BASE_ADDR
+            li t0, 0x2
 
-            li	    t1, LED_BASE_ADDR
-            li	    t0, 0x2
-            sb	    t0, 0(t1)
+            sb t0, 0(t1)
 
             #copy symbol table addresses to RAM
             addi    sp, sp,(-8*6)
@@ -77,13 +77,12 @@ s.stNext:   bgeu    t2,t3,s.stDone
             j       s.stNext
 
             #print waiting for uart/usb string
-s.stDone:   la	    a0, directionsStr
-            jal	    s11, uart.outStr	
+s.stDone: la a0, directionsStr
+            jal s11, uart.outStr
 
-            li	    t1, LED_BASE_ADDR
-            li	    t0, 0x80
-            sb	    t0, 0(t1)
-
+            li t1, LED_BASE_ADDR
+            li t0, 0x80
+            sb t0, 0(t1)
 ##############################################
 ##            WAITING FOR CODE              ##
 ##############################################
@@ -357,17 +356,17 @@ xrd.nextDataByte:
             #increment packetNo and wait for next packet
             mv      a0, s6
             jal     uart.out
-            li	    t1, LED_BASE_ADDR
-            li	    t0, 0xF0
-            sb	    t0, 0(t1)
+            li t1, LED_BASE_ADDR
+            li t0, 0xF0
+            sb t0, 0(t1)
             addi    s0, s0,1
             andi    s0, s0,0xFF
             jal     uart.in
             j       xrd.nextPacket
 
 xrd.transErrorRetry:
-            li	    t1, LED_BASE_ADDR
-            sb	    a1, 0(t1)
+            li  t1, LED_BASE_ADDR
+            sb  a1, 0(t1)
             mv      a0, s7
             jal     uart.out
             jal     uart.in
@@ -378,8 +377,6 @@ xrd.endOfTransfer:
             jal     uart.out
             j       _end
 
-
-
 #a0: pointer to zero terminated ascii data
 uart.outStr:mv      s0, a0
 uos.next:   lbu     a0, 0(s0)
@@ -387,19 +384,21 @@ uos.next:   lbu     a0, 0(s0)
             jal     uart.out
             addi    s0, s0,1
             j       uos.next
-uos.end:    jr		s11
+uos.end:    jr  s11
 
 # send character in a0
-uart.out:   li		t1,UART_BASE_ADDR
-uout.wait:  lb		t0, 2(t1)				# check if ty uart is busy
-        bnez 	t0, uout.wait
+uart.out: li t1,UART_BASE_ADDR
+
+uout.wait: lb t0, 2(t1)     # check if ty uart is busy
+        bnez t0, uout.wait
         sb		a0, 0(t1)				# write data in a0 to uart
         ret
 
 # receive character in a0
-uart.in:    li		t1,UART_BASE_ADDR
-uin.wait:   lb		t0, 1(t1)				# check if transmission is completed
-        beqz 	t0, uin.wait
+uart.in: li t1,UART_BASE_ADDR
+uin.wait: lb t0, 1(t1) # check if transmission is completed
+
+        beqz t0, uin.wait
         lbu		a0, 0(t1)				# write uart rx data to a0
         sb 		zero, 1(t1)				# remove rx data
         ret
@@ -414,7 +413,7 @@ symbolTableStrings:
 .asciz "xmodem.receiveData"
 .align 3
 
-infoStr: 	.asciz "\n\rarch: rv64i   abi: lp64   memory access: strict-align v0.13\n\r"
+infoStr: .asciz "\n\rarch: rv64i   abi: lp64   memory access: strict-align v0.13\n\r"
 directionsStr: .asciz "Please insert a Mass Storage Device into the USB-Port with a .elf file\n\rin the root directory or start transmitting the ELF-Binaries via UART.\n\r"
 receivedStr: .asciz "\n\rprogram reveived! starting...\n\r"
 errorStr: .asciz "\r\nError: "

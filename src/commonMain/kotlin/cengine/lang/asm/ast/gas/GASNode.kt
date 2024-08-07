@@ -67,19 +67,19 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-    class Error(val token: AsmToken) : GASNode(token.range) {
+    class Error(val message: String, vararg val tokens: AsmToken) : GASNode(tokens.first().range.first..tokens.last().range.last) {
         override val pathName: String
             get() = PATHNAME
 
         companion object {
-            const val PATHNAME = "COMMENT"
+            const val PATHNAME = "ERROR"
         }
 
         init {
-            notations.add(Notation.error(this, "Unexpected $token!"))
+            notations.add(Notation.error(this, message))
         }
 
-        override fun getFormatted(identSize: Int): String = token.value
+        override fun getFormatted(identSize: Int): String = tokens.joinToString(" ") { it.value }
     }
 
     companion object {
@@ -115,7 +115,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                         statements.add(node)
                     }
 
-                    val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) }, lexer.error.map { Error(it as AsmToken) })
+                    val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) }, lexer.error.map { Error("Expected a Statement!", it as AsmToken) })
                     node.notations.addAll(annotations)
                     return node
                 }
@@ -196,8 +196,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
 
                     val validTypes = asmSpec.allInstrs.filter { it.getDetectionName().lowercase() == first.value.lowercase() }
                     if (validTypes.isEmpty()) {
-                        val node = Error(first)
-                        node.notations.add(Notation.error(node, "No valid instruction type found for $first."))
+                        val node = Error("No valid instruction type found for $first.", first)
                         return node
                     }
 
@@ -209,8 +208,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                         }
                     }
 
-                    val node = Error(first)
-                    node.notations.add(Notation.error(node, "Invalid Arguments for valid types: ${validTypes.joinToString { it.typeName }}!"))
+                    val node = Error("Invalid Arguments for valid types: ${validTypes.joinToString { it.typeName }}!", first)
                     return node
                 }
 
@@ -667,7 +665,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         abstract fun isDefined(): Boolean
 
         companion object {
-            fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
+            fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): GASNode? {
                 val initialPos = lexer.position
                 val relevantTokens = mutableListOf<AsmToken>()
 
@@ -692,29 +690,34 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return null
                 }
 
-                val markedAsPrefix = computePrefixList(relevantTokens)
+                try {
+                    val markedAsPrefix = computePrefixList(relevantTokens)
 
-                // Convert tokens to postfix notation
-                val postFixTokens = convertToPostfix(relevantTokens, markedAsPrefix)
-                val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), markedAsPrefix)
+                    // Convert tokens to postfix notation
+                    val postFixTokens = convertToPostfix(relevantTokens, markedAsPrefix)
 
-                if (expression != null) {
-                    val unusedTokens = (relevantTokens - postFixTokens)
-                    if (unusedTokens.isNotEmpty()) {
-                        unusedTokens.forEach {
-                            expression.notations.add(Notation.error(it, "Invalid Token $it for Numeric Expression!"))
+                    val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), markedAsPrefix)
+
+                    if (expression != null) {
+                        val unusedTokens = (relevantTokens - postFixTokens)
+                        if (unusedTokens.isNotEmpty()) {
+                            unusedTokens.forEach {
+                                expression.notations.add(Notation.error(it, "Invalid Token $it for Numeric Expression!"))
+                            }
                         }
                     }
+
+                    if (DebugTools.KIT_showPostFixExpressions) nativeLog(
+                        "NumericExpr:" +
+                                "\n\tRelevantTokens: ${relevantTokens.joinToString(" ") { it.value }}" +
+                                "\n\tPostFixNotation: ${postFixTokens.joinToString(" ") { it.value }}" +
+                                "\n\tExpression: ${expression?.getFormatted(4)}"
+                    )
+
+                    return expression
+                } catch (e: PsiParser.TokenException) {
+                    return Error("Invalid Numeric Expression.", *relevantTokens.toTypedArray())
                 }
-
-                if (DebugTools.KIT_showPostFixExpressions) nativeLog(
-                    "NumericExpr:" +
-                            "\n\tRelevantTokens: ${relevantTokens.joinToString(" ") { it.value }}" +
-                            "\n\tPostFixNotation: ${postFixTokens.joinToString(" ") { it.value }}" +
-                            "\n\tExpression: ${expression?.getFormatted(4)}"
-                )
-
-                return expression
             }
 
             private fun computePrefixList(tokens: List<AsmToken>): List<AsmToken> {

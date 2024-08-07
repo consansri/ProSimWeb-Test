@@ -508,7 +508,7 @@ class PerformantCodeEditor(
             for ((colID, charIndex) in (startIndex until endIndex).withIndex()) {
 
                 val psiElement = psiFile?.let {
-                    lang?.psiService?.findElementAt(psiFile, lineInfo.startIndex)
+                    lang?.psiService?.findElementAt(psiFile, charIndex)
                 }
 
                 val psiHighlights = if (psiElement != null) {
