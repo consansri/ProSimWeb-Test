@@ -50,12 +50,18 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
     private inner class ParentLinker : PsiElementVisitor {
         override fun visitFile(file: PsiFile) {
             if (file !is AsmFile) return
-            file.children.forEach { it.parent = file }
+            file.children.forEach {
+                it.parent = file
+                it.accept(this)
+            }
         }
 
         override fun visitElement(element: PsiElement) {
             if (element !is GASNode) return
-            element.children.forEach { it.parent = element }
+            element.children.forEach {
+                it.parent = element
+                it.accept(this)
+            }
         }
     }
 

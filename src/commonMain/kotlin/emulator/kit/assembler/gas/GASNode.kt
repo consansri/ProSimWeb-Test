@@ -748,7 +748,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
             override fun evaluate(throwErrors: Boolean): Value.Dec {
                 return (when (operator.type) {
                     Token.Type.MULT -> operandA.evaluate(throwErrors) * operandB.evaluate(throwErrors)
-                    Token.Type.DIV -> operandA.evaluate(throwErrors) * operandB.evaluate(throwErrors)
+                    Token.Type.DIV -> operandA.evaluate(throwErrors) / operandB.evaluate(throwErrors)
                     Token.Type.REM -> operandA.evaluate(throwErrors) % operandB.evaluate(throwErrors)
                     Token.Type.SHL -> operandA.evaluate(throwErrors).toBin() shl (operandB.evaluate(throwErrors).toUDec().toIntOrNull() ?: return operandA.evaluate(throwErrors))
                     Token.Type.SHR -> operandA.evaluate(throwErrors).toBin() shl (operandB.evaluate(throwErrors).toUDec().toIntOrNull() ?: return operandA.evaluate(throwErrors))

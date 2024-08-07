@@ -16,7 +16,7 @@ Noch ein Kommentar!
 
 
 .text
-label: .byte 23
+label: .byte 23 + 32
 .data
 .half 3423, 324, 234
 

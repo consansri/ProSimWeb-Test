@@ -4,13 +4,12 @@ import cengine.editor.completion.Completion
 import cengine.editor.completion.CompletionItemKind
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.completion.CompletionProvider.Companion.asCompletions
-import cengine.editor.text.TextModel
 import cengine.lang.cown.CownLexer
+import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiFile
 
 class CownCompleter : CompletionProvider {
-
-    override fun fetchCompletions(textModel: TextModel, offset: Int, prefix: String, psiFile: PsiFile?): List<Completion> {
+    override fun fetchCompletions(prefix: String, psiElement: PsiElement?, psiFile: PsiFile?): List<Completion> {
         return CownLexer.keywords.asCompletions(prefix, true, CompletionItemKind.KEYWORD)
     }
 

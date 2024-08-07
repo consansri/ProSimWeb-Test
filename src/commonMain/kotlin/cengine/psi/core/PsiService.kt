@@ -1,5 +1,6 @@
 package cengine.psi.core
 
+import cengine.editor.widgets.Widget
 import cengine.vfs.VirtualFile
 
 /**
@@ -9,6 +10,18 @@ interface PsiService {
     fun createFile(file: VirtualFile): PsiFile
     fun findElementAt(file: PsiFile, offset: Int): PsiElement?
     fun findReferences(element: PsiElement): List<PsiReference>
+
+    fun collectInterlineWidgetsInRange(file: PsiFile, range: IntRange): Set<Widget> {
+        val builder = InterlineWidgetCollector(range)
+        file.accept(builder)
+        return builder.interlineWidgets
+    }
+
+    fun collectInlayWidgetsInRange(file: PsiFile, range: IntRange): Set<Widget> {
+        val builder = InlayWidgetCollector(range)
+        file.accept(builder)
+        return builder.inlayWidgets
+    }
 
     fun path(of: PsiElement): List<PsiElement> {
 
@@ -28,5 +41,68 @@ interface PsiService {
         }
 
         return path
+    }
+
+    private class InlayWidgetCollector(val range: IntRange) : PsiElementVisitor {
+        val inlayWidgets = mutableSetOf<Widget>()
+            get() {
+                return field
+            }
+
+        override fun visitFile(file: PsiFile) {
+            inlayWidgets.addAll(file.inlayWidgets)
+            file.children.filter {
+                when {
+                    it.range.first > range.last -> false
+                    it.range.last < range.first -> false
+                    else -> true
+                }
+            }.forEach {
+                it.accept(this)
+            }
+        }
+
+        override fun visitElement(element: PsiElement) {
+            inlayWidgets.addAll(element.inlayWidgets)
+            element.children.filter {
+                when {
+                    it.range.first > range.last -> false
+                    it.range.last < range.first -> false
+                    else -> true
+                }
+            }.forEach {
+                it.accept(this)
+            }
+        }
+    }
+
+    private class InterlineWidgetCollector(val range: IntRange) : PsiElementVisitor {
+        val interlineWidgets = mutableSetOf<Widget>()
+        override fun visitFile(file: PsiFile) {
+            interlineWidgets.addAll(file.interlineWidgets)
+            file.children.filter {
+                when {
+                    it.range.first > range.last -> false
+                    it.range.last < range.first -> false
+                    else -> true
+                }
+            }.forEach {
+                it.accept(this)
+            }
+        }
+
+        override fun visitElement(element: PsiElement) {
+            interlineWidgets.addAll(element.interlineWidgets)
+            element.children.filter {
+                when {
+                    it.range.first > range.last -> false
+                    it.range.last < range.first -> false
+                    else -> true
+                }
+            }.forEach {
+                it.accept(this)
+            }
+        }
+
     }
 }

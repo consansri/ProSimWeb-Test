@@ -5,6 +5,8 @@ import cengine.editor.folding.FoldRegion
 import cengine.editor.folding.FoldRegionImpl
 import cengine.editor.text.Informational
 import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.lexer.AsmTokenType
+import cengine.lang.asm.psi.AsmFile
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -21,15 +23,27 @@ class AsmFolder : CodeFoldingProvider {
     inner class FoldRegionBuilder(val psiFile: PsiFile, val informational: Informational) : PsiElementVisitor {
         val regions = mutableListOf<FoldRegionImpl>()
 
-        override fun visitFile(file: PsiFile) {}
+        override fun visitFile(file: PsiFile) {
+            if (file is AsmFile) {
+                file.children.forEach {
+                    it.accept(this)
+                }
+            }
+        }
 
         override fun visitElement(element: PsiElement) {
             when (element) {
-                is GASNode.Statement -> {
-                    val firstLine = informational.getLineAndColumn(element.range.first).first
-                    val lastLine = informational.getLineAndColumn(element.range.last).first
-                    if (firstLine != lastLine) {
-                        regions.add(FoldRegionImpl(firstLine, lastLine, false, "[...]"))
+                is GASNode.Comment -> {
+                    if (element.token.type == AsmTokenType.COMMENT_ML) {
+                        val firstLine = informational.getLineAndColumn(element.range.first).first
+                        val lastLine = informational.getLineAndColumn(element.range.last).first
+                        if (firstLine != lastLine) regions.add(FoldRegionImpl(firstLine, lastLine, false, "...*/"))
+                    }
+                }
+
+                is GASNode.Program -> {
+                    element.children.forEach {
+                        it.accept(this)
                     }
                 }
             }

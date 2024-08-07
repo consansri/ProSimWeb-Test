@@ -1,6 +1,7 @@
 package cengine.psi.core
 
 import cengine.editor.annotation.Notation
+import cengine.editor.widgets.Widget
 
 /**
  * Base Element for all PSI elements
@@ -11,8 +12,9 @@ interface PsiElement : Interval {
     val parent: PsiElement?
     val children: List<PsiElement>
     val notations: List<Notation>
-
     val additionalInfo: String
+    val interlineWidgets: List<Widget>
+    val inlayWidgets: List<Widget>
 
     override var range: IntRange
 
@@ -61,6 +63,28 @@ interface PsiElement : Interval {
         range = IntRange(range.first + offset, range.last + offset)
         children.forEach {
             it.move(offset)
+        }
+    }
+
+    fun getFile(): PsiFile? {
+        return if (this is PsiFile) {
+            this
+        } else {
+            parent?.getFile()
+        }
+    }
+
+    fun traverseUp(visitor: PsiElementVisitor) {
+        //nativeLog("${visitor::class.simpleName} at ${this::class.simpleName}")
+        visitor.visitElement(this)
+        parent?.traverseUp(visitor)
+    }
+
+    fun traverseDown(visitor: PsiElementVisitor) {
+        //nativeLog("${visitor::class.simpleName} at ${this::class.simpleName}")
+        visitor.visitElement(this)
+        children.forEach {
+            it.traverseDown(visitor)
         }
     }
 

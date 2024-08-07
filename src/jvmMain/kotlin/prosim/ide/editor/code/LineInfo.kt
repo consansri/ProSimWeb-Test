@@ -9,8 +9,6 @@ data class LineInfo(
     val endIndex: Int,
     val firstNonWhitespaceCol: Int,
     val containsOnlySpaces: Boolean,
-    val interlineWidgets: List<Widget>,
-    val inlayWidgets: List<Widget>,
     val foldingPlaceholder: String?
 ){
     val lineNumber: Int get() = lineIndicator.lineNumber

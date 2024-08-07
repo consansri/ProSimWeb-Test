@@ -2,20 +2,22 @@ package cengine.lang.cown.psi
 
 import cengine.editor.annotation.Notation
 import cengine.editor.text.TextModel
+import cengine.editor.widgets.Widget
 import cengine.lang.LanguageService
 import cengine.lang.cown.CownLang
 import cengine.psi.core.PsiElement
-
 import cengine.psi.impl.PsiFileImpl
 import cengine.vfs.VirtualFile
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 
 class CownPsiFile(file: VirtualFile): PsiFileImpl(file) {
-    override val quickeditScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
     override val children: MutableList<PsiElement> = mutableListOf()
 
     override val additionalInfo: String = ""
+    override val interlineWidgets: List<Widget>
+        get() = emptyList()
+    override val inlayWidgets: List<Widget>
+        get() = emptyList()
+
     override val notations: List<Notation> = listOf()
     override var range: IntRange = 0..<file.getContent().size
 
@@ -27,5 +29,4 @@ class CownPsiFile(file: VirtualFile): PsiFileImpl(file) {
         children.clear()
         children.addAll(file.children)
     }
-
 }

@@ -34,7 +34,7 @@ interface LanguageService {
         if (informational != null) {
             codeFoldingProvider?.updateFoldRegions(file, informational)
         }
-        widgetProvider?.getWidgets(file)
+        widgetProvider?.updateWidgets(file)
         completionProvider?.buildCompletionSet(file)
         annotationProvider?.updateAnnotations(file)
     }

@@ -1,12 +1,10 @@
-package cengine.lang.cown.psi
+package cengine.lang.asm.features
 
 import cengine.editor.widgets.WidgetProvider
 import cengine.psi.core.PsiFile
 
-class CownWidgets: WidgetProvider {
+class AsmWidgets: WidgetProvider {
     override fun updateWidgets(psiFile: PsiFile) {
 
     }
-
-
 }

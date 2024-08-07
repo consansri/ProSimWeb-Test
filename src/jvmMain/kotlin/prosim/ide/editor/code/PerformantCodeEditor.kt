@@ -25,7 +25,9 @@ import emulator.kit.assembler.CodeStyle
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
-import prosim.ide.editor.*
+import prosim.ide.editor.EditorComponent
+import prosim.ide.editor.copyToClipboard
+import prosim.ide.editor.getClipboardContent
 import prosim.ide.getFileIcon
 import prosim.uilib.UIStates
 import prosim.uilib.alpha
@@ -169,20 +171,36 @@ class PerformantCodeEditor(
         vLayout.invalidateAllLines()
     }
 
+    private fun getAllInlayWidgets(start: Int = 0, end: Int = textModel.length): Set<Widget> {
+        val psiFile = psiManager?.getPsiFile(file)
+        val inlayWidgets = if (psiFile != null) {
+            lang?.psiService?.collectInlayWidgetsInRange(psiFile, start..<end) ?: emptySet()
+        } else emptySet()
+        return inlayWidgets
+    }
+
+    private fun getAllInterlineWidgets(start: Int = 0, end: Int = textModel.length): Set<Widget> {
+        val psiFile = psiManager?.getPsiFile(file)
+        val interlineWidgets = if (psiFile != null) {
+            lang?.psiService?.collectInterlineWidgetsInRange(psiFile, start..<end) ?: emptySet()
+        } else emptySet()
+        return interlineWidgets
+    }
+
     inner class VirtualLayout {
         private var cachedLines: List<LineInfo> = listOf()
 
         var fmBase: FontMetrics = getFontMetrics(fontBase)
             set(value) {
                 field = value
-                internalPadding = lineHeight - fmBase.height / 2
+                internalPadding = (lineHeight - fmBase.height) / 2
             }
         var fmCode: FontMetrics = getFontMetrics(codeFont)
             set(value) {
                 field = value
                 lineHeight = value.height + 2 * linePadding
                 fmColumnWidth = value.charWidth(' ')
-                internalPadding = lineHeight - fmBase.height / 2
+                internalPadding = (lineHeight - fmBase.height) / 2
             }
 
         val linePadding: Int = 2
@@ -242,8 +260,6 @@ class PerformantCodeEditor(
                 endIndex,
                 firstNonWhiteSpaceIndex - startIndex,
                 firstNonWhiteSpaceIndex == endIndex - 1,
-                psiManager.getInterlineWidgets(indicator.lineNumber, textModel),
-                psiManager.getInlayWidgets(indicator.lineNumber, textModel),
                 if (indicator.isFoldedBeginning) indicator.placeHolder else null
             )
             return info
@@ -251,7 +267,7 @@ class PerformantCodeEditor(
 
         fun getDocumentSize(): Dimension {
             val possibleLines = cachedLines
-            val interlineWidgets = possibleLines.sumOf { it.interlineWidgets.size }
+            val interlineWidgets = getAllInterlineWidgets().size
             val height = (interlineWidgets + possibleLines.size) * lineHeight + insets.top + insets.bottom + bottomPadding
             val width = rowHeaderWidth + textModel.maxColumns * fmColumnWidth + rightPadding
             return Dimension(width, height)
@@ -282,33 +298,31 @@ class PerformantCodeEditor(
             var yOffset = 0
             val xOffset = insets.left + rowHeaderWidth
 
-            for (lineInfo in cachedLines) {
+            val interlineWidgets = getAllInterlineWidgets(0, index)
 
+            yOffset += interlineWidgets.size * lineHeight
+
+            for (lineInfo in cachedLines) {
                 if (index >= lineInfo.startIndex && index <= lineInfo.endIndex) {
                     // Found the line containing the index
                     val lineStartIndex = lineInfo.startIndex
                     val columnInLine = index - lineStartIndex
 
-                    // Calculate y-coordinate
-                    yOffset += lineInfo.interlineWidgets.size * lineHeight
+                    val inlayWidgets = getAllInlayWidgets(lineStartIndex, index)
 
-                    var currentColumn = 0
+                    // Calculate y-coordinate
+                    yOffset += lineHeight
+
                     var currentXOffset = xOffset
 
-                    while (currentColumn < columnInLine) {
-                        val widgetAtCol = lineInfo.inlayWidgets.firstOrNull { it.position == index }
-                        if (widgetAtCol != null) {
-                            currentXOffset += widgetAtCol.calcSize().width
-                        }
-                        currentXOffset += fmColumnWidth
-                        currentColumn++
-                    }
+                    currentXOffset += columnInLine * fmColumnWidth
+                    currentXOffset += inlayWidgets.sumOf { it.calcSize().width }
 
                     return Point(currentXOffset, yOffset)
                 }
 
                 // Move to the next line
-                yOffset += (lineInfo.interlineWidgets.size + 1) * lineHeight
+                yOffset += lineHeight
             }
 
             // If the index is out of bounds, return the coordinates of the last character
@@ -328,9 +342,14 @@ class PerformantCodeEditor(
         private suspend fun getLineAtY(y: Int): Pair<Int, Int> {
             var yOffset = 0
             var lineNumber = 0
+
+            val interlineWidgets = getAllInterlineWidgets()
+
             while (lineNumber < cachedLines.size) {
                 val info = cachedLines[lineNumber]
-                val actualLineHeight = (info.interlineWidgets.size + 1) * lineHeight
+                val currInterlineWidgets = interlineWidgets.filter { it.index in info.startIndex..<info.endIndex }
+
+                val actualLineHeight = (currInterlineWidgets.size + 1) * lineHeight
 
                 if (y < (yOffset + actualLineHeight)) {
                     return lineNumber to yOffset
@@ -350,13 +369,15 @@ class PerformantCodeEditor(
             var xOffset = insets.left + rowHeaderWidth
             var column = 0
 
+            val inlayWidgets = getAllInlayWidgets(info.startIndex, info.endIndex)
+
             while (column < textModel.maxColumns) {
-                val widgetAtCol = info.inlayWidgets.firstOrNull { textModel.getLineAndColumn(it.position).second == column }
-                val columnWidth = if (widgetAtCol != null) {
-                    widgetAtCol.calcSize().width + fmColumnWidth
-                } else {
-                    fmColumnWidth
+                val widgetAtCol = inlayWidgets.filter {
+                    val lc = textModel.getLineAndColumn(it.index)
+                    lc.first == line && lc.second == column
                 }
+
+                val columnWidth = fmColumnWidth + widgetAtCol.sumOf { it.calcSize().width }
 
                 if (x + fmColumnWidth / 2 in xOffset..<(xOffset + columnWidth)) {
                     return column
@@ -368,6 +389,8 @@ class PerformantCodeEditor(
 
             return textModel.maxColumns
         }
+
+
     }
 
     inner class Renderer {
@@ -418,16 +441,27 @@ class PerformantCodeEditor(
             g.color = secBGColor
             val vSplitLineX = xOffset + rowHeaderWidth - vLayout.internalPadding
             g.drawLine(vSplitLineX, 0, vSplitLineX, height)
+            val interlineWidgets = getAllInterlineWidgets()
+            val inlayWidgets = getAllInlayWidgets()
 
             visibleLines.lines.forEachIndexed { _, lineInfo ->
                 //nativeLog("Rendering ${lineInfo.lineNumber} with height ${vLayout.fmLineHeight} at $xOffset, $yOffset")
                 // Render interline widgets
-                lineInfo.interlineWidgets.filter { textModel.getLineAndColumn(it.position).first == lineInfo.lineNumber }.forEach {
-                    val widgetDimension = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
-                    yOffset += widgetDimension.height
+
+                val currInterlineWidgets = interlineWidgets.filter { it.index in lineInfo.startIndex..<lineInfo.endIndex }
+                currInterlineWidgets.forEach {
+                    val widgetDim = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
+                    yOffset += widgetDim.height
                 }
 
-                g.renderLine(psiFile, lineInfo, selection, xOffset + rowHeaderWidth, yOffset)
+                val currInlayWidgets = inlayWidgets.filter { it.index in lineInfo.startIndex..<lineInfo.endIndex }
+
+                /*lineInfo.interlineWidgets.filter { textModel.getLineAndColumn(it.position).first == lineInfo.lineNumber }.forEach {
+                    val widgetDimension = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
+                    yOffset += widgetDimension.height
+                }*/
+
+                g.renderLine(psiFile, currInlayWidgets, lineInfo, selection, xOffset + rowHeaderWidth, yOffset)
 
                 g.drawLineNumber(lineInfo, Rectangle(xOffset, yOffset, vLayout.lineNumberWidth, vLayout.lineHeight))
 
@@ -441,7 +475,7 @@ class PerformantCodeEditor(
          *
          * @return height of line (with drawn widgets)
          */
-        private fun Graphics2D.renderLine(psiFile: PsiFile?, lineInfo: LineInfo, selection: IntRange?, xOffset: Int, yOffset: Int) {
+        private fun Graphics2D.renderLine(psiFile: PsiFile?, inlayWidgets: List<Widget>, lineInfo: LineInfo, selection: IntRange?, xOffset: Int, yOffset: Int) {
             var internalXOffset = xOffset
 
             // Render line text with syntax highlighting
@@ -491,9 +525,7 @@ class PerformantCodeEditor(
                 drawString(char.toString(), internalXOffset, yOffset + fmCode.ascent + vLayout.linePadding)
 
                 // Draw Underline
-                lang?.annotationProvider?.cachedNotations?.get(psiManager?.getPsiFile(file))?.firstOrNull {
-                    it.range.contains(charIndex)
-                }?.let {
+                psiElement?.notations?.minByOrNull { it.severity }?.let {
                     color = it.severity.toColor(lang).toColor()
                     drawLine(internalXOffset, yOffset + vLayout.lineHeight - vLayout.linePadding, internalXOffset + charWidth, yOffset + vLayout.lineHeight - vLayout.linePadding)
                 }
@@ -507,8 +539,7 @@ class PerformantCodeEditor(
                 internalXOffset += charWidth
 
                 // Render inlay widgets
-                lineInfo.inlayWidgets.filter { it.position == charIndex }.forEach { widget ->
-
+                inlayWidgets.filter { it.index == charIndex }.forEach { widget ->
                     val widgetDim = drawWidget(widget, internalXOffset, yOffset)
                     // Draw Selection under Widget
                     selection?.let {
@@ -519,13 +550,26 @@ class PerformantCodeEditor(
                     }
                     internalXOffset += widgetDim.width
                 }
+
+                /*lineInfo.inlayWidgets.filter { it.position == charIndex }.forEach { widget ->
+
+                    val widgetDim = drawWidget(widget, internalXOffset, yOffset)
+                    // Draw Selection under Widget
+                    selection?.let {
+                        if (charIndex in it) {
+                            color = selColor
+                            fillRect(internalXOffset, yOffset, widgetDim.width, vLayout.lineHeight)
+                        }
+                    }
+                    internalXOffset += widgetDim.width
+                }*/
             }
 
-            // Render inlay widgets
-            lang?.widgetProvider?.cachedPostLineWidget?.filter { textModel.getLineAndColumn(it.position).first == lineInfo.lineNumber }?.forEach {
+            // Render postline widgets
+            /*lang?.widgetProvider?.cachedPostLineWidget?.filter { textModel.getLineAndColumn(it.position).first == lineInfo.lineNumber }?.forEach {
                 val widgetDim = drawWidget(it, internalXOffset, yOffset)
                 internalXOffset += widgetDim.width
-            }
+            }*/
 
             // Draw EOF Caret
             if (endIndex == textModel.length && selector.caret.index == textModel.length && selector.caret.line == lineInfo.lineNumber) {
@@ -658,11 +702,13 @@ class PerformantCodeEditor(
 
                 val (line, column) = vLayout.getLineAndColumnAt(e.point)
                 val index = textModel.indexOf(line, column)
-                val annotations = lang?.annotationProvider?.cachedNotations?.get(psiManager?.getPsiFile(file))?.filter { index in it.range } ?: listOf()
-
-                if (annotations.isNotEmpty()) {
-                    SwingUtilities.invokeLater {
-                        modificationOverlay.showOverlay(annotations, e.x, e.y, this@PerformantCodeEditor)
+                val psiFile = psiManager?.getPsiFile(file)
+                if (psiFile != null) {
+                    val annotations = lang?.psiService?.findElementAt(psiFile, index)?.notations ?: emptyList()
+                    if (annotations.isNotEmpty()) {
+                        SwingUtilities.invokeLater {
+                            modificationOverlay.showOverlay(annotations.sortedBy { it.severity }, e.x, e.y, this@PerformantCodeEditor)
+                        }
                     }
                 }
             }
@@ -863,7 +909,7 @@ class PerformantCodeEditor(
                     val prefixIndex = selector.indexOfWordStart(selector.caret.index, Selector.DEFAULT_SPACING_SET, false)
                     val prefix = textModel.substring(prefixIndex, selector.caret.index)
                     if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
-                        val completions = lang?.completionProvider?.fetchCompletions(textModel, selector.caret.index, prefix, psiManager?.getPsiFile(file)) ?: listOf()
+                        val completions = lang?.completionProvider?.fetchCompletions(prefix, currentElement, psiManager?.getPsiFile(file)) ?: emptyList()
                         val coords = vLayout.getCoords(selector.caret.index)
                         if (completions.isNotEmpty()) {
                             SwingUtilities.invokeLater {

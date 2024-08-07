@@ -1,6 +1,7 @@
 package cengine.lang.asm.ast.gas
 
 import cengine.editor.annotation.Notation
+import cengine.editor.widgets.Widget
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
@@ -37,6 +38,11 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
 
     final override val children: MutableList<GASNode> = mutableListOf(*children)
     final override val notations: MutableList<Notation> = mutableListOf()
+    override val inlayWidgets: List<Widget>
+        get() = emptyList()
+
+    override val interlineWidgets: List<Widget>
+        get() = emptyList()
 
     override val additionalInfo: String
         get() = ""
@@ -50,9 +56,6 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
     override fun accept(visitor: PsiElementVisitor) {
         //nativeLog("${visitor::class.simpleName} at ${this::class.simpleName}")
         visitor.visitElement(this)
-        children.forEach {
-            it.accept(visitor)
-        }
     }
 
     class Comment(val token: AsmToken) : GASNode(token.range) {
@@ -318,6 +321,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         range ?: (label?.range?.start ?: childs.firstOrNull()?.range?.start ?: lineBreak.start)..<lineBreak.end
     ) {
         override val pathName: String get() = PATHNAME
+
         override fun getCodeStyle(position: Int): CodeStyle? {
             if (label != null && position in label.range) {
                 return label.getCodeStyle(position)
@@ -338,6 +342,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         }
 
         class Dir(label: Label?, val dir: Directive, lineBreak: AsmToken) : Statement(label, lineBreak, null, dir) {
+            override val interlineWidgets: List<Widget> = listOf(Widget("directive", dir.type.typeName, Widget.Type.INTERLINE, { this.range.first }))
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + " ".repeat(identSize - label.range.count() % identSize) + dir.getFormatted(identSize) + lineBreak.value
@@ -527,7 +532,6 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
             return super.getCodeStyle(position)
         }
     }
-
 
     class TokenExpr(val token: AsmToken) : GASNode(token.range) {
         companion object {
@@ -886,10 +890,12 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
             override val pathName: String
                 get() = operator.value
 
+            override val inlayWidgets: List<Widget> = listOf(Widget("result", "= ${evaluate(false)}", Widget.Type.INLAY, { range.last }))
+
             override fun evaluate(throwErrors: Boolean): Value.Dec {
                 return (when (operator.type) {
                     AsmTokenType.MULT -> operandA.evaluate(throwErrors) * operandB.evaluate(throwErrors)
-                    AsmTokenType.DIV -> operandA.evaluate(throwErrors) * operandB.evaluate(throwErrors)
+                    AsmTokenType.DIV -> operandA.evaluate(throwErrors) / operandB.evaluate(throwErrors)
                     AsmTokenType.REM -> operandA.evaluate(throwErrors) % operandB.evaluate(throwErrors)
                     AsmTokenType.SHL -> operandA.evaluate(throwErrors).toBin() shl (operandB.evaluate(throwErrors).toUDec().toIntOrNull() ?: return operandA.evaluate(throwErrors))
                     AsmTokenType.SHR -> operandA.evaluate(throwErrors).toBin() shl (operandB.evaluate(throwErrors).toUDec().toIntOrNull() ?: return operandA.evaluate(throwErrors))

@@ -2,6 +2,7 @@ package cengine.ast.node
 
 import cengine.ast.ASTVisitor
 import cengine.editor.annotation.Notation
+import cengine.editor.widgets.Widget
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 
@@ -11,6 +12,11 @@ sealed class Node : PsiElement {
     override val notations: MutableList<Notation> = mutableListOf()
     override val children: MutableList<Node> = mutableListOf()
     override val additionalInfo: String = ""
+    override val inlayWidgets: List<Widget>
+        get() = emptyList()
+
+    override val interlineWidgets: List<Widget>
+        get() = emptyList()
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor as? ASTVisitor<*> ?: return
