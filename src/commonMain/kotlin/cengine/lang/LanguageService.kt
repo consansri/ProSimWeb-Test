@@ -1,6 +1,7 @@
 package cengine.lang
 
 import cengine.editor.annotation.AnnotationProvider
+import cengine.editor.annotation.Notation
 import cengine.editor.annotation.Severity
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.folding.CodeFoldingProvider
@@ -11,6 +12,7 @@ import cengine.editor.widgets.WidgetProvider
 import cengine.psi.core.PsiFile
 import cengine.psi.core.PsiParser
 import cengine.psi.core.PsiService
+import cengine.vfs.VirtualFile
 
 interface LanguageService {
 
@@ -27,6 +29,8 @@ interface LanguageService {
     val highlightProvider: HighlightProvider?
     val formatter: Formatter?
 
+    val annotations: MutableMap<VirtualFile, Set<Notation>>
+
     fun severityToColor(type: Severity): Int?
 
     fun updateAnalytics(file: PsiFile, informational: Informational?) {
@@ -36,6 +40,8 @@ interface LanguageService {
         widgetProvider?.updateWidgets(file)
         completionProvider?.buildCompletionSet(file)
         annotationProvider?.updateAnnotations(file)
+        annotations.remove(file.file)
+        annotations[file.file] = psiService.collectNotations(file)
     }
 
 }

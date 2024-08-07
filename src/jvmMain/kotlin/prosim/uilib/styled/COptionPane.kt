@@ -111,8 +111,12 @@ class COptionPane : JOptionPane() {
                 override fun getIcon(userObject: File): FlatSVGIcon? = null
 
                 override fun getName(userObject: File): String? = userObject.name
+                override fun getFgColor(userObject: File): Color? = null
+                override val expandedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
+                override val collapsedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
+                override val defaultLeafIcon: FlatSVGIcon = UIStates.icon.get().folder
             })
-            val cScrollPane = CScrollPane(false)
+            val cScrollPane = CScrollPane()
             cScrollPane.setViewportView(tree)
             cScrollPane.preferredSize = Dimension(600, 800)
 
@@ -349,7 +353,7 @@ class COptionPane : JOptionPane() {
             cDialog.minimumSize = Dimension(Toolkit.getDefaultToolkit().screenSize.width / 16, Toolkit.getDefaultToolkit().screenSize.height / 16)
             val cPanel = CPanel(primary = false, isOverlay = true, roundCorners = true)
             val contentPanel = CPanel(primary = false, roundCorners = true)
-            val cScrollPane = CScrollPane(false)
+            val cScrollPane = CScrollPane()
             cScrollPane.setViewportView(contentPanel)
             val cLabel = CLabel(title, FontType.BASIC)
 

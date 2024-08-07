@@ -21,6 +21,7 @@ import prosim.uilib.styled.*
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.tree.CTree
 import prosim.uilib.styled.tree.NodeInformationProvider
+import java.awt.Color
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
@@ -70,7 +71,10 @@ class Workspace(
             override fun getIcon(userObject: TreeFile): FlatSVGIcon? = userObject.icon
 
             override fun getName(userObject: TreeFile): String = userObject.name
-
+            override fun getFgColor(userObject: TreeFile): Color? = null
+            override val expandedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
+            override val collapsedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
+            override val defaultLeafIcon: FlatSVGIcon = UIStates.icon.get().file
         })
 
         // Add a mouse listener for handling user interactions with the file tree.

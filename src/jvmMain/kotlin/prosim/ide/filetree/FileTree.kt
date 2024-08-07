@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import prosim.ide.getFileIcon
+import prosim.uilib.UIStates
 import prosim.uilib.styled.CMenuItem
 import prosim.uilib.styled.COptionPane
 import prosim.uilib.styled.CPopupMenu
@@ -17,6 +18,7 @@ import prosim.uilib.styled.CScrollPane
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.tree.CTree
 import prosim.uilib.styled.tree.NodeInformationProvider
+import java.awt.Color
 import java.awt.Component
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -40,6 +42,14 @@ class FileTree(private val project: Project) : FileTreeUI {
         override fun getName(userObject: VirtualFile): String {
             return userObject.name
         }
+
+        override fun getFgColor(userObject: VirtualFile): Color? {
+            return null
+        }
+
+        override val expandedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
+        override val collapsedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
+        override val defaultLeafIcon: FlatSVGIcon = UIStates.icon.get().file
     })
     private var listener: FileTreeUIListener? = null
     private val overlayScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
@@ -55,7 +65,7 @@ class FileTree(private val project: Project) : FileTreeUI {
     }
 
     fun createContainer(): JComponent {
-        val cScrollPane = CScrollPane(true, tree)
+        val cScrollPane = CScrollPane( tree, true)
         return cScrollPane
     }
 

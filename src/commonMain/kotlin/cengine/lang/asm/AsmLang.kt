@@ -1,6 +1,7 @@
 package cengine.lang.asm
 
 import cengine.editor.annotation.AnnotationProvider
+import cengine.editor.annotation.Notation
 import cengine.editor.annotation.Severity
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.folding.CodeFoldingProvider
@@ -12,6 +13,7 @@ import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.features.*
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
+import cengine.vfs.VirtualFile
 
 class AsmLang(val spec: AsmSpec): LanguageService {
     override val name: String = "Assembly"
@@ -24,6 +26,7 @@ class AsmLang(val spec: AsmSpec): LanguageService {
     override val annotationProvider: AnnotationProvider = AsmAnnotator()
     override val highlightProvider: HighlightProvider = AsmHighlighter(spec)
     override val formatter: Formatter = AsmFormatter()
+    override val annotations: MutableMap<VirtualFile, Set<Notation>> = mutableMapOf()
 
     override fun severityToColor(type: Severity): Int? {
         return when(type){

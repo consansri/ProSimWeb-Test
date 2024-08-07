@@ -24,6 +24,7 @@
 .equ ELF_SHT_RELA, 0x4
 .equ ELF_SHT_NOBITS, 0x8
 
+
 #################################################################################
 #	PROGRAM
 #################################################################################
@@ -185,7 +186,7 @@ clrEnd:
             mv      t6, zero
             fence.i
             jr	    ra
-	
+
 _error:     mv      s0, a0
             la      a0, errorStr
             jal     s11, uart.outStr
@@ -391,17 +392,17 @@ uos.end:    jr		s11
 # send character in a0
 uart.out:   li		t1,UART_BASE_ADDR
 uout.wait:  lb		t0, 2(t1)				# check if ty uart is busy
-		    bnez 	t0, uout.wait
-		    sb		a0, 0(t1)				# write data in a0 to uart
-		    ret
+        bnez 	t0, uout.wait
+        sb		a0, 0(t1)				# write data in a0 to uart
+        ret
 
 # receive character in a0
 uart.in:    li		t1,UART_BASE_ADDR
 uin.wait:   lb		t0, 1(t1)				# check if transmission is completed
-		    beqz 	t0, uin.wait
-		    lbu		a0, 0(t1)				# write uart rx data to a0
-		    sb 		zero, 1(t1)				# remove rx data
-		    ret
+        beqz 	t0, uin.wait
+        lbu		a0, 0(t1)				# write uart rx data to a0
+        sb 		zero, 1(t1)				# remove rx data
+        ret
 
 
 symbolTableStrings:

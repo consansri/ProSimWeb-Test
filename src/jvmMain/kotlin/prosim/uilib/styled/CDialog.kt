@@ -91,7 +91,7 @@ class CDialog(parent: Component) : JDialog() {
 
             val cPane = CPanel(primary = true)
             cPane.layout = BorderLayout()
-            cPane.preferredSize = Dimension(300,300)
+            cPane.preferredSize = Dimension(300, 300)
             val bPane = CPanel(primary = true)
             bPane.layout = BorderLayout()
 
@@ -99,8 +99,8 @@ class CDialog(parent: Component) : JDialog() {
             contentPane.layout = BorderLayout()
             contentPane.minimumSize = Dimension(300, 300)
             contentPane.add(tPane, BorderLayout.NORTH)
-            val scrollPane = CScrollPane(true, cPane)
-            scrollPane.minimumSize = Dimension(200,200)
+            val scrollPane = CScrollPane(cPane, true)
+            scrollPane.minimumSize = Dimension(200, 200)
             contentPane.add(scrollPane, BorderLayout.CENTER)
             contentPane.add(bPane, BorderLayout.SOUTH)
 

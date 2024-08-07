@@ -9,11 +9,11 @@ import javax.swing.JComponent
 import javax.swing.JScrollPane
 import javax.swing.KeyStroke
 
-open class CScrollPane(val primary: Boolean, c: Component?) : JScrollPane(c) {
+open class CScrollPane(c: Component?, val primary: Boolean = false) : JScrollPane(c) {
 
-    constructor(primary: Boolean) : this(primary, null)
+    constructor(primary: Boolean = false) : this(null, primary)
 
-    constructor(primary: Boolean, component: Component, vsb: Int, hsb: Int) : this(primary, component) {
+    constructor(component: Component, vsb: Int, hsb: Int, primary: Boolean = false) : this(component, primary) {
         this.verticalScrollBarPolicy = vsb
         this.horizontalScrollBarPolicy = hsb
     }

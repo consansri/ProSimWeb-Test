@@ -25,7 +25,7 @@ open class CAdvancedTabPane(
         verticalAlignment = SwingConstants.CENTER
     }
     private val tabsPane = CPanel(primary, BorderMode.SOUTH)
-    val contentPane = CScrollPane(primary, CPanel(primary))
+    val contentPane = CScrollPane(CPanel(primary), primary)
     private val closeIcon = UIStates.icon.get().close
 
     val tabs = mutableListOf<ClosableTab>()

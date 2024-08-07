@@ -20,7 +20,7 @@ import javax.swing.ListSelectionModel
 class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEditor) : COverlay() {
     private val listModel = DefaultListModel<T>()
     private val list = CList(listModel, true)
-    private val scrollPane = CScrollPane(true, list)
+    private val scrollPane = CScrollPane(list, true)
 
     companion object {
         const val MAX_VISIBLE_ITEMS = 5

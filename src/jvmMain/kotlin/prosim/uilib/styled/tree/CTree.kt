@@ -8,7 +8,7 @@ import javax.swing.JTree
 import javax.swing.border.Border
 import javax.swing.tree.TreeModel
 
-class CTree<T>(treeModel: TreeModel, val fontType: FontType, val nodeInformationProvider: NodeInformationProvider<T>) : JTree(treeModel) {
+open class CTree<T>(treeModel: TreeModel, val fontType: FontType, val nodeInformationProvider: NodeInformationProvider<T>) : JTree(treeModel) {
 
     init {
         setUI(CTreeUI<T>(nodeInformationProvider))

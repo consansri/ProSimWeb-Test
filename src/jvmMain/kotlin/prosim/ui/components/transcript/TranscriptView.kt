@@ -58,7 +58,7 @@ class TranscriptView() : CPanel(primary = false), StateListener<Workspace?> {
         this.add(label, gbc)
     }
 
-    private val contentPane = CScrollPane(primary = false).apply {
+    private val contentPane = CScrollPane().apply {
         setViewportView(modelView)
         minimumSize = Dimension(0, 0)
     }

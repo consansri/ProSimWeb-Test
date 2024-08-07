@@ -2,6 +2,7 @@ package prosim.ide.editor.code
 
 import cengine.editor.CodeEditor
 import cengine.editor.EditorModification
+import cengine.editor.annotation.Notation
 import cengine.editor.folding.LineIndicator
 import cengine.editor.indentation.BasicIndenation
 import cengine.editor.indentation.IndentationProvider
@@ -32,17 +33,20 @@ import prosim.ide.getFileIcon
 import prosim.uilib.UIStates
 import prosim.uilib.alpha
 import prosim.uilib.styled.CScrollPane
+import prosim.uilib.styled.CToolView
 import prosim.uilib.styled.params.FontType
 import java.awt.*
 import java.awt.event.*
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
+import javax.swing.JComponent
 import javax.swing.SwingUtilities
 
 class PerformantCodeEditor(
     override val file: VirtualFile,
-    project: Project,
-) : EditorComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()) {
+    project: Project
+
+) : EditorComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()), CToolView.View {
 
     override var currentElement: PsiElement? = null
         set(value) {
@@ -50,6 +54,7 @@ class PerformantCodeEditor(
             if (value != null) nativeLog("Path: ${lang?.psiService?.path(value)?.joinToString(" > ") { it.pathName }}")
         }
 
+    override var notations: Set<Notation> = emptySet()
     override val psiManager: PsiManager<*>? = project.getManager(file)
 
     override val textModel: TextModel = RopeModel(file.getAsUTF8String())
@@ -99,6 +104,13 @@ class PerformantCodeEditor(
     override val title: String get() = file.name
     override val tooltip: String get() = file.path
 
+    private val analytics: Analytics = Analytics(this)
+
+    override val viewname: String
+        get() = file.name
+    override val content: JComponent
+        get() = analytics
+
     init {
         isFocusable = true
         cursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
@@ -111,7 +123,6 @@ class PerformantCodeEditor(
 
         file.onDiskChange = {
             loadFromFile()
-            nativeLog("Reloaded Editor Content")
             revalidate()
             repaint()
         }
@@ -126,7 +137,7 @@ class PerformantCodeEditor(
     }
 
     fun createScrollPane(): CScrollPane {
-        val sp = CScrollPane(true, this).apply {
+        val sp = CScrollPane(this, true).apply {
             CScrollPane.removeArrowKeyScrolling(this)
             verticalScrollBar.blockIncrement = height
             horizontalScrollBar.blockIncrement = width
@@ -164,6 +175,10 @@ class PerformantCodeEditor(
             }
             updateContent()
         })?.cancel()
+    }
+
+    override fun invalidateAnalytics() {
+        analytics.updateNotations()
     }
 
     private suspend fun updateContent() {

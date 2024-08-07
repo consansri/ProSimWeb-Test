@@ -31,7 +31,7 @@ class FileTree(val editor: WSEditor?, val logger: WSLogger?) : CPanel(true), Sta
         text = "No ${Workspace::class.simpleName.toString()} selected!"
     }
     private val title = CPanel(false)
-    private val content = CScrollPane(false)
+    private val content = CScrollPane()
 
     init {
         attachMouseListener()

@@ -50,9 +50,9 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     var infoLogger: InfoLogger? = null
     var highlighter: Highlighter? = null
     var shortCuts: ShortCuts? = null
-    val scrollPane: CScrollPane = CScrollPane( true, this)
-    val lineNumbers: CEditorLineNumbers = CEditorLineNumbers( this)
-    val findAndReplace: CEditorAnalyzer = CEditorAnalyzer( this)
+    val scrollPane: CScrollPane = CScrollPane(this, true)
+    val lineNumbers: CEditorLineNumbers = CEditorLineNumbers(this)
+    val findAndReplace: CEditorAnalyzer = CEditorAnalyzer(this)
 
     // State History
     private val textStateHistory = Stack<List<StyledChar>>()
@@ -693,7 +693,6 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
     fun getText(): String = getStyledText().joinToString("") { it.content.toString() }
 
 
-
     /**
      * IO
      */
@@ -733,7 +732,7 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
             return content.isLetterOrDigit()
         }
 
-        fun isSymbolChar(): Boolean{
+        fun isSymbolChar(): Boolean {
             return content.isLetterOrDigit() || content == '_' || content == '$' || content == '.'
         }
 
@@ -756,6 +755,7 @@ class CEditorArea(val location: Location, val maxStackSize: Int = 30, var stackQ
         LINEMODE,
         BOTHVALID
     }
+
     inner class Caret {
         var mode: CaretMoveMode = CaretMoveMode.BOTHVALID
             set(value) {

@@ -372,7 +372,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
             val content = lineTokens.joinToString("") { it.value } + lineBreak.value
 
             init {
-                notations.add(Notation.warn(this, "${range.first}: [${lineTokens.joinToString("") { it.value }}] is unresolved!"))
+                notations.add(Notation.error(this, "Statement is unresolved!"))
             }
 
             override fun getFormatted(identSize: Int): String = (label?.getFormatted(identSize) ?: "") + lineTokens.joinToString("") { it.value } + lineBreak.value

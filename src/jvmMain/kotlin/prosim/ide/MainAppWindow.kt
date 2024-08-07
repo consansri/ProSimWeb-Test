@@ -30,6 +30,8 @@ class MainAppWindow : CPanel() {
 
     val project = Project(ProjectState("docs"), CownLang, AsmLang(RV32Spec()))
 
+    val console = CConsole()
+
     val fileTree = FileTree(project).apply {
         setFileTreeListener(object : FileTreeUIAdapter() {
             override fun onOpenRequest(file: VirtualFile) {
@@ -38,7 +40,9 @@ class MainAppWindow : CPanel() {
         })
     }
 
-    val console = CConsole()
+    val problemView = CToolView("Problems") {
+        project.currentEditors.mapNotNull { it as? PerformantCodeEditor }
+    }
 
     private val northPane = NORTHControls()
     private val eastPane = EASTControls()
@@ -71,11 +75,7 @@ class MainAppWindow : CPanel() {
     /**
      * Is deciding on the content of the left and bottom content Panel.
      */
-    private inner class EASTControls() : CPanel(borderMode = BorderMode.WEST) {
-        init {
-
-        }
-
+    private inner class EASTControls : CPanel(borderMode = BorderMode.WEST) {
         private fun setRightContent(content: Component?) {
             if (content == null) return contentPane.removeComponentsAtConstraint(BorderLayout.EAST)
             contentPane.add(content, BorderLayout.EAST)
@@ -85,7 +85,7 @@ class MainAppWindow : CPanel() {
     /**
      * Is deciding on the content of the right content Panel.
      */
-    private inner class WESTControls() : CPanel(borderMode = BorderMode.EAST) {
+    private inner class WESTControls : CPanel(borderMode = BorderMode.EAST) {
 
         private val openFileTree = CIconToggle(UIStates.icon.get().folder, false, IconSize.PRIMARY_NORMAL) {
             if (it) {
@@ -99,9 +99,18 @@ class MainAppWindow : CPanel() {
             override val customBG: Color = Color(0, 0, 0, 0)
         }
 
-        private val openConsole = CIconToggle(UIStates.icon.get().console, false, IconSize.PRIMARY_NORMAL) {
+        private val consoleToggle = CIconToggle(UIStates.icon.get().console, false, IconSize.PRIMARY_NORMAL) {
             if (it) {
                 setBottomContent(console)
+            } else {
+                setBottomContent(null)
+            }
+        }
+
+        private val problemToggle = CIconToggle(UIStates.icon.get().info, false, IconSize.PRIMARY_NORMAL) {
+            if (it) {
+                problemView.update()
+                setBottomContent(problemView)
             } else {
                 setBottomContent(null)
             }
@@ -129,7 +138,10 @@ class MainAppWindow : CPanel() {
             gbc.weightx = 0.0
             gbc.weighty = 0.0
             gbc.fill = GridBagConstraints.NONE
-            add(openConsole, gbc)
+            add(consoleToggle, gbc)
+
+            gbc.gridy += 1
+            add(problemToggle, gbc)
         }
 
         private fun setBottomContent(content: Component?) {

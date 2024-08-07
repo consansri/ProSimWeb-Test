@@ -130,6 +130,7 @@ class CTreeUI<T>(val nodeInformationProvider: NodeInformationProvider<T>) : Basi
 
     inner class CNewTreeCellRenderer : TreeCellRenderer {
         val c = CLabel("", FontType.BASIC, BorderMode.SMALL, iconSize = IconSize.PRIMARY_SMALL)
+
         override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, selected: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
             c.isOpaque = selected
 
@@ -137,24 +138,23 @@ class CTreeUI<T>(val nodeInformationProvider: NodeInformationProvider<T>) : Basi
 
             if (uobj != null) {
                 c.text = nodeInformationProvider.getName(uobj)
+                c.customFG = nodeInformationProvider.getFgColor(uobj)
 
                 val loadedIcon = if (leaf) {
-                    nodeInformationProvider.getIcon(uobj) ?: UIStates.icon.get().file
+                    nodeInformationProvider.getIcon(uobj) ?: nodeInformationProvider.defaultLeafIcon
                 } else {
                     if (expanded) {
-                        UIStates.icon.get().folder
+                        nodeInformationProvider.expandedBranchIcon
                     } else {
-                        UIStates.icon.get().folder
+                        nodeInformationProvider.collapsedBranchIcon
                     }
                 }
-                loadedIcon.colorFilter = colorFilter
+                loadedIcon?.colorFilter = colorFilter
                 c.svgIcon = loadedIcon
-
             } else {
                 c.text = value.toString()
+                c.customFG = null
             }
-
-            c.customFG = UIStates.theme.get().COLOR_FG_0
 
             c.revalidate()
             c.repaint()

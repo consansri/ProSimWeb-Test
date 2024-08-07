@@ -12,7 +12,7 @@ import java.awt.event.MouseEvent
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
 
-class CDraggableTabbedEditorPane() : CPanel() {
+class CDraggableTabbedEditorPane : CPanel() {
 
     private val placeholder: CPanel = CPanel(true).apply {
         layout = BorderLayout()
@@ -51,7 +51,7 @@ class CDraggableTabbedEditorPane() : CPanel() {
             rightComponent = rightPane
             resizeWeight = 0.5
         }
-        add(splitPane, BorderLayout.CENTER)
+        splitPane?.let { add(it, BorderLayout.CENTER) }
         state = if (orientation == JSplitPane.HORIZONTAL_SPLIT) {
             State.MULTIPLE_HORIZONTAL
         } else {

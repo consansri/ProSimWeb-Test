@@ -1,5 +1,6 @@
 package cengine.psi.core
 
+import cengine.editor.annotation.Notation
 import cengine.editor.widgets.Widget
 import cengine.vfs.VirtualFile
 
@@ -10,6 +11,12 @@ interface PsiService {
     fun createFile(file: VirtualFile): PsiFile
     fun findElementAt(file: PsiFile, offset: Int): PsiElement?
     fun findReferences(element: PsiElement): List<PsiReference>
+
+    fun collectNotations(file: PsiFile): Set<Notation>{
+        val collector = NotationCollector()
+        file.accept(collector)
+        return collector.notations
+    }
 
     fun collectInterlineWidgetsInRange(file: PsiFile, range: IntRange): Set<Widget> {
         val builder = InterlineWidgetCollector(range)
@@ -41,6 +48,23 @@ interface PsiService {
         }
 
         return path
+    }
+
+    private class NotationCollector: PsiElementVisitor{
+        val notations = mutableSetOf<Notation>()
+        override fun visitFile(file: PsiFile) {
+            notations.addAll(file.notations)
+            file.children.forEach {
+                it.accept(this)
+            }
+        }
+
+        override fun visitElement(element: PsiElement) {
+            notations.addAll(element.notations)
+            element.children.forEach {
+                it.accept(this)
+            }
+        }
     }
 
     private class InlayWidgetCollector(val range: IntRange) : PsiElementVisitor {

@@ -1,6 +1,7 @@
 package cengine.lang.cown
 
 import cengine.editor.annotation.AnnotationProvider
+import cengine.editor.annotation.Notation
 import cengine.editor.annotation.Severity
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.folding.CodeFoldingProvider
@@ -12,6 +13,7 @@ import cengine.lang.cown.psi.*
 import cengine.psi.core.PsiParser
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
+import cengine.vfs.VirtualFile
 import emulator.kit.assembler.CodeStyle
 
 object CownLang: LanguageService {
@@ -25,6 +27,7 @@ object CownLang: LanguageService {
     override val annotationProvider: AnnotationProvider = CownAnnotator()
     override val highlightProvider: HighlightProvider = CownHighlighter()
     override val formatter: Formatter? = null
+    override val annotations: MutableMap<VirtualFile, Set<Notation>> = mutableMapOf()
 
     override fun severityToColor(type: Severity): Int {
         return when(type){

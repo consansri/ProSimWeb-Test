@@ -8,6 +8,7 @@ import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.util.SystemInfo
 import prosim.ide.MainAppWindow
+import prosim.ide.console.ProjectConsole
 import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIListener
@@ -81,6 +82,8 @@ fun testNewEditor() {
     val project = Project(ProjectState("docs"), CownLang, AsmLang(RV32Spec()))
 
     val fileTree = FileTree(project)
+
+    val console = ProjectConsole()
 
     val splitPane = CSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, fileTree.createContainer(), CTextField("Open File!",fontType = FontType.BASIC))
 

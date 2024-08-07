@@ -14,10 +14,24 @@ import javax.swing.JLabel
 import javax.swing.SwingConstants
 import javax.swing.border.Border
 
-open class CLabel(content: String, val fontType: FontType = FontType.BASIC, val borderMode: BorderMode = BorderMode.MEDIUM, open var svgIcon: FlatSVGIcon? = null, val iconSize: IconSize = IconSize.PRIMARY_NORMAL) : JLabel(content) {
+open class CLabel(content: String, val fontType: FontType = FontType.BASIC, borderMode: BorderMode = BorderMode.MEDIUM, open var svgIcon: FlatSVGIcon? = null, val iconSize: IconSize = IconSize.PRIMARY_NORMAL) : JLabel(content) {
 
-    var customFG: Color? = null
-    var customBG: Color? = null
+    open var customFG: Color? = null
+        set(value) {
+            field = value
+            repaint()
+        }
+    open var customBG: Color? = null
+        set(value) {
+            field = value
+            repaint()
+        }
+    var borderMode: BorderMode = borderMode
+        set(value) {
+            field = value
+            revalidate()
+            repaint()
+        }
 
     init {
         horizontalAlignment = SwingConstants.CENTER

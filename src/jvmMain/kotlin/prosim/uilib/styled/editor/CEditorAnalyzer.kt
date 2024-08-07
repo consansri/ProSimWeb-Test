@@ -187,7 +187,7 @@ class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, 
     inner class SearchField() : CPanel(borderMode = BorderMode.VERTICAL, primary = true) {
 
         val textField = CTextArea(FontType.CODE)
-        val scrollPane = CScrollPane(true, textField)
+        val scrollPane = CScrollPane(textField, true)
         val controls = SearchControls()
 
         init {
@@ -275,7 +275,7 @@ class CEditorAnalyzer(private val editor: CEditorArea) : CPanel(primary = true, 
 
     inner class ReplaceField() : CPanel(borderMode = BorderMode.VERTICAL, primary = true) {
         val textField = CTextArea(FontType.CODE)
-        val scrollPane = CScrollPane(true, textField)
+        val scrollPane = CScrollPane(textField, true)
 
         init {
             layout = BorderLayout()

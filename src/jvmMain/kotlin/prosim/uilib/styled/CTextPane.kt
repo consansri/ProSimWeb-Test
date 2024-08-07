@@ -30,7 +30,7 @@ class CTextPane(val fontType: FontType = FontType.CODE) : JTextPane() {
     }
 
     fun createScrollPane(): CScrollPane {
-        return CScrollPane(true, this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS)
+        return CScrollPane( this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS, true)
     }
 
     override fun getScrollableTracksViewportWidth(): Boolean {
