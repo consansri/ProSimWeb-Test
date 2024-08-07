@@ -105,12 +105,12 @@ xwft.checkRX:
             bgeu    t3,t2,xwft.checkRX
 
 #Waited 4 Seconds and did not detect a SOH            
-            li	    t1, LED_BASE_ADDR
+            li      t1, LED_BASE_ADDR
             lbu     t0, 0(t1)
             srli    t0, t0,1
             bnez    t0, xwft.ledOk
-            li	    t0, 0x80
- xwft.ledOk:sb	    t0, 0(t1)
+            li      t0, 0x80
+ xwft.ledOk: sb      t0, 0(t1)
 
             j       _wait
 
@@ -119,12 +119,12 @@ xwft.checkRX:
 ##                  EXIT                    ##
 ##############################################
 
-_end:       li	    t1, LED_BASE_ADDR
-            li	    t0, 0x8
-            sb	    t0, 0(t1)
+_end:       li     t1, LED_BASE_ADDR
+            li     t0, 0x8
+            sb      t0, 0(t1)
 
-            la	    a0, receivedStr
-            jal	    s11, uart.outStr	
+            la      a0, receivedStr
+            jal     s11, uart.outStr
 
             li      s0, 0x800   #ELF-Start
             #      s3            Address of Program entry after reallocation
@@ -140,9 +140,9 @@ headerOk:   mv      s3, a3
             mv      a4, s0
             jal     elf.relocateProgram
             
-            li	    t1, LED_BASE_ADDR
-            li	    t0, 0x16
-            sb	    t0, 0(t1)
+            li      t1, LED_BASE_ADDR
+            li      t0, 0x16
+            sb      t0, 0(t1)
 
             #clear ELF Residue in RAM
 nxtClr:     bgeu    t3,s4,clrEnd
@@ -184,7 +184,7 @@ clrEnd:
             mv      t5, zero
             mv      t6, zero
             fence.i
-            jr	    ra
+            jr      ra
 
 _error:     mv      s0, a0
             la      a0, errorStr
@@ -391,7 +391,7 @@ uart.out: li t1,UART_BASE_ADDR
 
 uout.wait: lb t0, 2(t1)     # check if ty uart is busy
         bnez t0, uout.wait
-        sb		a0, 0(t1)				# write data in a0 to uart
+        sb  a0, 0(t1) # write data in a0 to uart
         ret
 
 # receive character in a0
@@ -399,8 +399,8 @@ uart.in: li t1,UART_BASE_ADDR
 uin.wait: lb t0, 1(t1) # check if transmission is completed
 
         beqz t0, uin.wait
-        lbu		a0, 0(t1)				# write uart rx data to a0
-        sb 		zero, 1(t1)				# remove rx data
+        lbu a0, 0(t1) # write uart rx data to a0
+        sb  zero, 1(t1) # remove rx data
         ret
 
 

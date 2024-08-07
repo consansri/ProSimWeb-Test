@@ -684,7 +684,10 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     }
                 }
 
-                if (relevantTokens.lastOrNull()?.type?.isOpeningBracket == true) relevantTokens.removeLast()
+                if (relevantTokens.lastOrNull()?.type?.isOpeningBracket == true) {
+                    lexer.position = relevantTokens.removeLast().range.first
+                }
+
                 if (relevantTokens.isEmpty()) {
                     lexer.position = initialPos
                     return null
