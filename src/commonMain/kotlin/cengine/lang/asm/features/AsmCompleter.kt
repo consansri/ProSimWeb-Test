@@ -14,9 +14,8 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 
 class AsmCompleter(asmSpec: AsmSpec) : CompletionProvider {
-    val directives: Set<String> = (GASDirType.entries + asmSpec.additionalDirectives()).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
-    val instructions: Set<String> = asmSpec.allInstrTypes().map { it.getDetectionName() }.toSet()
-
+    val directives: Set<String> = (GASDirType.entries + asmSpec.customDirs).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
+    val instructions: Set<String> = asmSpec.allInstrs.map { it.getDetectionName() }.toSet()
     val cachedCompletions: MutableMap<PsiFile, CompletionSet> = mutableMapOf()
 
     data class CompletionSet(

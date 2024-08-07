@@ -100,7 +100,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
             list.selectedIndex = 0
         }
 
-        val oneItemHeight = list.cellRenderer.getListCellRendererComponent(list, items.firstOrNull(), 0, false, false).preferredSize.height
+        val oneItemHeight = list.cellRenderer.getListCellRendererComponent(list, items.maxByOrNull { it.displayText.length }, 0, false, false).preferredSize.height
 
         val height = items.size.coerceAtMost(MAX_VISIBLE_ITEMS) * oneItemHeight
 
@@ -112,6 +112,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
         override fun getListCellRendererComponent(list: JList<out T>?, value: T, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
             customFG = value.severity?.toColor(editor.lang).toColor(UIStates.theme.get().COLOR_FG_0)
+            text = value.displayText
             return this
         }
     }

@@ -42,6 +42,27 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
                             } ?: emptyList()
                         }
 
+                        GASDirType.SET -> {
+                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
+                            identifier?.let {
+                                listOf(HL(identifier, CodeStyle.symbol))
+                            } ?: emptyList()
+                        }
+
+                        GASDirType.EQU -> {
+                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
+                            identifier?.let {
+                                listOf(HL(identifier, CodeStyle.symbol))
+                            } ?: emptyList()
+                        }
+
+                        GASDirType.EQV -> {
+                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
+                            identifier?.let {
+                                listOf(HL(identifier, CodeStyle.symbol))
+                            } ?: emptyList()
+                        }
+
                         else -> emptyList()
                     }
                 }

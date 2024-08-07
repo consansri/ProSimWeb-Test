@@ -93,7 +93,6 @@ class PerformantCodeEditor(
 
     private val modificationOverlay: ModificationOverlay<EditorModification> = ModificationOverlay(this)
 
-
     override val component: Component = createScrollPane()
 
     override val icon: FlatSVGIcon? = psiManager?.lang?.getFileIcon()
@@ -502,7 +501,12 @@ class PerformantCodeEditor(
                 } else emptyList()
 
                 val char = lineContent[colID]
-                val charWidth = fmCode.charWidth(char)
+                val charWidth = when (char) {
+                    '\n' -> width
+                    '\t' -> fmCode.charWidth(' ')
+                    '\r' -> fmCode.charWidth(' ')
+                    else -> fmCode.charWidth(char)
+                }
 
                 // Draw Indentation Line
                 if (colID != 0 && colID < lineInfo.firstNonWhitespaceCol && !lineInfo.containsOnlySpaces && colID % indentationProvider.spaces == 0) {
@@ -514,7 +518,7 @@ class PerformantCodeEditor(
                 selection?.let {
                     if (charIndex in it) {
                         color = selColor
-                        fillRect(internalXOffset, yOffset, if (char == '\n') width else charWidth, vLayout.lineHeight)
+                        fillRect(internalXOffset, yOffset, charWidth, vLayout.lineHeight)
                     }
                 }
 
@@ -775,7 +779,7 @@ class PerformantCodeEditor(
                         textStateModel.deleteSelection(selector)
 
                         content?.let { text ->
-                            textStateModel.insert(selector.caret, text)
+                            textStateModel.insert(selector.caret, text.replace("\t", " "))
                         }
                     }
                 }
@@ -890,35 +894,37 @@ class PerformantCodeEditor(
                     }
                 }
             }
-            fetchCompletions()
+            fetchCompletions(onlyHide = true)
             invalidateContent()
             e.consume()
         }
 
         override fun keyReleased(e: KeyEvent?) {}
 
-        private fun fetchCompletions(showIfPrefixIsEmpty: Boolean = false) {
+        private fun fetchCompletions(showIfPrefixIsEmpty: Boolean = false, onlyHide: Boolean = false) {
             completionJob?.cancel()
 
             SwingUtilities.invokeLater {
                 modificationOverlay.makeInvisible()
             }
 
-            completionJob = launch {
-                try {
-                    val prefixIndex = selector.indexOfWordStart(selector.caret.index, Selector.DEFAULT_SPACING_SET, false)
-                    val prefix = textModel.substring(prefixIndex, selector.caret.index)
-                    if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
-                        val completions = lang?.completionProvider?.fetchCompletions(prefix, currentElement, psiManager?.getPsiFile(file)) ?: emptyList()
-                        val coords = vLayout.getCoords(selector.caret.index)
-                        if (completions.isNotEmpty()) {
-                            SwingUtilities.invokeLater {
-                                modificationOverlay.showOverlay(completions, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
+            if (!onlyHide) {
+                completionJob = launch {
+                    try {
+                        val prefixIndex = selector.indexOfWordStart(selector.caret.index, Selector.DEFAULT_SPACING_SET, false)
+                        val prefix = textModel.substring(prefixIndex, selector.caret.index)
+                        if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
+                            val completions = lang?.completionProvider?.fetchCompletions(prefix, currentElement, psiManager?.getPsiFile(file)) ?: emptyList()
+                            val coords = vLayout.getCoords(selector.caret.index)
+                            if (completions.isNotEmpty()) {
+                                SwingUtilities.invokeLater {
+                                    modificationOverlay.showOverlay(completions, coords.x, coords.y + vLayout.lineHeight, this@PerformantCodeEditor)
+                                }
                             }
                         }
+                    } catch (e: Exception) {
+                        nativeWarn("Completion canceled by edit.")
                     }
-                } catch (e: Exception) {
-                    nativeWarn("Completion canceled by edit.")
                 }
             }
         }

@@ -5,6 +5,7 @@ import cengine.editor.widgets.Widget
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
+import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.gas.GASNode.*
 import cengine.lang.asm.lexer.AsmLexer
 import cengine.lang.asm.lexer.AsmToken
@@ -38,11 +39,8 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
 
     final override val children: MutableList<GASNode> = mutableListOf(*children)
     final override val notations: MutableList<Notation> = mutableListOf()
-    override val inlayWidgets: List<Widget>
-        get() = emptyList()
-
-    override val interlineWidgets: List<Widget>
-        get() = emptyList()
+    override val inlayWidgets: MutableList<Widget> = mutableListOf()
+    override val interlineWidgets: MutableList<Widget> = mutableListOf()
 
     override val additionalInfo: String
         get() = ""
@@ -138,7 +136,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     }
 
                     val instruction = buildNode(GASNodeType.INSTRUCTION, lexer, asmSpec)
-                    if (instruction != null && instruction is RawInstr) {
+                    if (instruction != null && instruction is Instruction) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
                             val node = Statement.Instr(label, instruction, lineBreak)
@@ -178,7 +176,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                 }
 
                 GASNodeType.DIRECTIVE -> {
-                    (GASDirType.entries + asmSpec.additionalDirectives()).forEach {
+                    (asmSpec.customDirs + GASDirType.entries).forEach {
                         val node = it.buildDirectiveContent(lexer, asmSpec)
                         if (node != null) {
                             //nativeLog("Found directive ${it.getDetectionString()} ${node::class.simpleName}")
@@ -196,19 +194,24 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                         return null
                     }
 
-                    val paramTokens = mutableListOf<AsmToken>()
-                    while (true) {
-                        val token = lexer.consume(true)
-
-                        if (token.type == AsmTokenType.LINEBREAK || token.type == AsmTokenType.EOF) {
-                            lexer.position = (paramTokens.firstOrNull() ?: first).end
-                            break
-                        }
-
-                        paramTokens.add(token)
+                    val validTypes = asmSpec.allInstrs.filter { it.getDetectionName().lowercase() == first.value.lowercase() }
+                    if (validTypes.isEmpty()) {
+                        val node = Error(first)
+                        node.notations.add(Notation.error(node, "No valid instruction type found for $first."))
+                        return node
                     }
 
-                    return RawInstr(first, paramTokens)
+                    validTypes.forEach {
+                        val rule = it.paramRule ?: return Instruction(it, first, emptyList(), emptyList())
+                        val result = rule.matchStart(lexer, asmSpec)
+                        if (result.matches) {
+                            return Instruction(it, first, result.matchingTokens, result.matchingNodes)
+                        }
+                    }
+
+                    val node = Error(first)
+                    node.notations.add(Notation.error(node, "Invalid Arguments for valid types: ${validTypes.joinToString { it.typeName }}!"))
+                    return node
                 }
 
                 GASNodeType.INT_EXPR -> {
@@ -314,7 +317,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
      *
      *  - [Statement.Empty] No Content
      *  - [Statement.Dir] Content determined by [Directive]
-     *  - [Statement.Instr] Content determined by [RawInstr]
+     *  - [Statement.Instr] Content determined by [Instruction]
      *  - [Statement.Unresolved] Unresolved Content
      */
     sealed class Statement(val label: Label?, val lineBreak: AsmToken, range: IntRange? = null, vararg childs: GASNode) : GASNode(
@@ -342,7 +345,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         }
 
         class Dir(label: Label?, val dir: Directive, lineBreak: AsmToken) : Statement(label, lineBreak, null, dir) {
-            override val interlineWidgets: List<Widget> = listOf(Widget("directive", dir.type.typeName, Widget.Type.INTERLINE, { this.range.first }))
+            override val interlineWidgets: MutableList<Widget> = mutableListOf(Widget("directive", dir.type.typeName, Widget.Type.INTERLINE, { this.range.first }))
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + " ".repeat(identSize - label.range.count() % identSize) + dir.getFormatted(identSize) + lineBreak.value
@@ -352,12 +355,12 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
             }
         }
 
-        class Instr(label: Label?, val rawInstr: RawInstr, lineBreak: AsmToken) : Statement(label, lineBreak, null, rawInstr) {
+        class Instr(label: Label?, val instruction: Instruction, lineBreak: AsmToken) : Statement(label, lineBreak, null, instruction) {
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
-                    label.getFormatted(identSize) + " ".repeat(identSize - label.range.count() % identSize) + rawInstr.getFormatted(identSize) + lineBreak.value
+                    label.getFormatted(identSize) + " ".repeat(identSize - label.range.count() % identSize) + instruction.getFormatted(identSize) + lineBreak.value
                 } else {
-                    " ".repeat(identSize) + rawInstr.getFormatted(identSize) + lineBreak.value
+                    " ".repeat(identSize) + instruction.getFormatted(identSize) + lineBreak.value
                 }
             }
         }
@@ -369,7 +372,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
             val content = lineTokens.joinToString("") { it.value } + lineBreak.value
 
             init {
-                notations.add(Notation.warn(this, "Statement is unresolved!"))
+                notations.add(Notation.warn(this, "${range.first}: [${lineTokens.joinToString("") { it.value }}] is unresolved!"))
             }
 
             override fun getFormatted(identSize: Int): String = (label?.getFormatted(identSize) ?: "") + lineTokens.joinToString("") { it.value } + lineBreak.value
@@ -511,22 +514,36 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         }
     }
 
-    class RawInstr(val instrName: AsmToken, val remainingTokens: List<AsmToken>) : GASNode(instrName.range.first..(remainingTokens.lastOrNull()?.range?.last ?: instrName.range.last)) {
+    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<GASNode>) : GASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
         var addr: Value? = null
         override val pathName: String
             get() = instrName.value
 
-        override fun getFormatted(identSize: Int): String = "${instrName.value} ${remainingTokens.joinToString("") { it.value }}"
+        override fun getFormatted(identSize: Int): String = "${instrName.value} ${
+            (tokens + nodes).sortedBy { it.range.first }.joinToString("") {
+                when (it) {
+                    is AsmToken -> it.value
+                    is GASNode -> it.getFormatted(identSize)
+                    else -> ""
+                }
+            }
+        }"
 
         override fun getCodeStyle(position: Int): CodeStyle? {
             if (position in instrName.range) {
                 return CodeStyle.keyWordInstr
             }
 
-            remainingTokens.firstOrNull {
+            tokens.firstOrNull {
                 position in it.range
             }?.let {
                 return it.type.style
+            }
+
+            nodes.firstOrNull {
+                position in it.range
+            }?.let {
+                return it.getCodeStyle(position)
             }
 
             return super.getCodeStyle(position)
@@ -684,7 +701,9 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                 if (expression != null) {
                     val unusedTokens = (relevantTokens - postFixTokens)
                     if (unusedTokens.isNotEmpty()) {
-                        throw PsiParser.TokenException(unusedTokens.first(), "Invalid Token ${unusedTokens.first().type} for the Numeric Expression!")
+                        unusedTokens.forEach {
+                            expression.notations.add(Notation.error(it, "Invalid Token $it for Numeric Expression!"))
+                        }
                     }
                 }
 
@@ -854,7 +873,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
          * - [operator] [Operand]
          *
          */
-        class Prefix(private val operator: AsmToken, private val operand: NumericExpr, brackets: List<AsmToken>) : NumericExpr(
+        class Prefix(val operator: AsmToken, val operand: NumericExpr, brackets: List<AsmToken>) : NumericExpr(
             brackets,
             operator.range.first..(brackets.lastOrNull()?.range?.last ?: operand.range.last),
             operand
@@ -889,8 +908,6 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         ) {
             override val pathName: String
                 get() = operator.value
-
-            override val inlayWidgets: List<Widget> = listOf(Widget("result", "= ${evaluate(false)}", Widget.Type.INLAY, { range.last }))
 
             override fun evaluate(throwErrors: Boolean): Value.Dec {
                 return (when (operator.type) {

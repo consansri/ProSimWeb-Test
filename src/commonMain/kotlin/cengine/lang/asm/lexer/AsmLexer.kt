@@ -3,16 +3,16 @@ package cengine.lang.asm.lexer
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
+import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.gas.GASDirType
 import cengine.psi.lexer.impl.BaseLexer
-import emulator.kit.common.RegContainer
 
 class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
 
     private val prefices: Prefices get() = asmSpec.prefices
-    private val regs: List<Pair<RegContainer.Register, Regex>> = asmSpec.allRegs.map { it to it.getRegex() }
-    private val instrs: List<Pair<InstrTypeInterface, Regex>> = asmSpec.allInstrTypes().map { it to it.getInstrRegex() }
-    private val dirs: List<Pair<DirTypeInterface, Regex>> = (GASDirType.entries + asmSpec.additionalDirectives()).map { it to it.getDirRegex() }
+    private val regs: List<Pair<RegTypeInterface, Regex>> = asmSpec.allRegs.map { it to it.getRegex() }
+    private val instrs: List<Pair<InstrTypeInterface, Regex>> = asmSpec.allInstrs.map { it to it.getInstrRegex() }
+    private val dirs: List<Pair<DirTypeInterface, Regex>> = (GASDirType.entries + asmSpec.customDirs).map { it to it.getDirRegex() }
     private val regexMap: Map<AsmTokenType, Regex?> = AsmTokenType.entries.associateWith { it.getRegex(prefices) }
 
     override fun peek(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean): AsmToken {
@@ -119,7 +119,7 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
 
     private fun InstrTypeInterface.getInstrRegex(): Regex = Regex(Regex.escape(this.getDetectionName()), RegexOption.IGNORE_CASE)
     private fun DirTypeInterface.getDirRegex(): Regex = Regex("\\.${Regex.escape(this.getDetectionString())}", RegexOption.IGNORE_CASE)
-    private fun RegContainer.Register.getRegex(): Regex = Regex("(?:${(this.names + this.aliases).joinToString("|") { Regex.escape(it) }})")
+    private fun RegTypeInterface.getRegex(): Regex = Regex("(?:${this.recognizable.joinToString("|") { Regex.escape(it) }})")
 
     interface Prefices {
         val hex: String

@@ -1,7 +1,7 @@
 package prosim
 
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.specific.rv32.RV32Spec
+import cengine.lang.asm.target.rv32.RV32Spec
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState

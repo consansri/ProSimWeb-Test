@@ -1,13 +1,13 @@
 package cengine.lang.asm.parser
 
 import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.gas.GASNode
 import cengine.lang.asm.ast.gas.GASNodeType
 import cengine.lang.asm.lexer.AsmLexer
 import cengine.lang.asm.lexer.AsmToken
 import cengine.lang.asm.lexer.AsmTokenType
 import debug.DebugTools
-import emulator.kit.common.RegContainer
 import emulator.kit.nativeInfo
 import emulator.kit.nativeLog
 
@@ -146,15 +146,15 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix${content}"
     }
 
-    class Reg(private val inRegFile: RegContainer.RegisterFile? = null, private val notInRegFile: RegContainer.RegisterFile? = null) : Component() {
+    class Reg(private val isContainedBy: List<RegTypeInterface>? = null, private val isNotContainedBy: List<RegTypeInterface>? = null) : Component() {
         override fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): Rule.MatchResult {
             val token = lexer.peek(true)
             if (token.type == AsmTokenType.EOF) return Rule.MatchResult(false, listOf(), listOf())
 
             if (token.type != AsmTokenType.REGISTER) return Rule.MatchResult(false, listOf(), listOf())
 
-            if (inRegFile != null && inRegFile.search(token.value) == null) return Rule.MatchResult(false, listOf(), listOf())
-            if (notInRegFile != null && notInRegFile.search(token.value) != null) return Rule.MatchResult(false, listOf(), listOf())
+            if (isContainedBy != null && isContainedBy.firstOrNull { it.recognizable.contains(token.value.lowercase()) } == null) return Rule.MatchResult(false, listOf(), listOf())
+            if (isNotContainedBy != null && isNotContainedBy.firstOrNull { it.recognizable.contains(token.value.lowercase()) } != null) return Rule.MatchResult(false, listOf(), listOf())
 
             lexer.consume(true)
 
@@ -162,7 +162,7 @@ sealed class Component {
             return Rule.MatchResult(true, listOf(token), listOf())
         }
 
-        override fun print(prefix: String): String = "$prefix reg${if (inRegFile != null) "in ${inRegFile.name}" else ""} and ${if (notInRegFile != null) "not in ${notInRegFile.name}" else ""}"
+        override fun print(prefix: String): String = "$prefix reg${if (isContainedBy != null) "in $isContainedBy" else ""} and ${if (isNotContainedBy != null) "not in $isNotContainedBy" else ""}"
     }
 
     class Dir(private val dirName: String) : Component() {

@@ -30,7 +30,6 @@ interface LanguageService {
     fun severityToColor(type: Severity): Int?
 
     fun updateAnalytics(file: PsiFile, informational: Informational?) {
-
         if (informational != null) {
             codeFoldingProvider?.updateFoldRegions(file, informational)
         }
