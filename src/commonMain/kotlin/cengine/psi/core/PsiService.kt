@@ -13,19 +13,98 @@ interface PsiService {
     fun findReferences(element: PsiElement): List<PsiReference>
 
     fun collectNotations(file: PsiFile): Set<Notation>{
+        class NotationCollector: PsiElementVisitor{
+            val notations = mutableSetOf<Notation>()
+            override fun visitFile(file: PsiFile) {
+                notations.addAll(file.notations)
+                file.children.forEach {
+                    it.accept(this)
+                }
+            }
+
+            override fun visitElement(element: PsiElement) {
+                notations.addAll(element.notations)
+                element.children.forEach {
+                    it.accept(this)
+                }
+            }
+        }
+
         val collector = NotationCollector()
         file.accept(collector)
         return collector.notations
     }
 
     fun collectInterlineWidgetsInRange(file: PsiFile, range: IntRange): Set<Widget> {
-        val builder = InterlineWidgetCollector(range)
+        class InterlineWidgetCollector() : PsiElementVisitor {
+            val interlineWidgets = mutableSetOf<Widget>()
+            override fun visitFile(file: PsiFile) {
+                interlineWidgets.addAll(file.interlineWidgets)
+                file.children.filter {
+                    when {
+                        it.range.first > range.last -> false
+                        it.range.last < range.first -> false
+                        else -> true
+                    }
+                }.forEach {
+                    it.accept(this)
+                }
+            }
+
+            override fun visitElement(element: PsiElement) {
+                interlineWidgets.addAll(element.interlineWidgets)
+                element.children.filter {
+                    when {
+                        it.range.first > range.last -> false
+                        it.range.last < range.first -> false
+                        else -> true
+                    }
+                }.forEach {
+                    it.accept(this)
+                }
+            }
+        }
+
+        val builder = InterlineWidgetCollector()
         file.accept(builder)
         return builder.interlineWidgets
     }
 
     fun collectInlayWidgetsInRange(file: PsiFile, range: IntRange): Set<Widget> {
-        val builder = InlayWidgetCollector(range)
+        class InlayWidgetCollector : PsiElementVisitor {
+            val inlayWidgets = mutableSetOf<Widget>()
+                get() {
+                    return field
+                }
+
+            override fun visitFile(file: PsiFile) {
+                inlayWidgets.addAll(file.inlayWidgets)
+                file.children.filter {
+                    when {
+                        it.range.first > range.last -> false
+                        it.range.last < range.first -> false
+                        else -> true
+                    }
+                }.forEach {
+                    it.accept(this)
+                }
+            }
+
+            override fun visitElement(element: PsiElement) {
+                inlayWidgets.addAll(element.inlayWidgets)
+                element.children.filter {
+                    when {
+                        it.range.first > range.last -> false
+                        it.range.last < range.first -> false
+                        else -> true
+                    }
+                }.forEach {
+                    it.accept(this)
+                }
+            }
+        }
+
+        val builder = InlayWidgetCollector()
         file.accept(builder)
         return builder.inlayWidgets
     }
@@ -48,85 +127,5 @@ interface PsiService {
         }
 
         return path
-    }
-
-    private class NotationCollector: PsiElementVisitor{
-        val notations = mutableSetOf<Notation>()
-        override fun visitFile(file: PsiFile) {
-            notations.addAll(file.notations)
-            file.children.forEach {
-                it.accept(this)
-            }
-        }
-
-        override fun visitElement(element: PsiElement) {
-            notations.addAll(element.notations)
-            element.children.forEach {
-                it.accept(this)
-            }
-        }
-    }
-
-    private class InlayWidgetCollector(val range: IntRange) : PsiElementVisitor {
-        val inlayWidgets = mutableSetOf<Widget>()
-            get() {
-                return field
-            }
-
-        override fun visitFile(file: PsiFile) {
-            inlayWidgets.addAll(file.inlayWidgets)
-            file.children.filter {
-                when {
-                    it.range.first > range.last -> false
-                    it.range.last < range.first -> false
-                    else -> true
-                }
-            }.forEach {
-                it.accept(this)
-            }
-        }
-
-        override fun visitElement(element: PsiElement) {
-            inlayWidgets.addAll(element.inlayWidgets)
-            element.children.filter {
-                when {
-                    it.range.first > range.last -> false
-                    it.range.last < range.first -> false
-                    else -> true
-                }
-            }.forEach {
-                it.accept(this)
-            }
-        }
-    }
-
-    private class InterlineWidgetCollector(val range: IntRange) : PsiElementVisitor {
-        val interlineWidgets = mutableSetOf<Widget>()
-        override fun visitFile(file: PsiFile) {
-            interlineWidgets.addAll(file.interlineWidgets)
-            file.children.filter {
-                when {
-                    it.range.first > range.last -> false
-                    it.range.last < range.first -> false
-                    else -> true
-                }
-            }.forEach {
-                it.accept(this)
-            }
-        }
-
-        override fun visitElement(element: PsiElement) {
-            interlineWidgets.addAll(element.interlineWidgets)
-            element.children.filter {
-                when {
-                    it.range.first > range.last -> false
-                    it.range.last < range.first -> false
-                    else -> true
-                }
-            }.forEach {
-                it.accept(this)
-            }
-        }
-
     }
 }

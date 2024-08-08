@@ -2,7 +2,6 @@ package cengine.lang
 
 import cengine.editor.annotation.AnnotationProvider
 import cengine.editor.annotation.Notation
-import cengine.editor.annotation.Severity
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.folding.CodeFoldingProvider
 import cengine.editor.formatting.Formatter
@@ -30,8 +29,6 @@ interface LanguageService {
     val formatter: Formatter?
 
     val annotations: MutableMap<VirtualFile, Set<Notation>>
-
-    fun severityToColor(type: Severity): Int?
 
     fun updateAnalytics(file: PsiFile, informational: Informational?) {
         if (informational != null) {

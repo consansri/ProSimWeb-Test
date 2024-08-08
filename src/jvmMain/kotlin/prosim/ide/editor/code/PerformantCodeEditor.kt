@@ -541,7 +541,7 @@ class PerformantCodeEditor(
 
                 // Draw Underline
                 psiElement?.notations?.minByOrNull { it.severity }?.let {
-                    color = it.severity.toColor(lang).toColor()
+                    color = it.severity.toColor().toColor()
                     drawLine(internalXOffset, yOffset + vLayout.lineHeight - vLayout.linePadding, internalXOffset + charWidth, yOffset + vLayout.lineHeight - vLayout.linePadding)
                 }
 

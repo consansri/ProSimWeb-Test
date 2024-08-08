@@ -111,7 +111,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
     private inner class ModificationRenderer() : CList.OverlayItemRenderer<T>() {
         override fun getListCellRendererComponent(list: JList<out T>?, value: T, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            customFG = value.severity?.toColor(editor.lang).toColor(UIStates.theme.get().COLOR_FG_0)
+            customFG = value.severity?.toColor().toColor(UIStates.theme.get().COLOR_FG_0)
             text = value.displayText
             return this
         }

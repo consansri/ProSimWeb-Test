@@ -62,6 +62,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         setupTree()
         loadChildren(root)
         watchFileSystem()
+        tree.expandRow(0)
     }
 
     fun createContainer(): JComponent {
