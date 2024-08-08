@@ -17,11 +17,9 @@ abstract class BaseLexer(
         }
         get() = index
 
-    override val error: MutableSet<Token> = mutableSetOf()
     override val ignored: MutableSet<Token> = mutableSetOf()
 
     override fun reset(input: String) {
-        error.clear()
         ignored.clear()
         this.input = input
         index = 0

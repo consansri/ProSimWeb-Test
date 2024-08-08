@@ -23,7 +23,7 @@ object RV32Spec: AsmSpec {
         override val symbol: Regex = Regex("""[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
     override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries
-    override val allInstrs: List<InstrTypeInterface> = RV32InstrTypes.entries
+    override val allInstrs: List<InstrTypeInterface> = RV32InstrType.entries
     override val customDirs: List<DirTypeInterface> = RVDirType.entries
 
 }

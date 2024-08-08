@@ -115,7 +115,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                         statements.add(node)
                     }
 
-                    val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) }, lexer.error.map { Error("Expected a Statement!", it as AsmToken) })
+                    val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) })
                     node.notations.addAll(annotations)
                     return node
                 }
@@ -287,9 +287,9 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
      * [Program]
      * A RootNode only contains several [Statement]s.
      */
-    class Program(statements: List<Statement>, comments: List<Comment>, errors: List<Error>) : GASNode(
-        statements.minBy { it.range.start }.range.start..statements.maxBy { it.range.last }.range.last,
-        *(statements + comments + errors).sortedBy { it.range.start }.toTypedArray()
+    class Program(statements: List<Statement>, comments: List<Comment>) : GASNode(
+        (statements.minByOrNull { it.range.start }?.range?.start ?: 0)..(statements.maxByOrNull { it.range.last }?.range?.last ?: 0),
+        *(statements + comments).sortedBy { it.range.start }.toTypedArray()
     ) {
 
         override val pathName: String = this::class.simpleName.toString()

@@ -60,7 +60,7 @@ enum class AsmTokenType(
     CURLY_BRACKET_CLOSING(Regex(Regex.escape("}")), isPunctuation = true, isClosingBracket = true),
     SQUARE_BRACKET_OPENING(Regex("\\["), isPunctuation = true, isOpeningBracket = true),
     SQUARE_BRACKET_CLOSING(Regex(Regex.escape("]")), isPunctuation = true, isClosingBracket = true),
-    ERROR,
+    UNDEFINED,
     EOF;
 
     fun isComment(): Boolean = this == COMMENT_SL || this == COMMENT_ML || this == COMMENT_NATIVE

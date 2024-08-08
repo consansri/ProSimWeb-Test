@@ -128,7 +128,7 @@ sealed class Component {
             val token = lexer.consume(true)
 
             if (ignoreCase) {
-                if (token.value.uppercase() != content.uppercase()) {
+                if (token.value.lowercase() != content.lowercase()) {
                     lexer.position = initialPos
                     return Rule.MatchResult(false)
                 }

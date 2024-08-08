@@ -26,7 +26,7 @@ import javax.swing.tree.DefaultTreeModel
 class Analytics(val editor: PerformantCodeEditor) : CScrollPane() {
 
     private val notationInformationProvider = NotationInformationProvider()
-    private val rootNotation = Notation(-1..-1, editor.file.name, Severity.INFO)
+    private val rootNotation = Notation(0..0, editor.file.name, Severity.INFO)
 
     fun updateNotations() {
         val root = DefaultMutableTreeNode(rootNotation)

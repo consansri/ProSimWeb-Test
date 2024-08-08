@@ -283,11 +283,13 @@ sealed class Value(val size: Size) {
         override fun toString(): String = input
 
         infix fun shl(bitCount: Int): Bin {
+            if (bitCount > size.bitWidth) return Bin("0", size)
             val shiftedBinary = toRawString().substring(bitCount).padEnd(size.bitWidth, '0')
             return Bin(shiftedBinary, size)
         }
 
         infix fun ushl(bitCount: Int): Bin {
+            if (bitCount > size.bitWidth) return Bin("0", size)
             val shiftedBinary = toRawString().substring(bitCount).padEnd(size.bitWidth, '0')
             return Bin(shiftedBinary, size)
         }

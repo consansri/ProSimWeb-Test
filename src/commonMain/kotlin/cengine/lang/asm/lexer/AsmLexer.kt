@@ -111,8 +111,7 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
         val char = input[index].toString()
         val start = index
         advance()
-        val token = AsmToken(AsmTokenType.ERROR, char, start, index)
-        error.add(token)
+        val token = AsmToken(AsmTokenType.UNDEFINED, char, start, index)
         return token
         //nativeError("InvalidTokenException $token $index")
     }
