@@ -6,8 +6,6 @@ import cengine.editor.annotation.Notation
 import cengine.editor.folding.LineIndicator
 import cengine.editor.indentation.BasicIndenation
 import cengine.editor.indentation.IndentationProvider
-import cengine.editor.selection.Caret
-import cengine.editor.selection.Selection
 import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
@@ -58,10 +56,7 @@ class PerformantCodeEditor(
     override val psiManager: PsiManager<*>? = project.getManager(file)
 
     override val textModel: TextModel = RopeModel(file.getAsUTF8String())
-    override val selector: Selector = object : Selector {
-        override val caret: Caret = Caret(textModel)
-        override val selection: Selection = Selection()
-    }
+    override val selector: Selector = Selector(textModel)
 
     override val textStateModel: TextStateModel = TextStateModel(this, textModel, selector)
     override val indentationProvider: IndentationProvider = BasicIndenation(textStateModel, textModel)
@@ -464,7 +459,8 @@ class PerformantCodeEditor(
 
                 val currInterlineWidgets = interlineWidgets.filter { it.index in lineInfo.startIndex..<lineInfo.endIndex }
                 currInterlineWidgets.forEach {
-                    val widgetDim = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
+                    val column = it.index - lineInfo.startIndex
+                    val widgetDim = g.drawWidget(it, xOffset + rowHeaderWidth + column * vLayout.fmColumnWidth, yOffset)
                     yOffset += widgetDim.height
                 }
 
@@ -680,7 +676,7 @@ class PerformantCodeEditor(
         override fun mousePressed(e: MouseEvent) {
             launch {
                 val lc = vLayout.getLineAndColumnAt(e.point)
-                selector.moveCaretTo(lc.line, lc.column, e.isShiftDown)
+                selector.internalMoveCaret(lc.line, lc.column, e.isShiftDown)
                 repaint()
             }
             requestFocusInWindow()
@@ -701,7 +697,7 @@ class PerformantCodeEditor(
         override fun mouseDragged(e: MouseEvent) {
             launch {
                 val (line, column) = vLayout.getLineAndColumnAt(e.point)
-                selector.moveCaretTo(line, column, true)
+                selector.internalMoveCaret(line, column, true)
                 repaint()
             }
         }

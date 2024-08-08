@@ -1,9 +1,13 @@
 package cengine.editor.selection
 
-interface Selector {
+import cengine.editor.text.TextModel
 
-    val caret: Caret
-    val selection: Selection
+class Selector(textModel: TextModel) {
+
+    val caret: Caret = Caret(textModel)
+    val selection: Selection = Selection()
+
+    private var tempMaxColOfUpDownMovement: Int = 0
 
     companion object {
         val DEFAULT_SYMBOL_CHARS = ('a'.rangeTo('z') + 'A'.rangeTo('Z') + '0'.rangeTo('9') + '_').toCharArray()
@@ -13,7 +17,7 @@ interface Selector {
 
     // Modification
 
-    fun moveCaretTo(index: Int, shift: Boolean) {
+    private fun internalMoveCaret(index: Int, shift: Boolean) {
         if (shift) {
             if (!selection.valid()) {
                 selection.select(caret.index, index)
@@ -26,9 +30,16 @@ interface Selector {
         caret.set(index)
     }
 
-    fun moveCaretTo(line: Int, column: Int, shift: Boolean) {
+    fun moveCaretTo(index: Int, shift: Boolean){
+        internalMoveCaret(index, shift)
+        tempMaxColOfUpDownMovement = caret.col
+    }
+
+
+    fun internalMoveCaret(line: Int, column: Int, shift: Boolean) {
         val index = caret.model.indexOf(line, column)
-        moveCaretTo(index, shift)
+        internalMoveCaret(index, shift)
+        tempMaxColOfUpDownMovement = caret.col
     }
 
     fun moveCaretLeft(offset: Int, shift: Boolean) {
@@ -40,7 +51,8 @@ interface Selector {
             (caret.index - offset).coerceAtLeast(0)
         }
 
-        moveCaretTo(newIndex, shift)
+        internalMoveCaret(newIndex, shift)
+        tempMaxColOfUpDownMovement = caret.col
     }
 
     fun moveCaretRight(offset: Int, shift: Boolean) {
@@ -52,7 +64,8 @@ interface Selector {
             (caret.index + offset).coerceAtMost(caret.model.length)
         }
 
-        moveCaretTo(newIndex, shift)
+        internalMoveCaret(newIndex, shift)
+        tempMaxColOfUpDownMovement = caret.col
     }
 
     fun moveCaretUp(offset: Int, shift: Boolean) {
@@ -64,8 +77,10 @@ interface Selector {
         } else {
             (caret.line - offset).coerceAtLeast(0)
         }
-        val newIndex = caret.model.indexOf(newLine, caret.col)
-        moveCaretTo(newIndex, shift)
+        val newIndex = caret.model.indexOf(newLine, tempMaxColOfUpDownMovement)
+
+        internalMoveCaret(newIndex, shift)
+        tempMaxColOfUpDownMovement = maxOf(caret.col, tempMaxColOfUpDownMovement)
     }
 
     fun moveCaretDown(offset: Int, shift: Boolean) {
@@ -77,22 +92,26 @@ interface Selector {
         } else {
             (caret.line + offset).coerceAtMost(caret.model.lines)
         }
-        val newIndex = caret.model.indexOf(newLine, caret.col)
-        moveCaretTo(newIndex, shift)
+        val newIndex = caret.model.indexOf(newLine, tempMaxColOfUpDownMovement)
+
+        internalMoveCaret(newIndex, shift)
+        tempMaxColOfUpDownMovement = maxOf(caret.col, tempMaxColOfUpDownMovement)
     }
 
     fun home(shift: Boolean) {
         val rowStartIndex = caret.model.indexOf(caret.line,0)
         val indexOfFirstValidInCol = indexOfWordEnd(rowStartIndex, ONLY_SPACES, true)
         if (caret.index != indexOfFirstValidInCol) {
-            moveCaretTo(indexOfFirstValidInCol, shift)
+            internalMoveCaret(indexOfFirstValidInCol, shift)
         } else {
-            moveCaretTo(rowStartIndex, shift)
+            internalMoveCaret(rowStartIndex, shift)
         }
+        tempMaxColOfUpDownMovement = caret.col
     }
 
     fun end(shift: Boolean) {
-        moveCaretTo(caret.line, Int.MAX_VALUE, shift)
+        internalMoveCaret(caret.line, Int.MAX_VALUE, shift)
+        tempMaxColOfUpDownMovement = caret.col
     }
 
     // Information

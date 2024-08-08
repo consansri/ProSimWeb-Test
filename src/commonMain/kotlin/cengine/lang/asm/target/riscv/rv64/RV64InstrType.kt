@@ -4,7 +4,7 @@ package cengine.lang.asm.target.riscv.rv64
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.parser.Rule
 
-enum class RV64InstrType(val id: String, val pseudo: Boolean, val paramType: RV64ParamType, val memWords: Int = 1) : InstrTypeInterface {
+enum class RV64InstrType(val id: String, override val isPseudo: Boolean, val paramType: RV64ParamType, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV64ParamType.RD_I20),
     AUIPC("AUIPC", false, RV64ParamType.RD_I20),
     JAL("JAL", false, RV64ParamType.RD_I20),
@@ -89,8 +89,8 @@ enum class RV64InstrType(val id: String, val pseudo: Boolean, val paramType: RV6
     FENCEI("FENCE.I", true, RV64ParamType.PS_NONE),
     Nop("NOP", true, RV64ParamType.PS_NONE),
     Mv("MV", true, RV64ParamType.PS_RD_RS1),
-    Li64("LI", true, RV64ParamType.PS_RD_LI_I64, memWords = 8),
-    La("LA", true, RV64ParamType.PS_RD_Albl, memWords = 2),
+    Li64("LI", true, RV64ParamType.PS_RD_LI_I64, bytesNeeded = null),
+    La("LA", true, RV64ParamType.PS_RD_Albl, bytesNeeded = 8),
     Not("NOT", true, RV64ParamType.PS_RD_RS1),
     Neg("NEG", true, RV64ParamType.PS_RD_RS1),
     Seqz("SEQZ", true, RV64ParamType.PS_RD_RS1),
@@ -112,8 +112,8 @@ enum class RV64InstrType(val id: String, val pseudo: Boolean, val paramType: RV6
     Jr("JR", true, RV64ParamType.PS_RS1),
     JALR1("JALR", true, RV64ParamType.PS_RS1),
     Ret("RET", true, RV64ParamType.PS_NONE),
-    Call("CALL", true, RV64ParamType.PS_lbl, memWords = 2),
-    Tail("TAIL", true, RV64ParamType.PS_lbl, memWords = 2);
+    Call("CALL", true, RV64ParamType.PS_lbl, bytesNeeded = 8),
+    Tail("TAIL", true, RV64ParamType.PS_lbl, bytesNeeded = 8);
 
     override val paramRule: Rule? = paramType.rule
 

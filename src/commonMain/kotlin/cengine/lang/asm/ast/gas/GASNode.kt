@@ -702,7 +702,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), markedAsPrefix)
 
                     if (expression != null) {
-                        val unusedTokens = (relevantTokens - postFixTokens)
+                        val unusedTokens = (relevantTokens - postFixTokens).filter { !it.type.isBasicBracket() }
                         if (unusedTokens.isNotEmpty()) {
                             unusedTokens.forEach {
                                 expression.notations.add(Notation.error(it, "Invalid Token $it for Numeric Expression!"))

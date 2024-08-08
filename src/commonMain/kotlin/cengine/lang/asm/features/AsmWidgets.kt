@@ -5,7 +5,6 @@ import cengine.editor.widgets.WidgetProvider
 import cengine.lang.asm.ast.gas.GASNode
 import cengine.lang.asm.lexer.AsmTokenType
 import cengine.lang.asm.psi.AsmFile
-import cengine.lang.asm.target.riscv.rv32.RV32InstrTypes
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -34,10 +33,8 @@ class AsmWidgets : WidgetProvider {
             element.inlayWidgets.clear()
             when (element) {
                 is GASNode.Instruction -> {
-                    if (element.type is RV32InstrTypes) {
-                        if (element.type.pseudo) {
-                            element.inlayWidgets.add(Widget("pseudo", "~", Widget.Type.INLAY, { element.range.first + element.instrName.value.length - 1 }))
-                        }
+                    if (element.type.isPseudo) {
+                        element.interlineWidgets.add(Widget("pseudo", "${element.type.bytesNeeded ?: "?"} bytes", Widget.Type.INTERLINE, { element.range.first }))
                     }
                 }
 
