@@ -1,7 +1,7 @@
 package prosim
 
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.target.rv32.RV32Spec
+import cengine.lang.asm.target.riscv.rv32.RV32Spec
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
@@ -79,7 +79,7 @@ fun testMainAppWindow(){
 fun testNewEditor() {
     val frame = JFrame()
 
-    val project = Project(ProjectState("docs"), CownLang, AsmLang(RV32Spec()))
+    val project = Project(ProjectState("docs"), CownLang, AsmLang(RV32Spec))
 
     val fileTree = FileTree(project)
 

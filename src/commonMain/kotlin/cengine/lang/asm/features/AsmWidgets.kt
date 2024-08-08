@@ -5,7 +5,7 @@ import cengine.editor.widgets.WidgetProvider
 import cengine.lang.asm.ast.gas.GASNode
 import cengine.lang.asm.lexer.AsmTokenType
 import cengine.lang.asm.psi.AsmFile
-import cengine.lang.asm.target.rv32.RV32InstrTypes
+import cengine.lang.asm.target.riscv.rv32.RV32InstrTypes
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile

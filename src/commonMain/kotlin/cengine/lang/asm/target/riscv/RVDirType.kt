@@ -1,4 +1,4 @@
-package cengine.lang.asm.target.rv32
+package cengine.lang.asm.target.riscv
 
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface

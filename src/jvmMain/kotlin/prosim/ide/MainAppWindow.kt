@@ -1,7 +1,7 @@
 package prosim.ide
 
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.target.rv32.RV32Spec
+import cengine.lang.asm.target.riscv.rv64.RV64Spec
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
@@ -28,7 +28,7 @@ class MainAppWindow : CPanel() {
 
     private val overlayScope = CoroutineScope(Dispatchers.Default)
 
-    val project = Project(ProjectState("docs"), CownLang, AsmLang(RV32Spec()))
+    val project = Project(ProjectState("docs"), CownLang, AsmLang(RV64Spec))
 
     val console = CConsole()
 

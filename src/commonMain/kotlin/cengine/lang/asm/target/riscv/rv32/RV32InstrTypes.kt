@@ -1,4 +1,4 @@
-package cengine.lang.asm.target.rv32
+package cengine.lang.asm.target.riscv.rv32
 
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.parser.Rule

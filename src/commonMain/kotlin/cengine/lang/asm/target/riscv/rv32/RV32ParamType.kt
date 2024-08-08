@@ -1,8 +1,9 @@
-package cengine.lang.asm.target.rv32
+package cengine.lang.asm.target.riscv.rv32
 
 import cengine.lang.asm.ast.gas.GASNodeType
 import cengine.lang.asm.parser.Component.*
 import cengine.lang.asm.parser.Rule
+import cengine.lang.asm.target.riscv.RVBaseRegs
 
 enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rule: Rule?) {
     // NORMAL INSTRUCTIONS
