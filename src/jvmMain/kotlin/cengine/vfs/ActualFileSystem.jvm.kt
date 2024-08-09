@@ -1,5 +1,6 @@
 package cengine.vfs
 
+import emulator.kit.nativeLog
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -39,6 +40,7 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
     actual fun isDirectory(path: String): Boolean = Files.isDirectory(Paths.get(getAbsolutePath(path)))
     actual fun exists(path: String): Boolean = Files.exists(Paths.get(getAbsolutePath(path)))
     actual fun getAbsolutePath(path: String): String {
+        nativeLog("GetAbsolutePath for $path -> ")
         val pathString = Paths.get(rootPath, path).normalize().toString()
         return pathString
     }

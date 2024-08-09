@@ -10,7 +10,7 @@ expect class FileWatcher(vfs: VFileSystem) {
     /**
      * Stats watching a directory for changes.
      *
-     * @param path The path of the directory to watch.
+     * @param path The absolute path of the directory to watch.
      */
     fun watchDirectory(path: String)
 

@@ -59,7 +59,7 @@ open class CChooser<T : Any>(val model: Model<T>, fontType: FontType, val onSele
      * @property default The default selected entry.
      * @property name The name used for displaying in the chooser.
      */
-    data class Model<T : Any>(val entries: List<T>, val default: T, val name: String? = null) {
+    data class Model<T : Any>(val entries: Collection<T>, val default: T, val name: String? = null) {
 
         /**
          * Gets the display name for a given entry.

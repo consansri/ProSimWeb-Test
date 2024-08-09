@@ -50,7 +50,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         override val expandedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
         override val collapsedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
         override val defaultLeafIcon: FlatSVGIcon = UIStates.icon.get().file
-    })
+    }, VirtualFile::class)
     private var listener: FileTreeUIListener? = null
     private val overlayScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 

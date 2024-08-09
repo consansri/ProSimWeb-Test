@@ -1,6 +1,8 @@
 package prosim.ide
 
 import cengine.lang.asm.AsmLang
+import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.lang.cown.CownLang
 import cengine.project.Project
@@ -24,11 +26,11 @@ import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.params.IconSize
 import java.awt.*
 
-class MainAppWindow : CPanel() {
+class ProjectWindow(val state: ProjectState) : CPanel() {
 
     private val overlayScope = CoroutineScope(Dispatchers.Default)
 
-    val project = Project(ProjectState("docs"), CownLang(), AsmLang(RV64Spec))
+    val project = Project(state, CownLang(), AsmLang(RV64Spec))
 
     val console = CConsole()
 
@@ -86,7 +88,6 @@ class MainAppWindow : CPanel() {
      * Is deciding on the content of the right content Panel.
      */
     private inner class WESTControls : CPanel(borderMode = BorderMode.EAST) {
-
         private val openFileTree = CIconToggle(UIStates.icon.get().folder, false, IconSize.PRIMARY_NORMAL) {
             if (it) {
                 setLeftContent(fileTree.createContainer())
@@ -162,6 +163,11 @@ class MainAppWindow : CPanel() {
 
         private var currOverlay: CDialog? = null
 
+
+        private val assemblerSwitch = CChooser<AsmSpec>(CChooser.Model(AsmSpec.specs, RV32Spec, "Target"),FontType.BASIC, {new ->
+
+        })
+
         private val emptyFiller = object : CPanel() {
             override val customBG: Color = Color(0, 0, 0, 0)
         }
@@ -230,7 +236,7 @@ class MainAppWindow : CPanel() {
 
         private fun showThemeSelector() {
             overlayScope.launch {
-                val (dialog, theme) = COptionPane.showSelector(this@MainAppWindow, "Theme", UIResource.themes)
+                val (dialog, theme) = COptionPane.showSelector(this@ProjectWindow, "Theme", UIResource.themes)
                 val newTheme = theme.await()
                 if (newTheme != null) {
                     UIStates.theme.set(newTheme)

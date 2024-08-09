@@ -15,8 +15,10 @@ import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
-class CTreeUI<T>(val nodeInformationProvider: NodeInformationProvider<T>) : BasicTreeUI() {
+class CTreeUI<T : Any>(val nodeInformationProvider: NodeInformationProvider<T>, val type: KClass<T>) : BasicTreeUI() {
     val colorFilter: FlatSVGIcon.ColorFilter
         get() = FlatSVGIcon.ColorFilter {
             if (it == Color.black) {
@@ -134,14 +136,14 @@ class CTreeUI<T>(val nodeInformationProvider: NodeInformationProvider<T>) : Basi
         override fun getTreeCellRendererComponent(tree: JTree?, value: Any?, selected: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean): Component {
             c.isOpaque = selected
 
-            val uobj = (value as? DefaultMutableTreeNode)?.userObject as? T
+            val uobj = (value as? DefaultMutableTreeNode)?.userObject
 
-            if (uobj != null) {
-                c.text = nodeInformationProvider.getName(uobj)
-                c.customFG = nodeInformationProvider.getFgColor(uobj)
+            if (uobj != null && type.isInstance(uobj)) {
+                c.text = nodeInformationProvider.getName(type.cast(uobj))
+                c.customFG = nodeInformationProvider.getFgColor(type.cast(uobj))
 
                 val loadedIcon = if (leaf) {
-                    nodeInformationProvider.getIcon(uobj) ?: nodeInformationProvider.defaultLeafIcon
+                    nodeInformationProvider.getIcon(type.cast(uobj)) ?: nodeInformationProvider.defaultLeafIcon
                 } else {
                     if (expanded) {
                         nodeInformationProvider.expandedBranchIcon

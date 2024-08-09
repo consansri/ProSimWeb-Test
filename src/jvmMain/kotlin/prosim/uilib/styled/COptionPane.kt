@@ -22,7 +22,7 @@ import javax.swing.tree.DefaultTreeModel
 class COptionPane : JOptionPane() {
 
     companion object {
-        fun <T> showSelector(parent: Component, title: String, entries: List<T>, fontType: FontType = FontType.BASIC): Pair<CDialog, Deferred<T?>> {
+        fun <T> showSelector(parent: Component, title: String, entries: Collection<T>, fontType: FontType = FontType.BASIC): Pair<CDialog, Deferred<T?>> {
             val resultDeferred = CompletableDeferred<T?>()
 
             val (cDialog, contentPanel) = createClosableOptionPane(parent, title) {
@@ -109,13 +109,12 @@ class COptionPane : JOptionPane() {
             val treeModel = DefaultTreeModel(root)
             val tree = CTree(treeModel, FontType.BASIC, object : NodeInformationProvider<File>{
                 override fun getIcon(userObject: File): FlatSVGIcon? = null
-
                 override fun getName(userObject: File): String? = userObject.name
                 override fun getFgColor(userObject: File): Color? = null
                 override val expandedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
                 override val collapsedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
                 override val defaultLeafIcon: FlatSVGIcon = UIStates.icon.get().folder
-            })
+            }, File::class)
             val cScrollPane = CScrollPane()
             cScrollPane.setViewportView(tree)
             cScrollPane.preferredSize = Dimension(600, 800)

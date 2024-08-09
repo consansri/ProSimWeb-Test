@@ -7,11 +7,12 @@ import java.awt.Font
 import javax.swing.JTree
 import javax.swing.border.Border
 import javax.swing.tree.TreeModel
+import kotlin.reflect.KClass
 
-open class CTree<T>(treeModel: TreeModel, val fontType: FontType, val nodeInformationProvider: NodeInformationProvider<T>) : JTree(treeModel) {
+open class CTree<T: Any>(treeModel: TreeModel, val fontType: FontType, val nodeInformationProvider: NodeInformationProvider<T>, type: KClass<T>) : JTree(treeModel) {
 
     init {
-        setUI(CTreeUI<T>(nodeInformationProvider))
+        this.setUI(CTreeUI(nodeInformationProvider, type))
     }
 
     override fun getFont(): Font {

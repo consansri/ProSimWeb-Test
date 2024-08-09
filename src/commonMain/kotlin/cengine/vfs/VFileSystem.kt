@@ -1,5 +1,7 @@
 package cengine.vfs
 
+import emulator.kit.nativeLog
+
 /**
  * Virtual File System (VFS)
  *
@@ -24,6 +26,7 @@ class VFileSystem(absRootPath: String) {
     }
 
     init {
+        nativeLog("AbsRootPath: ${absRootPath}")
         initializeFileWatcher()
     }
 
@@ -32,17 +35,17 @@ class VFileSystem(absRootPath: String) {
      */
 
     private fun initializeFileWatcher() {
-        watchRecursively(actualFileSystem.rootPath)
+        watchRecursively("/")
         fileWatcher.startWatching()
     }
 
     private fun watchRecursively(path: String) {
-        fileWatcher.watchDirectory(path)
-        if (actualFileSystem.isDirectory(path)) {
-            actualFileSystem.listDirectory(path).forEach { childName ->
-                val childPath = "$path/$childName"
-                watchRecursively(childPath)
-            }
+        if (!actualFileSystem.isDirectory(path)) return
+        fileWatcher.watchDirectory(actualFileSystem.getAbsolutePath(path))
+
+        actualFileSystem.listDirectory(path).forEach { childName ->
+            val childPath = "$path$DELIMITER$childName"
+            watchRecursively(childPath)
         }
     }
 

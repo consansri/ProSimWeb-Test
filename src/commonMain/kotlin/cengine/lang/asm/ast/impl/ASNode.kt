@@ -194,7 +194,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         return null
                     }
 
-                    val validTypes = asmSpec.allInstrs.filter { it.getDetectionName().lowercase() == first.value.lowercase() }
+                    val validTypes = asmSpec.allInstrs.filter { it.detectionName.lowercase() == first.value.lowercase() }
                     if (validTypes.isEmpty()) {
                         val node = Error("No valid instruction type found for $first.", first)
                         return node

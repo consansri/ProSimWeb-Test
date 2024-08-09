@@ -2,6 +2,7 @@ package cengine.project
 
 import cengine.editor.CodeEditor
 import cengine.lang.LanguageService
+import cengine.lang.asm.AsmLang
 import cengine.psi.PsiManager
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
@@ -10,7 +11,7 @@ import cengine.vfs.VirtualFile
 class Project(initialState: ProjectState, vararg languageServices: LanguageService) : FileChangeListener {
 
     val projectState: ProjectState = initialState
-    val services: Set<LanguageService> = languageServices.toSet()
+    val services: Set<LanguageService> = languageServices.toSet() + AsmLang(initialState.asmSpec)
     val fileSystem: VFileSystem = VFileSystem(projectState.absRootPath)
     val psiManagers: List<PsiManager<*>> = services.map { PsiManager(fileSystem, it) }
     val currentEditors: MutableList<CodeEditor> = mutableListOf()

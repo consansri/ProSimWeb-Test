@@ -9,7 +9,8 @@ import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVDirType
 import emulator.core.Size
 
-object RV64Spec: AsmSpec {
+data object RV64Spec: AsmSpec {
+    override val name: String = "RISC-V 64 Bit"
     override val memAddrSize: Size = Size.Bit64
     override val wordSize: Size = Size.Bit32
     override val detectRegistersByName: Boolean = true
@@ -25,4 +26,5 @@ object RV64Spec: AsmSpec {
     override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries
     override val allInstrs: List<InstrTypeInterface> = RV64InstrType.entries
     override val customDirs: List<DirTypeInterface> = RVDirType.entries
+    override fun toString(): String = name
 }

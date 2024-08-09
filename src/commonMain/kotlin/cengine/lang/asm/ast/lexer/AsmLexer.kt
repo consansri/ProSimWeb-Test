@@ -116,7 +116,7 @@ class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
         //nativeError("InvalidTokenException $token $index")
     }
 
-    private fun InstrTypeInterface.getInstrRegex(): Regex = Regex(Regex.escape(this.getDetectionName()), RegexOption.IGNORE_CASE)
+    private fun InstrTypeInterface.getInstrRegex(): Regex = Regex(Regex.escape(this.detectionName), RegexOption.IGNORE_CASE)
     private fun DirTypeInterface.getDirRegex(): Regex = Regex("\\.${Regex.escape(this.getDetectionString())}", RegexOption.IGNORE_CASE)
     private fun RegTypeInterface.getRegex(): Regex = Regex("(?:${this.recognizable.joinToString("|") { Regex.escape(it) }})")
 

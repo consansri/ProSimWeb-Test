@@ -8,6 +8,7 @@ import cengine.lang.asm.ast.lexer.AsmLexer
 import emulator.core.Size
 
 object T6502Spec : AsmSpec {
+    override val name: String = "6502 MOS"
     override val memAddrSize: Size = Size.Bit16
     override val wordSize: Size = Size.Bit16
     override val detectRegistersByName: Boolean = false
@@ -22,4 +23,5 @@ object T6502Spec : AsmSpec {
     override val allRegs: List<RegTypeInterface> = emptyList()
     override val allInstrs: List<InstrTypeInterface> = T6502InstrType.entries
     override val customDirs: List<DirTypeInterface> = emptyList()
+    override fun toString(): String = name
 }

@@ -35,7 +35,7 @@ class Analytics(val editor: PerformantCodeEditor) : CScrollPane() {
         }
 
         val treeModel = DefaultTreeModel(root)
-        setViewportView(CTree(treeModel, FontType.BASIC, notationInformationProvider).apply {
+        setViewportView(CTree(treeModel, FontType.BASIC, notationInformationProvider, Notation::class).apply {
             addMouseListener(MouseListener())
         })
     }

@@ -11,15 +11,11 @@ import prosim.uilib.theme.core.Theme
 import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.BorderFactory
-import javax.swing.BoxLayout
-import javax.swing.JFrame
-import javax.swing.SwingConstants
+import javax.swing.*
 import kotlin.system.exitProcess
 
-open class CFrame() : JFrame() {
-    val titleBar = TitleBar()
-    val content = CPanel(primary = false)
+open class CFrame(val content: JComponent = CPanel(primary = false)) : JFrame() {
+    private val titleBar = TitleBar()
 
     private val cornerRadius: Int
         get() = UIStates.scale.get().SIZE_CORNER_RADIUS
@@ -31,8 +27,19 @@ open class CFrame() : JFrame() {
     private var mouseOffsetX = 0
     private var mouseOffsetY = 0
 
+    val themeListener = UIStates.theme.createAndAddListener {
+        revalidate()
+        repaint()
+    }
+
+    val scaleListener = UIStates.scale.createAndAddListener {
+        revalidate()
+        repaint()
+    }
+
     init {
         size = Dimension(1920, 1080)
+        this.setLocationRelativeTo(null)
         isUndecorated = true
         layout = BorderLayout()
 
@@ -110,7 +117,11 @@ open class CFrame() : JFrame() {
         val logoButton = CIconButton(UIStates.icon.get().appLogo, IconSize.GRADIENT_NORMAL)
 
 
-        val titleLabel = CLabel(title, FontType.BASIC)
+        val titleLabel = object : CLabel(this@CFrame.title, FontType.BASIC) {
+            override fun getText(): String {
+                return this@CFrame.title
+            }
+        }
         val minimizeButton = CIconButton(UIStates.icon.get().decrease, IconSize.SECONDARY_SMALL)
         val maximizeButton = CIconButton(UIStates.icon.get().increase, IconSize.SECONDARY_SMALL)
         val closeButton = CIconButton(UIStates.icon.get().close, IconSize.SECONDARY_SMALL)

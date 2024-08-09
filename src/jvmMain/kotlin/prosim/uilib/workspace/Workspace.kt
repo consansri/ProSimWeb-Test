@@ -75,7 +75,7 @@ class Workspace(
             override val expandedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
             override val collapsedBranchIcon: FlatSVGIcon = UIStates.icon.get().folder
             override val defaultLeafIcon: FlatSVGIcon = UIStates.icon.get().file
-        })
+        }, TreeFile::class)
 
         // Add a mouse listener for handling user interactions with the file tree.
         tree.addMouseListener(object : MouseAdapter() {

@@ -7,7 +7,8 @@ import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.lexer.AsmLexer
 import emulator.core.Size
 
-object IKRR2Spec: AsmSpec {
+data object IKRR2Spec: AsmSpec {
+    override val name: String = "IKR RISC-II"
     override val memAddrSize: Size = Size.Bit32
     override val wordSize: Size = Size.Bit32
     override val detectRegistersByName: Boolean = true
@@ -22,4 +23,5 @@ object IKRR2Spec: AsmSpec {
     override val allRegs: List<RegTypeInterface> = IKRR2BaseRegs.entries
     override val allInstrs: List<InstrTypeInterface> = IKRR2InstrType.entries
     override val customDirs: List<DirTypeInterface> = emptyList()
+    override fun toString(): String = name
 }

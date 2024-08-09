@@ -7,13 +7,12 @@ import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.util.SystemInfo
-import prosim.ide.MainAppWindow
+import prosim.ide.NewProject
 import prosim.ide.console.ProjectConsole
 import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIListener
 import prosim.ui.components.NativeFrame
-import prosim.uilib.UIStates
 import prosim.uilib.styled.CSplitPane
 import prosim.uilib.styled.CTextField
 import prosim.uilib.styled.params.FontType
@@ -56,30 +55,16 @@ fun launchBaseApp() {
     // BaseFrame()
 }
 
+
+
 fun testMainAppWindow(){
-
-    val frame = object : JFrame() {
-        val themeListener = UIStates.theme.createAndAddListener {
-            revalidate()
-            repaint()
-        }
-        val scaleListener = UIStates.scale.createAndAddListener {
-            revalidate()
-            repaint()
-        }
-    }
-
-    frame.contentPane = MainAppWindow()
-    frame.size = Dimension(1600, 1200)
-    frame.setLocationRelativeTo(null)
-    frame.isVisible = true
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    val frame = NewProject()
 }
 
 fun testNewEditor() {
     val frame = JFrame()
 
-    val project = Project(ProjectState("docs"), CownLang(), AsmLang(RV32Spec))
+    val project = Project(ProjectState("docs", RV32Spec), CownLang(), AsmLang(RV32Spec))
 
     val fileTree = FileTree(project)
 
